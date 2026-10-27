@@ -152,6 +152,9 @@ final class HushfacebookPages {
             appearance.addPreference(toggle(context, Settings.HIDE_FACEBOOK_LOGO,
                     L10n.t("Hides the Facebook logo in the top bar. The empty spot is the same size and still opens "
                             + "Hushfacebook settings when you press and hold it. Restart Facebook to see the change.")));
+            appearance.addPreference(toggle(context, Settings.HIDE_CREATE_BUTTON,
+                    L10n.t("Takes the + button for making a post, reel or story out of the top bar. "
+                            + "Restart Facebook to see the change.")));
         }
         if (build.contains(PatchFamily.HIDDEN_TABS)) {
             // Facebook builds the tab bar once, so a change waits for a restart.
@@ -287,14 +290,6 @@ final class HushfacebookPages {
         }
     }
 
-    /** The key of the row that shows or hides Quick setups on the home page. */
-    static final String QUICK_SETUPS_HOME = "action_quick_setups_home";
-
-    /** What the Quick setups on the home page row says: whether the home page shows the row now. */
-    static String quickSetupsHomeSummary() {
-        return BaseSettings.HIDE_QUICK_SETUPS.get() ? L10n.t("Hidden. Tap to show it again.") : L10n.t("Shown. Tap to hide it.");
-    }
-
     /** Pause, backup and diagnostics, in every build. */
     static void pause(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
@@ -338,21 +333,6 @@ final class HushfacebookPages {
             });
             hushfacebook.addPreference(mark(link, SettingsIcons.BUG));
         }
-        // The home page's Quick setups row, taken off it by a long press. A tap here puts it back.
-        Row quickSetups = new Row(context);
-        // A tap flips it at once, so the row goes without a chevron.
-        quickSetups.actsAtOnce = true;
-        quickSetups.setKey(QUICK_SETUPS_HOME);
-        quickSetups.setTitle(L10n.t("Quick setups on the home page"));
-        quickSetups.setSummary(quickSetupsHomeSummary());
-        quickSetups.setPersistent(false);
-        quickSetups.setOnPreferenceClickListener(row -> {
-            BaseSettings.HIDE_QUICK_SETUPS.save(!BaseSettings.HIDE_QUICK_SETUPS.get());
-            row.setSummary(quickSetupsHomeSummary());
-            if (page.navigation != null) page.navigation.quickSetupsChanged();
-            return true;
-        });
-        hushfacebook.addPreference(mark(quickSetups, SettingsIcons.TOOLS));
         // Both rows come without a title of their own: Hushfeed's gave them one from string
         // resources that Facebook's APK doesn't have, and untitled they showed as blank rows.
         ExportDiagnosticReportPreference export = new ExportRow(context);

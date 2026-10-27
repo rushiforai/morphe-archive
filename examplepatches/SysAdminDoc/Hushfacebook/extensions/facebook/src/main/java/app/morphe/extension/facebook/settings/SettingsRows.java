@@ -326,7 +326,7 @@ final class SettingsRows {
      * focus, so on its own a switch row said neither that it was a switch nor whether it was on.
      * A double tap goes through the list, the way a tap does, so the preference's own click runs.
      */
-    static final class RowSemantics extends View.AccessibilityDelegate {
+    static class RowSemantics extends View.AccessibilityDelegate {
         private final Preference preference;
         private final Class<? extends View> role;
 

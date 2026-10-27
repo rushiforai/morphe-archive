@@ -37,7 +37,7 @@
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('tiktok-whole-app-v1', 'pinedrama-47.5.3-capabilities-v1', IgnoreCase = $false)][string]$Profile = 'tiktok-whole-app-v1',
+    [ValidateSet('tiktok-whole-app-v1', 'pinedrama-47.5.3-capabilities-v1', 'pinedrama-47.5.3-core-walk-v1', 'pinedrama-47.5.3-core-walk-v2', IgnoreCase = $false)][string]$Profile = 'tiktok-whole-app-v1',
     [string]$Serial,
     [string]$LeaseDir = $env:HUSHFEED_DEVICE_LEASE_DIR,
     [string]$ChatIdentity = $env:HUSHFEED_CHAT_IDENTITY,
@@ -259,7 +259,9 @@ if ($Install) {
     if ($LASTEXITCODE -ne 0) { throw "adb install failed on $Serial. The output above says why." }
     Write-Host "[probe] installed for $($probeProfile.Name). Load its instrumentation:"
     Write-Host "  adb -s $Serial shell am instrument $($probeProfile.ProbePackage)/$($probeProfile.Instrumentation)"
-    if ($probeProfile.Restricted) {
+    if ($Profile -cin @('pinedrama-47.5.3-core-walk-v1', 'pinedrama-47.5.3-core-walk-v2')) {
+        Write-Host '[probe] Run scripts/walk-pinedrama.ps1 with the exact merged source, native build receipt and bundle. Its five-route result always remains INCOMPLETE and cannot qualify a release.'
+    } elseif ($probeProfile.Restricted) {
         Write-Host '[probe] PineDrama permits only a bound capabilities inspection through Invoke-ProbeAction -Profile. This cannot qualify a release.'
     } else {
         Write-Host "  adb -s $Serial shell am broadcast -a app.hushfeed.verification.PROBE -p $($probeProfile.Package) -e action dump"

@@ -70,6 +70,17 @@ Pointer: [build instructions](README.md#build),
 [verification workflow](.github/workflows/ci.yml),
 [release workflow](.github/workflows/release.yml), [package scripts](package.json).
 
+### Push and pull-request CI/CD gate
+Trigger: pushing commits, opening/updating a PR, declaring merge readiness, or merging.
+Guard: run and pass the applicable CI-equivalent preflight before pushing or opening or
+updating a PR; fix failures first. After pushing, verify Verify and Release/build
+against the exact new head SHA, including required artifacts. Never reuse an older
+commit's green checks, bypass failed checks, or call pending/failed CI complete.
+Report unavailable preflight checks explicitly rather than silently skipping them.
+Pointer: [CI preflight and completion gate](docs/ci-preflight.md),
+[verification workflow](.github/workflows/ci.yml),
+[release workflow](.github/workflows/release.yml).
+
 ### APK regression verification
 Trigger: changing app bytecode, manifest handling or the injected extension.
 Guard: apply the bundle to clean original APKS with rename unselected, explicit

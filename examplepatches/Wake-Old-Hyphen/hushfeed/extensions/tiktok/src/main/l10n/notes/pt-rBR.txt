@@ -1,5 +1,27 @@
 ## Unreleased
 
+* **Configurações:** Um novo interruptor tira a linha do Hushfeed de Configurações e privacidade do TikTok. Depois disso, toque e segure Para você para abrir as configurações (#264).
+* **Comentários:** Os comentários em altura total agora param abaixo da barra de status em vez de cobrir o relógio e a bateria, e abrem em altura total também no primeiro vídeo depois de abrir o TikTok (#261).
+* **Feed:** A barra inferior do feed principal ganha uma pílula de vidro flutuante com uma lente que desliza entre as abas, um gesto de deslizar, vibração opcional e novas configurações em Interface para desfoque, opacidade do vidro, altura da pílula e cantos (#259).
+* **Patch:** Patches com configurações agora têm opções do Morphe para os valores iniciais, então uma build pode vir com seus botões já ligados. Valeu, @XEGARE (#256).
+* **Configurações:** As categorias abrem e fecham logo abaixo da sua linha na lista principal. A busca mostra os controles nessa mesma lista, e as categorias abertas continuam abertas depois de girar a tela ou reiniciar.
+* **Configurações:** Os cartões grandes da página inicial dão lugar a uma lista compacta de largura total. As configurações rápidas foram removidas.
+* **TikTok:** O Hushfeed agora exige o Morphe Manager 2.2.0 ou mais novo, ou o morphe-desktop 1.19.1 no computador.
+* **Verificações:** Adicionado um percurso básico do PineDrama para abertura, abrir e fechar as configurações no lugar e retorno. A validação completa continua pendente.
+* **Verificações:** Cada rótulo de prévia de LIVE e de drama usado pela barra inferior transparente é conferido com o APK do TikTok compatível.
+* **Feed:** Bandeiras e códigos de país ficam ao lado dos nomes escritos da direita para a esquerda (#258).
+* **Feed:** Com a barra inferior transparente ligada, o nome e a linha "Toque para assistir" das prévias de LIVE e dos minidramas ficam acima das abas (#250).
+* **Grades:** O controle de ordenação tem uma área de toque de pelo menos 48 dp.
+* **Grades:** O controle de ordenação fica oculto enquanto a grade está fora da tela e reaparece quando ela retorna.
+* **Grades:** Se não for possível salvar uma mudança de ordenação, a ordem atual é mantida.
+* **Grades:** Ao escolher a ordem original, o menu de ordenação da grade atual continua disponível (#180).
+* **Comentários:** Os comentários ao lado do vídeo usam a mesma largura para o layout e a reconstrução da tela (#253).
+* **Caixa de entrada:** Com a opção de abrir Stories primeiro, uma foto de conversa reutilizada abre o Story do criador atual no primeiro toque (#233).
+* **Playback:** Keep the source video paused when a comment link opens another page. Leaving the tap-to-start cover for another tab also keeps its feed paused (#257).
+* **Diagnóstico:** Os relatórios de notificações contam as etapas de registro e exibição sem incluir o conteúdo das mensagens (#126, #222, #86).
+* **Gravação de tela:** O TikTok continua disponível entre os apps recentes para gravação no Android 14 ou mais recente.
+* **Verificações:** A auditoria do avanço automático acompanha a reprodução do TikTok sem rotular cada vídeo. Clipes não concluídos e reprodução indisponível ficam sem um resultado conclusivo.
+* **TikTok:** Mantenha pressionado um interruptor na busca de configurações para mostrar e destacar o controle dele na lista principal (#248).
 * **Diagnóstico:** Os registros da chamada do primeiro quadro mantêm a origem e tempos monotônicos para verificar o início da reprodução (#150).
 * **Verificações da compilação:** As verificações de lançamento exigem APK e testes nativos correspondentes para cada pacote anunciado. Os testes de navegação verificam a compilação instalada e as opções dos patches.
 * **TikTok:** Recording recovery exports use bulk writes to avoid long waits when saving large files.

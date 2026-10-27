@@ -32,6 +32,17 @@
     },
     {
       "paths": [
+        "extensions/shared/library/src/main/java/app/hushtelegram/extension/shared/ui/ShimmerTitle.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushGram",
+      "commit": "9a1a2f8a3001a5b83207e13d3e2878ab22b688e6",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "The animated settings title copied from the Instagram sibling: package app.hushtelegram.extension.shared.ui, and Telegram's blues in place of Instagram's gradient."
+    },
+    {
+      "paths": [
         "extensions/shared/library/src/main/java/app/hushtelegram/extension/shared/settings/preference/ReopenSettingsAfterRestart.java",
         "extensions/shared/library/src/main/java/app/hushtelegram/extension/shared/settings/preference/ReportProblem.java",
         "extensions/shared/library/src/main/java/app/hushtelegram/extension/shared/settings/preference/QuickSetups.java",
@@ -45,7 +56,7 @@
         "https://github.com/SysAdminDoc/hushfeed"
       ],
       "license": "GPL-3.0-only",
-      "changes": "Hush settings standard (2026-10-12) copied from the Pinterest sibling: packages renamed to app.hushtelegram.extension.shared and app.hushtelegram.extension.telegram, HushTelegramPause in place of HushPinterestPause, Telegram's repository, names and switches in Report a problem and Quick setups, and Quick setups running each switch row's change listener before it sets the switch."
+      "changes": "Hush settings standard (2026-10-12) copied from the Pinterest sibling:packages renamed to app.hushtelegram.extension.shared and app.hushtelegram.extension.telegram, HushTelegramPause in place of HushPinterestPause, Telegram's repository, names and switches in Report a problem and Quick setups, and Quick setups running each switch row's change listener before it sets the switch."
     },
     {
       "paths": [
@@ -169,6 +180,7 @@
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/ScrollKeyboard.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/VolumeKeys.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/VideoTurn.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/VideoUpright.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/SwipeBack.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/HidePhone.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/MessageTime.java",
@@ -196,14 +208,18 @@
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/OutsideTranslate.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/GoogleTranslate.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/ChannelButtons.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/ChannelMute.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/SendAs.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/MainTabs.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/DownloadSpeed.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/DataSaverDownloads.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/SaveDownloads.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/GalleryFolder.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/ChatTypeFolders.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/AiTranslate.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/settings/TranslateServiceEditor.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/TranslateTarget.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/settings/TranslateTargetPicker.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/UnifiedPush.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/UnifiedPushReceiver.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/UnifiedPushRaise.java",
@@ -213,6 +229,7 @@
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/settings/EditorForm.java",
         "patches/src/main/kotlin/app/morphe/patches/telegram/misc/settings/ChatListTitlePress.kt",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/KeepDeletedBridge.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/KeepEdits.java",
         "patches/src/main/kotlin/app/morphe/patches/telegram/misc/localcontrols/**",
         "patches/src/main/kotlin/app/morphe/patches/telegram/misc/paste/**",
         "patches/src/main/kotlin/app/morphe/patches/telegram/misc/ids/**",
@@ -298,6 +315,8 @@
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/settings/SettingsLock.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/LaunchFolder.java",
         "patches/src/main/kotlin/app/morphe/patches/telegram/misc/folders/LaunchFolderSupport.kt",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/HiddenChats.java",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/folders/HiddenChatsSupport.kt",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/SideMenu.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/SideMenuPanel.java"
       ],

@@ -22,8 +22,12 @@ generated `patches-list.json` by hand.
 
 ## Adding a new app version
 
-- Keep every previously supported version. Add a target to the app's `Constants.kt` only
-  after the new version has been verified; never widen compatibility speculatively.
+- Keep the supported versions short: the newest version and the one before it. YouTube and
+  Reddit support the official Morphe patches' stable and newest targets plus the newest store
+  version instead. Twitch also keeps 30.7.2 for Android 12 and older. Remove a version only
+  after the versions that replace it are verified.
+- Add a target to the app's `Constants.kt` only after the new version has been verified; never
+  widen compatibility speculatively.
 - Validate the official input first: package name, version, version code, signer
   certificate (must be in the target's `signatures`), minimum SDK and ABI.
 - Apply the patches with `--force` to probe the new version, then without `--force` after

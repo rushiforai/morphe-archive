@@ -6,10 +6,16 @@ package app.morphe.patches.facebook.comments.options
 
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.patches.facebook.comments.summaries.HOLDS
+import app.morphe.patches.facebook.comments.summaries.POST_SOCKET
+import app.morphe.patches.facebook.comments.summaries.POST_SUMMARY
 import app.morphe.patches.facebook.comments.summaries.descriptor
+import app.morphe.patches.facebook.comments.summaries.holdSummaries
+import app.morphe.patches.facebook.comments.summaries.nameTable
 import app.morphe.patches.facebook.comments.summaries.switchKeys
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
+import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.feed.methodsHolding
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -48,7 +54,8 @@ import java.io.File
  * is found by its name, and the one paging flag of the comment list it builds goes through the
  * extension just before it's written (#140). The View more replies row is found by its render's
  * name, and the boolean that picks whether its words alone or the whole row take a tap goes
- * through the extension right after Facebook reads it (#219). The video viewer's comment bar is found by the names
+ * through the extension right after Facebook reads it (#219). So does the nameless pager under an
+ * open reply thread, found as the one thing the thread's comment list makes that reads it. The video viewer's comment bar is found by the names
  * of its sticker and GIF buttons, and once both are built the extension is asked and a yes clears
  * them. The whole bar around them is the class naming its layout transition that builds that row,
  * and its render asks first and returns nothing on a yes (#213). Reads the fixture bundles from
@@ -157,6 +164,46 @@ class CommentSheetOptionsFixtureTest {
         assertEquals("$where: a yes answers no", listOf(Opcode.CONST_4, Opcode.RETURN), patched.subList(5, 7).map { it.opcode })
         assertEquals("$where: Facebook's code stays", original.map { it.opcode }, patched.drop(7).map { it.opcode })
         assertEquals("$where: a no lands on Facebook's first instruction", setOf(5, 7), ControlFlow.of(method).normal[4].toSet())
+    }
+
+    private fun post(bundle: File) {
+        val name = bundle.name
+        val sockets = holders(bundle, POST_SOCKET).flatMap { methodsHolding(it, POST_SOCKET) }
+        assertTrue("$name: nothing names \"$POST_SOCKET\"", sockets.isNotEmpty())
+        val found = postSocket(holders(bundle, INLINE_COMMENTS), sockets) { types -> FixtureDex.classes(bundle, types) }
+        val bottom = bottomSocket(
+            holders(bundle, RELATED_GROUPS),
+            holders(bundle, BOTTOM_SOCKET).flatMap { methodsHolding(it, BOTTOM_SOCKET) },
+        ) { types -> FixtureDex.classes(bundle, types) }
+        val table = found.table
+        val check = found.check
+        val where = "$name: ${check.descriptor()}"
+        assertNotEquals("$where is the check under a post's comments", bottom.check.descriptor(), check.descriptor())
+        for (plugin in listOf(INLINE_COMMENTS_DWELL_TIME, INLINE_COMMENTS_CLIENT_RANKING, POST_SUMMARY)) {
+            assertTrue("$where: ${table.descriptor()} doesn't name $plugin", holdsString(table, plugin))
+        }
+        assertEquals("$where: Meta AI's inline summary isn't in the same name table",
+            nameTable(holders(bundle, POST_SUMMARY), POST_SUMMARY).descriptor(), table.descriptor())
+
+        val owner = FixtureDex.classes(bundle, setOf(check.definingClass)).values.single()
+        val context = PatchContexts.of(listOf(owner))
+        val method = context.mutableClassDefBy(owner.type).methods.single { it.descriptor() == check.descriptor() }
+        val original = method.implementation!!.instructions.toList()
+        val number = method.implementation!!.registerCount - 1
+        // Hide Meta AI comment summaries hooks the same check first when both patches are selected.
+        method.holdSummaries(table)
+        method.holdButtons(table, HOLDS_POST_COMMENTS)
+        val patched = method.implementation!!.instructions.toList()
+        assertEquals("$where gains seven instructions per hook", original.size + 14, patched.size)
+        val range = patched[0] as RegisterRangeInstruction
+        assertEquals("$where: with the check's own number, its last register", listOf(number, 1),
+            listOf(range.startRegister, range.registerCount))
+        assertEquals("$where: the plugin's name comes from the table", table.descriptor(), patched[0].reference())
+        assertEquals("$where: its own extension method is asked", HOLDS_POST_COMMENTS, patched[2].reference())
+        assertEquals("$where: a yes answers no", listOf(Opcode.CONST_4, Opcode.RETURN), patched.subList(5, 7).map { it.opcode })
+        assertEquals("$where: a no goes on to the Meta AI summary hook", setOf(5, 7), ControlFlow.of(method).normal[4].toSet())
+        assertEquals("$where: the Meta AI summary hook is next", HOLDS, patched[9].reference())
+        assertEquals("$where: Facebook's code stays", original.map { it.opcode }, patched.drop(14).map { it.opcode })
     }
 
     private fun picker(bundle: File) {
@@ -318,8 +365,9 @@ class CommentSheetOptionsFixtureTest {
         assertEquals("$where: the code before the hook runs into it", listOf(write), ControlFlow.of(method).normal[write - 1])
     }
 
-    private fun replyRow(bundle: File, name: String): ReplyRowTap {
-        val found = replyRowTap(holders(bundle, name), name)
+    private fun replyRow(bundle: File, name: String): ReplyRowTap = hookedRow(bundle, replyRowTap(holders(bundle, name), name))
+
+    private fun hookedRow(bundle: File, found: ReplyRowTap): ReplyRowTap {
         val render = found.render
         val where = "${bundle.name}: ${render.descriptor()}"
         val row = FixtureDex.classes(bundle, setOf(render.definingClass)).values.single()
@@ -413,6 +461,11 @@ class CommentSheetOptionsFixtureTest {
     }
 
     @Test
+    fun `each declared build keeps a feed post's inline comments out from under its buttons`() = bundles { bundle ->
+        post(bundle)
+    }
+
+    @Test
     fun `each declared build can hide the full-screen video comment composer`() = bundles { bundle ->
         videoComposer(bundle)
     }
@@ -436,6 +489,27 @@ class CommentSheetOptionsFixtureTest {
             val sheetAsks = sheet.render.implementation!!.instructions.toList()[sheet.kept - 1].reference()
             val feedAsks = row.render.implementation!!.instructions.toList()[row.kept - 1].reference()
             assertEquals("${bundle.name}: both rows read the same server answer", sheetAsks, feedAsks)
+        }
+
+    @Test
+    fun `each declared build asks before the View more replies pager under an open thread picks which part of it takes a tap`() =
+        bundles { bundle ->
+            val sheet = replyRowTap(holders(bundle, VIEW_MORE_REPLIES))
+            val found = threadPagerTap(holders(bundle, COMMENT_LIST), sheet) { types -> FixtureDex.classes(bundle, types) }
+            val pager = hookedRow(bundle, found)
+            assertNotEquals("${bundle.name}: the pager isn't the View replies row", sheet.render.definingClass,
+                pager.render.definingClass)
+            val sheetAsks = sheet.render.implementation!!.instructions.toList()[sheet.kept - 1].reference()
+            val pagerAsks = pager.render.implementation!!.instructions.toList()[pager.kept - 1].reference()
+            assertEquals("${bundle.name}: both rows read the same server answer", sheetAsks, pagerAsks)
+            val list = holders(bundle, COMMENT_LIST).single { holder ->
+                holder.methods.any { it.name == "<init>" && holdsString(it, COMMENT_LIST) }
+            }
+            assertTrue("${bundle.name}: the thread's list makes the pager", list.methods.any { method ->
+                method.implementation?.instructions?.any {
+                    it.opcode == Opcode.NEW_INSTANCE && it.reference() == pager.render.definingClass
+                } == true
+            })
         }
 
     @Test

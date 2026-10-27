@@ -92,7 +92,9 @@ class ScreenHostsTest {
 
     @Test fun everySupportedBuildRecordsItsNameCodeAndMapping() {
         for ((name, codes) in app.hushmessenger.patches.MessengerTarget.VERSIONS) for (code in codes) {
-            assertEquals("$name|$code|base", originalBuild(name, code.toString(), controlProfiles), "$code")
+            val profile = controlProfiles.getValue(code)
+            val mapping = if (profile === BASE_PROFILE) "base" else controlProfiles.filterValues { it === profile }.keys.min().toString()
+            assertEquals("$name|$code|$mapping", originalBuild(name, code.toString(), controlProfiles), "$code")
         }
         // A build that shares another profile reports the lowest code of the builds that share it.
         val shared = controlProfiles + mapOf(348000002 to SYNTHETIC_PROFILE, 348000001 to SYNTHETIC_PROFILE)
@@ -166,7 +168,8 @@ class ScreenHostsTest {
     @Test fun everySupportedBuildSendsEveryShortcutWriteThroughHostScreens() {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
         org.junit.jupiter.api.Assumptions.assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
-        val expected = mapOf(346814894 to mapOf("messengerPushed" to 7, "messengerAdded" to 2, "messengerSet" to 1))
+        val expected = app.hushmessenger.patches.MessengerTarget.VERSION_CODES
+            .associateWith { mapOf("messengerPushed" to 7, "messengerAdded" to 2, "messengerSet" to 1) }
         val apks = java.nio.file.Files.list(java.nio.file.Path.of(root!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
         assertEquals(controlProfiles.size, apks.size)
         for (apk in apks) {

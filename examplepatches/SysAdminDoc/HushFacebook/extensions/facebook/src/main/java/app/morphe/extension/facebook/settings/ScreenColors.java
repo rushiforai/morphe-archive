@@ -238,7 +238,7 @@ final class ScreenColors {
         TextView title = row.findViewById(android.R.id.title);
         if (title != null) {
             title.setTextColor(dimmedWhenDisabled(this.title));
-            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
             title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             if (title.getParent() instanceof View) {
                 View text = (View) title.getParent();
@@ -249,8 +249,8 @@ final class ScreenColors {
         TextView summary = row.findViewById(android.R.id.summary);
         if (summary != null) {
             summary.setTextColor(dimmedWhenDisabled(this.summary));
-            summary.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
-            summary.setLineSpacing(dp(row, 2), 1);
+            summary.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+            summary.setLineSpacing(0, 1);
         }
         View widget = row.findViewById(android.R.id.switch_widget);
         if (widget instanceof Switch) {
@@ -295,36 +295,27 @@ final class ScreenColors {
 
     /** Group boundaries follow the visible rows, including a filtered search result. */
     void paintSurface(View row, Preference preference, boolean first, boolean last) {
-        float radius = dp(row, 8);
         GradientDrawable surface = new GradientDrawable();
         surface.setColor(card);
         surface.setStroke(dp(row, 1), focusStroke(heading, outline));
-        surface.setCornerRadii(new float[]{
-                first ? radius : 0, first ? radius : 0,
-                first ? radius : 0, first ? radius : 0,
-                last ? radius : 0, last ? radius : 0,
-                last ? radius : 0, last ? radius : 0});
-        Drawable inset = new InsetDrawable(surface, dp(row, 20), first ? dp(row, 4) : -dp(row, 1),
-                dp(row, 20), last ? dp(row, 4) : 0);
+        Drawable inset = new InsetDrawable(surface, 0, first ? 0 : -dp(row, 1), 0, 0);
         row.setBackground(preference.isSelectable()
                 ? new RippleDrawable(ColorStateList.valueOf(half(accent)), inset, null) : inset);
         // Explicit padding after the inset background prevents its padding from moving the text.
-        int vertical = 14;
-        row.setPaddingRelative(dp(row, 36), dp(row, vertical + (first ? 4 : 0)),
-                dp(row, 36), dp(row, vertical + (last ? 4 : 0)));
-        row.setMinimumHeight(dp(row, preference.getIcon() == null ? 72 : 64));
+        row.setPaddingRelative(dp(row, 16), dp(row, 7), dp(row, 16), dp(row, 7));
+        row.setMinimumHeight(dp(row, 52));
     }
 
     /** A section title. */
     void paintHeading(View row) {
         TextView title = row.findViewById(android.R.id.title);
         if (title != null) {
-            title.setTextColor(heading);
-            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+            title.setTextColor(summary);
+            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
             title.setLetterSpacing(0.07f);
             title.setAllCaps(true);
         }
-        row.setPaddingRelative(dp(row, 20), dp(row, 22), dp(row, 20), dp(row, 10));
+        row.setPaddingRelative(dp(row, 16), dp(row, 16), dp(row, 16), dp(row, 8));
     }
 
     /** Marks the chevron a row was given, so a recycled row's can be found and taken off. */
@@ -503,7 +494,7 @@ final class ScreenColors {
             fillWidth(title);
             title.setGravity(android.view.Gravity.CENTER);
             title.setTextSize(22);
-            title.setTextColor(palette.title);
+            ShimmerTitle.wear(title, palette.background);
             title.setTypeface(Typeface.create("sans-serif-medium", 0));
             Drawable icon = SettingsIcons.icon(row.getContext(), SettingsIcons.ABOUT, palette.heading);
             icon.setBounds(0, 0, dp(row, 56), dp(row, 56));
@@ -553,7 +544,7 @@ final class ScreenColors {
         int titleId = dialog.getContext().getResources().getIdentifier("alertTitle", "id", "android");
         TextView title = titleId == 0 ? null : dialog.findViewById(titleId);
         if (title != null) {
-            title.setTextColor(this.title);
+            ShimmerTitle.wear(title, this.dialog);
             title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
             title.setSingleLine(false);
             title.setMaxLines(Integer.MAX_VALUE);

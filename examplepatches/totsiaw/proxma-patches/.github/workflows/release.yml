@@ -17,6 +17,7 @@ jobs:
       attestations: write
       issues: write
       pull-requests: write
+      discussions: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -75,8 +76,53 @@ jobs:
 
       - name: Attest
         if: steps.release.outputs.new_release_published == 'true'
-        continue-on-error: true  # provenance attestation isn't available on private user repos; don't fail the release
+        continue-on-error: true
         uses: actions/attest-build-provenance@v4
         with:
           subject-name: 'Nai64Patches ${{ steps.release.outputs.new_release_git_tag }}'
           subject-path: patches/build/libs/patches-*.mpp
+
+      - name: Notify shipped requests
+        if: steps.release.outputs.new_release_published == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ steps.release.outputs.new_release_git_tag }}
+          LAST: ${{ steps.release.outputs.last_release_git_tag }}
+        run: |
+          set -euo pipefail
+          tmp="$RUNNER_TEMP"
+
+          # Without a readable previous list every app would look new; skip instead.
+          if [ -z "$LAST" ] || ! git show "$LAST:patches-list.json" > "$tmp/previous.json" 2>/dev/null; then
+            echo "::notice::No patches-list.json at previous release '${LAST}'; skipping"
+            exit 0
+          fi
+          git show "$TAG:patches-list.json" > "$tmp/current.json"
+
+          bash .github/scripts/discussion.sh list app-requests > "$tmp/discussions.json"
+          gh issue list --repo "$REPO" --state open --label app-update --limit 200 \
+            --json number,title,body,comments > "$tmp/issues.json"
+
+          python3 .github/scripts/shipped_requests.py \
+            "$tmp/previous.json" "$tmp/current.json" \
+            "$tmp/discussions.json" "$tmp/issues.json" "$TAG" > "$tmp/actions.jsonl"
+
+          while IFS= read -r row; do
+            kind=$(jq -r .kind <<<"$row")
+            n=$(jq -r .number <<<"$row")
+            app=$(jq -r .app <<<"$row")
+            jq -r .comment <<<"$row" > "$tmp/comment.md"
+            if [ "$kind" = discussion ]; then
+              bash .github/scripts/discussion.sh comment "$n" "$tmp/comment.md" >/dev/null
+              echo "Commented on discussion #$n ($app)"
+              if [ "$(jq -r .close <<<"$row")" = true ]; then
+                bash .github/scripts/discussion.sh close "$n" RESOLVED
+                echo "Closed discussion #$n ($app)"
+              fi
+            else
+              gh issue comment "$n" --repo "$REPO" --body-file "$tmp/comment.md" >/dev/null
+              echo "Commented on issue #$n ($app)"
+            fi
+          done < "$tmp/actions.jsonl"

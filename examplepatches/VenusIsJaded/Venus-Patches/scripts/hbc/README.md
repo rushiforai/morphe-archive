@@ -14,6 +14,7 @@ the `.mpp`, and everything they write goes to `work/` (ignored by git). The port
 | `ops.txt` | HBC98 opcode table from Hermes' `BytecodeList.def`; `PrivacyTest.kt` checks the Kotlin constants against it |
 | `DexInspect.kt` | Lists DEX classes and methods matching a name (usage at its top) |
 | `color_tables.py` | Decodes Discord's color tables to `work/discord_colors.json` for `tests/theme_compat.cjs` |
+| `legacy_colors.py` | Regenerates `LEGACY_TOKEN_RAWS` in `bootstrap.js` (which legacy raw each moved color token used to read) from nexpid/Themelings history; run when porting |
 | `hermes_vm.sh`, `bench_setup.sh` | The checksum-pinned Hermes VM and everything benchmarks need |
 | `probe.sh`, `probe_runtime.py` | Boot the real bundle with the runtime and run a probe script inside it |
 

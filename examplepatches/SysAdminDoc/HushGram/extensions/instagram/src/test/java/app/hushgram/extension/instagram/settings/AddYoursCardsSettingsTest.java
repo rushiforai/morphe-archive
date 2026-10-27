@@ -71,7 +71,6 @@ public class AddYoursCardsSettingsTest {
         assertEquals(Arrays.toString(keys), Settings.HIDE_STORY_SUGGESTIONS.key, keys[Arrays.asList(keys).indexOf(Settings.HIDE_ADD_YOURS_CARDS.key) - 1]);
         assertTrue(PatchFamily.STORIES_TRAY.switches.contains(Settings.HIDE_ADD_YOURS_CARDS));
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.HIDE_ADD_YOURS_CARDS.key));
-        assertTrue(QuickSetupKeys.QUIET.contains(Settings.HIDE_ADD_YOURS_CARDS));
     }
     @Test public void aSavedSwitchAnswersOffWhilePaused() throws Exception {
         open(EnumSet.of(PatchFamily.STORIES_TRAY));

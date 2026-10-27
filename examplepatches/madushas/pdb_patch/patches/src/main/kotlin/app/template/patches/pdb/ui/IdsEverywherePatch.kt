@@ -127,7 +127,7 @@ val pdbIdsEverywherePatch = bytecodePatch(
                 move-result-object v0
                 invoke-virtual {p0}, ${mutable.type}->getId()Ljava/lang/String;
                 move-result-object v1
-                invoke-static {v0, v1}, ${EXT_PREFIX}PdbUi;->decorateName(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+                invoke-static {v0, v1, p0}, ${EXT_PREFIX}PdbUi;->decorateName(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/String;
                 move-result-object v0
                 return-object v0
                 """.trimIndent(),

@@ -13,11 +13,11 @@ final class ExpertSettings {
         root.setOrientation(LinearLayout.VERTICAL);
         SharedPreferences prefs = SettingsProfiles.prefs(activity);
         LiveSettings.Toggle mode = new LiveSettings.Toggle(activity);
-        mode.setText("エキスパート設定モード");
+        mode.setText("エキスパート設定の項目を表示");
         mode.setChecked(prefs.getBoolean(KEY, false));
         root.addView(mode);
         android.widget.TextView help = new android.widget.TextView(activity);
-        help.setText("通常の各カテゴリにない追加動作だけを表示します。各カテゴリと重複する設定はここには表示しません。モード切替だけでは機能や保存済みデータを変更しません。クラッシュ防止に必要な処理は常時有効です。パッチ時に導入していない機能は追加できません。");
+        help.setText("詳細な設定項目の表示を切り替えます。各機能の動作は、表示される個別スイッチで変更してください。設定値は表示を閉じても保持されます。通常の各カテゴリと重複しない追加動作を表示します。クラッシュ防止に必要な処理は常時有効です。パッチ時に導入していない機能は追加できません。");
         root.addView(help);
         LinearLayout options = new LinearLayout(activity);
         options.setOrientation(LinearLayout.VERTICAL);

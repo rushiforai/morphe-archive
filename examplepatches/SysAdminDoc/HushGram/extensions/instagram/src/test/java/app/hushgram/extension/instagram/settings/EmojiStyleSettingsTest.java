@@ -83,7 +83,8 @@ public class EmojiStyleSettingsTest {
         assertEquals("Layout", layout.getTitle().toString());
         String[] keys = new String[layout.getPreferenceCount()];
         for (int i = 0; i < keys.length; i++) keys[i] = layout.getPreference(i).getKey();
-        assertEquals(Arrays.asList(Settings.REMOVE_BOTTOM_SPACE.key, Settings.NOTO_EMOJI.key), Arrays.asList(keys));
+        assertEquals(Arrays.asList(Settings.REMOVE_BOTTOM_SPACE.key, Settings.NOTO_EMOJI.key, LayoutCategory.PURE_BLACK_HINT_ROW),
+                Arrays.asList(keys));
         assertFalse(row.isChecked());
         assertFalse(Settings.NOTO_EMOJI.get());
         assertTrue("text already drawn keeps its style until a restart", Settings.NOTO_EMOJI.rebootApp);

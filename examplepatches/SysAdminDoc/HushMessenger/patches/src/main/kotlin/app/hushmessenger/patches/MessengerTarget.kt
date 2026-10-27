@@ -5,7 +5,7 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
 /**
- * The stock arm64 Messenger builds the patches were checked against.
+ * The stock arm64 and armv7 Messenger builds the patches were checked against.
  *
  * A version name alone is insufficient: Meta publishes several DEX variants with that name. Each
  * build is recorded in scripts/profiles by CompatReport; the APKs themselves are local research
@@ -15,9 +15,12 @@ internal object MessengerTarget {
     const val PACKAGE = "com.facebook.orca"
     const val MIN_SDK = 28
 
-    /** Each supported version name and the version codes of its checked arm64 builds. */
+    /** Each supported version name and the version codes of its checked arm64 and armv7 builds. */
     val VERSIONS: Map<String, List<Int>> = mapOf(
-        "584.0.0.49.98" to listOf(346814894),
+        "584.1.0.61.98" to listOf(
+            346816935, 346816937, 346816939, 346816940, 346816949, 346816951, 346816955, 346816966, 346816969,
+            346816972, 346816973, 346817004, 346817005, 346817019, 346817021, 346817022, 346817023, 346817024,
+        ),
     )
     val VERSION_CODES = VERSIONS.values.flatten()
 
@@ -26,7 +29,7 @@ internal object MessengerTarget {
     private const val META_SIGNER =
         "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27"
 
-    /** "584.0.0.49.98 APK (version code 346814894)", joined with " or " across version names. */
+    /** "584.1.0.61.98 APK (version code 346816935 or 346816937)", joined with " or " across version names. */
     fun supportedApks(versions: Map<String, List<Int>> = VERSIONS): String =
         versions.entries.joinToString(" or ") { (name, codes) -> "$name APK (version code ${codes.joinToString(" or ")})" }
 
@@ -43,7 +46,7 @@ internal object MessengerTarget {
                 version = name,
                 versionCodes = null,
                 minSdk = MIN_SDK,
-                description = "Arm64 $builds; checked again during patching",
+                description = "Stock $builds; checked again during patching",
             )
         },
     )

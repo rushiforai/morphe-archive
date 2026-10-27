@@ -303,17 +303,17 @@ public final class L10n {
             if (language.isEmpty()) {
                 continue;
             }
-            // A second region of a language already listed still counts: with Portugal's
-            // Portuguese first and Brazil's second, the Brazilian table is the one that answers.
-            String country = locale.getCountry();
-            if (country != null && !country.isEmpty()) {
-                String regional = language + "-r" + country.toLowerCase(Locale.ROOT);
-                if (!tags.contains(regional)) tags.add(regional);
-            }
-            // The one Chinese table is Simplified, and Chinese is told apart by script as much
-            // as by region (zh-Hans-MY, plain zh), so every Simplified phone also tries it.
-            if (simplifiedChinese(locale, language) && !tags.contains(SIMPLIFIED_CHINESE)) {
-                tags.add(SIMPLIFIED_CHINESE);
+            if ("zh".equals(language)) {
+                // A script wins over a conflicting region before either Chinese table is tried.
+                String chinese = chineseTable(locale);
+                if (chinese != null && !tags.contains(chinese)) tags.add(chinese);
+            } else {
+                // A second region still counts: Portugal first and Brazil second can use Brazil's table.
+                String country = locale.getCountry();
+                if (country != null && !country.isEmpty()) {
+                    String regional = language + "-r" + country.toLowerCase(Locale.ROOT);
+                    if (!tags.contains(regional)) tags.add(regional);
+                }
             }
             if (!tags.contains(language)) tags.add(language);
         }
@@ -324,19 +324,26 @@ public final class L10n {
     }
 
     private static final String SIMPLIFIED_CHINESE = "zh-rcn";
+    private static final String TRADITIONAL_CHINESE = "zh-rtw";
 
     /**
-     * Whether a Chinese locale reads Simplified. A Hans script says so and any other script
-     * (Hant) says no. With no script, China, Singapore and Malaysia (or no region at all) are
-     * Simplified, while Taiwan, Hong Kong and Macau are Traditional and get English.
+     * Explicit Hans/Hant selects its script even when the country says otherwise. Without a
+     * script, TW/HK/MO use Taiwan wording and CN/SG/MY or plain zh keep Simplified. Unrecognised
+     * scripts or countries try the next language rather than guessing a different script.
      */
-    private static boolean simplifiedChinese(Locale locale, String language) {
-        if (!"zh".equals(language)) return false;
+    private static String chineseTable(Locale locale) {
         String script = locale.getScript();
-        if (script != null && !script.isEmpty()) return "Hans".equalsIgnoreCase(script);
+        if (script != null && !script.isEmpty()) {
+            if ("Hans".equalsIgnoreCase(script)) return SIMPLIFIED_CHINESE;
+            if ("Hant".equalsIgnoreCase(script)) return TRADITIONAL_CHINESE;
+            return null;
+        }
         String country = locale.getCountry();
-        if (country == null || country.isEmpty()) return true;
-        return "CN".equalsIgnoreCase(country) || "SG".equalsIgnoreCase(country) || "MY".equalsIgnoreCase(country);
+        if (country == null || country.isEmpty() || "CN".equalsIgnoreCase(country)
+                || "SG".equalsIgnoreCase(country) || "MY".equalsIgnoreCase(country)) return SIMPLIFIED_CHINESE;
+        if ("TW".equalsIgnoreCase(country) || "HK".equalsIgnoreCase(country)
+                || "MO".equalsIgnoreCase(country)) return TRADITIONAL_CHINESE;
+        return null;
     }
 
     /**

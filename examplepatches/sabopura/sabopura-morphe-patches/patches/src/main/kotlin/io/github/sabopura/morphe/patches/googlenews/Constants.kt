@@ -27,11 +27,6 @@ internal object Constants {
                 minSdk = 24,
                 description = "Patched, installed and launched on API 36.",
             ),
-            AppTarget(
-                version = "5.163.0.947799485",
-                minSdk = 24,
-                description = "Last version supported by docbt/patched-up 1.10.0.",
-            ),
         ),
     )
 }

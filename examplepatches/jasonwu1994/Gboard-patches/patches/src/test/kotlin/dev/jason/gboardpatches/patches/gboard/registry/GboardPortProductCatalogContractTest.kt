@@ -18,7 +18,6 @@ import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardDevice
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardGrammarCheckerFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardInlineSuggestionsFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardKeyShapeSelectionFlagValuePatch
-import dev.jason.gboardpatches.patches.gboard.features.flowmode.gboardFlowModeFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.ocr.gboardOcrFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.quickinsert.gboardQuickInsertFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsSoftKeyPatch
@@ -51,7 +50,7 @@ class GboardPortProductCatalogContractTest {
     @Test
     fun catalogIsDeterministicAndDeclaresSelectedOnlyZeroSelectionComposition() {
         assertEquals("gboard-port-product-catalog.v1", catalog["format"].asString)
-        assertEquals("1.15.0", catalog["catalog_version"].asString)
+        assertEquals("1.17.0", catalog["catalog_version"].asString)
         val composition = catalog.getAsJsonObject("composition")
         assertEquals(
             setOf("selected_only_call_chain", "runtime_feature_mask"),
@@ -148,14 +147,14 @@ class GboardPortProductCatalogContractTest {
     }
 
     @Test
-    fun admittedBindingUnionExactlyMatchesTheAuthoritative1803Profile() {
+    fun admittedBindingUnionExactlyMatchesTheAuthoritative1853Profile() {
         val bindingProfile = JsonParser.parseString(
             Files.readString(
                 repositoryRoot().resolve(BINDINGS_PATH),
                 StandardCharsets.UTF_8,
             ),
         ).asJsonObject
-        assertEquals("18.0.3", bindingProfile["target_version"].asString)
+        assertEquals("18.5.4", bindingProfile["target_version"].asString)
         val authoritativeKeys = bindingProfile.getAsJsonObject("bindings").keySet()
         val authoritativeKinds = bindingProfile.getAsJsonObject("bindings").entrySet()
             .associate { (key, binding) -> key to binding.asJsonObject["kind"].asString }
@@ -176,7 +175,7 @@ class GboardPortProductCatalogContractTest {
                 }
         }.toSet()
 
-        assertEquals(40, authoritativeKeys.size)
+        assertEquals(203, authoritativeKeys.size)
         assertEquals(authoritativeKeys, requiredKeys)
         assertEquals(
             authoritativeKinds,
@@ -185,19 +184,21 @@ class GboardPortProductCatalogContractTest {
     }
 
     @Test
-    fun zhuyinBottomRowDeclaresBothSoftKeyBindingsResolvedByTheComposer() {
+    fun zhuyinBottomRowDeclaresOnlyAfterBindResolvedByTheComposer() {
         val bottomRow = features().single { feature ->
             feature["feature_id"].asString == "zhuyin_bottom_row_key_sizes"
-        }.getAsJsonArray("contributions").single().asJsonObject
-
-        assertEquals(
-            listOf("soft_key_bind", "soft_key_metadata_type"),
-            bottomRow.getAsJsonArray("required_bindings").map { it.asString },
-        )
+        }.getAsJsonArray("contributions").map { it.asJsonObject }
+        assertEquals(1, bottomRow.size)
+        val after = bottomRow.single { it["phase"].asString == "after_stock" }
+        assertEquals(300, after["order"].asInt)
+        assertEquals(listOf("ZHUYIN_BOTTOM_ROW_WEIGHT_RUNTIME_AFTER_SOFT_KEY_BOUND"),
+            after.getAsJsonArray("runtime_calls").map { it.asString })
+        assertEquals(listOf("soft_key_bind", "soft_key_metadata_type"),
+            after.getAsJsonArray("required_bindings").map { it.asString })
     }
 
     @Test
-    fun flagFamilyDeclaresSeventeenSelectedOnlyComposerCallsInCanonicalOrder() {
+    fun flagFamilyDeclaresSixteenSelectedOnlyComposerCallsInCanonicalOrder() {
         val flagContributions = features().flatMap { feature ->
             feature.getAsJsonArray("contributions")
                 .map { contribution -> contribution.asJsonObject }
@@ -207,18 +208,18 @@ class GboardPortProductCatalogContractTest {
                 .map { contribution -> feature["feature_id"].asString to contribution }
         }.sortedBy { (_, contribution) -> contribution["order"].asInt }
 
-        assertEquals(17, flagContributions.size)
+        assertEquals(16, flagContributions.size)
         assertEquals(
             listOf(
                 10, 20, 30, 40, 100, 200, 300, 400,
-                500, 600, 700, 800, 900, 1000, 1100, 1200, 1300,
+                500, 600, 700, 800, 900, 1000, 1200, 1300,
             ),
             flagContributions.map { (_, contribution) -> contribution["order"].asInt },
         )
         val runtimeCalls = flagContributions.map { (_, contribution) ->
             contribution.getAsJsonArray("runtime_calls").first().asString
         }
-        assertEquals(17, runtimeCalls.distinct().size)
+        assertEquals(16, runtimeCalls.distinct().size)
         assertFalse("FEATURE_FLAGS_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE" in runtimeCalls)
         flagContributions.forEach { (_, contribution) ->
             assertEquals(
@@ -273,7 +274,8 @@ class GboardPortProductCatalogContractTest {
         }
         assertEquals("dedicated_bytecode", popup["anchor_family_id"].asString)
         assertEquals(
-            listOf("zhuyin_toggle_popup_action"),
+            listOf("zhuyin_toggle_popup_action", "zhuyin_toggle_popup_target", "zhuyin_toggle_preference_factory",
+                "zhuyin_toggle_preference_write", "zhuyin_toggle_reset"),
             popup.getAsJsonArray("required_bindings").map { it.asString },
         )
         assertEquals(
@@ -674,7 +676,6 @@ class GboardPortProductCatalogContractTest {
             "enable_ocr_scan_text" to "version-sensitive",
             "enable_split_keyboard" to "version-sensitive",
             "english_qwerty_up_flick_uppercase" to "version-sensitive",
-            "flow_mode_animation" to "version-sensitive",
             "floating_web_search" to "version-sensitive",
             "frosted_glass" to "version-sensitive",
             "g_logo_on_spacebar" to "version-sensitive",
@@ -796,14 +797,6 @@ class GboardPortProductCatalogContractTest {
                 "gboardGrammarCheckerFlagValuePatch",
                 FEATURE_ROOT + "featureflags/GboardFeatureFlagsBytecodePatch.kt",
                 FEATURE_ROOT + "featureflags/GboardGrammarCheckerFeatureMarkerPatch.kt",
-            ),
-            FlagFeatureContract(
-                "flow_mode_animation",
-                GboardFlagFamilyFeature.FLOW_MODE_ANIMATION,
-                gboardFlowModeFlagValuePatch,
-                "gboardFlowModeFlagValuePatch",
-                FEATURE_ROOT + "flowmode/GboardFlowModeFlagValuePatch.kt",
-                FEATURE_ROOT + "flowmode/GboardFlowModeFeatureMarkerPatch.kt",
             ),
             FlagFeatureContract(
                 "inline_suggestions",

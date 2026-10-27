@@ -25,7 +25,7 @@ import app.hushgram.extension.shared.settings.BaseSettings;
 import app.hushgram.extension.shared.settings.HushgramPause;
 import app.hushgram.extension.shared.settings.PauseForTests;
 
-/** Hide Suggested for you on follow lists: a Profiles row that starts off, follows Hide suggested people, is kept in a backup and answers off while paused. */
+/** Hide suggested people's switches: the profile rows under Profiles, the Notifications page rows under Notifications, each starting off, kept in a backup and off while paused. */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = {28, 37})
 @SuppressWarnings("deprecation")
@@ -98,19 +98,17 @@ public class FollowListSuggestionsSettingsTest {
         assertTrue(PatchFamily.PROFILE_SUGGESTIONS.switches.contains(Settings.HIDE_PROFILE_COMPLETION));
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.HIDE_PROFILE_COMPLETION.key));
     }
-    /** #161: Hide People you don't follow back comes right after Hide Complete your profile, starts off, is kept in a backup and answers off while paused. */
+    /** #161: Hide People you don't follow back is the first row under Notifications when grouping isn't in the build, starts off, is kept in a backup and answers off while paused. */
     @Test public void hidePeopleYouDontFollowBackComesNextAndStartsOff() throws Exception {
         open(EnumSet.of(PatchFamily.PROFILE_SUGGESTIONS));
         android.preference.Preference row = page.getPreferenceScreen().findPreference(Settings.HIDE_FOLLOW_BACK_SUGGESTIONS.key);
         assertNotNull(row);
         assertEquals("Hide People you don't follow back", row.getTitle().toString());
         assertTrue(row.getSummary().toString(), row.getSummary().toString().contains("new followers stay"));
-        PreferenceGroup profiles = row.getParent();
-        assertEquals("Profiles", profiles.getTitle().toString());
-        String[] keys = new String[profiles.getPreferenceCount()];
-        for (int i = 0; i < keys.length; i++) keys[i] = profiles.getPreference(i).getKey();
-        assertEquals(Arrays.toString(keys), Settings.HIDE_PROFILE_COMPLETION.key,
-                keys[Arrays.asList(keys).indexOf(Settings.HIDE_FOLLOW_BACK_SUGGESTIONS.key) - 1]);
+        PreferenceGroup notifications = row.getParent();
+        assertEquals("Notifications", notifications.getTitle().toString());
+        assertEquals(Settings.HIDE_FOLLOW_BACK_SUGGESTIONS.key, notifications.getPreference(0).getKey());
+        assertNull("the Profiles rows don't follow it here", notifications.findPreference(Settings.HIDE_PROFILE_COMPLETION.key));
         assertFalse(Settings.HIDE_FOLLOW_BACK_SUGGESTIONS.get());
         assertTrue(PatchFamily.PROFILE_SUGGESTIONS.switches.contains(Settings.HIDE_FOLLOW_BACK_SUGGESTIONS));
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.HIDE_FOLLOW_BACK_SUGGESTIONS.key));
@@ -120,17 +118,40 @@ public class FollowListSuggestionsSettingsTest {
         assertFalse(Settings.HIDE_FOLLOW_BACK_SUGGESTIONS.get());
         assertTrue(Settings.HIDE_FOLLOW_BACK_SUGGESTIONS.savedValue());
     }
-    /** #181: Hide suggestions in notifications comes right after Hide People you don't follow back, starts off, is a quick setup switch, is kept in a backup and answers off while paused. */
+    /** With grouping in the build too, the Notifications page's switches come after Group by type. */
+    @Test public void withGroupingTheNotificationsPageSwitchesFollowGroupByType() throws Exception {
+        open(EnumSet.of(PatchFamily.NOTIFICATION_GROUPS, PatchFamily.PROFILE_SUGGESTIONS));
+        android.preference.Preference row = page.getPreferenceScreen().findPreference(Settings.HIDE_FOLLOW_BACK_SUGGESTIONS.key);
+        PreferenceGroup notifications = row.getParent();
+        assertEquals("Notifications", notifications.getTitle().toString());
+        String[] keys = new String[notifications.getPreferenceCount()];
+        for (int i = 0; i < keys.length; i++) keys[i] = notifications.getPreference(i).getKey();
+        assertEquals(Arrays.asList(Settings.GROUP_NOTIFICATIONS.key, Settings.GROUP_NOTIFICATIONS_BY_TYPE.key,
+                Settings.HIDE_FOLLOW_BACK_SUGGESTIONS.key, Settings.HIDE_NOTIFICATION_SUGGESTIONS.key,
+                Settings.HIDE_NOTIFICATION_FEATURED.key), Arrays.asList(keys));
+        assertEquals("Group Instagram's notifications, and take suggestions off the Notifications page.",
+                ((HushgramPreferenceFragment.Heading) notifications).intro);
+    }
+    /** A search for Profiles, where they used to be, still finds the moved rows and nothing else under Notifications. */
+    @Test public void aSearchForProfilesStillFindsTheMovedRows() throws Exception {
+        open(EnumSet.of(PatchFamily.NOTIFICATION_GROUPS, PatchFamily.PROFILE_SUGGESTIONS));
+        page.searchSettings("Profiles");
+        assertNotNull(page.getPreferenceScreen().findPreference(Settings.HIDE_FOLLOW_BACK_SUGGESTIONS.key));
+        assertNotNull(page.getPreferenceScreen().findPreference(Settings.HIDE_NOTIFICATION_SUGGESTIONS.key));
+        assertNotNull(page.getPreferenceScreen().findPreference(Settings.HIDE_NOTIFICATION_FEATURED.key));
+        assertNull("grouping never sat under Profiles", page.getPreferenceScreen().findPreference(Settings.GROUP_NOTIFICATIONS.key));
+    }
+    /** #181: Hide suggestions in notifications comes right after Hide People you don't follow back under Notifications, starts off, is kept in a backup and answers off while paused. */
     @Test public void hideSuggestionsInNotificationsComesNextAndStartsOff() throws Exception {
         open(EnumSet.of(PatchFamily.PROFILE_SUGGESTIONS));
         android.preference.Preference row = page.getPreferenceScreen().findPreference(Settings.HIDE_NOTIFICATION_SUGGESTIONS.key);
         assertNotNull(row);
         assertEquals("Hide suggestions in notifications", row.getTitle().toString());
         assertTrue(row.getSummary().toString(), row.getSummary().toString().contains("new followers stay"));
-        PreferenceGroup profiles = row.getParent();
-        assertEquals("Profiles", profiles.getTitle().toString());
-        String[] keys = new String[profiles.getPreferenceCount()];
-        for (int i = 0; i < keys.length; i++) keys[i] = profiles.getPreference(i).getKey();
+        PreferenceGroup notifications = row.getParent();
+        assertEquals("Notifications", notifications.getTitle().toString());
+        String[] keys = new String[notifications.getPreferenceCount()];
+        for (int i = 0; i < keys.length; i++) keys[i] = notifications.getPreference(i).getKey();
         assertEquals(Arrays.toString(keys), Settings.HIDE_FOLLOW_BACK_SUGGESTIONS.key,
                 keys[Arrays.asList(keys).indexOf(Settings.HIDE_NOTIFICATION_SUGGESTIONS.key) - 1]);
         assertFalse(Settings.HIDE_NOTIFICATION_SUGGESTIONS.get());

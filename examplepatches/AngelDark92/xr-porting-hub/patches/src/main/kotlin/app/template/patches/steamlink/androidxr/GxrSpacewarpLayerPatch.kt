@@ -21,9 +21,9 @@ internal const val GXR_SPACEWARP_GATE0_5001712 = "gxr_spacewarp_gate0_5001712.js
 // owner build flow (Build-Native.ps1 output, staged, then pinned — extensions skill
 // "Build output only"); the manifest + Gate-0 pins are committed with their files.
 // The layer payload is base-agnostic (the .so's per-base profile table selects the
-// scene-lib pins at runtime); only the two gate evidence JSONs are per base.
+// scene-lib pins at runtime); only the gate evidence JSON pair is per base.
 internal const val GXR_SPACEWARP_LIBRARY_SHA256 =
-    "a963930142c7c9dcbe536ad1b9862d5be803f39ea079e23829968d65d51ccd22"
+    "4d07f6b99acbee45ec4b65ac7a655c6c73434a7fc114fcaa4ef0921d0ba782c7"
 internal const val GXR_SPACEWARP_MANIFEST_SHA256 =
     "623f0f1b9c69d049cc9c3754d0481aa06b40529d322f3e233bafa12af840943b"
 internal const val GXR_SPACEWARP_GATE0_SHA256 =
@@ -58,15 +58,26 @@ internal const val GXR_SPACEWARP_VTS_GATE_5002244 = "gxr_spacewarp_vts_5002244.j
 internal const val GXR_SPACEWARP_VTS_GATE_5002244_SHA256 =
     "5726b255880eb6c2e748839699d9fdeb1acc0c0e58ef355af1429c15077f90ff"
 
+// 2.0.24/5002395 (sixth base, 2026-10-26): gate-0 emitted by
+// tests/derive_gate0.py --base 5002395 from the retained 2.0.24 decoded tree;
+// the VTS appendix is the same hand-frozen shape the restored legacy bases use.
+internal const val GXR_SPACEWARP_GATE0_5002395 = "gxr_spacewarp_gate0_5002395.json"
+internal const val GXR_SPACEWARP_GATE0_5002395_SHA256 =
+    "efe7d649fa86cff291d803ac11c370d94232fbb3e3d7051f88518209d7d87c98"
+internal const val GXR_SPACEWARP_VTS_GATE_5002395 = "gxr_spacewarp_vts_5002395.json"
+internal const val GXR_SPACEWARP_VTS_GATE_5002395_SHA256 =
+    "2b71739a7b5d0722a4f0f63d997e02483c7cd7496da8059ac3bab722a4363762"
+
 // The bundled layer embeds a per-base scene/VTS profile table, so a build without an
-// entry would load and silently stand down. Keep the exact supported set here until a
-// 2.0.24 layer profile and gate evidence exist.
+// entry would load and silently stand down. Keep the exact supported set here so a
+// base becomes selectable only together with its layer profile and gate evidence.
 private val GXR_SPACEWARP_SUPPORTED_PAIRS = setOf(
     "2.0.20" to "5001712",
     "2.0.20" to "5001812",
     "2.0.21" to "5001968",
     "2.0.22" to "5002244",
     "2.0.23" to "5002363",
+    "2.0.24" to "5002395",
 )
 
 internal fun isGxrSpacewarpSteamLinkBuild(versionName: String, versionCode: String): Boolean =
@@ -122,6 +133,12 @@ internal val gxrSpacewarpScenePreconditions: Map<String, List<Triple<Int, Int, S
         Triple(0xf8950, 0x80, "4f870b4aaa2d73996daf82cd6c4dda94de5d72bec80044ae77fdce92f89c12a3"),
         Triple(0x116c10, 0x80, "20eb71d2be352aac82836578c95e68d03d38b024aa953db587e74f71999829bb"),
         Triple(0x13e180, 0x80, "0a1f3be8b69d6e88d7aefc74b9bea6af81eb2b0ff3a28da29f8e44cab04f46c5"),
+    ),
+    "2.0.24/5002395" to listOf(
+        Triple(0xfe954, 0x80, "ef7f310bbd65499404aa89a18f873c42a87282a16799b84119c75377654003a3"),
+        Triple(0xfcc60, 0x80, "ae6b472507e1aa0e6d3756cfb0601ec13f4cb1c93e887366e9d898e36a9389bf"),
+        Triple(0x11c9a0, 0x80, "1550a9b6903a59092c9416f807975fd99cea203809894fd89750880a7ddaa1ae"),
+        Triple(0x146e5c, 0x80, "8b74ca45210ad8a0c647a2f2e8c226adaa09ad5a7a711c1095ecdf440624f57f"),
     ),
 )
 
@@ -182,6 +199,12 @@ internal val gxrSpacewarpGatePairs: Map<String, GxrSpacewarpGatePair> = mapOf(
         GXR_SPACEWARP_GATE0_5002244_SHA256,
         GXR_SPACEWARP_VTS_GATE_5002244,
         GXR_SPACEWARP_VTS_GATE_5002244_SHA256,
+    ),
+    "5002395" to GxrSpacewarpGatePair(
+        GXR_SPACEWARP_GATE0_5002395,
+        GXR_SPACEWARP_GATE0_5002395_SHA256,
+        GXR_SPACEWARP_VTS_GATE_5002395,
+        GXR_SPACEWARP_VTS_GATE_5002395_SHA256,
     ),
 )
 

@@ -25,6 +25,7 @@ import android.os.Build;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceGroup;
+import android.preference.PreferenceScreen;
 import android.preference.TwoStatePreference;
 import android.util.SparseBooleanArray;
 import android.util.TypedValue;
@@ -42,7 +43,7 @@ import androidx.annotation.Nullable;
 
 import app.hushgram.extension.shared.settings.preference.ImmediateAction;
 
-/** Shared black, charcoal and pink surfaces for HushGram's settings and runtime controls. */
+/** Shared black and charcoal surfaces, in Instagram's own blues, for HushGram's settings and runtime controls. */
 public final class ScreenColors {
     public final boolean light;
     /** The page, behind the title bar and every row. */
@@ -62,7 +63,7 @@ public final class ScreenColors {
     /** Grouped preference rows and their edge. */
     public final int card;
     public final int outline;
-    /** Tonal tile behind decorative row icons. */
+    /** Tonal surface used by secondary controls. */
     public final int iconSurface;
     /** Text on the filled primary dialog action. */
     public final int onAccent;
@@ -80,8 +81,10 @@ public final class ScreenColors {
         dialog = 0xFF18161D;
         title = 0xFFF8F5F8;
         summary = 0xFFAAA5AF;
-        heading = 0xFFFF82AD;
-        accent = 0xFFCB2861;
+        // Instagram's own blues (AccentColor.role): its link on a dark screen, 7:1 on the charcoal,
+        // and its Prism indigo button fill, which white text reads on at 5:1.
+        heading = 0xFF85A1FF;
+        accent = 0xFF4A5DF9;
         // At least 3:1 against either charcoal surface, with a white thumb above 5:1.
         switchOff = 0xFF696370;
         card = 0xFF151419;
@@ -130,7 +133,7 @@ public final class ScreenColors {
                 new int[]{(accent & 0x00FFFFFF) | 0x22000000, normal});
     }
 
-    /** The lighter pink passes text contrast on charcoal, unlike the filled action's accent. */
+    /** The lighter blue passes text contrast on charcoal, unlike the filled action's accent. */
     int secondaryActionText() {
         return heading;
     }
@@ -154,10 +157,12 @@ public final class ScreenColors {
 
     /** A row's title and summary, its switch if it has one, and its chevron if a tap opens something. */
     void paintRow(View row, Preference preference) {
+        boolean overview = preference.getParent() instanceof PreferenceScreen;
         TextView title = row.findViewById(android.R.id.title);
         if (title != null) {
             title.setTextColor(dimmedWhenDisabled(this.title));
-            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            title.setTextSize(TypedValue.COMPLEX_UNIT_SP,
+                    "hushgram_status".equals(preference.getKey()) ? 14 : overview ? 15 : 16);
             title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             if (title.getParent() instanceof View) {
                 View text = (View) title.getParent();
@@ -168,8 +173,8 @@ public final class ScreenColors {
         TextView summary = row.findViewById(android.R.id.summary);
         if (summary != null) {
             summary.setTextColor(dimmedWhenDisabled(this.summary));
-            summary.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-            summary.setLineSpacing(dp(row, 2), 1);
+            summary.setTextSize(TypedValue.COMPLEX_UNIT_SP, overview ? 12 : 13);
+            summary.setLineSpacing(0, 1);
         }
         View widget = row.findViewById(android.R.id.switch_widget);
         if (widget instanceof Switch) {
@@ -198,21 +203,18 @@ public final class ScreenColors {
         if (icon != null) icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         if (icon != null && preference.getIcon() != null) {
             ViewGroup.LayoutParams imageSize = icon.getLayoutParams();
-            imageSize.width = dp(row, 36);
-            imageSize.height = dp(row, 36);
+            imageSize.width = dp(row, 24);
+            imageSize.height = dp(row, 24);
             icon.setLayoutParams(imageSize);
-            icon.setPadding(dp(row, 6), dp(row, 6), dp(row, 6), dp(row, 6));
+            icon.setPadding(0, 0, 0, 0);
             icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             icon.setImageTintList(dimmedWhenDisabled(heading));
-            GradientDrawable tile = new GradientDrawable();
-            tile.setColor(iconSurface);
-            tile.setCornerRadius(dp(row, 8));
-            icon.setBackground(tile);
+            icon.setBackground(null);
             if (icon.getParent() instanceof ViewGroup) {
                 ViewGroup frame = (ViewGroup) icon.getParent();
-                frame.setPaddingRelative(0, 0, dp(row, 12), 0);
+                frame.setPaddingRelative(0, 0, dp(row, 14), 0);
                 ViewGroup.LayoutParams size = frame.getLayoutParams();
-                size.width = dp(row, 48);
+                size.width = dp(row, 38);
                 frame.setLayoutParams(size);
             }
         }
@@ -272,7 +274,8 @@ public final class ScreenColors {
      * height is the row's: its text wraps at any font size and the row grows to fit.
      */
     void paintSurface(View row, Preference preference, boolean first, boolean last) {
-        float radius = dp(row, 12);
+        boolean overview = preference.getParent() instanceof PreferenceScreen;
+        float radius = overview ? 0 : dp(row, 10);
         GradientDrawable surface = new GradientDrawable();
         surface.setColor(card);
         surface.setStroke(dp(row, 1), preference.isSelectable() ? interactionOutline(outline)
@@ -282,15 +285,18 @@ public final class ScreenColors {
                 first ? radius : 0, first ? radius : 0,
                 last ? radius : 0, last ? radius : 0,
                 last ? radius : 0, last ? radius : 0});
-        Drawable inset = new InsetDrawable(surface, dp(row, 18), first ? dp(row, 6) : -dp(row, 1),
-                dp(row, 18), last ? dp(row, 6) : 0);
+        int side = overview ? 0 : dp(row, 18);
+        Drawable inset = new InsetDrawable(surface, side, overview ? -dp(row, 1) : first ? dp(row, 4) : -dp(row, 1),
+                side, !overview && last ? dp(row, 4) : 0);
         row.setBackground(preference.isSelectable()
                 ? new RippleDrawable(interactionRipple(heading), inset, null).mutate() : inset);
         // Explicit padding after the inset background prevents its padding from moving the text.
-        int vertical = preference.getIcon() == null ? 16 : 14;
-        row.setPaddingRelative(dp(row, 30), dp(row, vertical + (first ? 6 : 0)),
-                dp(row, 30), dp(row, vertical + (last ? 6 : 0)));
-        row.setMinimumHeight(dp(row, 72));
+        int horizontal = overview ? 20 : 30;
+        int vertical = overview ? 6 : 10;
+        row.setPaddingRelative(dp(row, horizontal), dp(row, vertical + (!overview && first ? 4 : 0)),
+                dp(row, horizontal), dp(row, vertical + (!overview && last ? 4 : 0)));
+        row.setMinimumHeight(dp(row, "hushgram_view_toggle".equals(preference.getKey()) ? 48
+                : "hushgram_status".equals(preference.getKey()) ? 56 : overview ? 52 : 64));
     }
 
     /** A section title. */
@@ -304,28 +310,6 @@ public final class ScreenColors {
             title.setAllCaps(true);
         }
         row.setPaddingRelative(dp(row, 22), dp(row, 20), dp(row, 22), dp(row, 8));
-    }
-
-    /**
-     * The line that opens a category's page: secondary text on the page itself, outside any card,
-     * starting where the section titles do. It wraps and the row grows with it at any font size.
-     */
-    void paintIntro(View row) {
-        TextView text = row.findViewById(android.R.id.title);
-        if (text != null) {
-            text.setTextColor(summary);
-            text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-            text.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
-            text.setLineSpacing(dp(row, 2), 1);
-            if (text.getParent() instanceof View) {
-                View block = (View) text.getParent();
-                block.setPadding(0, 0, 0, 0);
-                block.setMinimumHeight(0);
-            }
-        }
-        row.setBackground(null);
-        row.setMinimumHeight(0);
-        row.setPaddingRelative(dp(row, 22), dp(row, 12), dp(row, 22), 0);
     }
 
     /** Marks the chevron a row was given, so a recycled row's can be found and taken off. */
@@ -372,8 +356,11 @@ public final class ScreenColors {
             frame.addView(image, new LinearLayout.LayoutParams(dp(row, 16), dp(row, 24)));
         }
         Drawable drawn = image.getDrawable();
-        if (!(drawn instanceof Chevron) || ((Chevron) drawn).color != summary) {
-            image.setImageDrawable(new Chevron(summary, dp(row, 2)));
+        int direction = preference instanceof HushgramPreferenceFragment.Heading
+                ? ((HushgramPreferenceFragment.Heading) preference).expanded ? -1 : 1 : 0;
+        if (!(drawn instanceof Chevron) || ((Chevron) drawn).color != summary
+                || ((Chevron) drawn).direction != direction) {
+            image.setImageDrawable(new Chevron(summary, dp(row, 2), direction));
         }
         image.setEnabled(preference.isEnabled());
         frame.setVisibility(View.VISIBLE);
@@ -386,12 +373,19 @@ public final class ScreenColors {
     static final class Chevron extends Drawable {
         /** The colour it's drawn in on a row that can be tapped now. */
         final int color;
+        /** Zero follows reading direction; positive opens down, negative collapses up. */
+        final int direction;
         private final ColorStateList colors;
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Path path = new Path();
 
         Chevron(int color, float stroke) {
+            this(color, stroke, 0);
+        }
+
+        Chevron(int color, float stroke, int direction) {
             this.color = color;
+            this.direction = direction;
             colors = dimmedWhenDisabled(color);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(stroke);
@@ -411,6 +405,10 @@ public final class ScreenColors {
             float reach = getLayoutDirection() == View.LAYOUT_DIRECTION_RTL ? -half / 2 : half / 2;
             float x = bounds.exactCenterX();
             float y = bounds.exactCenterY();
+            if (direction != 0) {
+                float tip = half / 2 * direction;
+                return new float[]{x - half, y - tip, x, y + tip, x + half, y - tip};
+            }
             return new float[]{x - reach, y - half, x + reach, y, x - reach, y + half};
         }
 
@@ -509,7 +507,7 @@ public final class ScreenColors {
             // Centred by gravity, which a start alignment from showAllText would override.
             title.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
             title.setTextSize(22);
-            title.setTextColor(palette.title);
+            ShimmerTitle.wear(title);
             title.setTypeface(Typeface.create("sans-serif-medium", 0));
             Drawable icon = SettingsIcons.icon(row.getContext(), SettingsIcons.ABOUT, palette.heading);
             icon.setBounds(0, 0, dp(row, 56), dp(row, 56));
@@ -552,7 +550,8 @@ public final class ScreenColors {
         int titleId = dialog.getContext().getResources().getIdentifier("alertTitle", "id", "android");
         TextView title = titleId == 0 ? null : dialog.findViewById(titleId);
         if (title != null) {
-            title.setTextColor(this.title);
+            // In the gradient, as every HushGram title is.
+            ShimmerTitle.wear(title);
             title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
             title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             title.setSingleLine(false);
@@ -655,12 +654,6 @@ public final class ScreenColors {
     static void heading(View row) {
         ScreenColors colors = shown;
         (colors == null ? DEFAULT : colors).paintHeading(row);
-    }
-
-    /** Paints a category page's intro with the colours on show, if there are any. */
-    static void intro(View row) {
-        ScreenColors colors = shown;
-        (colors == null ? DEFAULT : colors).paintIntro(row);
     }
 
     /** Paints both recovery actions even if the ordinary settings page failed to initialize. */

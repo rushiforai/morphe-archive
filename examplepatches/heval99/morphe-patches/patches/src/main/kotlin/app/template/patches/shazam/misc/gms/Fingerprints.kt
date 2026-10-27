@@ -1,6 +1,8 @@
 package app.template.patches.shazam.misc.gms
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 // The launch activity (MAIN/LAUNCHER, also the target of the Splash alias). Its class is declared
 // in the manifest, so R8 keeps the name; onCreate(Bundle) is a framework override.
@@ -20,5 +22,5 @@ internal const val SILENT_SIGN_IN_PREF = "prefkey_should_attempt_silent_sign_in"
 internal object SilentSignInFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
     parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Z", "L"),
-    strings = listOf(SILENT_SIGN_IN_PREF),
+    strings = listOf(string(SILENT_SIGN_IN_PREF, StringComparisonType.CONTAINS)),
 )

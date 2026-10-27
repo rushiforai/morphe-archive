@@ -50,7 +50,8 @@ final class RestartNow {
 
     /**
      * {@link #restart(Activity)}, and the settings screen opens on [page] once Instagram is back:
-     * a category page's key, or "" for the first page. Null opens nothing afterwards.
+     * a category's key, which opens expanded, or "" for the top of the list. Null opens nothing
+     * afterwards.
      */
     static Outcome restart(Activity activity, String page) {
         if (busy()) return Outcome.BUSY;

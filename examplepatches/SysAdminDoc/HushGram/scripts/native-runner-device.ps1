@@ -104,7 +104,9 @@ function Invoke-NativeRunnerTool {
 
 function Get-NativeRunnerSha256Text {
     param([string]$Text)
-    [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($Text))).ToLowerInvariant()
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try { -join ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($Text)) | ForEach-Object { $_.ToString('x2') }) }
+    finally { $sha.Dispose() }
 }
 
 function Get-ApkSignerDigest {
@@ -143,7 +145,7 @@ function Get-ApkBuildIdentity {
             $stream = $entry.Open()
             try { $stream.CopyTo($buffer) } finally { $stream.Dispose() }
             # The identity is ASCII, and dex keeps ASCII strings byte for byte.
-            $text = [Text.Encoding]::Latin1.GetString($buffer.GetBuffer(), 0, [int]$buffer.Length)
+            $text = [Text.Encoding]::GetEncoding(28591).GetString($buffer.GetBuffer(), 0, [int]$buffer.Length)
             $buffer.Dispose()
             foreach ($match in [regex]::Matches($text, 'hg1:[0-9a-f]{64}(?![0-9a-f])')) { [void]$found.Add($match.Value) }
         }

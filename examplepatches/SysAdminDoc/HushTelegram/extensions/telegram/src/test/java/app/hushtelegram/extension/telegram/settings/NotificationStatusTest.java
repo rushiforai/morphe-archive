@@ -502,6 +502,7 @@ public class NotificationStatusTest {
                 new TLRPC.TL_error(400, "APP_PUSH_APIKEY_MISSING"));
         String[][] languages = {
                 {"en-rUS", "Keep-Alive Service", "Background Connection", "Settings > Notifications", "Other"},
+                {"bg", "Услуга Keep-Alive", "Свързване на заден план", "Настройки > Notifications", "Друго"},
                 {"de", "Keep-Alive-Dienst", "Hintergrundverbindung", "Einstellungen > Benachrichtungen", "Sonstiges"},
                 {"es", "Servicio keep-alive", "Conexión en segundo plano", "Ajustes de Telegram > Notificaciones", "Otros"},
                 {"in-rID", "Biarkan Layanan Tetap Menyala", "Koneksi Latar", "Pengaturan Telegram sendiri > Notifikasi", "Lainnya"},
@@ -520,8 +521,8 @@ public class NotificationStatusTest {
         }
     }
 
-    @Test public void fiveTranslationsPreserveSeparateLabelsBooleansCountsAndUnknownState() throws Exception {
-        String[][] languages = {{"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
+    @Test public void everyTranslationPreservesSeparateLabelsBooleansCountsAndUnknownState() throws Exception {
+        String[][] languages = {{"bg", "bg"}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
         for (String[] language : languages) {
             RuntimeEnvironment.setQualifiers("+" + language[0]);
             Map<String, String> table = SettingsL10nTest.TranslationsForTests.of(language[1]);

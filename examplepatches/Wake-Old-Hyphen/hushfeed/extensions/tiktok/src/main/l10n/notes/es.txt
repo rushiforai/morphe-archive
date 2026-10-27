@@ -1,5 +1,27 @@
 ## Unreleased
 
+* **Ajustes:** Un nuevo interruptor quita la fila de Hushfeed de Ajustes y privacidad de TikTok. Después, mantén pulsado Para ti para abrir los ajustes (#264).
+* **Comentarios:** Los comentarios a altura completa ahora se detienen bajo la barra de estado en vez de tapar la hora y la batería, y también se abren a altura completa en el primer video tras abrir TikTok (#261).
+* **Feed:** La barra inferior del feed principal gana una píldora de cristal flotante con una lente que se desliza entre las pestañas, un gesto de deslizar, vibración opcional y nuevos ajustes en Interfaz para el desenfoque, la opacidad del cristal, la altura de la píldora y las esquinas (#259).
+* **Parcheo:** Los parches con ajustes ahora tienen opciones de Morphe para sus valores iniciales, así que una compilación puede venir con tus interruptores ya activados. Gracias a @XEGARE (#256).
+* **Ajustes:** Las categorías se abren y se cierran justo debajo de su fila en la lista principal. La búsqueda muestra los controles en esa misma lista, y las categorías abiertas siguen abiertas al girar la pantalla o reiniciar.
+* **Ajustes:** Las tarjetas grandes de inicio se sustituyen por una lista compacta de ancho completo. Se eliminan los ajustes rápidos.
+* **TikTok:** Hushfeed ahora necesita Morphe Manager 2.2.0 o superior, o morphe-desktop 1.19.1 en el ordenador.
+* **Comprobaciones:** Se añade un recorrido básico de PineDrama para el inicio, abrir y cerrar los ajustes en el mismo sitio y el regreso. La validación completa sigue pendiente.
+* **Comprobaciones:** Cada etiqueta de vista previa LIVE y de drama que usa la barra inferior transparente se comprueba con el APK de TikTok compatible.
+* **Feed:** Las banderas y los códigos de país permanecen junto a los nombres escritos de derecha a izquierda (#258).
+* **Feed:** Con la barra inferior transparente activada, el nombre y la línea "Toca para ver" de las vistas previas de LIVE y los minidramas quedan por encima de las pestañas (#250).
+* **Cuadrículas:** El control de orden tiene un área táctil de al menos 48 dp.
+* **Cuadrículas:** El control de orden se oculta mientras su cuadrícula está separada de la vista y reaparece cuando vuelve.
+* **Cuadrículas:** Si no se puede guardar un cambio de orden, se conserva el orden actual.
+* **Cuadrículas:** Al elegir el orden original, el menú para ordenar la cuadrícula actual sigue disponible (#180).
+* **Comentarios:** Los comentarios junto al video usan el mismo ancho para el diseño y la reconstrucción de la vista (#253).
+* **Bandeja de entrada:** Con la opción de abrir primero las historias, una imagen de chat reutilizada abre la historia del creador actual al primer toque (#233).
+* **Playback:** Keep the source video paused when a comment link opens another page. Leaving the tap-to-start cover for another tab also keeps its feed paused (#257).
+* **Diagnóstico:** Los informes de notificaciones cuentan las etapas de registro y visualización sin incluir el contenido de los mensajes (#126, #222, #86).
+* **Grabación de pantalla:** TikTok sigue disponible entre las aplicaciones recientes al grabar una sola aplicación en Android 14 o posterior.
+* **Comprobaciones:** La auditoría del avance automático sigue la reproducción de TikTok sin etiquetar cada video. Los clips sin terminar y la reproducción no disponible quedan sin una conclusión.
+* **TikTok:** Mantén pulsado un interruptor en la búsqueda de ajustes para mostrar y resaltar su control en la lista principal (#248).
 * **Diagnóstico:** Los registros del primer fotograma conservan su fuente y marcas de tiempo monotónicas para comprobar el inicio (#150).
 * **Comprobaciones de compilación:** Las versiones requieren pruebas nativas y del APK de cada paquete anunciado. Los recorridos verifican la compilación instalada y las opciones de los parches.
 * **TikTok:** Recording recovery exports use bulk writes to avoid long waits when saving large files.

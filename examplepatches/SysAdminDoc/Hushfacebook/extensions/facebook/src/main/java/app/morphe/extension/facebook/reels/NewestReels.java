@@ -40,6 +40,12 @@ public final class NewestReels {
     /** Counted under the patch's name each time a rerank's order changed here. */
     static final String SORTED = "Reels put newest first";
 
+    /** Counted for a reel whose edge Facebook hadn't loaded, which keeps Facebook's place. */
+    static final String UNLOADED = "Reels with no loaded edge";
+
+    /** Facebook's own message when a model's lazy edge isn't there yet. */
+    private static final String EDGE_NOT_LOADED = "Inflated edge is null";
+
     private static final String FAMILY = FamilyNames.NEWEST_REELS_FIRST;
 
     /** The Reels tab's feed type is fb_shorts_tab, and its other feeds start the same way. */
@@ -81,8 +87,18 @@ public final class NewestReels {
         }
     }
 
-    /** Records an unavailable lazy edge without interrupting Facebook's signal creation. */
-    public static void edgeFailed(Throwable failure) {
+    /**
+     * Records an edge read that failed, without interrupting Facebook's signal creation. Facebook
+     * throws "Inflated edge is null" for a reel whose edge it hasn't loaded yet, which some feeds
+     * serve on every cold start (#234, #246). That reel only goes untimed, so it is counted rather
+     * than reported as a broken hook. Anything else still is.
+     */
+    public static void edgeFailed(@Nullable Throwable failure) {
+        String message = failure == null ? null : failure.getMessage();
+        if (message != null && message.contains(EDGE_NOT_LOADED)) {
+            HookStatus.counted(FAMILY, UNLOADED);
+            return;
+        }
         HookStatus.threw(FAMILY, "reel edge", failure);
     }
 

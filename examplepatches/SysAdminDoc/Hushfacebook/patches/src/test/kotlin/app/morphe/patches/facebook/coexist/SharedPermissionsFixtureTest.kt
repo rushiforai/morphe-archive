@@ -759,12 +759,13 @@ class SharedPermissionsFixtureTest {
 
         /**
          * Those sites by name, per build and ABI, each found once: the link pick, Horizon's launch,
-         * the Meta app picker and the forum share link, whose classes (and the forum link's index)
-         * differ between the ABIs, then Messenger's warm-start hint.
+         * the Meta app picker and the forum share link, then Messenger's warm-start hint. Earlier
+         * builds named these classes differently per ABI; 584's two builds happen to agree.
          */
         val STOCK_OWNERS = mapOf(
             AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
                 "arm64-v8a" to listOf("LX/dWG;->A00@569:", "LX/RQF;->A00@40:", "LX/Gf1;->A00@22:", "LX/RTe;->openForumShareLink\$${FORUM_LINK}@60:"),
+                "armeabi-v7a" to listOf("LX/dWG;->A00@569:", "LX/RQF;->A00@40:", "LX/Gf1;->A00@22:", "LX/RTe;->openForumShareLink\$${FORUM_LINK}@60:"),
             ).mapValues { (_, sites) ->
                 sites + "Lcom/facebook/messaging/threadsettings2/activity/ThreadSettingsActivity;->onActivityCreate@51:"
             },

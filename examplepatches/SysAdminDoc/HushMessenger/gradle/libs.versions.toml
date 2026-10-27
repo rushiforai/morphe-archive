@@ -1,6 +1,10 @@
 [versions]
-morphe-patcher = "2.0.0"
-smali = "4220ae75f7"
+# The patcher stable Morphe Manager 2.2.0 and Desktop 1.19.1 bundle. A newer pin trips Manager's
+# Patcher-Version gate. 2.0.1 went stable on 2026-10-25 and patches with less memory.
+morphe-patcher = "2.0.1"
+# Read by the app.morphe.patches settings plugin. Keep it the smali commit the patcher above asks
+# for (2.0.1 asks for ac700e1942, 2.0.0 asked for 4220ae75f7): Gradle keeps whichever sorts higher.
+smali = "ac700e1942"
 # Every org.bouncycastle request is rewritten to this, in :patches and on the settings classpath
 # (settings.gradle.kts spells it out because the catalog does not exist yet there). 1.86 publishes
 # bcprov, bcpkix and bcutil and is outside CVE-2025-8916, CVE-2026-5588, CVE-2025-14813,

@@ -9,7 +9,7 @@
     it with no device: a crash earns FAIL, a skipped part earns PARTIAL, and only a whole clean walk
     earns PASS. The crash filter has to keep a crash of the walked Telegram build and drop the other
     build's, another app's or an older one. The dump reader has to find a settings row by its exact
-    text only and tell the home list, a page and a page under More settings apart. The lease has to
+    text only, tell the home list from a page, and tell an open section from a closed one. The lease has to
     carry what the installer checks, never take a live lease from another task, and stop the walk
     once it isn't the walk's any more. Then the receipts those results produce are held to
     Test-WalkReceipt, the same gate release/publish-release.ps1 uses, so a FAIL or PARTIAL walk
@@ -76,14 +76,16 @@ try {
     $homeDump = @'
 <?xml version='1.0' encoding='UTF-8' standalone='yes' ?><hierarchy rotation="0">
 <node text="" package="org.telegram.messenger.web" bounds="[0,0][720,1600]">
-<node text="Your Telegram." package="org.telegram.messenger.web" bounds="[32,100][688,160]" />
+<node text="HushTelegram" package="org.telegram.messenger.web" bounds="[32,100][500,160]" />
+<node text="Pause" package="org.telegram.messenger.web" bounds="[540,100][688,160]" />
 <node text="Search settings" package="org.telegram.messenger.web" bounds="[32,180][688,240]" />
 <node text="Ads" package="org.telegram.messenger.web" bounds="[32,300][688,380]" />
-<node text="Chat list" package="org.telegram.messenger.web" bounds="[32,400][688,480]" />
-<node text="Privacy" package="org.telegram.messenger.web" bounds="[32,500][688,580]" />
-<node text="More settings" package="org.telegram.messenger.web" bounds="[32,600][688,680]" />
-<node text="Pause" package="org.telegram.messenger.web" bounds="[32,700][200,760]" />
-<node text="Pause" package="org.telegram.messenger.web" bounds="[400,700][688,760]" />
+<node text="Hide sponsored messages" package="org.telegram.messenger.web" bounds="[32,400][688,480]" />
+<node text="Chat list" package="org.telegram.messenger.web" bounds="[32,500][688,580]" />
+<node text="Pause" package="org.telegram.messenger.web" bounds="[32,600][688,680]" />
+<node text="Pause" package="org.telegram.messenger.web" bounds="[32,700][688,760]" />
+<node text="Privacy" package="org.telegram.messenger.web" bounds="[32,800][688,880]" />
+<node text="Changed switches" package="org.telegram.messenger.web" bounds="[32,900][688,980]" />
 <node text="Notifications" package="com.android.systemui" bounds="[0,0][720,40]" />
 </node></hierarchy>
 '@
@@ -96,7 +98,7 @@ try {
     Assert-True ($null -eq (Find-WalkRow $homeNodes 'Ads' 'org.telegram.messenger')) 'A row of the web build was taken for the Play build.'
     Assert-True (@(ConvertFrom-WalkDump 'ERROR: could not get idle state.').Count -eq 0) 'A failed dump read as a screen.'
 
-    # Test-WalkSettingsHome and Test-WalkSettingsPage: the home list, a page and a page under More.
+    # Test-WalkSettingsHome and Test-WalkSettingsPage: the home list and a page.
     Assert-True (Test-WalkSettingsHome $homeNodes $package) 'The settings home list was not recognized.'
     $titleOnly = @($homeNodes | Where-Object { $_.Text -cne 'Search settings' })
     Assert-True (Test-WalkSettingsHome $titleOnly $package) 'The home list scrolled under its search box was not recognized by its title.'
@@ -108,20 +110,21 @@ try {
     Assert-True (-not (Test-WalkSettingsHome $adsPage $package)) 'A page was taken for the home list.'
     Assert-True (Test-WalkSettingsPage $adsPage 'Ads' $package) 'The Ads page was not recognized by its title.'
     Assert-True (-not (Test-WalkSettingsPage $adsPage 'Chat list' $package)) 'The Ads page was taken for another page.'
-    $morePage = @(ConvertFrom-WalkDump @'
-<hierarchy rotation="0"><node text="More settings" package="org.telegram.messenger.web" bounds="[32,100][688,160]" />
-<node text="Links" package="org.telegram.messenger.web" bounds="[32,200][688,280]" />
-<node text="About" package="org.telegram.messenger.web" bounds="[32,300][688,380]" /></hierarchy>
-'@)
-    Assert-True (Test-WalkSettingsPage $morePage 'More settings' $package) 'The More settings page was not recognized.'
-    Assert-True (-not (Test-WalkSettingsPage $morePage 'Links' $package)) `
-        'More settings was taken for its Links page because the Links row shows.'
-    $linksPage = @(ConvertFrom-WalkDump @'
-<hierarchy rotation="0"><node text="Links" package="org.telegram.messenger.web" bounds="[32,100][688,160]" />
-<node text="Open links in the browser" package="org.telegram.messenger.web" bounds="[32,200][688,280]" /></hierarchy>
-'@)
-    Assert-True (Test-WalkSettingsPage $linksPage 'Links' $package) 'The Links page under More settings was not recognized.'
-    Assert-True (-not (Test-WalkSettingsPage $linksPage 'More settings' $package)) 'The Links page was taken for More settings.'
+
+    # Find-WalkHeading and Get-WalkSectionState: a section opens in place on the home list.
+    $headings = @('Ads', 'Chat list', 'Pause', 'Privacy')
+    $pauseHeading = Find-WalkHeading $homeNodes 'Pause' $package
+    Assert-True ($null -ne $pauseHeading -and $pauseHeading.Y -eq 640) `
+        "The Pause heading was taken from the toolbar's Pause button or the Pause row under it."
+    Assert-True ((Get-WalkSectionState $homeNodes 'Ads' $headings $package) -ceq 'open') 'The open Ads section read as closed.'
+    Assert-True ((Get-WalkSectionState $homeNodes 'Chat list' $headings $package) -ceq 'closed') `
+        'A section with another heading right under it read as open.'
+    Assert-True ((Get-WalkSectionState $homeNodes 'Pause' $headings $package) -ceq 'open') `
+        'The Pause section read as closed because its first row shares its name.'
+    Assert-True ((Get-WalkSectionState $homeNodes 'Privacy' $headings $package) -ceq 'closed') `
+        'The last section, with Changed switches under it, read as open.'
+    Assert-True ($null -eq (Get-WalkSectionState $homeNodes 'Updates' $headings $package)) 'A heading not on screen read as a state.'
+    Assert-True ($null -eq (Find-WalkHeading $adsPage 'Ads' $package)) 'A page title was taken for a home list heading.'
 
     # ConvertTo-WalkArgument: adb gets each argument back whole.
     Assert-True ((ConvertTo-WalkArgument "'tg://resolve?domain=telegram'") -ceq "'tg://resolve?domain=telegram'") `
@@ -171,32 +174,60 @@ try {
     $started = [DateTimeOffset]::Parse('2026-10-23T00:00:00Z')
     $finished = $started.AddMinutes(6)
 
+    $catalogPath = Join-Path (Split-Path -Parent $PSScriptRoot) 'patches-list.json'
+    $catalog = Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json
+    $target = Get-PatchTarget -PatchList $catalog -PackageName 'org.telegram.messenger.web'
+    $versionCode = [string]@($target.PackageVersionCodes[$target.PackageVersion])[0]
+    $allPatches = [string[]]@($catalog.patches | ForEach-Object { $_.name })
+    $smokeScenarios = [string[]]@(Get-WalkRequiredScenarios -Scenarios @(Read-WalkScenarios) -Patches $allPatches -Account 'signed out')
     function New-WalkReceiptFile([string]$Name, [string]$Result, [bool]$Full, [int]$Screens, [int]$Crashes, [string]$Sha, [string[]]$Problems) {
+        $artifact = New-WalkArtifact -ApkSha256 ('0' * 64) -Package 'org.telegram.messenger.web' -PackageVersion $target.PackageVersion `
+            -VersionCode $versionCode -SignerSha256 ('2' * 64) -FixtureName "telegram-web-$($target.PackageVersion)-$versionCode.apk" `
+            -FixtureSha256 ('1' * 64) -BundleVersion '0.0.0' `
+            -BundleSha256 $Sha -Patches $allPatches -Created $started.AddMinutes(-1)
         $receipt = New-WalkReceipt -Result $Result -Full $Full -Serial 'emulator-5554' -Device 'sdk_gphone64_x86_64' `
-            -AppVersion '13.1.0' -BundleSha256 $Sha -InstalledApkSha256 ('0' * 64) `
+            -Package 'org.telegram.messenger.web' -AppVersion $target.PackageVersion -BundleSha256 $Sha -InstalledApkSha256 ('0' * 64) `
+            -Artifact $artifact -Account 'signed out' -Scenarios $smokeScenarios `
             -Started $started -Finished $finished -Screens $Screens -Crashes $Crashes -Problems $Problems
-        $receipt.package = 'org.telegram.messenger.web'
-        $receipt.account = 'signed out'
         $path = Join-Path $scratch $Name
-        [IO.File]::WriteAllText($path, (ConvertTo-Json -InputObject $receipt -Depth 4) + "`n")
+        [IO.File]::WriteAllText($path, (ConvertTo-Json -InputObject $receipt -Depth 5) + "`n")
         return $path
     }
+    function Test-Walk([string]$Path) { Test-WalkReceipt -Path $Path -BundlePath $bundle -PatchListPath $catalogPath }
 
     $passWalk = New-WalkReceiptFile 'pass.json' 'PASS' $true 22 0 $bundleSha256 @()
-    Assert-True (Test-WalkReceipt -Path $passWalk -BundlePath $bundle).Valid `
+    Assert-True (Test-Walk $passWalk).Valid `
         'A whole clean walk of this bundle should back a release.'
 
     $crashWalk = New-WalkReceiptFile 'crash.json' 'FAIL' $false 9 1 $bundleSha256 @('Telegram crashed during the walk: ...')
-    Assert-True (-not (Test-WalkReceipt -Path $crashWalk -BundlePath $bundle).Valid) `
+    Assert-True (-not (Test-Walk $crashWalk).Valid) `
         'A walk that recorded a crash must not back a release.'
 
     $skipWalk = New-WalkReceiptFile 'skip.json' 'PARTIAL' $false 6 0 $bundleSha256 @()
-    Assert-True (-not (Test-WalkReceipt -Path $skipWalk -BundlePath $bundle).Valid) `
+    Assert-True (-not (Test-Walk $skipWalk).Valid) `
         'A walk that skipped part of the app must not back a release.'
 
     $otherWalk = New-WalkReceiptFile 'other-bundle.json' 'PASS' $true 22 0 ('a' * 64) @()
-    Assert-True (-not (Test-WalkReceipt -Path $otherWalk -BundlePath $bundle).Valid) `
+    Assert-True (-not (Test-Walk $otherWalk).Valid) `
         'A clean walk of a different bundle must not back this one.'
+
+    # The page lists walk-app.ps1 walks by default are the manifest's, so the defaults can't drift
+    # from what publish asks for.
+    $walkText = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'walk-app.ps1'))
+    foreach ($listed in @('Visit', 'SettingsPages', 'Sections')) {
+        Assert-True ($walkText -cmatch "(?m)^\s*\[string\[\]\]\`$$listed,\s*$" -and
+            $walkText.Contains("if (-not `$PSBoundParameters.ContainsKey('$listed'))")) `
+            "walk-app.ps1's -$listed has a default of its own instead of walk-scenarios.json's."
+    }
+    # The screen and scenario tally is made before the first screen counts into it. Lost once in a
+    # rewrite, every walk died at launch on "The property 'Screens' cannot be found".
+    $walkAst = [Management.Automation.Language.Parser]::ParseInput($walkText, [ref]$null, [ref]$null)
+    $invoke = $walkAst.Find({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq 'Invoke-WalkApp' }, $true)
+    $seenUses = @($invoke.FindAll({ param($node) $node -is [Management.Automation.Language.VariableExpressionAst] -and $node.VariablePath.UserPath -ceq 'seen' }, $true) |
+        Sort-Object { $_.Extent.StartOffset })
+    $seenMade = $seenUses.Count -gt 0 -and $seenUses[0].Parent -is [Management.Automation.Language.AssignmentStatementAst] -and
+        $seenUses[0].Parent.Right.Extent.Text -cmatch 'Screens = 0; Scenarios = \[Collections\.Generic\.List\[string\]\]::new\(\)'
+    Assert-True $seenMade 'Invoke-WalkApp counts screens into $seen before it makes it with Screens and Scenarios.'
 
     Write-Host "[walk-app] $passed checks passed"
 } finally {

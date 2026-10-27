@@ -91,7 +91,7 @@ internal fun textViewField(method: Method, setterIndex: Int): FieldReference {
         throw PatchException("Emotes: chat binder overwrites bridge input parameters.")
     for (index in setterIndex - 1 downTo 0) {
         val instruction = code[index]
-        if (!instruction.opcode.canContinue() || instruction.opcode.name.startsWith("IF_") || instruction.opcode.name.endsWith("SWITCH")) break
+        if (!instruction.opcode.canContinue() || instruction.opcode.name.startsWith("if-") || instruction.opcode.name.endsWith("-switch")) break
         if (instruction.opcode.setsRegister() && instruction is OneRegisterInstruction && instruction.registerA == call.registerC) {
             val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
             if (instruction.opcode == Opcode.IGET_OBJECT && instruction is TwoRegisterInstruction &&
@@ -112,5 +112,5 @@ private fun isHolderAlias(method: Method, before: Int, register: Int, holderPara
     val assignment = writes.single()
     val move = assignment.value as? TwoRegisterInstruction ?: return false
     if (move.opcode !in setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16) || move.registerB != holderParameter) return false
-    return code.take(assignment.index).none { !it.opcode.canContinue() || it.opcode.name.startsWith("IF_") || it.opcode.name.endsWith("SWITCH") }
+    return code.take(assignment.index).none { !it.opcode.canContinue() || it.opcode.name.startsWith("if-") || it.opcode.name.endsWith("-switch") }
 }

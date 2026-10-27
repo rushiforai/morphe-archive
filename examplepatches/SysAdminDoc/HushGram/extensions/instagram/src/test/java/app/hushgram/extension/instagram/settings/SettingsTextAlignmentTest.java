@@ -39,7 +39,7 @@ import app.hushgram.extension.shared.Utils;
 /**
  * Every row's title and summary start at the row's start edge: the right in a right-to-left
  * layout, where HushGram's English used to sit flush left once it wrapped, and the left otherwise,
- * as before. The status card, a switch, the last carousel save and a running save are checked at
+ * as before. Version, a switch, the last carousel save and a running save are checked at
  * normal and twice-size text; the recovery message stays centred.
  */
 @RunWith(RobolectricTestRunner.class)
@@ -90,7 +90,13 @@ public class SettingsTextAlignmentTest {
     @Test @Config(qualifiers = "ar-rEG-ldrtl-w320dp-h640dp-xhdpi")
     public void theRecoveryMessageStaysCentred() throws Exception {
         open();
-        View row = render(rows().get(0), true);
+        HushgramPreferenceFragment.Row message = new HushgramPreferenceFragment.Row(controller.get());
+        message.setTitle(page.initializationErrorTitle(controller.get()));
+        message.setSummary("Try again, or go back to Instagram.");
+        message.setSelectable(false);
+        page.getPreferenceScreen().addPreference(message);
+        ShadowLooper.idleMainLooper();
+        View row = render(message, true);
         ScreenColors.recoveryMessage(row);
         lay(row, true);
         for (int which : new int[]{android.R.id.title, android.R.id.summary}) {
@@ -99,7 +105,9 @@ public class SettingsTextAlignmentTest {
             Layout layout = text.getLayout();
             for (int line = 0; line < layout.getLineCount(); line++) {
                 float left = layout.getLineLeft(line);
-                float right = layout.getWidth() - (left + layout.getLineMax(line));
+                // Layout rounds its exposed left edge down and its right edge up.
+                // Adding a fractional line width to the rounded left loses that symmetry.
+                float right = layout.getWidth() - layout.getLineRight(line);
                 assertEquals(text.getText() + " line " + line + " is centred", left, right, 1.5f);
             }
         }
@@ -109,7 +117,7 @@ public class SettingsTextAlignmentTest {
         RuntimeEnvironment.setFontScale(fontScale);
         open();
         List<Preference> rows = rows();
-        assertEquals("the card, a switch, the last carousel save and a running save", 4, rows.size());
+        assertEquals("version, a switch, the last carousel save and a running save", 4, rows.size());
         for (Preference preference : rows) {
             View row = render(preference, rightToLeft);
             int lines = 0;
@@ -152,16 +160,15 @@ public class SettingsTextAlignmentTest {
         ShadowLooper.idleMainLooper();
     }
 
-    /** The status card, Hide ads, the last carousel save and the running save, in that order. */
+    /** Version, Hide ads, the last carousel save and the running save, in that order. */
     private List<Preference> rows() {
         List<Preference> found = new ArrayList<>();
-        ListAdapter adapter = page.getPreferenceScreen().getRootAdapter();
-        found.add((Preference) adapter.getItem(0));
+        found.add(page.about.getPreference(0));
         found.add(page.findPreference(Settings.HIDE_ADS.key));
         found.add(page.findPreference("hushgram_last_carousel_save"));
         found.add(page.findPreference("running_save_" + save));
         for (Preference row : found) assertNotNull(found.toString(), row);
-        assertEquals("HushGram is on", String.valueOf(found.get(0).getTitle()));
+        assertEquals("Version", String.valueOf(found.get(0).getTitle()));
         return found;
     }
 

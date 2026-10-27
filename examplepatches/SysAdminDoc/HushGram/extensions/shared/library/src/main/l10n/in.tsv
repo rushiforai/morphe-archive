@@ -299,6 +299,8 @@ Hide suggested stories	Sembunyikan cerita yang disarankan
 Hides stories from accounts you don't follow, and accounts Instagram suggests, in the row at the top of Home. Stories from accounts you follow stay.	Menyembunyikan cerita dari akun yang tidak kamu ikuti dan akun yang disarankan Instagram di baris atas Beranda. Cerita dari akun yang kamu ikuti tetap ada.
 Hide the Stories tray	Sembunyikan baris Cerita
 Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.	Menghapus seluruh baris cerita di atas Beranda, termasuk Cerita Anda. Cerita tetap bisa dibuka dari profil atau pesan.
+Keep the Stories tray in the feed	Biarkan baris Cerita di feed
+Stops Instagram from floating the row of stories over Home when you come back to it mid-feed or scroll up fast. The row stays at the top of the feed and scrolls away with it.	Mencegah Instagram mengambangkan baris cerita di atas Beranda saat Anda kembali di tengah feed atau menggulir ke atas dengan cepat. Baris tetap di atas feed dan ikut tergulir bersamanya.
 Hide the Music for you card	Sembunyikan kartu Musik untuk Anda
 Keeps Instagram's Music for you card from turning up between the stories you watch. The stories themselves stay.	Mencegah kartu Musik untuk Anda dari Instagram muncul di antara cerita yang Anda tonton. Ceritanya sendiri tetap ada.
 Hide Suggested for you between stories	Sembunyikan Disarankan untuk kamu di antara cerita
@@ -311,6 +313,8 @@ the start-up fix for x86 devices	perbaikan saat mulai untuk perangkat x86
 # context: toasts when a long press of Home gave up waiting on Instagram's developer options to load
 Pure black dark mode	Mode gelap hitam pekat
 Instagram's dark mode uses pure black instead of its near-black gray, and so do the menus that slide up from the bottom. Buttons keep their own grays.	Mode gelap Instagram memakai hitam pekat, bukan abu-abu yang hampir hitam, termasuk di menu yang muncul dari bawah. Tombol tetap memakai abu-abunya sendiri.
+Pure black dark mode isn't in this build	Mode gelap hitam pekat tidak ada di build ini
+To make dark mode pure black instead of dark gray, which can save battery on an OLED screen, pick Pure black dark mode in Morphe Manager the next time you patch Instagram.	Agar mode gelap hitam pekat, bukan abu-abu gelap, yang bisa menghemat baterai di layar OLED, pilih Mode gelap hitam pekat di Morphe Manager saat Anda menambal Instagram berikutnya.
 the pure black dark mode	mode gelap hitam pekat
 No Play Store updates	Tanpa pembaruan Play Store
 Google Play won't offer Meta's updates over this build. To go back to the normal Instagram, uninstall this one first, which deletes Instagram's data on this phone. Later HushGram builds need Change version code too, or they won't install over this one.	Google Play tidak akan menawarkan pembaruan Meta untuk build ini. Untuk kembali ke Instagram biasa, copot dulu yang ini, yang menghapus data Instagram di ponsel ini. Build HushGram berikutnya juga perlu Change version code, kalau tidak tidak bisa dipasang di atas yang ini.
@@ -582,8 +586,10 @@ Hide comments	Sembunyikan komentar
 Hide memories and recaps	Sembunyikan kenangan dan rangkuman
 Hide story rewinds	Sembunyikan rewind cerita
 Nothing in the row of stories at the top of Home loads, your own story included, and highlights on profiles stay empty too. Saves data. A story ring on a profile or in a chat still opens its stories.	Tidak ada yang dimuat di baris cerita di bagian atas Beranda, termasuk cerita Anda sendiri, dan sorotan di profil juga tetap kosong. Menghemat data. Cincin cerita di profil atau di chat tetap membuka ceritanya.
-Open categories as pages	Buka kategori sebagai halaman
-Settings shows a list of its categories, and a tap opens one on its own page. Search still looks through all of them.	Pengaturan menampilkan daftar kategorinya, dan satu ketukan membuka satu kategori di halamannya sendiri. Pencarian tetap mencari di semuanya.
+Expandable categories	Kategori yang dapat diperluas
+Tap a category to show or hide its settings on this page.	Ketuk kategori untuk menampilkan atau menyembunyikan pengaturannya di halaman ini.
+Expanded	Diperluas
+Collapsed	Diciutkan
 Hide the HushGram row in Instagram's menu	Sembunyikan baris HushGram di menu Instagram
 Settings shortcut on the app icon	Pintasan pengaturan di ikon aplikasi
 Open settings from the logo	Buka pengaturan dari logo
@@ -822,6 +828,8 @@ Chat %1$s	Obrolan %1$s
 # context: Hidden chats under Messages, the list of chats left out of the inbox with their notifications dropped, and the toasts after checking a chat in it
 Hidden chats	Chat tersembunyi
 Hide single chats. A hidden chat leaves your inbox and its notifications don't post until you show it here again.	Sembunyikan chat satu per satu. Chat yang disembunyikan hilang dari kotak masuk dan notifikasinya tidak muncul sampai kamu menampilkannya lagi di sini.
+Double-tap Messages for hidden chats	Ketuk dua kali Pesan untuk chat tersembunyi
+Two quick taps on the Messages button, on the tab bar or at the top of Home, open your hidden chats. While a lock is on, it asks for it first. One tap opens Messages as usual.	Dua ketukan cepat pada tombol Pesan, di bilah tab atau di atas Beranda, membuka chat tersembunyi Anda. Saat kunci aktif, kunci itu diminta lebih dulu. Satu ketukan membuka Pesan seperti biasa.
 Open a chat in Instagram, then come back here to hide it.	Buka chat di Instagram, lalu kembali ke sini untuk menyembunyikannya.
 %1$s is hidden	%1$s disembunyikan
 %1$s is shown again	%1$s ditampilkan lagi
@@ -942,15 +950,15 @@ Hides the status bar and the navigation bar while your messages or a chat shows.
 Hide Notes on profile pictures	Sembunyikan Catatan di foto profil
 Takes the Notes bubble off profile pictures, yours included. Notes in Messages stay as they are.	Menghapus gelembung Catatan dari foto profil, termasuk milik Anda. Catatan di Pesan tetap seperti semula.
 # context: the line that opens a category's page in HushGram settings, under the page title
-How you open HushGram, and how this screen is laid out.	Cara kamu membuka HushGram dan tata letak layar ini.
-Hide ads and share less about yourself with Instagram.	Sembunyikan iklan dan bagikan lebih sedikit tentang dirimu ke Instagram.
+How you open HushGram and lay out settings.	Cara membuka HushGram dan menata pengaturan.
+Hide ads and share less with Instagram.	Sembunyikan iklan dan kurangi berbagi dengan Instagram.
 Choose what Home shows and how it behaves.	Pilih apa yang ditampilkan Beranda dan bagaimana perilakunya.
-Take Meta AI out of search, your feed, reels and profiles.	Hapus Meta AI dari pencarian, feed, reel, dan profil.
-Tidy up the Search tab and what it remembers.	Rapikan tab Cari dan apa yang diingatnya.
-Keep your chats private and your inbox clear of extras.	Jaga obrolanmu tetap pribadi dan kotak masukmu bebas dari tambahan.
-Choose what reels show, and how they play and scroll.	Pilih apa yang ditampilkan reel, serta cara memutar dan menggulirnya.
-Choose which stories you see and what people see you do.	Pilih cerita yang kamu lihat dan apa yang orang lain lihat dari aktivitasmu.
-Choose how videos start, sound and look.	Pilih cara video dimulai, bersuara, dan tampil.
+Control where Meta AI appears.	Atur tempat Meta AI muncul.
+Search, suggestions and the Explore grid.	Pencarian, saran, dan kisi Jelajahi.
+Privacy and controls for your chats.	Privasi dan kontrol untuk obrolan.
+Playback and controls in the Reels tab.	Pemutaran dan kontrol di tab Reels.
+Viewing, sound and the stories tray.	Tampilan, suara, dan deretan cerita.
+Media quality, auto-play and controls.	Kualitas media, putar otomatis, dan kontrol.
 Take buttons you don't use off posts and the share sheet.	Hapus tombol yang tidak kamu pakai dari postingan dan lembar berbagi.
 Copy, save or hide comments.	Salin, simpan, atau sembunyikan komentar.
 See who follows you back, and clear extras off profiles.	Lihat siapa yang mengikuti balik kamu, dan hapus tambahan dari profil.
@@ -1040,28 +1048,6 @@ Loading the picture...	Memuat gambar...
 # context: the settings row right above Support HushGram that opens a new bug report on GitHub
 Report a problem	Laporkan masalah
 Opens a GitHub report with your versions and settings filled in. Add what happened.	Membuka laporan GitHub yang sudah berisi versi dan pengaturanmu. Tambahkan apa yang terjadi.
-# context: the settings row under Search, and the title of its dialog of one-tap choices
-Quick setups	Penyiapan cepat
-Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	Nyalakan sekumpulan sakelar dengan sekali ketuk, atau kembalikan semua sakelar seperti semula. Tekan dan tahan untuk menyembunyikan baris ini.
-# context: row on Settings backup that hides or shows the Quick setups row on the home page, and its two summaries
-Quick setups on the home page	Penyiapan cepat di beranda
-Shown. Tap to hide it.	Ditampilkan. Ketuk untuk menyembunyikannya.
-Hidden. Tap to show it again.	Disembunyikan. Ketuk untuk menampilkannya lagi.
-# context: toast after a long press hides Quick setups; the page named is Settings backup
-Quick setups hidden. Bring it back from %1$s.	Penyiapan cepat disembunyikan. Tampilkan lagi dari %1$s.
-# context: a Quick setups choice that hides ads, suggestions and promotions
-Quiet	Tenang
-# context: a Quick setups choice that turns on the privacy switches
-Privacy	Privasi
-# context: a Quick setups choice that puts every switch back the way it started
-Back to defaults	Kembali ke bawaan
-Hides ads, suggested accounts and posts, surveys and promotions.	Menyembunyikan iklan, akun dan kiriman yang disarankan, survei, dan promosi.
-Hides your seen receipts, typing and active status. Allows screenshots and cleans shared links. Stops the analytics upload alarm.	Menyembunyikan tanda dilihat, status mengetik, dan status aktifmu. Mengizinkan tangkapan layar dan membersihkan tautan yang dibagikan. Menghentikan alarm unggahan analitik.
-Puts every switch back the way it started. Your locks stay as they are.	Mengembalikan semua sakelar seperti semula. Kuncimu tetap seperti apa adanya.
-# context: toast after a Quick setups choice changed exactly one switch
-Changed %1$d setting	%1$d pengaturan diubah
-# context: the same toast for any other count, zero included; %1$d is how many
-Changed %1$d settings	%1$d pengaturan diubah
 Hide the reply bar on reels from chats	Sembunyikan bilah balasan di reel dari chat
 The Reply to box under a reel you open from a chat, with its reactions and plus button. The chat's own message box stays.	Kotak balasan di bawah reel yang kamu buka dari chat, beserta reaksi dan tombol plusnya. Kotak pesan di chat itu sendiri tetap ada.
 # context: Layout list title; it picks the font Instagram's text draws in
@@ -1261,3 +1247,13 @@ Date in backup file names	Tanggal pada nama file cadangan
 Add the current date and time when exporting settings. Off keeps HushGram-settings.json.	Tambahkan tanggal dan waktu saat ini saat mengekspor pengaturan. Jika mati, nama tetap HushGram-settings.json.
 %1$s is the post's shortcode. Stories and unknown posts leave it out. Using it also names photos.	%1$s adalah kode singkat postingan. Cerita dan postingan yang tidak diketahui mengosongkannya. Jika dipakai, templat ini juga menamai foto.
 Videos and photos use %1$s. Unknown codes are left out.	Video dan foto memakai %1$s. Kode yang tidak diketahui dihilangkan.
+Tab bar layout	Tata letak bilah tab
+Swipe between tabs	Geser antar-tab
+Classic	Klasik
+Instagram's choice	Pilihan Instagram
+Keeps the newer bar, with Messages on it, and you can swipe sideways between every tab, even if Instagram moves your account back to the older one. Restart Instagram to see the change.	Mempertahankan bilah yang lebih baru, dengan Pesan di dalamnya, dan kamu bisa menggeser ke samping di antara semua tab, meski Instagram mengembalikan akunmu ke bilah lama. Mulai ulang Instagram untuk melihat perubahannya.
+Keeps the older bar, with Create on it and Messages at the top of Home. Swiping only moves between Home and the screens beside it. Restart Instagram to see the change.	Mempertahankan bilah lama, dengan Buat di dalamnya dan Pesan di bagian atas Beranda. Menggeser hanya berpindah antara Beranda dan layar di sebelahnya. Mulai ulang Instagram untuk melihat perubahannya.
+Instagram picks the tab bar for your account, and it can switch between the two on its own.	Instagram memilih bilah tab untuk akunmu, dan bisa beralih di antara keduanya dengan sendirinya.
+Group Instagram's notifications, and take suggestions off the Notifications page.	Kelompokkan notifikasi Instagram, dan hapus saran dari halaman Notifikasi.
+Take suggestions and Featured off the Notifications page.	Hapus saran dan Unggulan dari halaman Notifikasi.
+Version warnings	Peringatan versi

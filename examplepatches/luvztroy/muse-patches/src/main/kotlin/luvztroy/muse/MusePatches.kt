@@ -235,6 +235,47 @@ val museMcDebug = bytecodePatch(
     execute { replaceBodies("mcdebug") }
 }
 
+val museDebugLongPress = bytecodePatch(
+    name = "Debug settings long-press",
+    description = "Open Internal Settings by long-pressing the top-left menu button.",
+    default = true
+) {
+    compatibleWith(museCompatibility)
+    dependsOn(museMcDebug)
+    extendWith("muse/hatchdebug.dex")
+    execute {
+        val menuButton = method("Lcom/facebook/aura/header/view/HatchHeaderLeadingButtonKt;",
+            "HatchHeaderLeadingButton(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/2hz;ZLX/2Os;II)V")
+        val menuImpl = menuButton.implementation!!
+        val iconButtonCall = menuImpl.instructions.indices.singleOrNull { index ->
+            ref(menuImpl.instructions[index])?.startsWith(
+                "Lcom/facebook/aura/vds/compose/button/AuraElevatedButtonKt;->AuraElevatedIconButton-Xjqr6CI("
+            ) == true
+        } ?: throw PatchException("Side Panel icon-button call changed; unsupported build")
+        menuButton.addInstructions(iconButtonCall, """
+            invoke-static {v4, v11, v3}, Lcom/facebook/aura/settings/internal/mcdebug/SidePanelShortcutCallback;->maybeWrap(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/2Os;)Lkotlin/jvm/functions/Function0;
+            move-result-object v11
+        """.trimIndent())
+
+        val elevatedSurface = method("Lcom/facebook/aura/vds/compose/button/AuraElevatedButtonKt;",
+            "AuraElevatedIconSurface-7poYlZM(LX/2QG;Ljava/lang/String;Lkotlin/jvm/functions/Function0;LX/2hz;ZFLcom/facebook/aura/vds/compose/icons/AuraIconSize;LX/FMb;LX/2hz;ZLX/2Os;II)V")
+        val surfaceImpl = elevatedSurface.implementation!!
+        val surfaceCall = surfaceImpl.instructions.indices.singleOrNull { index ->
+            ref(surfaceImpl.instructions[index])?.startsWith(
+                "Lcom/facebook/aura/vds/compose/surface/AuraElevatedSurfaceKt;->auraElevatedSurface("
+            ) == true
+        } ?: throw PatchException("Elevated icon surface call changed; unsupported build")
+        elevatedSurface.addInstructions(surfaceCall, """
+            move-object/from16 v15, p2
+            invoke-static {v12, v15, v6}, Lcom/facebook/aura/settings/internal/mcdebug/SidePanelShortcutCallback;->maybeAttachLongPress(LX/2hz;Lkotlin/jvm/functions/Function0;LX/2Os;)LX/2hz;
+            move-result-object v12
+            invoke-static {v11, v15}, Lcom/facebook/aura/settings/internal/mcdebug/SidePanelShortcutCallback;->maybeKeepDefaultTap(Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lkotlin/jvm/functions/Function0;
+            move-result-object v11
+        """.trimIndent())
+        println("Debug long-press added to the Side Panel menu; tap behavior remains delegated to the original callback.")
+    }
+}
+
 val museJsonFlags = bytecodePatch(
     name = "Import/export Mobile Config overrides",
     description = "Copy the app's mc_overrides.json file in and out.",

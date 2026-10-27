@@ -28,7 +28,7 @@ final class EntryCategory {
 
     static void add(HushgramPreferenceFragment page, PreferenceScreen screen, Context context, Set<PatchFamily> build) {
         PreferenceCategory entry = category(screen, L10n.t("Settings entry"), SettingsIcons.SETTINGS,
-                L10n.t("How you open HushGram, and how this screen is laid out."));
+                L10n.t("How you open HushGram and lay out settings."));
         entry.addPreference(navigationRow(context));
         entry.addPreference(profileMenuRow(context));
         // Each way in has a switch, and the last one still on stays on (HushFacebook#146).
@@ -44,8 +44,7 @@ final class EntryCategory {
                 wayInSummary(Settings.SETTINGS_LOGO_PRESS)));
         entry.addPreference(toggle(context, Settings.HIDE_MENU_ROW, L10n.t("Hide the HushGram row in Instagram's menu"),
                 wayInSummary(Settings.HIDE_MENU_ROW)));
-        entry.addPreference(toggle(context, Settings.CATEGORY_PAGES, L10n.t("Open categories as pages"),
-                L10n.t("Settings shows a list of its categories, and a tap opens one on its own page. "
-                        + "Search still looks through all of them.")));
+        entry.addPreference(toggle(context, Settings.CATEGORY_PAGES, L10n.t("Expandable categories"),
+                L10n.t("Tap a category to show or hide its settings on this page.")));
     }
 }

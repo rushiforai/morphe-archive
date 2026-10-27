@@ -135,6 +135,9 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.HIDE_REEL_SAVE_BUTTON,
                     L10n.t("Takes the Save button off the side of reels. The buttons above it move down. "
                             + "A change shows from the next reel.")));
+            reels.addPreference(toggle(context, Settings.HIDE_REEL_WHATSAPP_BUTTON,
+                    L10n.t("Hides the WhatsApp button beside reels and videos. WhatsApp stays in the Share menu. "
+                            + "A change shows from the next video.")));
             reels.addPreference(toggle(context, Settings.HIDE_REEL_SOUND_BUTTON,
                     L10n.t("Takes the speaker button off the bottom of the side of reels. "
                             + "A change shows from the next reel.")));
@@ -240,6 +243,8 @@ final class VideoPages {
                 playback.addPreference(toggle(context, Settings.TAP_TO_PLAY_REELS_AFTER_FIRST,
                         L10n.t("With the switch above on, after you play one reel, the reels you swipe to play on their own. The "
                                 + "feed, Watch and stories always wait.")));
+                playback.addPreference(toggle(context, Settings.INLINE_FEED_VIDEO_CONTROLS,
+                        L10n.t("Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls.")));
             }
             if (build.contains(PatchFamily.RESUME_LONG_VIDEOS)) {
                 playback.addPreference(toggle(context, Settings.RESUME_LONG_VIDEOS,
@@ -270,7 +275,7 @@ final class VideoPages {
                 // Asked as each window is armed and on each tap of the row, so a change shows from the next reel.
                 playback.addPreference(toggle(context, Settings.PICTURE_IN_PICTURE_FROM_MENU,
                         L10n.t("Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu "
-                                + "(the three dots) when you want one. That row is there whenever Picture-in-picture is on.")));
+                                + "(the three dots) when you want one. That row shows on upright reels, not wide ones.")));
                 // Asked as each screen is armed and as the screen changes, so a change shows within a moment.
                 playback.addPreference(toggle(context, Settings.PICTURE_IN_PICTURE_BUTTON,
                         L10n.t("Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open "

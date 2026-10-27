@@ -15,7 +15,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TreeSet;
 
 /**
@@ -28,15 +31,67 @@ public final class GcUserStats {
     private static final String PKG = "com.groundspeak.geocaching.intro.network.api.stats.";
     private static final int PAGE = 50;
 
-    /** Finds per D/T square (difficulty-major, 9x9) from the last time statistics were computed. */
-    private static volatile int[] lastGrid;
+    private static final long FINDS_FRESH_MS = 10 * 60 * 1000;
+    private static volatile List<JSONObject> finds;
+    private static volatile Map<String, String> foundDates;
+    private static volatile long findsAt;
 
     private GcUserStats() {}
 
-    /** Your D/T grid, computing it from your finds when Statistics hasn't been opened yet. */
+    /** Your finds from the app's own API (callerSpecific.found holds the date), refreshed every 10 minutes. */
+    private static synchronized List<JSONObject> finds() throws Exception {
+        if (finds != null && System.currentTimeMillis() - findsAt < FINDS_FRESH_MS) return finds;
+        Object user = currentUser();
+        String reference = (String) field(user, "w");
+        String token = (String) user.getClass().getMethod("b").invoke(user);
+        if (reference == null || token == null) throw new IllegalStateException("Not signed in");
+        List<JSONObject> all = new ArrayList<>();
+        Map<String, String> dates = new HashMap<>();
+        int total = Integer.MAX_VALUE;
+        while (all.size() < total) {
+            JSONObject page = new JSONObject(get(API + "/mobile/v1/users/" + reference + "/finds?referenceCode="
+                + reference + "&take=" + PAGE + "&skip=" + all.size() + "&sort=recency", token));
+            total = page.optInt("total", 0);
+            JSONArray data = page.optJSONArray("data");
+            if (data == null || data.length() == 0) break;
+            for (int i = 0; i < data.length(); i++) {
+                JSONObject cache = data.getJSONObject(i);
+                all.add(cache);
+                JSONObject caller = cache.optJSONObject("callerSpecific");
+                String found = caller == null ? "" : caller.optString("found", "");
+                if (!found.isEmpty()) dates.put(cache.optString("referenceCode"), found);
+            }
+        }
+        finds = all;
+        foundDates = dates;
+        findsAt = System.currentTimeMillis();
+        return all;
+    }
+
+    /** When you found this cache (as the app's API dates it), or null; call off the main thread. */
+    static String foundDate(String code) {
+        try {
+            finds();
+            return foundDates.get(code);
+        } catch (Throwable t) {
+            Utils.logError("Finds list unavailable", t);
+            return null;
+        }
+    }
+
+    /** A log was posted or deleted: the next lookup reads the finds list again. */
+    static void forgetFinds() {
+        findsAt = 0;
+    }
+
+    /** Your D/T grid (difficulty-major, 9x9), from your finds. */
     static int[] foundGrid() throws Exception {
-        if (lastGrid == null) buildResponse();
-        return lastGrid;
+        int[] grid = new int[81];
+        for (JSONObject cache : finds()) {
+            double d = cache.optDouble("difficulty", 0), t = cache.optDouble("terrain", 0);
+            if (d >= 1 && d <= 5 && t >= 1 && t <= 5) grid[(int) Math.round((d - 1) * 2) * 9 + (int) Math.round((t - 1) * 2)]++;
+        }
+        return grid;
     }
 
     /** Called in place of StatsApi.getUserStatistics; resumes the caller with an xk9 result. */
@@ -67,41 +122,25 @@ public final class GcUserStats {
     }
 
     private static Object buildResponse() throws Exception {
-        Object user = currentUser();
-        String reference = (String) field(user, "w");
-        String token = (String) user.getClass().getMethod("b").invoke(user);
-        if (reference == null || token == null) throw new IllegalStateException("Not signed in");
-
-        int[] grid = new int[81];
+        forgetFinds();
+        List<JSONObject> all = finds();
+        int[] grid = foundGrid();
         double difficultySum = 0, terrainSum = 0;
         int counted = 0;
         TreeSet<String> days = new TreeSet<>();
         String today = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(new Date());
-
-        int skip = 0, total = Integer.MAX_VALUE;
-        while (skip < total) {
-            JSONObject page = new JSONObject(get(API + "/mobile/v1/users/" + reference + "/finds?referenceCode="
-                + reference + "&take=" + PAGE + "&skip=" + skip + "&sort=recency", token));
-            total = page.optInt("total", 0);
-            JSONArray data = page.optJSONArray("data");
-            if (data == null || data.length() == 0) break;
-            for (int i = 0; i < data.length(); i++) {
-                JSONObject cache = data.getJSONObject(i);
-                double d = cache.optDouble("difficulty", 0), t = cache.optDouble("terrain", 0);
-                if (d >= 1 && d <= 5 && t >= 1 && t <= 5) {
-                    grid[(int) Math.round((d - 1) * 2) * 9 + (int) Math.round((t - 1) * 2)]++;
-                    difficultySum += d;
-                    terrainSum += t;
-                    counted++;
-                }
-                JSONObject caller = cache.optJSONObject("callerSpecific");
-                String found = caller == null ? "" : caller.optString("found", "");
-                if (found.length() >= 10) days.add(found.substring(0, 10));
+        for (JSONObject cache : all) {
+            double d = cache.optDouble("difficulty", 0), t = cache.optDouble("terrain", 0);
+            if (d >= 1 && d <= 5 && t >= 1 && t <= 5) {
+                difficultySum += d;
+                terrainSum += t;
+                counted++;
             }
-            skip += data.length();
+            JSONObject caller = cache.optJSONObject("callerSpecific");
+            String found = caller == null ? "" : caller.optString("found", "");
+            if (found.length() >= 10) days.add(found.substring(0, 10));
         }
 
-        lastGrid = grid;
         ArrayList<Integer> counts = new ArrayList<>(81);
         for (int c : grid) counts.add(c);
         Object dt = construct(PKG + "UserStatsResponse$DifficultyTerrainStatistics",
@@ -114,7 +153,7 @@ public final class GcUserStats {
             new Class<?>[]{int.class, Class.forName(PKG + "Streak"), Class.forName(PKG + "Streak")},
             3, streak(current), streak(longest));
 
-        Utils.log("Statistics from " + skip + " finds, " + days.size() + " caching days");
+        Utils.log("Statistics from " + all.size() + " finds, " + days.size() + " caching days");
         return construct(PKG + "UserStatsResponse",
             new Class<?>[]{int.class, dt.getClass(), boolean.class, streaks.getClass()},
             7, dt, days.contains(today), streaks);
@@ -200,6 +239,21 @@ public final class GcUserStats {
         }
         if (status >= 400) throw new IllegalStateException("HTTP " + status + " for finds: " + body);
         return body.toString();
+    }
+
+    /** HTTP status of a GET on the app's own API with your sign-in; call off the main thread. */
+    static int apiStatus(String path) throws Exception {
+        Object user = currentUser();
+        String token = (String) user.getClass().getMethod("b").invoke(user);
+        HttpURLConnection conn = (HttpURLConnection) new URL(API + path).openConnection();
+        try {
+            conn.setRequestProperty("Authorization", "bearer " + token);
+            conn.setRequestProperty("Consumer-Key", consumerKey());
+            conn.setRequestProperty("Accept", "application/json");
+            return conn.getResponseCode();
+        } finally {
+            conn.disconnect();
+        }
     }
 
     /** The app's own API client id; the Statistics patch copies it in from the app while patching. */

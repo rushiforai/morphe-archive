@@ -23,7 +23,8 @@
                  match scripts/profiles). A family that already passed with this bundle keeps its
                  receipt and isn't patched again.
       publish    Refuses unless -Walk names the walk-receipt.json of a full, passing whole-app
-                 walk of this exact bundle on a release phone or an emulator. Then the annotated
+                 walk of this exact bundle on a release phone or an emulator, with the screenshot
+                 and UI dump of every required step beside it. Then the annotated
                  tag, pushed on its own, and the GitHub release with the bundle, SHA256SUMS.txt
                  and the signature. Notes are the whole CHANGELOG section. Each asset is
                  downloaded back and compared.
@@ -35,7 +36,7 @@
 
 .EXAMPLE
     scripts/release/release.ps1 -Stage prepare -Version 0.23.0
-    scripts/release/release.ps1 -Stage build -Version 0.23.0 -DesktopJar C:\tools\morphe-desktop-1.19.0-all.jar -CompatClasspath "<dexlib2>;<guava>;<failureaccess>"
+    scripts/release/release.ps1 -Stage build -Version 0.23.0 -DesktopJar C:\tools\morphe-desktop-1.19.1-all.jar -CompatClasspath "<dexlib2>;<guava>;<failureaccess>"
     scripts/release/release.ps1 -Stage publish -Version 0.23.0 -Walk <walk folder>/walk-receipt.json
 #>
 #Requires -Version 7
@@ -347,7 +348,7 @@ switch ($Stage) {
         if (-not $env:HUSH_NATIVE_FIXTURES -or -not (Test-Path -LiteralPath $env:HUSH_NATIVE_FIXTURES -PathType Container)) {
             throw 'Set HUSH_NATIVE_FIXTURES to the folder of exact stock APKs.'
         }
-        if (-not $DesktopJar -or -not (Test-Path -LiteralPath $DesktopJar)) { throw 'Pass -DesktopJar, or set HUSHMESSENGER_DESKTOP_JAR, to Morphe Desktop 1.19.0 or newer.' }
+        if (-not $DesktopJar -or -not (Test-Path -LiteralPath $DesktopJar)) { throw 'Pass -DesktopJar, or set HUSHMESSENGER_DESKTOP_JAR, to Morphe Desktop 1.19.1 or newer.' }
         if (-not $CompatClasspath) { throw 'Pass -CompatClasspath, or set HUSHMESSENGER_COMPAT_CLASSPATH, to the dexlib2, Guava and failureaccess JARs.' }
         $commit = Get-Head
         $state = Read-State

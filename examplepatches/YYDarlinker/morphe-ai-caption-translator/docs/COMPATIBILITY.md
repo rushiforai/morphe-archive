@@ -1,6 +1,6 @@
 # Compatibility and evidence
 
-Checked 2026-10-26 (Asia/Shanghai). Public release remains **1.5.7 / release-1.5.7**. The accepted local product is **1.5.8 / local-1.5.8-m7b / candidate-02**, following [M7b review](maintenance/reviews/M7b-REVIEW.md). Local code, source qualification and the two finite compositions are accepted. On 2026-10-26 user-reported manual device acceptance plus a matching m7b runtime export completed the [first engineering maturity round](maintenance/reviews/M7-FINAL-ACCEPTANCE.md) within its stated limits. Previous m6a and candidate-01 deliveries remain historical. See [M7b result](maintenance/results/M7b-RESULT.md), [device handoff](maintenance/M7b-DEVICE-ACCEPTANCE.md) and [current state](PROJECT-STATE.md).
+Checked 2026-10-26 (Asia/Shanghai). Public release **1.5.8 / release-1.5.8**, tag`83a8b72a795285234f6c164991f65007750e6272`, asset SHA-256`5c9dfb19a3b0b88f55516bfca38bf47ee18ed3f282511b6b6401c37e8c5db686`. The [release record](maintenance/results/RELEASE-1.5.8-RESULT.md) binds actual 876-test CI, published bytes and fresh finite compositions. The earlier [M7b review](maintenance/reviews/M7b-REVIEW.md) and user observations retain their original scope; no full device matrix or new runtime provenance probe is claimed.
 
 ## Declarations and their sources
 
@@ -9,8 +9,8 @@ The current addon root uses `Constants.YOUTUBE` in `patches/src/main/kotlin/app/
 | Exact YouTube target | Addon/public 1.5.7 declaration | Matching official 1.48.0 declaration | Minimum Android | M7b evidence |
 | --- | --- | --- | --- | --- |
 | 21.42.241 | experimental | experimental | 10 / API 29 | no original APK present; no current composition/device evidence |
-| 21.41.525 | experimental | experimental | 10 / API 29 | exact SECONDARY variant, primary composition; device pending |
-| 21.28.208 | experimental | experimental | 10 / API 29 | one supplementary composition; device pending |
+| 21.41.525 | experimental | experimental |10 / API29| exact SECONDARY variant; fresh published 1.5.8 composition/resource/DEX audit,64581 classes; no device claim for this variant |
+| 21.28.208 | experimental | experimental |10 / API29| fresh published 1.5.8 supplementary composition/resource/DEX audit,62253 classes; no device claim for this variant |
 | 21.23.492 | experimental | experimental | 9 / API 28 | existing input not selected in M7b; historical structural evidence only |
 | 21.20.405 | stable target declaration | stable target declaration | 9 / API 28 | user reports current phone version; manual checklist reported issue-free, m7b export received; no desktop composition receipt or independent host-version readback |
 | 21.16.256 | stable target declaration | stable target declaration | 9 / API 28 | original APK absent; no current candidate composition/device evidence |
@@ -21,9 +21,9 @@ This is a discrete list, not a continuous 21.x range. The official bundle also c
 
 | Layer | Exact scope | Meaning and limitation |
 | --- | --- | --- |
-| Candidate identity | addon 1.5.8 / local-1.5.8-m7b / candidate-02; public remains 1.5.7 | diagnostics source metadata changed; accepted m6a and historical packages retained; local delivery and bounded user device observation accepted; no independent installed-APK hash attestation |
-| Primary actual composition | YouTube **21.41.525-SECONDARY**, versionCode **1561303419**, official **1.48.0**, Patcher **2.0.0**, **104 compatible official default roots + AI caption translator** | real patching, resources recompiled, serialized DEX audited; unsigned output; no device claim |
-| Supplementary actual composition | YouTube **21.28.208**, versionCode **1561185128**, same official/Patcher, compatible default roots + AI | one representative older player callback layout; separate input/output/selection/receipt and resource/DEX evidence; no matrix claim |
+| Released identity |1.5.8 / release-1.5.8, tag v1.5.8;600263 B; SHA-256`5c9dfb19a3b0b88f55516bfca38bf47ee18ed3f282511b6b6401c37e8c5db686`| strict remote release prepare, final asset and anonymous main/dev chain verified; accepted local/historical deliveries retained |
+| Primary actual composition | YouTube21.41.525-SECONDARY/code1561303419, official 1.48.0/Patcher 2.0.0/104 compatible default roots+AI, addon from the published download | resources recompiled, DEX audited,64581 unique classes; unsigned output not distributed or device-installed |
+| Supplementary actual composition | YouTube21.28.208/code1561185128, same official/Patcher and published addon | separate fresh resource/DEX proof,62253 unique classes; unsigned, not a matrix claim |
 | APK input identity | both `com.google.android.youtube`, minSdk **29**, native ABIs **arm64-v8a, armeabi-v7a, x86, x86_64** | apksigner verifies the existing signed inputs, including SDK-specific signer rotation; certificate SHA-256 matches both existing Constants signatures; actual defined DEX classes contain no addon/official-extension namespace. A filename is not this proof |
 | Fixtures / JVM | core and extension suites, real diagnostic writer/archive/report/export and existing native CC/language/session/cache/configuration protections | controlled Android layouts, provider fixtures and JVM mechanisms do not certify a physical player, OEM, paid model or hardware latency |
 | Device observation | user reports manual checklist issue-free on Manager 2.2.0 / YouTube 21.20.405 / official 1.48.0; supplied export manifest and first draw hook both identify local-1.5.8-m7b | host/official versions are user-reported; model/Android/ABI/package versionCode/signature/installed APK SHA and full root selection were not independently read; no third desktop composition claimed |
@@ -42,3 +42,7 @@ Old exports with unqualified `official=1.45.0` used a static historical marker, 
 N37R2 / 1.4.x used official 1.45.0 with YouTube 21.16.256. Release 1.5.0 composed official 1.47.0 with 21.20.405. Release 1.5.3 used **1.48.0-dev.6** on six older APKs; those development-bundle combinations remain historical. Release 1.5.6 composed stable 1.48.0 with 21.41.525 and had structural checks on 21.28.208/21.23.492. Accepted M6a composed 21.41.525-SECONDARY; M7a referenced that run only after proving identical production entries. These records do not substitute for M7b composition or device observations.
 
 The quick-toggle register change addresses the inspected flyout register hazard; the current user report provides a finite successful 21.20.405 observation, not an instrumented reproduction of the old VerifyError or proof for every toggle sequence. Missing/ambiguous bindings stop patching. N37R2's controlled centering error (up to 0.5 px) is a fixture result, not an OEM measurement. Native CC/language ownership remains with YouTube and the official Captions patch. Startup main-thread configuration reads, hardware Keystore/IO tails, frame time/memory/power, arbitrary thread interleavings, fourteen-language native fluency, remote CI, cold provisioning/online registry authentication and real provider billing remain unverified. See the current contracts for the retained cache/configuration limits.
+
+## Release-era CI scope
+
+The1.5.8 publisher completed a real Linux dry run, strict prepare and876 application tests, then verified anonymous source retrieval and build provenance. The later workflow-only Java Action 6.1.0 update also passed 876 tests and the main no-publication path. These are now covered; the older M7a cached-Windows rehearsal remains historical and does not become universal fresh-machine/empty-SDK certification. Published 1.5.8 was not newly signed/installed on the user's phone; the retained m7b user sample and identical production inputs are stated separately.

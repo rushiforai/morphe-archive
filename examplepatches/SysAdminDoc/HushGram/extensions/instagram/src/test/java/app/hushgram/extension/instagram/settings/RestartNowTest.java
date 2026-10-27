@@ -95,10 +95,10 @@ public class RestartNowTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             SettingsDialog dialog = open(controller);
             HushgramPreferenceFragment page = pageOf(dialog);
-            Preference card = page.getPreferenceScreen().getPreference(0);
+            int rows = page.getPreferenceScreen().getPreferenceCount();
             View bar = dialog.getView().findViewById(SettingsDialog.RESTART_ID);
-            assertEquals("HushGram is on", String.valueOf(card.getTitle()));
-            String reported = String.valueOf(card.getSummary());
+            assertNull(page.getPreferenceScreen().findPreference("hushgram_status"));
+            assertEquals("hushgram_settings_search", page.getPreferenceScreen().getPreference(0).getKey());
             assertEquals("nothing owed, so no bar", View.GONE, bar.getVisibility());
 
             TwoStatePreference following = (TwoStatePreference) page.findPreference(Settings.START_ON_FOLLOWING.key);
@@ -107,8 +107,8 @@ public class RestartNowTest {
             assertEquals(View.VISIBLE, bar.getVisibility());
             assertEquals("Some changes apply when Instagram restarts. Tap to restart it now.",
                     ((TextView) bar).getText().toString());
-            assertFalse("the card only reports", card.isSelectable());
-            assertEquals("the card keeps its size, so no row under it moves", reported, String.valueOf(card.getSummary()));
+            assertEquals("the restart bar doesn't insert a row", rows, page.getPreferenceScreen().getPreferenceCount());
+            assertNull("a pending restart doesn't bring the active banner back", page.getPreferenceScreen().findPreference("hushgram_status"));
             assertEquals("nothing restarts without the tap", 0, ended.get());
 
             assertTrue(bar.performClick());

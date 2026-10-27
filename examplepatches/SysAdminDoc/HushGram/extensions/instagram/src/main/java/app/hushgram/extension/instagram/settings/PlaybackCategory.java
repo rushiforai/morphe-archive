@@ -31,7 +31,7 @@ final class PlaybackCategory {
                 || build.contains(PatchFamily.RESUME_LONG_VIDEOS) || build.contains(PatchFamily.REEL_TAP_AND_VOLUME)
                 || build.contains(PatchFamily.PLAYBACK_QUALITY) || build.contains(PatchFamily.DATA_SAVER)) {
             PreferenceCategory playback = category(screen, L10n.t("Playback"), SettingsIcons.PLAYBACK,
-                    L10n.t("Choose how videos start, sound and look."));
+                    L10n.t("Media quality, auto-play and controls."));
             if (build.contains(PatchFamily.TAP_TO_PLAY)) {
                 playback.addPreference(toggle(context, Settings.TAP_TO_PLAY, L10n.t("Tap to play"),
                         L10n.t("Videos wait for your tap where the choice below says. Feed videos show a play button, "

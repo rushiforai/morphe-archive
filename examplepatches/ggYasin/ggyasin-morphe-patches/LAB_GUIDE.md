@@ -31,7 +31,7 @@ Manager as the app to handle it.
 
 1. In Morphe Manager, select ZenSMS.
 2. Use Expert mode so patch selection is visible.
-3. Choose `ZenSMS_1.2.04.xapk` when prompted for the original app bundle.
+3. Choose `ZenSMS_1.2.16.xapk` (or `ZenSMS_1.2.04.xapk`) when prompted for the original app bundle.
 4. Enable the patches you want to test:
    - **Enable premium state** changes the existing premium-state checks.
    - **Expanded OTP detection** keeps ZenSMS's original handler and adds
@@ -78,27 +78,31 @@ is removed first. Removing an installed app deletes its local application data.
 All four patches require the verified ARM64 `3.15.3` (`3327`) or ARMv7 `3.14.1`
 (`3204`) library. Known earlier edits are accepted and obsolete ones repaired;
 unknown changes or unsupported version/architecture combinations are rejected.
-A startup toast and `PatchLabOfflineGames` logcat message now verify the actual
-mapped library **after** Unity loads. Note whether it says patched code loaded
-or native code NOT verified. An absent message is also useful evidence.
+A startup toast and `PatchLabOfflineGames` logcat message verify actual mappings
+for all three Unity libraries **after** loading. Basename fallbacks are disabled;
+a mismatch stops startup with Unity's error dialog instead of running stock code.
+Capture that dialog or the saved `patchlab-native-load-error.txt` report from
+`Android/data/com.JindoBlu.OfflineGames/files/` if it fails. Its actual path is
+printed in the error. No saved-game data wipe is needed. See the
+[strict-loader guide](docs/offlinegames-strict-loader.md).
 If the countdown still runs, capture that log and the process's `libil2cpp.so`
 mapping using the commands in [the native-loading guide](docs/offlinegames-native-loading.md).
 For startup testing, compare warm launches offline, online, and online with the
 app blocked by the firewall, as described in [the startup guide](docs/offlinegames-startup.md).
 
-## Patch 9GAG 8.23.0
+## Patch 9GAG 8.26.1 or 8.23.0
 
-1. Select `9GAG_8.23.0.apk` as the original app.
+1. Select the original `9GAG_8.26.1.apk` (recommended) or `9GAG_8.23.0.apk`.
 2. In Expert mode, enable the 9GAG patches you want:
-   - **Remove 9GAG ads, promoted posts and trackers (8.23.0)** is on by default.
-   - **Deactivate Firebase Analytics (9GAG 8.23.0)** is optional and off by
+   - **Remove 9GAG ads, promoted posts and trackers** is on by default.
+   - **Deactivate Firebase Analytics (9GAG)** is optional and off by
      default.
 3. Do not select the Adobo source at the same time. Its own 9GAG patch targets
    8.17.5 and fails on 8.23.0 with a missing `res/layout/view_aatk_native.xml`.
 4. Patch and save the output, then install on an emulator or a disposable test
    device.
 
-The patch is pinned to 9GAG `8.23.0` and to the official signing certificate, so
+The patch is pinned to 9GAG `8.26.1` and `8.23.0`, and to the official signing certificate, so
 a re-signed app is rejected rather than patched.
 
 These patches were statically verified against a patched APK, not observed

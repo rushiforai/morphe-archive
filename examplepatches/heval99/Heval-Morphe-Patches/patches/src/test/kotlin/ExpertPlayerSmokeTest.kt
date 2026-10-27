@@ -1,6 +1,9 @@
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -35,7 +38,7 @@ class ExpertPlayerSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "11.2.0",
+            version = "11.3.0",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -84,27 +87,35 @@ class ExpertPlayerSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "11.2.0",
+            version = "11.3.0",
             patchNames = setOf("Enable Premium"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
 
-        // The entitlement class is R8-renamed, so find its constructor by the RevenueCat parameter list.
-        val ctor = classes.flatMap { cls ->
-            cls.methods.filter {
-                it.name == "<init>" && it.parameterTypes.map { p -> p.toString() } == ENTITLEMENT_CTOR_PARAMS
+        // The entitlement class is R8-renamed, so find it the way the patch does: by RevenueCat's
+        // toString literal, then its only (String, Z isActive, ...) constructor.
+        val entitlementInfo = classes.filter { cls ->
+            cls.methods.any {
+                it.name == "toString" && it.instructions().any { insn ->
+                    ((insn as? ReferenceInstruction)?.reference as? StringReference)?.string ==
+                        "EntitlementInfo(identifier='"
+                }
             }
+        }.singleOrNull() ?: error("RevenueCat EntitlementInfo class not found")
+        val ctor = entitlementInfo.methods.filter {
+            val parameters = it.parameterTypes.map { p -> p.toString() }
+            it.name == "<init>" && parameters.size > 2 &&
+                parameters[0] == "Ljava/lang/String;" && parameters[1] == "Z"
         }.singleOrNull() ?: error("RevenueCat EntitlementInfo constructor not found")
 
+        // The first instruction overwrites the isActive argument (p2) with true.
         val first = ctor.instructions().firstOrNull()
         assertEquals(Opcode.CONST_4, first?.opcode, "isActive must be forced true before the constructor runs")
+        // p0 = v(registers - ins), where ins counts `this` plus every parameter word.
+        val ins = 1 + ctor.parameterTypes.sumOf { p -> if (p.toString() == "J" || p.toString() == "D") 2 else 1 }
+        val p2 = ctor.implementation!!.registerCount - ins + 2
+        assertEquals(p2, (first as OneRegisterInstruction).registerA, "the forced register must be p2 (isActive)")
+        assertEquals(1, (first as NarrowLiteralInstruction).narrowLiteral, "isActive must be forced to 1")
     }
 }
-
-private val ENTITLEMENT_CTOR_PARAMS = listOf(
-    "Ljava/lang/String;", "Z", "Z", "LG5/q0;",
-    "Ljava/util/Date;", "Ljava/util/Date;", "Ljava/util/Date;", "LG5/Y1;",
-    "Ljava/lang/String;", "Ljava/lang/String;", "Z", "Ljava/util/Date;",
-    "Ljava/util/Date;", "LG5/m0;", "Lorg/json/JSONObject;", "LG5/F2;",
-)
 

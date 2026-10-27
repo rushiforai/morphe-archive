@@ -1,6 +1,8 @@
 package app.template.patches.sofascore.ads
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 internal const val USER_ACCOUNT_CLASS = "Lcom/sofascore/local_persistance/UserAccount;"
 
@@ -41,5 +43,8 @@ object AdSdkStartupFingerprint : Fingerprint(
     definingClass = RELEASE_APP_CLASS,
     returnType = "V",
     parameters = listOf(),
-    strings = listOf("ad_personalization", "analytics_storage"),
+    strings = listOf(
+        string("ad_personalization", StringComparisonType.CONTAINS),
+        string("analytics_storage", StringComparisonType.CONTAINS),
+    ),
 )

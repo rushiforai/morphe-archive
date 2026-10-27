@@ -1,6 +1,8 @@
 package app.template.patches.blescanner.ads
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 // BLE Scanner keeps its class names and uses the next-gen GMA SDK. Its two ad helpers are found by
 // their live ad units, which only their private getLiveUnitId() returns; the loaders are then
@@ -10,7 +12,7 @@ import app.morphe.patcher.Fingerprint
 internal object AdmobBannerLiveUnitFingerprint : Fingerprint(
     returnType = "Ljava/lang/String;",
     parameters = listOf(),
-    strings = listOf("ca-app-pub-9113721270828121/8819258755"),
+    strings = listOf(string("ca-app-pub-9113721270828121/8819258755", StringComparisonType.CONTAINS)),
 )
 
 // AdmobBanner.loadBanner(Context, RelativeLayout): every banner screen (home, device information,
@@ -26,7 +28,7 @@ internal object AdmobBannerLoadFingerprint : Fingerprint(
 internal object AdmobInterstitialLiveUnitFingerprint : Fingerprint(
     returnType = "Ljava/lang/String;",
     parameters = listOf(),
-    strings = listOf("ca-app-pub-9113721270828121/2787645901"),
+    strings = listOf(string("ca-app-pub-9113721270828121/2787645901", StringComparisonType.CONTAINS)),
 )
 
 // AdmobInterstitial.loadInterstitialAds(Context): launches the coroutine that loads the

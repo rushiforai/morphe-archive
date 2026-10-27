@@ -9,7 +9,7 @@ package app.morphe.patches.tiktok.interaction.sensitivewarnings
 import app.morphe.util.addInstruction
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.tiktok.misc.settings.configurableBytecodePatch as bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.interaction.blockauthor.VideoAuthorInfoParamsFingerprint
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
@@ -123,5 +123,17 @@ val hideSensitiveWarningsPatch = bytecodePatch(
                 return-object v0
             """,
         )
+
+        // A video shared into a chat carries its caution label in the message, written by the
+        // sender's app, so the risk model guard never reaches it (#258). ChatCardCautionAnchorsTest
+        // holds the card on declared builds; elsewhere a miss only leaves chats as they are.
+        if (riskModel != null) {
+            val chatCard = ChatCardCautionFingerprint.methodOrNull
+            if (chatCard == null && packageMetadata.buildName in declaredVersions()) {
+                throw PatchException("Skip content warnings: the chat card's caution label wasn't found.")
+            }
+            chatCard?.hideChatCardLabels("Skip content warnings")
+                ?: println("[Skip content warnings] Left chat cards' caution labels on ${packageMetadata.buildName}: no card reads them.")
+        }
     }
 }

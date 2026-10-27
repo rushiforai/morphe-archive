@@ -133,12 +133,20 @@ internal fun findCommunityInbox(classes: Iterable<ClassDef>): CommunityInboxCont
         val switch = main.methods.filter { it.communityString("folderName") }.communitySingle()
         val s = switch.communityCode()
         val requests = communityEnums(byType[scope.type] ?: throw CommunityChanged())["MESSAGE_REQUESTS"] ?: throw CommunityChanged()
-        communityRequire(s.size == 42 && s[0].opcode == Opcode.INVOKE_STATIC && s[1].opcode == Opcode.MOVE_RESULT_OBJECT && switch.communityString("InboxLoaderCoordinator.setFolderAndFilter") &&
+        // Some 584.1 arm64 builds drop a flag store and move the config's apply into a static helper: 38 instructions, not 42.
+        // Either way the switch's own scope parameter and the chosen folder are the two values stored into the new config.
+        fun stores(type: String) = s.indices.filter { s[it].opcode == Opcode.IPUT_OBJECT && (s[it].communityRef() as? FieldReference)?.type == type }
+            .communitySingle().let { s[it] as TwoRegisterInstruction }
+        communityRequire((s.size == 42 || s.size == 38) && s[0].opcode == Opcode.INVOKE_STATIC && s[1].opcode == Opcode.MOVE_RESULT_OBJECT && switch.communityString("InboxLoaderCoordinator.setFolderAndFilter") &&
             switch.parameterTypes.map(CharSequence::toString) == listOf(main.type, scope.type) && s[2].communityRef().toString() == requests.toString() &&
-            s[3].opcode == Opcode.IF_NE && s.branchTarget(3) == 13 && s[4].communityRef().toString() == folders["PENDING"].toString() &&
-            s[7].communityRef().toString() == folders["PENDING"].toString() && s[13].communityRef().toString() == folders["INBOX"].toString() &&
-            s[25].opcode == Opcode.IPUT_OBJECT && (s[25] as? TwoRegisterInstruction)?.let { it.registerA == 5 && it.registerB == 1 } == true &&
-            s[28].opcode == Opcode.IPUT_OBJECT && (s[28] as? TwoRegisterInstruction)?.let { it.registerA == 4 && it.registerB == 1 } == true)
+            s[3].opcode == Opcode.IF_NE && s[4].communityRef().toString() == folders["PENDING"].toString() &&
+            s[7].communityRef().toString() == folders["PENDING"].toString() && s[s.branchTarget(3)].communityRef().toString() == folders["INBOX"].toString())
+        val folderRegister = s[4].communityRegister() ?: throw CommunityChanged()
+        val scopeStore = stores(scope.type)
+        val folderStore = stores(folderGetter.returnType)
+        communityRequire(listOf(4, 7, s.branchTarget(3)).all { s[it].communityRegister() == folderRegister } &&
+            scopeStore.registerA == switch.implementation!!.registerCount - 1 && folderStore.registerA == folderRegister &&
+            scopeStore.registerB == folderStore.registerB)
         val loaderCtor = calls(main.methods.filter { calls(it).any { call -> call.definingClass == scopeGetter.definingClass && call.name == "<init>" } }
             .communitySingle()).filter { it.definingClass == scopeGetter.definingClass && it.name == "<init>" }.communitySingle()
         val coordinator = definition(calls(definition(loaderCtor)).filter { it.name == "<init>" && byType[it.definingClass]?.communityOriginal() == "InboxLoaderCoordinator" }.communitySingle())

@@ -22,6 +22,7 @@ import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
 import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -159,6 +160,7 @@ class TapToPlayFixtureTest {
                 val context = PatchContexts.of(
                     listOf(groot, legacy, checker, classes.getValue(trigger), setting, classes.getValue(FRAGMENT_ACTIVITY),
                         classes.getValue(controlsType), classes.getValue(VIDEO_PLAYER_PARAMS), ExtensionDex.classDef(TAP_TO_PLAY),
+                        ExtensionDex.classDef(FEED_CONTROLS),
                         ExtensionDex.classDef(SETTINGS_STATUS)) + components + playbackClasses.values +
                         grootInterfaces.values.filter { it.type != groot.type },
                 )
@@ -167,6 +169,32 @@ class TapToPlayFixtureTest {
                     it.name == method.name && it.returnType == method.returnType &&
                         it.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString)
                 }
+
+                // The separate inline button calls the same public native commands, with BY_USER.
+                val command = context.mutableClassDefBy(FEED_CONTROLS).methods.single { it.name == "commandPlayer" }
+                val commandCode = command.implementation!!.instructions.toList()
+                val nativeCommands = commandCode.mapNotNull { it.call }.filter { it.definingClass == groot.type }
+                val outerPause = pauses.single { it !== pause }
+                assertEquals("$name: inline native commands", listOf(play.name, outerPause.name), nativeCommands.map { it.name })
+                nativeCommands.forEach { call ->
+                    assertEquals(listOf(trigger), call.parameterTypes.map(CharSequence::toString))
+                }
+                val userNames = enumConstantFields(classes.getValue(trigger)).filterValues { it == "BY_USER" }.keys
+                val user = classes.getValue(trigger).fields.single {
+                    it.name in userNames && AccessFlags.ENUM.isSet(it.accessFlags)
+                }.name
+                assertEquals("$name: inline commands use the native user trigger twice", 2, commandCode.count {
+                    val field = (it as? ReferenceInstruction)?.reference as? FieldReference
+                    it.opcode == Opcode.SGET_OBJECT && field?.definingClass == trigger && field.name == user
+                })
+                assertEquals("$name: the attach knows the current player", 1,
+                    context.mutableClassDefBy(groot.type).methods.sumOf { method ->
+                        method.implementation?.instructions?.count { it.call?.toString() == INLINE_ATTACHED } ?: 0
+                    })
+                assertEquals("$name: the release retires its control", 1,
+                    context.mutableClassDefBy(groot.type).methods.sumOf { method ->
+                        method.implementation?.instructions?.count { it.call?.toString() == INLINE_RELEASED } ?: 0
+                    })
 
                 // Both plays: player and trigger copied into v0 and v1, the answer, and a no that
                 // returns before the player's own first instruction.

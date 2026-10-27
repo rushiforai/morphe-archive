@@ -23,6 +23,8 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction12x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -199,6 +201,41 @@ class HevalControlsTest {
         assertThrows<PatchException> { method.hevalReturnEarly("demo.x") } // not void
         assertThrows<PatchException> { method.hevalReturnNull("demo.x") } // not an object
     }
+
+    @Test
+    fun gateRefusesToSplitAResultOrExceptionMove() {
+        // static int value() { invoke-static {}, Lcom/example/Feed;->f()X; move-result* v0; ... }
+        listOf(
+            Opcode.MOVE_RESULT to "I",
+            Opcode.MOVE_RESULT_OBJECT to "Ljava/lang/Object;",
+            Opcode.MOVE_RESULT_WIDE to "J",
+            Opcode.MOVE_EXCEPTION to "V",
+        ).forEach { (move, type) ->
+            val method = method("V", registers = 4, invoke(type), ImmutableInstruction11x(move, 0), ImmutableInstruction10x(Opcode.RETURN_VOID))
+            val e = assertThrows<PatchException>(move.name) { method.addHevalGate("demo.x", index = 1, register = 2) { "" } }
+            assertTrue(e.message!!.contains("cannot be inserted before"), e.message)
+            assertEquals(listOf(Opcode.INVOKE_STATIC, move, Opcode.RETURN_VOID), method.implementation!!.instructions.map { it.opcode })
+        }
+    }
+
+    @Test
+    fun gateAtMethodEntryBeforeAnInvokeStillWorks() {
+        val method = method("V", registers = 2, invoke("I"), ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), ImmutableInstruction10x(Opcode.RETURN_VOID))
+        method.hevalReturnEarly("demo.entry")
+        assertEquals(
+            listOf(
+                Opcode.CONST_STRING, Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID,
+                Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.RETURN_VOID,
+            ),
+            method.implementation!!.instructions.map { it.opcode },
+        )
+    }
+
+    /** `invoke-static {}, Lcom/example/Feed;->f()<returnType>`. */
+    private fun invoke(returnType: String) = ImmutableInstruction35c(
+        Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0,
+        ImmutableMethodReference("Lcom/example/Feed;", "f", emptyList(), returnType),
+    )
 
     private fun method(returnType: String, registers: Int, vararg instructions: com.android.tools.smali.dexlib2.iface.instruction.Instruction) =
         MutableMethod(

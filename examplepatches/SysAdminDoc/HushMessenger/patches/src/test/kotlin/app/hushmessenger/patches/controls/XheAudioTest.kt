@@ -2,6 +2,7 @@ package app.hushmessenger.patches.controls
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
@@ -34,8 +35,8 @@ private const val FROM_FILE = "invoke-static {v8}, Landroid/net/Uri;->fromFile(L
 /** The share copy's end as Messenger writes it: open the copy on the File, copy the stream in, close it, point a Uri at it. */
 private fun shareCopy(
     name: String = SHARE_MEDIA_NAME, copy: String = COPY, close: String = CLOSE, fromFile: String = FROM_FILE,
-    jump: String = "", id: String = SYNTHETIC_SHARE_COPY,
-) = fixtureMethod(id, """
+    jump: String = "", id: String = SYNTHETIC_SHARE_COPY, flags: Int = AccessFlags.PUBLIC.value,
+) = fixtureMethod(id, flags = flags, body = """
     $jump
     const-string v1, "$name"
     new-instance v3, Ljava/io/FileOutputStream;
@@ -83,6 +84,26 @@ class XheAudioTest {
         // Two copies that look alike are ambiguous, so neither is hooked.
         val twin = fixtureClass("LX/KLY;", listOf(shareCopy(id = SYNTHETIC_SHARE_COPY.replace("LX/KLZ;", "LX/KLY;"))))
         assertTrue(findXheAudio(shareCopyFixture() + twin).isEmpty())
+    }
+
+    @Test fun theStaticBodyRedexMovesCallIntoIsTheSameCopy() {
+        // 346816951 and its siblings: LX/LZc;->A00(LX/LZc;)Ljava/lang/Object; holds what call() used to.
+        val static = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
+        val outlined = shareCopy(id = "LX/LZc;->A00(LX/LZc;)Ljava/lang/Object;", flags = static)
+        val classes = listOf(fixtureClass("LX/LZc;", listOf(outlined)))
+        assertEquals(listOf(outlined.hookId()), findXheAudio(classes).map { it.hookId() })
+        assertEquals(listOf(outlined.hookId()), mirroredControls(classes).getValue(XHE_AUDIO).map { it.hookId() })
+        val before = outlined.code()
+        val site = outlined.shareCopySite()!!
+        injectControl(XHE_AUDIO, mapOf(XHE_AUDIO to listOf(outlined)))
+        assertCopyHook(before, outlined.code(), site, "outlined copy")
+        // Another class's parameter, an instance method with it, or a static call() isn't that body.
+        val others = listOf(
+            shareCopy(id = "LX/LZc;->A00(LX/LZd;)Ljava/lang/Object;", flags = static),
+            shareCopy(id = "LX/LZc;->A00(LX/LZc;)Ljava/lang/Object;"),
+            shareCopy(id = "LX/LZc;->call()Ljava/lang/Object;", flags = static),
+        )
+        for (method in others) assertTrue(findXheAudio(listOf(fixtureClass("LX/LZc;", listOf(method)))).isEmpty(), method.hookId())
     }
 
     @Test fun aCopyThatMovedIsntFoundOrStopsBeforeAnyEdit() {

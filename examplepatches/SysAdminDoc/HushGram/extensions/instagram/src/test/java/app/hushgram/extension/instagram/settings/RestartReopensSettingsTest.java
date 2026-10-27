@@ -5,6 +5,8 @@
 package app.hushgram.extension.instagram.settings;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
@@ -45,7 +47,7 @@ import app.hushgram.extension.shared.settings.PauseForTests;
 import app.hushgram.extension.shared.settings.preference.ReopenSettingsAfterRestart;
 
 /**
- * Restart now on a category page brings the screen back on that page once Instagram is up again,
+ * Restart now expands the last section on the main settings screen once Instagram is up again,
  * and the card it was tapped on is the restart feedback: no toast covers the page.
  */
 @RunWith(RobolectricTestRunner.class)
@@ -87,7 +89,7 @@ public class RestartReopensSettingsTest {
     }
 
     @Test
-    public void restartNowOnACategoryPageOpensThatPageAgainAfterTheRestart() throws Exception {
+    public void restartNowExpandsTheSameSectionOnTheMainPage() throws Exception {
         // Before the restart: the screen is open on Feed, with a change that waits on a restart.
         Activity before = Robolectric.buildActivity(Activity.class).setup().get();
         SettingsDialog first = SettingsDialog.onPage(null);
@@ -125,6 +127,11 @@ public class RestartReopensSettingsTest {
         assertTrue("the screen didn't open after the restart", shown instanceof SettingsDialog);
         assertEquals(feed.getKey(), ((SettingsDialog) shown).startPage());
         assertEquals("not back on the page Restart now was tapped on", feed.getKey(), pageOf((SettingsDialog) shown).currentPage());
+        HushgramPreferenceFragment restored = pageOf((SettingsDialog) shown);
+        Preference restoredFeed = categoryRow(restored, "Feed");
+        assertSame(restoredFeed, restored.findPreference(Settings.START_ON_FOLLOWING.key).getParent());
+        assertNotNull(restored.getPreferenceScreen().findPreference("hushgram_view_toggle"));
+        assertNotNull(categoryRow(restored, "Ads and privacy"));
     }
 
     private static HushgramPreferenceFragment pageOf(SettingsDialog dialog) {

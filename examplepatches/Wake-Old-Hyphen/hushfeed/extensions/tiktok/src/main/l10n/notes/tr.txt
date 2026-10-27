@@ -1,5 +1,27 @@
 ## Unreleased
 
+* **Ayarlar:** Yeni bir anahtar Hushfeed satırını TikTok'un Ayarlar ve gizlilik listesinden çıkarır. Ondan sonra ayarları açmak için Senin İçin'e basılı tut (#264).
+* **Yorumlar:** Tam yükseklikteki yorumlar artık saati ve pili kapatmak yerine durum çubuğunun altında duruyor, TikTok açıldıktan sonraki ilk videoda da tam yükseklikte açılıyor (#261).
+* **Akış:** Ana akışın alt çubuğuna sekmeler arasında kayan bir mercek, parmakla kaydırma hareketi, isteğe bağlı titreşim ve Arayüz bölümünde bulanıklık, cam şeffaflığı, kapsül yüksekliği ve köşeler için yeni ayarlar içeren yüzen bir cam kapsül eklendi (#259).
+* **Yamalama:** Ayarı olan yamaların artık başlangıç değerlerini seçen Morphe seçenekleri var, böylece bir derleme istediğin anahtarlar açık olarak gelebilir. @XEGARE'ye teşekkürler (#256).
+* **Ayarlar:** Kategoriler ana listedeki satırlarının hemen altında açılıp kapanır. Arama denetimleri aynı listede gösterir, açık kategoriler ekran döndürüldüğünde veya yeniden başlatıldığında açık kalır.
+* **Ayarlar:** Ana sayfadaki büyük kartlar yerine tam genişlikte kompakt bir liste kullanılır. Hızlı kurulumlar kaldırıldı.
+* **TikTok:** Hushfeed artık Morphe Manager 2.2.0 ya da daha yenisini, bilgisayarda ise morphe-desktop 1.19.1 istiyor.
+* **Kontroller:** PineDrama için başlatma, ayarları yerinde açıp kapatma ve geri dönme temel kontrolü eklendi. Tam doğrulama henüz tamamlanmadı.
+* **Kontroller:** Saydam alt çubuğun kullandığı her LIVE önizleme ve dizi etiketi, desteklenen TikTok APK'sına karşı kontrol edilir.
+* **Akış:** Ülke bayrakları ve kodları, sağdan sola yazılan adların yanında kalır (#258).
+* **Akış:** Saydam alt çubuk açıkken LIVE önizlemelerinin ve mini dizilerin adı ile "İzlemek için dokun" satırı sekmelerin üstünde kalır (#250).
+* **Izgaralar:** Sıralama denetiminin dokunma alanı en az 48 dp olur.
+* **Izgaralar:** Izgara görünümden ayrıldığında sıralama denetimi gizlenir, geri döndüğünde yeniden görünür.
+* **Izgaralar:** Sıralama değişikliği kaydedilemezse mevcut sıra korunur.
+* **Izgaralar:** Orijinal sıra seçildiğinde mevcut ızgaranın sıralama menüsü kullanılabilir kalır (#180).
+* **Yorumlar:** Videonun yanındaki yorumlar, yerleşim ve yeniden oluşturma kontrollerinde aynı genişliği kullanır (#253).
+* **Gelen kutusu:** Önce Hikaye seçeneği açıkken yeniden kullanılan sohbet resmi, ilk dokunuşta o an gösterilen içerik üreticisinin Hikayesini açar (#233).
+* **Playback:** Keep the source video paused when a comment link opens another page. Leaving the tap-to-start cover for another tab also keeps its feed paused (#257).
+* **Tanılama:** Bildirim raporları, mesaj içeriğini kaydetmeden kayıt ve gösterim aşamalarını sayar (#126, #222, #86).
+* **Ekran kaydı:** TikTok, Android 14 ve sonraki sürümlerde kayıt için son uygulamalar arasında seçilebilir.
+* **Kontroller:** Otomatik geçiş denetimi, videoları tek tek etiketlemeden TikTok oynatımını izler. Bitmemiş klipler ve izlenemeyen oynatım için sonuç belirsiz kalır.
+* **TikTok:** Ayar aramasındaki bir anahtarı basılı tutarak denetimini ana listede gösterip vurgulayın (#248).
 * **Tanılama:** İlk kare geri çağrısı kayıtları, başlangıç kontrolleri için kaynak bağını ve monoton zaman damgalarını korur (#150).
 * **Derleme kontrolleri:** Sürüm kontrolleri, belirtilen her paket için eşleşen APK ve uygulama içi test kanıtı gerektirir. Gezinme testleri kurulu derlemeyi ve yama seçeneklerini doğrular.
 * **TikTok:** Recording recovery exports use bulk writes to avoid long waits when saving large files.

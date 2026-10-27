@@ -19,6 +19,7 @@ import app.morphe.extension.facebook.feed.SeenPosts;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.media.RecentlyWatched;
 import app.morphe.extension.facebook.media.SurfaceQuality;
+import app.morphe.extension.facebook.reels.FeedVideoControls;
 import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.facebook.misc.TextSize;
 import app.morphe.extension.facebook.navigation.FeedsSubtab;
@@ -511,6 +512,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_REEL_SAVE_BUTTON =
             new BooleanSetting("hushfacebook_hide_reel_save_button", FALSE);
 
+    /** The direct WhatsApp sidebar button, independent of the share-sheet item. Off by default. */
+    public static final BooleanSetting HIDE_REEL_WHATSAPP_BUTTON =
+            new BooleanSetting("hushfacebook_hide_reel_whatsapp_button", FALSE);
+
     /**
      * The speaker button at the bottom of a reel's right side isn't built
      * ({@link app.morphe.extension.facebook.reels.ReelDeclutter#showsSoundButton}, #190). Off by
@@ -845,6 +850,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_related_groups_under_comments", FALSE);
 
     /**
+     * Feed posts show none of the few comments Facebook draws under their buttons
+     * ({@link app.morphe.extension.facebook.comments.CommentSheetOptions}, #253). The Comment button
+     * still opens them all. Off by default. A change shows on posts drawn after it.
+     */
+    public static final BooleanSetting HIDE_POST_COMMENT_PREVIEWS =
+            new BooleanSetting("hushfacebook_hide_post_comment_previews", FALSE);
+
+    /**
      * Comments whose words link to an online shop, like the Shopee links pasted under reels, are
      * left out with their replies ({@link app.morphe.extension.facebook.comments.CommentSheetOptions},
      * #118). Off by default. A change shows on the next comments drawn.
@@ -913,6 +926,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting TAP_TO_PLAY_REELS_AFTER_FIRST =
             new BooleanSetting("hushfacebook_tap_to_play_reels_after_first", FALSE);
+
+    /** A separate feed play/pause button. Native video taps still open fullscreen. Starts off. */
+    public static final BooleanSetting INLINE_FEED_VIDEO_CONTROLS =
+            new BooleanSetting("hushfacebook_inline_feed_video_controls", FALSE) {
+                @Override
+                protected void onValueChanged() {
+                    FeedVideoControls.settingsChanged();
+                }
+            };
 
     /**
      * A video longer than two minutes that was left partway picks up where it was left, once, the
@@ -1794,6 +1816,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_FACEBOOK_LOGO =
             new BooleanSetting("hushfacebook_hide_facebook_logo", FALSE, true);
+
+    /**
+     * The home top bar loses its Create (+) button and the buttons beside it close up (#257,
+     * {@link app.morphe.extension.facebook.navigation.TopBarButtons}). A change waits for a restart.
+     */
+    public static final BooleanSetting HIDE_CREATE_BUTTON =
+            new BooleanSetting("hushfacebook_hide_create_button", FALSE, true);
 
     /**
      * Facebook's dark mode controller answers dark whatever its own setting says

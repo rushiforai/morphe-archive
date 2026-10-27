@@ -20,7 +20,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
-import io.github.sabopura.morphe.patches.reddit.Constants.REDDIT_2026_28_0
+import io.github.sabopura.morphe.patches.reddit.Constants.REDDIT
 import java.util.logging.Logger
 
 private const val EXTENSION = "Lio/github/sabopura/morphe/extension/reddit/AutoTranslate;"
@@ -39,7 +39,7 @@ val autoTranslatePatch = bytecodePatch(
     description = "Automatically invokes Reddit's existing post and comment translation path.",
     default = true,
 ) {
-    compatibleWith(REDDIT_2026_28_0)
+    compatibleWith(REDDIT)
 
     val autoTranslateOption = booleanOption(
         key = "auto_translate",

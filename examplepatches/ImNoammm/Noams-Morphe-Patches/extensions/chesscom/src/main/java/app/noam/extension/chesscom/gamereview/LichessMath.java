@@ -14,6 +14,7 @@ final class LichessMath {
     static final String BOOK = "book";
     static final String BEST = "best";
     static final String EXCELLENT = "excellent";
+    static final String GOOD = "good";
     static final String INACCURACY = "inaccuracy";
     static final String MISTAKE = "mistake";
     static final String BLUNDER = "blunder";
@@ -78,6 +79,17 @@ final class LichessMath {
             return BLUNDER;
         }
         return null;
+    }
+
+    /**
+     * chess.com's mark for a move Lichess doesn't judge that isn't the engine's own: Excellent while
+     * the mover loses at most 2% of expected points (0.04 of Lichess's winning chances), Good up
+     * to Lichess's inaccuracy at 5%, where chess.com's starts too. Keeping or facing a mate is Excellent.
+     */
+    static String unjudged(float before, int beforeMate, float after, int afterMate, boolean moverWhite) {
+        if (mate(before, beforeMate) != 0 || mate(after, afterMate) != 0) return EXCELLENT;
+        double d = winningChances(after * 100.0) - winningChances(before * 100.0);
+        return (moverWhite ? -d : d) <= .04 ? EXCELLENT : GOOD;
     }
 
     /** The mover had a forced mate and let it go (Lichess's "Lost forced checkmate sequence"). */

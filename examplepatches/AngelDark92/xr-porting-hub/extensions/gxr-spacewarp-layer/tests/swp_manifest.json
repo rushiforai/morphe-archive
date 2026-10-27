@@ -1,86 +1,81 @@
 {
-  "module": "gxr-spacewarp-layer estimator core (brief 08-ESTIMATOR-B1a)",
-  "contract": "RE-SHARED-IMPL.md (signatures exact; B1a = spacewarp_est.h/.cpp, swp_shaders.h, swp_est_worker.cpp, tests/)",
-  "mv_units": "RGBA16F, rg = uv displacement = NDC delta / 2 (contract's v.xy/scale with scale = 2.0), ba = 0",
+  "module": "gxr-spacewarp-layer estimator core (2026-10-26 dense coarse-to-fine)",
+  "contract": "RE-SHARED-IMPL.md signatures plus the per-call geometry extensions in spacewarp_est.h",
+  "mv_units": "RGBA16F, rg = native input-texel offset / native input size (uv displacement), ba = 0",
   "pipeline": {
-    "mv_gen": ["gme (coarse global search, 1x1)", "sad (block-match, 4 quadrant SADs/candidate)",
-               "median (9-element sorting network)", "h1 (median seed + 3x3 refine + parabolic subpel -> final uv map)"],
-    "extrapolate": ["single-texture backward warp: dst(q) = src(q + mv*fovScale*(1 - scaleFactor)), clampMagnitude then sr.mode/sr.radius stretch then uv clamp"]
+    "mv_gen": ["downsample pyramid (working longest side <= 1024, half levels to 64)",
+               "dense coarse search (full +-96 native-pixel envelope, integer steps, no gaps)",
+               "dense +-2 level refinement seeded by the previous level",
+               "median (9-element sorting network)",
+               "native +-2 refinement with corrected quadratic subpel -> final uv map"],
+    "extrapolate": ["single-texture backward warp: dst(q) = src(q + mv*fovScale*(1 - scaleFactor)), clampMagnitude then sr.mode/sr.radius stretch then uv clamp"],
+    "align": ["rotation-only homography R_A * R_B^T from the two view matrices and asymmetric FOV tangents"]
   },
-  "constants_conservative": {
-    "block_direct": 16,
-    "block_fallback": 8,
-    "global_max_texels_direct": 96,
-    "global_max_texels_fallback": 24,
-    "gme_step_texels_direct": 32,
-    "search_span_direct": 2,
-    "search_span_fallback": 1,
-    "median_stride": 3,
-    "no_motion_mean": 2.0,
-    "no_motion_uv": "0.25 / max(inputW, inputH)",
+  "constants_production": {
+    "block": 8,
+    "refine_block": 4,
+    "native_search_texels": 2,
+    "level_search_texels": 2,
+    "work_cap": 1024,
+    "coarsest_level_min": 64,
+    "search_envelope_native_texels": 96,
+    "improvement_ratio": 0.01,
+    "improvement_abs": 1e-06,
     "clamp_mag_uv": "48.0 / max(inputW, inputH)",
     "sr_radius_uv": "16.0 / max(inputW, inputH)",
     "sr_mode_default": 0,
     "budget_micros_default": 12000,
-    "input_dim_guard": ">= 256, <= 8192, % 16 == 0",
-    "mv_default": "input/2 clamped to >= 64 (brief); explicit values honored when 8 <= size <= 2048"
+    "input_dim_guard": ">= 64, <= 8192; nonaligned dimensions accepted",
+    "admission_ceiling_bytes": 536870912,
+    "history_sets": 3,
+    "nominal_interleaved_scale": 1.5
   },
   "shader_syntax": {
     "runner": "tests/swp_shader_syntax.py",
     "compiler": "builds/steamlink-patches/build/tooling/bin/glslang.exe",
     "expected_outcomes": [
       {"name": "swp_vert_quad", "glslang_exit": 0, "probe": null},
-      {"name": "swp_sad_frag (direct, QCOM as-is)", "glslang_exit": 2,
+      {"name": "swp_downsample_frag", "glslang_exit": 0, "probe": null},
+      {"name": "swp_dense_frag (QCOM as-is)", "glslang_exit": 2,
        "expected_error": "extension not supported: GL_QCOM_block_match",
        "probe": "SWP_SAD macro pointed at a plain-GLSL stub -> exit 0",
        "probe_exit": 0},
-      {"name": "swp_sad_fallback_frag", "glslang_exit": 0, "probe": null},
-      {"name": "swp_gme_direct (QCOM as-is)", "glslang_exit": 2,
-       "expected_error": "extension not supported: GL_QCOM_block_match", "probe_exit": 0},
-      {"name": "swp_gme_fallback", "glslang_exit": 0, "probe": null},
-      {"name": "swp_h1_direct (QCOM as-is)", "glslang_exit": 2,
-       "expected_error": "extension not supported: GL_QCOM_block_match", "probe_exit": 0},
-      {"name": "swp_h1_fallback", "glslang_exit": 0, "probe": null},
+      {"name": "swp_dense_fallback_frag", "glslang_exit": 0, "probe": null},
       {"name": "swp_median_frag", "glslang_exit": 0, "probe": null},
-      {"name": "swp_extrap_frag", "glslang_exit": 0, "probe": null}
+      {"name": "swp_refine_frag (QCOM as-is)", "glslang_exit": 2,
+       "expected_error": "extension not supported: GL_QCOM_block_match", "probe_exit": 0},
+      {"name": "swp_refine_fallback_frag", "glslang_exit": 0, "probe": null},
+      {"name": "swp_extrap_frag", "glslang_exit": 0, "probe": null},
+      {"name": "swp_align_frag", "glslang_exit": 0, "probe": null}
     ],
-    "note": "glslang 1.x rejects GL_QCOM_block_match (reproduced on this toolchain 2026-10-17). The device-side compile path is exercised by the parent's NDK build; the dialect probe validates all grammar except the QCOM builtin itself."
+    "note": "glslang rejects GL_QCOM_block_match; the probe validates the direct shader grammar. The shipped estimator does not arm QCOM: the prior parity probe compared two portable loops, so it proved nothing about hardware SAD. Portable GLSL is the only production path."
   },
   "math_test": {
     "runner": "tests/swp_est_math_test.py",
-    "description": "pure-python mirror of the GLSL loop shapes on deterministic synthetic frames (noise luma for matching, linear ramp for warp-exact assertions)",
+    "description": "pure-python mirror of the production thresholds parsed from spacewarp_est.cpp; deterministic frames",
     "expected_cases": [
-      {"name": "static_noise_zero_field", "expect": "every mv texel (0,0)"},
-      {"name": "sad_translation_integer_recovered", "expect": "interior L1 mv == (+3,-2) texels exactly"},
-      {"name": "gme_on_grid_exact", "expect": "coarse GME returns the (+4,-4) candidate exactly (SAD 0 unique)"},
-      {"name": "median_preserves_constant_field", "expect": "median of a constant field == the field"},
-      {"name": "h1_subpel_within_parabolic_bound", "expect": "|final - (+3,-2)| <= 1.0 texel (winner 0.5 + parabola 0.5)"},
-      {"name": "mv_field_not_globally_zero_on_translation", "expect": "nonzero somewhere"},
-      {"name": "subpel_structural_bound_fractional", "expect": "for truth 2.5, refined lands in [1.5, 3.5] texels (winner integer +- 0.5 parabola; integer SADs tie on white noise by expectation)"},
-      {"name": "subpel_symmetric_parabola_zero", "expect": "parabola(4,1,4) == 0"},
-      {"name": "subpel_asymmetric_fit", "expect": "parabola(2.5,1,4) == -0.25"},
-      {"name": "subpel_clamped_to_half", "expect": "parabola(2,1,4) clamps to 0.5"},
-      {"name": "extrapolate_time_shifted_warp", "expect": "dst(center) == linear-sample of src at shift mv*(1-1.5), exact on the ramp frame"},
-      {"name": "extrapolate_noop_at_sf1", "expect": "worst abs error 0 (sf=1, mode 1)"},
-      {"name": "clamp_magnitude_bounds_offset", "expect": "mv=9uv with sf=2 clamps the sample offset to -clamp_mag exactly"},
-      {"name": "sr_mode0_stretch_ramp", "expect": "border pixel sampled at u + d*min(room/radius,1) exactly"},
-      {"name": "sr_mode0_band_attenuates", "expect": "attenuation factor < 1 inside the border band"},
-      {"name": "sr_mode1_hard", "expect": "mode 1 border sample == full-vector sample"},
-      {"name": "sr_mode0_warps_less_than_mode1_at_border", "expect": "|mode0 delta| < |mode1 delta|"},
-      {"name": "fov_scale_folds_linearly", "expect": "offset scales linearly with fovScale"}
+      {"name": "normalized_error", "expect": "mean RGB error in [0,1]"},
+      {"name": "zero_and_motion_candidates", "expect": "zero displacement evaluated; 1% production improvement required"},
+      {"name": "dense_gap_coverage", "expect": "every integer offset in the coarse envelope is enumerated"},
+      {"name": "subpel_and_edges", "expect": "corrected quadratic sign, clamps, edge-neighbour fallback"},
+      {"name": "head_rotation", "expect": "R_A * R_B^T maps B camera rays into A"},
+      {"name": "low_contrast", "expect": "no premature no-motion cutoff"},
+      {"name": "compression_noise", "expect": "motion still recovered inside normalized error"},
+      {"name": "scene_cut", "expect": "no confident nonzero motion"},
+      {"name": "extrapolation", "expect": "time-shifted warp with clamp/stretch semantics"}
     ]
   },
   "statuses": {
-    "1": "init ok", "2": "mv ok", "4": "extrapolate ok",
-    "8": "QCOM ext missing => plain-SAD fallback armed (sticky)",
+    "1": "init ok", "2": "mv ok", "4": "extrapolate ok", "64": "align ok",
+    "8": "portable baseline armed (QCOM unarmed until a genuine hardware-SAD parity path exists)",
     "16": "stand-down (sticky until SwpInit)",
     "32": "estimator budget exceeded during the last call"
   },
   "documented_gaps": [
-    "guided filter refinement (VD @0x57856) - out of scope per RE-SHARED-IMPL.md",
-    "temporal motion statistics + scene-change detection - out of scope",
-    "TFLite 'Smart' global-motion stage - out of scope (GME = our own strided-lattice SAD approximation)",
-    "MV-direction convention is estimator-internal (forward flow prev->curr at prev positions); re-verify XR_FB_space_warp runtime expectations before any runtime MotionVectorSubImage attach",
-    "VD per-pixel ME_Warp/ME_FrameExtrapolationStereo shader semantics are only partially decoded (REPORT.md §8); we pinned a conservative single-texture backward warp in uv space plus sf-anchored time shifting"
+    "guided filter refinement - out of scope",
+    "temporal motion statistics + scene-change detection - out of scope; the production improvement rule is the guard",
+    "TFLite 'Smart' global-motion stage - out of scope",
+    "MV-direction convention is estimator-internal (forward flow prev->curr at prev positions)",
+    "QCOM hardware SAD is not shipped; the previous parity probe was not a hardware test"
   ]
 }

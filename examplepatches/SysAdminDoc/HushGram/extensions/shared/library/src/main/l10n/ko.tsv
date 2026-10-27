@@ -300,6 +300,8 @@ Hide suggested stories	추천 스토리 숨기기
 Hides stories from accounts you don't follow, and accounts Instagram suggests, in the row at the top of Home. Stories from accounts you follow stay.	홈 상단 목록에서 팔로우하지 않는 계정의 스토리와 Instagram이 추천하는 계정을 숨깁니다. 팔로우하는 계정의 스토리는 그대로 남습니다.
 Hide the Stories tray	스토리 선반 숨기기
 Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.	홈 상단에서 스토리 행 전체를 숨깁니다. 내 스토리도 포함됩니다. 프로필이나 메시지에서는 여전히 스토리를 열 수 있습니다
+Keep the Stories tray in the feed	스토리 선반을 피드에 두기
+Stops Instagram from floating the row of stories over Home when you come back to it mid-feed or scroll up fast. The row stays at the top of the feed and scrolls away with it.	피드 중간에서 홈으로 돌아오거나 빠르게 위로 스크롤할 때 Instagram이 스토리 행을 홈 위에 띄우지 않게 합니다. 스토리 행은 피드 맨 위에 있고 피드와 함께 스크롤되어 사라집니다.
 Hide the Music for you card	‘회원님을 위한 음악’ 카드 숨기기
 Keeps Instagram's Music for you card from turning up between the stories you watch. The stories themselves stay.	시청하는 스토리 사이에 인스타그램의 ‘회원님을 위한 음악’ 카드가 끼어들지 않게 합니다. 스토리는 그대로 남습니다.
 Hide Suggested for you between stories	스토리 사이의 '추천 계정' 숨기기
@@ -312,6 +314,8 @@ the start-up fix for x86 devices	x86 기기에 대한 시작 문제 수정
 # context: toasts when a long press of Home gave up waiting on Instagram's developer options to load
 Pure black dark mode	순수 검정 어두운 모드
 Instagram's dark mode uses pure black instead of its near-black gray, and so do the menus that slide up from the bottom. Buttons keep their own grays.	Instagram의 어두운 모드에서 기존의 짙은 회색 대신 순수 검정색을 사용합니다. 아래에서 올라오는 메뉴도 검정색이 됩니다. 버튼은 기존의 회색을 유지합니다.
+Pure black dark mode isn't in this build	이 빌드에는 순수 검정 어두운 모드가 없습니다
+To make dark mode pure black instead of dark gray, which can save battery on an OLED screen, pick Pure black dark mode in Morphe Manager the next time you patch Instagram.	어두운 모드를 짙은 회색 대신 순수 검정으로 바꾸려면(OLED 화면에서 배터리를 아낄 수 있음) 다음에 Instagram을 패치할 때 Morphe Manager에서 순수 검정 어두운 모드를 선택하세요.
 the pure black dark mode	순수 검정 어두운 모드
 No Play Store updates	Play 스토어 업데이트 없음
 Google Play won't offer Meta's updates over this build. To go back to the normal Instagram, uninstall this one first, which deletes Instagram's data on this phone. Later HushGram builds need Change version code too, or they won't install over this one.	Google Play가 이 빌드 위에 Meta의 업데이트를 제안하지 않습니다. 일반 Instagram으로 돌아가려면 먼저 이 앱을 삭제해야 하며, 이 휴대폰의 Instagram 데이터가 지워집니다. 이후의 HushGram 빌드에도 Change version code가 필요하며, 없으면 이 빌드 위에 설치되지 않습니다.
@@ -581,8 +585,10 @@ Hide comments	댓글 숨기기
 Hide memories and recaps	추억 및 요약 숨기기
 Hide story rewinds	스토리 리와인드 숨기기
 Nothing in the row of stories at the top of Home loads, your own story included, and highlights on profiles stay empty too. Saves data. A story ring on a profile or in a chat still opens its stories.	홈 상단의 스토리 줄에서는 내 스토리를 포함해 아무것도 불러오지 않으며, 프로필의 하이라이트도 비어 있습니다. 데이터를 아낍니다. 프로필이나 채팅의 스토리 링은 여전히 스토리를 엽니다.
-Open categories as pages	카테고리를 페이지로 열기
-Settings shows a list of its categories, and a tap opens one on its own page. Search still looks through all of them.	설정에 카테고리 목록이 표시되고, 탭하면 해당 카테고리가 별도 페이지로 열립니다. 검색은 여전히 모든 카테고리를 찾습니다.
+Expandable categories	펼칠 수 있는 카테고리
+Tap a category to show or hide its settings on this page.	카테고리를 탭하면 이 페이지에서 해당 설정을 펼치거나 접을 수 있습니다.
+Expanded	펼쳐짐
+Collapsed	접힘
 Hide the HushGram row in Instagram's menu	Instagram 메뉴에서 HushGram 항목 숨기기
 Settings shortcut on the app icon	앱 아이콘의 설정 바로가기
 Open settings from the logo	로고에서 설정 열기
@@ -821,6 +827,8 @@ Chat %1$s	채팅 %1$s
 # context: Hidden chats under Messages, the list of chats left out of the inbox with their notifications dropped, and the toasts after checking a chat in it
 Hidden chats	숨긴 채팅
 Hide single chats. A hidden chat leaves your inbox and its notifications don't post until you show it here again.	채팅을 하나씩 숨깁니다. 숨긴 채팅은 받은 메시지함에서 사라지고, 여기서 다시 표시하기 전까지 알림도 울리지 않습니다.
+Double-tap Messages for hidden chats	메시지를 두 번 탭해 숨긴 채팅 열기
+Two quick taps on the Messages button, on the tab bar or at the top of Home, open your hidden chats. While a lock is on, it asks for it first. One tap opens Messages as usual.	탭 바나 홈 상단의 메시지 버튼을 빠르게 두 번 탭하면 숨긴 채팅이 열립니다. 잠금이 켜져 있으면 먼저 잠금을 확인합니다. 한 번 탭하면 평소처럼 메시지가 열립니다.
 Open a chat in Instagram, then come back here to hide it.	Instagram에서 채팅을 연 다음 이곳으로 돌아와 숨기세요.
 %1$s is hidden	%1$s 채팅을 숨겼습니다
 %1$s is shown again	%1$s 채팅을 다시 표시합니다
@@ -941,15 +949,15 @@ Hides the status bar and the navigation bar while your messages or a chat shows.
 Hide Notes on profile pictures	프로필 사진의 노트 숨기기
 Takes the Notes bubble off profile pictures, yours included. Notes in Messages stay as they are.	프로필 사진에서 노트 말풍선을 없앱니다. 내 프로필도 포함됩니다. 메시지의 노트는 그대로 유지됩니다.
 # context: the line that opens a category's page in HushGram settings, under the page title
-How you open HushGram, and how this screen is laid out.	HushGram을 여는 방법과 이 화면의 구성을 정합니다.
-Hide ads and share less about yourself with Instagram.	광고를 숨기고 Instagram에 내 정보를 덜 공유합니다.
+How you open HushGram and lay out settings.	HushGram을 여는 방법과 설정 배치.
+Hide ads and share less with Instagram.	광고를 숨기고 Instagram에 공유하는 정보를 줄이세요.
 Choose what Home shows and how it behaves.	홈에 표시되는 내용과 동작 방식을 선택합니다.
-Take Meta AI out of search, your feed, reels and profiles.	검색, 피드, 릴스, 프로필에서 Meta AI를 없앱니다.
-Tidy up the Search tab and what it remembers.	검색 탭과 검색 기록을 정리합니다.
-Keep your chats private and your inbox clear of extras.	채팅을 비공개로 유지하고 받은 메시지함의 군더더기를 없앱니다.
-Choose what reels show, and how they play and scroll.	릴스에 표시되는 내용과 재생 및 스크롤 방식을 선택합니다.
-Choose which stories you see and what people see you do.	보이는 스토리와 다른 사람에게 보이는 내 활동을 선택합니다.
-Choose how videos start, sound and look.	동영상의 시작 방식, 소리, 화질을 선택합니다.
+Control where Meta AI appears.	Meta AI가 표시되는 위치를 정하세요.
+Search, suggestions and the Explore grid.	검색, 추천 및 탐색 그리드.
+Privacy and controls for your chats.	채팅 개인정보 보호 및 제어.
+Playback and controls in the Reels tab.	릴스 탭의 재생 및 제어.
+Viewing, sound and the stories tray.	시청, 사운드 및 스토리 트레이.
+Media quality, auto-play and controls.	미디어 품질, 자동 재생 및 제어.
 Take buttons you don't use off posts and the share sheet.	게시물과 공유 시트에서 쓰지 않는 버튼을 없앱니다.
 Copy, save or hide comments.	댓글을 복사하거나 저장하거나 숨깁니다.
 See who follows you back, and clear extras off profiles.	나를 맞팔로우하는 사람을 확인하고 프로필의 군더더기를 없앱니다.
@@ -1039,28 +1047,6 @@ Loading the picture...	사진을 불러오는 중...
 # context: the settings row right above Support HushGram that opens a new bug report on GitHub
 Report a problem	문제 신고하기
 Opens a GitHub report with your versions and settings filled in. Add what happened.	버전과 설정이 미리 채워진 GitHub 신고를 엽니다. 무슨 일이 있었는지 적어 주세요.
-# context: the settings row under Search, and the title of its dialog of one-tap choices
-Quick setups	빠른 설정
-Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	한 번의 탭으로 여러 스위치를 켜거나 모든 스위치를 처음 상태로 되돌립니다. 이 줄을 숨기려면 길게 누르세요.
-# context: row on Settings backup that hides or shows the Quick setups row on the home page, and its two summaries
-Quick setups on the home page	홈 페이지의 빠른 설정
-Shown. Tap to hide it.	표시 중입니다. 탭하면 숨깁니다.
-Hidden. Tap to show it again.	숨겨져 있습니다. 탭하면 다시 표시합니다.
-# context: toast after a long press hides Quick setups; the page named is Settings backup
-Quick setups hidden. Bring it back from %1$s.	빠른 설정을 숨겼습니다. %1$s에서 다시 표시할 수 있습니다.
-# context: a Quick setups choice that hides ads, suggestions and promotions
-Quiet	조용하게
-# context: a Quick setups choice that turns on the privacy switches
-Privacy	개인정보 보호
-# context: a Quick setups choice that puts every switch back the way it started
-Back to defaults	기본값으로 되돌리기
-Hides ads, suggested accounts and posts, surveys and promotions.	광고, 추천 계정과 게시물, 설문, 홍보를 숨깁니다.
-Hides your seen receipts, typing and active status. Allows screenshots and cleans shared links. Stops the analytics upload alarm.	읽음 표시, 입력 중 표시, 활동 상태를 숨깁니다. 스크린샷을 허용하고 공유 링크를 정리합니다. 분석 데이터 업로드 알람을 중지합니다.
-Puts every switch back the way it started. Your locks stay as they are.	모든 스위치를 처음 상태로 되돌립니다. 잠금은 그대로 유지됩니다.
-# context: toast after a Quick setups choice changed exactly one switch
-Changed %1$d setting	설정 %1$d개를 바꿨습니다
-# context: the same toast for any other count, zero included; %1$d is how many
-Changed %1$d settings	설정 %1$d개를 바꿨습니다
 Hide the reply bar on reels from chats	채팅에서 연 릴스의 답장 창 숨기기
 The Reply to box under a reel you open from a chat, with its reactions and plus button. The chat's own message box stays.	채팅에서 연 릴스 아래의 답장 입력란과 반응, 더하기 버튼입니다. 채팅의 메시지 입력란은 그대로 남습니다.
 # context: Layout list title; it picks the font Instagram's text draws in
@@ -1260,3 +1246,13 @@ Date in backup file names	백업 파일 이름에 날짜 넣기
 Add the current date and time when exporting settings. Off keeps HushGram-settings.json.	설정을 내보낼 때 현재 날짜와 시간을 덧붙입니다. 끄면 HushGram-settings.json을 유지합니다.
 %1$s is the post's shortcode. Stories and unknown posts leave it out. Using it also names photos.	%1$s는 게시물의 단축 코드입니다. 스토리나 알 수 없는 게시물에서는 생략됩니다. 이 토큰을 넣으면 사진 이름에도 템플릿이 적용됩니다.
 Videos and photos use %1$s. Unknown codes are left out.	동영상과 사진에 %1$s를 사용합니다. 알 수 없는 코드는 생략됩니다.
+Tab bar layout	탭 바 레이아웃
+Swipe between tabs	탭 사이 스와이프
+Classic	클래식
+Instagram's choice	Instagram의 선택
+Keeps the newer bar, with Messages on it, and you can swipe sideways between every tab, even if Instagram moves your account back to the older one. Restart Instagram to see the change.	메시지가 있는 새 바를 유지하며, Instagram이 계정을 이전 바로 되돌려도 모든 탭 사이를 옆으로 스와이프할 수 있습니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+Keeps the older bar, with Create on it and Messages at the top of Home. Swiping only moves between Home and the screens beside it. Restart Instagram to see the change.	만들기가 있고 메시지가 홈 상단에 있는 이전 바를 유지합니다. 스와이프는 홈과 그 옆 화면 사이에서만 이동합니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+Instagram picks the tab bar for your account, and it can switch between the two on its own.	Instagram이 계정의 탭 바를 고르며, 두 가지 사이를 스스로 바꿀 수 있습니다.
+Group Instagram's notifications, and take suggestions off the Notifications page.	Instagram 알림을 묶고, 알림 페이지에서 추천을 없앱니다.
+Take suggestions and Featured off the Notifications page.	알림 페이지에서 추천과 주요 항목을 없앱니다.
+Version warnings	버전 경고

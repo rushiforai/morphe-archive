@@ -2,6 +2,7 @@ package dev.arsylk.fosspatch.patches.hidemyandroid
 
 import dev.arsylk.fosspatch.patches.shared.Constants.COMPATIBILITY_HIDEMYANDROID_171
 import dev.arsylk.fosspatch.patches.shared.Constants.COMPATIBILITY_HIDEMYANDROID_172
+import dev.arsylk.fosspatch.patches.shared.Constants.COMPATIBILITY_HIDEMYANDROID_175
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
@@ -9,7 +10,9 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction3rc
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -37,6 +40,14 @@ private data class HmaPins(
      * regardless of whether the user is signed in.
      */
     val tokenCheckClasses: List<String> = emptyList(),
+    /**
+     * When true, only `Boolean.FALSE` loads that feed the premium StateFlow (creation or
+     * emission) are rewritten. Needed from 1.7.5 on, where the same classes also compare
+     * against FALSE for readiness checks and flipping those operands breaks the app.
+     */
+    val emissionAwareTokenCheck: Boolean = false,
+    /** (definingClass, method) pairs marking a premium-StateFlow write/creation. */
+    val flowWriteSignatures: List<Pair<String, String>> = emptyList(),
 )
 
 /**
@@ -223,6 +234,23 @@ private fun BytecodePatchContext.applyHmaUnlock(pins: HmaPins, rewritePremiumFlo
     //    `Lqa/v0;` (same rewrite) so the authenticated path also reports premium.
     val tokenCheckClasses = pins.tokenCheckClasses
     if (tokenCheckClasses.isNotEmpty()) {
+        // Registers carried by an invoke instruction (35c: C..G by count; 3rc: range).
+        fun invokeRegisters(instruction: Instruction): List<Int> = when (instruction) {
+            is FiveRegisterInstruction ->
+                (0 until instruction.registerCount).map {
+                    when (it) {
+                        0 -> instruction.registerC
+                        1 -> instruction.registerD
+                        2 -> instruction.registerE
+                        3 -> instruction.registerF
+                        else -> instruction.registerG
+                    }
+                }
+            is Instruction3rc ->
+                (0 until instruction.registerCount).map { instruction.startRegister + it }
+            else -> emptyList()
+        }
+
         classDefForEach { classDef ->
             if (classDef.type !in tokenCheckClasses) return@classDefForEach
             val mutable = mutableClassDefBy(classDef)
@@ -234,7 +262,35 @@ private fun BytecodePatchContext.applyHmaUnlock(pins: HmaPins, rewritePremiumFlo
                     if (insn.opcode != Opcode.SGET_OBJECT) return@filter false
                     val ref = (insn as? ReferenceInstruction)?.reference as? FieldReference
                         ?: return@filter false
-                    ref.definingClass == "Ljava/lang/Boolean;" && ref.name == "FALSE"
+                    if (ref.definingClass != "Ljava/lang/Boolean;" || ref.name != "FALSE") {
+                        return@filter false
+                    }
+                    // From 1.7.5 on, only rewrite loads that feed the premium StateFlow (its
+                    // creation or an emission into it) — the same classes also compare against
+                    // FALSE for readiness checks, and flipping those operands breaks the app.
+                    if (!pins.emissionAwareTokenCheck) return@filter true
+                    val register = (insn as OneRegisterInstruction).registerA
+                    // Walk forward until the register is consumed or redefined: the load feeds
+                    // the premium flow only if its first consumer is a flow write. A load that
+                    // is consumed by anything else first (e.g. an equality check) is left alone,
+                    // even if the same register is later reused for an emission on another path.
+                    var feedsFlow = false
+                    for (j in i + 1 until minOf(original.size, i + 12)) {
+                        val candidate = original[j]
+                        if (candidate is OneRegisterInstruction &&
+                            candidate.registerA == register
+                        ) {
+                            break // redefined before any consumer
+                        }
+                        val reference = (candidate as? ReferenceInstruction)?.reference
+                            as? MethodReference ?: continue
+                        if (register !in invokeRegisters(candidate)) continue
+                        feedsFlow = pins.flowWriteSignatures.any { (cls, name) ->
+                            reference.definingClass == cls && reference.name == name
+                        }
+                        break
+                    }
+                    feedsFlow
                 }.sortedDescending().forEach { i ->
                     val mutableMethod = mutable.methods.first {
                         it.name == method.name &&
@@ -290,6 +346,36 @@ val unlockPremiumPatch172 = bytecodePatch(
                 flagName = "c",
                 blobClass = "Lxa/k;",
                 tokenCheckClasses = listOf("Lqa/v0;", "Lqa/z0;"),
+            ),
+            rewritePremiumFlow = false,
+        )
+    }
+}
+
+/**
+ * 1.7.5 (versionCode 175) — re-derived pins (see `Constants.COMPATIBILITY_HIDEMYANDROID_175`
+ * kdoc for the mapping). The premium-flow UI badge rewrite is skipped for the same reason as
+ * 1.7.2; the account-gated premium state is handled by the token-check class rewrite.
+ */
+@Suppress("unused")
+val unlockPremiumPatch175 = bytecodePatch(
+    name = "Unlock premium",
+    description = "Unlocks the premium feature set offline, without a subscription.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_HIDEMYANDROID_175)
+    execute {
+        applyHmaUnlock(
+            pins = HmaPins(
+                flagClass = "Leb/h;",
+                flagName = "c",
+                blobClass = "Lza/s;",
+                tokenCheckClasses = listOf("Lsa/l1;", "Lgb/c;"),
+                emissionAwareTokenCheck = true,
+                flowWriteSignatures = listOf(
+                    "Lid/g0;" to "j", // MutableStateFlow setValue
+                    "Lid/w;" to "b",  // state flow factory
+                ),
             ),
             rewritePremiumFlow = false,
         )

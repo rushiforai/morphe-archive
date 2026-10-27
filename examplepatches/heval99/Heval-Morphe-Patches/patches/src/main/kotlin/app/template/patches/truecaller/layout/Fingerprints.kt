@@ -129,8 +129,42 @@ internal object BusinessDetailsScreenFingerprint : Fingerprint(
         "L", "L", "Lkotlin/jvm/functions/Function1;", "Lkotlin/jvm/functions/Function0;",
         "Lkotlin/jvm/functions/Function2;", "L", "I",
     ),
-    strings = listOf("BusinessDetailsScreen", "BusinessDesTitle"),
+    strings = listOf(
+        string("BusinessDetailsScreen", StringComparisonType.CONTAINS),
+        string("BusinessDesTitle", StringComparisonType.CONTAINS),
+    ),
     custom = { method, _ -> AccessFlags.STATIC.isSet(method.accessFlags) },
+)
+
+internal const val CALL_LOG_FILTER_TYPE = "Lcom/truecaller/calllog/api/FilterType;"
+
+// The revamped call log's filter row (static a050.e in 26.41.5), the only renderer of the filter chips
+// (All / Missed / Not spam / Spam / ...) and the SIM selector next to them (shown with two or more
+// SIMs): (modifier, filter chips, chip click, SIMs, selected SIM index, ..., composer, changed). The
+// call log screen draws it pinned above the list or as the LazyColumn item "call_log_filters"; its
+// restart lambda calls it again. "filtersStartPadding" is its padding animation label.
+internal object CallLogFiltersRowFingerprint : Fingerprint(
+    isStatic = true,
+    returnType = "V",
+    parameters = listOf(
+        "L", "L", "Lkotlin/jvm/functions/Function1;", "L", "I", "Lkotlin/jvm/functions/Function1;",
+        "Lkotlin/jvm/functions/Function0;", "Z", "Lkotlin/jvm/functions/Function1;", "L", "I",
+    ),
+    strings = listOf("filtersStartPadding"),
+)
+
+// TruecallerInit.onNewIntent: the "set_missed_filter" extra (missed call notifications) selects the
+// MISSED filter through the call log's filter setter (ud8.f(FilterType) in 26.41.5); the voicemail and
+// assistant extras and onCreate use the same setter. The matched call names the setter.
+internal object CallLogFilterIntentFingerprint : Fingerprint(
+    definingClass = "Lcom/truecaller/ui/TruecallerInit;",
+    name = "onNewIntent",
+    parameters = listOf("Landroid/content/Intent;"),
+    filters = listOf(
+        string("set_missed_filter"),
+        fieldAccess(opcode = Opcode.SGET_OBJECT, definingClass = CALL_LOG_FILTER_TYPE, name = "MISSED"),
+        methodCall(returnType = "V", parameters = listOf(CALL_LOG_FILTER_TYPE)),
+    ),
 )
 
 internal const val CALL_LOG_HISTORY_ENTRY = "Lcom/truecaller/calllog/presentation/ui/screen/model/CallLogHistoryItem\$HistoryEntry"
@@ -144,7 +178,11 @@ internal object CallLogHistoryEntryDataToStringFingerprint : Fingerprint(
     returnType = "Ljava/lang/String;",
     parameters = listOf(),
     filters = listOf(string("CallLogHistoryEntryData(primaryHistoryEventId=", StringComparisonType.STARTS_WITH)),
-    strings = listOf(", phonebookId=", ", normalisedNumber=", ", blockReasonLabel="),
+    strings = listOf(
+        string(", phonebookId=", StringComparisonType.CONTAINS),
+        string(", normalisedNumber=", StringComparisonType.CONTAINS),
+        string(", blockReasonLabel=", StringComparisonType.CONTAINS),
+    ),
 )
 
 // toString() of the revamped call log's row model (CallLogHistoryItem.HistoryEntry, mh8 in 26.41.5),
@@ -154,7 +192,10 @@ internal object CallLogHistoryRowToStringFingerprint : Fingerprint(
     returnType = "Ljava/lang/String;",
     parameters = listOf(),
     filters = listOf(string("HistoryEntry(id=", StringComparisonType.STARTS_WITH)),
-    strings = listOf(", subtitleLabel=", ", normalisedNumber="),
+    strings = listOf(
+        string(", subtitleLabel=", StringComparisonType.CONTAINS),
+        string(", normalisedNumber=", StringComparisonType.CONTAINS),
+    ),
 )
 
 // The revamped call log's row mapper (b98.G(List) in 26.41.5): for each CallLogHistoryEntryData it

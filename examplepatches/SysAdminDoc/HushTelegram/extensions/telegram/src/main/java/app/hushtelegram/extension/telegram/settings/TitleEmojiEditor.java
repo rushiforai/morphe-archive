@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.preference.Preference;
 import android.text.InputType;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 
@@ -71,6 +72,8 @@ final class TitleEmojiEditor {
                 .setNegativeButton(L10n.t("Cancel"), null)
                 .show();
         ScreenColors.dialog(dialog);
+        // The keyboard makes room rather than covering Save and Cancel.
+        if (dialog.getWindow() != null) dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         // Set after show, so text that can't be saved keeps the dialog and what was typed.
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String value = TitleEmoji.clean(field.getText().toString());

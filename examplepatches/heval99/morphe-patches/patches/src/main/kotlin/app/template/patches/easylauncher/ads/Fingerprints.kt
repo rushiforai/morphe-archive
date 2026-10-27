@@ -20,7 +20,10 @@ internal const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
 internal object AdsEnabledFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf("Landroid/content/Context;"),
-    strings = listOf("ads.enabled", "INSIDE_WALDO"),
+    strings = listOf(
+        string("ads.enabled", StringComparisonType.CONTAINS),
+        string("INSIDE_WALDO", StringComparisonType.CONTAINS),
+    ),
     custom = { method, _ -> AccessFlags.STATIC.isSet(method.accessFlags) },
 )
 

@@ -29,15 +29,20 @@ class ProLauncherSmokeTest {
             }
 
     // Mirrors the patch: the obfuscated prefs getter is the no-arg Z method that loads the
-    // "IS_PRO" key and reads it with SharedPreferences.getBoolean (found by shape, R8-proof).
+    // "IS_PRO" key, reads it with SharedPreferences.getBoolean and then calls the no-arg Z trial
+    // check (found by shape, R8-proof). The v2.4.3 "trial just ended" reader of "IS_PRO" has no Z
+    // call after the pref read, so it does not count.
     private fun Method.readsIsProPref(): Boolean {
         if (returnType != "Z" || parameterTypes.isNotEmpty()) return false
         val refs = instructions().mapNotNull { (it as? ReferenceInstruction)?.reference }
-        return refs.any { it is StringReference && it.string == "IS_PRO" } &&
-            refs.any {
-                it is MethodReference && it.definingClass == "Landroid/content/SharedPreferences;" &&
-                    it.name == "getBoolean"
-            }
+        if (refs.none { it is StringReference && it.string == "IS_PRO" }) return false
+        val getBoolean = refs.indexOfFirst {
+            it is MethodReference && it.definingClass == "Landroid/content/SharedPreferences;" &&
+                it.name == "getBoolean"
+        }
+        return getBoolean >= 0 && refs.drop(getBoolean + 1).any {
+            it is MethodReference && it.returnType == "Z" && it.parameterTypes.isEmpty()
+        }
     }
 
     @Test
@@ -53,7 +58,7 @@ class ProLauncherSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "v2.4.2",
+            version = "v2.4.3",
             patchNames = setOf("Enable Premium"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

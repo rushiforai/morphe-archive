@@ -11,6 +11,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
+import app.morphe.util.getReference
 
 private const val FEATURE_CONTROLS_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/featurecontrols/FeatureControls;"
 private const val CAPTCHA_CALLBACK_DESCRIPTOR = "LX/17qC;"
@@ -26,7 +27,12 @@ private object CaptchaPopupFingerprint : Fingerprint(
         CAPTCHA_CALLBACK_DESCRIPTOR,
         "Landroidx/fragment/app/Fragment;",
     ),
-    strings = listOf("popCaptchaV2 - riskInfo ="),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { instruction ->
+            instruction.getReference<com.android.tools.smali.dexlib2.iface.reference.StringReference>()
+                ?.string?.contains("popCaptchaV2 - riskInfo =") == true
+        } == true
+    },
 )
 
 private object LegacyCaptchaPopupFingerprint : Fingerprint(
@@ -34,7 +40,12 @@ private object LegacyCaptchaPopupFingerprint : Fingerprint(
     name = "popCaptcha",
     returnType = "V",
     parameters = listOf("Landroid/app/Activity;", "I", CAPTCHA_CALLBACK_DESCRIPTOR),
-    strings = listOf("popCaptcha - errorcode = "),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { instruction ->
+            instruction.getReference<com.android.tools.smali.dexlib2.iface.reference.StringReference>()
+                ?.string?.contains("popCaptcha - errorcode = ") == true
+        } == true
+    },
 )
 
 private object OecCaptchaPopupFingerprint : Fingerprint(

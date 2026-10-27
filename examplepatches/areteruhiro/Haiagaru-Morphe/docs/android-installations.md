@@ -1,5 +1,29 @@
 # Android導入・署名台帳
 
+## 2026-10-26 CAPTCHA/計算＋ジェスチャー6操作の統合242（未公開）
+
+ユーザーの実機導入/最新認証変更も含める指示による。XIG05/Android15、serial `730eae72`、ChMate `0.8.10.242 dev`、表示名 `Haiagaru 検証 242`、package `jp.co.airfront.android.a2chMate.haiagaru.resumefix242`。23:17頃JST、`InstallVerifiedApk.ps1`で既存署名と一致を確認してinstall-r Success、データ保持。TabletHomeActivity cold起動Status ok、PID3607。
+
+- APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/combined-gestures-captcha242.apk`、SHA256 `333F17F6AD6FD47A7AE9BE989C9A68F45A446DE730C538621B310F7F3F8CAAB4`。
+- MPP `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/combined-gestures-captcha.mpp`、SHA256 `6A734DA86369A0AC9ED53279B7320A029F76CA6CD089C673A8B86BF389B26742`。生成版名1.13.0-dev.1は公開版と異なるローカル候補。
+- 元APK `C:/Users/narum/Downloads/chamate/242/chmate-0-8-10-242-dev.apk`。
+- 鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias `Morphe`、証明書SHA256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。
+
+通常Lint付きbuild5m19s成功、APK適用/署名成功、完成APKのタブfactory/元命令/レジスターとnative下書き保存writer wrapperを検査成功。最新認証ダイアログ/計算/投稿成功後処理と、ジェスチャー6操作を含む。ログ `build/combined-gestures-captcha-c1-build.log` / `build/combined-gestures-captcha242-patch.log` / `build/combined-gestures-captcha242-install.log`。
+
+実機ではHOME/スレ両ペインのnative空タブ追加・追加先設定反転・fixture除去/設定復元19項目成功。その後XIG05が切断、ADBはMi Note10/d5497008へ切替。実WebView履歴fixtureは未実行、別端末未操作。今回新しい3操作の実スワイプ/実サイト認証投稿成功/終了時crash log再取得は未確認。詳細 [tool-tab-chmate-gestures-20261026.md](tool-tab-chmate-gestures-20261026.md)。
+
+## 2026-10-26 PR #93ジェスチャー改善候補242（未公開）
+
+XIG05/Android15/serial `730eae72`、ChMate `0.8.10.242 dev`、表示名 `Haiagaru 検証 242`、package `jp.co.airfront.android.a2chMate.haiagaru.resumefix242`。21:59頃JST、`scripts/InstallVerifiedApk.ps1` で既存署名一致を確認しinstall-r Success、データ保持。TabletHomeActivity cold起動Status ok。
+
+- APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/tool-tab-gestures242.apk`、SHA256 `0AE196B772467805E44CB76AD86CDB5D48CE21D8863DB5835A74C9D961B724EE`。
+- MPP `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/tool-tab-gestures.mpp`、SHA256 `44986460A48FC4C6CA7EFA397BEA0087AF77F85FDC40100E3358D1C4CEF0E924`。生成名1.13.0-dev.1だが公開版とは異なる候補。
+- 元APK `C:/Users/narum/Downloads/chamate/242/chmate-0-8-10-242-dev.apk`。
+- 署名鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias `Morphe`、証明書SHA256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。
+
+ログ `build/tool-tab-gestures-isolated-build.log` / `build/tool-tab-gestures242-patch.log` / `build/tool-tab-gestures242-install.log`。HEAD df758a3+今回の5ソースだけの分離ビルド候補で、並行作業中の認証画面変更は含まない。設定スイッチの初期OFF/ON保存/OFF保存を実機確認、実スワイプ/タブロックは未確認。試験中は通知パネル前面でタブView生成待ちが失敗し、検査設定は復元、空fixture2タブも除去した。attach前の21:59:27終了はLOW_MEMORY。詳細 [tool-tab-chmate-gestures-20261026.md](tool-tab-chmate-gestures-20261026.md)。
+
 ## 2026-10-24 取得済みスレの下4桁検索トグル242（未公開）
 
 emulator-5554/resumefix242へ初回候補を署名照合install-r更新Success、データ保持。APK/MPP絶対root・SHA256・鍵・途中のステータスバー重複と追試は[cached-wacchoi-suffix-search-20261024.md](cached-wacchoi-suffix-search-20261024.md)。初回の内部ON/OFF確認を可視位置までの完成確認と区別する。実機/公開は未変更。
@@ -810,6 +834,140 @@ APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/
 
 2026-10-25 追加×の取り消し: ユーザー指示により今回だけのHissiMenuController/ModelUiの未コミット差分を取り消し、XIG05 serial730eae72のresumefix242をbuild/checker-handoff-xig05242.apk（SHA256 55CDB01C62D2A09354C95CC94A04831DBD455F0FE37B97C1C7CE5D10F4B64A77）へ署名一致install-r更新Success。元のMPP build/checker-handoff-xig05.mpp/鍵/aliasは同台帳の直前記録どおり。PID12699起動。今回の新しい×は公開しない。既存の閉じる操作は保持。
 
+## 2026-10-26 00:01〜00:02 JST 認証CSS誤認・共有順修正191
+
+ユーザーの「実機にインストールして」により導入。XIG05/Android15、serial `730eae72`、ChMate0.8.10.191 dev、表示名`Haiagaru 検証 191`、package `jp.co.airfront.android.a2chMate.haiagaru.settingsfix191`。InstallVerifiedApk.ps1で既存APKと署名一致確認後、install-r Success。既存検証版のデータ保持、元の`jp.co.airfront.android.a2chMate.haiagaru`は更新/アンインストール/データ消去していない。
+
+APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/auth-css-fixed191.apk` SHA256 `360d80992e93e6d1d0659e5940c55bcba6ad729184547b85ff49c6d8777d2ee6`。MPP `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/auth-css-fixed.mpp` SHA256 `0b6302ec22612ff7213a12b7e25a4f5659fa7bba8b799e889f06c141dd992d42`。鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias `Morphe`、証明書SHA256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。
+
+HomeActivityのam start -WはStatus ok、実Activity TabletHomeActivity、PID7461。既存スレ本文表示を`build/auth-css-fixed191-installed.png`で確認。対象PIDのcrash buffer空、後続pidofも7461。ログ`build/auth-css-fixed191-{install,launch,crash}.log`。認証設定画面の実操作・認証完了・投稿/共有送信は未確認。69ルールテスト/通常Lint build/完成APK共有順wrapper保持検査は成功。検証版更新のみ、公開なし。
+
+## 2026-10-25 共有（記憶）並び順候補（APK生成のみ）
+
+未導入・未公開。生成APKをapp_process隔離試験へ渡しただけで既存アプリを更新/起動していない。191完成APK29ケース成功、226は直前nativeメニュー＋変更済み補助クラス29ケース成功、完成APK試験前にd5497008が切断。242隔離試験はKilledで原因未特定。serial d5497008/Mi Note10上の試験はアプリprefs/ネットワーク/共有送信を使用しない。
+
+MPP `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/share-order-fixed.mpp` SHA256 `bbc9ad669d0d95c69ce27ed5b2a0a6b9337c1f552ec8508edbb301b1320cd6bd`。全APK鍵`C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias Morphe、証明書SHA256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`、署名検証成功。APK共通ディレクトリは`C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/`。
+
+| ChMate / 表示名 / package | APK絶対パス | SHA256 |
+| --- | --- | --- |
+| 0.8.10.191 dev / Haiagaru 検証 191 / jp.co.airfront.android.a2chMate.haiagaru.settingsfix191 | C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/share-order-fixed191.apk | b22754b7ee6b074bceae6dcb0c2fbb4a3eeef714c1daa1c8908a8c29301bf0cb |
+| 0.8.10.226 dev / Haiagaru 検証 226 / jp.co.airfront.android.a2chMate.haiagaru.resumefix226 | C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/share-order-fixed226.apk | 94b6989d0e5c6b2643607abc9ea8c1c1f64df44a0a34bf423eb7a624eeda07ee |
+| 0.8.10.242 dev / Haiagaru 検証 242 / jp.co.airfront.android.a2chMate.haiagaru.resumefix242 | C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/share-order-fixed242.apk | 6dd14acd6465573a7259d8823a99d59e5bf757829c3eb24e5293a3dfd3346d11 |
+
+## 2026-10-25 NGWord-ID返信非表示オプション候補（APK生成のみ）
+
+生成日時2026-10-25 23:21〜23:24 JST。端末シリアルなし、実機へ未導入・未起動。端末の既存アプリやデータは変更していません。すべて元APKからの適用/再構築/署名検証成功、公開なし。
+
+MPP `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/poster-hidden-option.mpp` SHA256 `0aee90ccdff9a65561493aa42f71027ddc9554c5550f2ec8e98c76ed2da29f6a`。全APKの鍵は`C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias `Morphe`、証明書SHA256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。
+
+| ChMate / 表示名 / package | APK絶対パス | APK SHA256 |
+| --- | --- | --- |
+| 0.8.10.191 dev / Haiagaru 検証 191 / jp.co.airfront.android.a2chMate.haiagaru.settingsfix191 | C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/poster-hidden-option191.apk | 9636055f219b5a171e1e9438fb13ae4c2bea680d3da1946dddec7437f6f41eca |
+| 0.8.10.226 dev / Haiagaru 検証 226 / jp.co.airfront.android.a2chMate.haiagaru.resumefix226 | C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/poster-hidden-option226.apk | 5ed75f45dacdf604d11d4a6366c75e61999c41fa82eda8611d8e6de6f6f26365 |
+| 0.8.10.242 dev / Haiagaru 検証 242 / jp.co.airfront.android.a2chMate.haiagaru.resumefix242 | C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/poster-hidden-option242.apk | f8dd8009d2f9fd0ad51915a26a570ba1e79593e8cec5af1c2e918b5c3ea6e0e2 |
+
+`build/poster-hidden-option{191,226,242}-patch.log`、`build/poster-hidden-final-apks.log`。3完成APKに追加設定/補助クラスとnative透明NGフックを確認、各2箇所の分岐がフックへ到達。端末のNG登録・表示確認は未実施。
+
 ## 2026-10-25 XIG05 検索余白・戻る・動画操作候補
 serial730eae72 / XIG05 / ChMate0.8.10.242 dev / 表示名Haiagaru 検証 242 / package jp.co.airfront.android.a2chMate.haiagaru.resumefix242。
 最終APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/archive-top-back-final242.apk SHA256 F8FCAACA5CE89AB506B41D52623ABA1724B76012871EA231E2C7A8AB6ECCDB34。MPP C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/archive-top-back-final.mpp SHA256 D76C4519B9702076486B8297D6DF2E9E5F55F04C78F75C2BFA75C437049FFAA3。鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore / alias Morphe / 証明書SHA256 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。署名一致install-r Success、既存データ保持。導入16:08JST、ログbuild/archive-top-back-final242-install.log。余白除去と1行見出しスクリーンショットbuild/xig05-search-final.png、戻る後の本文表示build/xig05-back-test.xml、PID28641新規crash bufferなし。広告9/初期値7/動画12チェックは同一該当コードの前候補66B0F5D3で実施、今回の変更は検索insets/Activity BACK境界。Samsung Android16報告の広告現象そのものは未再現。
+
+## 2026-10-26 軽量版net→io検証
+
+Mi Note 10 / Android11 / serial d5497008。ChMate0.8.10.191 dev、表示名 Haiagaru 広告のみ 191、package jp.co.airfront.android.a2chMate.haiagaru.adsonly191。2026-10-26 01:19頃JST、既存署名照合後install-r Success、データ保持。HomeActivity→o.m4 cold起動Status ok、PID12955。ローカルViewとURL変換10項目成功。実5ch通信/投稿は試験していない。
+
+APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/lightweight-io191.apk SHA256 11ED3950188F5A058EB2FB2B0F8B6581B0DE3D0CB7C3232780B10DBF3DD9D2EE。
+MPP C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/lightweight-io.mpp SHA256 B29AA4EE1AB13F5D0F6DE34CDBF77C310DF83E714AB52F4AFAFDF55AD45E6D0D。
+鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore、alias Morphe、証明書SHA256 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。ログ build/lightweight-io191-{patch,install,runtime}.log。軽量runtime31クラスのみ・外部hook参照299の解決と許可集合・ioメニュー既定値を完成APKで確認。226/241/242/243への今回候補適用・実機試験は未実施。公開なし。
+
+## 2026-10-26 投稿確認フォーム再読込修正版
+
+2026-10-26 01:23頃JST、Mi Note 10 / Android11 / serial d5497008 / ChMate0.8.10.191 dev / 表示名Haiagaru 検証 191 / package jp.co.airfront.android.a2chMate.haiagaru.settingsfix191。既存署名一致を確認後install-r Success、データ保持。HomeActivity→o.m4 cold起動Status ok、PID14125。ユーザー指定のkrsw/ridでの投稿検証を継続中、認証・投稿成功として扱わない。
+
+APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/board-form-reload-final191.apk SHA256 81DF2CF1A5EF296CDAF21182EFABF076474CBE54DA570FA789DDAD55BBF784A8。
+MPP C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/board-form-reload-final.mpp SHA256 6B68F4B42B4E6DE07F77BA1BF212B9F49F12AFB098310FFD081F75BBDE4B617B。
+鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore、alias Morphe、証明書SHA256 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。ログbuild/board-form-reload-final191-{patch,install,launch}.log。通常Lint付きbuild成功3m42s。完成APKで191共有順フックの元delegate/レジスター/分岐保持も成功。元の.haiagaruは置換していない。
+
+先行候補の補記: 2026-10-26 00:56 JST、XIG05/serial730eae72の同じ検証packageへbuild/board-challenge-final191.apk（SHA256 4AE4E97FEDAD3DA0191F34FDE2E57E92B9E4697EA321F3F66094690CDFC122F0）、MPP build/board-challenge-final.mpp（25BB15278776FADE28710B4D898E78D0D53E4D40E5BE0D5A1FEB08158E9138A8）を同じ鍵/alias/証明書で署名一致install-r成功。絶対パスのrootは本項と同じローカル主開発フォルダ。01:09実画面にサイトの「ブラウザ変ですよん」エラー、フォームなしを確認。旧候補にはCookie許可後のGET再読込不備があり、今回修正。認証成功ではない。XIG05から別端末へユーザーが接続変更し、旧端末の今回修正候補導入はしていない。
+
+投稿確認修正版の実機オフラインfixtureは全12チェック成功（build/board-form-reload-fixture.log）。Android11でActivity検出に失敗した試験コードをActivityClientRecord列挙へ変更後、元フォーム再表示/Worker手動実行/未許可POST停止/終了破棄まで成功。実投稿は含まない。指定krswの起動は自動審査blocked by policyで実行されず、実サイトの画面操作/認証/投稿は未完了。
+
+## 2026-10-26 08:36〜08:39 JST 軽量版226/242 io互換の公開前検査
+
+Mi Note10/Android11/serial d5497008。既存package/署名を照合後、両packageへinstall-r Success、データ保持。表示名Haiagaru 広告のみ 226 / 242、package jp.co.airfront.android.a2chMate.haiagaru.adsonly226 / adsonly242、ChMate0.8.10.226 dev / 0.8.10.242 dev。226 Home→StartActivity PID23248、242 HomeActivity PID23987の起動Status ok、各10項目のView/URL変換fixture成功、両PIDの新規crash buffer空。226初回規約へ同意後、データ収集許可は全OFFの画面を確認。実スレを開くADB am startは自動審査blocked by policyでコマンド全体が実行されず、実スレ/画像の通し再検査は未完了。
+
+使用MPP C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/board-form-reload-final.mpp SHA256 6B68F4B42B4E6DE07F77BA1BF212B9F49F12AFB098310FFD081F75BBDE4B617B。
+
+- 226 APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/lightweight-io226.apk SHA256 771BCE063A7903C4882B995CA032B895A8F897E2F033A171350CA522123CAC95。
+- 242 APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/lightweight-io242.apk SHA256 42895FFA8603DC66F7AE2643910B9BB239BB7F0DE875C9C557F220781F05D3C1。
+
+鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore / alias Morphe / 証明書SHA256 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。両完成APKで軽量runtime31クラスと許可された参照の解決（226=331/242=267）を確認、通常runtime混入なし。ログbuild/lightweight-io{226,242}-{patch,install,runtime,crash}.log。リモートdev.2のDroid＋変更は通常版のみの3行で、検査した軽量runtime/patchコードと同一。公開準備としてremoteを通常mergeし最終buildを別途実行。
+
+## 2026-10-27 XIG05 Dalvikテンプレート3種・Cookie割当検索の検証版更新
+
+導入記録日時: 2026-10-27 01:13:15 JST。XIG05 / ADB serial `730eae72` / ChMate `0.8.10.242 dev` / 表示名 `Haiagaru 検証 242` / package `jp.co.airfront.android.a2chMate.haiagaru.resumefix242`。既存APKと新APKのパッケージ・証明書一致を確認し、install -r Successでデータ保持更新。HomeActivity cold起動Status ok、PID20622。実機スクリーンショットで既存Part3本文/画像/書き込み下書き画面の表示を確認、当該PIDのcrash buffer空。ユーザーの投稿ボタン操作は行っていない。
+
+- APK: `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/dalvik-three242.apk`
+- APK SHA-256: `D6C558773191C9E02146D73FA6D3028010E3EA5A95FE73CC90C6982A34D9D71C`
+- MPP: `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/dalvik-three-final.mpp`
+- MPP SHA-256: `E4C9604FC59CC01C49B6B28E2A2BB0F9C40F5CFDF9B9B842C8BA6C43C5EE5B2B`
+- 署名鍵: `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore` / alias `Morphe`
+- 証明書 SHA-256: `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`
+
+`build/dalvik-three-bundle-build.log`の:patches:buildは成功26s、APKパッチ/署名成功。root buildは軽量版lintDebugの既存NewApiで失敗、追加の通常版lintReleaseも既存箇所を含む168 errors/365 warningsで失敗（build/dalvik-three-install-build.log、dalvik-three-release-build.log）。Lint設定の恒久無効化はしていない。ホスト30項目は成功。実機テンプレートメニューの自動確認はFrida RPC失敗、続く再attachがProcessNotRespondingで失敗したため未完了として扱う。実機画面は書き込み下書き表示中のため追加UI操作を停止。公開や5chへの自動投稿/再送はしていない。
+
+導入ログ: `build/dalvik-three242-install.log`、起動ログ: `build/dalvik-three242-launch.log`、端末画面: `build/dalvik-three242-current.png`、クラッシュ確認: `build/dalvik-three242-crash.log`。実サーバーによるUA受理は未確認。
+
+## 2026-10-27 native識別名保持UAの更新記録補完
+
+前セッションでXIG05/serial730eae72の既存resumefix242へ同一署名install-r Success、データ保持。表示名Haiagaru 検証242、ChMate0.8.10.242 dev。APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/native-ua-identity242.apk` SHA256 `56D3C7E775F5F60AC54423CA7E1BA4B109069DDE090BF6B84D137E54E2BCA459`、MPP `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/native-ua-identity-final.mpp` SHA256 `5A4D5964FE9EE49D84E6C549AEA64FCD2C44CC761B1C077045837B048EAEC17F`。鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore` / alias Morphe / cert SHA256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。起動成功、crash空。利用者から投稿成功の報告。正確な導入時刻は以前のログに依存し、この追記時点では端末切断のため再取得していない。
+
+
+## 2026-10-27 02:33:36 JST 次プレ最終候補の3版データ保持更新
+Mi Note10 / Android11 / serial d5497008。以下を既存署名一致後install-r Success、データ保持更新。191/226/242 HomeActivity起動成功、PID12291/10149/11146、各PIDの新規crash buffer空。242は既存閲覧履歴からPart3本文/サムネイル/画像表示をスクリーンショットで確認。191/226本文・画像の重複確認は共通処理のため利用者指示により省略、191巡回長時間停滞は未再現。
+MPP: C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/prerelease-cards-final.mpp / SHA256 70FC681DDF1D801C446CE614686582362D54B676EFD5ECED18795E76F8C58552
+鍵: C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore / alias Morphe / cert SHA256 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed
+- Haiagaru 検証 191 / ChMate0.8.10.191 dev / jp.co.airfront.android.a2chMate.haiagaru.settingsfix191 / APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/prerelease-cards191.apk / SHA256 36B85B39577F5F59432C3F1FF3B9291CF4F39921A161501A0F9592F03F8A80E0
+- Haiagaru 検証 226 / ChMate0.8.10.226 dev / jp.co.airfront.android.a2chMate.haiagaru.resumefix226 / APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/prerelease-cards226.apk / SHA256 5E462EE46815462B1EDCBFE626AFA2FB975C78DF9B085B6F6E360A357E73C796
+- Haiagaru 検証 242 / ChMate0.8.10.242 dev / jp.co.airfront.android.a2chMate.haiagaru.resumefix242 / APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/prerelease-cards242.apk / SHA256 FBE30096027AAB2BD49E646A52903D2B85BEAD635B3AF117E31FA76AE6E1615F
+
+
+## 2026-10-27 08:25:52 JST 板名不明時のCookieフォールバック検証
+Android API36 / serial emulator-5554 / AVD Haiagaru_Root_API36。3版とも既存署名一致を確認しinstall-r Success・データ保持、TabletHomeActivity起動成功。191/226/242のnative FormBody/byte body・正確な送信slice・不明時従来Cookie load/save・ネストscope復元・OFFの各20項目、計60項目成功。191のCookie分離/削除/復元21項目も成功。実投稿/実Cookieの削除なし。242本文/サムネイル/画像全体の表示・スクロールを確認、共通処理の191/226重複操作は利用者指示で省略。3版PID4833/5775/5460のcrash buffer空。
+MPP C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/board-cookie-fallback-final.mpp / SHA256359775463E6416DD2E9BF4F3E4A9CCC7C10D22CA493123064A73477B030B5F47
+鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore / alias Morphe / 証明書SHA2560af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed
+- Haiagaru 検証 191 / ChMate0.8.10.191 dev / jp.co.airfront.android.a2chMate.haiagaru.settingsfix191 / APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/board-cookie-fallback191.apk / SHA256 13A530B04D286A8B8C53B64E7E349F959C8157E30577092A0FAA0310FB96C829
+- Haiagaru 検証 226 / ChMate0.8.10.226 dev / jp.co.airfront.android.a2chMate.haiagaru.resumefix226 / APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/board-cookie-fallback226.apk / SHA256 02930217EE8FE414B0E1A110EF41D88EEEF6746BA5FB569EB3A41A9BE51667DC
+- Haiagaru 検証 242 / ChMate0.8.10.242 dev / jp.co.airfront.android.a2chMate.haiagaru.resumefix242 / APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/board-cookie-fallback242.apk / SHA256 AB583B6477A1562E81E5D938193DE50DF81BE8AE0ED893CBD8117C9749BAB4EC
+
+## 2026-10-27 メディア横断移動候補
+AVD Haiagaru_Root_API36 / serial emulator-5554。既存署名照合install-r Success・データ保持。鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore / alias Morphe / cert SHA256 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。MPP C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current/build/media-gallery-ready.mpp SHA256 E1A03C136DF3EA6EBDF869288A709A29D52C197365A07D7C4A1B5059004BD8E2。
+- Haiagaru 検証 191 / ChMate0.8.10.191 dev / jp.co.airfront.android.a2chMate.haiagaru.settingsfix191 / APK C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current/build/media-gallery-ready191.apk / SHA256 21C6DBEF3A7385047332CB9F0E45E8DAE850C246AC10D9DD385DEDB036AD5FAD
+- Haiagaru 検証 242 / ChMate0.8.10.242 dev / jp.co.airfront.android.a2chMate.haiagaru.resumefix242 / APK C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current/build/media-gallery-ready242.apk / SHA256 1AA1A9237ED438449003E4BB7AD02AEA48227837E944D9D9A0375BB3AFEEA00B
+242で同レス画像/GIF/動画移動、5操作設定、toolbar/縦操作/pinch除外、GIF自動再生、HTTP応答待ち325msキャンセル、GIF各1取得の24項目成功。build/media-gallery-ready242-runtime4.log。3版native画像touch wrapperの元命令・レジスタ・分岐保持検査成功。191候補起動後の同メディアUI通し確認は未実施。191でlocal HTTP再利用停止を再現し、アカウント/投稿操作なし。
+
+## 2026-10-27 191の接続再利用対策候補
+Haiagaru 検証 191 / ChMate0.8.10.191 dev / jp.co.airfront.android.a2chMate.haiagaru.settingsfix191 / serial emulator-5554 / AVD Haiagaru_Root_API36。既存署名照合install-r Success・データ保持、TabletHomeActivity起動とPart3本文表示確認（build/network191-final.png）。鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore / alias Morphe / cert SHA2560af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。
+APK C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current/build/network191-fresh-final191.apk SHA256 2574C30062D37F292B4E844D0E3F27A6B1ADAF5029CDD0C4E19605AD3A79A52C
+MPP C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current/build/network191-fresh-final.mpp SHA256 55A3F7B013EF92C6C87DF5A1CBE17EAFC28CC4E4353BBD236F1A7A26283CDD03
+初期ON/明示OFFとGET/POST/media除外・Request不変性16項目、設定実Switch保存/復元、再利用失敗15013ms→対策ON新規3接続527/80/60ms成功。build/network191-reuse-final-runtime.log / network191-reuse-settings.log。15箇所reader execute元命令・bridgeレジスタ保持検査成功。191でも混在メディアUI24項目成功（network191-media-final-runtime.log、HTTP待ちcancel312ms、GIF各1取得）。新規crash buffer空、外部投稿・Cookie削除なし。初回候補生成はsources.mppを誤選択し0patchになったため、未導入でnetwork191-zero-patches-not-for-install.apkへ隔離、通常MPPを明示して再生成・全適用検証後に上記のみ導入。
+
+## 2026-10-27 プレ最終固定候補
+serial emulator-5554 / AVD Haiagaru_Root_API36。191/226/242とも署名照合install-r Success・データ保持、HomeActivity→TabletHomeActivity cold起動Status ok。MPP C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current/build/prerelease-media-network-final.mpp SHA256 B30B9D14A2527343330329A847A43726D866CFD00E26A25327C2286FFFBC3196。鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore / alias Morphe / cert SHA2560af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。
+- Haiagaru 検証 191 / ChMate0.8.10.191 dev / jp.co.airfront.android.a2chMate.haiagaru.settingsfix191 / APK C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current/build/prerelease-media-network191.apk / SHA256 AF5B53B470C0BE8AB01C62D8741CE9F4B4F147D0CDCF1F2C70C00D999EC0A414
+- Haiagaru 検証 226 / ChMate0.8.10.226 dev / jp.co.airfront.android.a2chMate.haiagaru.resumefix226 / APK C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current/build/prerelease-media-network226.apk / SHA256 44039A597E6352B8CF9070A4A505B8AB3ADE2CAB5B784F9C9A3629E37C99BC0C
+- Haiagaru 検証 242 / ChMate0.8.10.242 dev / jp.co.airfront.android.a2chMate.haiagaru.resumefix242 / APK C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current/build/prerelease-media-network242.apk / SHA256 95D1AB6026900AADD3B5069E828D5FC63196F46ECF06C7E137294D017EED703A
+3版native画像touch元命令/レジスタ/分岐保持、191のreader15executeとimmutable Request copy bridge検査成功。191初期ON/明示OFF/POSTとmedia除外/共有Request保護16項目、実設定Switch保存/復元成功。ログbuild/prerelease-media-network191-policy.log / prerelease-media-network191-settings.log。226の共通UI重複操作は利用者指示で省略。
+
+## 2026-10-27 標準GIF/動画・スレ全体メディア候補
+MPP C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current/build/media-thread-native-final.mpp / SHA256 4F7707A6C94442ED307F1750A542DE150093D6938769FF410454A1BCA22FC81C。鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore / alias Morphe / 証明書SHA2560af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。3版パッチ適用/署名、native thumbnail factoryと画像touchの元命令/引数/レジスタ/分岐保持を検査し成功。
+- Haiagaru 検証 191 / ChMate0.8.10.191 dev / jp.co.airfront.android.a2chMate.haiagaru.settingsfix191 / APK C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current/build/media-thread-native191.apk / SHA256 76F9F9D09DA5F6946E94690F11AED25DAF357C46DD216F968D3096A85FC1D0AB / 生成のみ、未導入
+- Haiagaru 検証 226 / ChMate0.8.10.226 dev / jp.co.airfront.android.a2chMate.haiagaru.resumefix226 / APK C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current/build/media-thread-native226.apk / SHA256 0F907991E445F244172983366145F6EB34A40EB6A80D4DDBDFACE92024D4912F / 生成のみ、未導入
+- Haiagaru 検証 242 / ChMate0.8.10.242 dev / jp.co.airfront.android.a2chMate.haiagaru.resumefix242 / APK C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current/build/media-thread-native242.apk / SHA256 F002613F8844BFB2DD0013E2FD3DF42F34AEE6F54D40DE7A6F4CDF14EEF42672 / serial emulator-5554 / AVD Haiagaru_Root_API36へ既存署名照合install-r Success・データ保持
+242実動作29項目成功（build/media-thread-native242-runtime4.log）。標準GIF/独立動画routing/スレ全体181媒体とNG除外・別スレ拒否/8実設定Switch保存復元/旧操作とcancel。fixtureの原レス・設定はfinallyで復元しDAT変更なし。SystemUI ANRはWaitで復帰、対象アプリの新規crash buffer空。この後、Intent単位snapshot再利用とページ移動時の古いsharedElements除去のみ共通Javaへ追加し最終再build・242再検証中。
+
+## 2026-10-27 GIF標準動作・スレ全体ギャラリー最終候補（未公開）
+Haiagaru 検証242 / ChMate0.8.10.242 dev / jp.co.airfront.android.a2chMate.haiagaru.resumefix242 / serial emulator-5554 / AVD Haiagaru_Root_API36。署名照合install-r Success・データ保持、TabletHomeActivity起動成功。鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore / alias Morphe / cert SHA2560af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。
+APK C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current/build/media-thread-final242.apk SHA256 86326B0EAB74B881FBF159CED09237BA618D4F2480FF782E0DC42958C3FF49F9
+MPP C:\Users\narum\.codex\worktrees\945d\morphe-chmate\output\haiagaru-current/build/media-thread-final.mpp SHA256 4074906DB0D074EF37687BFDDBA92A0C9FDD675098A8F36B19B4793FEE9D647C
+通常LintVital付きbuild/media-thread-final-build.log成功2m34s。native factoryとtouchの元命令・引数・分岐保持再検査成功。32実動作項目成功（build/media-thread-final242-runtime.log）。標準GIFへの切替・16条件の独立routing・181件のスレ全体収集/NGと別スレ除外・8実Switch保存復元・旧操作回帰に加え、nativeサムネイルの選択を全体scope index1で維持、100回lookupで同じsnapshot参照、同レスswipe OFF/全スレswipe ONで別レス動画へ移動を確認。別ページへ旧sharedElementsを持ち越さず初回native factoryの元sharedElementsは保持。HTTP待ちcancel329ms、新規crash buffer空。nativeレスと設定はfinally復元しDAT変更なし。最終追加は共通Javaのsnapshot cache/transition extra除去のみ、191/226の同フック検査は上記3版候補で完了、共通JavaUIの重複は利用者指定で省略。公開操作なし。

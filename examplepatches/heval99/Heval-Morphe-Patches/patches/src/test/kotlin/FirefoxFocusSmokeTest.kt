@@ -80,7 +80,7 @@ class FirefoxFocusSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "158.0",
+            version = "158.0.2",
             patchNames = setOf("Enable about:config", "Disable telemetry", "Disable rating prompts", "Hide promotional prompts"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

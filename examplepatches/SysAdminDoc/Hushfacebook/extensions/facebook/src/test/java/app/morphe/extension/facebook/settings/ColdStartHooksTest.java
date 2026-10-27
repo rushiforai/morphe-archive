@@ -371,6 +371,8 @@ public class ColdStartHooksTest {
                 CommentSheetOptions.viewMoreRepliesTextOnly(true));
         assertFalse("a post's comments drawn before the context lost Related groups",
                 CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS));
+        assertFalse("a feed post drawn before the context lost its inline comments",
+                CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS));
         assertFalse("a comment with a shop link drawn before the context was left out",
                 CommentSheetOptions.hidesComment(new GraphQLComment("https://s.shopee.vn/9zKs")));
         assertFalse("a comment sheet built before the context opened at full height",

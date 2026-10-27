@@ -39,6 +39,8 @@ tasks {
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
+        // Read exactly patches-<version>.mpp, not a stale bundle left in build/libs.
+        systemProperty("patches.version", project.version.toString())
     }
 
     // Used by gradle-semantic-release-plugin.
@@ -58,6 +60,19 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    // Smoke tests load the built bundle and gitignored APKs at runtime, outside the Java
+    // source set. Include both in Gradle's cache key so a changed/added/removed fixture or
+    // patch bundle cannot reuse a result from another input. A plain :patches:test also
+    // builds the bundle before the harness selects it. The harness loads exactly
+    // patches-<version>.mpp (util.selectPatchBundle), so stale bundles are not inputs.
+    dependsOn("buildAndroid")
+    systemProperty("patches.version", project.version.toString())
+    inputs.files(layout.buildDirectory.file("libs/patches-${project.version}.mpp"))
+        .withPropertyName("patchBundle")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.files(rootProject.fileTree("apks") { include("*/base.apk") })
+        .withPropertyName("apkFixtures")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
     // The smoke tests load the full APK (up to ~390 MB, multidex) and parse every emitted
     // dex in memory.
     maxHeapSize = "4g"

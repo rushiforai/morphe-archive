@@ -23,13 +23,14 @@ can be built and maintained on its own.
 
 | Patch | Default | What it does |
 |---|---|---|
-| **Unlock Pro** | ✅ | Forces `isProUser()` true and the `ProStatus` model to Pro → every entitlement. |
+| **Mock Pro (client-side)** | ✅ | Forces `isProUser()` true and the local `ProStatus` model → client-gated perks open. **Server-validated entitlements (premium Soul filters, coins, boosts) still refuse** — backend checks no client patch can lift. |
 | **Bypass PairIP license check** | ✅ | Replaces `com.pairip.application.Application` with `pdb.app.App`, drops `LicenseActivity` / `CHECK_LICENSE`, no-ops `LicenseClient`. |
 | **Remove ads** | ✅ | Disables the ad SDK init providers (GMS, AppLovin, Vungle, Yandex) and sets the app's own `isADLibDisabled`. |
 | **Allow standalone install (split-less APK)** | ✅ | The upstream base APK declares `requiredSplitTypes`, which blocks a standalone install; this removes it. |
 | **Pdb Extras feature menu** | ✅ | Adds a **“Pdb Extras”** row at the **top of Pdb's Settings screen** → a 5-tab screen (**Quick · Limits · Power · Data · Advanced**): everyday switches, one-tap actions, power tools (user inspector, profile/chat-by-id, hidden screens), database and storage reads, and the backend/identity overrides. Premium and ad removal are patch-time and have no switch. |
 | **Show profile IDs on names** | ✅ | Appends `#id` after every profile name the app renders — Soul cards, chat headers and lists — so you can act on a profile without opening it. Hot toggle in Quick. |
 | **Floating power button** | ✅ | Draggable ⚡ button on **every Pdb screen** with hot toggles, *copy my profile ID*, *copy last viewed profile* and a shortcut into Pdb Extras. Skips the splash, sign-in, story and Extras screens. |
+| **Soul history** | ✅ | Local history of every Soul profile you saw or liked (power button / Extras → "Soul history"). Survives the server's short feed window. |
 | **No profile-visitor limit** | ✅ | Lifts Pdb's client-side cap of 3 profile-visitor views per rolling hour (the “take a break” sheet) and adds a Limits tab with a counters view and a daily-counter reset. |
 | **Disable trackers** | ✅ | Disables Google Analytics measurement and Yandex AppMetrica telemetry; turns off Crashlytics/Analytics data collection via their official opt-out flags. Push notifications and sign-in keep working. |
 

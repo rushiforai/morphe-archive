@@ -112,7 +112,13 @@ public class NewRowDotsTest {
     private List<View> views() {
         ListView list = list();
         List<View> views = new ArrayList<>();
-        for (int i = 0; i < list.getAdapter().getCount(); i++) views.add(list.getAdapter().getView(i, null, list));
+        for (int i = 0; i < list.getAdapter().getCount(); i++) {
+            View row = list.getAdapter().getView(i, null, list);
+            // These inspection views never attach, so their Material button/switch animators
+            // won't receive the detach cleanup the real list performs when recycling rows.
+            row.jumpDrawablesToCurrentState();
+            views.add(row);
+        }
         return views;
     }
 
@@ -162,7 +168,7 @@ public class NewRowDotsTest {
         assertEquals(new ArrayList<String>(), dottedTitles());
         enter();
         assertEquals(new ArrayList<String>(), dottedTitles());
-        assertTrue(page.closeCategory());
+        enter();
         ShadowLooper.idleMainLooper();
         assertEquals(new ArrayList<String>(), dottedTitles());
     }
@@ -180,7 +186,7 @@ public class NewRowDotsTest {
         // Opening it doesn't clear it: the dot shows for the whole visit.
         assertFalse(store().getStringSet(NewRowDots.SEEN, null).contains(key()));
 
-        assertTrue(page.closeCategory());
+        enter();
         ShadowLooper.idleMainLooper();
         assertTrue(store().getStringSet(NewRowDots.SEEN, null).contains(key()));
         assertEquals("the opener is clear once the page was seen", new ArrayList<String>(), dottedTitles());

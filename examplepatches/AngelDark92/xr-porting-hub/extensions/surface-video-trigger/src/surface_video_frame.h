@@ -12,12 +12,12 @@ bool prepareFrame(XrSession session, const XrFrameEndInfo& info, Lookup lookup,
     std::array<XrCompositionLayerProjection,N>& layers,
     std::array<std::array<XrCompositionLayerProjectionView,2>,N>& views,
     std::array<const XrCompositionLayerBaseHeader*,N>& pointers) {
-    if (info.next || info.layerCount!=N || !info.layers) return false;
+    if (info.layerCount!=N || !info.layers) return false;
     std::vector<decltype(lookup(XrSwapchain{}))> sources;
     bool ready=true;
     for (size_t i=0;i<N;++i) {
         const auto* base=info.layers[i];
-        if (!base || base->type!=XR_TYPE_COMPOSITION_LAYER_PROJECTION || base->next) return false;
+        if (!base || base->type!=XR_TYPE_COMPOSITION_LAYER_PROJECTION) return false;
         const auto* layer=reinterpret_cast<const XrCompositionLayerProjection*>(base);
         if (layer->viewCount!=2 || !layer->views) return false;
         layers[i]=*layer;

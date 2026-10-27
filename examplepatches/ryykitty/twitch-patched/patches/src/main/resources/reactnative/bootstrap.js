@@ -1,7 +1,7 @@
 (function (global) {
     'use strict';
     if (global.__twitchPatchRuntime) return;
-    var policies = Array(11).fill(false);
+    var policies = Array(13).fill(false);
     var listeners = new Set();
     var targets = Object.create(null);
     var define;
@@ -13,6 +13,10 @@
             entries.push({name: name, adapter: adapter, memo: memo === true, registration: registration, decorator: decorator === true});
         },
         decorate: function (id, name, adapter) { runtime.target(id, name, adapter, false, undefined, true); },
+        decorateType: function (id, name, adapter) {
+            var entries = targets[id] || (targets[id] = []);
+            entries.unshift({name: name, adapter: adapter, memo: true, componentType: true, decorator: true});
+        },
         enabled: function (index) { return policies[index] === true; },
         subscribe: function (listener) {
             listeners.add(listener);
@@ -30,10 +34,10 @@
         return;
     }
     global.RN$registerCallableModule('TwitchPatchPolicy', function () {
-        return {set: function (claim, turbo, banners, foreground, display, emotes, streamAds, reload, bttv, sevenTV, ffz, lightTheme) {
+        return {set: function (claim, turbo, banners, foreground, display, emotes, streamAds, reload, bttv, sevenTV, ffz, lightTheme, deletedMessages) {
             policies = [claim === true, turbo === true, banners === true, foreground === true, display === true,
                 emotes === true, streamAds === true, reload === true, bttv === true, sevenTV === true, ffz === true,
-                typeof lightTheme === 'boolean' ? lightTheme : undefined];
+                typeof lightTheme === 'boolean' ? lightTheme : undefined, deletedMessages === true];
             listeners.forEach(function (listener) { listener(); });
         }};
     });
@@ -63,7 +67,9 @@
                             runtime.log('registration contract failed ' + target.name);
                             return;
                         }
-                        var adapted = target.adapter(original, React, runtime, require);
+                        var adapted = target.componentType ? Object.assign({}, original,
+                            {type: target.adapter(original.type, React, runtime, require)}) :
+                            target.adapter(original, React, runtime, require);
                         exports[target.name] = adapted;
                         if (target.registration)
                             exports[target.registration] = Object.assign({}, registration, {renderer: adapted});

@@ -33,7 +33,7 @@ import app.hushgram.extension.shared.settings.Setting;
  * shown are kept in a file of their own, apart from the settings, so a backup neither exports nor
  * imports them. The first time the settings open with none stored, every row there now counts as
  * seen: a fresh install never shows a dot. A row whose key isn't in the set is new. Leaving a
- * category's page (or closing the settings) adds its rows, so a dot shows for the visit that
+ * expanded category (or closing the settings) adds its rows, so a dot shows for the visit that
  * reveals it and is gone by the next. With the categories off, the one long list is the page.
  *
  * <p>Only rows that are a saved setting count. A row that comes and goes on its own would
@@ -152,6 +152,8 @@ final class NewRowDots {
 
     private boolean fresh(Preference row) {
         if (searching) return false;
+        if (row instanceof HushgramPreferenceFragment.Heading
+                && ((HushgramPreferenceFragment.Heading) row).expanded) return false;
         PreferenceCategory category = openers.get(row);
         if (category != null) {
             List<Preference> rows = pages.get(category);

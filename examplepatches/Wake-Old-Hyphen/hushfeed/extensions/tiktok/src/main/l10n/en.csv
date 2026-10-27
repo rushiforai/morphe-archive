@@ -214,7 +214,6 @@ Allow storage for TikTok in Android settings to save sounds,Allow storage for Ti
 Allow storage for TikTok in Android settings to save stories,Allow storage for TikTok in Android settings to save stories
 Allow storage for TikTok in Android settings to save the live photo's clip,Allow storage for TikTok in Android settings to save the live photo's clip
 Allow voice comments,Allow voice comments
-Already active,Already active
 Already marked as not interested,Already marked as not interested
 Also apply these filters to downloaded videos TikTok uses when the feed can't load enough new items.,Also apply these filters to downloaded videos TikTok uses when the feed can't load enough new items.
 Also change the region TikTok reports internally and set TikTok to the country's time zone. Keeps your interface language. Your IP address and your account's own rules still apply.,Also change the region TikTok reports internally and set TikTok to the country's time zone. Keeps your interface language. Your IP address and your account's own rules still apply.
@@ -248,7 +247,6 @@ Apply,Apply
 Apply enables these overrides. Undo last Lab change puts your previous rules back until you change anything else in the Lab.,Apply enables these overrides. Undo last Lab change puts your previous rules back until you change anything else in the Lab.
 Apply overrides,Apply overrides
 "Apply saves these overrides. Turn on overrides in the Lab to use them. Turning them on is a Lab change too, so after that Undo turns them off rather than putting your previous rules back.","Apply saves these overrides. Turn on overrides in the Lab to use them. Turning them on is a Lab change too, so after that Undo turns them off rather than putting your previous rules back."
-Applying Calm feed,Applying Calm feed
 Around the video,Around the video
 Arrange your feed and bottom tabs,Arrange your feed and bottom tabs
 As TikTok sent it (M4A or MP3),As TikTok sent it (M4A or MP3)
@@ -270,7 +268,6 @@ Automatic (TikTok's file),Automatic (TikTok's file)
 Automatic Clear display,Automatic Clear display
 Avatar and follow button,Avatar and follow button
 Back,Back
-Back to defaults,Back to defaults
 Back up settings,Back up settings
 Backup and restore,Backup and restore
 Beside the bar,Beside the bar
@@ -305,6 +302,7 @@ Blocked sound ids,Blocked sound ids
 Blocked sound names,Blocked sound names
 Blocked sounds,Blocked sounds
 Blocking,Blocking
+Blur strength,Blur strength
 "Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.","Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up."
 Blur the video behind the bar,Blur the video behind the bar
 Bold,Bold
@@ -321,11 +319,6 @@ Build details,Build details
 Build details copied to the clipboard,Build details copied to the clipboard
 Burn-in guard,Burn-in guard
 Buttons on videos,Buttons on videos
-Calm feed,Calm feed
-Calm feed couldn't be applied. Nothing was changed.,Calm feed couldn't be applied. Nothing was changed.
-Calm feed couldn't start. Try again in a moment.,Calm feed couldn't start. Try again in a moment.
-Calm feed is on.,Calm feed is on.
-Calm feed is on. Restart TikTok to apply all changes.,Calm feed is on. Restart TikTok to apply all changes.
 Camera and microphone in use,Camera and microphone in use
 Camera in use,Camera in use
 Can't check yet: %1$s,Can't check yet: %1$s
@@ -342,9 +335,6 @@ Captions,Captions
 "Captions, gestures and on-screen controls","Captions, gestures and on-screen controls"
 Capture crash reports locally,Capture crash reports locally
 Capture the feed,Capture the feed
-Changed,Changed
-Changed %1$d settings,Changed %1$d settings
-Changed 1 setting,Changed 1 setting
 Changes in Hushfeed %1$s,Changes in Hushfeed %1$s
 Changes to %1$s at %2$s,Changes to %1$s at %2$s
 Check for already-saved videos,Check for already-saved videos
@@ -382,6 +372,7 @@ Clearing suggested accounts,Clearing suggested accounts
 "Clears the recent events, saved crash reports, a recorded screen layout and the Hook status results above.","Clears the recent events, saved crash reports, a recorded screen layout and the Hook status results above."
 Close,Close
 Close TikTok after,Close TikTok after
+Collapsed,Collapsed
 Color commenter names,Color commenter names
 "Comma separated names exactly as the row under a profile's bio shows them, such as TikTok Studio or Your orders. Restart TikTok to apply this.","Comma separated names exactly as the row under a profile's bio shows them, such as TikTok Studio or Your orders. Restart TikTok to apply this."
 Comment export failed,Comment export failed
@@ -393,6 +384,7 @@ Comments aren't available for this video,Comments aren't available for this vide
 Comments beside the video,Comments beside the video
 "Comments only scroll on videos TikTok has turned them on for, so most videos stay the same.","Comments only scroll on videos TikTok has turned them on for, so most videos stay the same."
 Comments range,Comments range
+Compact,Compact
 Compact comment header,Compact comment header
 Compare gate reads with their previous values.,Compare gate reads with their previous values.
 Completed an interrupted settings change. Restart TikTok to apply this.,Completed an interrupted settings change. Restart TikTok to apply this.
@@ -434,8 +426,6 @@ Couldn't find this LIVE's stream to record. Leave the room and open it again.,Co
 Couldn't forget the saved videos. Try again.,Couldn't forget the saved videos. Try again.
 Couldn't import watch history. Your saved history is unchanged.,Couldn't import watch history. Your saved history is unchanged.
 Couldn't list your apps. Tap here to try again.,Couldn't list your apps. Tap here to try again.
-Couldn't open settings search. Reopen settings and try again.,Couldn't open settings search. Reopen settings and try again.
-Couldn't open that settings section. Reopen settings and try again.,Couldn't open that settings section. Reopen settings and try again.
 Couldn't open the file picker to export. Try again.,Couldn't open the file picker to export. Try again.
 Couldn't open the file picker to import. Try again.,Couldn't open the file picker to import. Try again.
 Couldn't put back the diagnostic data. Try again.,Couldn't put back the diagnostic data. Try again.
@@ -576,6 +566,7 @@ Entry %1$d isn't an object.,Entry %1$d isn't an object.
 Errors,Errors
 Everything this list has loaded is picked or saved. Scroll down to load more.,Everything this list has loaded is picked or saved. Scroll down to load more.
 Expand activity list,Expand activity list
+Expanded,Expanded
 Explore or Community,Explore or Community
 Export CSV,Export CSV
 Export JSON,Export JSON
@@ -654,6 +645,7 @@ Frame saved to %1$s,Frame saved to %1$s
 Friends,Friends
 Friends tab name,Friends tab name
 "Friends won't see a green dot or Active now while you're in TikTok. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger.","Friends won't see a green dot or Active now while you're in TikTok. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger."
+Frosted,Frosted
 Full changelog,Full changelog
 Full comment sort options,Full comment sort options
 Full license,Full license
@@ -661,7 +653,9 @@ Full link copied,Full link copied
 Full long-press menu in search results,Full long-press menu in search results
 Full long-press menu on a creator's videos,Full long-press menu on a creator's videos
 Full report saved to %1$s,Full report saved to %1$s
+Full tick,Full tick
 Full-width progress bar,Full-width progress bar
+Fully round,Fully round
 GIF,GIF
 Galaxy Store,Galaxy Store
 Gate data unavailable,Gate data unavailable
@@ -673,16 +667,18 @@ Ghost mode diagnostics,Ghost mode diagnostics
 "Give each commenter's name a color of its own, the same one every time you see that account, so a long thread is easier to follow.","Give each commenter's name a color of its own, the same one every time you see that account, so a long thread is easier to follow."
 Give each quarter of the video its own double tap choice. The Double tap row above is used while this is off.,Give each quarter of the video its own double tap choice. The Double tap row above is used while this is off.
 Glass lens on the current tab,Glass lens on the current tab
+Glass opacity,Glass opacity
 Go to the screen now. Hushfeed records its layout in %1$d seconds.,Go to the screen now. Hushfeed records its layout in %1$d seconds.
 Got it,Got it
 "HDR videos light the screen extra bright. This plays the standard (SDR) version instead, so the screen doesn't jump to full brightness. Videos with no standard version still play in HDR.","HDR videos light the screen extra bright. This plays the standard (SDR) version instead, so the screen doesn't jump to full brightness. Videos with no standard version still play in HDR."
 HTTP,HTTP
 Hand-off,Hand-off
 Handle or id,Handle or id
+Haptic style,Haptic style
+Haptics on the tabs,Haptics on the tabs
 Hidden %1$s on this phone,Hidden %1$s on this phone
 Hidden LIVE categories,Hidden LIVE categories
 Hidden commenters,Hidden commenters
-Hidden. Tap to show it again.,Hidden. Tap to show it again.
 Hidden: %1$s,Hidden: %1$s
 Hide,Hide
 Hide AI-generated videos,Hide AI-generated videos
@@ -713,7 +709,6 @@ Hide TikTok's wind-down screens,Hide TikTok's wind-down screens
 Hide a VPN connection,Hide a VPN connection
 Hide activity,Hide activity
 Hide activity status,Hide activity status
-"Hide ads, Shop posts, LIVE videos and replays, promotional music, and paid partnerships.","Hide ads, Shop posts, LIVE videos and replays, promotional music, and paid partnerships."
 Hide archive,Hide archive
 Hide bottom tabs TikTok adds later unless you allow them.,Hide bottom tabs TikTok adds later unless you allow them.
 Hide buttons in the right column,Hide buttons in the right column
@@ -786,6 +781,7 @@ Hide the Clear display controls,Hide the Clear display controls
 Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.,Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.
 Hide the Full screen button,Hide the Full screen button
 Hide the Full screen button over videos. Playback and automatic rotation keep working as before.,Hide the Full screen button over videos. Playback and automatic rotation keep working as before.
+Hide the Hushfeed row,Hide the Hushfeed row
 Hide the Inbox search button,Hide the Inbox search button
 Hide the LIVE bubble,Hide the LIVE bubble
 Hide the LIVE button,Hide the LIVE button
@@ -888,6 +884,10 @@ How far each edge press moves the video.,How far each edge press moves the video
 How long each photo stays on screen in a video made from a photo post.,How long each photo stays on screen in a video made from a photo post.
 How many saves run at the same time. The others wait in line and start as each one ends.,How many saves run at the same time. The others wait in line and start as each one ends.
 How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.,How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.
+How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least.,How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least.
+How much the video behind the glass pill on the main feed is blurred.,How much the video behind the glass pill on the main feed is blurred.
+How round the main feed's floating pill and its glass lens are. Fully round gives them half circle ends.,How round the main feed's floating pill and its glass lens are. Fully round gives them half circle ends.
+How tall the main feed's floating pill is inside the bar. Compact leaves more of the video showing around it. The tabs keep their size and their taps.,How tall the main feed's floating pill is inside the bar. Compact leaves more of the video showing around it. The tabs keep their size and their taps.
 "How wide each edge strip is, as a percent of the screen width.","How wide each edge strip is, as a percent of the screen width."
 Hushfeed,Hushfeed
 Hushfeed blocked TikTok's reports here. It hasn't confirmed that you stay off viewer lists.,Hushfeed blocked TikTok's reports here. It hasn't confirmed that you stay off viewer lists.
@@ -1086,8 +1086,10 @@ More hashtags per post,More hashtags per post
 More items are available.,More items are available.
 More opens the comments,More opens the comments
 More options,More options
+More see-through,More see-through
 "More than %1$d comments were loaded, so the rest aren't in the file.","More than %1$d comments were loaded, so the rest aren't in the file."
 Most liked first,Most liked first
+Most see-through,Most see-through
 Most viewed first,Most viewed first
 Move down,Move down
 Move left,Move left
@@ -1184,14 +1186,14 @@ Offer clear screen in every LIVE room,Offer clear screen in every LIVE room
 Offline videos,Offline videos
 Offline videos limit,Offline videos limit
 Oldest first,Oldest first
-On,On
 "On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video.","On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video."
 On mobile data,On mobile data
 On or off,On or off
 "On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.","On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay."
-"On the main feed, a smaller piece of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.","On the main feed, a smaller piece of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look."
+"On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.","On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab."
+"On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.","On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look."
+"On the main feed, slide a finger along the glass pill and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.","On the main feed, slide a finger along the glass pill and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab."
 On. Hushfeed hasn't seen TikTok send any reports since it started.,On. Hushfeed hasn't seen TikTok send any reports since it started.
-On. Restore puts back the feed setup you had before.,On. Restore puts back the feed setup you had before.
 "Once today's budget runs out, the hold stays and can't be dismissed. The budget settings are locked until the day starts over. Turn this off any time before the budget runs out.","Once today's budget runs out, the hold stays and can't be dismissed. The budget settings are locked until the day starts over. Turn this off any time before the budget runs out."
 One area was checked and everything it needs is here.,One area was checked and everything it needs is here.
 One at a time,One at a time
@@ -1219,6 +1221,7 @@ Open comments,Open comments
 Open external links directly,Open external links directly
 Open messages,Open messages
 Open profile and story website links in your system browser instead of TikTok's in-app browser.,Open profile and story website links in your system browser instead of TikTok's in-app browser.
+Open setting location,Open setting location
 Open shared videos alone,Open shared videos alone
 Open the Story when a creator is LIVE,Open the Story when a creator is LIVE
 Open the comments at full height,Open the comments at full height
@@ -1271,6 +1274,7 @@ Paused,Paused
 Pauses the video behind the comment sheet while you read. It plays on from the same spot when the sheet closes.,Pauses the video behind the comment sheet while you read. It plays on from the same spot when the sheet closes.
 "People, shortcuts and sending controls","People, shortcuts and sending controls"
 Performance,Performance
+Phone's click,Phone's click
 Photo,Photo
 Photo and image posts,Photo and image posts
 Photo destination,Photo destination
@@ -1289,6 +1293,8 @@ Pick videos to save from profile grids,Pick videos to save from profile grids
 "Picked the first %1$s. Save them, then tap Pick all again for the rest.","Picked the first %1$s. Save them, then tap Pick all again for the rest."
 Picked videos,Picked videos
 Picks the older H.264 video format when TikTok also offers a newer one (HEVC or ByteVC2). It helps phones that stutter or run hot. Videos without an H.264 version still play.,Picks the older H.264 video format when TikTok also offers a newer one (HEVC or ByteVC2). It helps phones that stutter or run hot. Videos without an H.264 version still play.
+Pill corners,Pill corners
+Pill height,Pill height
 Play,Play
 Play SDR instead of HDR,Play SDR instead of HDR
 Play Store,Play Store
@@ -1308,7 +1314,6 @@ Post dates in the feed,Post dates in the feed
 Post every video as if you'd turned on TikTok's own HD upload on the post page. A clip TikTok doesn't count as high quality posts as before.,Post every video as if you'd turned on TikTok's own HD upload on the post page. A clip TikTok doesn't count as high quality posts as before.
 Posting,Posting
 Prefer H.264 video,Prefer H.264 video
-Preset,Preset
 Preset applied. Restart TikTok to use it.,Preset applied. Restart TikTok to use it.
 Preset saved. Turn on overrides in the Lab to use it.,Preset saved. Turn on overrides in the Lab to use it.
 Press and hold a comment to find Block this commenter in its menu. Their comments leave the list right away and an undo banner follows.,Press and hold a comment to find Block this commenter in its menu. Their comments leave the list right away and an undo banner follows.
@@ -1358,13 +1363,6 @@ Putting the settings back to their defaults,Putting the settings back to their d
 Quality,Quality
 "Quality, files, subtitles and hand-off","Quality, files, subtitles and hand-off"
 "Quality, speed and auto-advance","Quality, speed and auto-advance"
-Quick setup,Quick setup
-Quick setups,Quick setups
-Quick setups couldn't start. Try again in a moment.,Quick setups couldn't start. Try again in a moment.
-Quick setups hidden. Bring it back from %1$s.,Quick setups hidden. Bring it back from %1$s.
-Quick setups on the home page,Quick setups on the home page
-Quiet,Quiet
-"Quiet hides ads, Shop and LIVE. Privacy hides your views and typing and stops tracking. Back to defaults resets every switch. Press and hold to hide this row.","Quiet hides ads, Shop and LIVE. Privacy hides your views and typing and stops tracking. Back to defaults resets every switch. Press and hold to hide this row."
 Read-only list. Accounts won't be opened or unblocked.,Read-only list. Accounts won't be opened or unblocked.
 Reading,Reading
 Reading the font file,Reading the font file
@@ -1434,9 +1432,7 @@ Restore failed. Some settings may still be changed.,Restore failed. Some setting
 Restore failed. Some settings may still be changed. Use Undo to put them back.,Restore failed. Some settings may still be changed. Use Undo to put them back.
 Restore seen history from a file,Restore seen history from a file
 Restore settings,Restore settings
-Restore setup,Restore setup
 Restoring seen history,Restoring seen history
-Restoring setup,Restoring setup
 Restoring your settings,Restoring your settings
 Resume videos after scrolling,Resume videos after scrolling
 Retry,Retry
@@ -1449,6 +1445,7 @@ Reviewed presets for TikTok %1$s,Reviewed presets for TikTok %1$s
 Right away,Right away
 Right column,Right column
 Right edge strip,Right edge strip
+Rounder,Rounder
 Rows,Rows
 "Run the progress bar from one screen edge to the other, without the gap TikTok leaves at each end.","Run the progress bar from one screen edge to the other, without the gap TikTok leaves at each end."
 SIM country preset,SIM country preset
@@ -1562,7 +1559,6 @@ Search loaded activity,Search loaded activity
 Search settings,Search settings
 Search share actions,Search share actions
 Search these comments,Search these comments
-"Search translated titles and descriptions, then open the original setting.","Search translated titles and descriptions, then open the original setting."
 Search within comments,Search within comments
 Seconds per photo,Seconds per photo
 "Seconds. Zero keeps every length. If everything the feed just sent would be filtered out, the video closest to your limit is kept so the feed isn't empty.","Seconds. Zero keeps every length. If everything the feed just sent would be filtered out, the video closest to your limit is kept so the feed isn't empty."
@@ -1625,6 +1621,7 @@ Shop order updates and coupon messages no longer take up rows in the Inbox. Your
 Shop posts,Shop posts
 Shop tab name,Shop tab name
 Short date,Short date
+Short pulse,Short pulse
 Shortest first,Shortest first
 Show,Show
 Show @username beside a video instead of the display name the creator chose.,Show @username beside a video instead of the display name the creator chose.
@@ -1695,7 +1692,6 @@ Show when the camera or microphone is in use,Show when the camera or microphone 
 Show where a video was posted,Show where a video was posted
 Show where commenters are from,Show where commenters are from
 Showing %1$s again,Showing %1$s again
-Shown. Tap to hide it.,Shown. Tap to hide it.
 Shows Add to Story in the share sheet and on stories even when the creator turned off content reuse. TikTok may still refuse to post it.,Shows Add to Story in the share sheet and on stories even when the creator turned off content reuse. TikTok may still refuse to post it.
 "Shows TikTok's full sort menu on every post, with hot, newest, media and creator options, instead of the shorter one your account got. Restart TikTok to see the change.","Shows TikTok's full sort menu on every post, with hot, newest, media and creator options, instead of the shorter one your account got. Restart TikTok to see the change."
 "Shows TikTok's play, pause, previous and next buttons on the feed. TikTok normally shows them only to people who use a screen reader. TikTok can see when you use them.","Shows TikTok's play, pause, previous and next buttons on the feed. TikTok normally shows them only to people who use a screen reader. TikTok can see when you use them."
@@ -1718,7 +1714,9 @@ Skip update checks,Skip update checks
 "Skipped entries are invalid, expired, already recorded, or older than the newest %1$s videos.","Skipped entries are invalid, expired, already recorded, or older than the newest %1$s videos."
 Skipping videos with %1$s,Skipping videos with %1$s
 Sleep timer off,Sleep timer off
-Some Calm feed settings changed. Restore still puts back your earlier setup.,Some Calm feed settings changed. Restore still puts back your earlier setup.
+Slide across the tabs,Slide across the tabs
+Soft blur,Soft blur
+Soft tick,Soft tick
 Some of these notes are in English.,Some of these notes are in English.
 Some recording files remain. Try deleting them again.,Some recording files remain. Try deleting them again.
 Something is missing from %1$s. Tap for the whole report.,Something is missing from %1$s. Tap for the whole report.
@@ -1740,6 +1738,7 @@ Speed menu choices,Speed menu choices
 Speed while you hold the video,Speed while you hold the video
 Spin the music disc,Spin the music disc
 Split comment minimum width,Split comment minimum width
+Standard,Standard
 Start each new video at your default. A manual choice lasts until the video changes.,Start each new video at your default. A manual choice lasts until the video changes.
 Start feature gate recording,Start feature gate recording
 Start recording,Start recording
@@ -1811,6 +1810,7 @@ Story saved to %1$s,Story saved to %1$s
 Streak,Streak
 Stream only,Stream only
 "Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records.","Stream only saves the room's own video, as before. Screen records what your phone shows while you watch, with the sound the app plays when TikTok has the microphone permission. Android asks you to allow screen recording each time, and shows its own notice while it records."
+Strong blur,Strong blur
 Structured value observed,Structured value observed
 Subscriber-only posts,Subscriber-only posts
 Subtitle language,Subtitle language
@@ -1824,6 +1824,7 @@ Swiping a message sideways no longer starts a reply to it. Taps and long presses
 "Swiping right on the For You feed no longer opens TikTok's side menu, with Your orders, TikTok Minis and more.","Swiping right on the For You feed no longer opens TikTok's side menu, with Your orders, TikTok Minis and more."
 System,System
 Tag saved videos with their details,Tag saved videos with their details
+"Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.","Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on."
 "Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.","Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments."
 Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.,Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.
 "Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.","Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story."
@@ -1882,7 +1883,6 @@ That settings backup holds more Feature Gate Lab rules than the Lab takes. Nothi
 That settings backup is damaged or only partly downloaded. Nothing was altered.,That settings backup is damaged or only partly downloaded. Nothing was altered.
 "That settings backup is incomplete, so it may have been cut short. Nothing was altered.","That settings backup is incomplete, so it may have been cut short. Nothing was altered."
 That settings change didn't go through. Nothing was altered.,That settings change didn't go through. Nothing was altered.
-That setup couldn't be applied. Nothing was changed.,That setup couldn't be applied. Nothing was changed.
 That sticker is in a format Hushfeed can't read,That sticker is in a format Hushfeed can't read
 That watch-history file is damaged. Nothing was imported.,That watch-history file is damaged. Nothing was imported.
 The Activity row of likes and comments on your posts leaves the Inbox. Notifications about them still arrive.,The Activity row of likes and comments on your posts leaves the Inbox. Notifications about them still arrive.
@@ -1968,6 +1968,7 @@ The sticker couldn't be saved. Try again.,The sticker couldn't be saved. Try aga
 The sticker suggestion banner stops showing in a chat. Your own stickers are still in the sticker picker.,The sticker suggestion banner stops showing in a chat. Your own stickers are still in the sticker picker.
 The story couldn't be saved. Try again.,The story couldn't be saved. Try again.
 "The thumbs down on each comment blocks the commenter instead of disliking. The comment dims, an undo banner follows, and a second tap unblocks.","The thumbs down on each comment blocks the commenter instead of disliking. The comment dims, an undo banner follows, and a second tap unblocks."
+The tick on the main feed's tabs. Short pulse is one quick tap of the motor. Phone's click is the click your phone makes elsewhere. Soft tick rings a little longer. Full tick is the phone's strongest tick.,The tick on the main feed's tabs. Short pulse is one quick tap of the motor. Phone's click is the click your phone makes elsewhere. Soft tick rings a little longer. Full tick is the phone's strongest tick.
 The time of day the message goes out.,The time of day the message goes out.
 The video couldn't be made from these photos. Try again.,The video couldn't be made from these photos. Try again.
 "The video couldn't be saved. Try again, or choose Automatic.","The video couldn't be saved. Try again, or choose Automatic."
@@ -2007,6 +2008,7 @@ This preset isn't available for your installed TikTok version.,This preset isn't
 This profile picture isn't available to save,This profile picture isn't available to save
 "This quality isn't available as a complete file, so TikTok's own save runs instead","This quality isn't available as a complete file, so TikTok's own save runs instead"
 This screen recording has no sound.,This screen recording has no sound.
+This setting isn't available. Search for another setting.,This setting isn't available. Search for another setting.
 "This setting's value can't be copied on this build, so it can't be overridden. Reset the override.","This setting's value can't be copied on this build, so it can't be overridden. Reset the override."
 This story isn't available to save,This story isn't available to save
 This value is required.,This value is required.
@@ -2150,7 +2152,6 @@ Unpersonalized For You videos,Unpersonalized For You videos
 "Use 0 for TikTok's size, or %1$d to %2$d. Applies to the next caption.","Use 0 for TikTok's size, or %1$d to %2$d. Applies to the next caption."
 "Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and the post date next to it, and keeps Android's font scaling.","Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and the post date next to it, and keeps Android's font scaling."
 "Use 0 for TikTok's size, or %1$d to %2$d. Sizes the description below the author's name and keeps Android's font scaling.","Use 0 for TikTok's size, or %1$d to %2$d. Sizes the description below the author's name and keeps Android's font scaling."
-Use Calm feed,Use Calm feed
 Use Save report for this large report,Use Save report for this large report
 Use TikTok for a while. A popup shows up here after TikTok first tries to show it.,Use TikTok for a while. A popup shows up here after TikTok first tries to show it.
 "Use TikTok's own hold, pull down and release gesture to keep playing at the hold speed, 2x unless Playback sets another.","Use TikTok's own hold, pull down and release gesture to keep playing at the hold speed, 2x unless Playback sets another."
@@ -2237,7 +2238,6 @@ Window width needed to enable the layout. Restart TikTok to apply this.,Window w
 "With the fade below 100, the buttons and caption stay on screen at that level in Clear display, and taps go through them to the video. Off, Clear display hides them the way it does at 100.","With the fade below 100, the buttons and caption stay on screen at that level in Clear display, and taps go through them to the video. Off, Clear display hides them the way it does at 100."
 "Word rules only, not every feed filter:","Word rules only, not every feed filter:"
 "Words, countries and languages","Words, countries and languages"
-Working,Working
 Works only with YTDLnis (com.deniscerri.ytdl). Picks audio or video when the save button sends it a link.,Works only with YTDLnis (com.deniscerri.ytdl). Picks audio or video when the save button sends it a link.
 Works only with YTDLnis (com.deniscerri.ytdl). Starts the download in the background without showing its download card.,Works only with YTDLnis (com.deniscerri.ytdl). Starts the download in the background without showing its download card.
 Write the username and caption on the video,Write the username and caption on the video
@@ -2256,8 +2256,6 @@ Your Long press choice runs only on the left and right thirds of the video. A pr
 Your TikTok account changed. Choose the file again for this account.,Your TikTok account changed. Choose the file again for this account.
 Your account changed. Close this list and open it again.,Your account changed. Close this list and open it again.
 Your account changed. Open the count editor again.,Your account changed. Open the count editor again.
-Your current settings already match Calm feed.,Your current settings already match Calm feed.
-Your earlier settings are back,Your earlier settings are back
 Your feed,Your feed
 Your feed. Your rules.,Your feed. Your rules.
 Your filters hid everything TikTok just sent. Most were %1$s.,Your filters hid everything TikTok just sent. Most were %1$s.
@@ -2265,12 +2263,8 @@ Your filters hid everything TikTok just sent. Most were %1$s.,Your filters hid e
 "Your network proxy was kept, since a backup can't change it","Your network proxy was kept, since a backup can't change it"
 "Your operator's name, like T-Mobile.","Your operator's name, like T-Mobile."
 "Your operator's numeric code, like 310260.","Your operator's numeric code, like 310260."
-Your previous feed setup couldn't be restored. Nothing was changed.,Your previous feed setup couldn't be restored. Nothing was changed.
-Your previous feed setup is back.,Your previous feed setup is back.
-Your previous feed setup is back. Restart TikTok to apply all changes.,Your previous feed setup is back. Restart TikTok to apply all changes.
 Your seen history changed before the import finished. Choose the file again.,Your seen history changed before the import finished. Choose the file again.
 Your settings,Your settings
-Your settings already match,Your settings already match
 "Zero means no limit. Counts the videos Hushfeed advanced past for you, not the ones you swiped yourself, and starts again when the feed is rebuilt or you change this number.","Zero means no limit. Counts the videos Hushfeed advanced past for you, not the ones you swiped yourself, and starts again when the feed is rebuilt or you change this number."
 "Zero means the way out of the hold is always there. Any other number is how many times a day it works. Once they're used up, the hold stays until the day starts over. Ignored while the budget is locked, which removes the way out.","Zero means the way out of the hold is always there. Any other number is how many times a day it works. Once they're used up, the hold stays until the day starts over. Ignored while the budget is locked, which removes the way out."
 "Zero shows the notice and leaves the feed alone. Anything else covers the feed for that many minutes once a budget is reached. Messages, profiles and search keep working, and nothing in the feed is thrown away.","Zero shows the notice and leaves the feed alone. Anything else covers the feed for that many minutes once a budget is reached. Messages, profiles and search keep working, and nothing in the feed is thrown away."

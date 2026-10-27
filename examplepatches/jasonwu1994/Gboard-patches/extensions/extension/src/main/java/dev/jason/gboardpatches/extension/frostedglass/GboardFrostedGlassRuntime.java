@@ -5,14 +5,18 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.graphics.Color;
 import android.graphics.Path;
-import android.graphics.RectF;
+import android.graphics.Rect;
+import android.graphics.Outline;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.DrawableWrapper;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.inputmethodservice.InputMethodService;
 import android.os.Build;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
@@ -33,11 +37,11 @@ import dev.jason.gboardpatches.extension.flagsettings.GboardFlagRuntimeContext;
 /** Android public-API runtime for a bounded IME background blur. */
 public final class GboardFrostedGlassRuntime {
     private static final String TAG = "GboardPatchesBlur";
-    private static final float WINDOW_CORNER_RADIUS_DP = 32.0f;
     private static final String KEYBOARD_ROOT_TAG = ".keyboard-base-area.keyboard-outline";
     // Floating mode uses the same semantic root without the docked outline suffix.
     private static final String FLOATING_KEYBOARD_ROOT_TAG = ".keyboard-base-area";
     private static final Map<Window, State> STATES = new WeakHashMap<>();
+    private static final Map<Window, Boolean> CONFIGURED_EXCLUSIONS = new WeakHashMap<>();
     private static final AtomicBoolean HIDDEN_API_READY = new AtomicBoolean();
     private static volatile WeakReference<InputMethodService> activeService =
             new WeakReference<>(null);
@@ -59,13 +63,17 @@ public final class GboardFrostedGlassRuntime {
             if (window == null) {
                 return;
             }
+            synchronized (STATES) {
+                CONFIGURED_EXCLUSIONS.put(window, fullscreen || candidatesOnly);
+            }
             if (!GboardFrostedGlassSettingsRuntime.isEnabled()
-                    || fullscreen || candidatesOnly || !canUseBackgroundBlur(service)) {
+                    || fullscreen || candidatesOnly) {
                 disable(window);
                 return;
             }
             ensureHiddenApiAccess();
-            scheduleApply(window, service);
+            if (canUseBackgroundBlur(service)) scheduleApply(window, service);
+            else prepareBeforeDraw(window, service);
         } catch (Throwable ignored) {
             // Lifecycle entry points must fail closed and never crash the IME.
         }
@@ -82,14 +90,17 @@ public final class GboardFrostedGlassRuntime {
             if (!isUserUnlocked(context)) {
                 return;
             }
+            synchronized (STATES) {
+                CONFIGURED_EXCLUSIONS.put(window, fullscreen || candidatesOnly);
+            }
             if (!GboardFrostedGlassSettingsRuntime.isEnabled()
-                    || fullscreen || candidatesOnly || context == null
-                    || !canUseBackgroundBlur(context)) {
+                    || fullscreen || candidatesOnly || context == null) {
                 disable(window);
                 return;
             }
             ensureHiddenApiAccess();
-            scheduleApply(window, context);
+            if (canUseBackgroundBlur(context)) scheduleApply(window, context);
+            else prepareBeforeDraw(window, context);
         } catch (Throwable ignored) {
             // Lifecycle entry points must fail closed and never crash the IME.
         }
@@ -108,29 +119,14 @@ public final class GboardFrostedGlassRuntime {
             if (window == null) {
                 return;
             }
-            if (!GboardFrostedGlassSettingsRuntime.isEnabled()) {
+            if (!GboardFrostedGlassSettingsRuntime.isEnabled()
+                    || isSurfaceExcluded(window, service)) {
                 disable(window);
                 return;
             }
             ensureHiddenApiAccess();
-            View decor = window.getDecorView();
-            if (decor != null) {
-                State state = stateFor(window);
-                installDecorLayoutObserver(window, service, decor, state);
-                decor.post(() -> {
-                    try {
-                        if (isUserUnlocked(service)
-                                && GboardFrostedGlassSettingsRuntime.isEnabled()
-                                && canUseBackgroundBlur(service)) {
-                            scheduleApply(window, service);
-                        }
-                    } catch (Throwable ignored) {
-                        // Delayed window show work must fail closed.
-                    }
-                });
-            } else {
-                onConfigureWindow(receiver, false, false);
-            }
+            if (canUseBackgroundBlur(service)) scheduleApply(window, service);
+            else prepareBeforeDraw(window, service);
         } catch (Throwable ignored) {
             // Lifecycle entry points must fail closed and never crash the IME.
         }
@@ -162,9 +158,8 @@ public final class GboardFrostedGlassRuntime {
 
     private static void reapplyAfterLayout(Window window, Context context,
             State state, long layoutGeneration) {
-        if (state.layoutGeneration != layoutGeneration
-                || !isUserUnlocked(context)
-                || !GboardFrostedGlassSettingsRuntime.isEnabled()) {
+        if (!isCurrent(window, state) || state.layoutGeneration != layoutGeneration
+                || !isUserUnlocked(context)) {
             return;
         }
         try {
@@ -176,19 +171,23 @@ public final class GboardFrostedGlassRuntime {
 
     private static void installDecorLayoutObserver(Window window,
             Context context, View decor, State state) {
+        installPreDrawObserver(window, context, decor, state);
         if (state.decorLayoutObserverInstalled) {
             return;
         }
         View.OnLayoutChangeListener listener = (view, left, top, right, bottom,
                 oldLeft, oldTop, oldRight, oldBottom) -> {
-            if (!isUserUnlocked(context) || !GboardFrostedGlassSettingsRuntime.isEnabled()) {
+            if (!isCurrent(window, state) || !isUserUnlocked(context)) {
                 return;
             }
             long generation = ++state.layoutGeneration;
+            state.settingsLoaded = false;
+            verifyAndApply(window, context, state);
             view.postDelayed(() -> reapplyAfterLayout(window, context, state, generation), 48L);
             view.postDelayed(() -> reapplyAfterLayout(window, context, state, generation), 144L);
         };
         decor.addOnLayoutChangeListener(listener);
+        state.observedDecor = decor;
         state.decorLayoutObserverInstalled = true;
         state.decorLayoutObserver = listener;
     }
@@ -218,47 +217,65 @@ public final class GboardFrostedGlassRuntime {
                 return;
             }
             constrainKeyboardSurface(decor, state);
-            installDecorLayoutObserver(window, context, decor, state);
-            decor.postDelayed(() -> verifyAndApply(window, context, state), 32L);
+            prepareBeforeDraw(window, context);
         } catch (Throwable ignored) {
             disable(window);
         }
     }
 
+    private static void prepareBeforeDraw(Window window, Context context) {
+        View decor = window.getDecorView();
+        if (decor == null) return;
+        State state = stateFor(window);
+        state.settingsLoaded = false;
+        installDecorLayoutObserver(window, context, decor, state);
+        verifyAndApply(window, context, state);
+    }
+
     private static void verifyAndApply(Window window, Context context, State state) {
         try {
-            if (!isUserUnlocked(context) || !GboardFrostedGlassSettingsRuntime.isEnabled()) {
+            if (!isCurrent(window, state)) return;
+            if (!isUserUnlocked(context) || isSurfaceExcluded(window, context)) {
                 disable(window);
                 return;
             }
-            int radiusPx = GboardFrostedGlassSettingsRuntime.blurRadiusPx();
-            int customOpacity = GboardFrostedGlassSettingsRuntime.customOpacityPercent();
-            if (!isBoundedSurface(window)) {
-                if (applyMiuiLocalBlur(window, window.getDecorView(), radiusPx,
-                        customOpacity, state)) {
-                    Log.i(TAG, "applied local radius=" + radiusPx);
+            if (!state.settingsLoaded) {
+                if (!GboardFrostedGlassSettingsRuntime.isEnabled()) {
+                    disable(window);
                     return;
                 }
-                clearBlurEffects(window, state);
+                state.radiusPx = GboardFrostedGlassSettingsRuntime.blurRadiusPx();
+                state.customOpacity = GboardFrostedGlassSettingsRuntime.customOpacityPercent();
+                state.settingsLoaded = true;
+            }
+            int radiusPx = state.radiusPx;
+            int customOpacity = state.customOpacity;
+            View root = findKeyboardRoot(window.getDecorView());
+            if (root == null || !root.isAttachedToWindow()) return;
+            if (state.windowBackgroundChanged && state.windowBlurRoot == root) {
+                GboardFrostedGlassShape shape = GboardFrostedGlassShape.resolve(root, root.getBackground());
+                if (canUseBackgroundBlur(context) && isBoundedSurface(window)
+                        && canUseWindowShape(window, root, shape)) {
+                    applyWindowBlur(window, root, shape, radiusPx, customOpacity, state);
+                    return;
+                }
+                window.setBackgroundBlurRadius(0);
+                state.windowBlurApplied = false;
+                window.setBackgroundDrawable(state.originalWindowBackground);
+                state.windowBackgroundChanged = false;
+            }
+            if (applyMiuiLocalBlur(window, window.getDecorView(), radiusPx,
+                    customOpacity, state)) {
                 return;
             }
-            if (!canUseBackgroundBlur(context)) {
+            GboardFrostedGlassShape shape = GboardFrostedGlassShape.resolve(root, root.getBackground());
+            if (!canUseBackgroundBlur(context)
+                    || state.localBlurDrawable != null || state.localRenderNode != null
+                    || !isBoundedSurface(window) || !canUseWindowShape(window, root, shape)) {
                 disable(window);
                 return;
             }
-            clearBlurEffects(window, state);
-            window.clearFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
-            if (!state.windowBackgroundChanged) {
-                state.originalWindowBackground = window.getDecorView() == null
-                        ? null : window.getDecorView().getBackground();
-            }
-            window.setBackgroundDrawable(transparentRoundedBackground(context));
-            state.windowBackgroundChanged = true;
-            window.setBackgroundBlurRadius(radiusPx);
-            state.windowBlurApplied = true;
-            state.applied = true;
-            state.appliedRadius = radiusPx;
-            Log.i(TAG, "applied bounded radius=" + radiusPx);
+            applyWindowBlur(window, root, shape, radiusPx, customOpacity, state);
         } catch (Throwable ignored) {
             disable(window);
         }
@@ -297,46 +314,63 @@ public final class GboardFrostedGlassRuntime {
     private static boolean applyMiuiLocalBlur(Window window, View decor, int radiusPx,
             int customOpacity, State state) {
         try {
-            View keyboardRoot = findUsableViewWithTag(decor, KEYBOARD_ROOT_TAG);
-            if (keyboardRoot == null) {
-                keyboardRoot = findUsableViewWithTag(decor, FLOATING_KEYBOARD_ROOT_TAG);
-            }
-            if (keyboardRoot == null) {
-                Log.w(TAG, "local blur root not found");
-                return false;
-            }
-            applyThemeOpacity(decor, customOpacity, state);
-            if (state.localBlurView == keyboardRoot && state.localBlurDrawable != null) {
-                Method setRadius = state.localBlurDrawable.getClass().getDeclaredMethod(
-                        "setBlurRadius", int.class);
-                setRadius.setAccessible(true);
-                setRadius.invoke(state.localBlurDrawable, radiusPx);
-                applyThemeOpacity(decor, customOpacity, state);
-                keyboardRoot.invalidate();
-                return true;
-            }
-            if (state.localBlurDrawable != null && state.localBlurView != keyboardRoot) {
+            View keyboardRoot = findKeyboardRoot(decor);
+            if (keyboardRoot == null) return false;
+            if (state.localBlurDrawable != null
+                    && (state.localBlurView != keyboardRoot
+                    || keyboardRoot.getBackground() != state.localCombinedBackground)) {
                 restoreLocalBackground(state);
             }
-            Drawable original = keyboardRoot.getBackground();
+            Drawable original = state.localBlurView == keyboardRoot
+                    && state.localBlurDrawable != null
+                    ? state.localOriginalBackground : keyboardRoot.getBackground();
+            GboardFrostedGlassShape shape = GboardFrostedGlassShape.resolve(keyboardRoot, original);
+            if (shape == null) return false;
+            applyThemeOpacity(decor, customOpacity, state);
+            if (state.localRenderNode != null && state.localRenderRoot == keyboardRoot
+                    && state.localRadiusPx == radiusPx && shape.sameGeometry(state.localShape)) {
+                return state.applied;
+            }
+            if (state.localBlurView == keyboardRoot && state.localBlurDrawable != null) {
+                if (state.localRadiusPx != radiusPx || !shape.sameGeometry(state.localShape)) {
+                    configureBlurDrawable(state.localBlurDrawable, radiusPx, shape);
+                    ((ThemeBlurBackground) state.localCombinedBackground).updateBounds(
+                            shape, keyboardRoot.getWidth(), keyboardRoot.getHeight());
+                    state.localRadiusPx = radiusPx;
+                    state.localShape = shape;
+                    keyboardRoot.invalidate();
+                }
+                return true;
+            }
             Object blurDrawable = null;
             try {
-                blurDrawable = createBackgroundBlurDrawable(keyboardRoot, radiusPx);
-            } catch (ReflectiveOperationException | RuntimeException unavailable) {
-                Log.i(TAG, "background blur drawable unavailable; trying RenderNode blur");
+                blurDrawable = createBackgroundBlurDrawable(keyboardRoot, radiusPx, shape);
+            } catch (ReflectiveOperationException unavailable) {
             }
             if (blurDrawable != null) {
-                Drawable combined = original == null
-                        ? (Drawable) blurDrawable
-                        : new LayerDrawable(new Drawable[]{original, (Drawable) blurDrawable});
+                if (state.localRenderNode != null || state.windowBackgroundChanged) {
+                    clearRenderNode(state);
+                    window.setBackgroundBlurRadius(0);
+                    state.windowBlurApplied = false;
+                    if (state.windowBackgroundChanged) {
+                        window.setBackgroundDrawable(state.originalWindowBackground);
+                        state.windowBackgroundChanged = false;
+                    }
+                }
+                ThemeBlurBackground combined = new ThemeBlurBackground(original, (Drawable) blurDrawable);
+                combined.updateBounds(shape, keyboardRoot.getWidth(), keyboardRoot.getHeight());
                 keyboardRoot.setBackground(combined);
                 keyboardRoot.invalidate();
                 state.localBlurView = keyboardRoot;
                 state.localBlurDrawable = blurDrawable;
                 state.localOriginalBackground = original;
-                state.localOriginalAlpha = state.originalSurfaceAlphas.getOrDefault(
-                        keyboardRoot, original == null ? 255 : original.getAlpha());
+                state.localCombinedBackground = combined;
+                state.localRadiusPx = radiusPx;
+                state.localShape = shape;
                 state.applied = true;
+                Log.i(TAG, "applied local radius=" + radiusPx + " corners="
+                        + shape.topLeft + "," + shape.topRight + ","
+                        + shape.bottomLeft + "," + shape.bottomRight);
                 return true;
             }
             View rootDecor = keyboardRoot.getRootView();
@@ -349,8 +383,6 @@ public final class GboardFrostedGlassRuntime {
             if (renderNode == null) {
                 return false;
             }
-            state.localRenderNode = renderNode;
-            state.localBlurView = rootDecor;
             Class<?> renderNodeClass = renderNode.getClass();
             Method setMode = renderNodeClass.getDeclaredMethod(
                     "setBackgroundBlurMode", int.class);
@@ -370,29 +402,13 @@ public final class GboardFrostedGlassRuntime {
             rootDecor.getLocationInWindow(decorLocation);
             float left = keyboardLocation[0] - decorLocation[0];
             float top = keyboardLocation[1] - decorLocation[1];
-            float right = left + keyboardRoot.getWidth();
-            float bottom = top + keyboardRoot.getHeight();
-            float cornerRadius = WINDOW_CORNER_RADIUS_DP
-                    * keyboardRoot.getResources().getDisplayMetrics().density;
-            Path blurPath = new Path();
-            blurPath.addRoundRect(new RectF(left, top, right, bottom),
-                    cornerRadius, cornerRadius, Path.Direction.CW);
+            Path blurPath = shape.path(left, top);
+            state.localBlurView = rootDecor;
+            state.localRenderNode = renderNode;
             boolean modeApplied = Boolean.TRUE.equals(setMode.invoke(renderNode, 1));
             boolean radiusApplied = Boolean.TRUE.equals(setRadius.invoke(renderNode, radiusPx));
             setScale.invoke(renderNode, 0.5f);
             setPath.invoke(renderNode, blurPath);
-            try {
-                Method setGlassRadius = renderNodeClass.getDeclaredMethod(
-                        "setMiGlassBlurRadius", int.class, int.class);
-                Method setGlassClip = renderNodeClass.getDeclaredMethod(
-                        "setMiGlassClip", float.class, float.class, float.class, float.class);
-                setGlassRadius.setAccessible(true);
-                setGlassClip.setAccessible(true);
-                setGlassRadius.invoke(renderNode, radiusPx, Math.min(radiusPx * 2, 320));
-                setGlassClip.invoke(renderNode, left, top, right, bottom);
-            } catch (Throwable ignored) {
-                // Older Xiaomi builds expose only the standard RenderNode blur methods.
-            }
             try {
                 Method enhance = renderNodeClass.getDeclaredMethod(
                         "setMiBackgroundBlurEnhanceFlag", int.class);
@@ -407,17 +423,24 @@ public final class GboardFrostedGlassRuntime {
             window.setBackgroundBlurRadius(radiusPx);
             state.windowBlurApplied = true;
             rootDecor.invalidate();
+            state.localBlurView = rootDecor;
+            state.localRenderNode = renderNode;
             state.applied = modeApplied || radiusApplied;
+            if (state.applied) {
+                state.localRenderRoot = keyboardRoot;
+                state.localRadiusPx = radiusPx;
+                state.localShape = shape;
+            }
             return state.applied;
         } catch (Throwable throwable) {
-            clearBlurEffects(window, state);
             Log.w(TAG, "clipped blur unavailable: " + throwable.getClass().getSimpleName(),
                     throwable);
             return false;
         }
     }
 
-    private static Object createBackgroundBlurDrawable(View target, int radiusPx)
+    private static Object createBackgroundBlurDrawable(View target, int radiusPx,
+            GboardFrostedGlassShape shape)
             throws ReflectiveOperationException {
         Method getViewRoot = View.class.getDeclaredMethod("getViewRootImpl");
         getViewRoot.setAccessible(true);
@@ -431,17 +454,10 @@ public final class GboardFrostedGlassRuntime {
         if (!(drawable instanceof Drawable)) {
             return null;
         }
-        Method setRadius = drawable.getClass().getDeclaredMethod("setBlurRadius", int.class);
+        configureBlurDrawable(drawable, radiusPx, shape);
         Method setVisible = drawable.getClass().getDeclaredMethod(
                 "setVisible", boolean.class, boolean.class);
-        Method setCorner = drawable.getClass().getDeclaredMethod("setCornerRadius", float.class);
-        setRadius.setAccessible(true);
         setVisible.setAccessible(true);
-        setCorner.setAccessible(true);
-        setRadius.invoke(drawable, radiusPx);
-        float corner = WINDOW_CORNER_RADIUS_DP
-                * target.getResources().getDisplayMetrics().density;
-        setCorner.invoke(drawable, corner);
         setVisible.invoke(drawable, true, false);
         return drawable;
     }
@@ -539,19 +555,27 @@ public final class GboardFrostedGlassRuntime {
     }
 
     private static void applyThemeOpacity(View view, int customOpacity, State state) {
+        if (view == null) return;
         Object tag = view.getTag();
         if (tag instanceof String tagString && isThemeSurfaceTag(tagString)) {
-            Drawable background = view.getBackground();
-            if (view != state.localBlurView && background != null
-                    && background != state.localBlurDrawable
-                    && !state.originalSurfaceAlphas.containsKey(view)) {
-                state.originalSurfaceAlphas.put(view, background.getAlpha());
-            }
-            if (view != state.localBlurView && background != null
-                    && background != state.localBlurDrawable) {
-                background.setAlpha(customOpacity >= 0
-                        ? customOpacity : state.originalSurfaceAlphas.get(view));
-                view.invalidate();
+            Drawable background = view == state.localBlurView && state.localBlurDrawable != null
+                    && view.getBackground() == state.localCombinedBackground
+                    ? state.localOriginalBackground : view.getBackground();
+            background = opacityTarget(background);
+            if (background != null) {
+                SurfaceAlpha saved = state.originalSurfaceAlphas.get(background);
+                if (saved == null) {
+                    saved = new SurfaceAlpha(background.getAlpha());
+                    state.originalSurfaceAlphas.put(background, saved);
+                }
+                int alpha = customOpacity >= 0 ? customOpacity : saved.original;
+                int current = background.getAlpha();
+                if (saved.requested != alpha || saved.observed != current) {
+                    if (current != alpha) setSurfaceAlpha(background, alpha);
+                    saved.requested = alpha;
+                    saved.observed = background.getAlpha();
+                    if (saved.observed != current) view.invalidate();
+                }
             }
         }
         if (view instanceof android.view.ViewGroup group) {
@@ -570,32 +594,27 @@ public final class GboardFrostedGlassRuntime {
     }
 
     private static void restoreLocalBackground(State state) {
-        for (Map.Entry<View, Integer> entry : state.originalSurfaceAlphas.entrySet()) {
-            Drawable background = entry.getKey().getBackground();
-            if (background != null && background != state.localBlurDrawable) {
-                background.setAlpha(entry.getValue());
-                entry.getKey().invalidate();
-            }
+        for (Map.Entry<Drawable, SurfaceAlpha> entry : state.originalSurfaceAlphas.entrySet()) {
+            setSurfaceAlpha(entry.getKey(), entry.getValue().original);
         }
         if (state.localBlurView != null && state.localBlurDrawable != null) {
-            state.localBlurView.setBackground(state.localOriginalBackground);
-            if (state.localOriginalBackground != null) {
-                state.localOriginalBackground.setAlpha(state.localOriginalAlpha);
+            if (state.localBlurView.getBackground() == state.localCombinedBackground) {
+                state.localBlurView.setBackground(state.localOriginalBackground);
             }
             state.localBlurView.invalidate();
         }
         state.localBlurView = null;
         state.localBlurDrawable = null;
-            state.localOriginalBackground = null;
-        state.localOriginalAlpha = 255;
+        state.localOriginalBackground = null;
+        state.localCombinedBackground = null;
+        state.localShape = null;
         state.originalSurfaceAlphas.clear();
     }
 
-    private static Drawable transparentRoundedBackground(Context context) {
+    private static Drawable transparentBackground(GboardFrostedGlassShape shape) {
         GradientDrawable background = new GradientDrawable();
         background.setColor(Color.TRANSPARENT);
-        float density = context.getResources().getDisplayMetrics().density;
-        background.setCornerRadius(WINDOW_CORNER_RADIUS_DP * density);
+        background.setCornerRadius(shape.topLeft);
         return background;
     }
 
@@ -605,8 +624,16 @@ public final class GboardFrostedGlassRuntime {
             state = STATES.remove(window);
         }
         if (state == null) return;
+        ++state.layoutGeneration;
+        if (state.preDrawTree != null && state.preDrawTree.isAlive()) {
+            state.preDrawTree.removeOnPreDrawListener(state.preDrawObserver);
+        }
+        if (state.observedDecor != null && state.preDrawObserver != null) {
+            ViewTreeObserver currentTree = state.observedDecor.getViewTreeObserver();
+            if (currentTree.isAlive()) currentTree.removeOnPreDrawListener(state.preDrawObserver);
+        }
         if (state.decorLayoutObserverInstalled) {
-            View decor = window.getDecorView();
+            View decor = state.observedDecor;
             if (decor != null) decor.removeOnLayoutChangeListener(state.decorLayoutObserver);
             state.decorLayoutObserverInstalled = false;
         }
@@ -674,6 +701,7 @@ public final class GboardFrostedGlassRuntime {
                 // Continue restoring view backgrounds and original layout state.
             }
             state.localRenderNode = null;
+            state.localRenderRoot = null;
         }
         restoreLocalBackground(state);
         if (state.windowBackgroundChanged) {
@@ -685,12 +713,167 @@ public final class GboardFrostedGlassRuntime {
         state.applied = false;
     }
 
+    private static void configureBlurDrawable(Object drawable, int radiusPx,
+            GboardFrostedGlassShape shape) throws ReflectiveOperationException {
+        Method setRadius = drawable.getClass().getDeclaredMethod("setBlurRadius", int.class);
+        setRadius.setAccessible(true);
+        setRadius.invoke(drawable, radiusPx);
+        try {
+            Method setCorners = drawable.getClass().getDeclaredMethod("setCornerRadius",
+                    float.class, float.class, float.class, float.class);
+            setCorners.setAccessible(true);
+            setCorners.invoke(drawable, shape.topLeft, shape.topRight,
+                    shape.bottomLeft, shape.bottomRight);
+        } catch (NoSuchMethodException unavailable) {
+            if (!shape.isUniform()) throw unavailable;
+            Method setCorner = drawable.getClass().getDeclaredMethod("setCornerRadius", float.class);
+            setCorner.setAccessible(true);
+            setCorner.invoke(drawable, shape.topLeft);
+        }
+    }
+
+    private static View findKeyboardRoot(View decor) {
+        View root = findUsableViewWithTag(decor, KEYBOARD_ROOT_TAG);
+        return root != null ? root : findUsableViewWithTag(decor, FLOATING_KEYBOARD_ROOT_TAG);
+    }
+
+    private static boolean canUseWindowShape(Window window, View root,
+            GboardFrostedGlassShape shape) {
+        if (root == null || shape == null || !shape.isUniform()) return false;
+        View decor = window.getDecorView();
+        int[] location = new int[2];
+        root.getLocationInWindow(location);
+        return location[0] == 0 && location[1] == 0
+                && shape.bounds.equals(new Rect(0, 0, decor.getWidth(), decor.getHeight()));
+    }
+
+    private static final class ThemeBlurBackground extends LayerDrawable {
+        private final Drawable theme;
+
+        ThemeBlurBackground(Drawable theme, Drawable blur) {
+            super(theme == null ? new Drawable[]{blur} : new Drawable[]{theme, blur});
+            this.theme = theme;
+        }
+
+        void updateBounds(GboardFrostedGlassShape shape, int width, int height) {
+            setLayerInset(getNumberOfLayers() - 1, shape.bounds.left, shape.bounds.top,
+                    width - shape.bounds.right, height - shape.bounds.bottom);
+        }
+
+        @Override public void getOutline(Outline outline) {
+            if (theme != null) theme.getOutline(outline);
+            else outline.setEmpty();
+        }
+    }
+
+    private static boolean isCurrent(Window window, State state) {
+        synchronized (STATES) {
+            return STATES.get(window) == state;
+        }
+    }
+
+    private static void clearRenderNode(State state) throws ReflectiveOperationException {
+        if (state.localRenderNode == null) return;
+        Class<?> type = state.localRenderNode.getClass();
+        Method radius = type.getDeclaredMethod("setBackgroundBlurRadius", int.class);
+        Method mode = type.getDeclaredMethod("setBackgroundBlurMode", int.class);
+        radius.setAccessible(true);
+        mode.setAccessible(true);
+        radius.invoke(state.localRenderNode, 0);
+        mode.invoke(state.localRenderNode, 0);
+        state.localRenderNode = null;
+        state.localRenderRoot = null;
+        if (state.localBlurView != null) state.localBlurView.invalidate();
+    }
+
+    private static void installPreDrawObserver(Window window, Context context,
+            View decor, State state) {
+        ViewTreeObserver tree = decor.getViewTreeObserver();
+        if (state.preDrawTree == tree) return;
+        if (state.preDrawTree != null && state.preDrawTree.isAlive()) {
+            state.preDrawTree.removeOnPreDrawListener(state.preDrawObserver);
+        }
+        if (state.preDrawObserver != null) tree.removeOnPreDrawListener(state.preDrawObserver);
+        ViewTreeObserver.OnPreDrawListener listener = () -> {
+            if (isCurrent(window, state) && isUserUnlocked(context)) {
+                verifyAndApply(window, context, state);
+            }
+            return true;
+        };
+        tree.addOnPreDrawListener(listener);
+        state.preDrawTree = tree;
+        state.preDrawObserver = listener;
+    }
+
+    private static boolean isSurfaceExcluded(Window window, Context context) {
+        synchronized (STATES) {
+            return Boolean.TRUE.equals(CONFIGURED_EXCLUSIONS.get(window)) || (context instanceof InputMethodService service && service.isFullscreenMode());
+        }
+    }
+
+    private static void applyWindowBlur(Window window, View root, GboardFrostedGlassShape shape,
+            int radiusPx, int customOpacity, State state) {
+        if (!state.windowBackgroundChanged) {
+            state.originalWindowBackground = window.getDecorView().getBackground();
+        }
+        applyThemeOpacity(window.getDecorView(), customOpacity, state);
+        if (!state.windowBackgroundChanged || !shape.sameGeometry(state.windowShape)) {
+            window.setBackgroundDrawable(transparentBackground(shape));
+        }
+        if (!state.windowBackgroundChanged || state.windowRadiusPx != radiusPx) {
+            window.setBackgroundBlurRadius(radiusPx);
+        }
+        state.windowBackgroundChanged = true;
+        state.windowBlurApplied = true;
+        state.windowBlurRoot = root;
+        state.windowShape = shape;
+        state.windowRadiusPx = radiusPx;
+        state.applied = true;
+    }
+
+    private static Drawable opacityTarget(Drawable drawable) {
+        for (int depth = 0; depth < 16 && drawable instanceof DrawableWrapper wrapper; depth++) {
+            drawable = wrapper.getDrawable();
+        }
+        return drawable;
+    }
+
+    private static void setSurfaceAlpha(Drawable drawable, int alpha) {
+        if (drawable instanceof ColorDrawable color) {
+            color.setColor((color.getColor() & 0x00ffffff) | (alpha << 24));
+        } else {
+            drawable.setAlpha(alpha);
+        }
+    }
+
+    private static final class SurfaceAlpha {
+        final int original;
+        int requested = -1;
+        int observed;
+
+        SurfaceAlpha(int original) {
+            this.original = original;
+            observed = original;
+        }
+    }
+
     private static final class State {
         final Drawable originalBackground;
         final int originalWidth;
         final int originalHeight;
         final int originalGravity;
         boolean applied;
+        boolean settingsLoaded;
+        int radiusPx;
+        int customOpacity;
+        int localRadiusPx;
+        GboardFrostedGlassShape localShape;
+        GboardFrostedGlassShape windowShape;
+        View windowBlurRoot;
+        int windowRadiusPx;
+        View localRenderRoot;
+        ViewTreeObserver preDrawTree;
+        ViewTreeObserver.OnPreDrawListener preDrawObserver;
         int appliedRadius;
         boolean windowBlurApplied;
         boolean windowBackgroundChanged;
@@ -699,8 +882,9 @@ public final class GboardFrostedGlassRuntime {
         Object localRenderNode;
         Object localBlurDrawable;
         Drawable localOriginalBackground;
-        int localOriginalAlpha = 255;
-        final Map<View, Integer> originalSurfaceAlphas = new IdentityHashMap<>();
+        Drawable localCombinedBackground;
+        View observedDecor;
+        final Map<Drawable, SurfaceAlpha> originalSurfaceAlphas = new IdentityHashMap<>();
         final Map<View, LayoutSnapshot> originalLayouts = new IdentityHashMap<>();
         long layoutGeneration;
         boolean decorLayoutObserverInstalled;

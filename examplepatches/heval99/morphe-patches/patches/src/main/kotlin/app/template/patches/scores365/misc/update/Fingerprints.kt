@@ -1,6 +1,8 @@
 package app.template.patches.scores365.misc.update
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 // The startup flow (R8-renamed) restarts the launch activity with the boolean extra
 // "ForceUpdateDialog" (server says this version is too old) or "NewVersionPopup" (a newer version
@@ -11,7 +13,10 @@ internal object BaseActivityOnCreateFingerprint : Fingerprint(
     name = "onCreate",
     returnType = "V",
     parameters = listOf("Landroid/os/Bundle;"),
-    strings = listOf("ForceUpdateDialog", "NewVersionPopup"),
+    strings = listOf(
+        string("ForceUpdateDialog", StringComparisonType.CONTAINS),
+        string("NewVersionPopup", StringComparisonType.CONTAINS),
+    ),
 )
 
 internal object BaseActionBarActivityOnCreateFingerprint : Fingerprint(
@@ -19,5 +24,8 @@ internal object BaseActionBarActivityOnCreateFingerprint : Fingerprint(
     name = "onCreate",
     returnType = "V",
     parameters = listOf("Landroid/os/Bundle;"),
-    strings = listOf("ForceUpdateDialog", "NewVersionPopup"),
+    strings = listOf(
+        string("ForceUpdateDialog", StringComparisonType.CONTAINS),
+        string("NewVersionPopup", StringComparisonType.CONTAINS),
+    ),
 )

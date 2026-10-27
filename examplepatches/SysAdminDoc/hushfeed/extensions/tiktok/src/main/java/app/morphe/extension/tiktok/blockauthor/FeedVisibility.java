@@ -124,25 +124,30 @@ public final class FeedVisibility {
         // the video showed its controls and its search row for about a second (#84, Login2
         // emulator 2026-10-15). A page in the detail pager has that window from the activity.
         if (view != null && !isDetailPager(activityOf(view))) RememberClearDisplayPatch.onPageOpened(page);
+        app.morphe.extension.tiktok.playback.PausePlayback.onPlaybackPageChanged();
     }
 
     public static void onDetailResume(Object page) {
         detailPage(page).resumed = true;
+        app.morphe.extension.tiktok.playback.PausePlayback.onPlaybackPageChanged();
     }
 
     public static void onDetailPause(Object page) {
         PageState state = DETAIL_PAGES.get(page);
         if (state != null) state.resumed = false;
         RememberClearDisplayPatch.onPageLeft(page);
+        app.morphe.extension.tiktok.playback.PausePlayback.onPlaybackPageChanged();
     }
 
     public static void onDetailVisibility(Object page, boolean visible) {
         detailPage(page).visible = visible;
+        app.morphe.extension.tiktok.playback.PausePlayback.onPlaybackPageChanged();
     }
 
     public static void onDetailDestroyed(Object page) {
         DETAIL_PAGES.remove(page);
         RememberClearDisplayPatch.onPageLeft(page);
+        app.morphe.extension.tiktok.playback.PausePlayback.onPlaybackPageChanged();
     }
 
     private static Activity activityOf(View view) {
@@ -160,6 +165,27 @@ public final class FeedVisibility {
             if (state.resumed && state.visible && view != null && view.isShown()) return true;
         }
         return false;
+    }
+
+    /** The visible native detail fragment, feed pager, or activity before a pager exists. */
+    public static Object playbackPage(Activity activity) {
+        if (activity == null) return null;
+        Object active = null;
+        for (Map.Entry<Object, PageState> entry : DETAIL_PAGES.entrySet()) {
+            PageState state = entry.getValue();
+            View view = state.view.get();
+            if (!state.resumed || !state.visible || view == null || !view.isShown()
+                    || activityOf(view) != activity || isScrolledAway(view)) continue;
+            if (active != null) return null;
+            active = entry.getKey();
+        }
+        if (active != null) return active;
+        View content = activity.findViewById(android.R.id.content);
+        View pager = content == null ? null : feedPagerIn(content);
+        if (pager != null) return pager;
+        View home = homeTab(activity);
+        if (home != null && (!home.isShown() || !home.isSelected()) && !cleared(activity, home)) return null;
+        return activity;
     }
 
     private FeedVisibility() {

@@ -28,12 +28,6 @@ internal object Constants {
                 description = "Android 12L+ variant: patched and checked on the dedicated API 36 emulator. Signed-in behavior not tested.",
             ),
             AppTarget(
-                version = "31.5.2",
-                versionCode = 3105026,
-                minSdk = 32,
-                description = "Android 12L+ variant: patched, rebuilt, ART-verified and launched on the dedicated API 36 emulator. Signed-in behavior not tested.",
-            ),
-            AppTarget(
                 version = "30.7.2",
                 versionCode = 3007026,
                 minSdk = 26,
@@ -62,12 +56,6 @@ internal object Constants {
             AppTarget(
                 version = "31.6.0",
                 versionCode = 3106006,
-                minSdk = 32,
-                description = "Android 12L+ variant.",
-            ),
-            AppTarget(
-                version = "31.5.2",
-                versionCode = 3105026,
                 minSdk = 32,
                 description = "Android 12L+ variant.",
             ),

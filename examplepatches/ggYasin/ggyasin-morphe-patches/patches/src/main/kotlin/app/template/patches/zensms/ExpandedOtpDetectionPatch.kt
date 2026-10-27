@@ -7,6 +7,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.ZEN_SMS_COMPATIBILITY
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
@@ -82,11 +83,13 @@ private fun expandStockRegexes() {
 context(_: BytecodePatchContext)
 private fun widenStockValidatorLength() {
     val method = ZenSmsOtpCandidateValidatorFingerprint.method
-    val maxLengthIndex = method.instructions.indexOfFirst { instruction ->
+    val candidates = method.instructions.withIndex().filter { (_, instruction) ->
         instruction.opcode == Opcode.CONST_16 &&
-            (instruction as? OneRegisterInstruction)?.registerA == 8
+            (instruction as? OneRegisterInstruction)?.registerA == 8 &&
+            (instruction as? NarrowLiteralInstruction)?.narrowLiteral == 8
     }
-    check(maxLengthIndex >= 0) { "Could not find ZenSMS's maximum OTP length" }
+    check(candidates.size == 1) { "Expected one audited maximum OTP length" }
+    val maxLengthIndex = candidates.single().index
 
     method.replaceInstruction(
         maxLengthIndex,

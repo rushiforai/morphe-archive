@@ -43,6 +43,7 @@ public class ChoiceBackupTest {
     @Before public void reset() {
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().commit();
+        OpenSections.all();
         CrashGuard.resetForTests();
         DocumentResolver.opener = null;
         DocumentResolver.onOpen = null;

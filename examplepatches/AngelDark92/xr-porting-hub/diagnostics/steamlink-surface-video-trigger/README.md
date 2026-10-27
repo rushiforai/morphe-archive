@@ -3,6 +3,16 @@
 One default-off experimental patch tests the standard-codec presentation path on
 exact Steam Link **2.0.20/5001712**, without ASTC and without quad conversion.
 
+## 2026-10-25 — first runtime blocker found and fixed
+
+The first build of this layer never converted a frame. Steam Link 2.0.20/5001712
+attaches a non-null `next` chain (`XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB`) to both
+projection layers, and the helper rejected any non-null layer `next`. It also
+rejected a non-null frame `next` used by local dimming. The helper now preserves
+both chains, copies them into the Surface-backed projection layers/frame, and
+creates the trigger at session creation. This was a pass-through bug, not a
+runtime rejection; the corrected helper is included in `patches-2.3.0-dev.2.mpp`.
+
 ## Why this path
 
 The reference app's non-ASTC path uses MediaCodec for HEVC, AV1 and H.264. Its native
@@ -25,7 +35,7 @@ and appends the terminal trigger that the retired Surface-video experiment lacke
 
 | File | Size | SHA-256 |
 |---|---:|---|
-| `patches/src/main/resources/steamlink/androidxr/libgxr_surface_video_trigger.so` | 407,104 | `4fef35515bdd8b0d4b32ebc3a79667a748329ead1153188b688b76dab1ae7c79` |
+| `patches/src/main/resources/steamlink/androidxr/libgxr_surface_video_trigger.so` | 407,104 | `1e223bfec56fc3e39355a5fda25464fc54d45887d98e8591884b1f4d80c8b384` |
 | `patches/src/main/resources/steamlink/androidxr/XR_APILAYER_local_GalaxyXR_surface_video_trigger_v1.json` | 392 | `328d54a019fb1263a8fc76f3b35a3e23bcaa1ec66725b3d52775b62d3fe1b8fa` |
 
 Build ID: `surface-video-trigger-2proj-v1.0-20261025`.

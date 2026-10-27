@@ -12,11 +12,11 @@ UI and debloating patches were removed because Piko-NewX covers them; this repos
 | :--- | :--- |
 | **Target App** | X |
 | **Package Name** | `com.twitter.android` |
-| **Target Version** | `12.36.1-prod.01` |
+| **Target Version** | `12.37.2-prod.01` |
 | **Target Package Format** | APKM |
 | **Primary Architecture** | `arm64-v8a` |
 | **Authoritative Source** | APKMirror |
-| **Download Target** | [X 12.36.1-prod.01 (arm64-v8a, 120-640dpi, versionCode 312361001 / BUNDLE 35 S)](https://www.apkmirror.com/apk/x-corp/x/x-12-36-1-prod-01-release/) |
+| **Download Target** | [X 12.37.2-prod.01 (arm64-v8a, 120-640dpi, versionCode 312372001 / BUNDLE 35 S)](https://www.apkmirror.com/apk/x-corp/x/x-12-37-2-prod-01-release/) |
 
 ---
 

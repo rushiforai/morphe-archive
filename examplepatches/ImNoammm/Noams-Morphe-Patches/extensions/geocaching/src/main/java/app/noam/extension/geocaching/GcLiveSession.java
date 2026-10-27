@@ -1,11 +1,9 @@
 package app.noam.extension.geocaching;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.SharedPreferences;
-import android.text.InputType;
-import android.widget.EditText;
-import android.widget.LinearLayout;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import org.json.JSONObject;
 
@@ -15,33 +13,47 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
+import java.net.HttpCookie;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** A geocaching.com website session, signed in through the site's own form like c:geo does. */
+/**
+ * The geocaching.com website session the map search and cache pages use, kept apart from the app's own
+ * API session. Sign-in order: the saved session cookie, the site's form with the app's own sign-in,
+ * then the site's sign-in page inside the app (the site can ask for a CAPTCHA, which the form can't
+ * answer; c:geo falls back the same way).
+ */
 public final class GcLiveSession {
-    private static final String TAG = Utils.TAG;
-    private static final String SIGNIN_URL =
-        "https://www.geocaching.com/account/signin?returnUrl=%2Faccount%2Fsettings%2Fhomelocation";
+    private static final String SITE = "https://www.geocaching.com";
+    private static final String SIGNIN_URL = SITE + "/account/signin?returnUrl=%2Faccount%2Fsettings%2Fhomelocation";
     private static final Pattern TOKEN_PATTERN =
         Pattern.compile("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"");
+    private static final int SIGN_IN_MENU_ID = 0x4e474353;
+    private static WeakReference<MenuItem> signInItem = new WeakReference<>(null);
 
+    // Only for our own requests: installing it as the default CookieHandler would also change the
+    // cookies of the app's own API clients.
     private static final CookieManager COOKIE_MANAGER = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
     private static volatile boolean loggedIn = false;
+    private static volatile boolean askedThisRun = false;
 
     private GcLiveSession() {}
 
     /**
      * Called as the app sends its own username/password sign-in: geocaching.com takes the same
-     * account, so the website session signs in with it and never needs to ask separately.
+     * account, so the website session can sign in with it without asking.
      */
     public static void rememberAppLogin(Object loginBody) {
+        // The suspend function is entered again with no body when it resumes.
+        if (loginBody == null) return;
         try {
             java.lang.reflect.Field handle = loginBody.getClass().getDeclaredField("a");
             java.lang.reflect.Field password = loginBody.getClass().getDeclaredField("b");
@@ -51,9 +63,11 @@ public final class GcLiveSession {
             if (user == null || user.isEmpty() || pass == null || pass.isEmpty()) return;
             SharedPreferences prefs = Utils.prefs();
             if (prefs == null) return;
-            saveLogin(prefs, user, pass);
+            prefs.edit().putString("gc_username", user).putString("gc_password_sealed", seal(pass))
+                .remove("gc_password").remove("gc_session_sealed").apply();
             synchronized (GcLiveSession.class) {
                 loggedIn = false;
+                askedThisRun = false;
             }
         } catch (Throwable t) {
             Utils.logError("App sign-in not shared with the website", t);
@@ -64,47 +78,146 @@ public final class GcLiveSession {
         if (loggedIn) return true;
         SharedPreferences prefs = Utils.prefs();
         if (prefs == null) return false;
+
+        if (restoreSession(prefs) && sessionWorks()) return loggedIn = true;
+
         String username = prefs.getString("gc_username", null);
         String password = savedPassword(prefs);
-        if (username == null || password == null) {
-            String[] entered = promptForCredentials();
-            if (entered == null) return false;
-            username = entered[0];
-            password = entered[1];
-            saveLogin(prefs, username, password);
+        if (username != null && password != null && formLogin(username, password) && sessionWorks()) {
+            saveSession(prefs);
+            return loggedIn = true;
         }
-        loggedIn = login(username, password);
-        return loggedIn;
+
+        if (askedThisRun) return false;
+        askedThisRun = true;
+        if (signInInApp() && sessionWorks()) {
+            saveSession(prefs);
+            return loggedIn = true;
+        }
+        Utils.toast("Sign in to geocaching.com from the map menu to load caches");
+        return false;
+    }
+
+    /** Adds "geocaching.com sign-in" to the map's menu; called as the menu is created. */
+    public static void addMenu(Menu menu) {
+        MenuItem item = menu.add(Menu.NONE, SIGN_IN_MENU_ID, 1000, "geocaching.com sign-in");
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
+        item.setOnMenuItemClickListener(m -> {
+            signInAgain();
+            return true;
+        });
+        signInItem = new WeakReference<>(item);
+    }
+
+    /** The map hides menu items it doesn't know each time it prepares the menu; this shows ours again. */
+    public static void showMenu() {
+        MenuItem item = signInItem.get();
+        if (item != null) item.setVisible(true);
+    }
+
+    /** Forgets the website session and opens the site's sign-in page again. */
+    private static void signInAgain() {
+        new Thread(() -> {
+            synchronized (GcLiveSession.class) {
+                loggedIn = false;
+                askedThisRun = false;
+                cachedBearer = null;
+                COOKIE_MANAGER.getCookieStore().removeAll();
+                SharedPreferences prefs = Utils.prefs();
+                if (prefs != null) prefs.edit().remove("gc_session_sealed").apply();
+            }
+            if (ensureSession()) Utils.toast("Signed in to geocaching.com");
+        }).start();
+    }
+
+    /** The site's own sign-in page in the app; blocks this (background) thread until it's done. */
+    private static boolean signInInApp() {
+        Activity activity = Utils.resumedActivity();
+        if (activity == null) return false;
+        CountDownLatch latch = new CountDownLatch(1);
+        String[] cookies = new String[1];
+        Utils.runOnMain(() -> {
+            try {
+                android.webkit.CookieManager webCookies = android.webkit.CookieManager.getInstance();
+                webCookies.removeAllCookies(null);
+                GcWebDialog.signIn(activity, SIGNIN_URL, url -> {
+                    String header = webCookies.getCookie(SITE);
+                    if (header == null || !header.contains("gspkauth=") || url.contains("/account/signin")) return false;
+                    cookies[0] = header;
+                    return true;
+                }, latch::countDown);
+            } catch (Throwable t) {
+                Utils.logError("Sign-in page failed", t);
+                latch.countDown();
+            }
+        });
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+        if (cookies[0] == null) return false;
+        addCookies(cookies[0]);
+        return true;
+    }
+
+    /** True when the site hands this session an API token, which it only does when signed in. */
+    private static boolean sessionWorks() {
+        cachedBearer = null;
+        return ensureToken() != null;
+    }
+
+    private static void saveSession(SharedPreferences prefs) {
+        StringBuilder header = new StringBuilder();
+        for (HttpCookie cookie : COOKIE_MANAGER.getCookieStore().getCookies()) {
+            if (header.length() > 0) header.append("; ");
+            header.append(cookie.getName()).append('=').append(cookie.getValue());
+        }
+        String sealed = seal(header.toString());
+        if (sealed != null) prefs.edit().putString("gc_session_sealed", sealed).apply();
+    }
+
+    private static boolean restoreSession(SharedPreferences prefs) {
+        String sealed = prefs.getString("gc_session_sealed", null);
+        String header = sealed == null ? null : unseal(sealed);
+        if (header == null || !header.contains("gspkauth=")) return false;
+        addCookies(header);
+        return true;
+    }
+
+    private static void addCookies(String header) {
+        for (String part : header.split(";")) {
+            int eq = part.indexOf('=');
+            if (eq <= 0) continue;
+            HttpCookie cookie = new HttpCookie(part.substring(0, eq).trim(), part.substring(eq + 1).trim());
+            cookie.setDomain(".geocaching.com");
+            cookie.setPath("/");
+            cookie.setVersion(0);
+            COOKIE_MANAGER.getCookieStore().add(URI.create(SITE), cookie);
+        }
     }
 
     private static final String KEY_ALIAS = "geocaching_website_login";
 
-    /** The password is kept encrypted with a key that never leaves the Android Keystore. */
-    private static void saveLogin(SharedPreferences prefs, String username, String password) {
+    /** Secrets (the password, the session cookie) are encrypted with a key kept in the Android Keystore. */
+    private static String seal(String plain) {
         try {
             javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, keystoreKey());
             byte[] iv = cipher.getIV();
-            byte[] sealed = cipher.doFinal(password.getBytes(StandardCharsets.UTF_8));
+            byte[] sealed = cipher.doFinal(plain.getBytes(StandardCharsets.UTF_8));
             byte[] stored = new byte[iv.length + sealed.length];
             System.arraycopy(iv, 0, stored, 0, iv.length);
             System.arraycopy(sealed, 0, stored, iv.length, sealed.length);
-            prefs.edit().putString("gc_username", username)
-                .putString("gc_password_sealed", android.util.Base64.encodeToString(stored, android.util.Base64.NO_WRAP))
-                .remove("gc_password").apply();
+            return android.util.Base64.encodeToString(stored, android.util.Base64.NO_WRAP);
         } catch (Exception e) {
-            Utils.logError("Website sign-in not saved", e);
+            Utils.logError("Could not encrypt the website sign-in", e);
+            return null;
         }
     }
 
-    private static String savedPassword(SharedPreferences prefs) {
-        String plain = prefs.getString("gc_password", null);
-        if (plain != null) {
-            saveLogin(prefs, prefs.getString("gc_username", ""), plain);
-            return plain;
-        }
-        String sealed = prefs.getString("gc_password_sealed", null);
-        if (sealed == null) return null;
+    private static String unseal(String sealed) {
         try {
             byte[] stored = android.util.Base64.decode(sealed, android.util.Base64.NO_WRAP);
             javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding");
@@ -115,6 +228,16 @@ public final class GcLiveSession {
             Utils.logError("Saved website sign-in unreadable", e);
             return null;
         }
+    }
+
+    private static String savedPassword(SharedPreferences prefs) {
+        String plain = prefs.getString("gc_password", null);
+        if (plain != null) {
+            prefs.edit().putString("gc_password_sealed", seal(plain)).remove("gc_password").apply();
+            return plain;
+        }
+        String sealed = prefs.getString("gc_password_sealed", null);
+        return sealed == null ? null : unseal(sealed);
     }
 
     private static javax.crypto.SecretKey keystoreKey() throws Exception {
@@ -131,52 +254,7 @@ public final class GcLiveSession {
         return generator.generateKey();
     }
 
-    /** Blocks the calling (background) thread until the user submits the dialog, or cancels. */
-    private static String[] promptForCredentials() {
-        Activity activity = Utils.resumedActivity();
-        if (activity == null) return null;
-        CountDownLatch latch = new CountDownLatch(1);
-        String[] result = new String[2];
-        Utils.runOnMain(() -> {
-            try {
-                LinearLayout layout = new LinearLayout(activity);
-                layout.setOrientation(LinearLayout.VERTICAL);
-                int pad = (int) (16 * activity.getResources().getDisplayMetrics().density);
-                layout.setPadding(pad, pad, pad, pad);
-                EditText userField = new EditText(activity);
-                userField.setHint("geocaching.com username or email");
-                EditText passField = new EditText(activity);
-                passField.setHint("geocaching.com password");
-                passField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                layout.addView(userField);
-                layout.addView(passField);
-                new AlertDialog.Builder(activity)
-                    .setTitle("Sign in (same as c:geo)")
-                    .setView(layout)
-                    .setCancelable(false)
-                    .setPositiveButton("Sign in", (dialog, which) -> {
-                        result[0] = userField.getText().toString().trim();
-                        result[1] = passField.getText().toString();
-                        latch.countDown();
-                    })
-                    .setNegativeButton("Cancel", (dialog, which) -> latch.countDown())
-                    .show();
-            } catch (Throwable t) {
-                Utils.logError("Credential prompt failed", t);
-                latch.countDown();
-            }
-        });
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return null;
-        }
-        if (result[0] == null || result[0].isEmpty() || result[1] == null || result[1].isEmpty()) return null;
-        return result;
-    }
-
-    private static boolean login(String username, String password) {
+    private static boolean formLogin(String username, String password) {
         try {
             String signinPage = get(SIGNIN_URL);
             Matcher matcher = TOKEN_PATTERN.matcher(signinPage);
@@ -184,16 +262,23 @@ public final class GcLiveSession {
                 Utils.log("No CSRF token on sign-in page");
                 return false;
             }
-            String token = matcher.group(1);
-            String body = "__RequestVerificationToken=" + urlEncode(token)
+            String body = "__RequestVerificationToken=" + urlEncode(matcher.group(1))
                 + "&ReturnUrl=" + urlEncode("/account/settings/homelocation")
                 + "&UsernameOrEmail=" + urlEncode(username)
                 + "&Password=" + urlEncode(password);
-            post("https://www.geocaching.com/account/signin", body);
-            for (java.net.HttpCookie cookie : COOKIE_MANAGER.getCookieStore().getCookies()) {
+            String result = post(SITE + "/account/signin", body);
+            for (HttpCookie cookie : COOKIE_MANAGER.getCookieStore().getCookies()) {
                 if ("gspkauth".equalsIgnoreCase(cookie.getName())) return true;
             }
-            Utils.log("Sign-in did not produce a session cookie");
+            if (result.contains("g-recaptcha")) {
+                Utils.log("The site asked for a CAPTCHA; using its sign-in page instead");
+            } else if (result.contains("signup-validation-error")) {
+                Utils.log("The site refused the saved password; using its sign-in page instead");
+                SharedPreferences prefs = Utils.prefs();
+                if (prefs != null) prefs.edit().remove("gc_password_sealed").apply();
+            } else {
+                Utils.log("Sign-in did not produce a session cookie");
+            }
             return false;
         } catch (Throwable t) {
             Utils.logError("Sign-in failed", t);
@@ -255,30 +340,47 @@ public final class GcLiveSession {
 
     /** GET with an extra Authorization header, for /api/proxy/* calls. */
     static String getWithAuth(String url, String authorization) throws IOException {
-        HttpURLConnection conn = open(url, "GET");
-        conn.setRequestProperty("Authorization", authorization);
-        return readBody(conn);
+        return readBody(open(url, "GET", null, authorization));
     }
 
-    private static void post(String url, String body) throws IOException {
-        HttpURLConnection conn = open(url, "POST");
-        conn.setDoOutput(true);
-        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
-        conn.setFixedLengthStreamingMode(bytes.length);
-        try (OutputStream out = conn.getOutputStream()) {
-            out.write(bytes);
-        }
-        readBody(conn);
+    private static String post(String url, String body) throws IOException {
+        return readBody(open(url, "POST", body.getBytes(StandardCharsets.UTF_8), null));
     }
 
     private static HttpURLConnection open(String url, String method) throws IOException {
-        java.net.CookieHandler.setDefault(COOKIE_MANAGER);
-        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-        conn.setRequestMethod(method);
-        conn.setInstanceFollowRedirects(true);
-        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Android) geocaching-morphe");
-        return conn;
+        return open(url, method, null, null);
+    }
+
+    /** Sends our cookies and keeps the ones the site sets, following redirects by hand so none are lost. */
+    private static HttpURLConnection open(String url, String method, byte[] form, String authorization) throws IOException {
+        for (int hop = 0; ; hop++) {
+            URI uri = URI.create(url);
+            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+            conn.setRequestMethod(method);
+            conn.setInstanceFollowRedirects(false);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Android) geocaching-morphe");
+            if (authorization != null) conn.setRequestProperty("Authorization", authorization);
+            for (java.util.Map.Entry<String, java.util.List<String>> header
+                    : COOKIE_MANAGER.get(uri, java.util.Collections.emptyMap()).entrySet()) {
+                for (String value : header.getValue()) conn.addRequestProperty(header.getKey(), value);
+            }
+            if (form != null) {
+                conn.setDoOutput(true);
+                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                conn.setFixedLengthStreamingMode(form.length);
+                try (OutputStream out = conn.getOutputStream()) {
+                    out.write(form);
+                }
+            }
+            int status = conn.getResponseCode();
+            COOKIE_MANAGER.put(uri, conn.getHeaderFields());
+            String location = conn.getHeaderField("Location");
+            if (status / 100 != 3 || location == null || hop >= 8) return conn;
+            conn.disconnect();
+            url = uri.resolve(location).toString();
+            method = "GET";
+            form = null;
+        }
     }
 
     private static String readBody(HttpURLConnection conn) throws IOException {

@@ -1,5 +1,7 @@
 # 诊断解释与性能机制合同
 
+> 版本口径（2026-10-26）：当前公开产品为1.5.8 / release-1.5.8，继承本合同已接受的行为和保留限制。正文中的M5/M6等版本、计数及“待复核”属于各段形成时的历史时点；当前状态及新的远端CI/发布覆盖以[PROJECT-STATE](../PROJECT-STATE.md)和[发布结果](../maintenance/results/RELEASE-1.5.8-RESULT.md)为准，不改写原失败/原测试事实。
+
 M6a v1，2026-10-25（Asia/Shanghai）；经[统筹复核](../maintenance/reviews/M6a-REVIEW.md)接受F5解释/实际决定、有限性能机制基线及两项局部修复。接受本地1.5.8 / local-1.5.8-m6a / candidate-01，公开1.5.7；原[M6a结果](../maintenance/results/M6a-RESULT.md)及证据保留。设备/硬件/物理IO长尾不由本合同认证。
 
 本文记录真实组件中的事实和有限输入的操作基线。JVM测试总耗时、Robolectric帧推进和包体大小均不能认证设备帧率、内存、耗电或硬件Keystore延迟。

@@ -230,6 +230,51 @@ public final class ResponseMenuSettings {
             return null;
         }
     }
+    /** Custom native Menu implementations append items even when an order is supplied. */
+    public static void finishResponseMenu(Object object) {
+        JSONObject settings = savedSettings();
+        if (settings != null) applySavedOrder(object, settings);
+    }
+
+    static void applySavedOrder(Object object, JSONObject settings) {
+        if (!(object instanceof Menu)) return;
+        Menu menu = (Menu) object;
+        String itemsField;
+        switch (object.getClass().getName()) {
+            case "o.m6fExternalSyntheticLambda0": itemsField = "c"; break;
+            case "o.getStream": itemsField = "a"; break;
+            case "o.TTPlayableLandingPageActivity10": itemsField = "e"; break;
+            default: return;
+        }
+        try {
+            JSONArray rows = settings.optJSONArray("buttons");
+            if (rows == null) return;
+            java.util.Map<Integer, Integer> ranks = new java.util.HashMap<>();
+            for (int i = 0; i < rows.length(); i++) {
+                JSONObject row = rows.optJSONObject(i);
+                if (row == null) continue;
+                int id = rowId(row);
+                if (id == Integer.MIN_VALUE || ranks.containsKey(id)) continue;
+                int rank = row.has("position") ? row.optInt("position", i)
+                        : row.has("order") ? row.optInt("order", i) : i;
+                ranks.put(id, Math.max(0, rank));
+            }
+            Field field = object.getClass().getDeclaredField(itemsField);
+            field.setAccessible(true);
+            Object raw = field.get(object);
+            if (!(raw instanceof List)) return;
+            List<?> list = (List<?>) raw;
+            // Only amend the actual top-level items, never a visible-items cache/submenu.
+            if (list.size() != menu.size()) return;
+            for (int i = 0; i < list.size(); i++)
+                if (!(list.get(i) instanceof android.view.MenuItem) || list.get(i) != menu.getItem(i)) return;
+            @SuppressWarnings("unchecked") List<android.view.MenuItem> items = (List<android.view.MenuItem>) list;
+            ResponseMenuOrder.apply(items, android.view.MenuItem::getItemId, ranks);
+        } catch (ReflectiveOperationException | RuntimeException error) {
+            android.util.Log.w("Haiagaru", "Response remembered-share order", error);
+        }
+    }
+
     public static void prepare(Object object) {
         if(!(object instanceof Menu))return;
         Menu menu=(Menu)object;

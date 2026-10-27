@@ -42,10 +42,10 @@ target_compile_definitions(swp_vts_tests PRIVATE SWP_HOST_TESTS)
 add_test(NAME swp_vts_tests COMMAND swp_vts_tests)
 set_tests_properties(swp_vts_tests PROPERTIES TIMEOUT 60)
 
-add_executable(swp_hooks_tests swp_hooks_tests.cpp ../src/swp_egl.cpp)
-# NOTE: this target does not link as committed: swp_hooks_tests.cpp defines its own
-# SwpEglSetOriginal while swp_egl.cpp defines the real one (LNK2005). Pre-existing,
-# not introduced here; the GOT patch path is covered by swp_vts_tests + the dispatch suite.
+add_executable(swp_hooks_tests swp_hooks_tests.cpp)
+# swp_hooks_tests.cpp embeds swp_hooks.cpp and stubs SwpEglSetOriginal itself;
+# compiling swp_egl.cpp too would duplicate the symbol (LNK2005). The arrival
+# TU is exercised by the dispatch suite.
 target_compile_features(swp_hooks_tests PRIVATE cxx_std_17)
 target_include_directories(swp_hooks_tests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/stubs"
@@ -56,3 +56,14 @@ target_compile_definitions(swp_hooks_tests PRIVATE
     SWP_HOST_TESTS)
 add_test(NAME swp_hooks_tests COMMAND swp_hooks_tests)
 set_tests_properties(swp_hooks_tests PROPERTIES TIMEOUT 60)
+
+# Real estimator worker: production worker TU with GL stubs, driving geometry
+# admission, pyramid failure propagation and read/draw FBO restoration.
+add_executable(swp_est_worker_tests swp_est_worker_tests.cpp ../src/spacewarp_est.cpp)
+target_compile_features(swp_est_worker_tests PRIVATE cxx_std_17)
+target_include_directories(swp_est_worker_tests PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/stubs"
+    "${OPENXR_SDK_SOURCE_DIR}/include")
+target_compile_definitions(swp_est_worker_tests PRIVATE SWP_HOST_TESTS)
+add_test(NAME swp_est_worker_tests COMMAND swp_est_worker_tests)
+set_tests_properties(swp_est_worker_tests PROPERTIES TIMEOUT 60)

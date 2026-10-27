@@ -18,28 +18,36 @@ object IsPremiumFingerprint : Fingerprint(
     definingClass = "Lcom/zensms/app/domain/premium/PremiumManager;",
     name = "isPremium",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "Lz/vF;",
     parameters = emptyList(),
+    custom = { method, _ -> method.returnType in setOf("Lz/vF;", "Lz/NP;") },
 )
 
 /** Matches ZenSMS' existing body-to-OTP extractor. */
 object ZenSmsOtpExtractorFingerprint : Fingerprint(
-    definingClass = "Lz/Md;",
-    name = "s",
     returnType = "Ljava/lang/String;",
     parameters = listOf("Ljava/lang/String;"),
+    strings = listOf(
+        "body", "toUpperCase(...)",
+        """(?i)\bPIN\s*(?:is|:)\s*(\d{4,6})\b""",
+        """(?i)\b(?:passcode|password)\s*(?:is|:)\s*(\d{4,8})\b""",
+    ),
     custom = { method, _ ->
-        AccessFlags.PUBLIC.isSet(method.accessFlags) &&
+        (method.definingClass to method.name) in setOf("Lz/Md;" to "s", "Lz/lY;" to "t") &&
+            AccessFlags.PUBLIC.isSet(method.accessFlags) &&
             AccessFlags.STATIC.isSet(method.accessFlags)
     },
 )
 
 /** Matches ZenSMS' existing per-candidate OTP validator. */
 object ZenSmsOtpCandidateValidatorFingerprint : Fingerprint(
-    definingClass = "Lz/Md;",
-    name = "C",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Z",
-    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Lz/an;"),
     strings = listOf("order", "tracking", "transaction", "invoice", "no."),
+    custom = { method, _ ->
+        (method.definingClass to method.name) in setOf("Lz/Md;" to "C", "Lz/lY;" to "K") &&
+            method.parameterTypes.map { it.toString() } in listOf(
+                listOf("Ljava/lang/String;", "Ljava/lang/String;", "Lz/an;"),
+                listOf("Ljava/lang/String;", "Ljava/lang/String;", "Lz/uq;"),
+            )
+    },
 )

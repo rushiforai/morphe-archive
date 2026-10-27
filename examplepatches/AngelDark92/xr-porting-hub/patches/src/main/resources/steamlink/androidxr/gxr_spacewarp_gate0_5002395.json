@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "generatedBy": "extensions/gxr-spacewarp-layer/tests/derive_gate0.py",
+  "generatedAt": "2026-10-26T15:12:22Z",
+  "base": {
+    "app": "Steam Link VR",
+    "package": "com.valvesoftware.steamlinkvr",
+    "versionName": "2.0.24",
+    "versionCode": 5002395
+  },
+  "soname": "libvrlink_scene.so",
+  "decodedTree": "android-steamlinkvr-release-base-2.0.24-5002395",
+  "size": 2301432,
+  "sha256": "5fab23a7eac1429c93520bdd4d7c579b75a6d55525a755379d15388272571a4b",
+  "sha256Use": "diagnostics only; never a full-file gate",
+  "dtNeeded": [
+    "libopenxr_loader.so",
+    "libaaudio.so",
+    "libmediandk.so",
+    "libandroid.so",
+    "liblog.so",
+    "libEGL.so",
+    "libGLESv3.so",
+    "libm.so",
+    "libdl.so",
+    "libc.so"
+  ],
+  "anchors": [
+    {
+      "name": "codecs-audit-anchor",
+      "offset": 1042772,
+      "size": 128,
+      "sha256": "ef7f310bbd65499404aa89a18f873c42a87282a16799b84119c75377654003a3",
+      "occurrences": 1
+    },
+    {
+      "name": "QSVLClientXR::FlipFrame",
+      "offset": 1035360,
+      "size": 128,
+      "sha256": "ae6b472507e1aa0e6d3756cfb0601ec13f4cb1c93e887366e9d898e36a9389bf",
+      "occurrences": 1
+    },
+    {
+      "name": "XrSceneStream::Render",
+      "offset": 1165728,
+      "size": 128,
+      "sha256": "1550a9b6903a59092c9416f807975fd99cea203809894fd89750880a7ddaa1ae",
+      "occurrences": 1
+    },
+    {
+      "name": "AppTick",
+      "offset": 1338972,
+      "size": 128,
+      "sha256": "8b74ca45210ad8a0c647a2f2e8c226adaa09ad5a7a711c1095ecdf440624f57f",
+      "occurrences": 1
+    }
+  ],
+  "anchorAddressing": "file offsets (byte windows in the APK's lib file); re-derive sha256 over bytes[offset:offset+size]",
+  "slotPins": [
+    {
+      "symbol": "eglCreateImageKHR",
+      "slotOffset": 2302320,
+      "slotAddressing": "runtime vaddr; address = dlpi_addr + slotOffset (this lib is NOT PT_LOAD-identity: file offset of the slot differs by the containing PT_LOAD delta)",
+      "slotFileOffset": 2285936,
+      "relocType": "JUMP_SLOT",
+      "occurrences": 1,
+      "note": "BIND_NOW + full RELRO slot; the layer wraps this import to learn decoded-frame arrivals for the missed-tick decision"
+    }
+  ]
+}

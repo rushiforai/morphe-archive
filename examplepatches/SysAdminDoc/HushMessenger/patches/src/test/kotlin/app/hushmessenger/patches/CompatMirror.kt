@@ -56,6 +56,26 @@ object CompatMirror {
     /** CompatReport.pluginGateShape: whether it takes [method] as a plugin gate. The sentinel itself is the profile's to pin. */
     fun pluginGate(method: Method): Boolean = static("pluginGateShape", Method::class.java).invoke(null, method) as Boolean
 
+    /** CompatReport.screenshotViewerSites: the window flag calls it would replace, empty when it refuses the body. */
+    @Suppress("UNCHECKED_CAST")
+    fun screenshotViewerSites(method: Method): List<Int> =
+        static("screenshotViewerSites", Method::class.java).invoke(null, method) as List<Int>
+
+    /** CompatReport.peopleSection on one Notifications reader: its key and server check, or null when it refuses the body. */
+    @Suppress("UNCHECKED_CAST")
+    fun peopleSection(method: Method, getter: String): List<String>? =
+        static("peopleSection", List::class.java, String::class.java).invoke(null, listOf(method), getter) as List<String>?
+
+    /** CompatReport.legacyDrawerProblems: why Open settings from menu would stop on [classes], empty when it wouldn't. */
+    @Suppress("UNCHECKED_CAST")
+    fun legacyDrawerProblems(classes: Iterable<ClassDef>, menu: List<Method>): List<String> =
+        static("legacyDrawerProblems", List::class.java, List::class.java).invoke(null, classes.toList(), menu) as List<String>
+
+    /** CompatReport.rethrowOnlyWrites: the move-exception writes that can only be rethrown. */
+    @Suppress("UNCHECKED_CAST")
+    fun rethrowOnlyWrites(code: List<*>, tryBlocks: List<*>): Set<Int> =
+        static("rethrowOnlyWrites", List::class.java, List::class.java).invoke(null, code, tryBlocks) as Set<Int>
+
     private fun id(method: Method) = method.definingClass + "->" + method.name + "(" + method.parameterTypes.joinToString("") +
         ")" + method.returnType
 }

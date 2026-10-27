@@ -467,12 +467,12 @@ switch ($Stage) {
         }
         # Nothing goes public until the whole app has been walked with this exact bundle.
         if (-not $Walk) { throw '-Walk names the walk-receipt.json a whole-app walk of this bundle left on a release phone or an emulator.' }
-        $walked = Test-WalkReceipt -Path $Walk -BundlePath (Join-Path $assets $bundleName)
+        $walked = Test-WalkReceipt -Path $Walk -BundlePath (Join-Path $assets $bundleName) -PatchListPath (Join-Path $Root 'patches-list.json')
         if (-not $walked.Valid) {
             throw ("The whole-app walk doesn't back $bundleName, so nothing was published: $($walked.Reason). " +
                 'Patch an APK from this bundle, walk the whole app on a release phone or an emulator, and pass its walk-receipt.json as -Walk.')
         }
-        Write-Step "walked on $($walked.Receipt.device): $($walked.Receipt.screens) screens, no crash"
+        Write-Step "walked on $($walked.Receipt.device) ($($walked.Kind)): $($walked.Receipt.screens) screens, no crash"
         foreach ($part in @(@('-Intro', $Intro), @('-Install', $Install), @('-Validation', $Validation))) {
             if (-not $part[1] -or -not (Test-Path -LiteralPath $part[1] -PathType Leaf)) {
                 throw "$($part[0]) names the file holding that part of the release notes."

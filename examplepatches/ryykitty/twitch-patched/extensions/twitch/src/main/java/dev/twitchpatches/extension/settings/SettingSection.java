@@ -9,6 +9,7 @@ public enum SettingSection {
     PROMOTIONS("Promotions", "ic_subscribe"),
     PLAYER_CONTROLS("Player controls", "ic_settings"),
     CHANNEL_ACTIONS("Channel actions", "ic_subscribe"),
+    CHAT_OVERLAYS("Chat overlays", "ic_emotes"),
     DISPLAY("Display", "ic_fullscreen_enter");
 
     private final String title;

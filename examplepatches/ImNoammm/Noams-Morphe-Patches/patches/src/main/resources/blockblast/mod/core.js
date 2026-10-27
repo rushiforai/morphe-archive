@@ -170,6 +170,16 @@
         });
     });
 
+    // The game's hot updater downloads a new game version that the native loader prefers from
+    // <writable>/patch at the next launch, replacing the patched boot script and with it every mod.
+    // The update never starts; PatchGuardProvider wipes anything already landed before the engine boots.
+    bb.on('HotUpdate', function (exports) {
+        if (!exports.hotUpdate) return;
+        bb.wrap(exports.hotUpdate, 'startUpdate', function () {
+            return function () { bb.log('hot update blocked'); };
+        });
+    });
+
     // Every game script is wrapped in cc._RF.push(module, uuid, name) ... cc._RF.pop(); by the pop its
     // exports are complete and nothing has used them yet.
     var RF = cc._RF, push = RF.push, pop = RF.pop, stack = [];

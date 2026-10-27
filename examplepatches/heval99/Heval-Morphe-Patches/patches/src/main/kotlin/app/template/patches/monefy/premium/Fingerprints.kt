@@ -1,6 +1,8 @@
 package app.template.patches.monefy.premium
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
 // Monefy's app code is R8-obfuscated (defpackage), so the anchors are the pref keys and the pro
@@ -14,7 +16,7 @@ object MasterProFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Z",
     parameters = listOf(),
-    strings = listOf("com.monefy.app.pro"),
+    strings = listOf(string("com.monefy.app.pro", StringComparisonType.CONTAINS)),
     custom = { _, classDef -> classDef.superclass == "Landroid/app/Application;" },
 )
 
@@ -24,7 +26,7 @@ object ProBoughtFingerprint : Fingerprint(
     definingClass = "Lcom/monefy/helpers/GeneralSettingsProvider;",
     returnType = "Z",
     parameters = listOf(),
-    strings = listOf("KEY_GOOGLE_PLAY_MONEFY_PRO_IN_APP_BOUGHT"),
+    strings = listOf(string("KEY_GOOGLE_PLAY_MONEFY_PRO_IN_APP_BOUGHT", StringComparisonType.CONTAINS)),
 )
 
 // The subscription-expired state [Lzt;->p()Z, DefaultSettingsProviderImpl]: the ()Z reader of the
@@ -32,5 +34,5 @@ object ProBoughtFingerprint : Fingerprint(
 object SubscriptionExpiredFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf(),
-    strings = listOf("KEY_MONEFY_PRO_SUBSCRIPTION_EXPIRED"),
+    strings = listOf(string("KEY_MONEFY_PRO_SUBSCRIPTION_EXPIRED", StringComparisonType.CONTAINS)),
 )

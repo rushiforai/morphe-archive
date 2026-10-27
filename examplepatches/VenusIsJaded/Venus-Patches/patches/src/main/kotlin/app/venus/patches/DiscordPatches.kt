@@ -2,6 +2,7 @@ package app.venus.patches
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
@@ -45,6 +46,7 @@ private var dashlessSelected = false
 private var favouriteAnythingSelected = false
 private var freeNitroSelected = false
 private var questAgentGuarded = false
+private var messageGutterGuarded = false
 private val additionalSelections = mutableSetOf<String>()
 internal val discordBundleGuard = rawResourcePatch {
     execute { HbcPrivacy.verifyOriginal(get("assets/index.android.bundle")) }
@@ -61,6 +63,7 @@ private val runtimeAssets = rawResourcePatch {
         favouriteAnythingSelected = false
         freeNitroSelected = false
         questAgentGuarded = false
+        messageGutterGuarded = false
     }
     finalize {
         val bootstrap = object {}.javaClass.getResourceAsStream("/venus/bootstrap.js")
@@ -73,7 +76,7 @@ private val runtimeAssets = rawResourcePatch {
             "{picker:$pickerSelected,voice:$voiceSelected,copyBios:$copyBiosSelected," +
                 "dashless:$dashlessSelected,favouriteAnything:$favouriteAnythingSelected,freeNitro:$freeNitroSelected," +
                 listOf("noTyping", "quickDelete", "noDelete", "jumpToTop", "hiddenChannels", "pastelize", "platformIndicators", "reviewDB", "readAll", "quests", "badges", "systemFont",
-                    "systemEmoji", "hideGift", "hideQuestDock", "hideButtons", "gestures", "hideCall", "validUser", "youBarSettings", "splitMessages", "translate", "userNotif", "accountSwitcher", "appIcons", "nitroThemes", "customThemes", "iconPacks", "messageHighlight", "serverInfo", "fixEmbeds", "tenorGifs")
+                    "systemEmoji", "hideGift", "hideQuestDock", "hideButtons", "gestures", "hideCall", "validUser", "youBarSettings", "splitMessages", "translate", "userNotif", "accountSwitcher", "appIcons", "nitroThemes", "customThemes", "materialYou", "iconPacks", "messageHighlight", "serverInfo", "fixEmbeds", "tenorGifs", "hideBlocked", "bulkDelete", "experiments", "cleanChannels", "noHandsfree")
                     .joinToString(",") { "$it:${it in additionalSelections}" } + "}"
         )
         asset.writeText(selected)
@@ -266,6 +269,10 @@ val dashless = rawResourcePatch(
     dependsOn(venusSettings)
     execute { dashlessSelected = true }
 }
+
+@Suppress("unused")
+val cleanChannels = bundledPlugin("cleanChannels", "Clean channel names",
+    "Removes emoji and symbols from channel and category names.")
 
 @Suppress("unused")
 val favouriteAnything = rawResourcePatch(
@@ -525,7 +532,7 @@ internal fun systemFontBridge(method: app.morphe.patcher.util.proxy.mutableTypes
 @Suppress("unused")
 val forceSystemFont = bytecodePatch(
     name = "Use your phone's font",
-    description = "Replaces Discord's font (gg sans) with your phone's, everywhere. Android 9 or newer."
+    description = "Replaces Discord's font everywhere with your phone's or one you import. Android 9 or newer."
 ) {
     compatibleWith(discord)
     section(PLUGINS)
@@ -620,7 +627,7 @@ internal fun readSystemEmojiSetting(method: app.morphe.patcher.util.proxy.mutabl
 @Suppress("unused")
 val forceSystemEmojis = bytecodePatch(
     name = "Use your phone's emojis",
-    description = "Your phone's emojis instead of Discord's, in chat, reactions and the emoji picker."
+    description = "In chat, reactions and the emoji picker, or from an emoji font you import."
 ) {
     compatibleWith(discord)
     section(PLUGINS)
@@ -683,7 +690,7 @@ val bringBackTenorGifs = bundledPlugin("tenorGifs", "Bring back Tenor GIFs",
 
 @Suppress("unused")
 val fixLinkPreviews = bundledPlugin("fixEmbeds", "Fix link previews",
-    "Links to X, Instagram, TikTok, Reddit and more show the post. Links you send go through an embed service like FxTwitter, without tracking. Inspired by FixEmbed by the ShiggyCord team.")
+    "Links to X, Instagram, TikTok, Tumblr and more show the post. Links you send go through an embed service like FxTwitter, without tracking. Inspired by FixEmbed by the ShiggyCord team.")
 
 @Suppress("unused")
 val splitLargeMessages = bundledPlugin("splitMessages", "Send long messages",
@@ -709,9 +716,49 @@ val unlockAppIcons = bundledPlugin("appIcons", "Unlock app icons",
 val unlockNitroThemes = bundledPlugin("nitroThemes", "Unlock Nitro themes",
     "Use Discord's gradient themes in Settings > Appearance without Nitro. Only this phone sees them.")
 
+/**
+ * The native color swap both Material You colors and Custom themes use: Discord's Android views (the chat list, embeds,
+ * the voice overlay, the window) draw with built-in theme colors JS can't reach, so JS sends a Discord color -> new color
+ * table through getFileHash and every native color read goes through it. Installed once, whichever patches are selected.
+ */
+private val nativeThemeColors = bytecodePatch {
+    dependsOn(venusSettings)
+    extendWith("extensions/monet.mpe")
+    execute {
+        materialYouBridge(Fingerprint(
+            definingClass = FILE_MODULE,
+            name = "getFileHash",
+            returnType = "V",
+            parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "D", PROMISE)
+        ).method)
+        materialYouNativeColors(Fingerprint(
+            definingClass = COLOR_UTILS,
+            name = "applySaturationFactor",
+            returnType = "I",
+            parameters = listOf("I")
+        ).method)
+        for ((owner, name, parameters) in MATERIAL_YOU_DIRECT_READS)
+            materialYouDirectColors(Fingerprint(definingClass = owner, name = name, parameters = parameters).method)
+        readMaterialYouColors(Fingerprint(
+            definingClass = "Lcom/discord/MainApplication;",
+            name = "onCreate",
+            returnType = "V",
+            parameters = listOf()
+        ).method)
+    }
+}
+
 @Suppress("unused")
-val customThemes = bundledPlugin("customThemes", "Custom themes",
-    "Install color themes from a link and switch between them. Works with Revenge and Vendetta themes.")
+val customThemes = bytecodePatch(
+    name = "Custom themes",
+    description = "Install color themes from a link and switch between them. Works with Revenge and Vendetta themes."
+) {
+    compatibleWith(discord)
+    section(PLUGINS)
+    // Themes recolor Discord's native chat list and embeds too, through the same color swap as Material You colors.
+    dependsOn(venusSettings, nativeThemeColors)
+    execute { additionalSelections += "customThemes" }
+}
 
 @Suppress("unused")
 val iconPacks = bundledPlugin("iconPacks", "Icon packs",
@@ -719,15 +766,17 @@ val iconPacks = bundledPlugin("iconPacks", "Icon packs",
 
 internal const val HIGHLIGHT_DRAWER = "Lcom/discord/chat/presentation/message/decorations/HighlightedMessageDrawer;"
 internal const val CHAT_R_DIMEN = "Lcom/discord/chat/R\$dimen;"
+internal const val BULK_DELETE_DRAWER = "Lapp/venus/chat/BulkDeleteDrawer;"
 /** Instructions [scaleMessageGutterWidth] adds before Discord's own drawHighlight code, counting the nop its label lands on. */
-internal const val MESSAGE_GUTTER_GUARD_SIZE = 25
+internal const val MESSAGE_GUTTER_GUARD_SIZE = 35
 
 /**
  * Discord's native HighlightedMessageDrawer sets gutterWidth once from R.dimen.message_gutter_width (2dp)
- * in its constructor, and paints the left bar with gutterPaintColor. When Message highlights encodes a width
- * multiplier (2x..8x) in gutterPaintColor's alpha byte (256 - multiplier = 254..248), this guard restores full
- * 0xFF alpha on gutterPaintColor and scales gutterWidth by that multiplier; normal 0xFF colors reset gutterWidth
- * to 1x so toggling or changing thickness updates every row live without restarting Discord (#60).
+ * in its constructor, and paints the left bar with gutterPaintColor.
+ * - Message highlights encodes a width multiplier (2x..8x) in gutterPaintColor's alpha byte (`code = 256 - alpha` in 2..8).
+ * - Bulk delete messages encodes a right-side selection circle in gutterPaintColor's alpha byte (`code = 256 - alpha` in 16..40,
+ *   where bit 5 is selected vs unselected and `code & 15` is the optional left-bar width multiplier 0..8).
+ * Normal 0xFF colors reset gutterWidth to 1x so toggling or changing thickness updates every row live without restarting Discord (#60, #94).
  * 12 registers, 5 of them parameters (p0..p4 = v7..v11): v0-v2 are free until Discord's first const-string.
  */
 internal fun scaleMessageGutterWidth(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
@@ -745,10 +794,22 @@ internal fun scaleMessageGutterWidth(method: app.morphe.patcher.util.proxy.mutab
         move-result v0
         ushr-int/lit8 v1, v0, 0x18
         rsub-int v1, v1, 0x100
+        const/16 v2, 0x10
+        if-lt v1, v2, :venus_gutter_check_mult
+        const/16 v2, 0x28
+        if-gt v1, v2, :venus_gutter_default
+        invoke-static {p1, p2, v1}, $BULK_DELETE_DRAWER->drawCircle(Landroid/graphics/Canvas;Landroid/view/View;I)I
+        move-result v1
+        if-nez v1, :venus_gutter_restore_color
+        const/4 v0, 0x0
+        iput-object v0, p0, $HIGHLIGHT_DRAWER->gutterPaintColor:Ljava/lang/Integer;
+        goto :venus_gutter_done
+        :venus_gutter_check_mult
         const/4 v2, 0x2
         if-lt v1, v2, :venus_gutter_default
         const/16 v2, 0x8
         if-gt v1, v2, :venus_gutter_default
+        :venus_gutter_restore_color
         const/high16 v2, -0x1000000
         or-int/2addr v0, v2
         invoke-static {v0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
@@ -778,14 +839,18 @@ val messageHighlights = bytecodePatch(
     compatibleWith(discord)
     section(PLUGINS)
     dependsOn(venusSettings)
+    extendWith("extensions/chat.mpe")
     execute {
         additionalSelections += "messageHighlight"
-        scaleMessageGutterWidth(Fingerprint(
-            definingClass = HIGHLIGHT_DRAWER,
-            name = "drawHighlight",
-            returnType = "V",
-            parameters = listOf("Landroid/graphics/Canvas;", "Landroid/view/View;", "I", "I")
-        ).method)
+        if (!messageGutterGuarded) {
+            messageGutterGuarded = true
+            scaleMessageGutterWidth(Fingerprint(
+                definingClass = HIGHLIGHT_DRAWER,
+                name = "drawHighlight",
+                returnType = "V",
+                parameters = listOf("Landroid/graphics/Canvas;", "Landroid/view/View;", "I", "I")
+            ).method)
+        }
     }
 }
 
@@ -866,5 +931,231 @@ val badgeCompleter = bytecodePatch(
                 parameters = listOf("Lokhttp3/Interceptor\$Chain;")
             ).method)
         }
+    }
+}
+
+internal const val SYSTEM_COLORS = "Lapp/venus/monet/SystemColors;"
+/** Instructions [materialYouBridge] adds before Discord's own getFileHash code, counting the nop its label lands on. */
+internal const val MATERIAL_YOU_BRIDGE_SIZE = 11
+
+/**
+ * Lets Venus read the phone's wallpaper palettes. Discord's JS never calls getFileHash, so a request with the private
+ * prefix goes to Venus and anything else still runs Discord's code. No other Venus guard uses this method.
+ * getFileHash(uri, algorithm, double, promise): p1 = uri, p5 = Promise; 15 registers, 6 of them parameters.
+ */
+internal fun materialYouBridge(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
+    if (method.parameterTypes.map { it.toString() } != listOf("Ljava/lang/String;", "Ljava/lang/String;", "D", PROMISE) || method.returnType != "V" ||
+        (method.implementation?.registerCount ?: 0) - 6 < 2)
+        throw PatchException("FileModule.getFileHash ABI changed")
+    requireUnpatched(method, "venus-")
+    method.addInstructions(0, """
+        const-string v0, "venus-monet-v1:"
+        invoke-virtual {p1, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+        move-result v0
+        if-eqz v0, :venus_file_hash
+        invoke-virtual {p0}, Lcom/facebook/react/bridge/ReactContextBaseJavaModule;->getReactApplicationContext()Lcom/facebook/react/bridge/ReactApplicationContext;
+        move-result-object v0
+        invoke-static {p1, v0, p5}, $SYSTEM_COLORS->dispatch(Ljava/lang/String;Landroid/content/Context;$PROMISE)Z
+        move-result v1
+        if-eqz v1, :venus_file_hash
+        return-void
+        :venus_file_hash
+        nop
+    """)
+}
+
+internal const val COLOR_UTILS = "Lcom/discord/theme/utils/ColorUtilsKt;"
+/** Instructions [materialYouNativeColors] adds before Discord's saturation code, counting the nop its label lands on. */
+internal const val MATERIAL_YOU_NATIVE_SIZE = 5
+
+/**
+ * Every theme color Discord's native views draw with (the chat list, voice overlay, reactions, notifications, the window
+ * background: all 672 colors of each appearance) comes from getColorCompat, which passes it through this one method.
+ * While Material You is on, the color is swapped for its Material You twin first, and Discord's own saturation setting
+ * still applies on top. While it's off, one field read. applySaturationFactor(I)I is static: 12 registers, p0 = color.
+ */
+internal fun materialYouNativeColors(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
+    if (method.parameterTypes.map { it.toString() } != listOf("I") || method.returnType != "I" ||
+        method.accessFlags and 8 == 0 || (method.implementation?.registerCount ?: 0) - 1 < 1)
+        throw PatchException("ColorUtilsKt.applySaturationFactor ABI changed")
+    requireUnpatched(method, "venus-")
+    method.addInstructions(0, """
+        sget-boolean v0, $SYSTEM_COLORS->enabled:Z
+        if-eqz v0, :venus_native_color
+        invoke-static {p0}, $SYSTEM_COLORS->remap(I)I
+        move-result p0
+        :venus_native_color
+        nop
+    """)
+}
+
+/**
+ * A few native views read a brand color straight from resources instead of through getColorCompat (the voice message
+ * progress, call-to-action and forum buttons). Each of those reads gets the same Material You swap right after it.
+ * Returns how many reads were found.
+ */
+internal fun materialYouDirectColors(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod): Int {
+    val code = method.implementation?.instructions?.toList() ?: throw PatchException("${method.name} has no code")
+    val reads = ArrayList<Pair<Int, Int>>()
+    for (i in 0 until code.size - 1) {
+        val ref = (code[i] as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference?.toString()
+        if (code[i].opcode != com.android.tools.smali.dexlib2.Opcode.INVOKE_VIRTUAL || ref != "Landroid/content/Context;->getColor(I)I") continue
+        val next = code[i + 1]
+        if (next.opcode != com.android.tools.smali.dexlib2.Opcode.MOVE_RESULT) throw PatchException("${method.name}: getColor result isn't kept")
+        reads += (i + 2) to (next as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction).registerA
+    }
+    if (reads.isEmpty()) throw PatchException("${method.definingClass}->${method.name} no longer reads a color directly")
+    for ((at, register) in reads.asReversed()) {
+        if (register > 255) throw PatchException("${method.name}: color register v$register is out of range")
+        method.addInstructions(at, """
+            invoke-static {v$register}, $SYSTEM_COLORS->remap(I)I
+            move-result v$register
+        """)
+    }
+    return reads.size
+}
+
+/** The native views that read brand colors directly: class, method name, parameter types. */
+internal val MATERIAL_YOU_DIRECT_READS = listOf(
+    Triple("Lcom/discord/chat/presentation/message/view/CtaButtonView;", "configureButton-CMNjcK4",
+        listOf("Lcom/discord/core/DCDButton;", "Lcom/discord/chat/bridge/ctabutton/CtaButton;", "J", "Ljava/lang/String;", "Lkotlin/jvm/functions/Function3;")),
+    Triple("Lcom/discord/chat/presentation/message/view/ForumPostActionBarView;", "<init>",
+        listOf("Landroid/content/Context;", "Landroid/util/AttributeSet;", "I")),
+    Triple("Lcom/discord/chat/presentation/message/view/voicemessages/AudioPlayerView;", "configureAudioProgressView",
+        listOf("Lcom/discord/chat/presentation/message/view/voicemessages/AudioPlayerViewState;")),
+    Triple("Lcom/discord/chat/presentation/message/view/voicemessages/AudioPlayerWipeAnimatorManager;", "<init>",
+        listOf("Landroid/content/Context;", "Lcom/discord/chat/databinding/AudioPlayerViewBinding;"))
+)
+
+/** Loads the saved native Material You colors once, right after Application.onCreate's super call. */
+internal fun readMaterialYouColors(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
+    val first = method.implementation?.instructions?.firstOrNull()
+    val target = (first as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference?.toString()
+    if (first?.opcode != com.android.tools.smali.dexlib2.Opcode.INVOKE_SUPER || target != "Landroid/app/Application;->onCreate()V")
+        throw PatchException("MainApplication.onCreate no longer starts with super.onCreate()")
+    method.addInstructions(1, "invoke-static {p0}, $SYSTEM_COLORS->init(Landroid/content/Context;)V")
+}
+
+@Suppress("unused")
+val materialYou = bytecodePatch(
+    name = "Material You colors",
+    description = "Colors Discord to match your wallpaper, in light and dark. Wallpaper colors need Android 12 or newer."
+) {
+    compatibleWith(discord)
+    section(PLUGINS)
+    dependsOn(venusSettings, nativeThemeColors)
+    execute { additionalSelections += "materialYou" }
+}
+
+@Suppress("unused")
+val hideBlockedMessages = bundledPlugin("hideBlocked", "Hide blocked or ignored messages",
+    "Removes the \"blocked messages\" and \"ignored messages\" rows from chat, and can hide replies to them too. From Rain.")
+
+@Suppress("unused")
+val unlockExperiments = bundledPlugin("experiments", "Unlock Discord experiments",
+    "Adds Dev Tools to Settings, to try features Discord is still testing. Only on this phone. Based on Experiments by maisy.")
+
+@Suppress("unused")
+val bulkDelete = bytecodePatch(
+    name = "Bulk delete messages",
+    description = "Select multiple messages in chat and delete them all at once."
+) {
+    compatibleWith(discord)
+    section(PLUGINS)
+    dependsOn(venusSettings)
+    extendWith("extensions/chat.mpe")
+    execute {
+        additionalSelections += "bulkDelete"
+        if (!messageGutterGuarded) {
+            messageGutterGuarded = true
+            scaleMessageGutterWidth(Fingerprint(
+                definingClass = HIGHLIGHT_DRAWER,
+                name = "drawHighlight",
+                returnType = "V",
+                parameters = listOf("Landroid/graphics/Canvas;", "Landroid/view/View;", "I", "I")
+            ).method)
+        }
+    }
+}
+
+internal const val HANDSFREE = "Lapp/venus/audio/Handsfree;"
+internal const val AUDIO_MANAGER = "Landroid/media/AudioManager;"
+
+/** The AudioManager calls Discord makes to put Bluetooth headphones in hands-free mode, and Venus's replacement for each. */
+internal val HANDSFREE_CALLS = mapOf(
+    "setMode(I)V" to "setMode($AUDIO_MANAGER" + "I)V",
+    "startBluetoothSco()V" to "startBluetoothSco($AUDIO_MANAGER)V",
+    "setCommunicationDevice(Landroid/media/AudioDeviceInfo;)Z" to "setCommunicationDevice(${AUDIO_MANAGER}Landroid/media/AudioDeviceInfo;)Z"
+)
+
+/**
+ * Every place Discord calls one of [HANDSFREE_CALLS]: class, method name, parameter types, and how many calls it makes.
+ * DiscordAudioManager runs below Android 13 (SCO), DiscordAudioManager2 on Android 13 and newer (communication device).
+ */
+internal val HANDSFREE_SITES = listOf(
+    Quad4("Lcom/discord/audio/DiscordAudioManager;", "setCommunicationModeOn", listOf("Z"), 3),
+    Quad4("Lcom/discord/audio/DiscordAudioManager;", "setActiveAudioDevice", listOf("Lcom/discord/audio/SimpleDeviceType;"), 1),
+    Quad4("Lcom/discord/audio/DiscordAudioManager\$setupAudioDeviceCallback\$1;", "onAudioDevicesAdded", listOf("[Landroid/media/AudioDeviceInfo;"), 1),
+    Quad4("Lcom/discord/audio/DiscordAudioManager\$audioManagerBroadcastReceiver\$1;", "onReceive", listOf("Landroid/content/Context;", "Landroid/content/Intent;"), 1),
+    Quad4("Lcom/discord/audio/DiscordAudioManager2;", "setCommunicationModeOn", listOf("Z"), 2),
+    Quad4("Lcom/discord/audio/DiscordAudioManager2;", "setActiveAudioDevice", listOf("Landroid/media/AudioDeviceInfo;"), 1),
+    Quad4("Lcom/discord/audio/DiscordAudioManager2\$setupAudioDeviceCallback\$1;", "onAudioDevicesAdded", listOf("[Landroid/media/AudioDeviceInfo;"), 2)
+)
+
+internal data class Quad4(val owner: String, val name: String, val parameters: List<String>, val calls: Int)
+
+/**
+ * Turns each of Discord's [HANDSFREE_CALLS] in [method] into a static call to [HANDSFREE] with the same registers, the
+ * AudioManager first. Nothing else moves: same instruction count, same registers, same branches. Returns how many.
+ */
+internal fun keepBluetoothA2dp(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod): Int {
+    val code = method.implementation?.instructions?.toList() ?: throw PatchException("${method.name} has no code")
+    var count = 0
+    for ((i, instruction) in code.withIndex()) {
+        if (instruction.opcode != com.android.tools.smali.dexlib2.Opcode.INVOKE_VIRTUAL) continue
+        val ref = (instruction as com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction).reference
+            as com.android.tools.smali.dexlib2.iface.reference.MethodReference
+        if (ref.definingClass != AUDIO_MANAGER) continue
+        val replacement = HANDSFREE_CALLS["${ref.name}(${ref.parameterTypes.joinToString("")})${ref.returnType}"] ?: continue
+        val five = instruction as com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+        val registers = listOf(five.registerC, five.registerD, five.registerE).take(five.registerCount)
+        if (registers.any { it > 15 }) throw PatchException("${method.name}: AudioManager call uses a high register")
+        method.replaceInstruction(i, "invoke-static {${registers.joinToString(", ") { "v$it" }}}, $HANDSFREE->$replacement")
+        count++
+    }
+    return count
+}
+
+/** Lets the hands-free guard find Venus's settings file, right after Application.onCreate's super call. */
+internal fun readHandsfreeContext(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
+    val first = method.implementation?.instructions?.firstOrNull()
+    val target = (first as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference?.toString()
+    if (first?.opcode != com.android.tools.smali.dexlib2.Opcode.INVOKE_SUPER || target != "Landroid/app/Application;->onCreate()V")
+        throw PatchException("MainApplication.onCreate no longer starts with super.onCreate()")
+    method.addInstructions(1, "invoke-static {p0}, $HANDSFREE->init(Landroid/content/Context;)V")
+}
+
+@Suppress("unused")
+val keepBluetoothAudioClear = bytecodePatch(
+    name = "Keep Bluetooth audio clear in calls",
+    description = "Headphones stay in music quality in calls. Your phone's mic picks up your voice."
+) {
+    compatibleWith(discord)
+    section(PLUGINS)
+    dependsOn(venusSettings)
+    extendWith("extensions/audio.mpe")
+    execute {
+        additionalSelections += "noHandsfree"
+        for (site in HANDSFREE_SITES) {
+            val method = Fingerprint(definingClass = site.owner, name = site.name, parameters = site.parameters).method
+            val count = keepBluetoothA2dp(method)
+            if (count != site.calls) throw PatchException("${site.owner}->${site.name}: $count hands-free calls, expected ${site.calls}")
+        }
+        readHandsfreeContext(Fingerprint(
+            definingClass = "Lcom/discord/MainApplication;",
+            name = "onCreate",
+            returnType = "V",
+            parameters = listOf()
+        ).method)
     }
 }

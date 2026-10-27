@@ -268,7 +268,8 @@ public class PausedHooksTest {
         // A volume key in a chat goes to the volume.
         probes.put(PatchFamily.KEEP_VIDEOS_MUTED, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.VolumeKeysForTests.keyGoesToTheVolume(),
-                () -> app.hushtelegram.extension.telegram.misc.VideoTurnForTests.turnsEitherWay()));
+                () -> app.hushtelegram.extension.telegram.misc.VideoTurnForTests.turnsEitherWay(),
+                app.hushtelegram.extension.telegram.misc.VideoUprightForTests::holdsPortrait));
         // A swipe on a profile's photos goes back.
         probes.put(PatchFamily.SWIPE_BACK_ON_PROFILES, Collections.singletonList(
                 () -> !app.hushtelegram.extension.telegram.misc.SwipeBack.touchBlocks(true)));
@@ -291,10 +292,11 @@ public class PausedHooksTest {
         // Reaction effects don't play.
         probes.put(PatchFamily.REACTION_EFFECTS_OFF, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.ReactionEffects.skipped()));
-        // Folder tabs show no unread counts, and the chat list opens on the picked folder.
+        // Folder tabs show no unread counts, the chat list opens on the picked folder and leaves hidden chats out.
         probes.put(PatchFamily.HIDE_FOLDER_COUNTERS, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.FolderTabs.countersHidden(),
-                app.hushtelegram.extension.telegram.misc.LaunchFolderForTests::opens));
+                app.hushtelegram.extension.telegram.misc.LaunchFolderForTests::opens,
+                app.hushtelegram.extension.telegram.misc.HiddenChatsForTests::leavesOut));
         // New forwards start with the sender hidden.
         probes.put(PatchFamily.FORWARD_HIDE_SENDER, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.ForwardSenderForTests.on()));
@@ -365,8 +367,9 @@ public class PausedHooksTest {
         probes.put(PatchFamily.OUTSIDE_TRANSLATE, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.OutsideTranslateForTests.active()));
         // A channel's bar keeps Search, Direct messages and Info.
-        probes.put(PatchFamily.HIDE_CHANNEL_BUTTONS, Collections.singletonList(
-                () -> app.hushtelegram.extension.telegram.misc.ChannelButtonsForTests.on()));
+        probes.put(PatchFamily.HIDE_CHANNEL_BUTTONS, Arrays.asList(
+                () -> app.hushtelegram.extension.telegram.misc.ChannelButtonsForTests.on(),
+                () -> app.hushtelegram.extension.telegram.misc.ChannelMuteForTests.on()));
         // The message box keeps its Send as button.
         probes.put(PatchFamily.HIDE_SEND_AS, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.ChannelButtonsForTests.sendAsOn()));

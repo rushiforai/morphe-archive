@@ -18,8 +18,9 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 
 /**
- * The home top bar's three optional hides (#181): the Messenger button, the count on it, and the
- * Facebook logo. The patch calls each hook where Facebook builds the thing it hides.
+ * The home top bar's optional hides: the Messenger button, the count on it and the Facebook logo
+ * (#181), and the Create (+) button (#257). The patch calls each hook where Facebook builds the
+ * thing it hides.
  *
  * <ul>
  *   <li>{@link #messengerButton} runs right after the bar adds the Messenger button. With the
@@ -30,25 +31,32 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  *   <li>{@link #facebookLogo} runs right after the bar builds the logo. With the switch on the
  *       logo is drawn fully transparent. It keeps its size and its touch listener, so the empty
  *       spot still opens Hushfacebook settings on a long press.
+ *   <li>{@link #createButton} runs right after the bar adds the Create button, and sets it GONE
+ *       like the Messenger button.
  * </ul>
  *
  * <p>Some accounts get the newer bar instead, where every button is a glyph the bar makes from a
- * named spec. There {@link #barButton} runs as each glyph is made and keeps the one named
- * "messenger", and {@link #barButtonCount} runs first in that glyph class's count setters, which
- * every glyph of the bar shares, so only the kept one loses its count.
+ * named spec. There {@link #barButton} runs as each glyph is made: it hides the one named
+ * "trep-composer-button" (Create) and keeps the one named "messenger", and {@link #barButtonCount}
+ * runs first in that glyph class's count setters, which every glyph of the bar shares, so only the
+ * kept one loses its count.
  *
  * <p>Off, paused, before the settings are ready, or when anything here fails, Facebook's own
- * button, count and logo are left alone. The button and logo are built as the main screen starts,
- * so those two switches show after a restart. The count switch shows with the next count.
+ * buttons, count and logo are left alone. The buttons and logo are built as the main screen
+ * starts, so those switches show after a restart. The count switch shows with the next count.
  */
 public final class TopBarButtons {
     /** Counted under the patch's name each time one of the three is hidden. */
     static final String BUTTON_HIDDEN = "Messenger button hidden";
     static final String COUNT_HIDDEN = "Messenger count hidden";
     static final String LOGO_HIDDEN = "Facebook logo hidden";
+    static final String CREATE_HIDDEN = "Create button hidden";
 
     /** The newer bar's spec name for the Messenger button. */
     static final String MESSENGER_SPEC = "messenger";
+
+    /** The newer bar's spec name for the Create button. */
+    static final String CREATE_SPEC = "trep-composer-button";
 
     private static final String FAMILY = FamilyNames.BOTTOM_TAB_BAR;
 
@@ -70,12 +78,18 @@ public final class TopBarButtons {
 
     /**
      * Injection point, right after the newer bar makes a button's glyph from its spec, before the
-     * glyph gets its first count. Keeps and hides the one named {@link #MESSENGER_SPEC}. Never throws.
+     * glyph gets its first count. Hides the one named {@link #CREATE_SPEC}, and keeps and hides the
+     * one named {@link #MESSENGER_SPEC}. Never throws.
      */
     public static void barButton(View button, String name) {
         try {
             HookStatus.invoked(FAMILY);
-            if (button == null || !MESSENGER_SPEC.equals(name)) return;
+            if (button == null) return;
+            if (CREATE_SPEC.equals(name)) {
+                hideCreate(button);
+                return;
+            }
+            if (!MESSENGER_SPEC.equals(name)) return;
             synchronized (BAR_MESSENGER_BUTTONS) {
                 BAR_MESSENGER_BUTTONS.add(button);
             }
@@ -91,6 +105,24 @@ public final class TopBarButtons {
         HookStatus.bound(FAMILY, "Messenger button");
         HookStatus.counted(FAMILY, BUTTON_HIDDEN);
         Logger.printDebug(() -> "Top bar: hid the Messenger button");
+    }
+
+    /** Injection point, after the bar adds the Create button. Never throws. */
+    public static void createButton(View button) {
+        try {
+            HookStatus.invoked(FAMILY);
+            hideCreate(button);
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "Create button", failure);
+        }
+    }
+
+    private static void hideCreate(View button) {
+        if (button == null || !Utils.settingsReady() || !Settings.HIDE_CREATE_BUTTON.get()) return;
+        button.setVisibility(View.GONE);
+        HookStatus.bound(FAMILY, "Create button");
+        HookStatus.counted(FAMILY, CREATE_HIDDEN);
+        Logger.printDebug(() -> "Top bar: hid the Create button");
     }
 
     /**

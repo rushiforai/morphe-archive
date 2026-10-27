@@ -35,6 +35,8 @@ Technical documentation and patch catalog for CapCut on Android.
 | **Unlock Ultra HD Export** | `bytecodePatch` | `true` (Enabled) | None | Enables Ultra HD and 4K video export options by unlocking high-resolution export eligibility gates. |
 | **Unlock Premium Templates** | `bytecodePatch` | `true` (Enabled) | None | Marks premium template styles as available so locked template features stay usable. |
 | **Redirect API to v2 Boot** | `bytecodePatch` | `false` (Opt-in) | None | Loads effects, feeds and templates where default endpoints are blocked by using official alternate endpoints. |
+| **Neutralize Play Billing** | `bytecodePatch` | `false` (Opt-in) | `CapCut Play Billing Manifest Purge` | Stubs Google Play Billing client calls and disables billing manifest components for graceful degradation on devices without GMS. |
+| **CapCut Play Billing Manifest Purge** | `resourcePatch` | `false` (Opt-in) | None | Strips the com.android.vending.BILLING permission and disables ProxyBillingActivity and ProxyBillingActivityV2 in AndroidManifest.xml. |
 
 ---
 
@@ -45,6 +47,10 @@ Technical documentation and patch catalog for CapCut on Android.
 1. **CapCut Telemetry Manifest Purge**:
    - **Objective**: Prevent tracker initialization, install attribution, and background telemetry collection.
    - **How**: Strips advertising and attribution permissions from the manifest, disables tracking, install attribution, and dynamic ad components (including VungleProvider, BDInstallProvider, AppLog Collector, LogService, and Pangle BinderPoolService), prunes discovery registrars, and injects opt-out flags.
+
+2. **CapCut Play Billing Manifest Purge**:
+   - **Objective**: Strip Google Play Billing permission and disable Play Billing activity components to prevent service binding attempts and unresolved intent launches on devices without GMS.
+   - **How**: Strips `com.android.vending.BILLING` from manifest permissions via `stripPermissionsWhere` and disables `com.android.billingclient.api.ProxyBillingActivity` and `com.android.billingclient.api.ProxyBillingActivityV2` via `disableComponentsByName`.
 
 ### B. Bytecode Dispatcher Neutralization Layer (`bytecodePatch`)
 
@@ -87,6 +93,10 @@ Technical documentation and patch catalog for CapCut on Android.
 10. **Redirect API to v2 Boot**:
     - **Objective**: Restore loading of effects, templates, feeds, and commerce/passport features in regions where default API hosts return choking or rate-limiting responses ("Too many people are using this feature now. Try again later").
     - **How**: Performs client-side bytecode const-string rewrites on candidate methods across the DEX string pool, mapping verified functional hosts (`editor-api.capcutapi.com`, `feed-api.capcutapi.com`, `commerce-api.capcutapi.com`, `passport-api.capcutapi.com`) to official alternate v2-boot hosts (`editor-api-v2-boot.capcutapi.com`, `feed-api-v2-boot.capcutapi.com`, `commerce-api-v2-boot.capcutapi.com`, `passport-api-v2-boot.capcutapi.com`). Note: both `editor-api.capcut.com` and `i18n-api.faceueditor.com` were pruned per Rule R2 as their 2 occurrences each in classes20.dex are non-executable pool entries rather than rewritable bytecode const-strings (all active editor endpoints use `editor-api.capcutapi.com`). Telemetry and tracker hosts (APM/Slardar `mon.*`, Gecko `*gecko*`, AppLog `log.*` / `i.*`, BDTuring `vcs-*`, Pitaya, UserGrowth) are strictly excluded from redirection because their dispatchers are already neutralized in Block Telemetry & Trackers and must remain inactive.
+
+11. **Neutralize Play Billing**:
+    - **Objective**: Prevent crashes, hangs, and unhandled exceptions when Google Play Billing is invoked on devices without Google Mobile Services.
+    - **How**: Stubs `BillingClientImpl.h` (`launchBillingFlow`) and `BillingClientImpl.f` (`isFeatureSupported`) to return `BillingResult` with `BILLING_UNAVAILABLE` (`zzdb.b`), stubs `BillingClientImpl.m` (`startConnection`) to notify `BillingClientStateListener.d` immediately with `BILLING_UNAVAILABLE`, stubs `BillingClientImpl.k` (`queryPurchasesAsync`) to return `BILLING_UNAVAILABLE` with an empty list, forces `BillingClientImpl.g` (`isReady`) to return `false`, and stubs `GoogleBillingService.isSupportGooglePay` and `GoogleIapExternalServiceProvider.isSupportGooglePay` to return `false`.
 
 ### C. Resource and Binary Debloat Axes
 

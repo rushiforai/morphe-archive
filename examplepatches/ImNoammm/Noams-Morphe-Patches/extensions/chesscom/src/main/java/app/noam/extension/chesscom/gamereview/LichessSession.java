@@ -67,7 +67,7 @@ final class LichessSession {
             + ".catch(() => MorpheLichess.answer('')); })()");
         String id = gameId(url);
         if (id == null) throw new IOException("Lichess couldn't import this game.");
-        String refused = call("fetch('/" + id + "/request-analysis', {method: 'POST', credentials: 'same-origin'})"
+        String refused = call("fetch('/game/" + id + "/request-analysis', {method: 'POST', credentials: 'same-origin'})"
             + ".then(r => r.ok ? MorpheLichess.answer('') : r.text().then(t => MorpheLichess.answer(t || ('HTTP ' + r.status))))"
             + ".catch(() => MorpheLichess.answer('No connection to Lichess'))");
         // A game reviewed before is already analysed on Lichess: its analysis is simply read again.
@@ -77,11 +77,11 @@ final class LichessSession {
         return id;
     }
 
-    /** "https://lichess.org/AbCd1234/white" as "AbCd1234". */
+    /** "https://lichess.org/game/AbCd1234" (or the older "https://lichess.org/AbCd1234/white") as "AbCd1234". */
     private static String gameId(String url) {
         if (url == null || !url.startsWith(ORIGIN + "/")) return null;
-        String path = url.substring(ORIGIN.length() + 1);
-        String id = path.split("[/?#]")[0];
+        String[] path = url.substring(ORIGIN.length() + 1).split("[/?#]");
+        String id = path.length > 1 && path[0].equals("game") ? path[1] : path[0];
         return id.length() == 8 ? id : null;
     }
 

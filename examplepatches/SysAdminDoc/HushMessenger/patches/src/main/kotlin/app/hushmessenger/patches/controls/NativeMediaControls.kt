@@ -22,8 +22,11 @@ internal const val GENERATE_AI_LABEL = 0x7f140559
  * custom, AI and music stickers, so it fronts the AI maker too.
  */
 internal const val GENERATE_MENU_LABEL = 0x7f141bd3
-/** The viewer's onCreateDialog override, A1K in 584 (A1F in 583). */
+/** "Generate" in 584.1's string pack, shifted one resource past 584.0's. */
+internal const val GENERATE_MENU_LABEL_5841 = 0x7f141bd5
+/** The viewer's onCreateDialog override: A1K in 584, A1O in 584.1 armv7, A1I or A1J in 584.1 arm64 (A1F in 583). */
 internal const val EPHEMERAL_DIALOG = "A1K"
+internal val EPHEMERAL_DIALOGS = setOf(EPHEMERAL_DIALOG, "A1O", "A1I", "A1J")
 private const val WINDOW = "Landroid/view/Window;"
 private const val SET_FLAGS = "$WINDOW->setFlags(II)V"
 private const val ADD_FLAGS = "$WINDOW->addFlags(I)V"
@@ -68,7 +71,7 @@ internal fun Method.screenshotViewerSites(): List<Int> {
     val allowedJumps: Set<Int>
     var jumpSources = emptySet<Int>()
     val valid = when {
-        definingClass == EPHEMERAL_VIEWER && name == EPHEMERAL_DIALOG &&
+        definingClass == EPHEMERAL_VIEWER && name in EPHEMERAL_DIALOGS &&
             parameterTypes.map { it.toString() } == listOf("Landroid/os/Bundle;") && returnType == "Landroid/app/Dialog;" -> {
             sites = listOf(9); allowedJumps = emptySet()
             implementation!!.registerCount == 5 && code.size == 15 && result(4, "Landroid/app/Dialog;", 2) && window(5, "Landroid/app/Dialog;", 2, 1, 10) &&
@@ -87,11 +90,12 @@ internal fun Method.screenshotViewerSites(): List<Int> {
         definingClass == QUICKSNAP_VIEWER && name == "onCreateView" &&
             parameterTypes.map { it.toString() } == listOf("Landroid/view/LayoutInflater;", "Landroid/view/ViewGroup;", "Landroid/os/Bundle;") &&
             returnType == "Landroid/view/View;" -> {
-            sites = listOf(32); allowedJumps = emptySet()
-            // 584 runs it to 451 instructions.
-            implementation!!.registerCount == 23 && code.size == 451 &&
-                result(26, "Landroid/app/Dialog;", 0) && nullCheck(27, 0, 33) && window(28, "Landroid/app/Dialog;", 0, 1, 33) &&
-                literal(31, 0) && call(32, ADD_FLAGS, listOf(1, 0))
+            // Builds move the flag between 29 and 32 with their setup code, so the one window flag call is the site.
+            val site = code.indices.singleOrNull { code[it].mediaRef() == ADD_FLAGS } ?: mediaFailure(this)
+            sites = listOf(site); allowedJumps = emptySet()
+            site >= 6 && implementation!!.registerCount == 23 &&
+                result(site - 6, "Landroid/app/Dialog;", 0) && nullCheck(site - 5, 0, site + 1) &&
+                window(site - 4, "Landroid/app/Dialog;", 0, 1, site + 1) && literal(site - 1, 0) && call(site, ADD_FLAGS, listOf(1, 0))
         }
         else -> mediaFailure(this)
     }
@@ -130,7 +134,11 @@ internal data class AiCell(
     val render = "$type->render($scope)$component"
 }
 internal val aiCells = listOf(
+    // 584.1 arm64 keeps 584.0's resource IDs, under three namings that vary by build.
+    AiCell("LX/CSp;", "LX/1Nj;", "LX/2DF;", "LX/1J7;"),
     AiCell("LX/CVr;", "LX/1Nj;", "LX/2DF;", "LX/1J7;"),
+    AiCell("LX/CPH;", "LX/1O9;", "LX/2Df;", "LX/1JX;", menu = GENERATE_MENU_LABEL_5841, size = 109),
+    AiCell("LX/CUN;", "LX/1NU;", "LX/2Ce;", "LX/1Iz;", size = 109),
 )
 internal const val AI_CELL_SIZE = 107
 internal const val AI_CELL_REGISTERS = 24

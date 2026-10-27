@@ -1,7 +1,9 @@
 package app.template.patches.flashscore.misc.update
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
@@ -9,7 +11,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 // "unssupported_version_reporter" preferences (the typo is the app's own).
 internal object UnsupportedVersionReporterFingerprint : Fingerprint(
     name = "<init>",
-    strings = listOf("unssupported_version_reporter"),
+    strings = listOf(string("unssupported_version_reporter", StringComparisonType.CONTAINS)),
 )
 
 // Builds and shows the SOFT ("update available") or HARD ("update required", not cancelable)

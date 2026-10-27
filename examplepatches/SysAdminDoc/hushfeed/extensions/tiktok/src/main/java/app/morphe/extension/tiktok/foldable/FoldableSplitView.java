@@ -25,10 +25,9 @@ public final class FoldableSplitView {
      * current with the switch on. TikTok builds the containers once, when the feed attaches, and
      * its feed activity takes size changes itself, so they stay whatever the window does next.
      *
-     * <p>Both the record and the later comparison read {@link Configuration#screenWidthDp}: the
-     * window metrics {@link #shouldForce} falls back to include the system bars below API 35 and
-     * the configuration width does not, so one measure for both is what keeps a threshold inside
-     * that gap from rebuilding on every configuration change.
+     * <p>The live check, container check and rebuild comparison use the same available width.
+     * {@link Configuration#screenWidthDp} takes precedence over window metrics, which may
+     * include system bars below API 35. An unavailable width is not a narrow build or a crossing.
      */
     private static final Map<Activity, Built> BUILT_FOR = new WeakHashMap<>();
 
@@ -55,23 +54,19 @@ public final class FoldableSplitView {
     static final String FAMILY = "split view";
 
     public static boolean shouldForce(Activity activity, Configuration configuration) {
-        boolean force = decide(activity, configuration);
+        int width = configuration == null ? 0 : configuration.screenWidthDp;
+        boolean force = decide(activity, width);
         HookStatus.bound(FAMILY, force ? "comments beside the video" : "comments left to TikTok");
         return force;
     }
 
-    private static boolean decide(Activity activity, Configuration configuration) {
+    private static boolean decide(Activity activity, int width) {
         if (!Settings.FOLDABLE_SPLIT_VIEW.get()) return false;
         if (activity == null) activity = Utils.getActivity();
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return false;
         try {
             if (Build.VERSION.SDK_INT >= 24 && (activity.isInMultiWindowMode() || activity.isInPictureInPictureMode())) return false;
-            int width = configuration == null ? 0 : configuration.screenWidthDp;
-            if (width <= 0 && Build.VERSION.SDK_INT >= 30) {
-                float density = activity.getResources().getDisplayMetrics().density;
-                if (density > 0) width = Math.round(activity.getWindowManager().getCurrentWindowMetrics().getBounds().width() / density);
-            }
-            if (width <= 0) width = activity.getResources().getConfiguration().screenWidthDp;
+            if (width <= 0) width = widthDp(activity, null);
             return width >= threshold();
         } catch (RuntimeException error) {
             Logger.printException(() -> "Could not determine the comment panel width", error);
@@ -87,24 +82,36 @@ public final class FoldableSplitView {
         return Build.VERSION.SDK_INT >= 24 && (activity.isInMultiWindowMode() || activity.isInPictureInPictureMode());
     }
 
-    /** The configuration's width, or the activity's own when the change carries none. */
+    /** Supplied width, current configuration, then current bounds when both widths are undefined. */
     private static int widthDp(Activity activity, Configuration configuration) {
-        int width = configuration == null ? 0 : configuration.screenWidthDp;
-        if (width <= 0) width = activity.getResources().getConfiguration().screenWidthDp;
-        return width;
+        try {
+            int width = configuration == null ? 0 : configuration.screenWidthDp;
+            if (width <= 0) width = activity.getResources().getConfiguration().screenWidthDp;
+            if (width <= 0 && Build.VERSION.SDK_INT >= 30) {
+                float density = activity.getResources().getDisplayMetrics().density;
+                if (density > 0) width = Math.round(activity.getWindowManager().getCurrentWindowMetrics().getBounds().width() / density);
+            }
+            return width;
+        } catch (RuntimeException error) {
+            Logger.printException(() -> "Could not determine the comment panel width", error);
+            return 0;
+        }
     }
 
     public static boolean shouldForceContainer() {
         Activity activity = Utils.getActivity();
-        boolean force = decide(activity, null);
+        boolean enabled = Settings.FOLDABLE_SPLIT_VIEW.get();
+        int width = activity != null && enabled ? widthDp(activity, null) : 0;
+        boolean force = width > 0 && decide(activity, width);
         HookStatus.bound(FAMILY, force ? "split container" : "container left to TikTok");
         // Only an answer given with the switch on is a split decision. Off, the row says the
         // switch applies at the next start, and a record taken now would rebuild the feed on
         // the first configuration change after the switch is turned on, with no crossing at all.
-        if (activity != null && Settings.FOLDABLE_SPLIT_VIEW.get()) {
+        if (activity != null && enabled) {
             try {
                 int threshold = threshold();
-                boolean wide = !besideOtherApps(activity) && widthDp(activity, null) >= threshold;
+                if (width <= 0) return force;
+                boolean wide = !besideOtherApps(activity) && width >= threshold;
                 synchronized (BUILT_FOR) {
                     if (!BUILT_FOR.containsKey(activity)) BUILT_FOR.put(activity, new Built(wide, threshold));
                 }
@@ -145,7 +152,9 @@ public final class FoldableSplitView {
         // Never asked with the switch on, so nothing was built for the other width. The record's
         // own threshold decides, so a threshold edited mid-session applies at the next start,
         // as its row says, and not to the next rotation.
-        if (built == null || (widthDp(activity, configuration) >= built.threshold) == built.wide) return;
+        if (built == null) return;
+        int width = widthDp(activity, configuration);
+        if (width <= 0 || (width >= built.threshold) == built.wide) return;
         synchronized (BUILT_FOR) {
             BUILT_FOR.remove(activity);
         }

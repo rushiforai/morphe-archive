@@ -37,7 +37,7 @@ class BoxBoxSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "5.4.17",
+            version = "5.4.18",
             patchNames = setOf("Enable Premium", "Disable ads", "Disable telemetry"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -192,13 +192,16 @@ class BoxBoxSmokeTest {
         // Ads 3 (Google Mobile Ads, 5.4.17+): when GMA is bundled, its init, every full-screen
         // load and BaseAdView.loadAd return early. Found by the SDK's own messages and shape.
         classes.firstOrNull { it.type == "Lcom/google/android/gms/ads/MobileAds;" }?.let { mobileAds ->
-            val init = mobileAds.methods.single {
-                AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
+            // R8 inlines initialize: into a static on MobileAds in 5.4.17, into the app's ad init
+            // helper in 5.4.18. Every static void carrying the SDK init log returns at once.
+            val inits = classes.flatMap { it.methods }.filter {
+                AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" && it.implementation != null &&
                     it.strings().any { s -> s.startsWith("Initializing on calling thread") }
             }
-            assertReturnsEarlyVoid(init, label = "MobileAds.initialize")
+            assertTrue(inits.isNotEmpty(), "no inlined MobileAds.initialize found")
+            inits.forEach { assertReturnsEarlyVoid(it, label = "${it.definingClass}.${it.name} (MobileAds.initialize)") }
             // Rule 9: every other static void (the private setPlugin, stop) returns at once too.
-            assertMobileAdsStaticsNeutralised(mobileAds, required = listOf(init.name, "setPlugin"))
+            assertMobileAdsStaticsNeutralised(mobileAds, required = listOf("setPlugin"))
             // The shared helper's fallback for a renamed MobileAds takes the static-only holder
             // owning that init; on this R8 build it would pick this same class.
             assertTrue(
@@ -208,13 +211,25 @@ class BoxBoxSmokeTest {
                 "MobileAds is not a static-only holder",
             )
 
+            // Every static full-screen load (interstitial, rewarded, rewarded interstitial, app
+            // open), found by the SDK's Context and main-thread checks. In 5.4.18 only the
+            // interstitial one still checks "AdRequest cannot be null.".
             val fullScreenLoads = classes.flatMap { it.methods }.filter { m ->
-                AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" &&
+                AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" && m.implementation != null &&
                     m.parameterTypes.take(2).map(CharSequence::toString) ==
                     listOf("Landroid/content/Context;", "Ljava/lang/String;") &&
-                    m.parameterTypes.size == 4 && "AdRequest cannot be null." in m.strings()
+                    m.parameterTypes.size == 4 &&
+                    m.strings().containsAll(listOf("Context cannot be null.", "#008 Must be called on the main UI thread."))
             }
-            assertTrue(fullScreenLoads.isNotEmpty(), "no GMA InterstitialAd.load found")
+            assertTrue(
+                fullScreenLoads.any { "AdRequest cannot be null." in it.strings() },
+                "no GMA InterstitialAd.load found",
+            )
+            assertTrue(
+                fullScreenLoads.size >= 4,
+                "expected the interstitial, rewarded, rewarded interstitial and app open loads, found " +
+                    fullScreenLoads.map { "${it.definingClass}.${it.name}" },
+            )
             fullScreenLoads.forEach { assertReturnsEarlyVoid(it, label = "${it.definingClass}.${it.name} (GMA load)") }
 
             val baseAdView = classes.single { cls ->

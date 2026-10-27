@@ -12,8 +12,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BooleanSupplier;
@@ -21,7 +24,8 @@ import java.util.regex.Pattern;
 
 /**
  * The picture an auto reply sends after its text. The picker's choice is copied into Messenger's own files as a JPEG
- * no bigger than MAX_EDGE on its long side, so a send never depends on the picked file staying where it was. It goes
+ * no bigger than MAX_EDGE on its long side, so a send never depends on the picked file staying where it was. Copies
+ * run on two workers with two waiting at most, under size, pixel, memory and time limits. It goes
  * out through Messenger's media message factory and the notification reply service's send, which the auto reply patch
  * fills in. A build where those didn't match sends the text alone.
  */
@@ -33,6 +37,18 @@ final class AutoReplyPicture {
     private static final String PARTIAL = ".part";
     static final int MAX_EDGE = 2048;
     static final int QUALITY = 90;
+    /** A picked file over this is refused rather than copied in. */
+    static final long MAX_SOURCE_BYTES = 32L << 20;
+    static final long MAX_SOURCE_PIXELS = 64_000_000L;
+    /** What every copy's decoded and turned bitmaps may hold at once, across the app. */
+    static final long BITMAP_BUDGET = 64L << 20;
+    /** A copy still going after this gives up, so a slow or stuck picker can't hold the editor's Save. */
+    static final long DEADLINE_MS = 30_000L;
+    static final int WORKERS = 2, PENDING = 2;
+    static java.util.concurrent.Executor copies = pool();
+    private static final Object budget = new Object();
+    private static long reserved;
+    private static long nextPictureName;
     /** How long Messenger gets to build the photo message, then to take it for sending. */
     static final long BUILD_SECONDS = 20;
     static final long SEND_SECONDS = 10;
@@ -144,35 +160,161 @@ final class AutoReplyPicture {
         return failure == null ? "nothing" : failure.getClass().getName();
     }
 
+    private static ThreadPoolExecutor pool() {
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(WORKERS, WORKERS, 30, TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(PENDING), work -> {
+                Thread thread = new Thread(work, "HushAutoReplyPicture");
+                thread.setDaemon(true);
+                return thread;
+            }, new ThreadPoolExecutor.AbortPolicy());
+        pool.allowCoreThreadTimeOut(true);
+        return pool;
+    }
+
+    /** Why a picked picture wasn't copied in, so the settings can say which. */
+    static final class Failure extends IOException {
+        enum Kind { UNREADABLE, TOO_BIG, TOO_SLOW, CANCELLED }
+
+        final Kind kind;
+
+        Failure(Kind kind, String message) {
+            super(message);
+            this.kind = kind;
+        }
+    }
+
+    /**
+     * One picked picture being copied in. The settings keep it per card and cancel it when that card's pick changes or
+     * the editor goes, which drops the queued work and closes the picker's stream.
+     */
+    static final class Import {
+        private final long deadline;
+        private volatile boolean cancelled;
+        private volatile InputStream reading;
+        private volatile FutureTask<?> task;
+
+        Import() { this(DEADLINE_MS); }
+
+        Import(long millis) { deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(millis); }
+
+        boolean cancelled() { return cancelled; }
+
+        void cancel() {
+            cancelled = true;
+            FutureTask<?> queued = task;
+            if (queued != null) {
+                queued.cancel(true);
+                if (copies instanceof ThreadPoolExecutor) ((ThreadPoolExecutor) copies).remove(queued);
+            }
+            InputStream input = reading;
+            // A provider's close can block, so it never runs on the caller's (main) thread.
+            if (input != null) {
+                Thread closer = new Thread(() -> {
+                    try { input.close(); } catch (IOException ignored) { /* the copy reports the stop */ }
+                }, "HushAutoReplyPictureClose");
+                closer.setDaemon(true);
+                closer.start();
+            }
+        }
+
+        void check() throws Failure {
+            if (cancelled || Thread.currentThread().isInterrupted()) throw new Failure(Failure.Kind.CANCELLED, "the pick changed");
+            if (System.nanoTime() - deadline > 0) throw new Failure(Failure.Kind.TOO_SLOW, "the picture took too long");
+        }
+    }
+
+    /** Queues [work] for [job] on the copy workers. Throws RejectedExecutionException when they're full. */
+    static void submit(Import job, Runnable work) {
+        FutureTask<Void> task = new FutureTask<>(work, null);
+        job.task = task;
+        copies.execute(task);
+    }
+
+    /** Copies the picked picture in with the usual deadline. */
+    static String copy(Context context, Uri uri) throws IOException {
+        return copy(context, uri, new Import());
+    }
+
     /**
      * Copies the picked picture in as a JPEG, turned the way its EXIF says and no bigger than MAX_EDGE on its long
-     * side. Returns the new file's name. It reads the picker's file three times (size, pixels, EXIF), so it runs off the
-     * main thread.
+     * side. Returns the new file's name. The picker's file is read once into a private snapshot, which bounds, pixels
+     * and EXIF all come from, so it runs off the main thread.
      */
-    static String copy(Context context, Uri uri) throws IOException {
-        ContentResolver resolver = context.getContentResolver();
-        BitmapFactory.Options bounds = new BitmapFactory.Options();
-        bounds.inJustDecodeBounds = true;
-        try (InputStream input = open(resolver, uri)) {
-            BitmapFactory.decodeStream(input, null, bounds);
-        }
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) throw new IOException("not a picture");
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inSampleSize = sample(bounds.outWidth, bounds.outHeight, MAX_EDGE);
-        Bitmap decoded;
-        try (InputStream input = open(resolver, uri)) {
-            decoded = BitmapFactory.decodeStream(input, null, options);
-        }
-        if (decoded == null) throw new IOException("not a picture");
-        int orientation = ExifInterface.ORIENTATION_NORMAL;
-        try (InputStream input = open(resolver, uri)) {
-            orientation = new ExifInterface(input).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-        } catch (IOException | RuntimeException noExif) {
-            // A picture without readable EXIF is sent as it decodes.
-        }
-        Bitmap upright = upright(decoded, orientation);
+    static String copy(Context context, Uri uri, Import job) throws IOException {
         File folder = directory(context);
-        if (!folder.isDirectory() && !folder.mkdirs()) throw new IOException("can't make the picture folder");
+        if (!folder.mkdirs() && !folder.isDirectory()) throw new IOException("can't make the picture folder");
+        File source = snapshot(context.getContentResolver(), uri, folder, job);
+        try {
+            BitmapFactory.Options bounds = new BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            decode(source, bounds);
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) throw new Failure(Failure.Kind.UNREADABLE, "not a picture");
+            if (Math.multiplyExact((long) bounds.outWidth, bounds.outHeight) > MAX_SOURCE_PIXELS)
+                throw new Failure(Failure.Kind.TOO_BIG, "the picture has too many pixels");
+            int orientation = ExifInterface.ORIENTATION_NORMAL;
+            try {
+                orientation = new ExifInterface(source.getPath()).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+            } catch (IOException | RuntimeException noExif) {
+                // A picture without readable EXIF is sent as it decodes.
+            }
+            boolean turned = orientation >= ExifInterface.ORIENTATION_FLIP_HORIZONTAL && orientation <= ExifInterface.ORIENTATION_ROTATE_270;
+            int pixelBytes = bounds.outConfig == Bitmap.Config.RGBA_F16 ? 8 : 4;
+            int sample = fittingSample(bounds.outWidth, bounds.outHeight, pixelBytes, turned);
+            long bytes = bitmapBytes(bounds.outWidth, bounds.outHeight, sample, pixelBytes, turned);
+            job.check();
+            reserve(bytes, job);
+            try {
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inSampleSize = sample;
+                Bitmap decoded = decode(source, options);
+                if (decoded == null) throw new Failure(Failure.Kind.UNREADABLE, "not a picture");
+                Bitmap upright = null;
+                try {
+                    job.check();
+                    upright = upright(decoded, orientation);
+                    job.check();
+                    return write(folder, upright);
+                } finally {
+                    if (upright != null && upright != decoded) upright.recycle();
+                    decoded.recycle();
+                }
+            } finally {
+                release(bytes);
+            }
+        } finally {
+            if (source.exists() && !source.delete()) android.util.Log.w("HushMessenger", "auto_reply: a picked picture's snapshot stayed behind");
+        }
+    }
+
+    /** Reads the picker's file once into a private file no bigger than MAX_SOURCE_BYTES, stopping when [job] does. */
+    private static File snapshot(ContentResolver resolver, Uri uri, File folder, Import job) throws IOException {
+        job.check();
+        File copy = File.createTempFile("PIC_", PARTIAL, folder);
+        boolean kept = false;
+        try (InputStream input = open(resolver, uri); FileOutputStream output = new FileOutputStream(copy)) {
+            job.reading = input;
+            job.check();
+            byte[] buffer = new byte[64 * 1024];
+            long total = 0;
+            for (int read; (read = input.read(buffer)) != -1; ) {
+                job.check();
+                total += read;
+                if (total > MAX_SOURCE_BYTES) throw new Failure(Failure.Kind.TOO_BIG, "the picture is over the size limit");
+                output.write(buffer, 0, read);
+            }
+            kept = true;
+            return copy;
+        } catch (IOException failed) {
+            // A stream closed by cancel fails its read, which is the stop, not a broken picture.
+            job.check();
+            throw failed;
+        } finally {
+            job.reading = null;
+            if (!kept && copy.exists() && !copy.delete()) android.util.Log.w("HushMessenger", "auto_reply: a picked picture's snapshot stayed behind");
+        }
+    }
+
+    private static String write(File folder, Bitmap upright) throws IOException {
         File partial = File.createTempFile("PIC_", PARTIAL, folder);
         try {
             try (FileOutputStream output = new FileOutputStream(partial)) {
@@ -184,9 +326,59 @@ final class AutoReplyPicture {
             return target.getName();
         } finally {
             if (partial.exists() && !partial.delete()) android.util.Log.w("HushMessenger", "auto_reply: a half-copied picture stayed behind");
-            if (upright != decoded) upright.recycle();
-            decoded.recycle();
         }
+    }
+
+    /**
+     * The bytes a decode at [sample] and its shrunk or turned copy hold together. Checked arithmetic, so a header with
+     * huge sizes fails instead of wrapping into a small estimate.
+     */
+    static long bitmapBytes(int width, int height, int sample, int pixelBytes, boolean turned) {
+        long w = (width + (long) sample - 1) / sample, h = (height + (long) sample - 1) / sample;
+        long decoded = Math.multiplyExact(Math.multiplyExact(w, h), pixelBytes);
+        long longest = Math.max(w, h);
+        if (longest <= MAX_EDGE && !turned) return decoded;
+        double scale = longest > MAX_EDGE ? MAX_EDGE / (double) longest : 1d;
+        long outW = Math.min(w, (long) Math.ceil(w * scale)), outH = Math.min(h, (long) Math.ceil(h * scale));
+        return Math.addExact(decoded, Math.multiplyExact(Math.multiplyExact(Math.max(1, outW), Math.max(1, outH)), pixelBytes));
+    }
+
+    /** The usual sample, raised until the decode and its copy fit the budget. */
+    static int fittingSample(int width, int height, int pixelBytes, boolean turned) throws Failure {
+        int sample = sample(width, height, MAX_EDGE);
+        while (bitmapBytes(width, height, sample, pixelBytes, turned) > BITMAP_BUDGET) {
+            if (sample >= 1 << 20) throw new Failure(Failure.Kind.TOO_BIG, "the picture can't fit the memory budget");
+            sample *= 2;
+        }
+        return sample;
+    }
+
+    /** Takes [bytes] from the shared budget, waiting while other copies hold it, until [job] stops. */
+    static void reserve(long bytes, Import job) throws Failure {
+        if (bytes > BITMAP_BUDGET) throw new Failure(Failure.Kind.TOO_BIG, "the picture can't fit the memory budget");
+        synchronized (budget) {
+            while (reserved + bytes > BITMAP_BUDGET) {
+                job.check();
+                try {
+                    budget.wait(250);
+                } catch (InterruptedException stopped) {
+                    Thread.currentThread().interrupt();
+                    throw new Failure(Failure.Kind.CANCELLED, "the pick changed");
+                }
+            }
+            reserved += bytes;
+        }
+    }
+
+    static void release(long bytes) {
+        synchronized (budget) {
+            reserved -= bytes;
+            budget.notifyAll();
+        }
+    }
+
+    static long reserved() {
+        synchronized (budget) { return reserved; }
     }
 
     private static InputStream open(ContentResolver resolver, Uri uri) throws IOException {
@@ -222,10 +414,11 @@ final class AutoReplyPicture {
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
 
-    private static File freshName(File folder) {
-        long stamp = System.currentTimeMillis();
+    private static synchronized File freshName(File folder) {
+        long stamp = Math.max(System.currentTimeMillis(), nextPictureName);
         File target;
         while ((target = new File(folder, "PIC_" + stamp + ".jpg")).exists()) stamp++;
+        nextPictureName = stamp + 1;
         return target;
     }
 

@@ -50,7 +50,7 @@ final class GifAutoFetch {
         LinkedHashSet<String> result = new LinkedHashSet<>(), gifs = new LinkedHashSet<>();
         synchronized (POSTERS) {
             for (String url : original) {
-                if (GifAutoFetchPolicy.supported(url)) gifs.add(url);
+                if (GifAutoFetchPolicy.supported(url)) gifs.add(PreviewUrls.normalize(url));
                 else if (!POSTERS.containsValue(url)) result.add(url);
             }
         }
@@ -93,38 +93,14 @@ final class GifAutoFetch {
             for (byte b : digest) key.append(String.format(Locale.ROOT, "%02x", b & 255));
             File image = new File(directory, key + ".jpg");
             if (!image.isFile()) {
-                // No redirects, original-file disk cache or UI-thread decode.
-                byte[] bytes;
-                int limit = 8 * 1024 * 1024;
-                if (ImageVpnController.protectedPreview(url)) {
-                    // Protected domains must not silently fall back to the device connection.
-                    bytes = ImageVpnController.fetchPreview(url).getBody();
-                    if (bytes == null || bytes.length > limit) return;
-                } else {
-                connection = (HttpURLConnection) new URL(url).openConnection();
-                connection.setInstanceFollowRedirects(false);
-                connection.setConnectTimeout(8000); connection.setReadTimeout(8000);
-                if (connection.getResponseCode() != 200 || connection.getContentLengthLong() > limit) return;
-                long deadline = android.os.SystemClock.elapsedRealtime() + 20000;
-                ByteArrayOutputStream output = new ByteArrayOutputStream();
-                try (InputStream input = connection.getInputStream()) {
-                    byte[] buffer = new byte[8192]; int count;
-                    while ((count = input.read(buffer)) != -1) {
-                        if (!GifAutoFetchPolicy.image(Haiagaru.gifAutoFetchMode())
-                                || android.os.SystemClock.elapsedRealtime() > deadline || count > limit - output.size()) return;
-                        output.write(buffer, 0, count);
-                    }
-                }
-                bytes = output.toByteArray();
-                }
-                if (bytes.length < 6 || bytes[0] != 'G' || bytes[1] != 'I' || bytes[2] != 'F'
-                        || bytes[3] != '8' || (bytes[4] != '7' && bytes[4] != '9') || bytes[5] != 'a') return;
+                File original=GifMediaLoader.load(context,url,8*1024*1024,false,
+                        ()->!GifAutoFetchPolicy.image(Haiagaru.gifAutoFetchMode()));
                 BitmapFactory.Options options = new BitmapFactory.Options(); options.inJustDecodeBounds = true;
-                BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
+                BitmapFactory.decodeFile(original.getAbsolutePath(), options);
                 if (options.outWidth <= 0 || options.outHeight <= 0 || options.outWidth > 16384 || options.outHeight > 16384) return;
                 options.inJustDecodeBounds = false; options.inSampleSize = 1;
                 while (Math.max(options.outWidth, options.outHeight) / options.inSampleSize > 480) options.inSampleSize *= 2;
-                bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
+                bitmap = BitmapFactory.decodeFile(original.getAbsolutePath(), options);
                 if (bitmap == null) return;
                 staging = File.createTempFile("poster-", ".jpg", directory);
                 try (OutputStream file = new FileOutputStream(staging)) { if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 85, file)) return; }

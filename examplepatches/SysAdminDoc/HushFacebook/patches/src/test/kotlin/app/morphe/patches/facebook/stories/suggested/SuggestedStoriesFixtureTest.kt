@@ -38,7 +38,10 @@ import java.io.File
  * extension the patch merges are filled in.
  */
 class SuggestedStoriesFixtureTest {
-    /** The tray data constructor's registers and the register of its bucket list, per build. */
+    /**
+     * The tray data constructor's registers and the register of its bucket list, per build. Both
+     * of 584's builds lay it out the same way.
+     */
     private val expected = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to (7 to 4),
     )
@@ -50,6 +53,7 @@ class SuggestedStoriesFixtureTest {
     private val expectedType = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
             "arm64-v8a" to ("CFi" to "LX/2Cd;"),
+            "armeabi-v7a" to ("CFi" to "LX/2Cd;"),
         ),
     )
 
@@ -57,6 +61,7 @@ class SuggestedStoriesFixtureTest {
     private val expectedSkips = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
             "arm64-v8a" to setOf("LX/1rk;->A03", "LX/1rk;->A07"),
+            "armeabi-v7a" to setOf("LX/1rk;->A03", "LX/1rk;->A07"),
         ),
     )
 

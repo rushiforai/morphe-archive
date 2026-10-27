@@ -68,12 +68,12 @@ public final class ThreadCommands {
             // A new thread has no thread ID: the native thread URL is null.
             // Use the board URL for commands, per-board settings and authentication.
             String url = postingUrl(target, thread, urlMethod, boardUrlMethod);
-            ExternalBoardAuth.target(fragment, url);
+            EditText body = (EditText) field(binding, bodyName);
+            ExternalBoardAuth.target(fragment, url, body);
             BeAutoLogout.editor(fragment, target, thread, url);
             // Commands belong only to thread creation, not ordinary replies.
             // Keep target registration above for external-board authentication.
             if (!thread||!FeatureSwitches.enabled("threadCommandsEnabled",true)) return;
-            EditText body = (EditText) field(binding, bodyName);
             EditText name = (EditText) field(binding, nameName);
             String profile = ThreadCommandRules.profile(url);
             // Insert alongside the body container, preserving its native listeners and layout params.

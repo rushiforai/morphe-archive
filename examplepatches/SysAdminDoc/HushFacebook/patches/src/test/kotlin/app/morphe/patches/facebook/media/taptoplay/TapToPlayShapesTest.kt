@@ -11,6 +11,11 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
+import app.morphe.patches.facebook.media.reelspeed.PLAYER_ORIGIN
+import app.morphe.patches.facebook.media.resume.GROOT_RELEASE
+import app.morphe.patches.facebook.media.resume.VIDEO_PLAYER_PARAMS
+import app.morphe.patches.facebook.reels.hold.ATTACH_VIEW_LOG
+import app.morphe.patches.facebook.reels.hold.VIEW_GROUP
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
@@ -23,6 +28,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -119,11 +125,57 @@ class TapToPlayShapesTest {
         return-void
     """
 
-    private fun enumNaming(type: String, names: List<String>) = classDef(
-        type, "Ljava/lang/Enum;",
-        method(type, "<clinit>", emptyList(), "V",
-            names.joinToString("\n") { "const-string v0, \"$it\"" } + "\nreturn-void", registers = 1, static = true),
-    )
+    private fun enumNaming(type: String, names: List<String>): ClassDef {
+        val user = type == trigger && "BY_USER" in names
+        val body = names.joinToString("\n") { "const-string v0, \"$it\"" } + if (user) """
+
+            new-instance v0, $type
+            const-string v1, "BY_USER"
+            const/4 v2, 0x0
+            invoke-direct {v0, v1, v2}, $type-><init>(Ljava/lang/String;I)V
+            sput-object v0, $type->user:$type
+            sput-object v0, $type->alias:$type
+            return-void
+        """ else "\nreturn-void"
+        // Like 584, the constant is also stored in a plain static alias that isn't an enum entry.
+        val fields = if (user) listOf(
+            ImmutableField(type, "user", type,
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.ENUM.value, null, null, null),
+            ImmutableField(type, "alias", type,
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value, null, null, null),
+        ) else emptyList()
+        return ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Enum;", null, null, null, fields,
+            listOf(ImmutableMethod.of(method(type, "<clinit>", emptyList(), "V", body, registers = 3, static = true))))
+    }
+
+    private fun inlinePlayer(base: ClassDef): ClassDef {
+        val field = ImmutableField(player, "container", VIEW_GROUP, AccessFlags.PUBLIC.value, null, null, null)
+        val extra = listOf(
+            method(player, "isPlaying", emptyList(), "Z", "const/4 v0, 0x0\nreturn v0"),
+            method(player, "params", emptyList(), VIDEO_PLAYER_PARAMS, "const/4 v0, 0x0\nreturn-object v0"),
+            method(player, "origin", emptyList(), PLAYER_ORIGIN, "const/4 v0, 0x0\nreturn-object v0"),
+            method(player, "release", listOf(trigger, "Ljava/lang/String;"), "V", holding(GROOT_RELEASE)),
+            method(player, "attach", listOf(VIEW_GROUP, "Ljava/lang/String;", player), "V", """
+                const-string v0, "$ATTACH_VIEW_LOG"
+                iput-object p0, p2, $player->container:$VIEW_GROUP
+                return-void
+            """, registers = 6, static = true),
+        )
+        return ImmutableClassDef(player, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null,
+            listOf(field), (base.methods.toList() + extra).map(ImmutableMethod::of))
+    }
+
+    private fun inlineParams(): ClassDef {
+        val fields = (INLINE_FLAGS.keys.associateWith { "Z" } + ("videoId" to "Ljava/lang/String;"))
+        val dump = fields.entries.joinToString("\n") { (name, type) -> """
+            const-string v0, "$name"
+            ${if (type == "Z") "iget-boolean" else "iget-object"} v1, p0, $VIDEO_PLAYER_PARAMS->$name:$type
+            invoke-static {v0, v1}, Lfixture/Reporter;->report(Ljava/lang/String;$type)V
+        """ } + "\nreturn-void"
+        return ImmutableClassDef(VIDEO_PLAYER_PARAMS, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null,
+            fields.map { (name, type) -> ImmutableField(VIDEO_PLAYER_PARAMS, name, type, AccessFlags.PUBLIC.value, null, null, null) },
+            listOf(ImmutableMethod.of(method(VIDEO_PLAYER_PARAMS, "dump", emptyList(), "V", dump))))
+    }
 
     private fun play(owner: String = player, registers: Int = 20) =
         method(owner, "play", listOf(trigger), "V", holding(GROOT_PLAY), registers)
@@ -218,8 +270,9 @@ class TapToPlayShapesTest {
         componentClass: ClassDef = controlComponent(),
         controlsClass: ClassDef = classDef(controls, "Ljava/lang/Object;", reelCheck()),
     ) = PatchContexts.of(
-        listOf(grootPlayer, triggerEnum, legacy(), checkerClass, enumNaming(setting, SETTING_NAMES), activityClass,
-            componentClass, controlsClass, ExtensionDex.classDef(SETTINGS_STATUS)) + playbackClasses(),
+        listOf(inlinePlayer(grootPlayer), inlineParams(), triggerEnum, legacy(), checkerClass,
+            enumNaming(setting, SETTING_NAMES), activityClass, componentClass, controlsClass,
+            ExtensionDex.classDef(FEED_CONTROLS), ExtensionDex.classDef(SETTINGS_STATUS)) + playbackClasses(),
     )
 
     private val Instruction.call: MethodReference?
@@ -239,6 +292,47 @@ class TapToPlayShapesTest {
         assertThrows(PatchException::class.java) { PatchContexts.of(playbackClasses(compare = "if-eq")).hookReelPlayback() }
         assertThrows(PatchException::class.java) { PatchContexts.of(playbackClasses(resetValue = 1)).hookReelPlayback() }
         assertThrows(PatchException::class.java) { PatchContexts.of(emptyList()).hookReelPlayback() }
+    }
+
+    @Test
+    fun `inline controls call public native play and outer pause and read each media exclusion`() {
+        val context = build()
+        tapToPlayPatch.execute(context)
+        val bridge = context.mutableClassDefBy(FEED_CONTROLS)
+        val command = bridge.methods.single { it.name == "commandPlayer" }.implementation!!.instructions.toList()
+        assertEquals(listOf("play", "pause"), command.mapNotNull { it.call }.filter { it.definingClass == player }.map { it.name })
+        val triggerReads = command.filter { it.opcode == Opcode.SGET_OBJECT }
+        assertEquals(2, triggerReads.size)
+        assertTrue(triggerReads.all { (it as ReferenceInstruction).reference.toString() == "$trigger->user:$trigger" })
+        INLINE_FLAGS.forEach { (name, stub) ->
+            val code = bridge.methods.single { it.name == stub }.implementation!!.instructions.toList()
+            val read = (code[1] as ReferenceInstruction).reference as FieldReference
+            assertEquals(Opcode.IGET_BOOLEAN, code[1].opcode)
+            assertEquals(name, read.name)
+            assertEquals(VIDEO_PLAYER_PARAMS, read.definingClass)
+        }
+        assertEquals(INLINE_ATTACHED, patched(context, player, "attach").implementation!!.instructions.toList()[2].call.toString())
+        assertEquals(INLINE_RELEASED, patched(context, player, "release").implementation!!.instructions.first().call.toString())
+    }
+
+    @Test
+    fun `inline controls refuse missing media facts and ambiguous attachments before editing stubs`() {
+        val missing = build()
+        missing.mutableClassDefBy(VIDEO_PLAYER_PARAMS).fields.removeAll { it.name == "isAudioOnly" }
+        val play = missing.classDefBy(player).methods.single { it.name == "play" }
+        assertTrue(assertThrows(PatchException::class.java) { missing.installFeedVideoControls(play) }
+            .message.orEmpty().contains("isAudioOnly"))
+        assertTrue(missing.mutableClassDefBy(FEED_CONTROLS).methods.single { it.name == "commandPlayer" }
+            .implementation!!.instructions.none { it.call?.definingClass == player })
+        val ambiguous = build()
+        ambiguous.mutableClassDefBy(player).methods.add(method(player, "attachAgain", listOf(VIEW_GROUP, player), "V", """
+            const-string v0, "$ATTACH_VIEW_LOG"
+            iput-object p0, p1, $player->container:$VIEW_GROUP
+            return-void
+        """, registers = 4, static = true))
+        assertTrue(assertThrows(PatchException::class.java) {
+            ambiguous.installFeedVideoControls(ambiguous.classDefBy(player).methods.single { it.name == "play" })
+        }.message.orEmpty().contains("found 2"))
     }
 
     @Test

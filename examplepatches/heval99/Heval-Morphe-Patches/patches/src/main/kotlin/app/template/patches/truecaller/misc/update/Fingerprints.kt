@@ -1,6 +1,8 @@
 package app.template.patches.truecaller.misc.update
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 internal const val UPDATE_TRIGGER = "Lcom/truecaller/inappupdate/UpdateTrigger;"
 
@@ -27,5 +29,8 @@ internal object StartUpdateFingerprint : Fingerprint(
 internal object ForcedUpdateTypeFingerprint : Fingerprint(
     returnType = "Lcom/truecaller/forcedupdate/UpdateType;",
     parameters = listOf(),
-    strings = listOf("forcedUpdate_updateType", "forcedUpdate_appVersion"),
+    strings = listOf(
+        string("forcedUpdate_updateType", StringComparisonType.CONTAINS),
+        string("forcedUpdate_appVersion", StringComparisonType.CONTAINS),
+    ),
 )

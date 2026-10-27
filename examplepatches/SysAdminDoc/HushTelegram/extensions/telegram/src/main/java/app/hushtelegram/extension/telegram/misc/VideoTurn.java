@@ -26,6 +26,7 @@ public final class VideoTurn {
      * @param orientation the landscape side Telegram picked
      */
     public static void fullScreen(Activity activity, int orientation) {
+        VideoUpright.buttonPressed();
         activity.setRequestedOrientation(orientation(orientation));
     }
 

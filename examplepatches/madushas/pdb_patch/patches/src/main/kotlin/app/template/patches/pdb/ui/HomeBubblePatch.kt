@@ -19,11 +19,16 @@ val HomeActivityOnCreateFingerprint = Fingerprint(
 )
 
 /**
- * `pdb.app.base.ui.BaseActivity.onCreate(Bundle)` — the kept base of almost every
- * Pdb screen. Hooking it puts the bubble on the whole app, not just Home.
+ * The app-scoped base activity — in 2.134.6 it was the kept class
+ * `pdb.app.base.ui.BaseActivity`; R8 renamed it to the obfuscated `ez0` in
+ * 2.135.1 (31 pdb.app activities extend it; `zv0` is the platform-scoped
+ * parent). Hooking its `onCreate` puts the bubble on the whole app, not just
+ * Home. Anchor risk: `ez0` is an obfuscated name that will change again —
+ * if the fingerprint misses, re-resolve via "extends" census of pdb.app
+ * activities in the new jadx tree.
  */
 val BaseActivityOnCreateFingerprint = Fingerprint(
-    definingClass = "Lpdb/app/base/ui/BaseActivity;",
+    definingClass = "Lez0;",
     name = "onCreate",
     returnType = "V",
     parameters = listOf("Landroid/os/Bundle;"),

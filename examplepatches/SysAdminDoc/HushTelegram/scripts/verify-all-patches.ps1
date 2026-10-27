@@ -158,7 +158,7 @@ try {
     if ($patchInput -eq $mergedApk) { Write-Host "[verify] merged $(Split-Path -Leaf $Apk) into one APK for the CLI" }
     $enable = @()
     foreach ($name in $names) { $enable += '-e'; $enable += $name }
-    $arguments = @('patch', '--exclusive', '--continue-on-error', '--unsigned', '-p', $Bundle,
+    $arguments = @('patch', '--validate', '--exclusive', '--continue-on-error', '--unsigned', '-p', $Bundle,
         '-o', $out, '-t', $temp, '-r', $result)
     if ($forced) { $arguments += '-f' }
     $arguments = $arguments + $enable + @($patchInput)

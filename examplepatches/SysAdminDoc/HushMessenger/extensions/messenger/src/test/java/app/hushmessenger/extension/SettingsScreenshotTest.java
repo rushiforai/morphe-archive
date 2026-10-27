@@ -76,6 +76,8 @@ public class SettingsScreenshotTest {
         CrashGuard.resetForTests();
         HostScreens.started = true;
         HostScreens.failed = false;
+        // The state renders reach rows in every section; the README pair opens only its own.
+        OpenSections.all();
     }
 
     @After public void restoreFixtureMetadata() {
@@ -92,6 +94,7 @@ public class SettingsScreenshotTest {
         // The failing vaults above record message_log failures, which a later test in this sandbox would read as its own.
         Settings.activeAt.clear();
         Settings.hookErrors.clear();
+        OpenSections.only();
         HostScreens.started = originalStarted;
         HostScreens.failed = originalFailed;
     }
@@ -312,6 +315,7 @@ public class SettingsScreenshotTest {
         }
     }
 
+    /** The README pair (scripts/readme_captures.py copies settings-controls-* and settings-app-* into assets/). */
     @Test public void captureProductionPagesAndDialogsInBothThemes() throws Exception {
         for (boolean light : new boolean[] {false, true}) {
             Settings.preferences.edit().clear().putBoolean("light", light).commit();
@@ -319,11 +323,6 @@ public class SettingsScreenshotTest {
             try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
                 View root = screen.get().getWindow().getDecorView();
                 layout(root);
-                assertFalse(Settings.preview);
-                assertNull(root.findViewWithTag("preview_notice"));
-                assertTrue(required(root, "controls_page").isShown());
-                visibleTarget(required(root, "open_messenger"));
-                visibleTarget(required(root, "find_control"));
                 for (String[] spec : SettingsActivity.CONTROLS) {
                     Switch choice = root.findViewWithTag(spec[0]);
                     assertNotNull("Installed control: " + spec[0], choice);
@@ -332,6 +331,18 @@ public class SettingsScreenshotTest {
                     View row = (View) choice.getParent();
                     assertTrue(spec[0] + " fits its row", choice.getLeft() >= 0 && choice.getRight() <= row.getWidth());
                 }
+            }
+            // As a person first sees it, with the first section open and the App tab's ways in.
+            OpenSections.only(SettingsActivity.CONTROLS[0][3], "quick_access");
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                View root = screen.get().getWindow().getDecorView();
+                layout(root);
+                assertFalse(Settings.preview);
+                assertNull(root.findViewWithTag("preview_notice"));
+                assertTrue(required(root, "controls_page").isShown());
+                visibleTarget(required(root, "open_messenger"));
+                visibleTarget(required(root, "find_control"));
+                visibleTarget(required(root, SettingsActivity.CONTROLS[0][0]));
                 write(root, "settings-controls-" + theme);
 
                 required(root, "tab_app").performClick();
@@ -339,9 +350,13 @@ public class SettingsScreenshotTest {
                 assertTrue(required(root, "app_page").isShown());
                 assertFalse(required(root, "controls_page").isShown());
                 visibleTarget(required(root, "tab_app"));
+                visibleTarget(required(root, "hide_drawer_icon"));
                 write(root, "settings-app-" + theme);
-
-                required(root, "tab_controls").performClick();
+            }
+            OpenSections.all();
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                View root = screen.get().getWindow().getDecorView();
+                layout(root);
                 layout(root);
                 captureDialog(root, "message_log_view", "message_log_empty", "settings-message-log-" + theme);
                 captureDialog(root, "auto_reply_edit", null, "settings-auto-reply-" + theme);

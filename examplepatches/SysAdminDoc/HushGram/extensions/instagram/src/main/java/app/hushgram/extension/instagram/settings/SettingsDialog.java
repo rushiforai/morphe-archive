@@ -50,7 +50,7 @@ public final class SettingsDialog extends DialogFragment {
     /** The bar under the page that restarts Instagram while a change waits on it. */
     static final int RESTART_ID = 0x48474302;
     private static final String PAGE_FAILED = "hushgram.page_failed";
-    /** The argument naming the category page the screen opens on, after Restart now. */
+    /** The argument naming the inline section to expand after Restart now. */
     static final String START_PAGE = "hushgram_start_page";
     private boolean failed;
     private boolean loading;
@@ -65,7 +65,7 @@ public final class SettingsDialog extends DialogFragment {
     private ViewTreeObserver.OnWindowFocusChangeListener lockFocus;
 
     /**
-     * The screen, opening on the category page whose row has the key [page]. Null or a key no row
+     * The screen, expanding the section whose row has the key [page]. Null or a key no row
      * has opens the first page, as the screen always does.
      */
     static SettingsDialog onPage(@androidx.annotation.Nullable String page) {
@@ -103,7 +103,7 @@ public final class SettingsDialog extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog = new Dialog(getActivity(), getTheme()) {
-            // Back on a category's page goes to the list of categories first. Android 13 and up
+            // Back clears an active search before dismissing settings. Android 13 and up
             // route the gesture here too, through the dialog's own back callback.
             @Override
             @SuppressWarnings("deprecation")
@@ -155,7 +155,7 @@ public final class SettingsDialog extends DialogFragment {
         bar.setOrientation(LinearLayout.HORIZONTAL);
         bar.setGravity(Gravity.CENTER_VERTICAL);
         // Start and end, not left and right: in a right-to-left language the bar is mirrored.
-        bar.setPaddingRelative(dp(4), dp(8), dp(18), dp(8));
+        bar.setPaddingRelative(dp(4), dp(4), dp(18), dp(4));
 
         ImageButton back = new ImageButton(getContext());
         android.graphics.drawable.Drawable arrow = SettingsIcons.icon(getContext(), SettingsIcons.BACK, palette.title);
@@ -187,9 +187,9 @@ public final class SettingsDialog extends DialogFragment {
         TextView title = new TextView(getContext());
         heading = title;
         title.setText("HushGram");
-        title.setTextColor(palette.title);
-        title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24);
+        ShimmerTitle.wear(title);
+        title.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
         title.setPaddingRelative(dp(8), 0, 0, 0);
         title.setAccessibilityHeading(true);
         bar.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
@@ -273,13 +273,13 @@ public final class SettingsDialog extends DialogFragment {
         if (bar != null) bar.setVisibility(owed ? View.VISIBLE : View.GONE);
     }
 
-    /** Shows [title] in the bar while a category's page is open, and HushGram again for null. */
+    /** Shows the search title, and HushGram again for null. */
     void showTitle(@androidx.annotation.Nullable CharSequence title) {
         TextView bar = heading;
         if (bar != null) bar.setText(title == null ? "HushGram" : title);
     }
 
-    /** Closes the settings page's open category, if one is open. Answers whether one was. */
+    /** Clears a search before Back closes the dialog. Expanding a section adds no Back level. */
     private boolean closeCategory() {
         Fragment page = getChildFragmentManager().findFragmentById(CONTAINER_ID);
         return page instanceof HushgramPreferenceFragment && ((HushgramPreferenceFragment) page).closeCategory();
@@ -502,7 +502,7 @@ public final class SettingsDialog extends DialogFragment {
         content.addView(icon, iconSize);
         TextView title = new TextView(getContext());
         title.setText(L10n.t(getContext(), "Settings couldn't open"));
-        title.setTextColor(palette.title);
+        ShimmerTitle.wear(title);
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
         title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         title.setGravity(Gravity.CENTER);

@@ -20,7 +20,8 @@ final class VideoTouchControls {
         tapListener = new GestureDetector.SimpleOnGestureListener() {
             @Override public boolean onDown(MotionEvent e) { return true; }
             @Override public boolean onSingleTapUp(MotionEvent e) {
-                if (!VideoViewerSettings.prefs(activity).getBoolean("videoDoubleTapSeek", false)) {
+                if (VideoViewerSettings.prefs(activity).getBoolean(VideoViewerSettings.TAP_CONTROLS,true)
+                        && !VideoViewerSettings.prefs(activity).getBoolean("videoDoubleTapSeek", false)) {
                     activity.toggleControls(); return true;
                 }
                 return false;
@@ -29,6 +30,7 @@ final class VideoTouchControls {
                 activity.beginHoldSpeed();
             }
             @Override public boolean onSingleTapConfirmed(MotionEvent e) {
+                if(!VideoViewerSettings.prefs(activity).getBoolean(VideoViewerSettings.TAP_CONTROLS,true))return false;
                 activity.toggleControls(); return true;
             }
             @Override public boolean onDoubleTap(MotionEvent e) {
@@ -55,9 +57,10 @@ final class VideoTouchControls {
                     ? tapListener : null);
             left = x < p[0] + surface.getWidth() / 2f;
             enabled = VideoViewerSettings.prefs(activity).getBoolean(left ? "videoSwipeBrightness" : "videoSwipeVolume", false);
-            startBrightness = activity.getWindow().getAttributes().screenBrightness;
-            if (startBrightness < 0) startBrightness = Settings.System.getInt(activity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 128) / 255f;
-            startVolume = audio == null ? 0 : audio.getStreamVolume(AudioManager.STREAM_MUSIC);
+            if(enabled&&left){
+                startBrightness = activity.getWindow().getAttributes().screenBrightness;
+                if (startBrightness < 0) startBrightness = Settings.System.getInt(activity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 128) / 255f;
+            }else if(enabled)startVolume = audio == null ? 0 : audio.getStreamVolume(AudioManager.STREAM_MUSIC);
         }
         if (!tracking) return false;
         if (event.getPointerCount() > 1 || action == MotionEvent.ACTION_CANCEL) { cancel(); return false; }
@@ -82,7 +85,7 @@ final class VideoTouchControls {
         }
         taps.onTouchEvent(event);
         if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) activity.endHoldSpeed();
-        if (action == MotionEvent.ACTION_UP) tracking = false;
+        if (action == MotionEvent.ACTION_UP) {tracking = false;if(Math.abs(dx)<slop&&Math.abs(dy)<slop)return true;}
         return false;
     }
     private void adjust(float delta) {

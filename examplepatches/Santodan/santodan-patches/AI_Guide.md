@@ -16,6 +16,32 @@ installer-source spoof.
 
 ## Start here: creating or modifying a patch
 
+For Monet 1.0.97 **Displayed Cards** above 20, see
+[MonetDisplayedCards.md](docs/MonetDisplayedCards.md). The optional **Monet - Unlimited
+displayed cards** patch adds ten-card steps and Max to the native themed picker,
+and removes the shared preference/schema cap. Run `verifyMonetDisplayedCards`,
+`verifyMonetDisplayedCardsRuntime`, `verifyMonetDisplayedCardsBundle` and
+`verifyMorpheDesktopImport`; `verifyMonetDisplayedCardsApk` checks the Desktop rebuild.
+
+For individual Nuvio catalogs in Monet 1.0.97 custom media rows, see
+[MonetCatalogChannels.md](docs/MonetCatalogChannels.md). The optional **Monet -
+Individual Nuvio catalog rows** patch belongs to Monet; Nuvio keeps publishing its
+existing separate Android TV channels. Catalogs are now choices inside the real
+Nuvio app's Content picker, use its installed icon, and refresh independently of
+Recommendations through a foreground provider subscription and native revision
+flow. Preserve saved synthetic IDs while resolving their real package for icons.
+Validate the actual signed delivery APK, not just the bundle/unsigned fixture:
+the previous `Monet-1.0.97-patches-0.14.0.apk` remained stale and the installed
+emulator matched it byte-for-byte. The verified replacement is
+`Apps/Monet/Monet-1.0.97-patches-0.14.0-catalog-content-v2.apk` (workspace-relative),
+also copied to the usual versioned output. Use `-PmonetCatalogCombined=true` to
+verify the catalog/card-limit/premium delivery and `Catalog content v2` runtime
+markers to distinguish it from the old integration. No installation was performed.
+The user subsequently confirmed on 2026-10-26 that the updated APK appears to work
+correctly. Keep this user-reported device result distinct from local APK checks.
+The local Desktop JAR is now 1.19.1; pass its path to verifyMorpheDesktopImport. Run `verifyMonetCatalog`,
+`verifyMonetCatalogRuntime`, `verifyMonetCatalogBundle` and `verifyMorpheDesktopImport`.
+
 For Monet Launcher `com.klevico.monet` 1.0.97, see [Monet.md](docs/Monet.md).
 The exact-version and unrestricted experimental premium patches are alternatives;
 select only one. Both use the shared native evaluator for startup and refreshes.
@@ -107,6 +133,13 @@ Rescan inputs for each task. Apps without existing patches need their own inspec
    rebuilt, signed, installed, and device-tested results; none implies the next.
 
 ### Local commands and verification
+
+For release packaging and issue #1 (missing DEX), finish with
+`:patches:verifyAndroidBundle`. It requires metadata generation and Android
+compilation, then validates root DEX entries in the actual release archive.
+Regular JVM builds can replace the in-place Android archive; Desktop import
+alone does not detect this because it loads JVM classes. Release preparation
+and `publish` require the Android archive check before upload.
 
 Run from the repository in PowerShell. Check that Java 21 is selected with
 `java -version`; Gradle's runtime JDK differs from the injected code's Java 11 target.
@@ -220,40 +253,46 @@ sync gate follows the root navigation flow and activity lifecycle, not stream-se
 pause signals. Main-service playback writes and service inclusion are configured
 in the Tracking progress submenu; verify standalone and combined bundles.
 Progress and next-up flows await only the lightweight profile CW cache on IO.
-Startup sync waits for Home and the native fully-drawn reporter. Quick startup
-restores lightweight CW/local playback and compact episode membership, finishes its
-visible pass, then attaches native progress/seed/readiness observers. Do not decode
-full WatchedItem history or read provider snapshots as a second phase of visible
-quick startup. Episode-detail progress uses cached merged membership plus current
-progress, materializing completed WatchProgress only for the requested show, off
-Main. It must not open native per-show flows, whose onStart launches independent
-tracker work. Membership changes must notify existing detail collectors.
-Observe later provider publications
-and coalesce a new reconciliation on Home, including updates received in Settings.
-These later updates are silent, not another visible startup sync. Home navigation
-alone must not mark data dirty; watch provider and local playback emissions instead.
-For beta.8 Trakt, playback readiness does not imply canonical history readiness:
-after initiating seed hydration, await ba.pc.a -> ba.jb.T within the provider
-deadline. Do not accept the initial optimistic-only seed list as complete history.
-The manual button (or an unvalidated/missing cache) uses USER_INITIATED refresh.
-Bound each provider's refresh/hydration/history reads to 45 seconds and retain the
-previous snapshot on failure. Home and Settings cancel actions must invalidate
-queued work as well as the active Job, suppress automatic restart, and allow retry.
-Provider failures must not abort subsequent services. Quick startup does not read
-providers; silent live reads have a 45-second bound and skip unready Trakt history. Manual
-history hydration is bounded to ten seconds within the overall provider deadline.
-Retain failed-source cached shows only where no successful source supplies fresh
-coverage, and report partial completion. Distinguish a native child cancellation
-with an active merge Job from user/lifecycle cancellation of the parent Job.
-Live observers must not collect full watched-model flows; live publication saves
-CW/compact membership, not full WatchedItem JSON. An all-unavailable remote pass
-must not republish a reduced snapshot or rewrite the cache. Five-second cold-read
-deadlines caused false unavailable reports on the box; do not restore them.
-Provider-only notifications must not replay local startup/cache work. Coalesce
-local-store dirtiness separately and skip unchanged snapshot writes. Live work
-must not mutate visible stage totals or refresh the terminal banner after clearing
-its live flag. Release merge-added provider observers during playback and reattach
-once on Home afterward; ordinary Home navigation does not start a sync.
+Startup sync waits for Home and the native fully-drawn reporter. Each profile gets
+one startup claim per process, including when the pass is interrupted. Only startup
+and explicit Sync now requests may read/reconcile included providers. Home visits,
+playback exit, local writes and provider notifications must not start another merge.
+Do not reattach provider observers or retry interrupted startup work on Home.
+Changing source settings does not reset the startup claim; use Sync now to refresh.
+Quick startup restores the CW cache, compact membership and the small local journal,
+then samples included trackers once without a forced provider refresh. A missing or
+unvalidated cache can use a startup refresh. Explicit Sync now uses USER_INITIATED.
+Automatic work remains Home-only; explicit menu work may run in Settings, but neither
+may run in the player. Keep failure isolation, per-provider 45-second deadlines,
+canonical Trakt history readiness, queued manual requests and both Cancel actions.
+
+For beta.8, native local preferences C/D (save/batch), A/B (remove/batch), and watched
+preferences p/q (unwatch/batch) have exact fingerprinted wrappers. Their original
+bodies, coroutine registers and exception regions are retained under patch-owned
+names. R8 pb/qb/nb/ob continuations must re-enter those bodies without being wrapped
+again. Observe successful native persistence only; failures/cancellation propagate.
+The small overlay journal writes asynchronously before the native save completes,
+resuming on its original dispatcher, and publishes visible state before disk commit.
+Never wait on the UI thread or encode the full merged cache for a playback event.
+
+Local actual progress overlays the immutable provider baseline by profile/episode.
+Detail projections are read-only; only actual playback and native membership-backed
+next-up anchors enter CW flows. A completed local record is excluded from resumable
+progress and supplied unchanged to native next-up (do not increment its episode).
+Skip remote remapping only for those local seeds, not the rest of the show/provider.
+Unmarks remove the affected episode's membership and progress; rewatches retain
+existing watched membership while exposing actual partial progress. Keep other
+providers' history intact. Native thresholds, scrobbling, main-provider-only playback
+writes and disabled behavior remain native. Do not open per-show tracker flows.
+
+Journal changes serialize only changed records in separate profile preferences.
+Coalesce pending records per episode and use one worker, not a worker per frame.
+Pending user data is neither age-expired nor arbitrarily truncated while a provider
+is stale. Retire it on a destination-provider acknowledgement or demonstrably newer
+authoritative activity, after publishing the new baseline. Reads from other included
+providers, failed sources and snapshots started before a local write cannot retire
+that write. Cached history projections and source data must not leak across profiles.
+
 The native Home CW pipeline is separate from the merge worker. For beta.8 only,
 observe xa.s3.b's assigned i1 Job, pause it on player entry and restart the native
 loader once on Home without clearing cards. Cancel only this owned Job, not the

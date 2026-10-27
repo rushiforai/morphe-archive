@@ -1,15 +1,11 @@
-# 👋🧩 Busuu patches
+# 👋🧩 Morphe patches
 
-Morphe patches for [Busuu](https://busuu.com/)
-
-## ❓ About
-
-Patches your status to premium and removes ads. Unlocks virtually every premium feature, including premium plus features This is a continuation of [boosuu](https://github.com/trimpsuz/boosuu), as morphe patches.
+Collection of my patches for [Morphe](https://morphe.software/)
 
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.1](https://github.com/Trimpsuz/morphe-busuu/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.0.1](https://github.com/Trimpsuz/morphe-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Busuu&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -30,20 +26,20 @@ Patches your status to premium and removes ads. Unlocks virtually every premium 
 
 #### How to use these patches
 
-Click here to add these patches to Morphe: https://morphe.software/add-source?github=trimpsuz/morphe-busuu
+Click here to add these patches to Morphe: https://morphe.software/add-source?github=trimpsuz/morphe-patches
 
-Or manually add this repository url as a patch source in Morphe: https://github.com/trimpsuz/morphe-busuu
+Or manually add this repository url as a patch source in Morphe: https://github.com/trimpsuz/morphe-patches
 
 ### 📙 Contributing
 
-Thank you for considering contributing to Busuu Morphe Patches.  
+Thank you for considering contributing to Morphe Patches.  
 You can find the contribution guidelines [here](CONTRIBUTING.md).
 
 ### 🛠️ Building
 
-To build Busuu Morphe Patches,
+To build Morphe Patches,
 you can follow the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation).
 
 ## 📜 License
 
-Busuu Morphe Patches are licensed under the [GNU General Public License v3.0](LICENSE)
+Morphe Patches are licensed under the [GNU General Public License v3.0](LICENSE)

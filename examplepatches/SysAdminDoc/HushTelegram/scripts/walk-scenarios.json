@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "scenarios": [
+    { "id": "launch", "kind": "launch" },
+    { "id": "visit:tg://settings", "kind": "visit", "link": "tg://settings", "account": "signed in",
+      "patches": ["Hide Premium, gifts and Stars", "Hide Telegram Features and Invite Friends"] },
+    { "id": "visit:tg://settings/privacy", "kind": "visit", "link": "tg://settings/privacy", "account": "signed in",
+      "patches": ["Hide phone number"] },
+    { "id": "visit:tg://settings/folders", "kind": "visit", "link": "tg://settings/folders", "account": "signed in",
+      "patches": ["Folders by chat type", "Hide folder tab counters"] },
+    { "id": "visit:tg://settings/themes", "kind": "visit", "link": "tg://settings/themes", "account": "signed in",
+      "patches": ["AMOLED black", "Holiday look all year", "Use system font"] },
+    { "id": "visit:tg://resolve?domain=telegram", "kind": "visit", "link": "tg://resolve?domain=telegram", "account": "signed in",
+      "patches": ["Hide channel bar buttons", "Disable pull to next channel", "Hide recommendations"] },
+    { "id": "settings:home", "kind": "settings-home", "patches": ["HushTelegram settings"] },
+    { "id": "section:Ads", "kind": "section", "page": "Ads", "patches": ["HushTelegram settings"] },
+    { "id": "section:Chat list", "kind": "section", "page": "Chat list", "patches": ["HushTelegram settings"] },
+    { "id": "section:Conversations", "kind": "section", "page": "Conversations", "patches": ["HushTelegram settings"] },
+    { "id": "section:Playback", "kind": "section", "page": "Playback", "patches": ["HushTelegram settings"] },
+    { "id": "section:Notifications", "kind": "section", "page": "Notifications", "patches": ["HushTelegram settings"] },
+    { "id": "section:Look and feel", "kind": "section", "page": "Look and feel", "patches": ["HushTelegram settings"] },
+    { "id": "section:Privacy", "kind": "section", "page": "Privacy", "patches": ["HushTelegram settings"] },
+    { "id": "section:Links", "kind": "section", "page": "Links", "patches": ["HushTelegram settings"] },
+    { "id": "section:Updates", "kind": "section", "page": "Updates", "patches": ["HushTelegram settings"] },
+    { "id": "section:Pause", "kind": "section", "page": "Pause", "patches": ["HushTelegram settings"] },
+    { "id": "section:Settings backup", "kind": "section", "page": "Settings backup", "patches": ["HushTelegram settings"] },
+    { "id": "section:Diagnostics", "kind": "section", "page": "Diagnostics", "patches": ["HushTelegram settings"] },
+    { "id": "section:About", "kind": "section", "page": "About", "patches": ["HushTelegram settings"] },
+    { "id": "settings:Changed switches", "kind": "settings", "page": "Changed switches", "patches": ["HushTelegram settings"] }
+  ]
+}

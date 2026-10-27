@@ -3,6 +3,12 @@
 Technical notes for every patch: how each target is found, what is changed, and what has been verified.
 The Twitch user guide is in Japanese in [twitch.md](twitch.md); its matching rules are in [twitch-maintenance.md](twitch-maintenance.md).
 
+Supported versions are kept short. Each app supports its newest version and the one before
+it. YouTube and Reddit instead support the official Morphe patches' stable and newest targets
+plus the newest store version, so both bundles apply to the same APK. Twitch also keeps 30.7.2,
+the last version for Android 12 and older. A version leaves the list once newer ones are
+verified. The verification notes below also record versions that are no longer supported.
+
 ## SmartNews
 
 `SmartNews cleanup` disables stable ad remote-config and server-insertion flags,
@@ -190,7 +196,10 @@ route led to onboarding and an authentication sheet; no guest route or public
 posts were visible. Reviewed screenshots and process logs showed no fatal
 crash or callback/request loop symptoms. Patched DEX inspection confirmed
 real post and comment translation callbacks. Translated content rendering
-remains unverified behind this authentication gate.
+remains unverified behind this authentication gate. `2026.24.0[2624051]`, the official Morphe
+patches' stable target, passed the same checks; its patched DEX has the same ten translation
+call sites as 2026.42.0 (four post, two comment, one accessibility comment, two post detail and
+the extension's own queue).
 
 Reddit fingerprints use stable translation state/event descriptors. Obfuscated
 callback classes, model classes, field names, and synthetic-lambda selector
@@ -268,7 +277,8 @@ video is paused or buffering and between sparse comments.
 
 Verification: for every added YouTube version a public replay is opened on the API 36
 emulator and the danmaku overlay must attach, fetch comments and draw them. 21.40.165,
-21.40.166, 21.41.526, 21.41.529 and 21.42.243 passed this check. The emulator build needs a test-only startup shim that is applied
+21.40.166, 21.41.526, 21.41.529, 21.42.243, and the official Morphe targets 21.20.405 and
+21.42.241 passed this check, the last two also with the watch page tinted by ambient light. The emulator build needs a test-only startup shim that is applied
 after patching and never enters the MPP.
 
 ## Pinterest

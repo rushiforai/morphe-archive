@@ -61,7 +61,7 @@ public final class ClipboardSyncService extends Service {
     private final ExecutorService clipboardPublishExecutor = Executors.newSingleThreadExecutor();
 
     public static void startOrUpdate(Context context) {
-        if (context == null) {
+        if (context == null || !WebClipboardLocalNetworkPermission.isGranted(context)) {
             return;
         }
         Context appContext = context.getApplicationContext() != null
@@ -256,6 +256,11 @@ public final class ClipboardSyncService extends Service {
                 + ", currentPairingCode=" + summarizePairingCode(currentPairingCode)
                 + ", currentLoopbackToken=" + summarizeLoopbackToken(currentLoopbackIngressToken)
                 + ", needsRestart=" + needsRestart);
+        if (!WebClipboardLocalNetworkPermission.isGranted(this)) {
+            stopWebPortal();
+            WebClipboardTileController.markRuntimeActive(this,false);
+            stopSelf();return;
+        }
         if (!enabled) {
             Log.i(TAG, LOG_PREFIX + " refresh portal stopping because feature disabled");
             stopWebPortal();

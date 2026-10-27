@@ -10,8 +10,10 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Map;
+import java.util.Objects;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.tiktok.SignedInUser;
 import app.morphe.extension.tiktok.settings.Settings;
 
 /**
@@ -36,9 +38,12 @@ import app.morphe.extension.tiktok.settings.Settings;
 public final class StoryOverLive {
     private static final String LIVE = "LIVE";
     private static final String STORY = "STORY";
+    static final String BINDING_UID_METHOD = "getUid";
 
     /** The picture the last Story opened from, so the next tap there goes to the LIVE. */
     private static WeakReference<View> storyOpenedFrom = new WeakReference<>(null);
+    private static String storyOpenedFor;
+    private static String storyOpenedBy;
 
     private StoryOverLive() {}
 
@@ -51,7 +56,7 @@ public final class StoryOverLive {
             if (!Settings.OPEN_STORY_OVER_LIVE.get() || business == null || avatar == null) {
                 return false;
             }
-            return open(business, avatar, holds(business, LIVE));
+            return open(business, avatar, holds(business, LIVE), null, null);
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not open the Story from the profile picture", ex);
             return false;
@@ -66,25 +71,49 @@ public final class StoryOverLive {
      */
     public static boolean openChatStory(View avatar) {
         try {
-            if (!Settings.OPEN_STORY_OVER_LIVE.get() || avatar == null) return false;
+            if (!Settings.OPEN_STORY_OVER_LIVE.get() || avatar == null) {
+                reset();
+                return false;
+            }
+            String uid = boundUid(avatar);
+            String account = SignedInUser.id();
+            if (uid == null || account == null) {
+                reset();
+                return false;
+            }
+            if (storyOpenedFrom.get() != avatar || !Objects.equals(storyOpenedFor, uid) ||
+                    !Objects.equals(storyOpenedBy, account)) {
+                reset();
+            }
             Map<?, ?> business = business(avatar);
-            return business != null && open(business, avatar, true);
+            return business != null && open(business, avatar, true, uid, account);
         } catch (Throwable ex) {
+            reset();
             Logger.printException(() -> "Could not open the Story from the Inbox", ex);
             return false;
         }
     }
 
-    private static boolean open(Map<?, ?> business, View avatar, boolean live) throws IllegalAccessException {
-        boolean secondTap = storyOpenedFrom.get() == avatar;
+    private static boolean open(Map<?, ?> business, View avatar, boolean live,
+                                String uid, String account) throws IllegalAccessException {
+        boolean secondTap = storyOpenedFrom.get() == avatar &&
+                Objects.equals(storyOpenedFor, uid) && Objects.equals(storyOpenedBy, account);
         View.OnClickListener opener = storyOpener(business);
         if (!storyFirst(live, opener != null, secondTap)) {
-            if (secondTap) storyOpenedFrom = new WeakReference<>(null);
+            if (secondTap) reset();
             return false;
         }
         opener.onClick(avatar);
         storyOpenedFrom = new WeakReference<>(avatar);
+        storyOpenedFor = uid;
+        storyOpenedBy = account;
         return true;
+    }
+
+    /** The UID assigned when TikTok binds this retained Inbox picture to a chat row. */
+    static String boundUid(View avatar) throws ReflectiveOperationException {
+        Object uid = avatar.getClass().getMethod(BINDING_UID_METHOD).invoke(avatar);
+        return uid instanceof String && !((String) uid).isEmpty() ? (String) uid : null;
     }
 
     /** The picture's map of what it shows, from AvatarComponentView's getCurrentActiveBusiness. */
@@ -105,6 +134,8 @@ public final class StoryOverLive {
     /** Forgets the picture the last Story opened from. */
     static void reset() {
         storyOpenedFrom = new WeakReference<>(null);
+        storyOpenedFor = null;
+        storyOpenedBy = null;
     }
 
     /** Whether the map has an entry under the enum constant with this name. */

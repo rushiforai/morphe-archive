@@ -21,6 +21,7 @@ class KeptBucketTypeFixtureTest {
     private val types = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
             "arm64-v8a" to "LX/2Cd;",
+            "armeabi-v7a" to "LX/2Cd;",
         ),
     )
 

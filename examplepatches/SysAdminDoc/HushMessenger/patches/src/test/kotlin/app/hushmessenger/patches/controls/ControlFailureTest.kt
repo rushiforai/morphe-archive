@@ -122,7 +122,6 @@ class ControlFailureTest {
         val record = menuSettingsPatch.dependencies.filterIsInstance<ResourcePatch>().single()
         val discovery = menuSettingsPatch.dependencies.filterIsInstance<BytecodePatch>().single()
         try {
-            assertEquals(1, controlProfiles.values.distinct().size)
             for ((group, profile) in controlProfiles.values.distinct().withIndex()) {
                 activeProfile = profile
                 val ids = profile.hooks.getValue("menu_settings")

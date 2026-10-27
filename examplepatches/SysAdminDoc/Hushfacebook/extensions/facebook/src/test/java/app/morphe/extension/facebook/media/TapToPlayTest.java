@@ -372,6 +372,32 @@ public class TapToPlayTest {
         assertFalse("a link while paused", byUserPlays());
     }
 
+    /** Named like Facebook's fullscreen player, which the rule knows by its simple name. */
+    public static final class FullscreenVideoPlayerActivity extends Activity { }
+
+    /**
+     * #242: a video in a comment opens Facebook's fullscreen player from a sheet whose taps the tap
+     * clock never hears, the last tap it saw seconds old, and the player starts it with BY_USER.
+     * Held, it sat paused until Facebook was left and opened again. Opening fresh, that player lets
+     * its first BY_USER start through, once, and only while the switch is on.
+     */
+    @Test
+    public void facebooksFullscreenPlayerPlaysTheVideoItOpenedFor() {
+        tapAt(SystemClock.uptimeMillis() - 3_189);
+        assertFalse("the control: a BY_USER start seconds after the last tap", byUserPlays());
+        TapToPlay.activityCreated(Robolectric.buildActivity(FullscreenVideoPlayerActivity.class).create().get(), null);
+        assertTrue("the video the fullscreen player opened for", byUserPlays());
+        assertFalse("once", byUserPlays());
+        TapToPlay.activityCreated(Robolectric.buildActivity(FullscreenVideoPlayerActivity.class).create().get(), new Bundle());
+        assertFalse("the player brought back, not opened", byUserPlays());
+        Settings.TAP_TO_PLAY.save(false);
+        TapToPlay.activityCreated(Robolectric.buildActivity(FullscreenVideoPlayerActivity.class).create().get(), null);
+        Settings.TAP_TO_PLAY.save(true);
+        assertFalse("opened while the switch was off", byUserPlays());
+        TapToPlay.activityCreated(screen(new Intent(Intent.ACTION_MAIN)), null);
+        assertFalse("any other screen", byUserPlays());
+    }
+
     @Test
     public void aStartWithinASecondOfATapGoesAhead() {
         long now = 100_000;

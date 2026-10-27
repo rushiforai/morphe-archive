@@ -14,6 +14,7 @@
     if (features.voice) selectModules([1295, 7752, 7755]);
     if (features.copyBios) targetModules[10615] = 1;
     if (features.dashless) selectModules([2065, 5421, 5412, 7365]);
+    if (features.cleanChannels) selectModules([2065, 5421, 5412, 7365]);
     if (features.favouriteAnything) selectModules([13066, 9732, 9735]);
     if (features.freeNitro) selectModules([1390, 2065, 5987, 6030, 4769, 14299, 7047, 7174]);
     if (features.noTyping) targetModules[11668] = 1;
@@ -42,12 +43,16 @@
     if (features.appIcons) selectModules([1390, 4769, 9464, 14299, 15831, 15832, 17697, 18051]);
     if (features.nitroThemes) selectModules([584, 1390, 2046, 4769, 4937, 14299, 15566]);
     if (features.customThemes) selectModules([589, 590, 591, 1205, 4831, 11191, 10368]);
+    if (features.materialYou) selectModules([589, 590, 591, 1205, 4831, 11191]);
     if (features.iconPacks) selectModules([81, 84, 328, 1205, 4817, 4831, 11191]);
     if (features.messageHighlight) selectModules([584, 1390, 5432, 7742]);
     if (features.serverInfo) selectModules([1390, 16748]);
     if (features.fixEmbeds) selectModules([1390, 7174]);
     if (features.tenorGifs) selectModules([1295, 9733]);
-    const revision = "1.18.0";
+    if (features.hideBlocked) selectModules([4760, 5432, 7308, 11624]);
+    if (features.bulkDelete) selectModules([584, 1085, 1390, 2065, 2116, 4750, 5432, 7174, 7742, 9675, 10368, 10694]);
+    if (features.experiments) selectModules([584, 1390, 1401]);
+    const revision = "1.19.0";
     // The Discord build these patches are pinned to (DiscordPatches.kt compatibleWith); shown on the About page.
     const DISCORD_VERSION = "350.8";
     // Module 120 owns setUpDefaltReactNativeEnvironment in this exact asset.
@@ -60,15 +65,15 @@
         noTyping: false, quickDelete: false, noDelete: false, noDeleteSave: false, noDeleteLimit: 512, noDeleteEdits: true, noDeleteColor: "default", noDeleteBrightness: 50,
         jumpToTop: false, hiddenChannels: false, hiddenChannelsMenu: true, pastelize:false, pastelAll:false, pastelContent:false, platformIndicators:false, piDmHeader:true, piUserList:true, piProfile:true, piHideMobile:true, reviewDB:false, reviewWarning:true, readAll:false, readAllMode:"guilds",
         quests:false, questsVideo:true, questsPlay:true, questsActivity:true, questsEnroll:true,
-        badges:false, badgesGameTime:true, badgesUniqueGames:true, badgesCycleMinutes:15, badgesGamesAtOnce:2, systemFont:false,
-        hideGift:false, hideQuestDock:false, hideButtons:false, hideButtonsQuests:true, hideButtonsShop:true, hideButtonsNitro:true, hideButtonsApps:true, hideButtonsPolls:false, hideButtonsPhotos:false, systemEmoji:false, gestures:false, gestureOwn:"edit", gestureTripleDelete:true, hideCall:false,
+        badges:false, badgesGameTime:true, badgesUniqueGames:true, badgesCycleMinutes:15, badgesGamesAtOnce:2, systemFont:false, systemFontSource:"phone",
+        hideGift:false, hideQuestDock:false, hideButtons:false, hideButtonsQuests:true, hideButtonsShop:true, hideButtonsNitro:true, hideButtonsApps:true, hideButtonsPolls:false, hideButtonsPhotos:false, systemEmoji:false, systemEmojiSource:"phone", gestures:false, gestureOwn:"edit", gestureTripleDelete:true, hideCall:false,
         validUser:false, youBarSettings:false, splitMessages:false,
         translate:false, translateTarget:"discord", translateLanguage:"en", translateMode:"auto", translateAsk:"both", translateNote:true, translateOriginal:false,
         userNotif:false, userNotifFriends:true, userNotifStatus:true, userNotifMessages:true, userNotifTyping:true, userNotifPush:false,
-        accountSwitcher:false, accountSwitcherYouBar:true, appIcons:false, nitroThemes:false, customThemes:false, customThemesBackground:true,
+        accountSwitcher:false, accountSwitcherYouBar:true, appIcons:false, nitroThemes:false, customThemes:false, customThemesBackground:true, materialYou:false, materialYouColor:"wallpaper", materialYouTint:"balanced",
         iconPacks:false, iconPacksTheme:true,
         messageHighlight:false, messageHighlightThickness:2, messageHighlightBrightness:50, messageHighlightPingColor:"default", serverInfo:false, serverInfoFriends:true,
-        fixEmbeds:false, fixEmbedsSites:"", fixEmbedsClean:true, tenorGifs:false, tenorGifsSource:"both", language:"auto" };
+        fixEmbeds:false, fixEmbedsSites:"", fixEmbedsClean:true, fixEmbedsDark:true, tenorGifs:false, tenorGifsSource:"both", hideBlocked:false, hideBlockedBlocked:true, hideBlockedIgnored:true, hideBlockedReplies:false, bulkDelete:false, bulkDeleteConfirm:true, bulkDeleteIncludeCached:true, experiments:false, noHandsfree:false, cleanChannels:false, cleanChannelsEmoji:true, cleanChannelsSymbols:true, cleanChannelsFonts:true, language:"auto" };
     // The settings every feature starts from, for Reset to defaults on the Backup page.
     let DEFAULT_SETTINGS = null;
     function defaultSettings() {
@@ -77,15 +82,15 @@
             noTyping: false, quickDelete: false, noDelete: false, noDeleteSave: false, noDeleteLimit: 512, noDeleteEdits: true, noDeleteColor: "default", noDeleteBrightness: 50,
             jumpToTop: false, hiddenChannels: false, hiddenChannelsMenu: true, pastelize: false, pastelAll: false, pastelContent: false, platformIndicators: false, piDmHeader: true, piUserList: true, piProfile: true, piHideMobile: true, reviewDB: false, reviewWarning: true, readAll: false, readAllMode: "guilds",
             quests: false, questsVideo: true, questsPlay: true, questsActivity: true, questsEnroll: true,
-            badges: false, badgesGameTime: true, badgesUniqueGames: true, badgesCycleMinutes: 15, badgesGamesAtOnce: 2, systemFont: false,
-            hideGift: false, hideQuestDock: false, hideButtons: false, hideButtonsQuests: true, hideButtonsShop: true, hideButtonsNitro: true, hideButtonsApps: true, hideButtonsPolls: false, hideButtonsPhotos: false, systemEmoji: false, gestures: false, gestureOwn: "edit", gestureTripleDelete: true, hideCall: false,
+            badges: false, badgesGameTime: true, badgesUniqueGames: true, badgesCycleMinutes: 15, badgesGamesAtOnce: 2, systemFont: false, systemFontSource: "phone",
+            hideGift: false, hideQuestDock: false, hideButtons: false, hideButtonsQuests: true, hideButtonsShop: true, hideButtonsNitro: true, hideButtonsApps: true, hideButtonsPolls: false, hideButtonsPhotos: false, systemEmoji: false, systemEmojiSource: "phone", gestures: false, gestureOwn: "edit", gestureTripleDelete: true, hideCall: false,
             validUser: false, youBarSettings: false, splitMessages: false,
             translate: false, translateTarget: "discord", translateLanguage: "en", translateMode: "auto", translateAsk: "both", translateNote: true, translateOriginal: false,
             userNotif: false, userNotifFriends: true, userNotifStatus: true, userNotifMessages: true, userNotifTyping: true, userNotifPush: false,
-            accountSwitcher: false, accountSwitcherYouBar: true, appIcons: false, nitroThemes: false, customThemes: false, customThemesBackground: true,
+            accountSwitcher: false, accountSwitcherYouBar: true, appIcons: false, nitroThemes: false, customThemes: false, customThemesBackground: true, materialYou: false, materialYouColor: "wallpaper", materialYouTint: "balanced",
             iconPacks: false, iconPacksTheme: true,
             messageHighlight: false, messageHighlightThickness: 2, messageHighlightBrightness: 50, messageHighlightPingColor: "default", serverInfo: false, serverInfoFriends: true,
-            fixEmbeds: false, fixEmbedsSites: "", fixEmbedsClean: true, tenorGifs: false, tenorGifsSource: "both", language: "auto"
+            fixEmbeds: false, fixEmbedsSites: "", fixEmbedsClean: true, fixEmbedsDark: true, tenorGifs: false, tenorGifsSource: "both", hideBlocked: false, hideBlockedBlocked: true, hideBlockedIgnored: true, hideBlockedReplies: false, bulkDelete: false, bulkDeleteConfirm: true, bulkDeleteIncludeCached: true, experiments: false, noHandsfree: false, cleanChannels: false, cleanChannelsEmoji: true, cleanChannelsSymbols: true, cleanChannelsFonts: true, language: "auto"
         }));
     }
     // Backup and restore (#68): when you last saved a backup, and whether a restore is being applied right now.
@@ -149,6 +154,8 @@
     const TRANSLATE_ASKS = ["both", "bar", "menu"];
     // Where the GIF picker's GIFs come from with Bring back Tenor GIFs on: Tenor first with Discord's own mixed in, or only Tenor.
     const TENOR_SOURCES = ["both", "tenor"];
+    // Where Use your phone's font / emojis get their look: the phone's own, or a font file you imported.
+    const FONT_SOURCES = ["phone", "file"];
     // Left bar thickness multiplier (1x = 2dp default, 2x = 4dp, 3x = 6dp, 4x = 8dp) and highlight color presets (#60).
     const HIGHLIGHT_THICKNESSES = [1, 2, 3, 4];
     // How strongly a highlighted row is tinted behind its text, 0 to 100 %. 50 is Discord's own tint (alpha 1a, about
@@ -297,6 +304,8 @@
     let fontInUse = false;
     // Emojis are the same: the native side reads the saved setting once at launch, and so does this.
     let emojiInUse = false;
+    // Which look each one started with: the phone's, or the imported file (the native side reads the same settings).
+    let fontSourceInUse = "phone", emojiSourceInUse = "phone";
     function settingsSnapshot() {
         const extra = {};
         if (features.reviewDB && reviewToken && reviewAccount) extra.reviewAuth = {account:reviewAccount, token:reviewToken};
@@ -307,6 +316,7 @@
         else if (features.badges && badges.legacyGrant) extra.badgesGrant = badges.legacyGrant;
         if (backup.last) extra.lastBackup = backup.last;
         if (starter.done) extra.setupDone = true;
+        if (features.materialYou && materialYou.system) extra.materialYouSystem = materialYou.system;
         if (features.nitroThemes && nitroTheme.preset != null) extra.nitroTheme = {preset:nitroTheme.preset, theme:nitroTheme.theme};
         return JSON.stringify(Object.keys(extra).length ? Object.assign({}, settings, extra) : settings);
     }
@@ -345,6 +355,7 @@
         if (!owns(settings, key) || typeof value !== typeof settings[key]) return undefined;
         if (key === "readAllMode" && !READ_ALL_MODES.includes(value) || key === "gestureOwn" && !GESTURE_OWN_MODES.includes(value) ||
             key === "translateTarget" && !TRANSLATE_TARGETS.includes(value) || key === "translateLanguage" && !TRANSLATE_LANGUAGES.includes(value) || key === "translateMode" && !TRANSLATE_MODES.includes(value) || key === "translateAsk" && !TRANSLATE_ASKS.includes(value) || key === "tenorGifsSource" && !TENOR_SOURCES.includes(value) ||
+            (key === "systemFontSource" || key === "systemEmojiSource") && !FONT_SOURCES.includes(value) ||
             key === "messageHighlightThickness" && !HIGHLIGHT_THICKNESSES.includes(value) || key === "language" && !isLanguage(value)) return undefined;
         if (key === "messageHighlightPingColor" || key === "noDeleteColor") return isHighlightColor(value) ? normalizeHighlightColor(value) : undefined;
         if (key === "messageHighlightBrightness" || key === "noDeleteBrightness") return brightness(value);
@@ -352,6 +363,8 @@
         if (key === "badgesCycleMinutes") return badgeCycleMinutes(value);
         if (key === "badgesGamesAtOnce") return badgeAtOnce(value);
         if (key === "fixEmbedsSites") return fixSitesText(value);
+        if (key === "materialYouColor") return myIsColor(value) ? value.toLowerCase() : undefined;
+        if (key === "materialYouTint") return MY_TINTS.includes(value) ? value : undefined;
         return typeof value === "number" && !Number.isFinite(value) ? undefined : value;
     }
     function setSetting(key, value) {
@@ -377,6 +390,16 @@
             if (settings[key] === value && status.storage !== "loading" && status.storage !== "waiting") return true;
             settings[key] = value; dirty.add(key); save(); notify(key); translateChanged(); return true;
         }
+        if (key === "systemFontSource" || key === "systemEmojiSource") {
+            if (!FONT_SOURCES.includes(value)) return false;
+            if (settings[key] === value && status.storage !== "loading" && status.storage !== "waiting") return true;
+            settings[key] = value; dirty.add(key); save(); notify(key);
+            // Like the main switch, a new source applies from the next start: ask to reopen when it differs from what's drawn.
+            const font = key === "systemFontSource";
+            if (features[font ? "systemFont" : "systemEmoji"] && settings[font ? "systemFont" : "systemEmoji"] && !backup.restoring &&
+                status.storage !== "loading" && status.storage !== "waiting" && value !== (font ? fontSourceInUse : emojiSourceInUse)) later(() => askRestart(font ? "font" : "emoji"), 0);
+            return true;
+        }
         if (key === "tenorGifsSource") {
             if (!TENOR_SOURCES.includes(value)) return false;
             if (settings.tenorGifsSource === value && status.storage !== "loading" && status.storage !== "waiting") return true;
@@ -387,6 +410,15 @@
             if (clean === undefined) return false;
             if (settings.fixEmbedsSites === clean && status.storage !== "loading" && status.storage !== "waiting") return true;
             settings.fixEmbedsSites = clean; dirty.add(key); save(); notify(key); return true;
+        }
+        if (key === "materialYouColor" || key === "materialYouTint") {
+            if (key === "materialYouColor" ? !myIsColor(value) : !MY_TINTS.includes(value)) return false;
+            const clean = key === "materialYouColor" ? value.toLowerCase() : value;
+            if (settings[key] === clean && status.storage !== "loading" && status.storage !== "waiting") return true;
+            // notify(key) already wakes everything listening to materialYou (featureFor), so the page draws once.
+            settings[key] = clean; dirty.add(key); save(); notify(key);
+            if (clean === "wallpaper" && enabled("materialYou")) myReadSystem();
+            customThemesApply(); return true;
         }
         if (key === "noDeleteLimit") {
             const limit = deleteLimit(value);
@@ -443,7 +475,7 @@
         // it used to write an empty file, so turning it back on lost every saved message.
         if (key === "noDelete" && !value) { clearDeleted(true, settings.noDeleteSave); archiveRestored = false; }
         if (key === "hiddenChannels") {hiddenViews.clear();}
-        if ((key === "dashless" || key === "hiddenChannels") && channelStore && typeof channelStore.emitChange === "function")
+        if ((key === "dashless" || key === "hiddenChannels" || featureFor(key) === "cleanChannels") && channelStore && typeof channelStore.emitChange === "function")
             try { channelStore.emitChange(); } catch (_) {}
         if (key === "gestures" && !value && features.gestures) gestureCancel();
         if (key === "splitMessages" && !value && features.splitMessages) split.generation++;
@@ -470,9 +502,14 @@
         if (features.customThemes && key === "customThemes") { if (value) customThemesRestore(); customThemesApply(); if (features.iconPacks) iconPacksApply(); }
         if (features.customThemes && key === "customThemesBackground") customThemesApply();
         if (features.nitroThemes && key === "nitroThemes" && !value) nitroThemeTurnedOff();
+        if (features.materialYou && key === "materialYou") { if (value) myStart(); customThemesApply(); if (features.iconPacks) iconPacksApply(); }
         if (features.iconPacks && key === "iconPacks") { if (value) iconPacksRestore(); iconPacksApply(); }
         if (features.iconPacks && key === "iconPacksTheme") iconPacksApply();
         if (features.messageHighlight && key === "messageHighlight") later(messageHighlightRedraw, 0);
+        if (features.hideBlocked && featureFor(key) === "hideBlocked") hideBlockedChanged();
+        if (features.bulkDelete && key === "bulkDelete" && !value) bulkDeleteCancel();
+        if (features.bulkDelete && key === "bulkDeleteIncludeCached" && bulkDelete.active) bulkDeleteRedrawChannel(bulkDelete.channelId);
+        if (features.experiments && key === "experiments") { if (value) experimentsEnable(); else if (experiments.unlocked && !backup.restoring) later(experimentsAskReopen, 0); }
         if (features.quests || features.badges || features.userNotif) backgroundSync();
         return true;
     }
@@ -501,6 +538,10 @@
                 }
                 if (typeof loaded.lastBackup === "number" && Number.isFinite(loaded.lastBackup) && !backup.last) backup.last = loaded.lastBackup;
                 if (loaded.setupDone === true) starter.done = true;
+                const savedPalette = loaded.materialYouSystem;
+                if (features.materialYou && !materialYou.system && savedPalette && typeof savedPalette === "object" &&
+                    ["accent1", "accent2", "accent3", "neutral1", "neutral2"].every(k => Array.isArray(savedPalette[k]) && savedPalette[k].length === 13 && savedPalette[k].every(v => /^#[0-9a-f]{6}$/i.test(v))))
+                    materialYou.system = savedPalette;
                 const savedTheme = loaded.nitroTheme;
                 if (features.nitroThemes && nitroTheme.preset == null && savedTheme && typeof savedTheme === "object" && typeof savedTheme.preset === "number" &&
                     Number.isInteger(savedTheme.preset) && savedTheme.preset >= 0 && savedTheme.preset < 1000) {
@@ -529,6 +570,7 @@
             if (features.nitroThemes && nitroTheme.preset != null) later(nitroThemeReapply, 0);
             if (!starter.done && Object.keys(FEATURE_ICONS).some(key => features[key] && settings[key])) starter.done = true;
             fontInUse = settings.systemFont;
+            fontSourceInUse = settings.systemFontSource; emojiSourceInUse = settings.systemEmojiSource;
             emojiInUse = settings.systemEmoji;
             if (!enabled("picker")) clearSizes();
             // Persist edits made while the asynchronous restore was in flight.
@@ -542,7 +584,10 @@
             }
             if (features.accountSwitcher) accountSwitcherSync();
             if (features.customThemes && enabled("customThemes")) customThemesRestore();
+            if (features.materialYou && enabled("materialYou")) { myStart(); customThemesApply(); }
             if (features.iconPacks && enabled("iconPacks")) iconPacksRestore();
+            if (features.hideBlocked && enabled("hideBlocked")) hideBlockedChanged();
+            if (features.experiments && enabled("experiments")) experimentsEnable();
             if (features.quests || features.badges || features.userNotif) backgroundSync();
             // Saved translations are read as soon as Discord starts, so the first chat you open already has them.
             if (enabled("translate")) translateRestore();
@@ -855,7 +900,7 @@
     const featureFor = key => {
         const cached = featureTable[key];
         if (cached !== undefined) return cached;
-        return featureTable[key] = key === "reviewWarning" ? "reviewDB" : key === "emojis" || key === "stickers" || key === "hyperlinks" ? "freeNitro" : key === "noDeleteSave" || key === "noDeleteLimit" || key === "noDeleteEdits" || key === "noDeleteColor" || key === "noDeleteBrightness" ? "noDelete" : /^pi[A-Z]/.test(key) ? "platformIndicators" : key === "pastelAll" || key === "pastelContent" ? "pastelize" : key === "readAllMode" ? "readAll" : /^quests[A-Z]/.test(key) ? "quests" : /^badges[A-Z]/.test(key) ? "badges" : /^gesture[A-Z]/.test(key) ? "gestures" : /^translate[A-Z]/.test(key) ? "translate" : /^userNotif[A-Z]/.test(key) ? "userNotif" : /^accountSwitcher[A-Z]/.test(key) ? "accountSwitcher" : /^hiddenChannels[A-Z]/.test(key) ? "hiddenChannels" : /^customThemes[A-Z]/.test(key) ? "customThemes" : /^iconPacks[A-Z]/.test(key) ? "iconPacks" : /^messageHighlight[A-Z]/.test(key) ? "messageHighlight" : /^serverInfo[A-Z]/.test(key) ? "serverInfo" : /^fixEmbeds[A-Z]/.test(key) ? "fixEmbeds" : /^tenorGifs[A-Z]/.test(key) ? "tenorGifs" : /^hideButtons[A-Z]/.test(key) ? "hideButtons" : key;
+        return featureTable[key] = key === "reviewWarning" ? "reviewDB" : key === "emojis" || key === "stickers" || key === "hyperlinks" ? "freeNitro" : key === "noDeleteSave" || key === "noDeleteLimit" || key === "noDeleteEdits" || key === "noDeleteColor" || key === "noDeleteBrightness" ? "noDelete" : /^pi[A-Z]/.test(key) ? "platformIndicators" : key === "pastelAll" || key === "pastelContent" ? "pastelize" : key === "readAllMode" ? "readAll" : /^quests[A-Z]/.test(key) ? "quests" : /^badges[A-Z]/.test(key) ? "badges" : /^gesture[A-Z]/.test(key) ? "gestures" : /^translate[A-Z]/.test(key) ? "translate" : /^userNotif[A-Z]/.test(key) ? "userNotif" : /^accountSwitcher[A-Z]/.test(key) ? "accountSwitcher" : /^hiddenChannels[A-Z]/.test(key) ? "hiddenChannels" : /^customThemes[A-Z]/.test(key) ? "customThemes" : /^materialYou[A-Z]/.test(key) ? "materialYou" : /^iconPacks[A-Z]/.test(key) ? "iconPacks" : /^messageHighlight[A-Z]/.test(key) ? "messageHighlight" : /^serverInfo[A-Z]/.test(key) ? "serverInfo" : /^fixEmbeds[A-Z]/.test(key) ? "fixEmbeds" : /^tenorGifs[A-Z]/.test(key) ? "tenorGifs" : /^hideButtons[A-Z]/.test(key) ? "hideButtons" : /^hideBlocked[A-Z]/.test(key) ? "hideBlocked" : /^bulkDelete[A-Z]/.test(key) ? "bulkDelete" : key === "systemFontSource" ? "systemFont" : key === "systemEmojiSource" ? "systemEmoji" : /^cleanChannels[A-Z]/.test(key) ? "cleanChannels" : key;
     };
     // Section titles are read whenever Discord draws the list, so they follow the language too. "Venus" is a name.
     function section(label, keys) {
@@ -890,7 +935,7 @@
         hiddenChannels:[8218, "LockIcon"], dashless:[15892, "HashmarkIcon"], systemFont:[15974, "LettersIcon"], systemEmoji:[12901, "ChatSmileIcon"],
         hideGift:[11540, "GiftIcon"], hideCall:[9317, "PhoneCallIcon"], youBarSettings:[7092, "SettingsIcon"], quests:[13012, "QuestsIcon"],
         badges:[8921, "TrophyIcon"], hideQuestDock:[6650, "EyeSlashIcon"], userNotif:[8768, "BellIcon"], accountSwitcher:[8212, "GroupIcon"], appIcons:[8229, "AppsIcon"],
-        customThemes:[15652, "EyeDropperIcon"], iconPacks:[11063, "ImageSparkleIcon"], messageHighlight:[16947, "PaintbrushThinIcon"], serverInfo:[5046, "CircleInformationIcon"], fixEmbeds:[12910, "EmbedIcon"], tenorGifs:[9748, "GifIcon"], hideButtons:[15612, "CircleMinusIcon"], nitroThemes:[17143, "SparklesIcon"]};
+        customThemes:[15652, "EyeDropperIcon"], iconPacks:[11063, "ImageSparkleIcon"], messageHighlight:[16947, "PaintbrushThinIcon"], serverInfo:[5046, "CircleInformationIcon"], fixEmbeds:[12910, "EmbedIcon"], tenorGifs:[9748, "GifIcon"], hideButtons:[15612, "CircleMinusIcon"], nitroThemes:[17143, "SparklesIcon"], materialYou:[15560, "PaintPaletteIcon"], hideBlocked:[17072, "ChatShieldIcon"], bulkDelete:[6868, "CircleCheckIcon"], experiments:[15894, "BeakerIcon"], cleanChannels:[12605, "MagicWandIcon"], noHandsfree:[12271, "HeadphonesIcon"]};
     const venusIcons = new Map();
     function venusIcon(id, name, fallback) {
         const slot = id + ":" + name;
@@ -922,13 +967,19 @@
     }
     // Features list search (#68): every row is found by its title, its description, its page's title, its group and the
     // names of the options on its page, in the language Venus is shown in and in English, ignoring case and accents.
-    const FEATURE_KEYWORDS = {hideButtons:["Quests", "Shop", "Nitro", "Apps", "Polls", "Photos"], noDelete:["Show edit history", "Keep after restarting", "Color", "Brightness", "Keep up to"], translate:["Show the original language", "Show the original text", "Another language", "How you ask", "Top bar", "Message menu"],
+    const FEATURE_KEYWORDS = {systemFont:["Import a font", "Font file"], systemEmoji:["Import an emoji font", "Emoji font"], hideButtons:["Quests", "Shop", "Nitro", "Apps", "Polls", "Photos"], noDelete:["Show edit history", "Keep after restarting", "Color", "Brightness", "Keep up to"], translate:["Show the original language", "Show the original text", "Another language", "How you ask", "Top bar", "Message menu"],
         freeNitro:["Emojis", "Stickers", "Short links"], pastelize:["Replace role colors", "Color message text"],
         platformIndicators:["In DMs", "In lists", "On profiles", "Hide the phone badge"], reviewDB:["Show the be-respectful note"],
         userNotif:["Change status", "Start typing", "Send a message", "Phone notifications"], accountSwitcher:["Button on the profile bar", "Create a new account"],
         hiddenChannels:["Show its details"], serverInfo:["Look up friends in the server", "Boosts", "Owner", "Server ID"], customThemes:["Show theme background image", "Browse Revenge themes"],
         messageHighlight:["Brightness", "Left bar width"], iconPacks:["Rosiecord", "Plumpy", "Iconsax", "Material", "MD3", "Solar", "Deco", "Themes+", "Follow theme's icon pack"],
-        fixEmbeds:["Remove tracking from links", "Sites", "X (Twitter)", "Twitter", "Instagram", "TikTok", "Reddit", "Bluesky", "Threads", "Facebook", "pixiv", "Bilibili", "FxTwitter", "vxTwitter", "embed"], tenorGifs:["Tenor", "GIF", "GIFs", "Klipy", "GIFs from", "Only Tenor"],
+        fixEmbeds:["Remove tracking from links", "X (Twitter)", "Twitter", "Instagram", "TikTok", "Reddit", "Bluesky", "Threads", "Tumblr", "Facebook", "Mastodon", "YouTube", "Twitch", "Spotify", "pixiv", "Bilibili", "DeviantArt", "Fur Affinity", "Pinterest", "PTT",
+            "FxTwitter", "vxTwitter", "fxtumblr", "Dark Tumblr posts", "embed"], tenorGifs:["Tenor", "GIF", "GIFs", "Klipy", "GIFs from", "Only Tenor"],
+        hideBlocked:["Blocked messages", "Ignored messages", "Replies to them", "blocked", "ignored", "replies"],
+        cleanChannels:["Emoji", "Symbols and dividers", "Fancy letters", "Categories", "Channel names", "Decorations"],
+        experiments:["Dev Tools", "Experiments", "Experiment", "Developer", "Staff"],
+        noHandsfree:["Bluetooth", "Headphones", "Hands-free", "Calls", "Voice channels", "Microphone"],
+        bulkDelete:["Select Messages", "Select all", "Delete", "Clear kept deleted messages", "Include kept deleted messages", "Ask before deleting"],
         badges:["Game time", "Unique games", "Switch games every", "Games at once", "Add hours now", "Advanced", "Hours Played", "Unique Games Played", "Years Active", "Personalization"]};
     function searchFold(text) {
         let out = String(text || "").toLowerCase();
@@ -1085,7 +1136,9 @@
         const font = kind === "font";
         if (!features[font ? "systemFont" : "systemEmoji"] || !RN) return;
         const on = settings[font ? "systemFont" : "systemEmoji"];
-        const title = tr(font ? (on ? "Use your phone's font" : "Use Discord's font") : (on ? "Use your phone's emojis" : "Use Discord's emojis"));
+        const fromFile = on && settings[font ? "systemFontSource" : "systemEmojiSource"] === "file";
+        const title = tr(font ? (fromFile ? "Use your imported font" : on ? "Use your phone's font" : "Use Discord's font") :
+            (fromFile ? "Use your imported emojis" : on ? "Use your phone's emojis" : "Use Discord's emojis"));
         const body = tr(font ? "Discord needs to reopen to change the font everywhere." : "Discord needs to reopen to change the emojis everywhere.");
         const reopen = () => {
             // Write the setting first, so the reopened Discord starts with it. If it can't be saved, Discord used to
@@ -1204,9 +1257,9 @@
         next.VENUS_GENERAL.screen.getComponent = () => AboutSettings;
         // The features list: each row says what it does, grouped by where you'll notice it.
         const P = "VENUS_PLUGINS";
-        const groups = {messages:[], sending:[], people:[], servers:[], appearance:[], quests:[]};
+        const groups = {messages:[], sending:[], people:[], servers:[], appearance:[], quests:[], advanced:[]};
         const iconFor = key => { const found = FEATURE_ICONS[key]; return found ? venusIcon(found[0], found[1], icon) : icon; };
-        featureGroups = groups.keys = {messages:[], sending:[], people:[], servers:[], appearance:[], quests:[]};
+        featureGroups = groups.keys = {messages:[], sending:[], people:[], servers:[], appearance:[], quests:[], advanced:[]};
         featureSearch.rows = []; featureSearch.cache = null;
         const groupLabel = group => (FEATURE_GROUPS.find(entry => entry[0] === group) || [])[1];
         function toggle(group, key, title, hint) {
@@ -1257,6 +1310,8 @@
         };
         // Messages
         withOptions("messages", "noDelete", "VENUS_NODELETE", "Keep deleted messages", "Deleted messages stay in chat, and edits keep their history.", "Deleted messages", NoDeleteSettings);
+        withOptions("messages", "bulkDelete", "VENUS_BULKDELETE", "Bulk delete messages", "Select multiple messages in chat and delete them all at once.", "Bulk delete", BulkDeleteSettings);
+        withOptions("messages", "hideBlocked", "VENUS_HIDEBLOCKED", "Hide blocked or ignored messages", "Removes the \"blocked messages\" and \"ignored messages\" rows from chat.", "Blocked and ignored", HideBlockedSettings);
         withOptions("messages", "messageHighlight", "VENUS_MESSAGEHIGHLIGHT", "Message highlights", "Pick bar width and colors for replies, mentions and deleted messages.", "Message highlights", MessageHighlightSettings);
         withOptions("messages", "translate", "VENUS_TRANSLATE", "Translate messages", "Shows messages in your language, using Google Translate.", "Translate messages", TranslateSettings);
         withOptions("messages", "gestures", "VENUS_GESTURES", "Double-tap to reply", "Double-tap to reply, or to edit your own message.", "Tap gestures", GestureSettings);
@@ -1269,7 +1324,7 @@
                 option("stickers", "Stickers", "Stickers from other servers. Animated ones may not move.", "VENUS_FREENITRO")]),
              section("Link style", [option("hyperlinks", "Short links", "In chat it looks the same either way. Short links only change what's copied or quoted.", "VENUS_FREENITRO")])]}));
         withOptions("sending", "tenorGifs", "VENUS_TENORGIFS", "Bring back Tenor GIFs", "Tenor GIFs show in Discord's GIF picker again.", "Tenor GIFs", TenorSettings);
-        withOptions("sending", "fixEmbeds", "VENUS_FIXEMBEDS", "Fix link previews", "Links to X, Instagram, TikTok, Reddit and more show the post.", "Link previews", FixEmbedsSettings);
+        withOptions("sending", "fixEmbeds", "VENUS_FIXEMBEDS", "Fix link previews", "Links to X, Instagram, TikTok, Tumblr and more show the post.", "Link previews", FixEmbedsSettings);
         toggle("sending", "voice", "Send audio as voice messages", "Audio files are sent as voice messages. Android 10 or newer.");
         toggle("sending", "splitMessages", "Send long messages", "Type past the limit. Long messages are sent in parts.");
         toggle("sending", "noTyping", "Hide typing indicator", "Others won't see when you're typing.");
@@ -1293,23 +1348,28 @@
         withOptions("servers", "hiddenChannels", "VENUS_HIDDENCHANNELS", "Show hidden channels", "Channels you can't open show with a lock. Messages stay hidden.", "Hidden channels", HiddenChannelsSettings);
         withOptions("servers", "serverInfo", "VENUS_SERVERINFO", "Server info", "Hold a server's icon to see its details, boosts and friends there.", "Server info", ServerInfoSettings);
         toggle("servers", "dashless", "Spaces in channel names", "Shows \"general chat\" instead of \"general-chat\".");
+        withOptions("servers", "cleanChannels", "VENUS_CLEANCHANNELS", "Clean channel names", "Removes emoji and symbols from channel and category names.", "Clean names", CleanChannelsSettings);
         // Appearance
-        toggle("appearance", "systemFont", "Use your phone's font", "Replaces Discord's font everywhere. Android 9 or newer.");
-        toggle("appearance", "systemEmoji", "Use your phone's emojis", "In chat, reactions and the emoji picker.");
+        withOptions("appearance", "systemFont", "VENUS_SYSTEMFONT", "Use your phone's font", "Replaces Discord's font everywhere with your phone's or one you import. Android 9 or newer.", "Font", SystemFontSettings);
+        withOptions("appearance", "systemEmoji", "VENUS_SYSTEMEMOJI", "Use your phone's emojis", "In chat, reactions and the emoji picker, or from an emoji font you import.", "Emojis", SystemEmojiSettings);
         toggle("appearance", "hideGift", "Hide the gift button", "Removes the gift button from the message bar.");
         toggle("appearance", "hideCall", "Hide the call button", "Removes Call from people's profiles.");
         withOptions("appearance", "hideButtons", "VENUS_HIDEBUTTONS", "Hide extra buttons", "Removes the Quests, Shop, Nitro and Apps buttons you don't use.", "Extra buttons", HideButtonsSettings);
         toggle("appearance", "youBarSettings", "Venus button on profile bar", "A shortcut to Venus next to the notifications bell.");
         toggle("appearance", "appIcons", "Unlock app icons", "Use any Discord app icon without Nitro.");
         toggle("appearance", "nitroThemes", "Unlock Nitro themes", "Use Discord's gradient themes without Nitro, on this phone.");
+        withOptions("appearance", "materialYou", "VENUS_MATERIALYOU", "Material You colors", "Colors Discord to match your wallpaper, in light and dark.", "Material You", MaterialYouSettings);
         withOptions("appearance", "customThemes", "VENUS_CUSTOMTHEMES", "Custom themes", "Install Revenge and Vendetta color themes from a link.", "Custom themes", CustomThemesSettings);
         withOptions("appearance", "iconPacks", "VENUS_ICONPACKS", "Icon packs", "Replace Discord's icons with community icon packs or a custom pack.", "Icon packs", IconPacksSettings);
         // Quests
         withOptions("quests", "quests", "VENUS_QUESTS", "Complete Quests automatically", "Finishes video, Play and Activity Quests in the background.", "Quests", QuestSettings);
         toggle("quests", "hideQuestDock", "Hide the Quests banner", "Removes the Quest promotion above your profile bar.");
+        // Advanced
+        toggle("advanced", "experiments", "Unlock Discord experiments", "Adds Dev Tools to Settings, to try features Discord is still testing.");
+        toggle("advanced", "noHandsfree", "Keep Bluetooth audio clear in calls", "Headphones stay in music quality in calls. Your phone's mic picks up your voice.");
         withOptions("quests", "badges", "VENUS_BADGES", "Complete badges automatically", "Plays real PC games in the background for game time and unique games.", "Badges", BadgeSettings);
         const listed = [["Messages", groups.messages], ["Sending", groups.sending], ["People", groups.people],
-            ["Servers", groups.servers], ["Appearance", groups.appearance], ["Quests", groups.quests]];
+            ["Servers", groups.servers], ["Appearance", groups.appearance], ["Quests", groups.quests], ["Advanced", groups.advanced]];
         const sections = listed.map(([label, ids]) => section(label, ids)).filter(entry => entry.settings.length);
         route(P, "Features", sections, undefined, venusIcon(15241, "PuzzlePieceIcon", icon));
         // The nodes above stay for Discord's settings search; the page itself adds the Features search bar.
@@ -1335,7 +1395,8 @@
     // Which patched features sit in which group of the Features list, for the About page.
     let featureGroups = null;
     const FEATURE_GROUPS = [["messages", "Messages", 8194, "ChatIcon"], ["sending", "Sending", 5040, "SendMessageIcon"], ["people", "People", 4815, "FriendsIcon"],
-        ["servers", "Servers", 9239, "ServerIcon"], ["appearance", "Appearance", 15560, "PaintPaletteIcon"], ["quests", "Quests", 13012, "QuestsIcon"]];
+        ["servers", "Servers", 9239, "ServerIcon"], ["appearance", "Appearance", 15560, "PaintPaletteIcon"], ["quests", "Quests", 13012, "QuestsIcon"],
+        ["advanced", "Advanced", 15869, "WrenchIcon"]];
     // Is Venus working? One word and a colored dot, the way Discord shows a status.
     function aboutHealth() {
         const storage = status.storage;
@@ -1377,10 +1438,11 @@
                 text(keys.length ? tr("{on} of {total} turned on", {on, total:keys.length}) : tr("No features were patched in."), "text-md/semibold", "text-strong", {color:"#f2f3f5", fontSize:16, fontWeight:"600"}),
                 keys.length ? el(VenusProgress, {key:"bar", value:on / keys.length}) : null,
                 el(RN.View, {style:{flexDirection:"row", flexWrap:"wrap", gap:8, marginTop:4}}, chips)),
-            el(RN.View, {key:"status", style:[s.card, {flexDirection:"row", alignItems:"center", gap:14}]},
+            // Only when there's something to know: a green "Everything's working" card on every visit is just filler.
+            health === "online" ? null : el(RN.View, {key:"status", style:[s.card, {flexDirection:"row", alignItems:"center", gap:14}]},
                 el(RN.View, {style:{width:12, height:12, borderRadius:6, backgroundColor:STATUS_HEX[health]}}),
                 el(RN.View, {style:{flex:1, gap:2}},
-                    text(tr(health === "online" ? "Everything's working" : health === "idle" ? (status.storage === "waiting" || status.storage === "loading" ? "Loading your settings" : "Working, with a note below") : "Something went wrong"),
+                    text(tr(health === "idle" ? (status.storage === "waiting" || status.storage === "loading" ? "Loading your settings" : "Working, with a note below") : "Something went wrong"),
                         "text-md/semibold", "text-strong", {color:"#f2f3f5", fontSize:16, fontWeight:"600"}),
                     text(aboutText(), "text-sm/medium", "text-muted", {color:"#949ba4", fontSize:14}))),
             el(Group, {key:"links", title:tr("Links")},
@@ -1400,7 +1462,7 @@
         useSettings("language");
         const ui = reviewUI();
         if (!React || !RN) return null;
-        const choices = [["auto", tr("Same as Discord"), tr("Follows Discord's Language setting.")]].concat(UI_LANGUAGES.map(([code, name, english]) => [code, name, english]));
+        const choices = [["auto", tr("Same as Discord"), tr("Follows Discord's Language setting.")]].concat(UI_LANGUAGES.map(([code, name, english]) => [code, name, english === name ? null : english]));
         const groups = [
             radioGroup(ui, "language", "Show Venus settings in", "language", true, choices, true),
             footnote("note", i18n.loading.has(uiLanguage()) ? "Loading the language…" : "Only Venus's own settings and messages change. Discord's language is set in Discord's Language settings.")];
@@ -1487,7 +1549,7 @@
     // Puts a backup in place: every setting it has, the rest back to how Venus starts. Switches go through setSetting,
     // so everything they start or stop (Quests, themes, kept messages) happens as if you'd flipped them yourself.
     function backupApply(parsed, reset) {
-        const fontWas = fontInUse, emojiWas = emojiInUse, defaults = defaultSettings();
+        const fontWas = fontInUse, emojiWas = emojiInUse, fontSourceWas = fontSourceInUse, emojiSourceWas = emojiSourceInUse, defaults = defaultSettings();
         backup.restoring = true;
         try {
             animateLayout();
@@ -1511,8 +1573,8 @@
         notify("*");
         reviewToast(reviewUI(), reset ? "Settings reset to defaults" : "Settings restored", venusIcon(6868, "CircleCheckIcon"));
         // One question to reopen, only when the font or emojis actually changed.
-        if (features.systemFont && settings.systemFont !== fontWas) later(() => askRestart("font"), 0);
-        else if (features.systemEmoji && settings.systemEmoji !== emojiWas) later(() => askRestart("emoji"), 0);
+        if (features.systemFont && (settings.systemFont !== fontWas || settings.systemFont && settings.systemFontSource !== fontSourceWas)) later(() => askRestart("font"), 0);
+        else if (features.systemEmoji && (settings.systemEmoji !== emojiWas || settings.systemEmoji && settings.systemEmojiSource !== emojiSourceWas)) later(() => askRestart("emoji"), 0);
     }
     function backupConfirm(text) {
         let parsed;
@@ -1694,6 +1756,114 @@
         dashlessNames.set(name, formatted);
         return formatted;
     }
+    // Clean channel names (#95): channel and category names lose the emoji, dividers and fancy fonts servers decorate
+    // them with ("🎫┃quick-help" -> "quick-help", "🛠️ | SUPPORT & RESOURCE | 🛠️" -> "SUPPORT & RESOURCE",
+    // "𝓰𝓮𝓷𝓮𝓻𝓪𝓵" -> "general"). Only what Discord draws changes: the channel record, links, mentions you send and search
+    // all keep the real name. A name made only of emoji or symbols is left as it is, so no channel ever goes blank.
+    // Guild channels and categories only (threads and forum posts have free-text titles, DMs have people's names).
+    const CLEAN_TYPES = new Set([0, 2, 4, 5, 6, 13, 14, 15, 16, 21]);
+    // Emoji_Presentation code points outside the 1F000 planes: drawn as emoji even without U+FE0F.
+    const CLEAN_EMOJI_BMP = new Set([0x231a, 0x231b, 0x23e9, 0x23ea, 0x23eb, 0x23ec, 0x23f0, 0x23f3, 0x25fd, 0x25fe, 0x2614, 0x2615,
+        0x2648, 0x2649, 0x264a, 0x264b, 0x264c, 0x264d, 0x264e, 0x264f, 0x2650, 0x2651, 0x2652, 0x2653, 0x267f, 0x2693, 0x26a1, 0x26aa, 0x26ab,
+        0x26bd, 0x26be, 0x26c4, 0x26c5, 0x26ce, 0x26d4, 0x26ea, 0x26f2, 0x26f3, 0x26f5, 0x26fa, 0x26fd, 0x2705, 0x270a, 0x270b, 0x2728, 0x274c,
+        0x274e, 0x2753, 0x2754, 0x2755, 0x2757, 0x2795, 0x2796, 0x2797, 0x27b0, 0x27bf, 0x2b1b, 0x2b1c, 0x2b50, 0x2b55, 0x00a9, 0x00ae, 0x203c,
+        0x2049, 0x2122, 0x2139, 0x3030, 0x303d, 0x3297, 0x3299]);
+    // Letterlike stand-ins Unicode uses for the holes in its math alphabets (italic h, script B, double-struck R...).
+    const CLEAN_LETTERLIKE = {0x210e:"h", 0x212c:"B", 0x2130:"E", 0x2131:"F", 0x210b:"H", 0x2110:"I", 0x2112:"L", 0x2133:"M", 0x211b:"R",
+        0x212f:"e", 0x210a:"g", 0x2134:"o", 0x212d:"C", 0x210c:"H", 0x2111:"I", 0x211c:"R", 0x2128:"Z", 0x2102:"C", 0x210d:"H", 0x2115:"N",
+        0x2119:"P", 0x211a:"Q", 0x211d:"R", 0x2124:"Z"};
+    const CLEAN_SMALL_CAPS = "\u1d00\u0299\u1d04\u1d05\u1d07\ua730\u0262\u029c\u026a\u1d0a\u1d0b\u029f\u1d0d\u0274\u1d0f\u1d18\u01eb\u0280\ua731\u1d1b\u1d1c\u1d20\u1d21x\u028f\u1d22";
+    // Plain ASCII for a fancy letter or digit, or null. 𝐀-𝚣 are 13 styles of 52 letters from U+1D400, 𝟎-𝟿 5 styles of 10 digits.
+    function cleanPlainLetter(cp) {
+        if (cp >= 0x1d400 && cp <= 0x1d6a3) { const i = (cp - 0x1d400) % 52; return String.fromCharCode(i < 26 ? 65 + i : 71 + i); }
+        if (cp >= 0x1d7ce && cp <= 0x1d7ff) return String.fromCharCode(48 + (cp - 0x1d7ce) % 10);
+        if (cp >= 0xff10 && cp <= 0xff19 || cp >= 0xff21 && cp <= 0xff3a || cp >= 0xff41 && cp <= 0xff5a) return String.fromCharCode(cp - 0xfee0);
+        if (cp >= 0x24b6 && cp <= 0x24cf) return String.fromCharCode(65 + cp - 0x24b6);
+        if (cp >= 0x24d0 && cp <= 0x24e9) return String.fromCharCode(97 + cp - 0x24d0);
+        if (cp >= 0x249c && cp <= 0x24b5) return String.fromCharCode(97 + cp - 0x249c);
+        if (cp >= 0x2460 && cp <= 0x2468) return String.fromCharCode(49 + cp - 0x2460);
+        if (cp >= 0x2776 && cp <= 0x277e) return String.fromCharCode(49 + cp - 0x2776);
+        if (cp >= 0x1f130 && cp <= 0x1f149) return String.fromCharCode(65 + cp - 0x1f130);
+        if (cp >= 0x1f150 && cp <= 0x1f169) return String.fromCharCode(65 + cp - 0x1f150);
+        if (cp >= 0x1f170 && cp <= 0x1f189) return String.fromCharCode(65 + cp - 0x1f170);
+        if (CLEAN_LETTERLIKE[cp]) return CLEAN_LETTERLIKE[cp];
+        if (cp > 0x298 && cp < 0xa732) { const i = CLEAN_SMALL_CAPS.indexOf(String.fromCharCode(cp)); if (i >= 0 && cp !== 120) return String.fromCharCode(97 + i); }
+        return null;
+    }
+    function cleanIsEmoji(cp, next) {
+        if (cp >= 0x1f000 && cp <= 0x1faff) return !(cp >= 0x1f130 && cp <= 0x1f189 && next !== 0xfe0f);
+        if (cp >= 0x1f1e6 && cp <= 0x1f1ff || cp >= 0xe0020 && cp <= 0xe007f) return true;
+        return CLEAN_EMOJI_BMP.has(cp) || next === 0xfe0f && cp > 0xff;
+    }
+    // Decorations: ASCII | ~ ^ ` < > = \ *, Latin-1 marks (« » · ° ¦), spacing modifiers (˚ ˖), general punctuation
+    // (• ‣ ※, but not quotes or …), super/subscripts (⁺ ₊), arrows, math (⋆ ∙ ⊹), technical, box drawing and shapes (┃ │ ─ ▸),
+    // dingbats (✦ ❀ ➤), CJK brackets and marks (「」【】〜 ・), Yi radicals (꒰ ꒱), compatibility and halfwidth forms (︱ ･).
+    function cleanIsSymbol(cp) {
+        if (cp < 0x80) return cp === 0x7c || cp === 0x7e || cp === 0x5e || cp === 0x60 || cp === 0x3c || cp === 0x3e || cp === 0x3d || cp === 0x5c || cp === 0x2a;
+        if (cp <= 0xbf) return cp >= 0xa1 && cp !== 0xaa && cp !== 0xb5 && cp !== 0xba && cp !== 0xbf && cp !== 0xa3 && cp !== 0xa5 && cp !== 0xa2;
+        if (cp >= 0x2b0 && cp <= 0x2ff) return true;
+        if (cp >= 0x2010 && cp <= 0x206f) return !(cp >= 0x2018 && cp <= 0x201f) && cp !== 0x2026;
+        if (cp >= 0x2070 && cp <= 0x209f) return true;
+        if (cp >= 0x2190 && cp <= 0x245f || cp >= 0x24ea && cp <= 0x2775 || cp >= 0x2780 && cp <= 0x2bff) return true;
+        if (cp >= 0x2e00 && cp <= 0x2e7f || cp >= 0xa490 && cp <= 0xa4cf || cp >= 0xfe30 && cp <= 0xfe4f || cp >= 0xff61 && cp <= 0xff65) return true;
+        if (cp >= 0x3008 && cp <= 0x3011 || cp >= 0x3014 && cp <= 0x301f || cp === 0x30fb || cp === 0x3030 || cp === 0x303d) return true;
+        return cp === 0xff5c || cp === 0xff5e || cp === 0xff0a || cp === 0xff1c || cp === 0xff1e || cp === 0xff1d;
+    }
+    // Dividers left at either end once what they divided is gone ("| SUPPORT & RESOURCE |").
+    const CLEAN_EDGE = /^[\s\-_.:;,|~/\\·•・]+|[\s\-_.:;,|~/\\·•・]+$/g;
+    const cleanNames = new Map();
+    let cleanVersion = "";
+    // opts: {emoji, symbols, fonts} (all true for the preview's "everything" pass), slug: text-style names joined by hyphens.
+    function cleanName(name, slug, opts) {
+        const out = [];
+        let changed = false, gap = false, dropMarks = false, kept = 0;
+        const push = text => { if (gap && out.length) out.push(" "); gap = false; out.push(text); kept++; };
+        const chars = Array.from(name);
+        for (let i = 0; i < chars.length; i++) {
+            const ch = chars[i], cp = ch.codePointAt(0), next = i + 1 < chars.length ? chars[i + 1].codePointAt(0) : 0;
+            if (cp === 0x200b || cp === 0x200c || cp === 0x200e || cp === 0x200f || cp === 0x2060 || cp === 0xfeff) { changed = true; continue; }
+            // Joiners, variation selectors, skin tones and accents belong to the character before them.
+            if (cp === 0x200d || cp === 0xfe0f || cp === 0xfe0e || cp >= 0x1f3fb && cp <= 0x1f3ff || cp >= 0x300 && cp <= 0x36f) {
+                if (dropMarks) { changed = true; continue; }
+                if (cp >= 0x300) { if (out.length) out[out.length - 1] += ch; continue; }
+                changed = true; continue;
+            }
+            if (cp === 0x20e3) { // keycap: 1️⃣ is the digit, U+FE0F, then this
+                if (opts.emoji) { if (!dropMarks && kept && out.length) { out.pop(); kept--; } changed = true; gap = true; }
+                else if (out.length) out[out.length - 1] += ch;
+                continue;
+            }
+            dropMarks = false;
+            if (cp === 0x20 || cp === 0x3000 || cp >= 0x2000 && cp <= 0x200a || cp === 0xa0) { if (cp !== 0x20) changed = true; gap = true; continue; }
+            if (slug && cp === 0x2d) { gap = true; continue; }
+            const plain = opts.fonts ? cleanPlainLetter(cp) : null;
+            if (plain) { push(plain); changed = true; continue; }
+            if (opts.emoji && cleanIsEmoji(cp, next) || opts.symbols && cleanIsSymbol(cp)) { changed = true; gap = true; dropMarks = true; continue; }
+            push(ch);
+        }
+        if (!changed) return name;
+        let result = out.join("").replace(CLEAN_EDGE, "");
+        if (slug) result = result.replace(/ /g, "-").replace(/-{2,}/g, "-").toLowerCase();
+        // Nothing readable left (a name of only emoji or symbols): keep Discord's.
+        return /[0-9A-Za-z\u00c0-\uffff]/.test(result) ? result : name;
+    }
+    function cleanFormat(channel, name) {
+        if (!channel || typeof name !== "string" || !name || !enabled("cleanChannels") || !CLEAN_TYPES.has(channel.type)) return name;
+        const version = (settings.cleanChannelsEmoji ? "e" : "") + (settings.cleanChannelsSymbols ? "s" : "") + (settings.cleanChannelsFonts ? "f" : "");
+        if (!version) return name;
+        if (version !== cleanVersion) { cleanNames.clear(); cleanVersion = version; }
+        const slug = DASHLESS_TYPES.has(channel.type), key = (slug ? "#" : "") + name;
+        const cached = cleanNames.get(key);
+        if (cached !== undefined) return cached;
+        const result = cleanName(name, slug, {emoji:settings.cleanChannelsEmoji, symbols:settings.cleanChannelsSymbols, fonts:settings.cleanChannelsFonts});
+        if (cleanNames.size >= 1024) cleanNames.delete(cleanNames.keys().next().value);
+        cleanNames.set(key, result);
+        return result;
+    }
+    // Both name features, in order: clean first, so "🎫┃quick-help" becomes "quick help" with Spaces in channel names.
+    function channelNameFormat(channel, name) {
+        return dashlessFormat(channel, features.cleanChannels ? cleanFormat(channel, name) : name);
+    }
     function channelLabel(orig, self, args) {
         const channel=args[0];
         let next=args;
@@ -1706,16 +1876,17 @@
                 isObfuscated:{value:FALSE_FN, writable:true, configurable:true, enumerable:false}
             });
         }
-        return dashlessFormat(channel, orig.apply(self, next));
+        return channelNameFormat(channel, orig.apply(self, next));
     }
     channelLabel.call1 = (orig, self, channel) =>
-        hiddenMetadata(channel) ? channelLabel(orig, self, [channel]) : dashlessFormat(channel, orig.call(self, channel));
+        hiddenMetadata(channel) ? channelLabel(orig, self, [channel]) : channelNameFormat(channel, orig.call(self, channel));
     channelLabel.call2 = (orig, self, channel, b) =>
-        hiddenMetadata(channel) ? channelLabel(orig, self, [channel, b]) : dashlessFormat(channel, orig.call(self, channel, b));
+        hiddenMetadata(channel) ? channelLabel(orig, self, [channel, b]) : channelNameFormat(channel, orig.call(self, channel, b));
     function useChannelLabel(orig, self, args) {
         if (React) {
             if (features.dashless) useSettings("dashless");
             if (features.hiddenChannels) useSettings("hiddenChannels");
+            if (features.cleanChannels) useSettings("cleanChannels");
         }
         return channelLabel(orig, self, args);
     }
@@ -1723,6 +1894,7 @@
         if (React) {
             if (features.dashless) useSettings("dashless");
             if (features.hiddenChannels) useSettings("hiddenChannels");
+            if (features.cleanChannels) useSettings("cleanChannels");
         }
         return channelLabel.call1(orig, self, channel);
     };
@@ -1730,13 +1902,14 @@
         if (React) {
             if (features.dashless) useSettings("dashless");
             if (features.hiddenChannels) useSettings("hiddenChannels");
+            if (features.cleanChannels) useSettings("cleanChannels");
         }
         return channelLabel.call2(orig, self, channel, b);
     };
     const mentionChannelCache = new WeakMap();
     function mentionChannelFormat(result) {
         if (!result || typeof result.name !== "string") return result;
-        const formatted = dashlessFormat(result, result.name);
+        const formatted = channelNameFormat(result, result.name);
         if (formatted === result.name) return result;
         const cached = mentionChannelCache.get(result);
         if (cached && cached.name === formatted) return cached.value;
@@ -1750,13 +1923,15 @@
     mentionChannelInfo.call1 = (orig, self, id) => mentionChannelFormat(orig.call(self, id));
     function parserStateChannels(orig, self, args) {
         const state = orig.apply(self, args);
-        if (!enabled("dashless") || !state || !Array.isArray(state.channels) || !channelStore || typeof channelStore.getChannel !== "function") return state;
+        const clean = features.cleanChannels && enabled("cleanChannels");
+        if (!(enabled("dashless") || clean) || !state || !Array.isArray(state.channels) || !channelStore || typeof channelStore.getChannel !== "function") return state;
         let extras = null;
         for (let i = 0; i < state.channels.length; i++) {
             const entry = state.channels[i];
-            if (!entry || typeof entry.text !== "string" || !entry.text.includes(" ")) continue;
+            if (!entry || typeof entry.text !== "string" || !clean && !entry.text.includes(" ")) continue;
             const ch = channelStore.getChannel(entry.id);
-            if (ch && DASHLESS_TYPES.has(ch.type) && typeof ch.name === "string" && ch.name !== entry.text) {
+            // A typed #name matches the name you see, and the real one too (both point at the same channel).
+            if (ch && (DASHLESS_TYPES.has(ch.type) || clean && CLEAN_TYPES.has(ch.type)) && typeof ch.name === "string" && ch.name !== entry.text) {
                 if (!extras) extras = state.channels.slice();
                 extras.push({id:entry.id, text:ch.name});
             }
@@ -1846,7 +2021,8 @@
         // ~ | # too: a sticker called ||surprise|| or ~~old~~ turned the link text into a spoiler or strikethrough.
         return settings.hyperlinks && name ? "[" + String(name).replace(/([\\\[\]()*_`<>@~|#])/g, "\\$1").replace(/[\r\n]/g, " ") + "](" + uri + ")" : uri;
     }
-    function emojiMessage(message, channelId) {
+    // anyLength: Send long messages splits the result, so the longer links may take it past the limit.
+    function emojiMessage(message, channelId, anyLength) {
         if (!enabled("emojis") || !message || typeof message.content !== "string" || !message.content.includes("<") || !emojiStore || !channelStore) return message;
         const user = currentUser(), channel = channelStore.getChannel(channelId);
         if (!user || !channel) return message;
@@ -1862,7 +2038,7 @@
             const uri = "https://cdn.discordapp.com/emojis/" + id + (animation || emoji.animated ? ".gif" : ".webp") + "?size=48&quality=lossless";
             return shareLink(name, uri);
         });
-        if (!converted.size || content.length > (user.premiumType === 2 ? 4000 : 2000)) return message;
+        if (!converted.size || !anyLength && content.length > (user.premiumType === 2 ? 4000 : 2000)) return message;
         const next = Object.assign({}, message, { content });
         // Keep unrelated invalid emoji diagnostics intact.
         for (const key of ["invalidEmojis", "validNonShortcutEmojis"]) if (Array.isArray(message[key]))
@@ -1929,7 +2105,7 @@
     let archiveTimer;
     const hiddenViews = new Map(), hiddenNames = new Map(), hiddenScans = new Map();
     let hiddenAccount;
-    const HIDDEN_CHANNEL = "Hidden channel (name unavailable)", HIDDEN_CATEGORY = "Hidden category (name unavailable)";
+    const HIDDEN_CHANNEL = "Hidden channel", HIDDEN_CATEGORY = "Hidden category";
     function receivedName(channel) {
         if (!channel || typeof channel.name !== "string") return null;
         const trimmed = channel.name.trim();
@@ -2734,7 +2910,9 @@
         const relative = preciseAgo(ms);
         if (relative === null) return {relative:fallback, absolute:null};
         let absolute = null;
-        try { absolute = new Date(ms).toLocaleString(); } catch (_) {}
+        // The date and time to the minute, in the language Venus is shown in: seconds are noise here.
+        try { absolute = new Date(ms).toLocaleString(uiLanguage(), {year:"numeric", month:"short", day:"numeric", hour:"numeric", minute:"2-digit"}); } catch (_) {}
+        if (!absolute) try { absolute = new Date(ms).toLocaleString(); } catch (_) {}
         return {relative, absolute};
     }
     function hiddenDetails(channel) {
@@ -2771,7 +2949,7 @@
         const confirm = () => { settle(); if (typeof onViewAnyway === "function") onViewAnyway(); };
         const rows = hiddenDetails(channel);
         const title = tr(channel.type === 2 || channel.type === 13 ? "Locked voice channel" : "Locked channel");
-        const body = tr("You don't have permission to view this channel. These details come from what Discord already sent your client.");
+        const body = tr("You can't open this channel, but Discord already sent these details.");
         // Discord's native alert (the "Delete Message" dialog): blurred backdrop,
         // themed card, Discord buttons. String title/body/confirmText + children
         // selects the modern AlertModal path in AlertActionCreators.show (module 5300).
@@ -2923,7 +3101,8 @@
     // useGuildsBarProps 16754). The button lives in the SEPARATOR row, below the DM button and
     // unread DMs and above the line, so the native FastList's sections, anchors and recycler
     // keys stay stock. Only that row's height grows, through the list's own itemSize.
-    const READ_ALL_HEIGHT = 36;
+    // Tall enough for a two-line label: "Oznacz jako przeczytane" or "Прочитане на всичко" can't fit on one line.
+    const READ_ALL_HEIGHT = 40;
     const readAllViews = new WeakMap(), readAllData = new WeakMap();
     const readAllCache = {api:null};
     // ReadStateActionCreators (6800) exports ack/bulkAck by name, with no default object.
@@ -2980,88 +3159,108 @@
     function readAll(mode) {
         if (!enabled("readAll") || !READ_ALL_MODES.includes(mode)) return;
         const api=readAllExports(), ui=reviewUI();
-        let guilds=0, dms=0;
+        let guilds=0, dms=0, problem=null;
         // Unread servers or DMs with no way to clear them used to say "Nothing unread".
         const unavailable=() => { throw new Error(tr("Discord's read states haven't loaded yet. Try again in a moment.")); };
-        try {
-            if (mode!=="dms") {
-                if (!api.guildReads || !(api.sorted || api.guildStore)) unavailable();
-                const ids=unreadGuildIds(api);
-                if (ids.length && typeof api.markGuilds!=="function") unavailable();
-                if (ids.length) { api.markGuilds(ids, api.sections && api.sections.GUILD_LIST); guilds=ids.length; }
-            }
-            if (mode!=="guilds") {
-                if (!api.privateReads && !api.privateSort) unavailable();
-                const ids=unreadDmIds(api);
-                if (ids.length && !(api.readActions && typeof api.readActions.bulkAck==="function" && api.reads)) unavailable();
-                if (ids.length) {
-                    const type=api.readTypes && api.readTypes.CHANNEL != null ? api.readTypes.CHANNEL : 0;
-                    // A DM without a known last message can't be acknowledged; sending it anyway
-                    // made the whole request fail. Discord's own /read-states/ack-bulk takes 100 at a time.
-                    const acks=[];
-                    for (let i=0;i<ids.length;i++) {
-                        const channelId=ids[i], messageId=api.reads.lastMessageId(channelId);
-                        if (messageId) acks.push({channelId, readStateType:type, messageId});
-                    }
-                    for (let i=0;i<acks.length;i+=100) api.readActions.bulkAck(acks.slice(i,i+100));
-                    dms=acks.length;
+        // Servers and DMs are cleared on their own: a failure on one side used to leave the other unread too.
+        if (mode!=="dms") try {
+            if (!api.guildReads || !(api.sorted || api.guildStore)) unavailable();
+            const ids=unreadGuildIds(api);
+            if (ids.length && typeof api.markGuilds!=="function") unavailable();
+            if (ids.length) { api.markGuilds(ids, api.sections && api.sections.GUILD_LIST); guilds=ids.length; }
+        } catch (error) { problem=error; }
+        if (mode!=="guilds") try {
+            if (!api.privateReads && !api.privateSort) unavailable();
+            const ids=unreadDmIds(api);
+            if (ids.length && !(api.readActions && typeof api.readActions.bulkAck==="function" && api.reads)) unavailable();
+            if (ids.length) {
+                const type=api.readTypes && api.readTypes.CHANNEL != null ? api.readTypes.CHANNEL : 0;
+                // A DM without a known last message can't be acknowledged; sending it anyway
+                // made the whole request fail. One BULK_ACK, like markGuildsAsRead: ReadStateStore's own
+                // queue already sends /read-states/ack-bulk 100 at a time, and every extra dispatch made
+                // the read-state stores recount and the server bar redraw again.
+                const acks=[];
+                for (let i=0;i<ids.length;i++) {
+                    const channelId=ids[i], messageId=api.reads.lastMessageId(channelId);
+                    if (messageId) acks.push({channelId, readStateType:type, messageId});
                 }
+                if (acks.length) api.readActions.bulkAck(acks);
+                dms=acks.length;
             }
-        } catch (error) {
-            // What was already cleared stays cleared; say so instead of only the error.
-            const done=guilds ? " ("+pl(guilds,"{n} server was marked as read","{n} servers were marked as read")+")" : "";
-            reviewToast(ui,tr("Couldn't mark as read: {problem}",{problem:String(error && error.message || error)})+done,venusIcon(6296,"CircleXIcon")); return;
-        }
-        if (guilds || dms) readAllDone();
+        } catch (error) { if (!problem) problem=error; }
         const parts=[];
         if (guilds) parts.push(pl(guilds,"{n} server","{n} servers"));
         if (dms) parts.push(pl(dms,"{n} DM","{n} DMs"));
+        if (guilds || dms) readAllDone();
+        if (problem) {
+            // What was already cleared stays cleared; say so instead of only the error.
+            const done=parts.length ? " ("+tr("Marked {what} as read",{what:joinAnd(parts)})+")" : "";
+            reviewToast(ui,tr("Couldn't mark as read: {problem}",{problem:String(problem && problem.message || problem)})+done,venusIcon(6296,"CircleXIcon")); return;
+        }
         reviewToast(ui, parts.length ? tr("Marked {what} as read",{what:joinAnd(parts)}) : "Nothing unread",venusIcon(15928,"DoubleCheckmarkIcon"));
     }
-    // Holding the button: Discord's own action sheet with the three one-time choices.
+    // Holding the button: an action sheet with the three one-time choices, each with the icon its choice has in
+    // Read all's settings, and the one a plain tap does marked as such. Discord's SimpleActionSheet (6893) can't
+    // show that: it reads an option's `icon` as an image source and has no subtitle, so both were dropped. Its own
+    // parts (ActionSheet, TableRow with subLabel) draw the same sheet with them.
+    const READ_ALL_SHEET = "VenusReadAll";
+    // Labels go through tr() here, not where they're drawn, so scripts/i18n_strings.cjs sees them as used.
+    function readAllChoices() {
+        return [["guilds",tr("Mark servers as read"),9239,"ServerIcon"],["dms",tr("Mark DMs as read"),6770,"EnvelopeIcon"],
+            ["both",tr("Mark servers and DMs as read"),15928,"DoubleCheckmarkIcon"]];
+    }
+    function readAllPick(ui, mode) { hideReviewSheet(ui,READ_ALL_SHEET); readAll(mode); }
+    function ReadAllSheet() {
+        const ui=reviewUI(), Group=ui.TableRowGroup || RN.View;
+        return el(ui.ActionSheet,{header:ui.Header ? el(ui.Header,{title:tr("Read all"),
+                trailing:ui.Close ? el(ui.Close,{onPress:() => hideReviewSheet(ui,READ_ALL_SHEET)}) : undefined}) : undefined},
+            el(Group,null,readAllChoices().map(([mode,label,id,name]) => el(ui.TableRow,{key:mode,label,
+                subLabel:mode===settings.readAllMode ? tr("What a tap does") : undefined,icon:rowIcon(id,name),onPress:() => readAllPick(ui,mode)}))));
+    }
     function readAllChooser() {
+        if (!enabled("readAll")) return;
         const ui=reviewUI();
-        const options=[["guilds",tr("Mark servers as read")],["dms",tr("Mark DMs as read")],["both",tr("Mark servers and DMs as read")]]
-            .map(([mode,label]) => ({label, onPress:() => readAll(mode)}));
-        if (typeof ui.simpleSheet==="function") try { ui.simpleSheet({key:"VenusReadAll",header:{title:tr("Read all")},options}); return; } catch (_) {}
+        if (ui.ActionSheet && ui.TableRow && typeof ui.showSheet==="function") try {
+            ui.showSheet({key:READ_ALL_SHEET,content:el(ReadAllSheet,null),stackingBehavior:"stack"}); return;
+        } catch (_) {}
+        const options=readAllChoices().map(([mode,label,id,name]) => ({label,IconComponent:venusIcon(id,name),onPress:() => readAll(mode)}));
+        if (typeof ui.simpleSheet==="function") try { ui.simpleSheet({key:READ_ALL_SHEET,header:{title:tr("Read all")},options}); return; } catch (_) {}
         if (RN && RN.Alert) RN.Alert.alert(tr("Read all"),undefined,options.map(option => ({text:option.label,onPress:option.onPress})).concat([{text:tr("Cancel"),style:"cancel"}]));
     }
-    let readAllStyleHook, readAllStylesTried=false;
     const READ_ALL_WRAP_STYLE = {width:"100%"}, READ_ALL_OUTER_STYLE = {height:READ_ALL_HEIGHT,alignItems:"center",justifyContent:"center"};
-    const READ_ALL_PILL_BASE = {height:26,minWidth:48,paddingHorizontal:8,borderRadius:13,alignItems:"center",justifyContent:"center"};
-    const READ_ALL_PRESSED_SCALE = {transform:[{scale:0.96}]}, READ_ALL_TEXT_BASE = {fontSize:11,fontWeight:"700",includeFontPadding:false};
+    // The server bar is 72 dp wide (GUILD_LIST_WIDTH, 16744). One line and no width limit cut long labels off or ran
+    // them past the bar's edges in Polish, Swedish, Italian, Bulgarian, Russian, Ukrainian, Lithuanian and Greek: the
+    // pill now stays inside the bar, wraps to two lines and only then shrinks the text.
+    const READ_ALL_PILL_BASE = {minHeight:26,minWidth:48,maxWidth:68,paddingHorizontal:5,paddingVertical:3,borderRadius:13,alignItems:"center",justifyContent:"center"};
+    const READ_ALL_PRESSED_SCALE = {transform:[{scale:0.96}]};
+    // Discord's own bold face (Constants 1096), as its Text draws it: a plain RN.Text fell back to Roboto, and to
+    // Arial in the UI preview, so the label measured and looked unlike everything around it.
+    const READ_ALL_TEXT_BASE = {fontFamily:"ggsans-Bold, NotoSans-Bold",fontSize:11,lineHeight:13,textAlign:"center",includeFontPadding:false};
     const READ_ALL_FALLBACK_STYLES = {pill:{backgroundColor:"#4e505899"},pressed:{backgroundColor:"#4e5058"},text:{color:"#dbdee1"}};
     function readAllPress() { readAll(settings.readAllMode); }
     // For a moment after it clears something, the pill shows a check instead of its label, then goes back.
+    // Only the pill listens to READ_ALL_FLASH: notifying "readAll" redrew the whole server bar (readAllBarProps
+    // subscribes to it inside useGuildsBarProps) and Read all's settings page twice per tap.
+    const READ_ALL_FLASH = "readAllFlash";
     let readAllDoneUntil=0, readAllDoneTimer;
     function readAllDone() {
-        readAllDoneUntil=Date.now()+1400; notify("readAll");
+        readAllDoneUntil=Date.now()+1400; notify(READ_ALL_FLASH);
         if (readAllDoneTimer!==undefined && global.clearTimeout) global.clearTimeout(readAllDoneTimer);
-        readAllDoneTimer=later(() => { readAllDoneTimer=undefined; readAllDoneUntil=0; notify("readAll"); },1450,false);
+        readAllDoneTimer=later(() => { readAllDoneTimer=undefined; readAllDoneUntil=0; notify(READ_ALL_FLASH); },1450,false);
     }
     function ReadAllButton() {
-        useSettings("readAll");
-        const ui=reviewUI(), done=readAllDoneUntil>Date.now();
+        useSettings(READ_ALL_FLASH);
+        const done=readAllDoneUntil>Date.now();
         // Discord's semantic tokens, so the pill follows light, dark and custom themes.
-        if (!readAllStylesTried) {
-            const c=ui.colors;
-            if (typeof ui.createStyles==="function" && c) {
-                readAllStylesTried=true;
-                try {
-                    readAllStyleHook=ui.createStyles({pill:{backgroundColor:c.BACKGROUND_MOD_NORMAL},pressed:{backgroundColor:c.BACKGROUND_MOD_STRONG},text:{color:c.TEXT_DEFAULT}});
-                } catch (_) { readAllStyleHook=null; }
-            }
-        }
-        let styles=null;
-        if (readAllStyleHook) try { styles=readAllStyleHook(); } catch (_) {}
-        styles=styles || READ_ALL_FALLBACK_STYLES;
+        const styles=useThemed("readAllPill", c => ({pill:{backgroundColor:c.BACKGROUND_MOD_NORMAL},pressed:{backgroundColor:c.BACKGROUND_MOD_STRONG},
+            text:{color:c.TEXT_DEFAULT}}), READ_ALL_FALLBACK_STYLES);
         return el(RN.View,{style:READ_ALL_OUTER_STYLE},
             el(RN.Pressable,{accessibilityRole:"button",accessibilityLabel:tr("Read all"),accessibilityHint:tr("Hold to choose"),
                 hitSlop:6,onPress:readAllPress,onLongPress:readAllChooser,delayLongPress:350,
                 style:({pressed}) => [READ_ALL_PILL_BASE,styles.pill,
                     pressed ? styles.pressed : null,pressed ? READ_ALL_PRESSED_SCALE : null]},
                 done ? popIn("done",el(venusIcon(6823,"CheckmarkSmallIcon"),{size:"xs",color:styles.text && styles.text.color})) :
-                    el(RN.Text,{numberOfLines:1,allowFontScaling:false,style:[READ_ALL_TEXT_BASE,styles.text]},tr("Read all"))));
+                    el(RN.Text,{numberOfLines:2,adjustsFontSizeToFit:true,minimumFontScale:0.75,allowFontScaling:false,style:[READ_ALL_TEXT_BASE,styles.text]},tr("Read all"))));
     }
     function readAllBarProps(orig, self, args) {
         const result=orig.apply(self,args);
@@ -3100,8 +3299,8 @@
     // first. Edit now waits long enough for that single tap: a quick third tap lands 400-550 ms after
     // the double-tap. A second double-tap (tap four) still counts too.
     const GESTURE_TRIPLE_MS = 650, GESTURE_PAIR_MS = 1500, GESTURE_DELETED_MS = 3000;
-    const gesture = {timer:undefined, pending:null, channel:null, chatInputRef:null, pendingAt:0, deleted:null, deletedAt:0, handlers:null,
-        replyFn:null, editFn:null, canEditFn:null, canReplyFn:null};
+    const gesture = {timer:undefined, pending:null, channel:null, chatInputRef:null, pendingAt:0, deleted:null, deletedAt:0, handlers:null, tapping:0,
+        replyFn:null, editFn:null, canEditFn:null, canReplyFn:null, typeSets:null};
     function gestureCancel() { if (gesture.timer !== undefined && global.clearTimeout) global.clearTimeout(gesture.timer); gesture.timer = undefined; gesture.pending = null; gesture.channel = null; gesture.chatInputRef = null; }
     function gestureOwn(message) {
         const user = userStore && userStore.getCurrentUser();
@@ -3151,8 +3350,17 @@
         const ref = chatInputRef !== undefined ? chatInputRef : gestureChatInputRef(channel);
         try { gestureHaptic(); edit(message, channel, ref, "message_swipe", true); return true; } catch (_) { return false; }
     }
+    // Only what Discord's own hold menu offers Delete for (LongPressMessageActionSheet, 9675): yours, and not a type Discord
+    // keeps (MessageTypesSets.UNDELETABLE: calls, group DM changes, a thread's starter message...). The third tap on one of
+    // those used to send a delete the server refused, after waiting and buzzing for it.
+    function gestureCanDelete(message) {
+        if (!message || message.state && message.state !== "SENT" || !gestureOwn(message)) return false;
+        const sets = gesture.typeSets || (gesture.typeSets = inspectedExport(1085, "MessageTypesSets"));
+        try { if (sets && sets.UNDELETABLE && typeof sets.UNDELETABLE.has === "function" && sets.UNDELETABLE.has(message.type)) return false; } catch (_) {}
+        return true;
+    }
     function gestureDelete(message, channel) {
-        if (message && message.state && message.state !== "SENT") return false;
+        if (!gestureCanDelete(message)) return false;
         const actions = msgActions || inspectedExport(7174, "default");
         if (!actions || typeof actions.deleteMessage !== "function") return false;
         // Discord's own delete, with QuickDelete and NoDelete still applying to it.
@@ -3183,13 +3391,22 @@
             const tap = handlers && handlers.handleTapMessage;
             if (typeof tap === "function") handlers.handleTapMessage = function (event) {
                 gesture.handlers = handlers;
+                try { if (features.bulkDelete && bulkDeleteInterceptTap(event)) return undefined; } catch (_) {}
                 try { if (gestureTap(event)) return undefined; } catch (_) {}
                 return tap.apply(this, arguments);
             };
             const dbl = handlers && handlers.handleDoubleTapMessage;
-            if (typeof dbl === "function") handlers.handleDoubleTapMessage = function () {
+            if (typeof dbl === "function") handlers.handleDoubleTapMessage = function (event) {
                 gesture.handlers = handlers;
-                return dbl.apply(this, arguments);
+                try { if (features.bulkDelete && bulkDeleteInterceptTap(event)) return undefined; } catch (_) {}
+                gesture.tapping++;
+                try { return dbl.apply(this, arguments); } finally { gesture.tapping--; }
+            };
+            const hold = handlers && handlers.handleLongPressMessage;
+            if (typeof hold === "function") handlers.handleLongPressMessage = function (event) {
+                gesture.handlers = handlers;
+                try { if (features.bulkDelete && bulkDeleteInterceptTap(event)) return undefined; } catch (_) {}
+                return hold.apply(this, arguments);
             };
             return handlers;
         }
@@ -3197,31 +3414,53 @@
         try { Object.setPrototypeOf(MessagesHandlers, Handlers); } catch (_) {}
         return replaceValue(exports, "MessagesHandlers", MessagesHandlers);
     }
-    function gestureAct(message, channel, chatInputRef) {
+    // MessagesHandlers is built again for each chat you open, with that chat's ID in its params.
+    function gestureStillInChat(channel) {
+        try {
+            const params = gesture.handlers && gesture.handlers.params, selected = params && params.selectedChannelId;
+            return !selected || !channel || String(selected) === String(channel.id);
+        } catch (_) { return true; }
+    }
+    // Where you can neither reply nor edit (an announcement channel you can't post in, a locked thread, a timeout), the
+    // double-tap used to do nothing at all: it now does what Discord's own does there, add your double-tap reaction.
+    function gestureAct(message, channel, chatInputRef, fallback) {
         if (!message || !channel) return;
         const own = gestureOwn(message);
         if (own && settings.gestureOwn === "edit" && gestureEdit(message, channel, chatInputRef)) return;
-        gestureReply(message, channel, chatInputRef);
+        if (gestureReply(message, channel, chatInputRef)) return;
+        if (fallback) try { fallback(); } catch (_) {}
+    }
+    // A message Keep deleted messages is keeping is already gone from Discord: a reply to it is refused ("Unknown message")
+    // and an edit fails, and the triple-tap's delete only hides it, which a third tap shouldn't do by surprise.
+    function gestureKeptDeleted(message, channel) {
+        if (!features.noDelete || !deleted.size) return false;
+        const channelId = channel && channel.id || message.channel_id;
+        return deleted.has(deletedKey(channelId, message.id));
     }
     function doubleTapMessage(orig, self, args) {
-        if (!enabled("gestures")) return orig.apply(self, args);
+        // Only a real double-tap. TalkBack's "Add quick reaction" action (handleMessageAccessibilityAction, 10694) calls this
+        // too: it used to reply or edit instead of reacting, and choosing it twice deleted your message. When the handlers
+        // couldn't be wrapped (gesture.handlers is null), every call is still taken as a double-tap, as before.
+        if (!enabled("gestures") || gesture.handlers && !gesture.tapping) return orig.apply(self, args);
         const message = args[0], channel = args[1], id = message && message.id;
         if (!id) return orig.apply(self, args);
-        const now = Date.now(), ref = gestureChatInputRef(channel);
+        if (gestureKeptDeleted(message, channel)) { gestureCancel(); return; }
+        const now = Date.now(), ref = gestureChatInputRef(channel), react = () => orig.apply(self, args);
         // The taps that just deleted a message can land once more before it disappears: ignore them.
         if (gesture.deleted === id && now - gesture.deletedAt < GESTURE_DELETED_MS) { gestureCancel(); return; }
         if (gesture.pending && gesture.pending.id === id && now - gesture.pendingAt < GESTURE_PAIR_MS) {
-            if (settings.gestureTripleDelete && gestureOwn(message) && (!message.state || message.state === "SENT")) { gesture.channel = channel; gestureDeletePending(now); return; }
-            gestureCancel(); gestureAct(message, channel, ref);
+            if (settings.gestureTripleDelete && gestureCanDelete(message)) { gesture.channel = channel; gestureDeletePending(now); return; }
+            gestureCancel(); gestureAct(message, channel, ref, react);
             return;
         }
         gestureCancel();
         // Nothing waits for a third tap when it couldn't delete anything (including unsent messages).
-        if (!settings.gestureTripleDelete || !gestureOwn(message) || message.state && message.state !== "SENT") { gestureAct(message, channel, ref); return; }
+        if (!settings.gestureTripleDelete || !gestureCanDelete(message)) { gestureAct(message, channel, ref, react); return; }
         gesture.pending = message; gesture.channel = channel; gesture.chatInputRef = ref; gesture.pendingAt = now;
         gesture.timer = later(() => { gesture.timer = undefined; const waiting = gesture.pending, waitingChannel = gesture.channel, waitingRef = gesture.chatInputRef; gesture.pending = null; gesture.channel = null; gesture.chatInputRef = null;
-            // Switching gestures off while it waited used to still open the editor (or reply) a moment later.
-            if (waiting === message && enabled("gestures")) gestureAct(message, waitingChannel, waitingRef); }, GESTURE_TRIPLE_MS);
+            // Switching gestures off while it waited used to still open the editor (or reply) a moment later. So did leaving the
+            // chat: the editor opened on a message you could no longer see, in the box of the chat you'd left.
+            if (waiting === message && enabled("gestures") && gestureStillInChat(waitingChannel)) gestureAct(message, waitingChannel, waitingRef, react); }, GESTURE_TRIPLE_MS);
     }
     function hideWhenGestures(orig, self, args) {
         if (React) useSettings("gestures");
@@ -4702,7 +4941,7 @@
     function badgeHowCard(s) {
         const rate = badgeGamesAtOnce();
         const rows = [
-            [9207, "GameControllerIcon", tr("When a game counts"), tr("As soon as it starts. Each game stays on a while anyway, because switching every few seconds is something no real player does.")],
+            [9207, "GameControllerIcon", tr("When a game counts"), tr("As soon as it starts.")],
             [5051, "ClockIcon", tr("How fast hours add up"), settings.badgesGameTime ?
                 pl(rate, "{n} hour of game time for every hour Discord is open, even in the background.", "{n} hours of game time for every hour Discord is open, even in the background.") :
                 tr("Turn on Game time to count hours.")],
@@ -4803,7 +5042,8 @@
             consent === false ? statusCard("consent", "Discord only counts games toward these badges while \"Use data to personalize my Discord experience\" is on.",
                 {title:tr("Personalization is off"), IconComponent:venusIcon(12178, "ChatWarningIcon"),
                  trailing:Button ? el(Button, {text:tr("Turn on"), size:"sm", variant:"primary", onPress:() => { haptic("SELECTION"); badgeTurnOnPersonalization(); }}) : null}) : null,
-            badgeProgressCard(s, on),
+            // Off, progress never loads, so the card would only say "Loading progress" three times.
+            on || BADGE_ROWS.some(([key]) => badgeInfo(key)) ? badgeProgressCard(s, on) : null,
             on ? badgeHowCard(s) : null,
             el(Group, {key:"types", title:tr("What to count")},
                 switchRow(Switch, "badgesGameTime", "Game time", "Plays games in the background, toward Hours Played.", rowIcon(5051, "ClockIcon")),
@@ -4811,8 +5051,7 @@
             settings.badgesGameTime ? el(RN.View, {key:"atOnce", style:{gap:10}},
                 groupTitle("atOnceTitle", "Games at once"),
                 venusSegmented({key:"atOnceSeg", value:badgeAtOnce(settings.badgesGamesAtOnce), disabled:!on, onChange:value => setSetting("badgesGamesAtOnce", value),
-                    items:BADGE_AT_ONCE.map(n => ({value:n, label:pl(n, "{n} game", "{n} games")}))}),
-                footnote("atOnceHint", "Discord adds up the time of every game that's running, so 3 games count 3 hours each hour. More than 3 at once isn't something real players do.")) : null,
+                    items:BADGE_AT_ONCE.map(n => ({value:n, label:pl(n, "{n} game", "{n} games")}))})) : null,
             settings.badgesUniqueGames ? el(PresetOrCustom, {key:"cycle", title:"Switch games every", value:settings.badgesCycleMinutes, disabled:!on,
                 min:BADGE_CYCLE_MIN, max:BADGE_CYCLE_MAX, placeholder:15,
                 inputLabel:tr("Minutes, {min} to {max}", {min:BADGE_CYCLE_MIN, max:BADGE_CYCLE_MAX}),
@@ -5165,17 +5404,21 @@
         return styles || fallback;
     }
     const STATUS_CARD_DARK = {card:{backgroundColor:"#2b2d31", borderRadius:16, paddingHorizontal:16, paddingVertical:14, flexDirection:"row", alignItems:"center", gap:14},
-        badge:{width:40, height:40, borderRadius:20, alignItems:"center", justifyContent:"center", backgroundColor:"#4e50584d"}};
+        badge:{width:40, height:40, borderRadius:20, alignItems:"center", justifyContent:"center", backgroundColor:"#4e50584d"},
+        accent:{width:40, height:40, borderRadius:20, alignItems:"center", justifyContent:"center", backgroundColor:"#5865f229"}, accentIcon:{color:"#94a8ff"}};
     // The card at the top of an option page: an optional icon or avatars, a bold title line and the details under it.
     function VenusStatusCard(props) {
         // Called straight from a page render (not as its own component), so its texts stay part of the page.
         const s = useThemed("statusCard", c => ({card:Object.assign({}, STATUS_CARD_DARK.card, {backgroundColor:c.CARD_BACKGROUND_DEFAULT}),
-            badge:Object.assign({}, STATUS_CARD_DARK.badge, {backgroundColor:c.BACKGROUND_MOD_SUBTLE})}), STATUS_CARD_DARK);
+            badge:Object.assign({}, STATUS_CARD_DARK.badge, {backgroundColor:c.BACKGROUND_MOD_SUBTLE}),
+            accent:Object.assign({}, STATUS_CARD_DARK.accent, {backgroundColor:c.TOGGLEBUTTON_BACKGROUND_SELECTED || c.MENTION_BACKGROUND}),
+            accentIcon:{color:c.ICON_BRAND || c.TEXT_BRAND}}), STATUS_CARD_DARK);
         const Text = inspectedExport(5088, "Text"), Icon = props.IconComponent, title = props.title, body = props.body;
         const line = (value, variant, color, fallback) => Text ? el(Text, {variant, color}, value) : el(RN.Text, {style:fallback}, value);
         return el(RN.View, {key:props.key, style:s.card, accessible:true},
             // The badge pops in when the page opens, and again whenever the card's state (its title) changes.
-            popIn("badge:" + (title || ""), props.leading || (Icon ? el(RN.View, {style:s.badge}, el(Icon, {size:"md"})) : null)),
+            popIn("badge:" + (title || ""), props.leading || (Icon ? el(RN.View, {style:props.accent ? s.accent : s.badge},
+                el(Icon, props.accent ? {size:"md", color:s.accentIcon.color} : {size:"md"})) : null)),
             el(RN.View, {style:{flex:1, gap:2}},
                 title ? line(title, "text-md/semibold", "text-strong", {color:"#f2f3f5", fontSize:16, fontWeight:"600"}) : null,
                 body ? line(body, "text-sm/medium", title ? "text-muted" : "text-default", {color:title ? "#949ba4" : "#dbdee1", fontSize:14}) : null,
@@ -5210,10 +5453,13 @@
     // Pages share one look for "off": a muted title and the hint to switch it on.
     // With the feature's key, the card carries Discord's own switch, so you can turn it on right here instead of going back to
     // Features. The page fills in below as it turns on (animateLayout), and the switch gives Discord's own haptic tick.
+    // The switch already says it's off, so the card introduces the feature instead: its name and what it does, the same
+    // words as its row on the Features list, with its icon in the brand color.
     function offCard(key,IconComponent,feature) {
         const FormSwitch=feature && features[feature] ? inspectedExport(6897,"FormSwitch") : null;
-        const title=tr("Turned off");
-        return VenusStatusCard({key,title,IconComponent,body:tr(FormSwitch ? "Turn it on here to start." : "Switch it on in Features to start."),
+        const row=feature && featureSearch.rows.find(entry => entry.key===feature);
+        const title=row ? tr(row.title) : tr("Turned off");
+        return VenusStatusCard({key,title,IconComponent,accent:true,body:row && row.hint ? tr(row.hint) : tr(FormSwitch ? "Turn it on here to start." : "Switch it on in Features to start."),
             trailing:FormSwitch ? el(FormSwitch,{key:"switch:"+riskCancels,value:false,accessibilityLabel:title,onValueChange:value => { if (!value) return; if (RISKY_FEATURES[feature]) { turnOnAsking(feature,true); return; } animateLayout(); setSetting(feature,true); }}) : null});
     }
     // A small chat surface for page previews, in the theme's chat colors (same tokens as the Message highlights one).
@@ -5277,47 +5523,42 @@
         const index=props.items.findIndex(item => item.value===props.value);
         // Once its slider has measured the track, the chosen pill slides to the new choice instead of jumping.
         const slot=String(props.key)+":"+props.items.length, sliding=!!motion() && segmentMeasured.has(slot);
-        const pick=i => { const item=props.items[i]; if (item && !props.disabled && item.value!==props.value) { haptic("IMPACT_MEDIUM"); if (!sliding) animateLayout(); props.onChange(item.value); } };
+        const pick=i => { const item=props.items[i]; if (!item || props.disabled) return;
+            if (item.value===props.value) { if (props.onReselect) props.onReselect(item.value); return; }
+            haptic("IMPACT_MEDIUM"); if (!sliding) animateLayout(); props.onChange(item.value); };
         const pill={flex:1,minWidth:0,paddingVertical:9,paddingHorizontal:8,borderRadius:20,alignItems:"center",justifyContent:"center"};
         const s=useThemed("segmented",c => ({wrap:{flexDirection:"row",padding:4,gap:4,borderRadius:24,backgroundColor:c.MOBILE_SEGMENTED_CONTROL_BACKGROUND},
-            on:Object.assign({},pill,{backgroundColor:c.MOBILE_SEGMENTED_CONTROL_INDICATOR_BACKGROUND}),off:pill}),
-            {wrap:{flexDirection:"row",padding:4,gap:4,borderRadius:24,backgroundColor:"#1e1f22"},on:Object.assign({},pill,{backgroundColor:"#4e5058"}),off:pill});
+            on:Object.assign({},pill,{backgroundColor:c.MOBILE_SEGMENTED_CONTROL_INDICATOR_BACKGROUND}),off:pill,
+            label:{on:c.INTERACTIVE_TEXT_ACTIVE,off:c.TEXT_MUTED}}),
+            {wrap:{flexDirection:"row",padding:4,gap:4,borderRadius:24,backgroundColor:"#1e1f22"},on:Object.assign({},pill,{backgroundColor:"#4e5058"}),off:pill,
+             label:{on:"#ffffff",off:"#949ba4"}});
         const Text=inspectedExport(5088,"Text"), Press=RN.Pressable || RN.View;
         const indicator=s.on && s.on.backgroundColor;
         return el(RN.View,{key:props.key,style:[s.wrap,{opacity:props.disabled ? 0.5 : 1}],accessibilityRole:"tablist"},
             motion() && index>=0 ? el(SegmentedSlider,{key:"slider",slot,index,count:props.items.length,color:indicator}) : null,
             props.items.map((item,i) => el(Press,{key:String(item.value),style:i===index && !sliding ? s.on : s.off,accessibilityRole:"tab",accessibilityLabel:item.label,
                 accessibilityState:{selected:i===index,disabled:!!props.disabled},disabled:!!props.disabled,onPress:() => pick(i)},
-                Text ? el(Text,{variant:"text-sm/semibold",color:i===index ? "interactive-text-active" : "text-muted",lineClamp:1,style:{textAlign:"center"}},item.label) :
-                    el(RN.Text,{numberOfLines:1,style:{color:i===index ? "#ffffff" : "#949ba4",fontWeight:"600",textAlign:"center"}},item.label))));
+                item.icon && !item.text ? el(item.icon,{size:"xs",color:i===index ? s.label.on : s.label.off}) :
+                Text ? el(Text,{variant:"text-sm/semibold",color:i===index ? "interactive-text-active" : "text-muted",lineClamp:1,style:{textAlign:"center"}},item.text || item.label) :
+                    el(RN.Text,{numberOfLines:1,style:{color:i===index ? "#ffffff" : "#949ba4",fontWeight:"600",textAlign:"center"}},item.text || item.label))));
     }
-    // Presets as Discord's segmented pills, and under them one Custom row that says what's in use: tap it for an inline
-    // number box with Use. A custom value leaves every pill unselected, so they never claim a choice you didn't make.
+    // Presets as segmented pills with one more at the end for any other number: a pencil, or the number itself once it's
+    // custom (then that pill is the chosen one). Tapping it opens a number box right under the pills.
+    const PRESET_CUSTOM = "\u0000custom";
     function PresetOrCustom(props) {
         const [editing, setEditing] = React.useState(false), [draft, setDraft] = React.useState("");
-        const s = useThemed("presetCustom", c => ({row:{flexDirection:"row", alignItems:"center", gap:12, paddingHorizontal:16, paddingVertical:12,
-            borderRadius:16, backgroundColor:c.CARD_BACKGROUND_DEFAULT}, chip:{paddingHorizontal:12, paddingVertical:5, borderRadius:12,
-            backgroundColor:c.BACKGROUND_MOD_SUBTLE}, active:{backgroundColor:c.BACKGROUND_BRAND || "#5865f2"}}),
-            {row:{flexDirection:"row", alignItems:"center", gap:12, paddingHorizontal:16, paddingVertical:12, borderRadius:16, backgroundColor:"#2b2d31"},
-             chip:{paddingHorizontal:12, paddingVertical:5, borderRadius:12, backgroundColor:"#4e50584d"}, active:{backgroundColor:"#5865f2"}});
-        const ui = reviewUI(), Text = inspectedExport(5088, "Text"), Press = RN.Pressable || RN.View, Pencil = venusIcon(9720, "PencilIcon");
+        const ui = reviewUI(), Pencil = venusIcon(9720, "PencilIcon");
         const value = props.value, preset = props.presets.some(item => item.value === value), on = !props.disabled;
-        const label = (text, variant, color) => Text ? el(Text, {variant, color}, text) :
-            el(RN.Text, {style:{color:color === "text-strong" ? "#f2f3f5" : color === "always-white" ? "#ffffff" : "#949ba4", fontSize:variant.indexOf("text-md") === 0 ? 16 : 13, fontWeight:"600"}}, text);
         const number = Number(draft), valid = draft !== "" && Number.isFinite(number) && number >= props.min && number <= props.max;
         const apply = () => { if (!on || !valid) return; haptic("SELECTION"); animateLayout(); props.onChange(number); setEditing(false); setDraft(""); };
-        const open = () => { if (!on) return; animateLayout(); setDraft(String(value)); setEditing(true); };
+        const open = () => { if (!on) return; animateLayout(); setDraft(preset ? "" : String(value)); setEditing(!editing); };
+        const items = props.presets.concat([{value:PRESET_CUSTOM, label:tr("Custom"), icon:Pencil, text:preset ? "" : props.format(value)}]);
         return el(RN.View, {key:props.key, style:{gap:10}},
             groupTitle("title", props.title),
-            venusSegmented({key:props.key + ":pills", value:preset ? value : undefined, disabled:!on, onChange:next => { setEditing(false); props.onChange(next); }, items:props.presets}),
-            el(Press, {accessibilityRole:"button", accessibilityLabel:tr("Custom"), disabled:!on || editing, onPress:open, style:[s.row, {opacity:on ? 1 : 0.5}]},
-                el(Pencil, {size:"sm"}),
-                el(RN.View, {style:{flex:1}}, label(tr("Custom"), "text-md/semibold", "text-strong"),
-                    label(tr("{min} to {max}", {min:props.format(props.min), max:props.format(props.max)}), "text-sm/medium", "text-muted")),
-                popIn("custom:" + (preset ? "off" : value), el(RN.View, {style:[s.chip, preset ? null : s.active]},
-                    label(preset ? tr("Edit") : props.format(value), "text-sm/semibold", preset ? "text-muted" : "always-white")))),
+            venusSegmented({key:props.key + ":pills", value:preset ? value : PRESET_CUSTOM, disabled:!on, items, onReselect:next => { if (next === PRESET_CUSTOM) open(); },
+                onChange:next => { if (next === PRESET_CUSTOM) { open(); return; } setEditing(false); props.onChange(next); }}),
             editing ? inputWithButton(ui, "input", {value:draft, label:props.inputLabel, keyboardType:"number-pad", maxLength:String(props.max).length,
-                autoFocus:true, returnKeyType:"done", onSubmitEditing:apply, placeholder:String(props.placeholder), editable:on, isDisabled:!on},
+                autoFocus:true, returnKeyType:"done", onSubmitEditing:apply, placeholder:String(preset ? props.placeholder : value), editable:on, isDisabled:!on},
                 text => setDraft(String(text || "").replace(/[^0-9]/g, "")), "Use", apply, !valid) : null,
             props.hint ? footnote("hint", props.hint) : null);
     }
@@ -5518,6 +5759,101 @@
             footnote("note", "Everything else comes from what Discord has already loaded, and updates while the sheet is open.")];
         return settingsBody(ui, groups);
     }
+    // Imported font and emoji files: Android's file picker, a private copy in Discord's cache (keepLocalCopy), then the native
+    // side checks Android can draw it and keeps it in Discord's files. Each kind talks through its own native method, the one
+    // that already reopens Discord for it (font: fileExists, emojis: getVideoDimensions), so no method carries two guards.
+    const fontFiles = {font:undefined, emoji:undefined, busy:""};
+    const FONT_FILE_KINDS = {
+        font:{max:32 * 1024 * 1024, prefix:"venus-font-v1:", source:"systemFontSource", copy:"venus-font-import"},
+        emoji:{max:64 * 1024 * 1024, prefix:"venus-emoji-v1:", source:"systemEmojiSource", copy:"venus-emoji-import"}};
+    function fontFileCall(kind, request) {
+        const k = FONT_FILE_KINDS[kind];
+        return Promise.resolve().then(() => kind === "font" ? files.fileExists(k.prefix + request) : files.getVideoDimensions(k.prefix + request));
+    }
+    function fontFileInfo(text) {
+        try { const info = JSON.parse(String(text || "{}")); return info && typeof info.size === "number" ? info : null; } catch (_) { return null; }
+    }
+    // What's imported right now, read once when a page first opens.
+    function fontFileRefresh(kind) {
+        if (!files || fontFiles[kind] !== undefined) return;
+        fontFiles[kind] = null;
+        fontFileCall(kind, "info").then(text => { fontFiles[kind] = fontFileInfo(text); notify(kind === "font" ? "systemFont" : "systemEmoji"); }, () => {});
+    }
+    function fontFileProblem(kind, code) {
+        const font = kind === "font";
+        return tr(code === "too-large" ? (font ? "That font is too large. Pick one under 32 MB." : "That emoji font is too large. Pick one under 64 MB.") :
+            code === "no-emojis" ? "That font has no emojis of its own. Pick an emoji font, like a Twemoji or Noto Color Emoji TTF." :
+            code === "not-a-font" ? "That file isn't a font Android can use. Pick a TTF, OTF or TTC file." : "That file couldn't be opened.");
+    }
+    function fontFileImport(kind) {
+        const k = FONT_FILE_KINDS[kind], owner = kind === "font" ? "systemFont" : "systemEmoji";
+        const pick = inspectedExport(12803, "pick"), keep = inspectedExport(12803, "keepLocalCopy"), types = inspectedExport(12803, "types");
+        if (!files || typeof pick !== "function" || typeof keep !== "function" || fontFiles.busy) return;
+        const fail = code => { fontFiles.busy = ""; notify(owner); showProblem("Couldn't import", fontFileProblem(kind, code)); };
+        fontFiles.busy = kind; notify(owner);
+        Promise.resolve().then(() => pick({type:[types && types.allFiles || "*/*"], allowMultiSelection:false, mode:"import"})).then(picked => {
+            const file = Array.isArray(picked) ? picked[0] : picked;
+            if (!file || typeof file.uri !== "string") throw new Error("cancel");
+            const name = typeof file.name === "string" ? file.name : "";
+            if (name && !/\.(ttf|otf|ttc)$/i.test(name)) throw new Error("not-a-font");
+            if (typeof file.size === "number" && file.size > k.max) throw new Error("too-large");
+            const ext = (/\.(ttf|otf|ttc)$/i.exec(name) || [".ttf"])[0].toLowerCase();
+            return Promise.resolve(keep({files:[{uri:file.uri, fileName:k.copy + ext}], destination:"cachesDirectory"})).then(copies => {
+                const copy = Array.isArray(copies) ? copies[0] : copies;
+                if (!copy || copy.status !== "success" || typeof copy.localUri !== "string") throw new Error("unreadable");
+                const path = decodeURIComponent(copy.localUri.replace(/^file:\/\//, ""));
+                return fontFileCall(kind, "import:" + JSON.stringify({path, name:name.replace(/\.(ttf|otf|ttc)$/i, "").slice(0, 120)}));
+            });
+        }).then(text => {
+            fontFiles[kind] = fontFileInfo(text); fontFiles.busy = "";
+            animateLayout(); notify(owner);
+            reviewToast(reviewUI(), kind === "font" ? "Font imported" : "Emoji font imported", venusIcon(6868, "CircleCheckIcon"));
+            // A new file applies from the next start, even when the file was already the source.
+            if (settings[k.source] !== "file") setSetting(k.source, "file");
+            else if (enabled(owner)) later(() => askRestart(kind), 0);
+        }).catch(error => {
+            if (pickerCancelled(error) || error && error.message === "cancel") { fontFiles.busy = ""; notify(owner); return; }
+            fail(error && error.message);
+        });
+    }
+    function fontFileRemove(kind) {
+        const k = FONT_FILE_KINDS[kind], owner = kind === "font" ? "systemFont" : "systemEmoji";
+        confirmAction(kind === "font" ? "Remove the font?" : "Remove the emoji font?",
+            kind === "font" ? "Venus goes back to your phone's font." : "Venus goes back to your phone's emojis.", "Remove", () => {
+            fontFileCall(kind, "remove").then(() => {
+                fontFiles[kind] = null; animateLayout(); notify(owner);
+                if (settings[k.source] === "file") setSetting(k.source, "phone");
+            }, () => showProblem("Couldn't remove", tr("Try again in a moment.")));
+        });
+    }
+    // One page for both: where the look comes from, then the imported file.
+    function fontFilePage(kind) {
+        const font = kind === "font", owner = font ? "systemFont" : "systemEmoji", k = FONT_FILE_KINDS[kind];
+        useSettings(owner);
+        const ui = reviewUI();
+        if (!React || !RN) return null;
+        React.useEffect(() => { fontFileRefresh(kind); }, []);
+        const on = enabled(owner), info = fontFiles[kind], busy = fontFiles.busy === kind, Group = ui.TableRowGroup || RN.View, Row = ui.TableRow;
+        const canPick = !!files && typeof inspectedExport(12803, "pick") === "function" && typeof inspectedExport(12803, "keepLocalCopy") === "function";
+        const fileLabel = info ? (info.name || tr(font ? "Imported font" : "Imported emoji font")) + " \u00b7 " + formatSize(info.size) : "";
+        const choices = [["phone", font ? tr("Your phone's font") : tr("Your phone's emojis"),
+            font ? tr("The font your phone uses everywhere else.") : tr("The emojis your phone's keyboard shows."), rowIcon(6642, "MobilePhoneIcon")]];
+        if (info || settings[k.source] === "file") choices.push(["file", font ? tr("Imported font") : tr("Imported emoji font"),
+            info ? fileLabel : tr("The file is missing. Import it again."), rowIcon(9337, "PaperIcon")]);
+        const groups = [
+            on ? null : offCard("status", venusIcon(font ? 15974 : 12901, font ? "LettersIcon" : "ChatSmileIcon"), owner),
+            // Only a choice once there's a file to choose; before that the phone's look is simply what's used.
+            info || settings[k.source] === "file" ? radioGroup(ui, "source", font ? "Font to use" : "Emojis to use", k.source, on, choices, true) : null,
+            canPick && Row ? el(Group, {key:"file", title:tr(font ? "Font file" : "Emoji font")},
+                el(Row, {key:"import", label:tr(busy ? "Importing\u2026" : info ? (font ? "Replace the font" : "Replace the emoji font") : (font ? "Import a font" : "Import an emoji font")),
+                    subLabel:tr(font ? "A TTF, OTF or TTC file, up to 32 MB." : "A color emoji TTF, like Twemoji or Noto Color Emoji, up to 64 MB."),
+                    icon:rowIcon(9401, "UploadIcon"), arrow:true, disabled:!!fontFiles.busy, onPress:() => fontFileImport(kind)}),
+                info ? actionRow(ui, "remove", font ? "Remove the font" : "Remove the emoji font", null, () => fontFileRemove(kind), !!fontFiles.busy, true) : null) : null,
+            footnote("note", font ? "Code blocks keep a monospace font. A new font shows once Discord reopens." : "Emojis the font doesn't have keep your phone's. A new emoji font shows once Discord reopens.")];
+        return settingsBody(ui, groups);
+    }
+    function SystemFontSettings() { return fontFilePage("font"); }
+    function SystemEmojiSettings() { return fontFilePage("emoji"); }
     function ReadAllSettings() {
         useSettings("readAll");
         const ui=reviewUI();
@@ -5665,8 +6001,11 @@
     // under it. Off: the finished message, so the page always shows the result.
     const FIX_SAMPLES = {x:"/wumpus/status/1846602926837096812", instagram:"/reel/C5nYWo0P5yK/", tiktok:"/@wumpus/video/7137423965982592302",
         reddit:"/r/discordapp/comments/1g5x4b0/", bluesky:"/profile/wumpus.bsky.social/post/3l6oveex3ii2l", threads:"/@wumpus/post/DGkNlhDyGm9",
-        facebook:"/reel/1180000000000000", pixiv:"/artworks/123456789", bilibili:"/video/BV1xx411c7mD"};
-    const FIX_VIDEO = {x:true, instagram:true, tiktok:true, facebook:true, bilibili:true};
+        tumblr:"/wumpus/752839474927902720", facebook:"/reel/1180000000000000", mastodon:"/@wumpus/113289104412093482",
+        ptt:"/bbs/C_Chat/M.1729000000.A.1B2.html", youtube:"/watch?v=dQw4w9WgXcQ", twitch:"/wumpus/clip/GoodGoodWaffleTwitchRaid",
+        bilibili:"/video/BV1xx411c7mD", spotify:"/track/4cOdK2wGLETKBW3PvgPWqT", pixiv:"/artworks/123456789",
+        deviantart:"/wumpus/art/Final-Boss-1093497633", furaffinity:"/view/42140481", pinterest:"/pin/424605071145119869/"};
+    const FIX_VIDEO = {x:true, instagram:true, tiktok:true, facebook:true, bilibili:true, youtube:true, twitch:true, spotify:true};
     const FIX_PREVIEW_DARK = {link:{color:"#00a8fc"}, embed:{backgroundColor:"#2b2d31", borderColor:"#ffffff14"}, ring:{borderColor:"#5865f2"}};
     function useFixStyles() {
         return useThemed("fixEmbeds", c => ({link:{color:c.TEXT_LINK || "#00a8fc"}, embed:{backgroundColor:c.BACKGROUND_SURFACE_HIGH || c.CARD_BACKGROUND_DEFAULT, borderColor:c.BORDER_SUBTLE},
@@ -5674,12 +6013,14 @@
     }
     // A site's own mark (Discord ships the brand icons it uses for connected accounts), white on its brand color.
     // Sites Discord has no icon for get their letter.
+    // Very dark brand colors (X, Threads, Tumblr) get a faint ring, so the mark doesn't vanish on a dark card.
     function fixBadge(site, size) {
-        const Icon = Array.isArray(site.icon) ? venusIcon(site.icon[0], site.icon[1]) : null, dark = site.color === "#000000" || site.color === "#101010";
+        const Icon = Array.isArray(site.icon) ? venusIcon(site.icon[0], site.icon[1]) : null, hex = parseInt(site.color.slice(1), 16);
+        const dark = 0.2126 * (hex >> 16 & 255) + 0.7152 * (hex >> 8 & 255) + 0.0722 * (hex & 255) < 48, letters = Icon ? 1 : String(site.icon).length;
         return el(RN.View, {style:{width:size, height:size, borderRadius:size / 2, alignItems:"center", justifyContent:"center", backgroundColor:site.color,
             borderWidth:dark ? 1 : 0, borderColor:"#ffffff26"}},
             Icon ? el(Icon, {size:size >= 36 ? "sm" : size >= 24 ? "xs" : "xxs", color:"#ffffff"}) :
-                el(RN.Text, {style:{color:"#ffffff", fontWeight:"800", fontSize:Math.round(size * 0.45)}}, site.icon));
+                el(RN.Text, {style:{color:"#ffffff", fontWeight:"800", fontSize:Math.round(size * (letters > 2 ? 0.26 : letters > 1 ? 0.34 : 0.45))}}, site.icon));
     }
     function FixEmbedsPreview(props) {
         useSettings("fixEmbeds");
@@ -5726,8 +6067,7 @@
                     hitSlop:{top:4, bottom:4}, style:[{padding:2, borderRadius:20, borderWidth:2, borderColor:"transparent"}, picked ? f.ring : null, fixService(item) ? null : {opacity:0.4}]},
                     fixBadge(item, 30)); }));
         const input = previewInput(k, s, {placeholder:tr("Message {channel}", {channel:"#general"}), text:view.text});
-        const message = view.sent ? popIn("msg:" + siteId + ":" + !!live, previewMessage(s, "msg", tr("You"), "#5865f2", tr("Today at 4:01 PM"), body)) :
-            el(RN.View, {key:"empty", style:{paddingHorizontal:16, paddingVertical:24}}, el(RN.Text, {style:[s.muted, {textAlign:"center"}]}, tr("Nothing sent yet")));
+        const message = view.sent ? popIn("msg:" + siteId + ":" + !!live, previewMessage(s, "msg", tr("You"), "#5865f2", tr("Today at 4:01 PM"), body)) : null;
         return el(RN.View, {key:"preview"},
             previewScreen(s, "preview", "Link preview", [marks,
                 // Steady height, so picking a site with a shorter preview never makes the page jump.
@@ -5737,7 +6077,8 @@
                     el(RN.View, null, input, tapRipple(state.pulse, "send", {right:10, top:11})),
                     watching ? storyStrip(k, s, story) : null)}));
     }
-    // Every site in one card: its mark, where its links go and a switch. A site with more than one service opens a choice under it.
+    // Sites in three cards by what's shared (posts, videos and music, art): each row has the site's mark, where its links go and
+    // a switch. A site with more than one service opens a choice under it. Sites that start off say why: Discord's own preview works.
     const FIX_LIST_DARK = {card:{backgroundColor:"#2b2d31", borderRadius:16, overflow:"hidden"}, divider:{height:1, marginLeft:68, backgroundColor:"#ffffff0f"}};
     function FixSiteList(props) {
         useSettings("fixEmbeds");
@@ -5745,31 +6086,51 @@
         const s = useThemed("fixSites", c => ({card:Object.assign({}, FIX_LIST_DARK.card, {backgroundColor:c.CARD_BACKGROUND_DEFAULT}),
             divider:Object.assign({}, FIX_LIST_DARK.divider, {backgroundColor:c.BORDER_SUBTLE})}), FIX_LIST_DARK);
         const Text = inspectedExport(5088, "Text"), FormSwitch = inspectedExport(6897, "FormSwitch"), Press = RN.Pressable || RN.View;
-        const Down = venusIcon(10534, "ChevronSmallDownIcon"), Right = venusIcon(6906, "ChevronSmallRightIcon");
+        const Down = venusIcon(10534, "ChevronSmallDownIcon");
         const line = (value, variant, color, fallback) => Text ? el(Text, {variant, color, lineClamp:1}, value) : el(RN.Text, {style:fallback, numberOfLines:1}, value);
-        const rows = fixRows(), choices = fixChoices(settings.fixEmbedsSites), active = rows.filter(row => choices[row[0]] !== "off").length, out = [];
-        rows.forEach((row, i) => {
-            const site = fixEmbeds.sites[row[0]], service = fixService(site), many = site.services.length > 1, expanded = open === site.id && !!service && many && on;
-            const to = service ? typeof service.to === "string" ? service.to.replace(/^https:\/\/([^\/]+).*$/, "$1") : service.to[site.hosts[0]] : "";
-            if (i) out.push(el(RN.View, {key:"d" + i, style:s.divider}));
+        const rows = fixRows();
+        const siteRow = (site, i, out) => {
+            const service = fixService(site), many = site.services.length > 1, expanded = open === site.id && !!service && many && on;
+            if (i) out.push(el(RN.View, {key:"d" + site.id, style:s.divider}));
             const toggleOpen = () => { if (!on || !service || !many) return; haptic("SELECTION"); animateLayout(); setOpen(expanded ? null : site.id); };
+            const detail = service ? service.name + " \u00b7 " + fixServiceHost(site, service) : tr(site.start === "off" ? "Discord shows its own preview" : "Sent as written");
             out.push(el(Press, {key:site.id, onPress:toggleOpen, disabled:!on || !service || !many, accessibilityRole:many && service ? "button" : undefined,
                 accessibilityLabel:site.name, accessibilityState:{expanded}, style:{flexDirection:"row", alignItems:"center", gap:12, paddingHorizontal:16, paddingVertical:12, opacity:on ? 1 : 0.5}},
                 el(RN.View, {style:{opacity:service ? 1 : 0.4}}, fixBadge(site, 40)),
                 el(RN.View, {style:{flex:1, gap:2}},
                     line(site.name, "text-md/semibold", "text-strong", {color:"#f2f3f5", fontSize:16, fontWeight:"600"}),
-                    line(service ? service.name + " \u00b7 " + to : tr("Sent as written"), "text-sm/medium", "text-muted", {color:"#949ba4", fontSize:14})),
-                many && service && on ? el(expanded ? Down : Right, {size:"sm"}) : null,
+                    line(detail, "text-sm/medium", "text-muted", {color:"#949ba4", fontSize:14})),
+                // It opens in place, so a down chevron that flips up, not a "goes to another page" arrow.
+                many && service && on ? el(RN.View, {style:expanded ? {transform:[{rotate:"180deg"}]} : null}, el(Down, {size:"sm"})) : null,
                 FormSwitch ? el(FormSwitch, {value:!!service, disabled:!on, accessibilityLabel:site.name,
                     onValueChange:value => { animateLayout(); if (!value && open === site.id) setOpen(null); fixSetChoice(site.id, value ? site.services[0].id : "off"); }}) : null));
             if (expanded) out.push(el(RN.View, {key:site.id + ":pick", style:{paddingRight:16, paddingBottom:14, paddingLeft:68}},
-                venusSegmented({key:"fix:" + site.id, value:service.id, onChange:value => fixSetChoice(site.id, value),
-                    items:site.services.map(item => ({value:item.id, label:item.name}))})));
-        });
-        return el(RN.View, {key:"sites", style:{gap:8}},
-            groupTitle("title", tr("Sites") + " \u00b7 " + tr("{on} of {total} turned on", {on:active, total:rows.length})),
-            el(RN.View, {style:s.card}, out),
-            footnote("hint", "Tap a site to choose its service. If a preview doesn't show, another service may work."));
+                // More than four services don't fit as pills, so they become a list of choices.
+                site.services.length <= 4 ? venusSegmented({key:"fix:" + site.id, value:service.id, onChange:value => fixSetChoice(site.id, value),
+                    items:site.services.map(item => ({value:item.id, label:item.name}))}) : fixServiceChoices(site, service, line)));
+        };
+        const card = (group, title) => {
+            const out = [];
+            rows.filter(row => fixEmbeds.sites[row[0]].group === group).forEach((row, i) => siteRow(fixEmbeds.sites[row[0]], i, out));
+            return el(RN.View, {key:group, style:{gap:8}}, title, el(RN.View, {style:s.card}, out));
+        };
+        const cards = [card("social", groupTitle("t:social", "Social")), card("video", groupTitle("t:video", "Video and music")), card("art", groupTitle("t:art", "Art"))];
+        return el(RN.View, {key:"sites", style:{gap:16}},
+            cards,
+            footnote("hint", "Preview not showing? Try another service."));
+    }
+    // A long list of services as radio rows: the service's name, where links go and a check on the one in use.
+    function fixServiceChoices(site, service, line) {
+        const Press = RN.Pressable || RN.View, Check = venusIcon(6823, "CheckmarkSmallIcon");
+        return el(RN.View, {style:{gap:2}}, site.services.map(item => {
+            const picked = item.id === service.id;
+            return el(Press, {key:item.id, accessibilityRole:"radio", accessibilityLabel:item.name, accessibilityState:{selected:picked},
+                onPress:() => { if (picked) return; haptic("SELECTION"); animateLayout(); fixSetChoice(site.id, item.id); },
+                style:{flexDirection:"row", alignItems:"center", gap:8, paddingVertical:8}},
+                el(RN.View, {style:{flex:1}}, line(item.name, picked ? "text-sm/semibold" : "text-sm/medium", picked ? "text-strong" : "text-default", {color:"#dbdee1", fontSize:14}),
+                    line(fixServiceHost(site, item), "text-xs/medium", "text-muted", {color:"#949ba4", fontSize:12})),
+                picked ? popIn("check:" + site.id + ":" + item.id, el(Check, {size:"sm"})) : null);
+        }));
     }
     function TenorSettings() {
         useSettings("tenorGifs");
@@ -5790,8 +6151,8 @@
         const ui = reviewUI();
         if (!React || !RN) return null;
         const on = enabled("fixEmbeds"), Group = ui.TableRowGroup || RN.View, Switch = ui.TableSwitchRow, Icon = venusIcon(12910, "EmbedIcon");
-        const choices = fixChoices(settings.fixEmbedsSites), none = !fixRows().some(row => choices[row[0]] !== "off");
-        const changed = settings.fixEmbedsSites !== "" || !settings.fixEmbedsClean;
+        const none = !fixRows().some(row => fixService(fixEmbeds.sites[row[0]])), tumblr = fixService(fixSite("tumblr"));
+        const changed = settings.fixEmbedsSites !== "" || !settings.fixEmbedsClean || !settings.fixEmbedsDark;
         const groups = [
             !on ? offCard("status", Icon, "fixEmbeds") : none ? statusCard("status", "Turn on a site below.", {title:tr("No sites turned on"), IconComponent:Icon}) :
                 fixEmbeds.count ? statusCard("status", pl(fixEmbeds.count, "Fixed {n} link since Discord opened.", "Fixed {n} links since Discord opened."),
@@ -5800,9 +6161,12 @@
             el(FixSiteList, {key:"sites", on}),
             el(Group, {key:"privacy", title:tr("Privacy")},
                 switchRow(Switch, "fixEmbedsClean", "Remove tracking from links", "Drops share IDs like ?igsh= and ?si= from the links Venus fixes.", rowIcon(10410, "ShieldIcon"))),
-            changed ? el(Group, {key:"manage", title:tr("Manage")}, actionRow(ui, "reset", "Reset to defaults", "Every site on, through its first service.", () =>
-                confirmAction("Reset to defaults?", "Every site goes back to its first service, and tracking is removed again.", "Reset", () => {
-                    animateLayout(); setSetting("fixEmbedsSites", ""); setSetting("fixEmbedsClean", true); }), !on, true)) : null,
+            // Only fxtumblr can draw a dark post, so the switch shows while Tumblr links go through it (#87).
+            tumblr && tumblr.dark ? el(Group, {key:"look", title:tr("Look")},
+                switchRow(Switch, "fixEmbedsDark", "Dark Tumblr posts", "Tumblr posts are drawn on a dark background, to match Discord.", rowIcon(12689, "ThemeDarkIcon"))) : null,
+            changed ? el(Group, {key:"manage", title:tr("Manage")}, actionRow(ui, "reset", "Reset to defaults", "Every site back to how it started.", () =>
+                confirmAction("Reset to defaults?", "Every site goes back to how it started, and tracking is removed again.", "Reset", () => {
+                    animateLayout(); setSetting("fixEmbedsSites", ""); setSetting("fixEmbedsClean", true); setSetting("fixEmbedsDark", true); }), !on, true)) : null,
             footnote("note", "Only the link changes, and only when you send or edit a message. Links in code or in <angle brackets> are sent as written.")];
         return settingsBody(ui, groups);
     }
@@ -5909,14 +6273,16 @@
         const tryBar = on ? el(RN.View, {key:"try", style:[k.strip, {padding:12, gap:10}]},
             el(PreviewSegmented, {key:"platformScreen", value:screen, onChange:value => update({screen:value}),
                 items:PLATFORM_SCREENS.map(([key]) => ({value:key, label:tr(key === "piDmHeader" ? "DM" : key === "piUserList" ? "Members" : "Profile")}))}),
+            // One compact row: where Alex is right now, and a round button that switches to another mix of devices.
             el(Press, {onPress:() => { animateLayout(); update(st => ({demo:st.demo + 1, pulse:{who:"alex", id:"t" + (st.demo + 1)}})); },
-                accessibilityRole:"button", accessibilityHint:tr("Tap to change Alex's devices"),
-                style:[k.secondary, {borderRadius:20, paddingVertical:10, flexDirection:"row", alignItems:"center", justifyContent:"center", gap:8}]},
-                el(venusIcon(15232, "LaptopPhoneIcon"), {size:"sm", color:k.secondaryText.color}),
-                el(Text, {style:[k.secondaryText, {fontWeight:"600"}]}, tr("Change Alex's devices"))),
-            el(Text, {style:[s.muted, {fontSize:13}]}, tr("Alex is on: {devices}", {devices:now}))) : null;
+                accessibilityRole:"button", accessibilityLabel:tr("Change Alex's devices"), accessibilityHint:tr("Tap to change Alex's devices"),
+                style:{flexDirection:"row", alignItems:"center", gap:10, paddingLeft:4}},
+                el(venusIcon(15232, "LaptopPhoneIcon"), {size:"sm", color:s.muted.color}),
+                el(Text, {style:[s.muted, {flex:1, fontSize:13}], numberOfLines:2}, tr("Alex is on: {devices}", {devices:now})),
+                el(RN.View, {style:[k.secondary, {width:36, height:36, borderRadius:18, alignItems:"center", justifyContent:"center"}]},
+                    el(venusIcon(12627, "RetryIcon"), {size:"sm", color:k.secondaryText.color})))) : null;
         return el(RN.View, {key:"preview"},
-            previewScreen(s, "preview", "Device indicators preview", [el(RN.View, {key:"screen:" + screen, style:{minHeight:236}}, popIn("screen:" + screen,
+            previewScreen(s, "preview", "Device indicators preview", [el(RN.View, {key:"screen:" + screen, style:{minHeight:236, justifyContent:screen === "piDmHeader" ? "flex-end" : "flex-start"}}, popIn("screen:" + screen,
                 el(RN.View, null, body))), off],
                 {header, footer:tryBar}));
     }
@@ -6061,7 +6427,7 @@
     messageRow.call1 = (orig, self, row) => messageRowResult(orig.call(self, row), row);
     function messageRowResult(result, row) {
         if (!result || !row || row.rowType !== 1 || !result.message) return result;
-        const pastelOn = enabled("pastelize"), translateOn = enabled("translate"), noDeleteOn = enabled("noDelete"), highlightOn = enabled("messageHighlight");
+        const pastelOn = enabled("pastelize"), translateOn = enabled("translate"), noDeleteOn = enabled("noDelete"), highlightOn = enabled("messageHighlight"), bulkOn = features.bulkDelete && bulkDelete.active;
         let message = result.message;
         if (pastelOn) message = pastelMessage(message,row.message);
         if (features.pastelize && message.referencedMessage && message.referencedMessage.message) {
@@ -6069,7 +6435,7 @@
             if (reply !== message.referencedMessage.message) message = Object.assign({},message,{referencedMessage:Object.assign({},message.referencedMessage,{message:reply})});
         }
         let next = message === result.message ? result : Object.assign({},result,{message});
-        if (!translateOn && !features.translate && !(noDeleteOn && (edits.size || deleted.size)) && !highlightOn && !features.messageHighlight) return next;
+        if (!translateOn && !features.translate && !(noDeleteOn && (edits.size || deleted.size)) && !highlightOn && !features.messageHighlight && !bulkOn) return next;
         const source = row.message || message;
         const channelId = source.channel_id || source.channelId || message.channelId;
         const id = source.id || message.id;
@@ -6100,11 +6466,23 @@
             const existing = next.backgroundHighlight;
             // A custom color or brightness repaints the row; Discord's own yellow at Normal keeps its own highlight.
             if (isMentionRow && (settings.messageHighlightPingColor !== "default" || settings.messageHighlightBrightness !== 50)) {
-                const custom = highlightCustomPair(settings.messageHighlightPingColor, "#f0b232", mult, highlightAlpha(settings.messageHighlightBrightness));
+                const custom = highlightCustomPair(settings.messageHighlightPingColor, "#f23f43" === settings.messageHighlightPingColor ? "#f23f43" : "#f0b232", mult, highlightAlpha(settings.messageHighlightBrightness));
                 if (custom) next = Object.assign({},next,{backgroundHighlight:custom});
             } else if (existing && typeof existing.gutterColor === "number" && mult > 1) {
                 next = Object.assign({},next,{backgroundHighlight:Object.assign({},existing,{gutterColor:highlightEncodeGutter(existing.gutterColor, mult)})});
             }
+        }
+        if (bulkOn && String(channelId) === String(bulkDelete.channelId) && RN && typeof RN.processColor === "function" &&
+            bulkDeleteCanSelect(source, channelId, isDeletedRow, bulkDeleteManageCached(channelId))) {
+            const isSelected = bulkDelete.selected.has(String(id));
+            const existing = next.backgroundHighlight;
+            const hasGutter = !!(existing && typeof existing.gutterColor === "number");
+            const code = (isSelected ? 32 : 16) + (hasGutter ? Math.max(1, Math.min(8, Math.floor(mult))) : 0);
+            const baseGutter = hasGutter ? existing.gutterColor : (highlightProcess("#5865f2") || 0xff5865f2);
+            const gutterColor = ((256 - code) << 24) | (baseGutter & 0x00ffffff);
+            const selBg = isSelected ? highlightProcess("#5865f224") : null;
+            const backgroundColor = isSelected && selBg != null ? selBg : (existing && existing.backgroundColor != null ? existing.backgroundColor : 0);
+            next = Object.assign({}, next, {backgroundHighlight:{backgroundColor, gutterColor}});
         }
         return next;
     }
@@ -6442,13 +6820,13 @@
             const c=ui.colors;
             if (typeof ui.createStyles==="function" && c) try {
                 reviewStyleHook=ui.createStyles({card:{backgroundColor:c.CARD_BACKGROUND_DEFAULT,borderRadius:16,padding:8},
-                    row:{backgroundColor:c.CARD_SECONDARY_BG},text:{color:c.TEXT_DEFAULT},muted:{color:c.TEXT_MUTED},
+                    row:{backgroundColor:c.CARD_SECONDARY_BG},divider:{backgroundColor:c.BORDER_SUBTLE},text:{color:c.TEXT_DEFAULT},muted:{color:c.TEXT_MUTED},
                     placeholder:{color:c.INPUT_PLACEHOLDER_TEXT_DEFAULT}});
             } catch (_) { reviewStyleHook=null; }
         }
         let styles=null;
         if (reviewStyleHook) try { styles=reviewStyleHook(); } catch (_) {}
-        return styles || {card:{borderRadius:16,padding:8},row:{},text:{},muted:{},placeholder:{}};
+        return styles || {card:{borderRadius:16,padding:8},row:{},divider:{backgroundColor:"#ffffff0f"},text:{},muted:{color:"#949ba4"},placeholder:{}};
     }
     function ReviewSettings() {
         useReviews();
@@ -6459,10 +6837,11 @@
         const me=currentUser(), myName=me && (me.globalName || me.global_name || me.username);
         const groups=[
             !on ? offCard("status",venusIcon(9354,"ThumbsUpIcon"), "reviewDB") :
-                statusCard("status",authenticated ? "You can read, write, delete and report reviews." : "You can read reviews. Sign in to write your own.",
-                    {title:authenticated && myName ? tr("Signed in as {name}",{name:myName}) : tr(pending ? "Signing in…" : "Reading reviews"),
-                        IconComponent:venusIcon(9354,"ThumbsUpIcon"),leading:authenticated && me ? avatarBubble(me,40) : null}),
-            // One row: the action you can take now. The status card already says whether you're signed in.
+                // Signed out, the Sign in row below says it all; signed in, the card shows who you are.
+                authenticated ? statusCard("status","You can read, write, delete and report reviews.",
+                    {title:myName ? tr("Signed in as {name}",{name:myName}) : tr("Signed in"),
+                        IconComponent:venusIcon(9354,"ThumbsUpIcon"),leading:me ? avatarBubble(me,40) : null}) : null,
+            // One row: the action you can take now.
             el(Group,{key:"auth",title:tr("Account")},
                 authenticated ? el(ui.TableRow,{key:"logout",label:tr("Sign out of ReviewDB"),icon:rowIcon(10994,"DoorExitIcon"),variant:"danger",onPress:clearReviewAuth,
                     subLabel:tr("ReviewDB stays in Discord's Authorized Apps until you remove it there.")}) :
@@ -6520,7 +6899,7 @@
                         onSubmitEditing:applyHex,returnKeyType:"done",editable:on,isDisabled:!on},text => setHexDraft(String(text || "")),"Use",applyHex,!on || !validHex) : null)),
             el(PresetOrCustom,{key:"brightness",title:"Brightness",value:settings.noDeleteBrightness,disabled:!on,min:0,max:100,placeholder:50,
                 inputLabel:tr("Brightness, 0 to 100"),format:n => tr("{n}%",{n}),onChange:value => setSetting("noDeleteBrightness",value),
-                presets:BRIGHTNESS_STEPS.map(n => ({value:n,label:tr("{n}%",{n})})),hint:"How strongly a kept message is tinted behind its text. 0% leaves only the bar."}),
+                presets:BRIGHTNESS_STEPS.map(n => ({value:n,label:tr("{n}%",{n})})),hint:"0% leaves only the bar."}),
             el(PresetOrCustom,{key:"limit",title:"Keep up to",value:settings.noDeleteLimit,disabled:!on,min:1,max:MAX_DELETED,placeholder:512,
                 inputLabel:tr("Messages, 1 to {max}",{max:MAX_DELETED}),format:n => String(n),onChange:value => setSetting("noDeleteLimit",value),
                 presets:NODELETE_LIMITS.map(n => ({value:n,label:String(n)})),hint:"When it's full, the oldest is removed first."}),
@@ -6650,11 +7029,17 @@
                 el(RN.Pressable,{key:String(index),style:{marginLeft:4},onPress:() => reviewToast(ui,String(badge.name || ""))},
                     el(RN.Image,{source:{uri:badge.icon,width:16,height:16},style:{width:16,height:16}})))),
             el(ui.FormLabel,{text:timestamp,style:[styles.muted,{marginLeft:5}]}));
-        return el(ui.TableRowGroup || RN.View,{style:[styles.row]},
-            el(ui.FormRow,{style:[styles.row],label,
-                subLabel:el(ui.FormSubLabel,{text:review.comment,style:styles.text}),
-                leading:reviewImage(sender.profilePhoto) ? el(RN.Image,{style:{height:36,width:36,borderRadius:18},source:{uri:sender.profilePhoto}}) : undefined,
-                onLongPress:() => reviewActions(review,props.owner,ui,props.refetch)}));
+        // ReviewDB's be-respectful note is a quiet line above the reviews, not a review of its own.
+        if (review.type===3) return el(RN.Pressable,{onLongPress:() => reviewActions(review,props.owner,ui,props.refetch),
+            style:{flexDirection:"row",alignItems:"center",gap:8,paddingHorizontal:8,paddingVertical:4}},
+            el(venusIcon(10410,"ShieldIcon"),{size:"xs",color:styles.muted.color}),
+            el(RN.Text,{style:[styles.muted,{flex:1,fontSize:13}]},review.comment));
+        // Every review is a row of one card, with the reviewer's picture (or first letter) like Discord's own lists.
+        return el(ui.FormRow,{label,
+            subLabel:el(ui.FormSubLabel,{text:review.comment,style:styles.text}),
+            leading:reviewImage(sender.profilePhoto) ? el(RN.Image,{style:{height:36,width:36,borderRadius:18},source:{uri:sender.profilePhoto}}) :
+                avatarBubble({id:String(sender.discordID || sender.username || "?"),username:String(sender.username || "?")},36),
+            onLongPress:() => reviewActions(review,props.owner,ui,props.refetch)});
     }
     let reviewThemeHook, reviewThemeTried=false;
     function ReviewInput(props) {
@@ -6669,7 +7054,16 @@
         let theme=null;
         if (reviewThemeHook) try {theme=reviewThemeHook();} catch (_) {}
         const authenticated=!!reviewAuth(), canSend=authenticated && !busy && text.trim().length>0;
-        const placeholder=tr(!authenticated ? "Sign in to ReviewDB in Venus settings to write a review." : props.shouldEdit ? "Tap to edit your review" : "Tap to add a review");
+        // Signed out, a button that signs in right here, instead of a box that can't be typed in and points to settings.
+        if (!authenticated) {
+            const Button=inspectedExport(5379,"Button"), pending=reviewAuthState==="exchanging", label=tr(pending ? "Signing in…" : "Sign in to write a review");
+            return el(RN.View,{style:{paddingHorizontal:8,paddingVertical:4}},Button ?
+                el(Button,{text:label,size:"md",variant:"secondary",disabled:pending,onPress:authenticateReviews}) :
+                el(RN.Pressable,{accessibilityRole:"button",accessibilityLabel:label,disabled:pending,onPress:authenticateReviews,
+                    style:{height:40,borderRadius:20,alignItems:"center",justifyContent:"center",backgroundColor:"#4e505899"}},
+                    el(RN.Text,{style:[styles.text,{fontWeight:"600"}]},label)));
+        }
+        const placeholder=tr(props.shouldEdit ? "Tap to edit your review" : "Tap to add a review");
         function send() {
             if (!canSend || !text.trim()) return;
             setBusy(true);
@@ -6711,9 +7105,11 @@
         const rows=error ? el(RN.View,{style:{gap:8}},
             el(RN.Text,{accessibilityRole:"alert",style:styles.text},tr("Couldn't load reviews: {problem}",{problem:error})),
             reviewRetry(refetch)) :
-            reviews===null ? el(RN.Text,{accessibilityLiveRegion:"polite",style:styles.muted},tr("Loading reviews…")) :
-            !shown.length ? el(RN.Text,{style:styles.muted},tr("No reviews yet.")) :
-            shown.map((review,index) => el(ReviewRow,{key:(review.id==null ? "" : String(review.id))+":"+index,review,owner:userId,ui,styles,refetch}));
+            reviews===null ? el(RN.Text,{accessibilityLiveRegion:"polite",style:[styles.muted,{paddingHorizontal:8,paddingVertical:4}]},tr("Loading reviews…")) :
+            !shown.length ? el(RN.Text,{style:[styles.muted,{paddingHorizontal:8,paddingVertical:4}]},tr("No reviews yet.")) :
+            el(RN.View,null,shown.map((review,index) => el(React.Fragment,{key:(review.id==null ? "" : String(review.id))+":"+index},
+                index && review.type!==3 && shown[index-1].type!==3 ? el(RN.View,{style:[{height:1,marginLeft:56},styles.divider]}) : null,
+                el(ReviewRow,{review,owner:userId,ui,styles,refetch}))));
         return el(RN.View,{style:[styles.card]},
             el(Card,props.standalone ? {accessibilityLabel:tr("Reviews")} : {title:tr("Reviews")},
                 el(RN.View,{style:{gap:8}},rows),
@@ -6762,8 +7158,7 @@
         React.useEffect(() => {setOpen(false);},[props.guildId]);
         if (!enabled("reviewDB") || !RN || !ui.TableRow) return null;
         return el(RN.View,null,
-            el(ui.TableRowGroup || RN.View,null,el(ui.TableRow,{label:tr("Reviews"),arrow:!open,
-                subLabel:tr(open ? "Tap to close server reviews." : "Read and write community reviews for this server."),
+            el(ui.TableRowGroup || RN.View,null,el(ui.TableRow,{label:tr("Reviews"),icon:rowIcon(9354,"ThumbsUpIcon"),arrow:!open,
                 accessibilityState:{expanded:open},onPress:() => {if (enabled("reviewDB")) setOpen(value => !value);}})),
             open ? el(ReviewSection,{key:props.guildId,userId:props.guildId,standalone:true}) : null);
     }
@@ -6955,15 +7350,16 @@
         }, [guildId]);
     }
     const SERVER_INFO_DARK = {banner:{height:112, backgroundColor:"#4e50584d"}, ring:{borderColor:"#232428", backgroundColor:"#2b2d31"},
-        card:{backgroundColor:"#2b2d31", borderRadius:16, paddingHorizontal:16, paddingVertical:14, gap:10},
-        tile:{flexGrow:1, flexBasis:"30%", minWidth:96, backgroundColor:"#2b2d31", borderRadius:16, paddingHorizontal:12, paddingVertical:12, gap:4},
+        card:{backgroundColor:"#97979f1f", borderRadius:16, paddingHorizontal:16, paddingVertical:14, gap:10},
+        tile:{flexGrow:1, flexBasis:"30%", minWidth:96, backgroundColor:"#97979f1f", borderRadius:16, paddingHorizontal:12, paddingVertical:12, gap:4},
         chip:{flexDirection:"row", alignItems:"center", gap:4, paddingHorizontal:8, paddingVertical:3, borderRadius:10, backgroundColor:"#4e50584d"},
         acronym:{backgroundColor:"#5865f2"}};
     function useServerInfoStyles() {
         return useThemed("serverInfo", c => ({banner:Object.assign({}, SERVER_INFO_DARK.banner, {backgroundColor:c.BACKGROUND_MOD_SUBTLE}),
             ring:{borderColor:c.MOBILE_ACTIONSHEET_BACKGROUND || c.BACKGROUND_BASE_LOW, backgroundColor:c.CARD_BACKGROUND_DEFAULT},
-            card:Object.assign({}, SERVER_INFO_DARK.card, {backgroundColor:c.CARD_BACKGROUND_DEFAULT}),
-            tile:Object.assign({}, SERVER_INFO_DARK.tile, {backgroundColor:c.CARD_BACKGROUND_DEFAULT}),
+            // The sheet itself is CARD_BACKGROUND_DEFAULT, so cards on it take the subtle tint that shows on any surface.
+            card:Object.assign({}, SERVER_INFO_DARK.card, {backgroundColor:c.BACKGROUND_MOD_SUBTLE}),
+            tile:Object.assign({}, SERVER_INFO_DARK.tile, {backgroundColor:c.BACKGROUND_MOD_SUBTLE}),
             chip:Object.assign({}, SERVER_INFO_DARK.chip, {backgroundColor:c.BACKGROUND_MOD_SUBTLE}),
             acronym:{backgroundColor:c.BACKGROUND_BRAND || "#5865f2"}}), SERVER_INFO_DARK);
     }
@@ -6980,10 +7376,12 @@
         const dot = (color, label) => el(RN.View, {key:label, style:{flexDirection:"row", alignItems:"center", gap:6}},
             el(RN.View, {style:{width:10, height:10, borderRadius:5, backgroundColor:color}}),
             serverText(label, "text-sm/medium", "text-muted", {color:"#949ba4", fontSize:14}));
+        // A server without a banner starts with its icon, not an empty grey block.
+        const art = banner && RN.Image;
         return el(RN.View, {key:"hero"},
-            el(RN.View, {style:[s.banner, {borderRadius:16, overflow:"hidden"}]},
-                banner && RN.Image ? el(RN.Image, {source:{uri:banner}, style:{width:"100%", height:"100%"}, resizeMode:"cover"}) : null),
-            el(RN.View, {style:{paddingHorizontal:16, marginTop:-40, gap:8}},
+            art ? el(RN.View, {style:[s.banner, {borderRadius:16, overflow:"hidden"}]},
+                el(RN.Image, {source:{uri:banner}, style:{width:"100%", height:"100%"}, resizeMode:"cover"})) : null,
+            el(RN.View, {style:{paddingHorizontal:art ? 16 : 4, marginTop:art ? -40 : 0, gap:8}},
                 popIn("icon:" + snap.id, el(RN.View, {style:[s.ring, {width:84, height:84, borderRadius:28, borderWidth:4, overflow:"hidden", alignItems:"center", justifyContent:"center"}]},
                     icon && RN.Image ? el(RN.Image, {source:{uri:icon}, style:{width:76, height:76}}) :
                         el(RN.View, {style:[s.acronym, {width:76, height:76, alignItems:"center", justifyContent:"center"}]},
@@ -6997,7 +7395,8 @@
                     snap.online != null ? dot(STATUS_HEX.online, tr("{count} online", {count:serverNumber(snap.online)})) : null,
                     snap.members != null ? dot(STATUS_HEX.offline, serverCount(snap.members, "{n} member", "{n} members")) : null)));
     }
-    // A grid of what's in the server; parts Discord hasn't loaded are left out rather than shown as zero.
+    // A grid of what's in the server; parts Discord hasn't loaded are left out rather than shown as zero. Boosts have
+    // their own card below, with the level and a bar.
     function serverTiles(s, snap) {
         const tile = (key, Icon, value, label, sub) => el(RN.View, {key, style:s.tile, accessible:true, accessibilityLabel:label + ": " + serverNumber(value)},
             el(Icon, {size:"sm"}),
@@ -7009,7 +7408,6 @@
             snap.roles != null ? tile("roles", venusIcon(8617, "ShieldUserIcon"), snap.roles, tr("Roles")) : null,
             tile("emojis", venusIcon(8956, "ReactionIcon"), snap.emojis, tr("Emojis")),
             tile("stickers", venusIcon(12274, "StickerIcon"), snap.stickers, tr("Stickers")),
-            tile("boosts", serverBoostIcon(snap.boost.level), snap.boost.boosts, tr("Boosts")),
             snap.events ? tile("events", venusIcon(8675, "CalendarIcon"), snap.events, tr("Events")) : null];
         return el(RN.View, {key:"tiles", style:{flexDirection:"row", flexWrap:"wrap", gap:8}}, tiles.filter(Boolean));
     }
@@ -7047,15 +7445,17 @@
             icon:avatarBubble(friend.user, 32, friend.status, ring), arrow:true, onPress:() => serverOpenProfile(friend.id, guildId)}) : null;
         const friendsTitle = friends.length ? serverCount(friends.length, "{n} friend here", "{n} friends here") :
             tr(looking ? "Looking for friends\u2026" : "None of your friends are here");
-        const detail = (key, label, value, id, name, onPress) => Row ? el(Row, {key, label:tr(label), subLabel:value, icon:rowIcon(id, name), onPress}) : null;
+        // Rows you can tap to copy carry Discord's copy icon, so it shows without a note at the bottom.
+        const detail = (key, label, value, id, name, onPress) => Row ? el(Row, {key, label:tr(label), subLabel:value, icon:rowIcon(id, name), onPress,
+            trailing:onPress ? el(venusIcon(5042, "CopyIcon"), {size:"sm"}) : undefined}) : null;
         const body = [
             serverHero(s, snap),
             serverTiles(s, snap),
             serverBoostCard(s, snap),
-            el(Group, {key:"friends", title:tr("Friends")},
-                Row ? el(Row, {key:"summary", label:friendsTitle,
-                    icon:friends.length ? avatarPile(friends.slice(0, 4).map(f => f.user), ring) : rowIcon(4815, "FriendsIcon"),
-                    subLabel:!settings.serverInfoFriends && !friends.length ? tr("Only friends Discord has already loaded show here.") : undefined}) : null,
+            // With friends here, the title counts them and the rows are them; the summary row only stays to say there are none.
+            el(Group, {key:"friends", title:friends.length ? friendsTitle : tr("Friends")},
+                !friends.length && Row ? el(Row, {key:"summary", label:friendsTitle, icon:rowIcon(4815, "FriendsIcon"),
+                    subLabel:!settings.serverInfoFriends ? tr("Only friends Discord has already loaded show here.") : undefined}) : null,
                 shown.map(friendRow),
                 friends.length > 5 && Row ? el(Row, {key:"more", label:all ? tr("Show fewer") : tr("Show all {n}", {n:friends.length}), arrow:!all,
                     onPress:() => { animateLayout(); haptic("SELECTION"); setAll(v => !v); }}) : null),
@@ -7070,8 +7470,7 @@
                 snap.vanity ? detail("vanity", "Invite link", "discord.gg/" + snap.vanity, 5038, "LinkIcon", () => serverCopy("https://discord.gg/" + snap.vanity, "Link copied")) : null,
                 detail("verification", "Verification", serverVerification(snap.verification), 10410, "ShieldIcon"),
                 snap.locale ? detail("locale", "Language", languageName(snap.locale), 9099, "GlobeEarthIcon") : null,
-                detail("id", "Server ID", snap.id, 10013, "IdIcon", () => serverCopy(snap.id, "Server ID copied"))),
-            footnote("note", "Tap the invite link or the server ID to copy it.")];
+                detail("id", "Server ID", snap.id, 10013, "IdIcon", () => serverCopy(snap.id, "Server ID copied")))];
         const content = el(RN.View, {style:{paddingHorizontal:12, paddingBottom:24, gap:20}}, body.filter(Boolean));
         // Discord's own long sheets (channel picker, forum tags) pass scrollable and scroll with the sheet's
         // BottomSheetScrollView (6307). A plain RN ScrollView fought the sheet's drag: swiping up either scrolled the
@@ -7204,11 +7603,11 @@
         const groups = [
             on ? null : offCard("status", venusIcon(15612, "CircleMinusIcon"), "hideButtons"),
             el(HideButtonsPreview, {key:"preview", on}),
-            el(Group, {key:"profile", title:tr("On your profile")},
+            el(Group, {key:"profile", title:tr("Hide on your profile")},
                 switchRow(Switch, "hideButtonsQuests", "Quests", "The Quests button at the bottom of your profile.", rowIcon(13012, "QuestsIcon")),
                 switchRow(Switch, "hideButtonsShop", "Shop", "The Shop button at the bottom of your profile.", rowIcon(11828, "ShopIcon")),
                 switchRow(Switch, "hideButtonsNitro", "Nitro", "The Nitro button at the bottom of your profile.", rowIcon(9031, "NitroWheelIcon"))),
-            el(Group, {key:"attach", title:tr("In the attach menu")},
+            el(Group, {key:"attach", title:tr("Hide in the attach menu")},
                 switchRow(Switch, "hideButtonsApps", "Apps", "Activities and app commands.", rowIcon(8229, "AppsIcon")),
                 switchRow(Switch, "hideButtonsPolls", "Polls", "Start a poll.", rowIcon(10022, "PollsIcon")),
                 switchRow(Switch, "hideButtonsPhotos", "Photos", "Opens your full gallery. Recent photos still show above the buttons.", rowIcon(8210, "ImageIcon"))),
@@ -7490,6 +7889,9 @@
             /[A-Za-z_:]/.test(props.name) || /[0-9#*]/.test(props.name) && !/^[0-9#*]\uFE0F?\u20E3$/.test(props.name)) return props;
         const src = props.src, uri = src && typeof src === "object" ? src.uri : src;
         if (uri != null && !(typeof uri === "string" && /^asset:/.test(uri))) return props;
+        // An imported emoji font is registered natively as the VenusEmoji family; asking for it draws React Native emojis with it too.
+        if (emojiSourceInUse === "file") return Object.assign({}, props, {forceTextEmoji:true,
+            textEmojiStyle:[props.textEmojiStyle, {fontFamily:"VenusEmoji"}]});
         return Object.assign({}, props, {forceTextEmoji:true});
     }
     function cloneWith(object, key, value) {
@@ -8194,7 +8596,8 @@
     function userNotifSummaryTitle() {
         if (!enabled("userNotif")) return tr("Turned off");
         const watched = userNotifWatchedIds().length;
-        if (!watched) return tr("No one chosen yet");
+        // All friends with nobody in it: the friends list hasn't loaded (or is empty), not "no one chosen".
+        if (!watched) return settings.userNotifFriends ? tr("No friends found") : tr("No one chosen yet");
         if (!userNotifAnyEvent()) return tr("Nothing to notify about");
         // People picked earlier stay saved for People I pick; while they're all friends anyway, it's still "all friends".
         return settings.userNotifFriends && watched === userNotifFriendIds().length ? pl(watched, "Watching {n} friend", "Watching all {n} friends") :
@@ -8202,7 +8605,7 @@
     }
     function userNotifSummary() {
         if (!enabled("userNotif")) return tr("Turned off. Switch it on in Features to start.");
-        if (!userNotifWatchedIds().length) return tr("Choose who to watch below.");
+        if (!userNotifWatchedIds().length) return settings.userNotifFriends ? tr("Open your friends list once if Discord hasn't loaded it yet.") : tr("Choose who to watch below.");
         if (!userNotifAnyEvent()) return tr("Turn on at least one thing to be notified about.");
         const countLine = userNotif.shown ? pl(userNotif.shown, "Shown {n} notification since Discord opened.", "Shown {n} notifications since Discord opened.") :
             tr("No notifications shown yet since Discord opened.");
@@ -8326,10 +8729,8 @@
                 groupTitle("title", "Who to watch"),
                 venusSegmented({key:"choice", value:allFriends ? "all" : "picked", disabled:!on, onChange:setWho,
                     items:[{value:"all", label:tr("All friends")}, {value:"picked", label:tr("People I pick")}]}),
-                allFriends ? el(Group, {key:"all"},
-                    Row ? el(Row, {key:"all", label:friends.length ? pl(friends.length, "{n} friend", "{n} friends") : tr("All friends"),
-                        subLabel:tr("Everyone on your friends list, new friends too."), icon:rowIcon(4815, "FriendsIcon"), disabled:!on,
-                        trailing:watchedUsers.length ? avatarPile(watchedUsers, rowColor) : undefined}) : null) : null),
+                // The pill and the card at the top already say who's watched, so just what "all" means.
+                allFriends ? footnote("allHint", "Everyone on your friends list, new friends too.") : null),
             allFriends ? null : el(RN.View, {key:"friends", style:{gap:8}},
                 searchBox,
                 el(Group, {title:pickedFriendsCount ? pl(pickedFriendsCount, "Friends \u00b7 {n} picked", "Friends \u00b7 {n} picked") : tr("Friends")}, friendRows)),
@@ -8796,7 +9197,7 @@
         const me = currentUser();
         const limit = multiAccountLimit();
         // The card's title already gives the count, so the details say who you are and how many fit.
-        const room = accounts.length ? pl(limit, "You can save up to {n} account.", "You can save up to {n} accounts.") : tr("No accounts saved yet (up to {max}).", {max:limit});
+        const room = pl(limit, "You can save up to {n} account.", "You can save up to {n} accounts.");
         const activeName = me && (me.globalName || me.global_name || me.username);
         return activeName ? tr("Signed in as {name}.", {name:activeName}) + "\n" + room : room;
     }
@@ -8841,16 +9242,16 @@
                 onLongPress:!active ? () => confirmAction("Remove account?",
                     tr("Remove {name} from this phone's account switcher? You can add it again anytime.", {name:displayName}),
                     "Remove", () => removeSavedAccount(acc.id)) : undefined});
-        }) : [Row ? el(Row, {key:"empty", label:tr("No saved accounts yet"), subLabel:tr("Tap Add account below to sign in to another account."), disabled:true}) : null];
+        }) : [];
         const groups = [
-            on ? statusCard("status", accountSwitcherSummary(), {title:accounts.length > 1 ? pl(accounts.length, "{n} account", "{n} accounts") : tr("One account so far"),
+            on ? statusCard("status", accountSwitcherSummary(), {title:accounts.length > 1 ? pl(accounts.length, "{n} account", "{n} accounts") : accounts.length ? tr("One account so far") : tr("No saved accounts yet"),
                 IconComponent:venusIcon(8212, "GroupIcon"), leading:accounts.length ? avatarPile(accounts.slice(0, 4).map(acc => (myId && acc.id === myId ? me : userStore && userStore.getUser(acc.id)) || acc)) : null}) :
                 offCard("status", venusIcon(8212, "GroupIcon"), "accountSwitcher"),
             el(Group, {key:"accounts", title:tr("Accounts")},
                 accountRows,
                 Row ? el(Row, {key:"add", label:tr("Add account"), subLabel:tr("Sign in to another Discord account on this phone."), icon:rowIcon(5032, "UserPlusIcon"),
                     arrow:true, disabled:!on || accounts.length >= multiAccountLimit(), onPress:openAddAccountModal}) : null,
-                Row ? el(Row, {key:"register", label:tr("Create a new account"), subLabel:tr("Register a new Discord account right inside the app."), icon:rowIcon(5032, "UserPlusIcon"),
+                Row ? el(Row, {key:"register", label:tr("Create a new account"), subLabel:tr("Register a new Discord account right inside the app."), icon:rowIcon(13139, "NewUserIcon"),
                     arrow:true, disabled:!on || accounts.length >= multiAccountLimit(), onPress:openRegister}) : null,
                 Row ? el(Row, {key:"manage", label:tr("Manage accounts"), subLabel:tr("Open Discord's account manager to reorder or remove accounts."), icon:rowIcon(7092, "SettingsIcon"),
                     arrow:true, disabled:!on, onPress:() => openManageAccounts()}) : null,
@@ -8879,6 +9280,8 @@
     // Splits at the last line break, else the last space, else anywhere. A code block cut in two is closed at
     // the end of one part and opened again, with its language, at the start of the next.
     const FENCE = /```([^\s`]{0,20})/g;
+    // Discord's SILENT_RE (7367): "@silent" at the very start, followed by whitespace or the end.
+    const SPLIT_SILENT = /^@silent(?:\s|$)/;
     function splitContent(text, limit) {
         const chunks = [];
         let start = 0, prefix = "";
@@ -8894,15 +9297,24 @@
             if (cut <= start) cut = searchEnd;
             const code = text.charCodeAt(cut - 1);
             if (code >= 0xD800 && code <= 0xDBFF && cut - 1 > start) cut--;
+            const from = start;
             let piece = prefix + text.slice(start, cut);
             start = cut;
             if (text[start] === "\n" || text[start] === " ") start++;
-            let open = false, language = "";
+            let open = false, language = "", opened = -1;
             if (piece.indexOf("```") >= 0) {
                 let match;
                 FENCE.lastIndex = 0;
-                while ((match = FENCE.exec(piece))) { open = !open; if (open) language = match[1]; }
+                while ((match = FENCE.exec(piece))) { open = !open; if (open) { language = match[1]; opened = match.index; } }
             }
+            // A code block that opens right where the part ends would be an empty box here and start for real in the next
+            // part: move the whole block to the next part instead.
+            if (open && opened > prefix.length && !piece.slice(opened + 3 + language.length).trim()) {
+                start = from + opened - prefix.length;
+                piece = piece.slice(0, opened);
+                open = false;
+            }
+            if (piece.charCodeAt(piece.length - 1) === 13) piece = piece.slice(0, -1); // the \r of a \r\n line break
             if (open) { piece += "\n```"; prefix = "```" + language + "\n"; } else prefix = "";
             if (piece.trim()) chunks.push(piece);
         }
@@ -8929,35 +9341,95 @@
         return next;
     }
     function splitSend(orig, self, args) {
-        const channelId = args[0], message = args[1], waitForReady = args[2], options = args[3];
-        // Hot path: every send that fits goes straight through after one length check.
-        if (!message || typeof message.content !== "string" || message.content.length <= 2000 || !enabled("splitMessages")) return orig.apply(self, args);
+        const channelId = args[0], waitForReady = args[2], options = args[3];
+        let message = args[1];
+        // Hot path: every send that fits goes straight through after one length check (and, with Nitro links, one "<" check:
+        // a message just under the limit can grow past it once its Nitro emojis become links).
+        if (!message || typeof message.content !== "string" || message.content.length <= 2000 && (!features.freeNitro || message.content.indexOf("<") < 0) ||
+            !enabled("splitMessages")) return orig.apply(self, args);
         // Never split scheduled messages: createScheduledMessage (297457) schedules a single server payload.
         if (options && options.scheduledTimestamp != null) return orig.apply(self, args);
+        // Nitro emojis become links before splitting, so a part never grows past the limit after it's cut. Each part used to be
+        // converted on its own, and one the links made too long was sent as written: its Nitro emojis showed as :name: text.
+        if (features.freeNitro) message = emojiMessage(message, channelId, true);
         const limit = messageLimit();
-        if (message.content.length <= limit) return orig.apply(self, args);
+        if (message.content.length <= limit) {
+            if (message === args[1]) return orig.apply(self, args);
+            const next = Array.from(args); next[1] = message;
+            return orig.apply(self, next);
+        }
         const chunks = splitContent(message.content, limit);
         if (!chunks || chunks.length < 2) return orig.apply(self, args);
-        const generation = split.generation;
+        const generation = split.generation, author = currentUser(), authorId = author && author.id;
+        // Every later part is still sent by the account that wrote the message: switching accounts (Account switcher) or
+        // signing out while parts wait used to post the rest under the next account.
+        const stillOn = () => { const user = currentUser(); return enabled("splitMessages") && split.generation === generation && !!user && user.id === authorId; };
         const first = Array.from(args); first[1] = Object.assign({}, message, {content:chunks[0]});
         const result = orig.apply(self, first);
         const gap = splitGapMs(channelId);
         const followOptions = splitFollowUpOptions(options);
+        // _sendMessage turns a leading "@silent" into SUPPRESS_NOTIFICATIONS (parseContentForSuppressNotifications, 7367), but
+        // only the first part starts with it: without the flag every later part pinged everyone the message mentioned.
+        if (SPLIT_SILENT.test(message.content)) followOptions.flags = (Number(followOptions.flags) || 0) | 4096;
         const followMessageBase = {tts:!!message.tts, invalidEmojis:message.invalidEmojis || [],
             validNonShortcutEmojis:message.validNonShortcutEmojis || []};
         // The rest follow one at a time, without the reply or attachments, only after the previous part succeeds.
-        let chain = Promise.resolve(result).then(res => !(res && res.hasErr), () => false);
+        // sendMessage rejects when a part fails (rate limit, AutoMod, no connection): the parts after it were dropped
+        // without a word, so the end of a long message was lost. Now you're told, and can copy what wasn't sent.
+        let sent = 0;
+        let chain = Promise.resolve(result).then(res => { if (res && res.hasErr) return false; sent++; return true; }, () => false);
         for (let i = 1; i < chunks.length; i++) {
             const content = chunks[i];
             chain = chain.then(ok => {
-                if (!ok || !enabled("splitMessages") || split.generation !== generation) return false;
+                if (!ok || !stillOn()) return false;
                 return new Promise(resolve => later(resolve, gap)).then(() => {
-                    if (!enabled("splitMessages") || split.generation !== generation) return false;
+                    if (!stillOn()) return false;
                     return orig.call(self, channelId, Object.assign({content}, followMessageBase), waitForReady, Object.assign({}, followOptions));
-                }).then(res => !(res && res.hasErr), () => false);
+                }).then(res => { if (res && res.hasErr) return false; sent++; return true; }, () => false);
             });
         }
+        // Only when a part really failed: turning the feature off on purpose, or switching account, stops quietly.
+        chain.then(() => { if (sent < chunks.length && stillOn()) splitUnsent(chunks.slice(sent)); }, () => {});
         return result;
+    }
+    // An edit replaces one message, so it can't be split. The message box allows any length while this is on, and Discord
+    // ends editing as soon as it saves (handleSaveEditing, 11665), so an edit over the limit was refused and its text lost.
+    // Now it isn't sent: you're told why and can copy it.
+    function splitEdit(orig, self, args) {
+        const edit = args[2];
+        if (!edit || typeof edit.content !== "string" || edit.content.length <= 2000 || !enabled("splitMessages")) return orig.apply(self, args);
+        const limit = messageLimit();
+        if (edit.content.length <= limit) return orig.apply(self, args);
+        const text = edit.content, ui = reviewUI();
+        const copy = () => {
+            try { (ui.clipboard || RN.Clipboard).setString(text); } catch (_) { return; }
+            reviewToast(ui, "Copied your edit", venusIcon(5042, "CopyIcon"));
+        };
+        const title = tr("This edit is too long");
+        const body = tr("Edits can't be sent in parts, so they have to fit in one message: {count} of {limit} characters. Copy your edit to shorten it or send it as a new message.",
+            {count:serverNumber(text.length), limit:serverNumber(limit)});
+        later(() => {
+            if (ui.alerts && typeof ui.alerts.show === "function") try {
+                ui.alerts.show({title, body, confirmText:tr("Copy edit"), cancelText:tr("Not now"), onConfirm:copy}); return;
+            } catch (_) {}
+            try { RN.Alert.alert(title, body, [{text:tr("Not now"), style:"cancel"}, {text:tr("Copy edit"), onPress:copy}]); } catch (_) {}
+        }, 0);
+        return Promise.resolve();
+    }
+    // The parts that didn't go out, joined back as they were split, so pasting them into the box sends them again.
+    function splitUnsent(rest) {
+        const text = rest.join("\n"), ui = reviewUI();
+        const copy = () => {
+            try { (ui.clipboard || RN.Clipboard).setString(text); } catch (_) { return; }
+            reviewToast(ui, "Copied the rest of your message", venusIcon(5042, "CopyIcon"));
+        };
+        const title = tr("Your long message didn't finish sending");
+        const body = pl(rest.length, "{n} part wasn't sent. Copy it to paste it into the message box and send it again.",
+            "{n} parts weren't sent. Copy them to paste them into the message box and send them again.");
+        if (ui.alerts && typeof ui.alerts.show === "function") try {
+            ui.alerts.show({title, body, confirmText:tr("Copy the rest"), cancelText:tr("Not now"), onConfirm:copy}); return;
+        } catch (_) {}
+        try { RN.Alert.alert(title, body, [{text:tr("Not now"), style:"cancel"}, {text:tr("Copy the rest"), onPress:copy}]); } catch (_) {}
     }
     // useMessageMaxLength (9255): the message box, its counter and the "too long" check all ask it.
     // Its internal useStateFromStores closure (101129 / 101130) reads MAX_MESSAGE_LENGTH / MAX_MESSAGE_LENGTH_PREMIUM
@@ -8994,36 +9466,67 @@
         return exports;
     }
 
-    // Fix link previews: links to posts on sites whose previews Discord can't build (X, Instagram, TikTok, Reddit...) are
+    // Fix link previews: links to posts on sites whose previews Discord can't build (X, Instagram, TikTok, Tumblr...) are
     // sent through an embed service that can: x.com/... becomes fixupx.com/..., and the post shows with its text, picture
     // or video. Only the address changes: Venus fetches nothing, and nothing happens until you send.
-    // Each site: [id, name, brand color, icon (module, export) or a letter, hosts, post path (or one per host), services].
-    // A service is [id, name, {from host: to host}], or [id, name, "prefix"] for one that takes the whole link.
+    // Each site: [id, name, brand color, icon (module, export) or letters, hosts, post path (or one per host), services, options].
+    // A service is [id, name, {from host: to host}, extra], or [id, name, "template"] for one that takes the whole link:
+    // {url} is the link, encoded; {host} and {path} are its parts. A "*.tumblr.com" host matches any blog's own address and
+    // keeps the blog's name ("staff.tumblr.com" becomes "staff.tpmblr.com"). extra.dark: the query that asks for a dark post.
+    // Options: group (where the site is listed), off (starts off: Discord already shows a fair preview), sub (blog addresses).
+    // Every service here was checked with Discord's own link crawler against real posts.
     // Built only when a link is first sent or the page opens, never while Discord starts.
     function fixSiteRows() {
+        const FIXEMBED = ["fixembed", "FixEmbed", "https://fixembed.app/embed?url={url}"];
         return [
-            ["x", "X (Twitter)", "#000000", [8128, "XNeutralIcon"], ["x.com", "twitter.com"], /^\/(?:[A-Za-z0-9_]{1,15}|i(?:\/web)?)\/status(?:es)?\/\d+/,
-                [["fxtwitter", "FxTwitter", {"x.com":"fixupx.com", "twitter.com":"fxtwitter.com"}], ["vxtwitter", "vxTwitter", {"x.com":"fixvx.com", "twitter.com":"vxtwitter.com"}]]],
+            ["x", "X (Twitter)", "#000000", [8128, "XNeutralIcon"], ["x.com", "twitter.com", "nitter.net", "xcancel.com"], /^\/(?:[A-Za-z0-9_]{1,15}|i(?:\/web)?)\/status(?:es)?\/\d+/,
+                [["fxtwitter", "FxTwitter", {"x.com":"fixupx.com", "twitter.com":"fxtwitter.com", "nitter.net":"fixupx.com", "xcancel.com":"fixupx.com"}],
+                 ["vxtwitter", "vxTwitter", {"x.com":"fixvx.com", "twitter.com":"vxtwitter.com", "nitter.net":"fixvx.com", "xcancel.com":"fixvx.com"}], FIXEMBED], {group:"social"}],
             ["instagram", "Instagram", "#e1306c", [8132, "InstagramNeutralIcon"], ["instagram.com"], /^\/(?:[\w.]+\/)?(?:p|reels?|tv|share(?:\/(?:p|reels?))?)\/[\w-]+/,
                 [["oginstagram", "OGInstagram", {"instagram.com":"oginstagram.com"}], ["instafix", "InstaFix", {"instagram.com":"eeinstagram.com"}],
-                 ["kkinstagram", "KKInstagram", {"instagram.com":"kkinstagram.com"}]]],
+                 ["kkinstagram", "KKInstagram", {"instagram.com":"kkinstagram.com"}], ["vxinstagram", "vxInstagram", {"instagram.com":"vxinstagram.com"}], FIXEMBED], {group:"social"}],
             ["tiktok", "TikTok", "#ee1d52", [12055, "TiktokNeutralIcon"], ["tiktok.com", "vm.tiktok.com", "vt.tiktok.com"],
                 {"tiktok.com":/^\/(?:@[\w.-]+\/(?:video|photo)\/\d+|t\/\w+)/, "vm.tiktok.com":/^\/\w+/, "vt.tiktok.com":/^\/\w+/},
                 [["fxtiktok", "fxTikTok", {"tiktok.com":"tnktok.com", "vm.tiktok.com":"vm.tnktok.com", "vt.tiktok.com":"vt.tnktok.com"}],
-                 ["tiktxk", "tiktxk", {"tiktok.com":"tiktxk.com", "vm.tiktok.com":"vm.tiktxk.com", "vt.tiktok.com":"vt.tiktxk.com"}]]],
+                 ["tiktxk", "tiktxk", {"tiktok.com":"tiktxk.com", "vm.tiktok.com":"vm.tiktxk.com", "vt.tiktok.com":"vt.tiktxk.com"}], FIXEMBED], {group:"video"}],
             ["reddit", "Reddit", "#ff4500", [9105, "RedditNeutralIcon"], ["reddit.com"], /^\/(?:r|u|user)\/[\w-]+\/(?:comments|s)\/\w+/,
-                [["vxreddit", "vxReddit", {"reddit.com":"vxreddit.com"}], ["fixreddit", "FixReddit", {"reddit.com":"fxreddit.seria.moe"}], ["rxddit", "rxddit", {"reddit.com":"rxddit.com"}]]],
+                [["vxreddit", "vxReddit", {"reddit.com":"vxreddit.com"}], ["fixreddit", "FixReddit", {"reddit.com":"fxreddit.seria.moe"}], ["rxddit", "rxddit", {"reddit.com":"rxddit.com"}], FIXEMBED],
+                {group:"social"}],
             ["bluesky", "Bluesky", "#1185fe", [9103, "BlueskyNeutralIcon"], ["bsky.app"], /^\/profile\/[^\/\s]+\/post\/\w+/,
-                [["fxbsky", "FxBluesky", {"bsky.app":"fxbsky.app"}], ["vixbluesky", "VixBluesky", {"bsky.app":"bskx.app"}]]],
+                [["fxbsky", "FxBluesky", {"bsky.app":"fxbsky.app"}], ["vixbluesky", "VixBluesky", {"bsky.app":"bskx.app"}], ["fixbluesky", "FixBluesky", {"bsky.app":"bsyy.app"}],
+                 ["bskye", "bskye", {"bsky.app":"bskye.app"}]], {group:"social"}],
             ["threads", "Threads", "#101010", "@", ["threads.net", "threads.com"], /^\/@[\w.]+\/post\/[\w-]+/,
-                [["fixembed", "FixEmbed", "https://fixembed.app/embed?url="]]],
+                [FIXEMBED, ["fixthreads", "FixThreads", {"threads.net":"fixthreads.seria.moe", "threads.com":"fixthreads.seria.moe"}]], {group:"social"}],
+            // Tumblr (#87): fxtumblr shows the whole post, drawn as a picture, and can draw it dark.
+            ["tumblr", "Tumblr", "#001935", "t", ["tumblr.com"], {"tumblr.com":/^\/[\w-]+\/\d+/, "*.tumblr.com":/^\/post\/\d+/},
+                [["fxtumblr", "fxtumblr", {"tumblr.com":"tpmblr.com", "*.tumblr.com":"*.tpmblr.com"}, {dark:"dark"}], FIXEMBED], {group:"social", sub:true}],
             ["facebook", "Facebook", "#0866ff", [8130, "FacebookNeutralIcon"], ["facebook.com"],
                 /^\/(?:reel\/\d+|watch\/?\?|share\/[rvp]\/\w+|[\w.]+\/(?:videos|posts)\/[\w.-]+|story\.php|permalink\.php)/,
-                [["facebed", "facebed", {"facebook.com":"facebed.com"}]]],
+                [["facebed", "facebed", {"facebook.com":"facebed.com"}]], {group:"social"}],
+            ["mastodon", "Mastodon", "#6364ff", "M", ["mastodon.social", "mstdn.social", "mastodon.online", "mastodon.world", "mas.to", "mstdn.jp", "fosstodon.org",
+                "hachyderm.io", "infosec.exchange", "techhub.social", "mastodon.art", "mastodon.cloud"], /^\/@[\w.]+(?:@[\w.-]+)?\/\d+/,
+                [["fxmastodon", "FxMastodon", "https://fxmas.to/{host}{path}"]], {group:"social", off:true}],
+            ["ptt", "PTT", "#1f1f1f", "PTT", ["ptt.cc"], /^\/bbs\/\w+\/M\.\d+\.A\.\w+\.html/,
+                [["fxptt", "fxptt", {"ptt.cc":"fxptt.seria.moe"}]], {group:"social"}],
+            ["youtube", "YouTube", "#ff0033", [9101, "YoutubeNeutralIcon"], ["youtube.com", "youtu.be", "music.youtube.com"],
+                {"youtube.com":/^\/(?:watch\?(?:[^#]*&)?v=[\w-]{11}|shorts\/[\w-]{11}|live\/[\w-]{11})/, "youtu.be":/^\/[\w-]{11}/, "music.youtube.com":/^\/watch\?(?:[^#]*&)?v=[\w-]{11}/},
+                [["koutube", "Koutube", {"youtube.com":"koutube.com", "youtu.be":"koutu.be", "music.youtube.com":"music.koutube.com"}], FIXEMBED], {group:"video", off:true}],
+            ["twitch", "Twitch clips", "#9146ff", [9107, "TwitchNeutralIcon"], ["twitch.tv", "clips.twitch.tv"],
+                {"twitch.tv":/^\/(?:[\w-]+\/)?clip\/[\w-]+/, "clips.twitch.tv":/^\/(?!embed\b)[\w-]{3,}/},
+                [["fxtwitch", "fxtwitch", {"twitch.tv":"fxtwitch.seria.moe", "clips.twitch.tv":"fxtwitch.seria.moe/clip"}], FIXEMBED], {group:"video"}],
+            ["bilibili", "Bilibili", "#fb7299", "B", ["bilibili.com", "b23.tv"], {"bilibili.com":/^\/video\/\w+/, "b23.tv":/^\/\w+/},
+                [["bilifix", "BiliFix", {"bilibili.com":"vxbilibili.com", "b23.tv":"vxb23.tv"}], ["fxbilibili", "fxbilibili", {"bilibili.com":"fxbilibili.seria.moe", "b23.tv":"fxbilibili.seria.moe/b23"}],
+                 FIXEMBED], {group:"video"}],
+            ["spotify", "Spotify", "#1db954", [16521, "SpotifyNeutralIcon"], ["open.spotify.com"], /^\/(?:intl-[\w-]+\/)?track\/\w+/,
+                [["fxspotify", "FxSpotify", {"open.spotify.com":"fxspotify.com"}]], {group:"video", off:true}],
             ["pixiv", "pixiv", "#0096fa", "P", ["pixiv.net"], /^\/(?:[a-z]{2}\/)?artworks\/\d+/,
-                [["phixiv", "phixiv", {"pixiv.net":"phixiv.net"}], ["ppxiv", "ppxiv", {"pixiv.net":"ppxiv.net"}]]],
-            ["bilibili", "Bilibili", "#fb7299", "B", ["bilibili.com"], /^\/video\/\w+/,
-                [["bilifix", "BiliFix", {"bilibili.com":"vxbilibili.com"}]]]];
+                [["phixiv", "phixiv", {"pixiv.net":"phixiv.net"}], ["ppxiv", "ppxiv", {"pixiv.net":"ppxiv.net"}], FIXEMBED], {group:"art"}],
+            ["deviantart", "DeviantArt", "#00c853", "D", ["deviantart.com"], /^\/[\w-]+\/art\/[\w-]+-\d+/,
+                [["fixdeviantart", "fixDeviantArt", {"deviantart.com":"fixdeviantart.com"}], FIXEMBED], {group:"art"}],
+            ["furaffinity", "Fur Affinity", "#2e3b41", "FA", ["furaffinity.net"], /^\/(?:view|full)\/\d+/,
+                [["xfuraffinity", "xfuraffinity", {"furaffinity.net":"xfuraffinity.net"}]], {group:"art"}],
+            ["pinterest", "Pinterest", "#e60023", "P", ["pinterest.com"], /^\/pin\/\d+/,
+                [FIXEMBED, ["embedez", "EmbedEZ", {"pinterest.com":"pinterestez.com"}]], {group:"art", off:true}]];
     }
     // Share and tracking parameters each site adds when you copy a link: who shared it, from which app, and when. They're
     // removed from links Venus fixes, so neither the embed service nor anyone who taps the link sees them. utm_*, si and fbclid go everywhere.
@@ -9031,7 +9534,9 @@
         return {x:/^(?:s|t|ref_src|ref_url)$/, instagram:/^(?:igsh|igshid|img_index)$/,
             tiktok:/^(?:_r|_t|_d|is_from_webapp|sender_device|sender_web_id|web_id|share_app_id|share_link_id|u_code|preview_pb|timestamp|checksum|tt_from|enter_from|source|social_share_type|share_item_id|user_id|sec_user_id)$/,
             reddit:/^(?:share_id|rdt|context|ref|ref_source|ref_campaign)$/, threads:/^(?:xmt|slof)$/, facebook:/^(?:mibextid|rdid|sfnsn|extid|ref|__tn__)$/,
-            bilibili:/^(?:spm_id_from|vd_source|share_source|share_medium|share_plat|share_session_id|share_tag|timestamp|unique_k|up_id|bbid|ts)$/};
+            bilibili:/^(?:spm_id_from|vd_source|share_source|share_medium|share_plat|share_session_id|share_tag|timestamp|unique_k|up_id|bbid|ts)$/,
+            tumblr:/^(?:source|ref)$/, youtube:/^(?:feature|pp|ab_channel|embeds_\w+)$/, spotify:/^(?:context|nd|go|dl_branch)$/, twitch:/^(?:tt_\w+|filter|range|sort)$/,
+            pinterest:/^(?:invite_code|sender|sfo|mweb_unauth_id)$/, deviantart:/^(?:ga_\w+|_gl)$/};
     }
     const FIX_TRACKING_ANY = /^(?:utm_\w+|si|fbclid|gclid|mc_cid|mc_eid)$/;
     const fixEmbeds = {hosts:null, sites:null, rows:null, tracking:null, parsed:null, parsedFrom:null, count:0, pending:0};
@@ -9039,7 +9544,9 @@
     function fixTables() {
         const hosts = Object.create(null), sites = Object.create(null), rows = fixSiteRows();
         rows.forEach(row => {
-            const site = {id:row[0], name:row[1], color:row[2], icon:row[3], hosts:row[4], path:row[5], services:row[6].map(s => ({id:s[0], name:s[1], to:s[2]}))};
+            const opts = row[7] || {}, services = row[6].map(s => ({id:s[0], name:s[1], to:s[2], dark:s[3] && s[3].dark || null}));
+            const site = {id:row[0], name:row[1], color:row[2], icon:row[3], hosts:row[4], path:row[5], services, group:opts.group || "social", sub:!!opts.sub,
+                start:opts.off ? "off" : services[0].id};
             sites[site.id] = site;
             site.hosts.forEach(host => { hosts[host] = site; });
         });
@@ -9047,31 +9554,37 @@
     }
     function fixRows() { if (!fixEmbeds.rows) fixTables(); return fixEmbeds.rows; }
     function fixSite(id) { if (!fixEmbeds.sites) fixTables(); return fixEmbeds.sites[id] || null; }
-    // fixEmbedsSites keeps only what differs from the defaults (each site's first service): "x:vxtwitter,threads:off".
+    // fixEmbedsSites keeps only what differs from how each site starts (its first service, or off for sites that start off):
+    // "x:vxtwitter,threads:off,youtube:koutube".
     function fixChoices(raw) {
         if (fixEmbeds.parsedFrom === raw && fixEmbeds.parsed) return fixEmbeds.parsed;
         if (!fixEmbeds.sites) fixTables();
         const out = Object.create(null);
         String(raw || "").split(",").forEach(part => {
             const at = part.indexOf(":"), id = part.slice(0, at), choice = part.slice(at + 1), site = at > 0 && fixEmbeds.sites[id];
-            if (site && (choice === "off" || site.services.some(s => s.id === choice)) && choice !== site.services[0].id) out[id] = choice;
+            if (site && (choice === "off" || site.services.some(s => s.id === choice)) && choice !== site.start) out[id] = choice;
         });
         fixEmbeds.parsedFrom = raw; fixEmbeds.parsed = out;
         return out;
     }
     function fixChoicesText(choices) { return fixRows().filter(row => choices[row[0]]).map(row => row[0] + ":" + choices[row[0]]).join(","); }
     // The choices written the one way they're saved; unknown sites or services are dropped. Undefined for anything else.
-    function fixSitesText(raw) { return typeof raw === "string" && raw.length <= 400 ? fixChoicesText(fixChoices(raw)) : undefined; }
+    function fixSitesText(raw) { return typeof raw === "string" && raw.length <= 800 ? fixChoicesText(fixChoices(raw)) : undefined; }
     function fixService(site) {
-        const choice = fixChoices(settings.fixEmbedsSites)[site.id];
-        return choice === "off" ? null : choice ? site.services.find(s => s.id === choice) || site.services[0] : site.services[0];
+        const choice = fixChoices(settings.fixEmbedsSites)[site.id] || site.start;
+        return choice === "off" ? null : site.services.find(s => s.id === choice) || site.services[0];
     }
     function fixSetChoice(siteId, choice) {
         const site = fixSite(siteId);
         if (!site) return;
         const choices = Object.assign({}, fixChoices(settings.fixEmbedsSites));
-        if (choice === site.services[0].id) delete choices[siteId]; else choices[siteId] = choice;
+        if (choice === site.start) delete choices[siteId]; else choices[siteId] = choice;
         setSetting("fixEmbedsSites", fixChoicesText(choices));
+    }
+    // Where a service sends links, for the list: "fixupx.com".
+    function fixServiceHost(site, service) {
+        const to = typeof service.to === "string" ? service.to.replace(/^https:\/\//, "") : service.to[site.hosts[0]] || "";
+        return to.split("/")[0].replace("*.", "");
     }
     function fixClean(site, query) {
         const own = fixEmbeds.tracking[site.id], kept = query.split("&").filter(pair => {
@@ -9082,24 +9595,39 @@
         return kept.length ? "?" + kept.join("&") : "";
     }
     // One link: {site, service, link}, or null when it isn't a post on a site you fix. A closing ")" or "." stays outside it.
-    const FIX_TAIL = /[.,!?:;'")\]}*_~]+$/, FIX_SUBDOMAIN = /^(?:www|m|mobile|old|new|web)\./;
+    const FIX_TAIL = /[.,!?:;'")\]}*_~]+$/, FIX_SUBDOMAIN = /^(?:www|m|mobile|old|new|web)\./, FIX_BLOG = /^[a-z0-9-]{1,32}$/;
     function fixLink(host, rest, clean) {
         if (!fixEmbeds.hosts) fixTables();
-        let bare = host.toLowerCase();
+        let bare = host.toLowerCase(), key, blog = "";
         if (FIX_SUBDOMAIN.test(bare)) bare = bare.slice(bare.indexOf(".") + 1);
-        const site = fixEmbeds.hosts[bare];
-        if (!site) return null;
+        let site = fixEmbeds.hosts[bare];
+        if (site) key = bare;
+        else {
+            // A blog's own address: staff.tumblr.com.
+            const dot = bare.indexOf("."), parent = dot > 0 ? fixEmbeds.hosts[bare.slice(dot + 1)] : null;
+            if (!parent || !parent.sub || !FIX_BLOG.test(bare.slice(0, dot))) return null;
+            site = parent; blog = bare.slice(0, dot); key = "*." + bare.slice(dot + 1);
+        }
         const tail = FIX_TAIL.exec(rest), body = tail ? rest.slice(0, tail.index) : rest;
-        const path = site.path instanceof RegExp ? site.path : site.path[bare];
+        const path = site.path instanceof RegExp ? site.path : site.path[key];
         if (!path || !path.test(body)) return null;
         const service = fixService(site);
         if (!service) return null;
         let address = body;
+        const hash = address.indexOf("#"), fragment = hash < 0 ? "" : address.slice(hash);
+        let noHash = hash < 0 ? address : address.slice(0, hash);
         if (clean !== false && settings.fixEmbedsClean) {
-            const hash = address.indexOf("#"), fragment = hash < 0 ? "" : address.slice(hash), noHash = hash < 0 ? address : address.slice(0, hash), q = noHash.indexOf("?");
-            if (q >= 0) address = noHash.slice(0, q) + fixClean(site, noHash.slice(q + 1)) + fragment;
+            const q = noHash.indexOf("?");
+            if (q >= 0) noHash = noHash.slice(0, q) + fixClean(site, noHash.slice(q + 1));
         }
-        const fixed = typeof service.to === "string" ? service.to + encodeURIComponent("https://" + bare + address) : "https://" + service.to[bare] + address;
+        // Dark posts (#87): fxtumblr draws the post on a dark background.
+        if (service.dark && settings.fixEmbedsDark && !new RegExp("[?&]" + service.dark + "(?:[=&]|$)").test(noHash))
+            noHash += (noHash.indexOf("?") < 0 ? "?" : "&") + service.dark;
+        address = noHash + fragment;
+        let fixed;
+        if (typeof service.to === "string") fixed = service.to.replace(/\{(url|host|path)\}/g, (_, part) =>
+            part === "url" ? encodeURIComponent("https://" + bare + address) : part === "host" ? bare : address);
+        else fixed = "https://" + service.to[key].replace("*", blog) + address;
         return {site, service, link:fixed + (tail ? tail[0] : "")};
     }
     // Code, escaped text and <links in angle brackets> (Discord's way to send a link without a preview) are left as written.
@@ -9126,8 +9654,9 @@
         later(() => notify("fixEmbeds"), 0);
     }
     // Longer links never make a message too long to send: it goes as written instead, unless Send long messages splits it.
-    function fixFits(content) {
-        if (features.splitMessages && enabled("splitMessages")) return true;
+    // An edit is never split, so it always has to fit.
+    function fixFits(content, edit) {
+        if (!edit && features.splitMessages && enabled("splitMessages")) return true;
         const user = currentUser();
         return content.length <= (user && user.premiumType === 2 ? 4000 : 2000);
     }
@@ -9145,7 +9674,7 @@
         const edit = args[2];
         if (!edit || typeof edit.content !== "string" || edit.content.indexOf("://") < 0 || !enabled("fixEmbeds")) return orig.apply(self, args);
         const content = fixContent(edit.content);
-        if (content === edit.content || !fixFits(content)) return orig.apply(self, args);
+        if (content === edit.content || !fixFits(content, true)) return orig.apply(self, args);
         fixCounted();
         const next = Array.from(args); next[2] = Object.assign({}, edit, {content});
         return orig.apply(self, next);
@@ -9989,7 +10518,7 @@
     function translateStatus() {
         if (translate.error) return translate.error;
         const waiting = translate.queue.length;
-        return (translate.translated ? pl(translate.translated, "Translated {n} message since Discord opened.", "Translated {n} messages since Discord opened.") : tr("Nothing translated yet since Discord opened.")) +
+        return pl(translate.translated, "Translated {n} message since Discord opened.", "Translated {n} messages since Discord opened.") +
             (waiting ? " " + tr("{n} waiting.", {n:waiting}) : "");
     }
     // A message in Spanish shown the way Translate messages shows it, following the Display switches.
@@ -10236,7 +10765,8 @@
         const name = kind => languageName(localeCode(kind));
         let saved = 0; translate.cache.forEach(entry => { if (entry.state === "done") saved++; });
         const groups = [
-            on ? statusCard("status", translateStatus(), {title:tr("Into {language}", {language:translateTargetName()}), IconComponent:venusIcon(15723, "LanguageIcon")}) :
+            // While on, the card only speaks up when there's news (a count or an error): "Into English" alone repeats Translate into below.
+            on ? (translate.error || translate.translated ? statusCard("status", translateStatus(), {title:tr("Into {language}", {language:translateTargetName()}), IconComponent:venusIcon(15723, "LanguageIcon")}) : null) :
                 offCard("status", venusIcon(15723, "LanguageIcon"), "translate"),
             el(TranslatePreview, {key:"preview", on}),
             radioGroup(ui, "mode", "When to translate", "translateMode", on, [["auto", "Automatically", "Every message on screen in another language.", rowIcon(17143, "SparklesIcon")],
@@ -10260,9 +10790,10 @@
                     subLabel:tr("Always shown with the original text."), value:true, disabled:true, onValueChange:() => {}}) :
                     switchRow(Switch, "translateNote", "Show the original language", "A small \"Translated from Spanish\" line under each translation.", rowIcon(9099, "GlobeEarthIcon")),
                 switchRow(Switch, "translateOriginal", "Show the original text", "The untranslated message, in a quote under the translation.", rowIcon(13262, "QuoteIcon"))),
-            el(Group, {key:"clear", title:tr("Manage")}, actionRow(ui, "clear", "Clear saved translations",
-                saved ? tr("{count} kept on this phone, so chats you reopen show them at once.", {count:count(saved, "translation")}) : "Nothing saved yet.",
-                () => confirmAction("Clear saved translations?", "Messages on screen will be translated again.", "Clear", translateForget), !saved, true)),
+            // Only once something is saved: a greyed-out "Nothing saved yet" row has nothing to offer.
+            saved ? el(Group, {key:"clear", title:tr("Manage")}, actionRow(ui, "clear", "Clear saved translations",
+                tr("{count} kept on this phone, so chats you reopen show them at once.", {count:count(saved, "translation")}),
+                () => confirmAction("Clear saved translations?", "Messages on screen will be translated again.", "Clear", translateForget), false, true)) : null,
             footnote("note", settings.translateMode === "manual" ? "Only messages you choose, or chats you translate from the bar, are sent to Google Translate, once each, without your Discord account." :
                 "Only messages on screen are sent to Google Translate, once each, without your Discord account. Hold a message to show its original, or translate your own.")];
         return settingsBody(ui, groups);
@@ -10287,8 +10818,8 @@
     const LEGACY_SEMANTIC_ALIASES = {
         BACKGROUND_PRIMARY: ["BACKGROUND_BASE_LOWER", "CHANNEL_BACKGROUND_DEFAULT", "STANDALONE_CHANNEL_CONTENT_BACKGROUND", "PANEL_BG", "MOBILE_KEYBOARD_GAP_BACKGROUND", "MOBILE_TYPING_INDICATOR_BACKGROUND_DEFAULT"],
         BACKGROUND_MOBILE_PRIMARY: ["BACKGROUND_BASE_LOWER", "CHANNEL_BACKGROUND_DEFAULT", "STANDALONE_CHANNEL_CONTENT_BACKGROUND", "PANEL_BG"],
-        BG_BASE_PRIMARY: ["BACKGROUND_BASE_LOWER", "CHANNEL_BACKGROUND_DEFAULT", "STANDALONE_CHANNEL_CONTENT_BACKGROUND", "PANEL_BG"],
-        CHAT_BACKGROUND: ["BACKGROUND_BASE_LOWER", "CHANNEL_BACKGROUND_DEFAULT", "STANDALONE_CHANNEL_CONTENT_BACKGROUND"],
+        BG_BASE_PRIMARY: ["PANEL_BG", "BACKGROUND_BASE_LOWER", "CHANNEL_BACKGROUND_DEFAULT", "STANDALONE_CHANNEL_CONTENT_BACKGROUND"],
+        CHAT_BACKGROUND: ["CHANNEL_BACKGROUND_DEFAULT", "STANDALONE_CHANNEL_CONTENT_BACKGROUND", "BACKGROUND_BASE_LOWER"],
         HOME_BACKGROUND: ["BACKGROUND_BASE_LOWER", "BACKGROUND_BASE_LOW"],
         BACKGROUND_SECONDARY: ["BACKGROUND_BASE_LOW", "BACKGROUND_SURFACE_HIGH", "CARD_BACKGROUND_DEFAULT", "TAB_BAR_BACKGROUND", "MOBILE_FLOATINGBAR_BACKGROUND", "MOBILE_COMMAND_BAR_BACKGROUND"],
         BACKGROUND_MOBILE_SECONDARY: ["BACKGROUND_BASE_LOW", "BACKGROUND_SURFACE_HIGH", "CARD_BACKGROUND_DEFAULT", "TAB_BAR_BACKGROUND"],
@@ -10308,7 +10839,7 @@
         CHANNELTEXTAREA_BACKGROUND: ["CHANNELTEXTAREA_BACKGROUND", "REDESIGN_CHAT_INPUT_BACKGROUND", "CHAT_INPUT_BACKGROUND", "MOBILE_CHATINPUT_BACKGROUND_DEFAULT", "MOBILE_CHATINPUT_BACKGROUND_ACTIVE"],
         REDESIGN_CHAT_INPUT_BACKGROUND: ["REDESIGN_CHAT_INPUT_BACKGROUND", "CHAT_INPUT_BACKGROUND", "MOBILE_CHATINPUT_BACKGROUND_DEFAULT", "MOBILE_CHATINPUT_BACKGROUND_ACTIVE", "CHANNELTEXTAREA_BACKGROUND"],
         INPUT_BACKGROUND: ["INPUT_BACKGROUND_DEFAULT", "MOBILE_CHATINPUT_BACKGROUND_DEFAULT"],
-        BACKGROUND_MODIFIER_ACCENT: ["BACKGROUND_MOD_MUTED", "BORDER_SUBTLE", "BORDER_MUTED"],
+        BACKGROUND_MODIFIER_ACCENT: ["BACKGROUND_MOD_MUTED", "BORDER_SUBTLE", "BORDER_MUTED", "BORDER_NORMAL"],
         BACKGROUND_MODIFIER_HOVER: ["BACKGROUND_MOD_SUBTLE", "INTERACTIVE_BACKGROUND_HOVER"],
         BACKGROUND_MODIFIER_ACTIVE: ["BACKGROUND_MOD_NORMAL", "INTERACTIVE_BACKGROUND_ACTIVE", "TABLEROW_BACKGROUND_PRESSED"],
         BACKGROUND_MODIFIER_SELECTED: ["BACKGROUND_MOD_STRONG", "INTERACTIVE_BACKGROUND_SELECTED", "MOBILE_CHANNEL_ITEM_BACKGROUND_SELECTED"],
@@ -10322,7 +10853,7 @@
         HEADER_PRIMARY: ["TEXT_STRONG", "MOBILE_TEXT_HEADING_PRIMARY", "REDESIGN_CHANNEL_NAME_TEXT", "USER_PROFILE_ABOUT_ME_HEADING_TEXT", "NAVIGATOR_HEADER_TINT", "MOBILE_HEADER_ICON_DEFAULT"],
         HEADER_SECONDARY: ["TEXT_SUBTLE", "TEXT_MUTED", "REDESIGN_CHANNEL_NAME_MUTED_TEXT"],
         TEXT_NORMAL: ["TEXT_DEFAULT", "INPUT_TEXT_DEFAULT", "ICON_DEFAULT"],
-        TEXT_PRIMARY: ["TEXT_DEFAULT", "TEXT_STRONG", "INPUT_TEXT_DEFAULT"],
+        TEXT_PRIMARY: ["INPUT_TEXT_DEFAULT", "TEXT_DEFAULT", "TEXT_STRONG"],
         TEXT_MUTED: ["TEXT_MUTED", "ICON_MUTED", "REDESIGN_CHANNEL_NAME_MUTED_TEXT", "INPUT_PLACEHOLDER_TEXT_DEFAULT"],
         INPUT_PLACEHOLDER_TEXT: ["INPUT_PLACEHOLDER_TEXT_DEFAULT"],
         CHANNEL_TEXT_AREA_PLACEHOLDER: ["INPUT_PLACEHOLDER_TEXT_DEFAULT"],
@@ -10361,8 +10892,8 @@
         BACKGROUND_MESSAGE_AUTOMOD_HOVER: ["MESSAGE_AUTOMOD_BACKGROUND_HOVER"],
         ACTIVITY_CARD_BACKGROUND: ["CARD_BACKGROUND_DEFAULT"],
         REDESIGN_ACTIVITY_CARD_BACKGROUND_PRESSED: ["CARD_PRIMARY_PRESSED_BG"],
-        STATUS_DANGER_TEXT: ["TEXT_FEEDBACK_CRITICAL"],
-        STATUS_DANGER_BACKGROUND: ["BACKGROUND_FEEDBACK_CRITICAL"],
+        STATUS_DANGER_TEXT: ["CONTROL_CRITICAL_PRIMARY_TEXT_DEFAULT"],
+        STATUS_DANGER_BACKGROUND: ["CONTROL_CRITICAL_PRIMARY_BACKGROUND_DEFAULT", "BACKGROUND_FEEDBACK_NOTIFICATION"],
         INFO_DANGER_BACKGROUND: ["BACKGROUND_FEEDBACK_CRITICAL"],
         INFO_DANGER_FOREGROUND: ["ICON_FEEDBACK_CRITICAL", "BORDER_FEEDBACK_CRITICAL"],
         INFO_DANGER_TEXT: ["TEXT_FEEDBACK_CRITICAL"],
@@ -10387,9 +10918,33 @@
         REDESIGN_BUTTON_ACTIVE_TEXT: ["CONTROL_PRIMARY_TEXT_DEFAULT"],
         REDESIGN_BUTTON_SECONDARY_OVERLAY_BACKGROUND: ["CONTROL_OVERLAY_SECONDARY_BACKGROUND_DEFAULT"],
         REDESIGN_BUTTON_SECONDARY_OVERLAY_TEXT: ["CONTROL_OVERLAY_SECONDARY_TEXT_DEFAULT"],
-        POLLS_NORMAL_FILL_HOVER: ["POLLS_VOTED_FILL"]
+        POLLS_NORMAL_FILL_HOVER: ["POLLS_VOTED_FILL"],
+        // Pressed and disabled states that kept their old names in themes, and a common misspelling.
+        BACKGROUND_PRIMRARY: ["BACKGROUND_BASE_LOWER", "CHANNEL_BACKGROUND_DEFAULT", "STANDALONE_CHANNEL_CONTENT_BACKGROUND", "PANEL_BG"],
+        SWITCH_INACTIVE: ["SWITCH_BACKGROUND_DEFAULT"],
+        REDESIGN_BUTTON_ACTIVE_PRESSED_BACKGROUND: ["CONTROL_PRIMARY_BACKGROUND_ACTIVE"],
+        REDESIGN_BUTTON_DESTRUCTIVE_PRESSED_BACKGROUND: ["CONTROL_CRITICAL_PRIMARY_BACKGROUND_ACTIVE"],
+        REDESIGN_BUTTON_PRIMARY_OVERLAY_TEXT: ["CONTROL_OVERLAY_PRIMARY_TEXT_DEFAULT"],
+        BUTTON_SECONDARY_BACKGROUND_ACTIVE: ["CONTROL_SECONDARY_BACKGROUND_ACTIVE"],
+        BUTTON_SECONDARY_BACKGROUND_HOVER: ["CONTROL_SECONDARY_BACKGROUND_ACTIVE"],
+        BUTTON_OUTLINE_PRIMARY_BORDER_ACTIVE: ["CONTROL_SECONDARY_BORDER_ACTIVE"],
+        BUTTON_OUTLINE_PRIMARY_BACKGROUND_ACTIVE: ["CONTROL_SECONDARY_BACKGROUND_ACTIVE"],
+        DEPRECATED_TEXT_INPUT_BORDER_HOVER: ["INPUT_BORDER_ACTIVE"],
+        DEPRECATED_TEXT_INPUT_BORDER_DISABLED: ["INPUT_BORDER_DEFAULT"],
+        BACKGROUND_MODIFIER_ACCEPT: ["CONTROL_CONNECTED_BACKGROUND_DEFAULT"],
+        BACKGROUND_MODIFIER_ACCEPT_HOVER: ["CONTROL_CONNECTED_BACKGROUND_ACTIVE"],
+        REDESIGN_BUTTON_PRIMARY_PRESSED_BACKGROUND: ["CONTROL_PRIMARY_BACKGROUND_ACTIVE"],
+        CONTROL_EXPRESSIVE_BACKGROUND_ACTIVE: ["CONTROL_EXPRESSIVE_BACKGROUND_DEFAULT"]
     };
-    // Chat surface tokens whose opacity is multiplied by background.alpha when a theme wallpaper is displayed.
+    // Keys mobile Discord stopped reading long before themes were written for it: the plain key always wins over them, and
+    // they only fill in when a theme doesn't set it. A theme that sets both BACKGROUND_PRIMARY and CHAT_BACKGROUND or
+    // BACKGROUND_MOBILE_SECONDARY looked like the plain key in Revenge, which colors by exact name; the variants mostly
+    // repeat it, and where they don't (Pyontheme's near-black #0f0e18 and #161621) its own screenshots never show them.
+    const LEGACY_ALIAS_VARIANT = {BACKGROUND_MOBILE_PRIMARY:1, BACKGROUND_MOBILE_SECONDARY:1, BG_BASE_PRIMARY:1, BG_BASE_SECONDARY:1, BG_BASE_TERTIARY:1, HOME_BACKGROUND:1, CHAT_BACKGROUND:1,
+        INFO_POSITIVE_TEXT:1, INFO_WARNING_TEXT:1, INFO_DANGER_TEXT:1, INFO_HELP_TEXT:1, BUTTON_SECONDARY_BACKGROUND_HOVER:1, BUTTON_OUTLINE_PRIMARY_BACKGROUND_ACTIVE:1,
+        DEPRECATED_TEXT_INPUT_BORDER_HOVER:1, DEPRECATED_TEXT_INPUT_BORDER_DISABLED:1, REDESIGN_ACTIVITY_CARD_BACKGROUND:1, BG_SURFACE_OVERLAY_TMP:1,
+        REDESIGN_BUTTON_ACTIVE_PRESSED_BACKGROUND:1, CONTROL_EXPRESSIVE_BACKGROUND_ACTIVE:1};
+    // Chat surface tokens that take a theme's background.color.
     const CHAT_SURFACE_TOKENS = [
         "CHANNEL_BACKGROUND_DEFAULT",
         "STANDALONE_CHANNEL_CONTENT_BACKGROUND",
@@ -10398,6 +10953,12 @@
         "MOBILE_TYPING_INDICATOR_BACKGROUND_DEFAULT",
         "MOBILE_KEYBOARD_GAP_BACKGROUND"
     ];
+    // What sits between a theme's wallpaper and the messages: ChatView (10364) hands its "chat" style
+    // ({backgroundColor:CHANNEL_BACKGROUND_DEFAULT}) to the native message list, the view Revenge finds by
+    // HACK_fixModalInteraction. Nothing else in 350.8 reads that token (the other two exist only in the table), so
+    // making it see-through shows the wallpaper without turning sheets, modals and settings (BACKGROUND_BASE_LOWER,
+    // PANEL_BG) see-through too.
+    const CHAT_WALLPAPER_TOKENS = ["CHANNEL_BACKGROUND_DEFAULT", "MOBILE_TYPING_INDICATOR_BACKGROUND_DEFAULT", "MOBILE_KEYBOARD_GAP_BACKGROUND"];
     // Maps Vendetta Theme Plus (plus.icons) status keys to Discord's RawColors (591) and SemanticColors (589) tokens.
     const PLUS_STATUS_ICON_MAP = {
         StatusOnline: {raw:["GREEN_360"], sem:["STATUS_ONLINE", "ICON_STATUS_ONLINE", "TEXT_STATUS_ONLINE"]},
@@ -10410,6 +10971,219 @@
     // Maps Discord's Neutral & Plum raw tokens to the corresponding legacy Primary / Brand / Neutral shades
     // so themes that mainly customize rawColors (PRIMARY_600..800, PRIMARY_100..400, BRAND_500, etc.) also
     // theme Discord 350.8's Mana Neutral/Blurple palette without any runtime indirection.
+    // For every semantic token Discord has moved off the legacy palettes (PRIMARY, PLUM, BRAND, WHITE, BLACK) onto
+    // NEUTRAL / OPACITY / BLURPLE, the legacy raw color it last read in each slot and the opacity it read it at, in
+    // THEME_SLOTS order: [raw, opacity] x 4, null where there is none. A theme that recolors PRIMARY_600 then recolors
+    // exactly the tokens PRIMARY_600 used to color, so cards stay lighter than the page under them, as the author saw.
+    // Generated by scripts/hbc/legacy_colors.py from Discord's own tables over time.
+    const LEGACY_TOKEN_RAWS = {
+        ACTIVITY_TIMEBAR_PROGRESS_BACKGROUND:["WHITE", 1, "PRIMARY_860", 1, "PLUM_1", 1, "PLUM_3", 1],
+        APP_FRAME_BORDER:["PRIMARY_630", 1, "PRIMARY_130", 1, "PLUM_20", 1, "PLUM_11", 0.24],
+        BACKGROUND_APP_LAUNCHER_CARD_DEFAULT:["PRIMARY_800", 1, "WHITE", 1, "PLUM_18", 1, "PLUM_23", 1],
+        BACKGROUND_APP_LAUNCHER_ROW_DEFAULT:["PRIMARY_600", 1, "WHITE", 1, "PLUM_18", 1, "PLUM_23", 1],
+        BACKGROUND_BASE_LOW:["PRIMARY_600", 1, "WHITE", 1, "PLUM_20", 1, "BLACK", 1],
+        BACKGROUND_BASE_LOWER:["PRIMARY_630", 1, "PRIMARY_130", 1, "PLUM_20", 1, "BLACK", 1],
+        BACKGROUND_BASE_LOWEST:["PRIMARY_660", 1, "PRIMARY_160", 1, "PLUM_23", 1, "BLACK", 1],
+        BACKGROUND_BRAND:["BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1],
+        BACKGROUND_MOD_MUTED:["PRIMARY_500", 0.3, "PRIMARY_400", 0.08, "PLUM_11", 0.12, "PLUM_11", 0.16],
+        BACKGROUND_MOD_NORMAL:["PRIMARY_500", 0.16, "PRIMARY_400", 0.16, "PLUM_11", 0.16, "PLUM_11", 0.2],
+        BACKGROUND_MOD_STRONG:["PRIMARY_500", 0.54, "PRIMARY_400", 0.24, "PLUM_11", 0.24, "PLUM_11", 0.18],
+        BACKGROUND_MOD_SUBTLE:["PRIMARY_500", 0.48, "PRIMARY_400", 0.16, "PLUM_11", 0.16, "PLUM_11", 0.12],
+        BACKGROUND_SCRIM:["BLACK", 0.7, "BLACK", 0.54, "BLACK", 0.7, "PLUM_19", 0.75],
+        BACKGROUND_SCRIM_LIGHTBOX:["BLACK", 0.92, "BLACK", 0.92, "BLACK", 0.92, "BLACK", 0.92],
+        BACKGROUND_SURFACE_HIGH:["PRIMARY_800", 1, "WHITE", 1, "PLUM_18", 1, "PLUM_23", 1],
+        BACKGROUND_SURFACE_HIGHEST:["PRIMARY_800", 1, "WHITE", 1, "PLUM_17", 1, "PLUM_19", 1],
+        BACKGROUND_VOICE_MUTED:["WHITE", 1, "WHITE", 1, "WHITE", 1, "WHITE", 1],
+        BADGE_BACKGROUND_BRAND:["BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1],
+        BADGE_BACKGROUND_DEFAULT:["PRIMARY_500", 0.16, "PRIMARY_400", 0.16, "PLUM_11", 0.16, "PLUM_11", 0.2],
+        BADGE_TEXT_DEFAULT:["PRIMARY_230", 1, "PRIMARY_600", 1, "PLUM_6", 1, "PLUM_4", 1],
+        BORDER_MUTED:["WHITE", 0.03, "BLACK", 0.04, "PLUM_11", 0.06, "PLUM_11", 0.08],
+        BORDER_STRONG:["WHITE", 0.16, "BLACK", 0.16, "PLUM_11", 0.22, "PLUM_11", 0.24],
+        BORDER_SUBTLE:["WHITE", 0.08, "BLACK", 0.08, "PLUM_11", 0.12, "PLUM_11", 0.14],
+        BORDER_VOICE_MUTED:["WHITE", 1, "WHITE", 1, "WHITE", 1, "WHITE", 1],
+        CARD_BACKGROUND_DEFAULT:["PRIMARY_600", 1, "WHITE", 1, "PLUM_18", 1, "PLUM_23", 1],
+        CARD_BORDER_DEFAULT:["WHITE", 0.08, "BLACK", 0.08, "PLUM_11", 0.12, "PLUM_11", 0.14],
+        CARD_MUTED_BG:["PRIMARY_500", 0.3, "PRIMARY_400", 0.08, "PLUM_11", 0.12, "PLUM_11", 0.16],
+        CARD_MUTED_PRESSED_BG:["PRIMARY_500", 0.48, "PRIMARY_400", 0.16, "PLUM_11", 0.16, "PLUM_11", 0.12],
+        CARD_SECONDARY_BACKGROUND_ACTIVE:["PRIMARY_645", 1, "PRIMARY_160", 1, "PLUM_21", 1, "PLUM_26", 1],
+        CARD_SECONDARY_BACKGROUND_DEFAULT:["PRIMARY_630", 1, "WHITE", 1, "PLUM_19", 1, "PLUM_25", 1],
+        CARD_SECONDARY_BG:["PRIMARY_630", 1, "WHITE", 1, "PLUM_19", 1, "PLUM_25", 1],
+        CHANNELS_DEFAULT:["PRIMARY_360", 1, "PRIMARY_460", 1, "PLUM_9", 1, "PLUM_9", 1],
+        CHANNEL_BACKGROUND_DEFAULT:["PRIMARY_600", 1, "WHITE", 1, "PLUM_20", 1, "BLACK", 1],
+        CHANNEL_ICON:["PRIMARY_400", 1, "PRIMARY_430", 1, "PLUM_10", 1, "PLUM_10", 1],
+        CHAT_BANNER_BG:["PRIMARY_630", 1, "PRIMARY_130", 1, "PLUM_20", 1, "BLACK", 1],
+        CHAT_BORDER:["PRIMARY_700", 1, "PRIMARY_200", 1, "PLUM_20", 1, "PLUM_20", 1],
+        CHAT_INPUT_ACTION_BUTTON_BACKGROUND:["PRIMARY_660", 1, "BLACK", 0.08, "PLUM_11", 0.12, "BRAND_300", 0.1],
+        CHAT_INPUT_ACTION_BUTTON_ICON_DEFAULT_TINT:["PRIMARY_230", 1, "PRIMARY_600", 1, "PLUM_6", 1, "PLUM_4", 1],
+        CHAT_INPUT_ACTION_ICON_ACTIVE_TINT:["BRAND_360", 1, "BRAND_530", 1, "BRAND_360", 1, "BRAND_400", 1],
+        CHAT_INPUT_BACKGROUND:["PRIMARY_700", 1, "BLACK", 0.08, "PLUM_11", 0.12, "BRAND_300", 0.1],
+        CHAT_INPUT_ICON_DEFAULT_TINT:["PRIMARY_330", 1, "PRIMARY_500", 1, "PLUM_6", 1, "PLUM_6", 1],
+        CHAT_INPUT_SEND_BUTTON_ACTIVE_BACKGROUND:["BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1],
+        CHAT_INPUT_SEND_BUTTON_ICON_ACTIVE_TINT:["WHITE", 1, "WHITE", 1, "WHITE", 1, "WHITE", 1],
+        CHECKBOX_BACKGROUND_SELECTED_DEFAULT:["BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1],
+        CHECKBOX_BORDER_DEFAULT:["PRIMARY_330", 1, "PRIMARY_500", 1, "PLUM_6", 1, "PLUM_6", 1],
+        CHECKBOX_BORDER_SELECTED_DEFAULT:["BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1],
+        CHECKBOX_ICON_ACTIVE:["WHITE", 1, "WHITE", 1, "WHITE", 1, "WHITE", 1],
+        CONTEXT_MENU_BACKDROP_BACKGROUND:["BLACK", 0.7, "BLACK", 0.54, "BLACK", 0.7, null, 0],
+        CONTROL_CONNECTED_TEXT_DEFAULT:["WHITE", 1, "WHITE", 1, "WHITE", 1, "WHITE", 1],
+        CONTROL_CRITICAL_PRIMARY_TEXT_DEFAULT:["WHITE", 1, "WHITE", 1, "WHITE", 1, "WHITE", 1],
+        CONTROL_CRITICAL_SECONDARY_BACKGROUND_ACTIVE:["PRIMARY_500", 0.54, "PRIMARY_400", 0.24, "PLUM_11", 0.24, "PLUM_11", 0.18],
+        CONTROL_CRITICAL_SECONDARY_BACKGROUND_DEFAULT:["PRIMARY_500", 0.48, "PRIMARY_400", 0.16, "PLUM_11", 0.16, "PLUM_11", 0.12],
+        CONTROL_CRITICAL_SECONDARY_BORDER_ACTIVE:["WHITE", 0.03, "BLACK", 0.04, "PLUM_11", 0.06, "PLUM_11", 0.08],
+        CONTROL_CRITICAL_SECONDARY_BORDER_DEFAULT:["WHITE", 0.03, "BLACK", 0.04, "PLUM_11", 0.06, "PLUM_11", 0.08],
+        CONTROL_ICON_ONLY_BACKGROUND_ACTIVE:["PRIMARY_500", 0.54, "PRIMARY_400", 0.24, "PLUM_11", 0.24, "PLUM_11", 0.18],
+        CONTROL_ICON_ONLY_ICON_ACTIVE:["PRIMARY_130", 1, "PRIMARY_860", 1, "PLUM_4", 1, "PLUM_5", 1],
+        CONTROL_ICON_ONLY_ICON_DEFAULT:["PRIMARY_330", 1, "PRIMARY_500", 1, "PLUM_9", 1, "PLUM_9", 1],
+        CONTROL_OVERLAY_PRIMARY_BACKGROUND_ACTIVE:["PRIMARY_230", 1, "PRIMARY_230", 1, "PLUM_4", 1, "PLUM_4", 1],
+        CONTROL_OVERLAY_PRIMARY_BACKGROUND_DEFAULT:["WHITE", 1, "WHITE", 1, "WHITE", 1, "WHITE", 1],
+        CONTROL_OVERLAY_PRIMARY_BORDER_DEFAULT:["WHITE", 1, "WHITE", 1, "WHITE", 1, "WHITE", 1],
+        CONTROL_OVERLAY_PRIMARY_TEXT_DEFAULT:["PRIMARY_860", 1, "PRIMARY_860", 1, "PLUM_25", 1, "PLUM_25", 1],
+        CONTROL_OVERLAY_SECONDARY_BACKGROUND_ACTIVE:["BLACK", 0.64, "BLACK", 0.64, "BLACK", 0.64, "BLACK", 0.64],
+        CONTROL_OVERLAY_SECONDARY_BACKGROUND_DEFAULT:["BLACK", 0.54, "BLACK", 0.54, "BLACK", 0.54, "BLACK", 0.54],
+        CONTROL_OVERLAY_SECONDARY_BORDER_DEFAULT:["BLACK", 0.54, "BLACK", 0.54, "BLACK", 0.54, "BLACK", 0.54],
+        CONTROL_OVERLAY_SECONDARY_TEXT_DEFAULT:["WHITE", 1, "WHITE", 1, "WHITE", 1, "WHITE", 1],
+        CONTROL_PRIMARY_BACKGROUND_ACTIVE:["BRAND_560", 1, "BRAND_560", 1, "BRAND_560", 1, "BRAND_560", 1],
+        CONTROL_PRIMARY_BACKGROUND_DEFAULT:["BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1],
+        CONTROL_PRIMARY_BORDER_ACTIVE:["BRAND_560", 1, "BRAND_560", 1, "BRAND_560", 1, "BRAND_560", 1],
+        CONTROL_PRIMARY_BORDER_DEFAULT:["BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1],
+        CONTROL_PRIMARY_TEXT_DEFAULT:["WHITE", 1, "WHITE", 1, "WHITE", 1, "WHITE", 1],
+        CONTROL_SECONDARY_BACKGROUND_ACTIVE:["PRIMARY_500", 1, "PRIMARY_130", 1, "PLUM_13", 1, "PLUM_15", 1],
+        CONTROL_SECONDARY_BACKGROUND_DEFAULT:["PRIMARY_460", 1, "WHITE", 1, "PLUM_15", 1, "PLUM_17", 1],
+        CONTROL_SECONDARY_BORDER_ACTIVE:["WHITE", 0.03, "BLACK", 0.04, "PLUM_11", 0.06, "PLUM_11", 0.08],
+        CONTROL_SECONDARY_BORDER_DEFAULT:["WHITE", 0.08, "BLACK", 0.08, "PLUM_11", 0.12, "PLUM_11", 0.14],
+        CONTROL_SECONDARY_TEXT_DEFAULT:["PRIMARY_230", 1, "PRIMARY_600", 1, "PLUM_6", 1, "PLUM_4", 1],
+        CUSTOM_STATUS_BUBBLE_BG:["PRIMARY_800", 1, "WHITE", 1, "PLUM_17", 1, "PLUM_19", 1],
+        EMBED_BACKGROUND:["PRIMARY_630", 1, "PRIMARY_130", 1, "PLUM_18", 1, "PLUM_23", 1],
+        EMBED_BACKGROUND_ALTERNATE:["PRIMARY_600", 1, "PRIMARY_200", 1, "PLUM_18", 1, "PLUM_23", 1],
+        GUILD_FOLDER_BACKGROUND:["PRIMARY_500", 0.3, "PRIMARY_400", 0.08, "PLUM_11", 0.12, "PLUM_11", 0.16],
+        GUILD_PROFILE_BANNER_BACKGROUND_DEFAULT:["PRIMARY_660", 1, null, 0, "PLUM_23", 1, "BLACK", 1],
+        ICON_DEFAULT:["PRIMARY_230", 1, "PRIMARY_600", 1, "PLUM_6", 1, "PLUM_4", 1],
+        ICON_MUTED:["PRIMARY_400", 1, "PRIMARY_400", 1, "PLUM_11", 1, "PLUM_12", 1],
+        ICON_STATUS_OFFLINE:["PRIMARY_360", 1, "PRIMARY_460", 1, "PLUM_9", 1, "PLUM_9", 1],
+        ICON_STRONG:["PRIMARY_130", 1, "PRIMARY_860", 1, "PLUM_4", 1, "PLUM_5", 1],
+        ICON_SUBTLE:["PRIMARY_330", 1, "PRIMARY_500", 1, "PLUM_9", 1, "PLUM_9", 1],
+        INPUT_BACKGROUND_DEFAULT:["PRIMARY_700", 1, "BLACK", 0.08, "PLUM_24", 0.85, "BRAND_300", 0.1],
+        INPUT_BORDER_ACTIVE:["WHITE", 0.16, "BLACK", 0.16, "PLUM_11", 0.22, "PLUM_11", 0.24],
+        INPUT_BORDER_DEFAULT:["PLUM_11", 0.32, "PLUM_11", 0.32, "PLUM_11", 0.32, "PLUM_11", 0.32],
+        INPUT_ICON_DEFAULT:["PRIMARY_230", 1, "PRIMARY_600", 1, "PLUM_6", 1, "PLUM_4", 1],
+        INPUT_PLACEHOLDER_TEXT_DEFAULT:["PRIMARY_400", 1, "PRIMARY_460", 1, "PLUM_10", 1, "PLUM_9", 1],
+        INPUT_TEXT_DEFAULT:["PRIMARY_230", 1, "PRIMARY_600", 1, "PLUM_6", 1, "PLUM_4", 1],
+        INPUT_TEXT_ERROR_DEFAULT:["PRIMARY_230", 1, "PRIMARY_600", 1, "PLUM_6", 1, "PLUM_4", 1],
+        INTERACTIVE_ACCENT_BACKGROUND_DEFAULT:["PRIMARY_500", 0.48, "PRIMARY_400", 0.16, "PLUM_11", 0.16, "PLUM_11", 0.12],
+        INTERACTIVE_BACKGROUND_ACTIVE:["PRIMARY_500", 0.48, "PRIMARY_400", 0.2, "PLUM_13", 0.48, "PLUM_13", 0.48],
+        INTERACTIVE_BACKGROUND_HOVER:["PRIMARY_500", 0.3, "PRIMARY_400", 0.16, "PLUM_13", 0.3, "PLUM_13", 0.3],
+        INTERACTIVE_BACKGROUND_SELECTED:["PRIMARY_500", 0.6, "PRIMARY_400", 0.24, "PLUM_13", 0.6, "PLUM_13", 0.6],
+        INTERACTIVE_ICON_ACTIVE:["WHITE", 1, "PRIMARY_860", 1, "PLUM_1", 1, "PLUM_3", 1],
+        INTERACTIVE_ICON_DEFAULT:["PRIMARY_330", 1, "PRIMARY_500", 1, "PLUM_6", 1, "PLUM_6", 1],
+        INTERACTIVE_ICON_HOVER:["PRIMARY_230", 1, "PRIMARY_600", 1, "PLUM_4", 1, "PLUM_4", 1],
+        INTERACTIVE_TEXT_ACTIVE:["WHITE", 1, "PRIMARY_860", 1, "PLUM_1", 1, "PLUM_3", 1],
+        INTERACTIVE_TEXT_DEFAULT:["PRIMARY_330", 1, "PRIMARY_500", 1, "PLUM_6", 1, "PLUM_6", 1],
+        INTERACTIVE_TEXT_HOVER:["PRIMARY_230", 1, "PRIMARY_600", 1, "PLUM_4", 1, "PLUM_4", 1],
+        KEYWORD_HIGHLIGHT_BACKGROUND:["PRIMARY_630", 1, "PRIMARY_130", 1, "PLUM_20", 1, "BLACK", 1],
+        MENTION_BACKGROUND:["BRAND_500", 0.3, "BRAND_500", 0.15, "BRAND_500", 0.5, "BRAND_500", 0.5],
+        MENTION_FOREGROUND:["BRAND_260", 1, "BRAND_560", 1, "BRAND_230", 1, "BRAND_230", 1],
+        MESSAGES_ITEM_CHANNEL_TEXT_DEFAULT:["PRIMARY_360", 1, "PRIMARY_460", 1, "PLUM_10", 1, "PLUM_10", 1],
+        MESSAGE_BACKGROUND_HOVER:["PRIMARY_900", 0.06, "PRIMARY_900", 0.03, "PLUM_21", 1, "PLUM_21", 1],
+        MESSAGE_HIGHLIGHT_BACKGROUND_DEFAULT:["BRAND_360", 0.08, "BRAND_360", 0.1, "BRAND_360", 0.08, "BRAND_360", 0.08],
+        MESSAGE_HIGHLIGHT_BACKGROUND_HOVER:["BRAND_360", 0.06, "BRAND_360", 0.2, "BRAND_360", 0.06, "BRAND_360", 0.06],
+        MOBILE_ACTIONSHEET_BACKGROUND:["PRIMARY_630", 1, "PRIMARY_130", 1, "PLUM_20", 1, "BLACK", 1],
+        MOBILE_ACTIONSHEET_GRADIENT_BACKGROUND_DEFAULT:["PRIMARY_630", 1, "PRIMARY_130", 1, "PLUM_20", 1, "BLACK", 1],
+        MOBILE_ALERT_BACKGROUND_DEFAULT:["PRIMARY_600", 1, "WHITE", 1, "PLUM_20", 1, "BLACK", 1],
+        MOBILE_CHANNEL_ITEM_BACKGROUND_SELECTED:["PRIMARY_500", 0.3, "PRIMARY_400", 0.08, "PLUM_11", 0.12, "PLUM_11", 0.16],
+        MOBILE_CHATINPUT_BACKGROUND_ACTIVE:["PRIMARY_800", 1, "WHITE", 1, "PLUM_17", 1, "PLUM_19", 1],
+        MOBILE_CHATINPUT_BACKGROUND_DEFAULT:["PRIMARY_800", 1, "WHITE", 1, "PLUM_17", 1, "PLUM_19", 1],
+        MOBILE_CHATINPUT_BORDER_ACTIVE:["WHITE", 0.08, "BLACK", 0.08, "PLUM_11", 0.12, "PLUM_11", 0.14],
+        MOBILE_CHATINPUT_BORDER_DEFAULT:["WHITE", 0.08, "BLACK", 0.08, "PLUM_11", 0.12, "PLUM_11", 0.14],
+        MOBILE_COACHMARK_BACKGROUND_DEFAULT:["PRIMARY_800", 1, "WHITE", 1, "PLUM_17", 1, "PLUM_19", 1],
+        MOBILE_COACHMARK_BORDER_DEFAULT:["PRIMARY_800", 1, "WHITE", 1, "PLUM_17", 1, "PLUM_19", 1],
+        MOBILE_COMMAND_BAR_BACKGROUND:["PRIMARY_700", 1, "PRIMARY_230", 1, "PRIMARY_700", 1, "PRIMARY_700", 1],
+        MOBILE_COMMAND_BAR_DIVIDER:["PRIMARY_800", 1, "PRIMARY_300", 1, "PRIMARY_800", 1, "PRIMARY_800", 1],
+        MOBILE_COMMAND_CATEGORIES_BACKGROUND:["PRIMARY_660", 1, "PRIMARY_160", 1, "PLUM_23", 1, "BLACK", 1],
+        MOBILE_EMBED_BACKGROUND_DEFAULT:["PRIMARY_800", 1, "WHITE", 1, "PLUM_18", 1, "PLUM_23", 1],
+        MOBILE_EMOJI_BUTTON_BACKGROUND:["PRIMARY_500", 0.54, "PRIMARY_400", 0.24, "PLUM_11", 0.24, "PLUM_11", 0.18],
+        MOBILE_EXPRESSION_PICKER_BACKGROUND_DEFAULT:["PRIMARY_630", 1, "PRIMARY_130", 1, "PLUM_20", 1, "BLACK", 1],
+        MOBILE_FLOATINGBAR_BACKGROUND:["PRIMARY_800", 1, "WHITE", 1, "PLUM_17", 1, "PLUM_19", 1],
+        MOBILE_FLOATINGBAR_BACKGROUND_HIGHER:["PRIMARY_800", 1, "WHITE", 1, "PLUM_17", 1, "PLUM_19", 1],
+        MOBILE_FLOATINGBAR_BACKGROUND_NAMEPLATE:["PRIMARY_800", 1, "WHITE", 1, "PLUM_17", 1, "PLUM_19", 1],
+        MOBILE_FLOATINGBAR_BACKGROUND_SCRIM:["PRIMARY_600", 1, "WHITE", 1, "PLUM_20", 1, "BLACK", 1],
+        MOBILE_FLOATING_ACCESSORY_BACKGROUND:["PRIMARY_800", 1, "WHITE", 1, "PLUM_18", 1, "PLUM_23", 1],
+        MOBILE_FLOATING_ACCESSORY_BORDER:["WHITE", 0.08, "BLACK", 0.08, "PLUM_11", 0.12, "PLUM_11", 0.14],
+        MOBILE_GUILDBAR_ICON_BACKGROUND_DEFAULT:["PRIMARY_800", 1, "WHITE", 1, "PLUM_18", 1, "PLUM_23", 1],
+        MOBILE_GUILDBAR_ICON_DEFAULT:["PRIMARY_330", 1, "PRIMARY_500", 1, "PLUM_6", 1, "PLUM_6", 1],
+        MOBILE_HEADER_BORDER:["WHITE", 0.08, "BLACK", 0.08, "PLUM_11", 0.12, "PLUM_11", 0.14],
+        MOBILE_HEADER_ICON_DEFAULT:["PRIMARY_330", 1, "PRIMARY_500", 1, "PLUM_6", 1, "PLUM_6", 1],
+        MOBILE_KEYBOARD_GAP_BACKGROUND:["PRIMARY_630", 1, "PRIMARY_130", 1, "PLUM_20", 1, "BLACK", 1],
+        MOBILE_KEYBOARD_PANEL_BACKGROUND:["PRIMARY_630", 1, "PRIMARY_130", 1, "PLUM_20", 1, "BLACK", 1],
+        MOBILE_SEARCHBAR_GRADIENT_BACKGROUND:["PRIMARY_660", 1, "PRIMARY_160", 1, "PLUM_23", 1, "BLACK", 1],
+        MOBILE_SEGMENTED_CONTROL_BACKGROUND:["PRIMARY_700", 1, "BLACK", 0.08, "PLUM_24", 0.85, "BRAND_300", 0.1],
+        MOBILE_SEGMENTED_CONTROL_INDICATOR_BACKGROUND:["PRIMARY_645", 1, "WHITE", 1, "PLUM_16", 1, "PLUM_17", 1],
+        MOBILE_TEXT_HEADING_PRIMARY:["PRIMARY_130", 1, "PRIMARY_860", 1, "PLUM_3", 1, "PLUM_2", 1],
+        MOBILE_THREAD_EMBED_BACKGROUND:["PRIMARY_500", 0.48, "PRIMARY_400", 0.16, "PLUM_11", 0.16, "PLUM_11", 0.12],
+        MOBILE_TOAST_BACKGROUND_DEFAULT:["PRIMARY_800", 1, "WHITE", 1, "PLUM_17", 1, "PLUM_19", 1],
+        MOBILE_TYPING_INDICATOR_BACKGROUND_DEFAULT:["PRIMARY_630", 1, "PRIMARY_130", 1, "PLUM_20", 1, "BLACK", 1],
+        MOBILE_UNREADBAR_TEXT_DEFAULT:["BRAND_360", 1, "BRAND_530", 1, "BRAND_360", 1, "BRAND_400", 1],
+        MOBILE_VOICE_MESSAGE_RECORDING_SPINNER_COLOR:["WHITE", 1, "WHITE", 1, "WHITE", 1, "WHITE", 1],
+        MOBILE_VOICE_MESSAGE_RECORDING_WAVEFORM_BAR_BACKGROUND:["WHITE", 1, "WHITE", 1, "WHITE", 1, "WHITE", 1],
+        MOBILE_VOICE_PANEL_BACKGROUND:["PRIMARY_660", 1, "PRIMARY_160", 1, "PLUM_23", 1, "BLACK", 1],
+        MOBILE_VOICE_PANEL_BADGE_BACKGROUND:["PRIMARY_800", 1, "WHITE", 1, "PLUM_18", 1, "PLUM_23", 1],
+        MODAL_BACKGROUND:["PRIMARY_600", 1, "WHITE", 1, "PLUM_16", 1, "PLUM_16", 1],
+        MODAL_FOOTER_BACKGROUND:["PRIMARY_630", 1, "PRIMARY_130", 1, "PLUM_17", 1, "PLUM_17", 1],
+        PANEL_BG:["PRIMARY_600", 1, "WHITE", 1, "PLUM_20", 1, "PLUM_24", 1],
+        PROGRESSBAR_INDICATOR_BACKGROUND:["BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1],
+        PROGRESSBAR_TRACK_BACKGROUND:["PRIMARY_500", 0.54, "PRIMARY_400", 0.24, "PLUM_11", 0.24, "PLUM_11", 0.18],
+        RADIO_BORDER_DEFAULT:["PRIMARY_330", 1, "PRIMARY_500", 1, "PLUM_6", 1, "PLUM_6", 1],
+        REACTION_BACKGROUND_DEFAULT:["PRIMARY_500", 0.54, "PRIMARY_400", 0.24, "PLUM_11", 0.24, "PLUM_11", 0.18],
+        REACTION_BACKGROUND_REACTED_DEFAULT:["BRAND_500", 0.15, "BRAND_500", 0.15, "BRAND_500", 0.15, "BRAND_500", 0.15],
+        REACTION_BORDER_DEFAULT:["WHITE", 0.16, "BLACK", 0.16, "PLUM_11", 0.22, "PLUM_11", 0.24],
+        REACTION_BORDER_REACTED_DEFAULT:["BRAND_560", 1, "BRAND_560", 1, "BRAND_560", 1, "BRAND_560", 1],
+        REACTION_TEXT_ACTIVE:["WHITE", 1, "PRIMARY_860", 1, "PLUM_1", 1, "PLUM_3", 1],
+        REACTION_TEXT_DEFAULT:["PRIMARY_330", 1, "PRIMARY_500", 1, "PLUM_6", 1, "PLUM_6", 1],
+        REACTION_TEXT_HOVER:["PRIMARY_230", 1, "PRIMARY_600", 1, "PLUM_4", 1, "PLUM_4", 1],
+        REACTION_TEXT_REACTED_DEFAULT:["BRAND_200", 1, "BRAND_560", 1, "BRAND_200", 1, "BRAND_200", 1],
+        REDESIGN_BUTTON_TERTIARY_BACKGROUND:["PRIMARY_660", 1, "BLACK", 0.08, "PLUM_11", 0.12, "BRAND_300", 0.1],
+        REDESIGN_BUTTON_TERTIARY_PRESSED_BACKGROUND:["PRIMARY_560", 1, "BLACK", 0.16, "PLUM_11", 0.2, "PLUM_11", 0.2],
+        REDESIGN_BUTTON_TERTIARY_TEXT:["PRIMARY_230", 1, "PRIMARY_600", 1, "PLUM_6", 1, "PLUM_4", 1],
+        REDESIGN_CHANNEL_NAME_MUTED_TEXT:["PRIMARY_360", 1, "PRIMARY_460", 1, "PLUM_10", 1, "PLUM_10", 1],
+        REDESIGN_CHANNEL_NAME_TEXT:["PRIMARY_130", 1, "PRIMARY_860", 1, "PLUM_3", 1, "PLUM_2", 1],
+        REDESIGN_CHAT_INPUT_BACKGROUND:[null, 0, null, 0, null, 0, "BRAND_300", 0.1],
+        SHARE_CHAT_INPUT_BACKGROUND:["PRIMARY_700", 1, "BLACK", 0.08, "PLUM_11", 0.12, "BRAND_300", 0.1],
+        SPINE_DEFAULT:["PRIMARY_530", 1, "PRIMARY_430", 1, "PLUM_15", 1, "PLUM_17", 1],
+        SPOILER_HIDDEN_BACKGROUND:["PRIMARY_700", 1, "PRIMARY_200", 1, "PLUM_14", 1, "PLUM_14", 1],
+        STAGE_CARD_PILL_BG:["PRIMARY_630", 1, "WHITE", 1, "PLUM_19", 1, "PLUM_25", 1],
+        STANDALONE_CHANNEL_CONTENT_BACKGROUND:["PRIMARY_600", 1, "WHITE", 1, "PLUM_20", 1, "BLACK", 1],
+        STANDALONE_CHANNEL_HEADER_BORDER:["WHITE", 0.16, "BLACK", 0.16, "PLUM_11", 0.22, "PLUM_11", 0.24],
+        SWITCH_BACKGROUND_DEFAULT:["PRIMARY_500", 0.16, "PRIMARY_400", 0.16, "PLUM_11", 0.16, "PLUM_11", 0.2],
+        SWITCH_BACKGROUND_SELECTED_DEFAULT:["BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1, "BRAND_500", 1],
+        SWITCH_BORDER_DEFAULT:["PRIMARY_500", 0.16, "PRIMARY_400", 0.16, "PLUM_11", 0.16, "PLUM_11", 0.2],
+        SWITCH_BORDER_SELECTED_DEFAULT:["PRIMARY_500", 0.16, "PRIMARY_400", 0.16, "PLUM_11", 0.16, "PLUM_11", 0.2],
+        SWITCH_THUMB_BACKGROUND_DEFAULT:["WHITE", 1, "WHITE", 1, "WHITE", 1, "WHITE", 1],
+        SWITCH_THUMB_BACKGROUND_SELECTED_DEFAULT:["WHITE", 1, "WHITE", 1, "WHITE", 1, "WHITE", 1],
+        TABLEROW_BACKGROUND_DEFAULT:["PRIMARY_600", 1, "WHITE", 1, "PLUM_18", 1, "PLUM_23", 1],
+        TABLEROW_BACKGROUND_PRESSED:["PRIMARY_645", 1, "PRIMARY_160", 1, "PLUM_19", 1, "PLUM_25", 1],
+        TABLEROW_ICON_COLOR_DEFAULT:["PRIMARY_330", 1, "PRIMARY_500", 1, "PLUM_6", 1, "PLUM_6", 1],
+        TAB_BAR_BACKGROUND:["PRIMARY_800", 1, "WHITE", 1, "PLUM_18", 1, "PLUM_23", 1],
+        TAB_LABEL_TEXT_DEFAULT:["PRIMARY_330", 1, "PRIMARY_500", 1, "PLUM_6", 1, "PLUM_6", 1],
+        TAB_LABEL_TEXT_FOCUSED:["WHITE", 1, "PRIMARY_860", 1, "PLUM_1", 1, "PLUM_3", 1],
+        TEXT_BRAND:["BRAND_360", 1, "BRAND_530", 1, "BRAND_360", 1, "BRAND_400", 1],
+        TEXT_DEFAULT:["PRIMARY_230", 1, "PRIMARY_600", 1, "PLUM_6", 1, "PLUM_4", 1],
+        TEXT_MUTED:["PRIMARY_360", 1, "PRIMARY_460", 1, "PLUM_10", 1, "PLUM_10", 1],
+        TEXT_STATUS_OFFLINE:["PRIMARY_360", 1, "PRIMARY_460", 1, "PLUM_9", 1, "PLUM_9", 1],
+        TEXT_STRONG:["PRIMARY_230", 1, "PRIMARY_600", 1, "PLUM_6", 1, "PLUM_4", 1],
+        TEXT_SUBTLE:["PRIMARY_330", 1, "PRIMARY_500", 1, "PLUM_9", 1, "PLUM_8", 1],
+        USER_PROFILE_ABOUT_ME_HEADING_TEXT:["PRIMARY_230", 1, "PRIMARY_600", 1, "PLUM_6", 1, "PLUM_4", 1],
+        USER_PROFILE_CONTAINER_BACKGROUND:["PRIMARY_800", 1, "WHITE", 1, "PLUM_18", 1, "PLUM_23", 1],
+        USER_PROFILE_GRADIENT_BACKGROUND:["PRIMARY_630", 1, "PRIMARY_130", 1, "PLUM_20", 1, "BLACK", 1],
+        VOICE_CHANNEL_USER_LIMIT_ACCENT_BACKGROUND:["PRIMARY_660", 1, "PRIMARY_160", 1, "PLUM_23", 1, "BLACK", 1],
+        VOICE_CHANNEL_USER_LIMIT_BACKGROUND:["PRIMARY_630", 1, "PRIMARY_130", 1, "PLUM_20", 1, "BLACK", 1],
+        VOICE_CHANNEL_USER_LIMIT_ICON:["PRIMARY_360", 1, "PRIMARY_460", 1, "PLUM_9", 1, "PLUM_9", 1],
+        VOICE_CHANNEL_USER_LIMIT_TEXT:["PRIMARY_360", 1, "PRIMARY_460", 1, "PLUM_9", 1, "PLUM_9", 1]
+    };
+    // Old theme files write WHITE and BLACK under either name.
+    const LEGACY_RAW_RE = /^(PRIMARY|PLUM|BRAND)_\d|^(WHITE|BLACK)/;
+    // Where each slot (THEME_SLOTS order) looks for a legacy raw: its own list, then the other dark slots'. Light only
+    // reads its own: a dark palette there would turn it dark.
+    const LEGACY_SLOT_ORDER = [[0, 2, 3], [1], [2, 0, 3], [3, 2, 0]];
+    const LEGACY_RAW_OTHER_NAME = {WHITE:"WHITE_500", BLACK:"BLACK_500"};
     const LEGACY_RAW_BRIDGES = [
         ["NEUTRAL_100", ["PLUM_24", "PLUM_23", "PRIMARY_830", "PRIMARY_800", "BLACK"]],
         ["NEUTRAL_96", ["PLUM_23", "PLUM_22", "PRIMARY_800", "PRIMARY_730"]],
@@ -10551,14 +11325,18 @@
     }
     function sanitizeThemeBackground(bgIn) {
         if (!bgIn || typeof bgIn !== "object" || Array.isArray(bgIn)) return null;
-        const url = typeof bgIn.url === "string" && /^https?:\/\/\S+/i.test(bgIn.url.trim()) ? bgIn.url.trim().slice(0, 1024) : "";
+        // github.com/.../blob/... pages become raw.githubusercontent.com, so the image loads without a redirect.
+        const url = typeof bgIn.url === "string" && /^https?:\/\/\S+$/i.test(bgIn.url.trim()) ? normalizeThemeUrl(bgIn.url.trim()).slice(0, 1024) : "";
         const colorParsed = parseThemeColor(bgIn.color);
         const color = colorParsed ? formatThemeColor(colorParsed) : "";
         if (!url && !color) return null;
-        const rawAlpha = Number(bgIn.alpha);
-        const alpha = Number.isFinite(rawAlpha) ? Math.max(0, Math.min(1, Number(rawAlpha.toFixed(4)))) : 1;
+        // Revenge / Vendetta: alpha is how much of the wallpaper shows through chat (1 or missing = all of it), and
+        // anything above 1 counts as 1. "50%" and "0.5" both read as half.
+        const parsedAlpha = typeof bgIn.alpha === "string" || typeof bgIn.alpha === "number" ? parseAlphaValue(bgIn.alpha) : 1;
+        const alpha = parsedAlpha === null ? 1 : Number(parsedAlpha.toFixed(4));
+        // blur is Image's blurRadius in pixels, as Revenge passes it. Past 25 nothing is recognizable anyway.
         const rawBlur = Number(bgIn.blur);
-        const blur = Number.isFinite(rawBlur) ? Math.max(0, Math.min(1, Number(rawBlur.toFixed(4)))) : 0;
+        const blur = Number.isFinite(rawBlur) ? Math.max(0, Math.min(25, Number(rawBlur.toFixed(4)))) : 0;
         const out = {url, alpha, blur};
         if (color) out.color = color;
         return out;
@@ -10795,6 +11573,33 @@
                 }
             }
         }
+        // 2b. Tokens that moved off the legacy palettes follow the legacy raw they used to read (LEGACY_TOKEN_RAWS),
+        // unless the theme set the token's current raw itself (then it was made for this Discord). A slot with no
+        // legacy raw of its own in the theme borrows the other dark slots' (LEGACY_SLOT_ORDER), so a theme that only
+        // recolored PLUM (the old Dark/Midnight ramp) colors Ash the same way. Semantic keys below still win.
+        let anyLegacy = false;
+        for (const key in rawIn) if (LEGACY_RAW_RE.test(key) && owns(rawIn, key)) { anyLegacy = true; break; }
+        if (anyLegacy) for (const token in LEGACY_TOKEN_RAWS) {
+            const cells = LEGACY_TOKEN_RAWS[token], entry = sem[token];
+            if (!entry) continue;
+            for (let j = 0; j < 4; j++) {
+                const slot = THEME_SLOTS[j], now = entry[slot];
+                if (!now || typeof now !== "object" || rawIn[now.raw]) continue;
+                const order = LEGACY_SLOT_ORDER[j];
+                for (let o = 0; o < order.length; o++) {
+                    const name = cells[order[o] * 2];
+                    if (!name) continue;
+                    const value = rawIn[name] || rawIn[LEGACY_RAW_OTHER_NAME[name]], parsed = value && parseThemeColor(value);
+                    if (!parsed) continue;
+                    const syntheticKey = "__VENUS_" + token + "_" + slot, op = cells[order[o] * 2 + 1];
+                    setRaw(syntheticKey, parsed.hex);
+                    touchedSem.add(token);
+                    now.raw = syntheticKey;
+                    now.opacity = op === 1 ? parsed.opacity : Math.round(parsed.opacity * op * 10000) / 10000;
+                    break;
+                }
+            }
+        }
         // 3. Apply semanticColors onto Discord's SemanticColors table.
         // Helper that writes a parsed color into a SemanticColors[targetKey] entry across all 4 theme slots.
         // Revenge semanticColors arrays are [dark, light, amoled/midnight]:
@@ -10848,9 +11653,11 @@
             if (!Array.isArray(arr) || !arr.length || sem[key]) continue;
             const targets = LEGACY_SEMANTIC_ALIASES[key];
             if (!targets) continue;
+            const variant = LEGACY_ALIAS_VARIANT[key] || 0;
             for (let i = 0; i < targets.length; i++) {
                 const was = aliasRank.get(targets[i]);
-                if (!was || i < was.rank || i === was.rank && targets.length < was.width) aliasRank.set(targets[i], {rank:i, width:targets.length, arr});
+                if (!was || variant < was.variant || variant === was.variant && (i < was.rank || i === was.rank && targets.length < was.width))
+                    aliasRank.set(targets[i], {rank:i, variant, width:targets.length, arr});
             }
         }
         aliasRank.forEach((pick, target) => writeSemanticTarget(target, pick.arr, false));
@@ -10894,17 +11701,18 @@
             if (bg.color && !semIn.CHAT_BACKGROUND && !semIn.CHANNEL_BACKGROUND_DEFAULT && !semIn.BACKGROUND_PRIMARY && !semIn.BACKGROUND_MOBILE_PRIMARY && !semIn.BG_BASE_PRIMARY) {
                 for (let i = 0; i < CHAT_SURFACE_TOKENS.length; i++) writeSemanticTarget(CHAT_SURFACE_TOKENS[i], [bg.color], false);
             }
-            if (showBg && bg.url && Number.isFinite(bg.alpha) && bg.alpha < 1) {
-                const alpha = Math.max(0, Math.min(1, bg.alpha));
-                for (let i = 0; i < CHAT_SURFACE_TOKENS.length; i++) {
-                    const entry = sem[CHAT_SURFACE_TOKENS[i]];
+            // Like Revenge and Vendetta, chat keeps (1 - alpha) of its color over the wallpaper: alpha 1 shows all of it.
+            const keep = showBg && bg.url ? 1 - Math.max(0, Math.min(1, Number.isFinite(bg.alpha) ? bg.alpha : 1)) : 1;
+            if (keep < 1) {
+                for (let i = 0; i < CHAT_WALLPAPER_TOKENS.length; i++) {
+                    const entry = sem[CHAT_WALLPAPER_TOKENS[i]];
                     if (!entry || typeof entry !== "object") continue;
-                    touchedSem.add(CHAT_SURFACE_TOKENS[i]);
+                    touchedSem.add(CHAT_WALLPAPER_TOKENS[i]);
                     for (let j = 0; j < THEME_SLOTS.length; j++) {
                         const s = entry[THEME_SLOTS[j]];
                         if (s && typeof s === "object") {
                             const cur = Number.isFinite(s.opacity) ? s.opacity : 1;
-                            s.opacity = Math.round(cur * alpha * 10000) / 10000;
+                            s.opacity = Math.round(cur * keep * 10000) / 10000;
                         }
                     }
                 }
@@ -10931,8 +11739,12 @@
             }
         });
     }
+    // The theme the color tables follow: an installed custom theme wins (you picked it on purpose), then Material You.
+    function colorThemeEntry() {
+        return customThemesActiveEntry() || (features.materialYou ? myThemeSpec() : null);
+    }
     function customThemesActiveEntry() {
-        if (!enabled("customThemes") || !customThemes.active) return null;
+        if (!features.customThemes || !enabled("customThemes") || !customThemes.active) return null;
         return customThemes.list.find(t => t && t.id === customThemes.active) || null;
     }
     function customThemesBumpFallbackContextKey() {
@@ -10953,8 +11765,9 @@
             if (!customThemes.expTable && mExp && mExp._private && mExp._private.SemanticColorExperiments) customThemes.expTable = mExp._private.SemanticColorExperiments;
         }
         if (!customThemes.rawTable || !customThemes.semTable) return;
-        const active = customThemesActiveEntry();
-        const nextKey = active ? active.id + ":" + customThemes.editCounter + ":" + (settings.customThemesBackground ? "1" : "0") : "";
+        snapshotColorTables();
+        const active = colorThemeEntry();
+        const nextKey = active ? active.id + ":" + customThemes.editCounter + ":" + (settings.customThemesBackground ? "1" : "0") + ":" + (active === materialYou.spec ? materialYou.specKey : "") : "";
         if (nextKey === customThemes.appliedKey && (nextKey !== "" || customThemes.origRaw)) return;
         customThemes.appliedKey = nextKey;
         compileThemeIntoTables(active);
@@ -10965,6 +11778,7 @@
         const store = customThemes.themeStore || (customThemes.themeStore = inspectedExport(1205, "default"));
         try { if (store && typeof store.emitChange === "function") store.emitChange(); } catch (_) {}
         if (features.iconPacks && enabled("iconPacks")) iconPacksApply();
+        if (features.materialYou || features.customThemes) myNativeSync(active);
         notify("customThemes");
     }
     function hookRawColorsModule(exports) {
@@ -10972,7 +11786,7 @@
         if (raw && typeof raw === "object") {
             customThemes.rawTable = raw;
             snapshotColorTables();
-            if (customThemes.semTable && enabled("customThemes")) customThemesApply();
+            if (customThemes.semTable && (enabled("customThemes") || enabled("materialYou"))) customThemesApply();
         }
         return exports;
     }
@@ -10981,7 +11795,7 @@
         if (sem && typeof sem === "object") {
             customThemes.semTable = sem;
             snapshotColorTables();
-            if (customThemes.rawTable && enabled("customThemes")) customThemesApply();
+            if (customThemes.rawTable && (enabled("customThemes") || enabled("materialYou"))) customThemesApply();
         }
         return exports;
     }
@@ -10991,7 +11805,7 @@
             customThemes.expTable = table;
             if (customThemes.rawTable && customThemes.semTable) {
                 snapshotColorTables();
-                if (enabled("customThemes")) { customThemes.appliedKey = null; customThemesApply(); }
+                if (enabled("customThemes") || enabled("materialYou")) { customThemes.appliedKey = null; customThemesApply(); }
             }
         }
         return exports;
@@ -10999,8 +11813,12 @@
     // Discord's root providers (11191) build the theme context once and keep it in a memo keyed on theme, flags and
     // so on, never on our revision. Re-keying the value they hand down makes createStyles and useToken read fresh.
     function rootThemeContextProvider(orig, self, args) {
-        if (features.customThemes) useSettings("customThemes");
+        // customThemesApply ends with notify("customThemes") whenever the tables change, Material You's included, so the
+        // whole app re-renders once per real change, never for a Material You option that leaves the colors as they are.
+        if (features.customThemes || features.materialYou) useSettings("customThemes");
         if (features.iconPacks) useSettings("iconPacks");
+        // Switching Light, Ash, Dark or Onyx re-renders this provider: the native table follows the new appearance.
+        if (features.customThemes && materialYou.nativeSlot && customThemesActiveEntry() && nativeThemeSlot() !== materialYou.nativeSlot) myNativeSync(customThemesActiveEntry());
         const tree = orig.apply(self, args);
         if (customThemes.revision <= 0 || !tree || !tree.props || !tree.props.value || typeof tree.props.value.key !== "string") return tree;
         const value = tree.props.value, key = value.key.split("#v")[0] + "#v" + customThemes.revision;
@@ -11018,6 +11836,47 @@
             return ctx;
         });
     }
+    // Most theme wallpapers that "don't load" are Discord attachment links: Discord's CDN now only serves them with a
+    // fresh signature, so the bare links in older themes answer 404. Discord signs them again the way it does for old
+    // links in chat (POST /attachments/refresh-urls), and the signed link is reused until it expires.
+    const THEME_WALLPAPER_CDN_RE = /^https:\/\/(?:cdn\.discordapp\.com|media\.discordapp\.net)\/attachments\/\d+\/\d+\/[^?#\s]+/i;
+    const themeWallpapers = new Map();
+    function themeWallpaperUri(url) {
+        if (typeof url !== "string" || !THEME_WALLPAPER_CDN_RE.test(url)) return url;
+        const hit = themeWallpapers.get(url);
+        if (hit && (hit.pending || hit.expires > Date.now() + 60000)) return hit.uri;
+        // Until it's signed, draw no image rather than a broken one; the theme's own background color still shows.
+        const entry = {uri:hit && hit.uri || "", pending:true, expires:0};
+        themeWallpapers.set(url, entry);
+        const http = inspectedExport(1295, "HTTP");
+        const sent = http && typeof http.post === "function" ? Promise.resolve().then(() => http.post({url:"/attachments/refresh-urls",
+            body:{attachment_urls:[url]}, interceptResponse:questIntercept})) : Promise.reject(new Error("no client"));
+        sent.then(response => {
+            const list = response && response.body && response.body.refreshed_urls;
+            const fresh = Array.isArray(list) && list[0] && typeof list[0].refreshed === "string" ? list[0].refreshed : "";
+            // ex= is the expiry in hex seconds; without one, ask again in an hour.
+            const ex = /[?&]ex=([0-9a-f]+)/i.exec(fresh);
+            entry.uri = /^https:\/\//i.test(fresh) ? fresh : url;
+            entry.expires = ex ? parseInt(ex[1], 16) * 1000 : Date.now() + 3600000;
+        }, () => { entry.uri = url; entry.expires = Date.now() + 600000; }).then(() => {
+            entry.pending = false;
+            notify("customThemes");
+        });
+        return entry.uri;
+    }
+    // Some image hosts refuse okhttp's default agent, which is what React Native's image loader sends.
+    const THEME_WALLPAPER_HEADERS = {"User-Agent":"Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Mobile Safari/537.36"};
+    const themeWallpaperSources = new Map();
+    // One frozen source object per link, so Image never sees a new source on re-render and never reloads.
+    function themeWallpaperSource(uri) {
+        let source = themeWallpaperSources.get(uri);
+        if (!source) {
+            if (themeWallpaperSources.size > 16) themeWallpaperSources.clear();
+            source = Object.freeze({uri, headers:THEME_WALLPAPER_HEADERS});
+            themeWallpaperSources.set(uri, source);
+        }
+        return source;
+    }
     function chatViewWrapperThemeBackground(orig, self, args) {
         useSettings("customThemes");
         const tree = orig.apply(self, args);
@@ -11025,12 +11884,15 @@
         const active = customThemesActiveEntry();
         const bg = active && active.background;
         if (!bg || !bg.url) return tree;
-        const blur = Number.isFinite(bg.blur) && bg.blur > 0 ? Math.round(bg.blur * 25) : 0;
+        const uri = themeWallpaperUri(bg.url);
+        if (!uri) return tree;
+        // blurRadius in pixels, as Revenge passes it, so a theme looks the same as it did there.
+        const blur = Number.isFinite(bg.blur) && bg.blur > 0 ? bg.blur : 0;
         const bgColor = bg.color ? (parseThemeColor(bg.color) || {}).hex : undefined;
         return el(RN.View, {style:bgColor ? [THEME_BG_WRAP_STYLE, {backgroundColor:bgColor}] : THEME_BG_WRAP_STYLE},
             el(RN.Image, {
                 pointerEvents:"none",
-                source:{uri:bg.url},
+                source:themeWallpaperSource(uri),
                 resizeMode:"cover",
                 blurRadius:blur,
                 fadeDuration:0,
@@ -11296,6 +12158,438 @@
                     !on, true)) : null,
             customThemes.list.length ? footnote("note", "Hold a theme to remove it.") : null];
         return settingsBody(ui, groups, {keyboardShouldPersistTaps:"handled"});
+    }
+    // HCT (hue, chroma, tone): the color space Material You builds its palettes in. A small port of Google's
+    // material-color-utilities (Apache-2.0): Cam16 for reading a color, HctSolver for making one at a given tone.
+    const HCT_WHITE = [95.047, 100.0, 108.883];
+    function hctLinear(c) { const n = c / 255; return (n <= 0.040449936 ? n / 12.92 : Math.pow((n + 0.055) / 1.055, 2.4)) * 100; }
+    function hctDelinear(c) { const n = c / 100, d = n <= 0.0031308 ? n * 12.92 : 1.055 * Math.pow(n, 1 / 2.4) - 0.055; return Math.max(0, Math.min(255, Math.round(d * 255))); }
+    function hctLabF(t) { return t > 216 / 24389 ? Math.cbrt(t) : (24389 / 27 * t + 16) / 116; }
+    function hctLabInv(ft) { const c = ft * ft * ft; return c > 216 / 24389 ? c : (116 * ft - 16) / (24389 / 27); }
+    function hctYFromTone(tone) { return 100 * hctLabInv((tone + 16) / 116); }
+    function hctToneOf(rgb) { return 116 * hctLabF((0.2126 * hctLinear(rgb[0]) + 0.7152 * hctLinear(rgb[1]) + 0.0722 * hctLinear(rgb[2])) / 100) - 16; }
+    const HCT_VC = (() => {
+        const w = HCT_WHITE, La = 200 / Math.PI * hctYFromTone(50) / 100, f = 1, c = 0.69;
+        const rW = w[0] * 0.401288 + w[1] * 0.650173 + w[2] * -0.051461, gW = w[0] * -0.250268 + w[1] * 1.204414 + w[2] * 0.045854,
+            bW = w[0] * -0.002079 + w[1] * 0.048952 + w[2] * 0.953127;
+        const d = Math.max(0, Math.min(1, f * (1 - 1 / 3.6 * Math.exp((-La - 42) / 92))));
+        const rgbD = [d * 100 / rW + 1 - d, d * 100 / gW + 1 - d, d * 100 / bW + 1 - d];
+        const k = 1 / (5 * La + 1), k4 = k * k * k * k, k4F = 1 - k4, fl = k4 * La + 0.1 * k4F * k4F * Math.cbrt(5 * La);
+        const n = hctYFromTone(50) / w[1], z = 1.48 + Math.sqrt(n), nbb = 0.725 / Math.pow(n, 0.2);
+        const af = [rW, gW, bW].map((v, i) => Math.pow(fl * rgbD[i] * v / 100, 0.42)), a = af.map(v => 400 * v / (v + 27.13));
+        return {n, aw:(2 * a[0] + a[1] + 0.05 * a[2]) * nbb, nbb, ncb:nbb, c, nc:f, rgbD, fl, z};
+    })();
+    // Hue (degrees), chroma and tone of an sRGB color.
+    function hctFromRgb(rgb) {
+        const V = HCT_VC, r = hctLinear(rgb[0]), g = hctLinear(rgb[1]), b = hctLinear(rgb[2]);
+        const x = 0.41233895 * r + 0.35762064 * g + 0.18051042 * b, y = 0.2126 * r + 0.7152 * g + 0.0722 * b, z = 0.01932141 * r + 0.11916382 * g + 0.95034478 * b;
+        const cone = [0.401288 * x + 0.650173 * y - 0.051461 * z, -0.250268 * x + 1.204414 * y + 0.045854 * z, -0.002079 * x + 0.048952 * y + 0.953127 * z];
+        const ad = cone.map((v, i) => { const d = V.rgbD[i] * v, p = Math.pow(V.fl * Math.abs(d) / 100, 0.42); return Math.sign(d) * 400 * p / (p + 27.13); });
+        const A = (11 * ad[0] - 12 * ad[1] + ad[2]) / 11, B = (ad[0] + ad[1] - 2 * ad[2]) / 9, u = (20 * ad[0] + 20 * ad[1] + 21 * ad[2]) / 20, p2 = (40 * ad[0] + 20 * ad[1] + ad[2]) / 20;
+        const hue = ((Math.atan2(B, A) * 180 / Math.PI) % 360 + 360) % 360;
+        const j = 100 * Math.pow(p2 * V.nbb / V.aw, V.c * V.z), huePrime = hue < 20.14 ? hue + 360 : hue;
+        const t = 50000 / 13 * 0.25 * (Math.cos(huePrime * Math.PI / 180 + 2) + 3.8) * V.nc * V.ncb * Math.sqrt(A * A + B * B) / (u + 0.305);
+        const chroma = Math.pow(t, 0.9) * Math.pow(1.64 - Math.pow(0.29, V.n), 0.73) * Math.sqrt(j / 100);
+        return {hue, chroma, tone:hctToneOf(rgb)};
+    }
+    const HCT_DISCOUNT = [[0.001200833568784504, 0.002389694492170889, 0.0002795742885861124], [0.0005891086651375999, 0.0029785502573438758, 0.0003270666104008398],
+        [0.00010146692491640572, 0.0005364214359186694, 0.0032979401770712076]];
+    const HCT_UNDISCOUNT = [[1373.2198709594231, -1100.4251190754821, -7.278681089101213], [-271.815969077903, 559.6580465940733, -32.46047482791194],
+        [1.9622899599665666, -57.173814538844006, 308.7233197812385]];
+    const HCT_Y = [0.2126, 0.7152, 0.0722];
+    function hctMul(row, m) { return [row[0] * m[0][0] + row[1] * m[0][1] + row[2] * m[0][2], row[0] * m[1][0] + row[1] * m[1][1] + row[2] * m[1][2], row[0] * m[2][0] + row[1] * m[2][1] + row[2] * m[2][2]]; }
+    function hctRgbFromLinear(l) { return [hctDelinear(l[0]), hctDelinear(l[1]), hctDelinear(l[2])]; }
+    function hctAdapt(c) { const a = Math.pow(Math.abs(c), 0.42); return Math.sign(c) * 400 * a / (a + 27.13); }
+    function hctHueOf(lin) { const s = hctMul(lin, HCT_DISCOUNT), r = hctAdapt(s[0]), g = hctAdapt(s[1]), b = hctAdapt(s[2]); return Math.atan2((r + g - 2 * b) / 9, (11 * r - 12 * g + b) / 11); }
+    function hctRad(a) { return (a + Math.PI * 8) % (Math.PI * 2); }
+    function hctCyclic(a, b, c) { return hctRad(b - a) < hctRad(c - a); }
+    function hctVertex(y, n) {
+        const A = n % 4 <= 1 ? 0 : 100, B = n % 2 === 0 ? 0 : 100, ok = v => v >= 0 && v <= 100;
+        if (n < 4) { const r = (y - A * HCT_Y[1] - B * HCT_Y[2]) / HCT_Y[0]; return ok(r) ? [r, A, B] : null; }
+        if (n < 8) { const g = (y - B * HCT_Y[0] - A * HCT_Y[2]) / HCT_Y[1]; return ok(g) ? [B, g, A] : null; }
+        const b = (y - A * HCT_Y[0] - B * HCT_Y[1]) / HCT_Y[2]; return ok(b) ? [A, B, b] : null;
+    }
+    function hctTrueDelinear(c) { const n = c / 100; return (n <= 0.0031308 ? n * 12.92 : 1.055 * Math.pow(n, 1 / 2.4) - 0.055) * 255; }
+    // The most colorful color of this hue at this lightness, when the asked-for chroma is out of the sRGB gamut.
+    function hctBisect(y, hue) {
+        let left = null, right = null, lh = 0, rh = 0, uncut = true;
+        for (let n = 0; n < 12; n++) {
+            const mid = hctVertex(y, n);
+            if (!mid) continue;
+            const mh = hctHueOf(mid);
+            if (!left) { left = right = mid; lh = rh = mh; continue; }
+            if (uncut || hctCyclic(lh, mh, rh)) {
+                uncut = false;
+                if (hctCyclic(lh, hue, mh)) { right = mid; rh = mh; } else { left = mid; lh = mh; }
+            }
+        }
+        lh = hctHueOf(left);
+        for (let axis = 0; axis < 3; axis++) {
+            if (left[axis] === right[axis]) continue;
+            let lp, rp;
+            if (left[axis] < right[axis]) { lp = Math.floor(hctTrueDelinear(left[axis]) - 0.5); rp = Math.ceil(hctTrueDelinear(right[axis]) - 0.5); }
+            else { lp = Math.ceil(hctTrueDelinear(left[axis]) - 0.5); rp = Math.floor(hctTrueDelinear(right[axis]) - 0.5); }
+            for (let i = 0; i < 8 && Math.abs(rp - lp) > 1; i++) {
+                const mp = Math.floor((lp + rp) / 2), coord = hctLinear(mp + 0.5), t = (coord - left[axis]) / (right[axis] - left[axis]);
+                const mid = [left[0] + (right[0] - left[0]) * t, left[1] + (right[1] - left[1]) * t, left[2] + (right[2] - left[2]) * t], mh = hctHueOf(mid);
+                if (hctCyclic(lh, hue, mh)) { right = mid; rp = mp; } else { left = mid; lh = mh; lp = mp; }
+            }
+        }
+        return [(left[0] + right[0]) / 2, (left[1] + right[1]) / 2, (left[2] + right[2]) / 2];
+    }
+    function hctInverseAdapt(a) { const abs = Math.abs(a), base = Math.max(0, 27.13 * abs / (400 - abs)); return Math.sign(a) * Math.pow(base, 1 / 0.42); }
+    function hctByJ(hue, chroma, y) {
+        const V = HCT_VC, tInner = 1 / Math.pow(1.64 - Math.pow(0.29, V.n), 0.73), p1 = 0.25 * (Math.cos(hue + 2) + 3.8) * (50000 / 13) * V.nc * V.ncb;
+        const hSin = Math.sin(hue), hCos = Math.cos(hue);
+        let j = Math.sqrt(y) * 11;
+        for (let round = 0; round < 5; round++) {
+            const jn = j / 100, alpha = chroma === 0 || j === 0 ? 0 : chroma / Math.sqrt(jn), t = Math.pow(alpha * tInner, 1 / 0.9);
+            const p2 = V.aw * Math.pow(jn, 1 / V.c / V.z) / V.nbb, gamma = 23 * (p2 + 0.305) * t / (23 * p1 + 11 * t * hCos + 108 * t * hSin);
+            const a = gamma * hCos, b = gamma * hSin;
+            const lin = hctMul([hctInverseAdapt((460 * p2 + 451 * a + 288 * b) / 1403), hctInverseAdapt((460 * p2 - 891 * a - 261 * b) / 1403),
+                hctInverseAdapt((460 * p2 - 220 * a - 6300 * b) / 1403)], HCT_UNDISCOUNT);
+            if (lin[0] < 0 || lin[1] < 0 || lin[2] < 0) return null;
+            const fnj = HCT_Y[0] * lin[0] + HCT_Y[1] * lin[1] + HCT_Y[2] * lin[2];
+            if (fnj <= 0) return null;
+            if (round === 4 || Math.abs(fnj - y) < 0.002) return lin[0] > 100.01 || lin[1] > 100.01 || lin[2] > 100.01 ? null : hctRgbFromLinear(lin);
+            j = j - (fnj - y) * j / (2 * fnj);
+        }
+        return null;
+    }
+    // An sRGB color with this hue and tone, as close to the chroma as the gamut allows.
+    function hctToRgb(hueDeg, chroma, tone) {
+        if (chroma < 0.0001 || tone < 0.0001 || tone > 99.9999) { const v = hctDelinear(hctYFromTone(tone)); return [v, v, v]; }
+        const hue = ((hueDeg % 360) + 360) % 360 / 180 * Math.PI, y = hctYFromTone(tone);
+        return hctByJ(hue, chroma, y) || hctRgbFromLinear(hctBisect(y, hue));
+    }
+    // Material You colors (#90): Discord in your phone's wallpaper palette, or in one color you pick, the way Android 12+
+    // colors its own apps. It builds Material 3 tonal palettes (HCT, above) and hands them to Custom themes' compiler, so
+    // a change is one table write and turning it off restores Discord exactly:
+    // - every gray ramp Discord draws with (NEUTRAL, PRIMARY, PLUM and the translucent grays) is redrawn in the neutral
+    //   palette at the same tone, so each of Discord's appearances keeps its contrast (Light stays light, Darker dark,
+    //   Midnight black) and only gains the tint;
+    // - Blurple becomes the accent palette at the same tone, so every brand-colored detail follows it;
+    // - controls get Material 3's pairs: buttons, switches and checkboxes in primary with on-primary text and icons, the
+    //   chosen channel and segmented pill in secondary container, links and brand text in primary.
+    // Status colors (online, idle, Do Not Disturb, danger) stay Discord's, so they keep meaning what they mean.
+    const MY_PRESETS = [["blue", "Blue", "#4a6fd8"], ["teal", "Teal", "#00877a"], ["green", "Green", "#4b7d2b"],
+        ["pink", "Pink", "#c2407e"], ["purple", "Purple", "#7b52c4"]];
+    const MY_TINTS = ["subtle", "balanced", "vivid"];
+    const MY_TINT_SCALE = {subtle:0.45, balanced:1, vivid:2.4};
+    const MY_BRIDGE = "venus-monet-v1:";
+    const materialYou = {system:null, asked:false, asking:false, spec:null, specKey:"", appState:null, nativeSent:null, source:null, sourceFor:null, sourceKey:""};
+    function myIsColor(value) { return value === "wallpaper" || MY_PRESETS.some(p => p[0] === value) || typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value); }
+    function myRgb(hex) { const n = hexInt(hex); return n == null ? [88, 101, 242] : [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+    function myHex(rgb) { return "#" + rgb.map(v => v.toString(16).padStart(2, "0")).join(""); }
+    // Android's own palettes (system_accent1..3 and system_neutral1..2), read by the Material You extension. Their
+    // 500 shade (index 6) carries each palette's hue and chroma, so every tone Discord needs comes out as Android's.
+    function mySystemSource() {
+        const sys = materialYou.system;
+        if (!sys || !sys.accent1) return null;
+        // Read on every page render and every apply: the palette object only changes when the phone sends a new one.
+        if (materialYou.sourceFor === sys) return materialYou.source;
+        materialYou.sourceFor = sys;
+        materialYou.sourceKey = "w:" + JSON.stringify(sys);
+        return materialYou.source = mySystemSourceOf(sys);
+    }
+    function mySystemSourceOf(sys) {
+        // A tonal palette's chroma is a request the gamut clips at the extremes and often at 500 too (a vivid cyan at tone
+        // 50 holds less chroma than at tone 80), so the most colorful shade from 50 to 800 carries it best: tones then land
+        // within 3 of 255 of Android's own shades, where the 500 shade alone missed light tones by up to 144.
+        const pick = name => {
+            const list = sys[name];
+            if (!Array.isArray(list)) return null;
+            let best = null;
+            for (let i = 2; i <= 10; i++) {
+                const hex = list[i];
+                if (typeof hex !== "string" || !/^#[0-9a-f]{6}$/i.test(hex)) return null;
+                const hct = hctFromRgb(myRgb(hex));
+                if (!best || hct.chroma > best.chroma) best = hct;
+            }
+            return best;
+        };
+        const a1 = pick("accent1"), a2 = pick("accent2"), a3 = pick("accent3"), n1 = pick("neutral1"), n2 = pick("neutral2");
+        if (!a1 || !a2 || !n1 || !n2) return null;
+        return {a1, a2, a3:a3 || a2, n1, n2};
+    }
+    // Material 3's tonal spot scheme from one color: the style Android itself uses by default.
+    function mySeedSource(hex) {
+        const seed = hctFromRgb(myRgb(hex));
+        return {a1:{hue:seed.hue, chroma:Math.max(seed.chroma, 36)}, a2:{hue:seed.hue, chroma:16}, a3:{hue:(seed.hue + 60) % 360, chroma:24},
+            n1:{hue:seed.hue, chroma:6}, n2:{hue:seed.hue, chroma:8}};
+    }
+    function myWallpaperReady() { return !!mySystemSource(); }
+    // What's used: the wallpaper while the phone shares it, else the color you picked, else Blue.
+    function mySource() {
+        const choice = settings.materialYouColor;
+        if (choice === "wallpaper") {
+            const sys = mySystemSource();
+            if (sys) return {src:sys, key:materialYou.sourceKey};
+            // Until the phone has answered once, nothing changes, so a cold start never flashes Blue first.
+            if (!materialYou.asked) return null;
+        }
+        const preset = MY_PRESETS.find(p => p[0] === choice);
+        const hex = preset ? preset[2] : /^#[0-9a-f]{6}$/i.test(choice || "") ? choice.toLowerCase() : MY_PRESETS[0][2];
+        return {src:mySeedSource(hex), key:"s:" + hex};
+    }
+    function myTone(p, tone) { return myHex(hctToRgb(p.hue, p.chroma, tone)); }
+    // Background tint scales how much color the grays take; accents stay as Android draws them.
+    function myScheme(src) {
+        const scale = MY_TINT_SCALE[settings.materialYouTint] || 1;
+        return {a1:src.a1, a2:src.a2, a3:src.a3, n1:{hue:src.n1.hue, chroma:Math.min(24, src.n1.chroma * scale)}, n2:{hue:src.n2.hue, chroma:Math.min(28, src.n2.chroma * scale)}};
+    }
+    const MY_NEUTRAL_RAW = /^(NEUTRAL|PRIMARY|PLUM)_\d+$|^OPACITY_\d+$/, MY_ACCENT_RAW = /^(BLURPLE|BRAND)_\d+$|^OPACITY_BLURPLE_\d+$/;
+    // Material 3 roles as [palette, tone] per Discord appearance: [dark, light, midnight, darker].
+    const MY_ROLES = {
+        // Filled controls stay deep enough for white: Discord draws white text and icons on brand fills in many places it
+        // doesn't theme (badges, pills, check marks), and white on Material's pastel dark primary would be 1.7:1.
+        primary:[["a1", 45], ["a1", 40], ["a1", 45], ["a1", 45]], onPrimary:[["a1", 100], ["a1", 100], ["a1", 100], ["a1", 100]],
+        pressed:[["a1", 35], ["a1", 30], ["a1", 35], ["a1", 35]], brandText:[["a1", 80], ["a1", 40], ["a1", 80], ["a1", 80]],
+        mention:[["a1", 90], ["a1", 30], ["a1", 90], ["a1", 90]], secondary:[["a2", 40], ["a2", 88], ["a2", 30], ["a2", 36]]
+    };
+    const MY_SEMANTIC = {
+        primary:["BACKGROUND_BRAND", "CONTROL_PRIMARY_BACKGROUND_DEFAULT", "SWITCH_BACKGROUND_SELECTED_DEFAULT", "CHECKBOX_BACKGROUND_SELECTED_DEFAULT",
+            "CHAT_INPUT_SEND_BUTTON_ACTIVE_BACKGROUND", "INTERACTIVE_ACCENT_BACKGROUND_SELECTED", "PROGRESSBAR_INDICATOR_BACKGROUND", "INPUT_BORDER_ACTIVE",
+            "TOGGLEBUTTON_BORDER_SELECTED", "REACTION_BORDER_REACTED_DEFAULT", "BADGE_BACKGROUND_BRAND", "ACTIVITY_TIMEBAR_PROGRESS_BACKGROUND",
+            "REDESIGN_INPUT_CONTROL_SELECTED", "MOBILE_VOICE_MESSAGE_RECORDING_LOCK_BACKGROUND_ACTIVE", "BUTTON_OUTLINE_BRAND_BACKGROUND_HOVER",
+            "BUTTON_OUTLINE_BRAND_BORDER_ACTIVE", "POLLS_VOTED_FILL", "SWITCH_THUMB_ICON_ACTIVE"],
+        onPrimary:["CONTROL_PRIMARY_TEXT_DEFAULT", "CHAT_INPUT_SEND_BUTTON_ICON_ACTIVE_TINT", "CHECKBOX_ICON_ACTIVE", "BADGE_TEXT_BRAND"],
+        pressed:["CONTROL_PRIMARY_BACKGROUND_ACTIVE", "INTERACTIVE_ACCENT_BACKGROUND_ACTIVE"],
+        brandText:["TEXT_BRAND", "ICON_BRAND", "CONTROL_BRAND_FOREGROUND", "CONTROL_BRAND_FOREGROUND_NEW", "TEXT_LINK"],
+        mention:["MENTION_FOREGROUND", "REACTION_TEXT_REACTED_DEFAULT"],
+        secondary:["MOBILE_CHANNEL_ITEM_BACKGROUND_SELECTED", "MOBILE_SEGMENTED_CONTROL_INDICATOR_BACKGROUND"]
+    };
+    // MY_ROLES' array order, as Discord's slot names.
+    const MY_SLOT_ORDER = ["dark", "light", "midnight", "darker"];
+    function myWithAlpha(hex, slot) {
+        const a = slot && Number.isFinite(slot.opacity) ? slot.opacity : 1;
+        return a >= 1 ? hex : hex + Math.max(0, Math.round(a * 255)).toString(16).padStart(2, "0");
+    }
+    // The theme Custom themes' compiler applies, built once per palette, color and tint.
+    function myThemeSpec() {
+        if (!enabled("materialYou") || !customThemes.origRaw || !customThemes.origSem) return null;
+        const source = mySource();
+        if (!source) return null;
+        const specKey = source.key + "|" + settings.materialYouTint;
+        if (materialYou.spec && materialYou.specKey === specKey) return materialYou.spec;
+        const p = myScheme(source.src), rawColors = {}, semanticColors = {}, orig = customThemes.origRaw;
+        for (const name in orig) {
+            if (!owns(orig, name)) continue;
+            const neutral = MY_NEUTRAL_RAW.test(name), accent = !neutral && MY_ACCENT_RAW.test(name);
+            const value = orig[name];
+            if (!neutral && !accent || typeof value !== "string" || !/^#[0-9a-f]{6}/i.test(value)) continue;
+            // Translucent grays draw muted text, borders and pressed states: the neutral variant palette, as in Material 3.
+            const palette = accent ? p.a1 : /^OPACITY_/.test(name) ? p.n2 : p.n1;
+            rawColors[name] = myTone(palette, hctToneOf(myRgb(value.slice(0, 7))));
+        }
+        // A token Discord draws translucent (the voted bar of a poll is Blurple at 20% under the answer's text) keeps its
+        // own opacity, or a solid fill buries that text (2.1:1 in Light). Only secondary containers turn solid, as
+        // Material 3 draws them.
+        const origSem = customThemes.origSem;
+        for (const role in MY_SEMANTIC) {
+            const slots = MY_ROLES[role].map(pair => myTone(p[pair[0]], pair[1]));
+            MY_SEMANTIC[role].forEach(token => {
+                const was = role === "secondary" ? null : origSem[token];
+                semanticColors[token] = was ? slots.map((hex, i) => myWithAlpha(hex, was[MY_SLOT_ORDER[i]])) : slots;
+            });
+        }
+        materialYou.spec = {id:"venus:materialYou", name:"Material You", rawColors, semanticColors};
+        materialYou.specKey = specKey;
+        return materialYou.spec;
+    }
+    // A small palette for the preview tiles, as Discord's Light or Dark would look.
+    function myPalette(light) {
+        const p = myScheme((mySource() || {src:mySeedSource(MY_PRESETS[0][2])}).src);
+        return light ? {bg:myTone(p.n1, 98), card:myTone(p.n1, 92), accent:myTone(p.a1, 40), text:myTone(p.n2, 30), strong:myTone(p.n1, 10)} :
+            {bg:myTone(p.n1, 20), card:myTone(p.n1, 28), accent:myTone(p.a1, 45), text:myTone(p.n2, 80), strong:myTone(p.n1, 95)};
+    }
+    // Asks the extension for the phone's palettes: at start, on this page, and whenever Discord comes back to the front
+    // (the wallpaper may have changed meanwhile). Nothing is redrawn when they're the same.
+    function myReadSystem() {
+        if (!features.materialYou || !files || typeof files.getFileHash !== "function" || materialYou.asking) return;
+        materialYou.asking = true;
+        Promise.resolve().then(() => files.getFileHash(MY_BRIDGE + "colors", "", 0)).then(text => {
+            const parsed = typeof text === "string" && text ? JSON.parse(text) : null;
+            const next = parsed && Array.isArray(parsed.accent1) ? {accent1:parsed.accent1, accent2:parsed.accent2, accent3:parsed.accent3, neutral1:parsed.neutral1, neutral2:parsed.neutral2} : null;
+            // Coming back to Discord asks again; an unchanged answer keeps the same object, so nothing is rebuilt or saved.
+            if (JSON.stringify(next) === JSON.stringify(materialYou.system)) return false;
+            materialYou.system = next;
+            save();
+            return true;
+        }).catch(() => false).then(changed => {
+            const first = !materialYou.asked;
+            materialYou.asking = false; materialYou.asked = true;
+            if (!changed && !first) return;
+            if (enabled("materialYou")) customThemesApply();
+            notify("materialYou");
+        });
+    }
+    // Discord's native views (the chat list, voice overlay, reactions, notifications) take their colors from Android
+    // resources that hold the same values as RawColors, so the native side swaps each Discord color for the one this
+    // palette gives it: "rrggbbRRGGBB" pairs sorted by Discord's color. It saves them, so the next launch is colored from
+    // the first frame. Grays are matched before translucent grays, so a shared value takes the solid gray's tone.
+    function myNativeTable(spec) {
+        const orig = customThemes.origRaw, pairs = new Map();
+        const names = Object.keys(spec.rawColors).sort((a, b) => (/^OPACITY_/.test(a) ? 1 : 0) - (/^OPACITY_/.test(b) ? 1 : 0) || (a < b ? -1 : a > b ? 1 : 0));
+        for (const name of names) {
+            const from = typeof orig[name] === "string" ? orig[name].slice(1, 7).toLowerCase() : "", to = spec.rawColors[name].slice(1, 7).toLowerCase();
+            if (/^[0-9a-f]{6}$/.test(from) && /^[0-9a-f]{6}$/.test(to) && from !== to && !pairs.has(from)) pairs.set(from, to);
+        }
+        return Array.from(pairs.keys()).sort((a, b) => parseInt(a, 16) - parseInt(b, 16)).map(k => k + pairs.get(k)).join("");
+    }
+    // The semantic tokens Discord's native views read (DiscordThemeObject getters, most used first). A custom theme
+    // recolors them by token rather than by raw color, so the native side gets each one's color in the appearance in
+    // use: TEXT_DEFAULT's Discord color becomes the theme's TEXT_NORMAL, and so on. Pure white and black are left out,
+    // because Discord draws icons and text on brand fills with them too.
+    const NATIVE_THEME_TOKENS = ["TEXT_DEFAULT", "INTERACTIVE_TEXT_DEFAULT", "TEXT_MUTED", "MOBILE_TEXT_HEADING_PRIMARY", "BACKGROUND_SURFACE_HIGH",
+        "TEXT_SUBTLE", "BACKGROUND_BASE_LOWEST", "TEXT_LINK", "BACKGROUND_MOD_NORMAL", "BORDER_SUBTLE", "SPOILER_HIDDEN_BACKGROUND",
+        "INTERACTIVE_TEXT_ACTIVE", "BACKGROUND_MOD_MUTED", "ICON_FEEDBACK_CRITICAL", "BACKGROUND_MOD_STRONG", "TEXT_BRAND",
+        "MOBILE_LEGACY_BUTTON_SECONDARY_BACKGROUND_DEFAULT", "CONTROL_PRIMARY_BACKGROUND_DEFAULT", "TEXT_FEEDBACK_CRITICAL",
+        "CONTROL_SECONDARY_TEXT_DEFAULT", "BACKGROUND_BASE_LOW", "EMBED_BACKGROUND", "CONTROL_SECONDARY_BACKGROUND_DEFAULT",
+        "BACKGROUND_SURFACE_HIGHEST", "BACKGROUND_BASE_LOWER", "CHANNEL_BACKGROUND_DEFAULT", "TEXT_STRONG", "SPINE_DEFAULT",
+        "INTERACTIVE_BACKGROUND_SELECTED", "CONTROL_SECONDARY_BORDER_DEFAULT", "BORDER_NORMAL", "BORDER_STRONG", "BACKGROUND_CODE",
+        "TEXT_CODE", "MOBILE_THREAD_EMBED_BACKGROUND", "MESSAGE_HIGHLIGHT_BACKGROUND_DEFAULT", "INTERACTIVE_ICON_DEFAULT",
+        "INPUT_BORDER_DEFAULT", "INPUT_BACKGROUND_DEFAULT", "ICON_DEFAULT", "ICON_MUTED", "MOBILE_ANDROID_BUTTON_BACKGROUND_RIPPLE"];
+    // Tokens only Discord's Android views have (no SemanticColors entry, so no JS table to write): the raw color each
+    // appearance draws them with, [dark, light, darker, midnight] as THEME_SLOTS orders them. A theme naming one of these
+    // gets it through the native swap table. Code-block colors are the syntax highlighting in messages.
+    const NATIVE_ONLY_TOKENS = {
+        CHAT_SWIPE_TO_REPLY_BACKGROUND: ["PRIMARY_660", "PRIMARY_160", "PLUM_22", "PLUM_22"],
+        TEXT_CODE_ADDITION: ["GREEN_NEW_14", "GREEN_NEW_65", "GREEN_NEW_23", "GREEN_NEW_32"],
+        TEXT_CODE_BUILTIN: ["YELLOW_NEW_29", "YELLOW_NEW_75", "YELLOW_NEW_51", "YELLOW_NEW_56"],
+        TEXT_CODE_COMMENT: ["NEUTRAL_21", "NEUTRAL_42", "NEUTRAL_28", "NEUTRAL_33"],
+        TEXT_CODE_DELETION: ["RED_NEW_10", "RED_NEW_63", "RED_NEW_21", "RED_NEW_30"],
+        TEXT_CODE_KEYWORD: ["RED_NEW_10", "RED_NEW_60", "RED_NEW_21", "RED_NEW_30"],
+        TEXT_CODE_PROPERTY: ["TEAL_NEW_15", "TEAL_NEW_63", "TEAL_NEW_25", "TEAL_NEW_34"],
+        TEXT_CODE_STRING: ["GREEN_NEW_15", "GREEN_NEW_62", "GREEN_NEW_25", "GREEN_NEW_33"],
+        TEXT_CODE_TITLE: ["BLURPLE_13", "BLURPLE_62", "BLURPLE_23", "BLURPLE_33"],
+        TEXT_CODE_TYPE: ["PINK_13", "PINK_70", "PINK_29", "PINK_46"]
+    };
+    // Which appearance Discord shows: ThemeStore's theme is the slot key the color tables use.
+    function nativeThemeSlot() {
+        const store = customThemes.themeStore || (customThemes.themeStore = inspectedExport(1205, "default"));
+        let theme = "";
+        try { theme = store && typeof store.theme === "string" ? store.theme : ""; } catch (_) {}
+        return THEME_SLOTS.indexOf(theme) >= 0 ? theme : "dark";
+    }
+    function customNativeTable(slot) {
+        const raw = customThemes.rawTable, sem = customThemes.semTable, origRaw = customThemes.origRaw, origSem = customThemes.origSem, pairs = new Map();
+        if (!raw || !sem || !origRaw || !origSem) return "";
+        const hex6 = v => typeof v === "string" && /^#[0-9a-f]{6}/i.test(v) ? v.slice(1, 7).toLowerCase() : "";
+        // Native-only keys the theme names itself come first: nothing else can reach them.
+        const active = customThemesActiveEntry(), semIn = active && active.semanticColors || {}, slotIndex = THEME_SLOTS.indexOf(slot);
+        const arrIndex = slot === "light" ? 1 : slot === "midnight" ? 2 : slot === "darker" ? 3 : 0;
+        for (const token in NATIVE_ONLY_TOKENS) {
+            const arr = semIn[token];
+            if (!Array.isArray(arr) || !arr.length) continue;
+            const value = arrIndex < arr.length ? arr[arrIndex] : arr[0], parsed = parseThemeColor(value);
+            const from = hex6(origRaw[NATIVE_ONLY_TOKENS[token][slotIndex]]);
+            if (parsed && from && !pairs.has(from)) pairs.set(from, parsed.hex.slice(1));
+        }
+        for (let i = 0; i < NATIVE_THEME_TOKENS.length; i++) {
+            const token = NATIVE_THEME_TOKENS[i], was = origSem[token] && origSem[token][slot], now = sem[token] && sem[token][slot];
+            if (!was || !now) continue;
+            const from = hex6(origRaw[was.raw]), to = hex6(raw[now.raw]);
+            if (from && to && from !== to && from !== "ffffff" && from !== "000000" && !pairs.has(from)) pairs.set(from, to);
+        }
+        // Then every raw color the theme changed (PRIMARY_*, BRAND_*, the NEUTRAL bridges), as Material You does.
+        const journal = customThemes.journal, names = journal ? Array.from(journal.raw) : Object.keys(raw);
+        names.sort((a, b) => (/^OPACITY_/.test(a) ? 1 : 0) - (/^OPACITY_/.test(b) ? 1 : 0) || (a < b ? -1 : a > b ? 1 : 0));
+        for (let i = 0; i < names.length; i++) {
+            const name = names[i];
+            if (!owns(origRaw, name)) continue;
+            const from = hex6(origRaw[name]), to = hex6(raw[name]);
+            if (from && to && from !== to && from !== "ffffff" && from !== "000000" && !pairs.has(from)) pairs.set(from, to);
+        }
+        return Array.from(pairs.keys()).sort((a, b) => parseInt(a, 16) - parseInt(b, 16)).slice(0, 1024).map(k => k + pairs.get(k)).join("");
+    }
+    function myNativeSync(active) {
+        if (!files || typeof files.getFileHash !== "function") return;
+        let request;
+        if (active && active === materialYou.spec) request = "map:" + myNativeTable(active);
+        else if (active) request = "map:" + customNativeTable(materialYou.nativeSlot = nativeThemeSlot());
+        // Still waiting for the palette or Discord's colors: keep what the native side already shows.
+        else if (enabled("materialYou") && !active) return;
+        // Same before the saved themes have been read: a cold start must not drop the colors saved for the theme in use.
+        else if (enabled("customThemes") && !customThemes.loaded) return;
+        else request = "off";
+        if (request === "map:") request = "off";
+        if (request === materialYou.nativeSent) return;
+        materialYou.nativeSent = request;
+        Promise.resolve().then(() => files.getFileHash(MY_BRIDGE + request, "", 0)).catch(() => { materialYou.nativeSent = null; });
+    }
+    function myStart() {
+        if (!features.materialYou) return;
+        if (!materialYou.appState && RN && RN.AppState && typeof RN.AppState.addEventListener === "function")
+            try { materialYou.appState = RN.AppState.addEventListener("change", state => { if (state === "active" && enabled("materialYou")) myReadSystem(); }); } catch (_) {}
+        myReadSystem();
+    }
+    // Material You page: what Discord will look like (Light and Dark side by side in the palette), where the colors come
+    // from, and how strongly backgrounds take the tint.
+    function MaterialYouSettings() {
+        useSettings("materialYou");
+        if (features.customThemes) useSettings("customThemes");
+        React.useEffect(() => { if (features.materialYou) myReadSystem(); }, []);
+        if (!React || !RN) return null;
+        const ui = reviewUI(), s = useThemeTileStyles(), card = highlightCardStyle();
+        const sw = useThemed("myPicker", c => ({ring:{borderColor:c.TEXT_STRONG}, dashed:{borderColor:c.TEXT_MUTED}}), {ring:{borderColor:"#f2f3f5"}, dashed:{borderColor:"#949ba4"}});
+        const Text = inspectedExport(5088, "Text"), Press = RN.Pressable || RN.View, Check = venusIcon(6823, "CheckmarkSmallIcon"), Dropper = venusIcon(15652, "EyeDropperIcon");
+        const Wall = venusIcon(8210, "ImageIcon");
+        const on = enabled("materialYou"), choice = settings.materialYouColor, sys = mySystemSource();
+        const overridden = on && !!customThemesActiveEntry();
+        const text = (value, variant, color, fallback) => Text ? el(Text, {variant, color}, value) : el(RN.Text, {style:fallback}, value);
+        // The preview: Discord's Light and Dark looks side by side, in the colors you'd get.
+        const tile = (key, label, light) => el(RN.View, {key, style:s.tile, accessible:true, accessibilityLabel:label},
+            themeMiniChat(myPalette(light)),
+            el(RN.View, {style:{paddingHorizontal:8, paddingTop:8, paddingBottom:6}}, text(label, "text-sm/semibold", "text-strong", {color:"#f2f3f5", fontSize:14, fontWeight:"600"})));
+        const preview = el(RN.View, {key:"preview", style:{gap:8}}, groupTitle("previewTitle", "Preview"),
+            el(RN.View, {style:{flexDirection:"row", justifyContent:"space-between", opacity:on ? 1 : 0.6}}, tile("light", tr("Light"), true), tile("dark", tr("Dark"), false)));
+        // Colors: your wallpaper first, five Material colors, then any color from Discord's own picker.
+        const pick = value => { if (on && value !== choice) { haptic("SELECTION"); setSetting("materialYouColor", value); } };
+        const pickAny = () => {
+            if (!on) return;
+            const current = /^#/.test(choice) ? choice : (MY_PRESETS.find(p => p[0] === choice) || MY_PRESETS[0])[2];
+            highlightPickColor(current, MY_PRESETS, hex => setSetting("materialYouColor", hex));
+        };
+        const tick = (key, hex) => popIn("tick:" + key, el(Check, {size:"sm", color:isLightHex(hex) ? "#000000" : "#ffffff"}));
+        const swatch = (key, label, fill, selected, onPress, disabled) => el(RN.View, {key, style:{flex:1, alignItems:"center"}},
+            el(Press, {accessible:true, accessibilityRole:"radio", accessibilityLabel:label, accessibilityState:{selected, disabled:!on || !!disabled}, disabled:!on || !!disabled, onPress,
+                hitSlop:{top:4, bottom:4, left:2, right:2},
+                style:[{width:40, height:40, borderRadius:20, alignItems:"center", justifyContent:"center", borderWidth:2, borderColor:"transparent"}, selected ? sw.ring : null, {opacity:on && !disabled ? 1 : 0.4}]},
+                fill));
+        const dot = (hex, inner) => el(RN.View, {style:[{width:30, height:30, borderRadius:15, alignItems:"center", justifyContent:"center", backgroundColor:hex || "transparent"},
+            hex ? null : [{borderWidth:2, borderStyle:"dashed"}, sw.dashed]]}, inner);
+        // The wallpaper swatch is split like Android's own wallpaper colors: the accent on top, the two softer ones below.
+        const wallTop = sys ? myTone(sys.a1, 70) : null;
+        const wallFill = sys ? el(RN.View, {style:{width:30, height:30, borderRadius:15, overflow:"hidden"}},
+            el(RN.View, {style:{height:15, backgroundColor:wallTop}}),
+            el(RN.View, {style:{flexDirection:"row", height:15}}, el(RN.View, {style:{flex:1, backgroundColor:myTone(sys.a2, 80)}}), el(RN.View, {style:{flex:1, backgroundColor:myTone(sys.a3, 70)}})),
+            choice === "wallpaper" ? el(RN.View, {style:{position:"absolute", left:0, right:0, top:0, bottom:0, alignItems:"center", justifyContent:"center"}}, tick("wallpaper", wallTop)) : null) :
+            dot(null, el(Wall, {size:"xs"}));
+        const custom = /^#/.test(choice || "");
+        const swatches = [swatch("wallpaper", tr("Wallpaper"), wallFill, choice === "wallpaper", () => pick("wallpaper"), !sys)]
+            .concat(MY_PRESETS.map(([value, label, hex]) => swatch(value, tr(label), dot(hex, choice === value ? tick(value, hex) : null), choice === value, () => pick(value))))
+            .concat([swatch("custom", tr("Any color"), dot(custom ? choice : null, custom ? tick(choice, choice) : el(Dropper, {size:"xs"})), custom, pickAny)]);
+        const fallback = choice === "wallpaper" && !sys;
+        const named = fallback ? tr("Blue") : choice === "wallpaper" ? tr("Wallpaper") : custom ? choice.toUpperCase() : tr((MY_PRESETS.find(p => p[0] === choice) || MY_PRESETS[0])[1]);
+        const colors = el(RN.View, {key:"colors", style:{gap:8}}, groupTitle("colorsTitle", "Colors"),
+            el(RN.View, {style:card},
+                el(RN.View, {style:{flexDirection:"row", alignItems:"center", gap:8}},
+                    el(RN.View, {style:{flex:1}}, text(tr("Based on"), "text-md/semibold", "text-strong", {color:"#f2f3f5", fontSize:16, fontWeight:"600"})),
+                    text(named, "text-sm/medium", "text-muted", {color:"#949ba4", fontSize:13})),
+                el(RN.View, {style:{flexDirection:"row", alignItems:"center"}, accessibilityRole:"radiogroup"}, swatches),
+                fallback && materialYou.asked ? text(tr("Your phone doesn't share its wallpaper colors (that needs Android 12 or newer), so Blue is used."),
+                    "text-xs/medium", "text-muted", {color:"#949ba4", fontSize:12}) : null));
+        const tint = el(RN.View, {key:"tint", style:{gap:8}}, groupTitle("tintTitle", "Background tint"),
+            venusSegmented({key:"tintSeg", value:settings.materialYouTint, disabled:!on, onChange:value => setSetting("materialYouTint", value),
+                items:[{value:"subtle", label:tr("Subtle")}, {value:"balanced", label:tr("Balanced")}, {value:"vivid", label:tr("Vivid")}]}));
+        const groups = [
+            on ? null : offCard("status", venusIcon(15560, "PaintPaletteIcon"), "materialYou"),
+            overridden ? statusCard("override", "Your custom theme's colors show instead. Pick Discord's colors in Custom themes to see these.",
+                {title:tr("A custom theme is in use"), IconComponent:venusIcon(15652, "EyeDropperIcon")}) : null,
+            preview, colors, tint,
+            footnote("note", "Light or dark follows your Appearance setting in Discord.")];
+        return settingsBody(ui, groups);
     }
     // Icon packs (#61): replaces Discord's icons across the app with community icon packs (Themes+ / Rosiecord / MD3 /
     // Solar / Deco / Material Two Tone / Iconsax) or any custom icon pack URL, and applies per-icon tint overrides from
@@ -11986,7 +13280,7 @@
                     el(RN.Text, {style:s.text}, tr("Switched to {pack} — every icon updates at once!", {pack:packLabel})),
                     el(RN.View, {style:{flexDirection:"row", alignItems:"center", gap:8, marginTop:2}},
                         [[8956, "ReactionIcon", "3"], [12838, "ArrowAngleLeftUpIcon", tr("Reply")], [5042, "CopyIcon", tr("Copy Text")], [9549, "StarIcon", ""]].map(([id, name, label]) =>
-                            el(RN.View, {key:name, style:[k.headerPill, {flexDirection:"row", width:undefined, height:28, paddingHorizontal:9, gap:5}]},
+                            el(RN.View, {key:name, style:{flexDirection:"row", alignItems:"center", height:28, borderRadius:14, paddingHorizontal:9, gap:5, backgroundColor:k.headerPill.backgroundColor}},
                                 el(PackIcon, {pack, id, name, px:16, color:k.icon.color}),
                                 label ? el(RN.Text, {style:[s.muted, {fontSize:12, fontWeight:"600"}]}, label) : null))))));
         const tabs = el(RN.View, {key:"tabs", style:[k.strip, {flexDirection:"row", alignItems:"center", paddingHorizontal:8}]},
@@ -12294,13 +13588,982 @@
                         onSubmitEditing:applyHex, returnKeyType:"done", editable:on, isDisabled:!on}, text => setHexDraft(String(text || "")), "Use", applyHex, !on || !validHex) : null)),
             el(PresetOrCustom, {key:"brightness", title:"Brightness", value:settings.messageHighlightBrightness, disabled:!on, min:0, max:100, placeholder:50,
                 inputLabel:tr("Brightness, 0 to 100"), format:n => tr("{n}%", {n}), onChange:value => setSetting("messageHighlightBrightness", value),
-                presets:BRIGHTNESS_STEPS.map(n => ({value:n, label:tr("{n}%", {n})})), hint:"How strongly a reply or mention is tinted behind its text. 50% is how Discord draws it."}),
-            el(ui.TableRowGroup || RN.View, {key:"manage", title:tr("Manage")},
-                actionRow(ui, "reset", "Reset to defaults", "A 4 dp bar, yellow at 50% brightness.", resetAll, !on || !changed)),
+                presets:BRIGHTNESS_STEPS.map(n => ({value:n, label:tr("{n}%", {n})})), hint:"50% is how Discord draws it."}),
+            // Only while something differs from the defaults: a greyed-out Reset that can't do anything is just clutter.
+            changed ? el(ui.TableRowGroup || RN.View, {key:"manage", title:tr("Manage")},
+                actionRow(ui, "reset", "Reset to defaults", "A 4 dp bar, yellow at 50% brightness.", resetAll, !on)) : null,
             footnote("note", showDeleted ? "Changes show in chat right away, with no restart. Deleted messages have their own color in Keep deleted messages." :
                 "Changes show in chat right away, with no restart.")
         ];
         return settingsBody(ui, groups, {keyboardShouldPersistTaps:"handled"});
+    }
+    // Unlock Discord experiments (#96, from Experiments by maisy): Discord shows Dev Tools (and its Experiments screen)
+    // to staff. While on, isStaffEnv (1401) says yes for the signed-in account, so DeveloperExperimentStore (7404)
+    // turns isDeveloper on, and ExperimentStore (5016) gets its OVERLAY_INITIALIZE handler again with a copy of you
+    // carrying the STAFF flag, which is when it starts honoring overrides. Your real user object is never changed, and
+    // nothing leaves the phone. Discord keeps both stores unlocked until it reopens, so turning it off offers that.
+    const experiments = {dispatcher:null, unlocked:false};
+    const EXPERIMENT_STORES = new Set(["ExperimentStore", "DeveloperExperimentStore"]);
+    function experimentsMe() {
+        const store = userStore || inspectedExport(1390, "default");
+        try { return store && typeof store.getCurrentUser === "function" ? store.getCurrentUser() : null; } catch (_) { return null; }
+    }
+    function hookStaffEnv(exports) {
+        return hookExport(exports, "isStaffEnv", function (orig, self, args) {
+            const real = orig.apply(self, args);
+            if (real || !enabled("experiments")) return real;
+            const user = args[0], me = experimentsMe();
+            return !!(user && me && user.id === me.id);
+        });
+    }
+    function experimentsInit(dispatcher) {
+        if (experiments.dispatcher || !dispatcher || typeof dispatcher.subscribe !== "function") return;
+        experiments.dispatcher = dispatcher;
+        dispatcher.subscribe("CONNECTION_OPEN", () => { if (enabled("experiments")) experimentsEnable(); });
+    }
+    function experimentsEnable() {
+        const d = experiments.dispatcher || inspectedExport(584, "default"), me = experimentsMe();
+        const store = inspectedExport(5016, "default"), flags = inspectedExport(1085, "UserFlags");
+        if (!d || !me || !store || typeof store.getSerializedState !== "function" || !flags || typeof flags.STAFF !== "number") return false;
+        let handlers = null;
+        try { handlers = d._actionHandlers.getOrderedActionHandlers({type:"OVERLAY_INITIALIZE"}); } catch (_) { return false; }
+        if (!handlers || typeof handlers.forEach !== "function") return false;
+        const action = {type:"OVERLAY_INITIALIZE", serializedExperimentStore:store.getSerializedState(), user:Object.assign({}, me, {flags:(me.flags | 0) | flags.STAFF})};
+        handlers.forEach(entry => {
+            if (!entry || !EXPERIMENT_STORES.has(entry.name) || typeof entry.actionHandler !== "function") return;
+            try { entry.actionHandler(action); experiments.unlocked = true; } catch (_) {}
+        });
+        [store, inspectedExport(7404, "default")].forEach(changed => { try { if (changed && typeof changed.emitChange === "function") changed.emitChange(); } catch (_) {} });
+        return experiments.unlocked;
+    }
+    function experimentsAskReopen() {
+        if (!RN || settings.experiments) return;
+        const title = tr("Unlock Discord experiments"), body = tr("Discord needs to reopen to hide Dev Tools and experiments again.");
+        const native = RN.NativeModules && RN.NativeModules.BundleUpdaterManager;
+        if (!native || typeof native.reload !== "function") return;
+        const reopen = () => {
+            if (!files) { native.reload(); return; }
+            Promise.resolve().then(() => files.writeFile("documents", PREFS, settingsSnapshot(), "utf8")).then(() => native.reload(),
+                () => { status.storage = "save failed (session only)"; notify();
+                    showProblem("Couldn't save the setting", tr("Discord didn't reopen, so nothing changed. Try again in a moment.")); });
+        };
+        const ui = reviewUI();
+        if (ui.alerts && typeof ui.alerts.show === "function") try {
+            ui.alerts.show({title, body, confirmText:tr("Reopen now"), cancelText:tr("Later"), onConfirm:reopen}); return;
+        } catch (_) {}
+        if (RN.Alert) RN.Alert.alert(title, body, [{text:tr("Later"), style:"cancel"}, {text:tr("Reopen now"), onPress:reopen}]);
+    }
+    // Hide blocked or ignored messages (#91, from Rain): filters hidden messages out of the stream createChannelStream
+    // (11624) walks, before Discord groups messages or builds BLOCKED_GROUP / IGNORED_GROUP rows. MessageStore itself is
+    // untouched, adjacent messages around a hidden one join into one group, and toggling an option redraws the open chat.
+    const hideBlocked = {relationships:null, references:null, version:0};
+    function hideBlockedAuthorBlocked(msg) {
+        if (!msg || typeof msg !== "object") return false;
+        if (msg.blocked === true) return true;
+        const rel = hideBlocked.relationships || (hideBlocked.relationships = inspectedExport(4760, "default"));
+        if (!rel) return false;
+        try {
+            if (typeof rel.isBlockedForMessage === "function") return !!rel.isBlockedForMessage(msg);
+            const authorId = msg.author && msg.author.id || msg.authorId;
+            if (authorId && typeof rel.isBlocked === "function") return !!rel.isBlocked(authorId);
+        } catch (_) {}
+        return false;
+    }
+    function hideBlockedAuthorIgnored(msg) {
+        if (!msg || typeof msg !== "object") return false;
+        if (msg.ignored === true) return true;
+        const rel = hideBlocked.relationships || (hideBlocked.relationships = inspectedExport(4760, "default"));
+        if (!rel) return false;
+        try {
+            if (typeof rel.isIgnoredForMessage === "function") return !!rel.isIgnoredForMessage(msg);
+            const authorId = msg.author && msg.author.id || msg.authorId;
+            if (authorId && typeof rel.isIgnored === "function") return !!rel.isIgnored(authorId);
+        } catch (_) {}
+        return false;
+    }
+    function hideBlockedReferencedMessage(msg) {
+        if (!msg || typeof msg !== "object") return null;
+        const direct = msg.referencedMessage || msg.referenced_message;
+        if (direct && typeof direct === "object") return direct.message && typeof direct.message === "object" ? direct.message : direct;
+        const ref = msg.messageReference || msg.message_reference;
+        if (!ref || typeof ref !== "object") return null;
+        const refId = ref.messageId || ref.message_id;
+        const refChannelId = ref.channelId || ref.channel_id || msg.channel_id || msg.channelId;
+        if (!refId) return null;
+        const store = hideBlocked.references || (hideBlocked.references = inspectedExport(7308, "default"));
+        if (store) {
+            try {
+                const entry = typeof store.getMessage === "function" && refChannelId ? store.getMessage(refChannelId, refId) :
+                    typeof store.getMessageByReference === "function" ? store.getMessageByReference(ref) : null;
+                if (entry && entry.message && typeof entry.message === "object") return entry.message;
+            } catch (_) {}
+        }
+        if (msgStore && typeof msgStore.getMessage === "function" && refChannelId) {
+            try {
+                const found = msgStore.getMessage(refChannelId, refId);
+                if (found && typeof found === "object") return found;
+            } catch (_) {}
+        }
+        return null;
+    }
+    function hideBlockedShouldHide(msg) {
+        if (!msg || typeof msg !== "object") return false;
+        if (settings.hideBlockedBlocked && hideBlockedAuthorBlocked(msg)) return true;
+        if (settings.hideBlockedIgnored && hideBlockedAuthorIgnored(msg)) return true;
+        if (settings.hideBlockedReplies) {
+            const replied = hideBlockedReferencedMessage(msg);
+            if (replied && (hideBlockedAuthorBlocked(replied) || hideBlockedAuthorIgnored(replied))) return true;
+        }
+        return false;
+    }
+    function hideBlockedChannelStream(orig, self, args) {
+        const params = args[0];
+        if (!params || typeof params !== "object") return orig.apply(self, args);
+        const active = enabled("hideBlocked") && (settings.hideBlockedBlocked || settings.hideBlockedIgnored || settings.hideBlockedReplies);
+        const ver = active ? hideBlocked.version + ":" + (settings.hideBlockedBlocked ? 1 : 0) + (settings.hideBlockedIgnored ? 1 : 0) + (settings.hideBlockedReplies ? 1 : 0) : "";
+        const mgr = params.chatManager;
+        let force = false;
+        if (mgr && typeof mgr === "object") {
+            if (mgr.__venusHideBlockedVer !== undefined && mgr.__venusHideBlockedVer !== ver) force = true;
+            mgr.__venusHideBlockedVer = ver;
+        }
+        const messages = params.messages;
+        if (!active || !messages || typeof messages.forEach !== "function") {
+            if (!force) return orig.apply(self, args);
+            const next = Array.from(args);
+            next[0] = Object.assign({}, params, {forceRender:true});
+            return orig.apply(self, next);
+        }
+        const wrapped = Object.create(messages);
+        wrapped.forEach = function (fn, thisArg) {
+            return messages.forEach(function (msg, index, collection) {
+                if (!hideBlockedShouldHide(msg)) fn.call(thisArg, msg, index, collection);
+            });
+        };
+        const next = Array.from(args);
+        next[0] = Object.assign({}, params, {messages:wrapped, forceRender:force || params.forceRender});
+        return orig.apply(self, next);
+    }
+    function hideBlockedChanged() {
+        hideBlocked.version++;
+        if (!msgStore) msgStore = inspectedExport(5432, "default");
+        try { if (msgStore && typeof msgStore.emitChange === "function") msgStore.emitChange(); } catch (_) {}
+    }
+    const HIDE_BLOCKED_DARK = {row:{flexDirection:"row", alignItems:"center", gap:12, marginHorizontal:12, marginVertical:4, paddingHorizontal:12, paddingVertical:10,
+        borderRadius:12, backgroundColor:"#2b2d31", borderWidth:1, borderColor:"#ffffff14"},
+        badge:{width:28, height:28, borderRadius:14, alignItems:"center", justifyContent:"center", backgroundColor:"#4e50584d"},
+        pill:{paddingHorizontal:10, paddingVertical:5, borderRadius:12, backgroundColor:"#4e505866"},
+        spine:{width:28, height:10, marginLeft:19, marginRight:4, marginTop:8, borderLeftWidth:2, borderTopWidth:2, borderTopLeftRadius:6, borderColor:"#4e5058"}};
+    function HideBlockedPreview(props) {
+        useSettings("hideBlocked");
+        const s = useChatPreviewStyles(), k = usePreviewChrome(), on = !!props.on;
+        const b = useThemed("hideBlockedPreview", c => ({
+            row:Object.assign({}, HIDE_BLOCKED_DARK.row, {backgroundColor:c.BACKGROUND_MOD_SUBTLE || c.CARD_BACKGROUND_DEFAULT, borderColor:c.BORDER_SUBTLE}),
+            badge:Object.assign({}, HIDE_BLOCKED_DARK.badge, {backgroundColor:c.BACKGROUND_MOD_NORMAL || c.BACKGROUND_BASE_LOW}),
+            pill:Object.assign({}, HIDE_BLOCKED_DARK.pill, {backgroundColor:c.CONTROL_SECONDARY_BACKGROUND_DEFAULT || c.BACKGROUND_MOD_STRONG}),
+            spine:Object.assign({}, HIDE_BLOCKED_DARK.spine, {borderColor:c.INTERACTIVE_MUTED || c.BORDER_STRONG})}), HIDE_BLOCKED_DARK);
+        const hideB = on && settings.hideBlockedBlocked, hideI = on && settings.hideBlockedIgnored, hideR = on && settings.hideBlockedReplies;
+        const Shield = venusIcon(17072, "ChatShieldIcon"), EyeSlash = venusIcon(6650, "EyeSlashIcon");
+        const collapsedRow = (key, Icon, label) => popIn(key, el(RN.View, {key, style:b.row},
+            el(RN.View, {style:b.badge}, el(Icon, {size:"xs", color:s.muted.color})),
+            el(RN.Text, {style:[s.muted, {flex:1, fontSize:13, fontWeight:"600"}], numberOfLines:1}, label),
+            el(RN.View, {style:b.pill}, el(RN.Text, {style:[s.text, {fontSize:12, fontWeight:"600"}]}, tr("Show")))));
+        const replyRow = popIn("reply", el(RN.View, {key:"reply", style:{paddingHorizontal:12, paddingVertical:6}},
+            el(RN.View, {style:{flexDirection:"row", alignItems:"center", marginBottom:4}},
+                el(RN.View, {style:b.spine}),
+                el(RN.View, {style:{width:16, height:16, borderRadius:8, backgroundColor:"#80848e", alignItems:"center", justifyContent:"center", marginRight:4}},
+                    el(RN.Text, {style:{color:"#ffffff", fontSize:9, fontWeight:"700"}}, "M")),
+                el(RN.Text, {style:[s.muted, {fontWeight:"600", marginRight:4}], numberOfLines:1}, "Max"),
+                el(RN.Text, {style:[s.muted, {flex:1, fontStyle:"italic"}], numberOfLines:1}, tr("Blocked message"))),
+            el(RN.View, {style:{flexDirection:"row", gap:12}},
+                el(RN.View, {style:{width:40, height:40, borderRadius:20, backgroundColor:"#eb459e", alignItems:"center", justifyContent:"center"}},
+                    el(RN.Text, {style:{color:"#ffffff", fontSize:16, fontWeight:"700"}}, "S")),
+                el(RN.View, {style:{flex:1}},
+                    el(RN.View, {style:{flexDirection:"row", alignItems:"baseline", marginBottom:2}},
+                        el(RN.Text, {style:s.name, numberOfLines:1}, "Sam"),
+                        el(RN.Text, {style:[s.muted, {marginLeft:8}]}, tr("Today at 4:03 PM"))),
+                    el(RN.Text, {style:s.text}, tr("Wait, what did they say?"))))));
+        const rows = [
+            previewMessage(s, "alex", "Alex", "#3ba55c", tr("Today at 4:01 PM"), el(RN.Text, {style:s.text}, tr("Are we still playing tonight?"))),
+            hideB ? null : collapsedRow("blocked", Shield, pl(2, "{n} blocked message", "{n} blocked messages")),
+            hideR ? null : replyRow,
+            hideI ? null : collapsedRow("ignored", EyeSlash, pl(1, "{n} ignored message", "{n} ignored messages")),
+            previewMessage(s, "jordan", "Jordan", "#5865f2", tr("Today at 4:05 PM"), el(RN.Text, {style:s.text}, tr("Count me in!")))
+        ];
+        return el(RN.View, {key:"preview"},
+            previewScreen(s, "preview", "Blocked and ignored messages preview", [el(RN.View, {key:"chat"}, rows)],
+                {header:previewHeader(k, {title:"general"}),
+                 footer:previewInput(k, s, {placeholder:tr("Message {channel}", {channel:"#general"})})}));
+    }
+    function HideBlockedSettings() {
+        useSettings("hideBlocked");
+        const ui = reviewUI();
+        if (!React || !RN) return null;
+        const on = enabled("hideBlocked"), Group = ui.TableRowGroup || RN.View, Switch = ui.TableSwitchRow;
+        const Icon = venusIcon(17072, "ChatShieldIcon");
+        const hasAny = !!(settings.hideBlockedBlocked || settings.hideBlockedIgnored || settings.hideBlockedReplies);
+        const groups = [
+            !on ? offCard("status", Icon, "hideBlocked") : !hasAny ? statusCard("status", "Turn on at least one option below.",
+                {title:tr("Nothing hidden"), IconComponent:Icon}) : null,
+            el(HideBlockedPreview, {key:"preview", on}),
+            el(Group, {key:"what", title:tr("Hide in chat")},
+                switchRow(Switch, "hideBlockedBlocked", "Blocked messages", "Hides the \"blocked messages\" row and the messages inside it.", rowIcon(5036, "UserMinusIcon")),
+                switchRow(Switch, "hideBlockedIgnored", "Ignored messages", "Hides the \"ignored messages\" row from people you've ignored.", rowIcon(6650, "EyeSlashIcon")),
+                switchRow(Switch, "hideBlockedReplies", "Replies to them", "Also hides messages that reply to someone you've blocked or ignored.", rowIcon(12838, "ArrowAngleLeftUpIcon"))),
+            footnote("note", "Changes show in chat right away, with no restart.")
+        ];
+        return settingsBody(ui, groups);
+    }
+    // Clean channel names: the preview is a server's channel list with names decorated the way real servers do it.
+    // While on, each name is cleaned with the options below (and Spaces in channel names, if that's on too) and glides in.
+    const CLEAN_SAMPLE = [["cat", "\ud83d\udee0\ufe0f | SUPPORT & RESOURCE | \ud83d\udee0\ufe0f"], ["text", "\ud83c\udfab\uff5cquick-help"], ["text", "\ud83d\udd0d\u2503mchose-support-center"],
+        ["cat", "\u2726 \ud835\udc02\ud835\udc0e\ud835\udc0c\ud835\udc0c\ud835\udc14\ud835\udc0d\ud835\udc08\ud835\udc13\ud835\udc18 \u2726"], ["text", "\u300c\ud83d\udce6\u300dunbox-reviews"], ["text", "\ud835\udcf0\ud835\udcee\ud835\udcf7\ud835\udcee\ud835\udcfb\ud835\udcea\ud835\udcf5-\ud835\udcec\ud835\udcf1\ud835\udcea\ud835\udcfd"], ["voice", "\ud83d\udd0a \u30fb Lounge"]];
+    function CleanChannelsPreview(props) {
+        useSettings("cleanChannels");
+        const s = useChatPreviewStyles(), k = usePreviewChrome(), on = !!props.on;
+        const Hash = venusIcon(15892, "HashmarkIcon"), Speaker = venusIcon(12271, "HeadphonesIcon"), Down = venusIcon(10534, "ChevronSmallDownIcon");
+        const opts = {emoji:settings.cleanChannelsEmoji, symbols:settings.cleanChannelsSymbols, fonts:settings.cleanChannelsFonts};
+        const anything = opts.emoji || opts.symbols || opts.fonts;
+        const show = ([type, name]) => {
+            if (!on || !anything) return name;
+            const cleaned = cleanName(name, type === "text", opts);
+            return features.dashless && enabled("dashless") && type === "text" ? cleaned.replace(/-/g, " ") : cleaned;
+        };
+        const rows = CLEAN_SAMPLE.map((entry, i) => {
+            const name = show(entry);
+            if (entry[0] === "cat") return el(RN.View, {key:"c" + i, style:{flexDirection:"row", alignItems:"center", gap:4, paddingHorizontal:16, paddingTop:i ? 14 : 6, paddingBottom:4}},
+                el(Down, {size:"xxs", color:k.category.color}),
+                popIn("n" + i + name, el(RN.Text, {style:[k.category, {flex:1}], numberOfLines:1}, name.toUpperCase())));
+            const Icon = entry[0] === "voice" ? Speaker : Hash, selected = i === 1;
+            return el(RN.View, {key:"r" + i, style:[{flexDirection:"row", alignItems:"center", gap:8, paddingHorizontal:8, paddingVertical:7, marginHorizontal:8, borderRadius:8},
+                selected ? k.selected : null]},
+                el(Icon, {size:"sm", color:selected ? s.name.color : k.channel.color}),
+                popIn("n" + i + name, el(RN.Text, {style:[s.text, {flex:1, color:selected ? s.name.color : k.channel.color, fontWeight:selected ? "600" : "500"}], numberOfLines:1}, name)));
+        });
+        const Chevron = venusIcon(6906, "ChevronSmallRightIcon"), Search = venusIcon(6740, "MagnifyingGlassIcon");
+        const server = el(RN.View, {key:"server", style:[k.header, {height:52, paddingHorizontal:16}]},
+            el(RN.View, {style:{flex:1, flexDirection:"row", alignItems:"center", gap:4}},
+                el(RN.Text, {style:[k.title, {fontSize:18}], numberOfLines:1}, tr("Game Night")),
+                el(Chevron, {size:"xxs", color:k.iconMuted.color})),
+            el(RN.View, {style:k.headerPill}, el(Search, {size:"sm", color:k.icon.color})),
+            el(RN.View, {style:k.headerPill}, el(venusIcon(9237, "MoreHorizontalIcon"), {size:"sm", color:k.icon.color})));
+        return el(RN.View, {key:"preview"},
+            previewScreen(s, "preview", "Clean channel names preview", [el(RN.View, {key:"list", style:{paddingBottom:6}}, rows)], {header:server}));
+    }
+    function CleanChannelsSettings() {
+        useSettings("cleanChannels");
+        const ui = reviewUI();
+        if (!React || !RN) return null;
+        const on = enabled("cleanChannels"), Group = ui.TableRowGroup || RN.View, Switch = ui.TableSwitchRow;
+        const Icon = venusIcon(12605, "MagicWandIcon");
+        const hasAny = !!(settings.cleanChannelsEmoji || settings.cleanChannelsSymbols || settings.cleanChannelsFonts);
+        const groups = [
+            !on ? offCard("status", Icon, "cleanChannels") : !hasAny ? statusCard("status", "Turn on at least one option below.",
+                {title:tr("Names stay as they are"), IconComponent:Icon}) : null,
+            el(CleanChannelsPreview, {key:"preview", on}),
+            el(Group, {key:"what", title:tr("Remove from names")},
+                switchRow(Switch, "cleanChannelsEmoji", "Emoji", "\ud83c\udfab, \ud83d\udee0\ufe0f, \ud83c\udf89 and flags, wherever they are in the name.", rowIcon(8956, "ReactionIcon")),
+                switchRow(Switch, "cleanChannelsSymbols", "Symbols and dividers", "\u2503, \u30fb, \u2726, \u300c\u300d and the bars around category names.", rowIcon(10621, "SlashBoxIcon")),
+                switchRow(Switch, "cleanChannelsFonts", "Fancy letters", "Turns \ud835\udc02\ud835\udc0e\ud835\udc0c\ud835\udc0c\ud835\udc14\ud835\udc0d\ud835\udc08\ud835\udc13\ud835\udc18 and \ud835\udcf0\ud835\udcee\ud835\udcf7\ud835\udcee\ud835\udcfb\ud835\udcea\ud835\udcf5 into plain letters.", rowIcon(15974, "LettersIcon"))),
+            footnote("note", "Only how names look changes: links, mentions and search still use the real name. A name with nothing else in it is left as it is.")
+        ];
+        return settingsBody(ui, groups);
+    }
+    // Bulk delete messages (#94): hold any message you can delete and tap Select Messages right under Delete Message.
+    // Every deletable message in the chat (your own messages, other people's messages in servers where you have Manage
+    // Messages, and cached deleted messages from Keep deleted messages) gets a native circle on its right side; tapping
+    // a message fills the circle in Blurple with a white checkmark and updates the floating bottom bar.
+    const bulkDelete = {
+        active:false,
+        channelId:null,
+        selected:new Set(),
+        deleting:false,
+        progress:0,
+        total:0,
+        deletedSession:0,
+        managePermission:undefined,
+        // Manage Messages in the selecting chat, worked out once per selection instead of once per row.
+        manageFor:null, manage:false,
+        // The last list of selectable messages, reused while the chat, kept messages and options are unchanged.
+        selectable:null,
+        subscribed:false,
+        // Each delete run gets a number; a run that was stopped (chat left, account switched, feature off) sees a newer one.
+        run:0
+    };
+    function bulkDeleteInit(flux) {
+        if (bulkDelete.subscribed || !flux || typeof flux.subscribe !== "function") return;
+        bulkDelete.subscribed = true;
+        try {
+            flux.subscribe("CHANNEL_SELECT", event => {
+                const nextId = event && (event.channelId || event.id);
+                if (bulkDelete.active && nextId && String(nextId) !== String(bulkDelete.channelId)) bulkDeleteCancel();
+            });
+            flux.subscribe("LOGOUT", () => { if (bulkDelete.active) bulkDeleteCancel(); });
+            // Switching accounts goes straight to a new CONNECTION_OPEN with no LOGOUT: the rest of a run would have been
+            // sent with the other account's token.
+            flux.subscribe("CONNECTION_OPEN", event => {
+                const user = event && event.user;
+                if (bulkDelete.active && bulkDelete.userId && user && user.id && String(user.id) !== bulkDelete.userId) bulkDeleteCancel();
+            });
+            // A selected message someone else (or another of your devices) deleted can't be deleted again: drop it, so the
+            // count stays right and Delete doesn't send a request that can only fail.
+            flux.subscribe("MESSAGE_DELETE", event => {
+                if (bulkDelete.active && !bulkDelete.deleting && event && String(event.channelId) === bulkDelete.channelId &&
+                    bulkDelete.selected.delete(String(event.id))) notify("bulkDelete");
+            });
+            flux.subscribe("MESSAGE_DELETE_BULK", event => {
+                if (!bulkDelete.active || bulkDelete.deleting || !event || String(event.channelId) !== bulkDelete.channelId || !Array.isArray(event.ids)) return;
+                let changed = false;
+                for (let i = 0; i < event.ids.length; i++) if (bulkDelete.selected.delete(String(event.ids[i]))) changed = true;
+                if (changed) notify("bulkDelete");
+            });
+        } catch (_) {}
+    }
+    function bulkDeleteCanManage(channelId) {
+        if (!channelId) return false;
+        const channel = receivedChannel(channelId);
+        if (!channel || !channel.guild_id || channel.type === 1 || channel.type === 3) return false;
+        let perm = bulkDelete.managePermission;
+        if (perm === undefined) {
+            const p = inspectedExport(1085, "Permissions");
+            perm = bulkDelete.managePermission = p && p.MANAGE_MESSAGES != null ? p.MANAGE_MESSAGES : null;
+        }
+        if (perm == null) return false;
+        const store = permissions || (permissions = inspectedExport(4750, "default") || inspectedExport(4750));
+        if (!store || typeof store.can !== "function") return false;
+        try { return !!(permissionsCanOrig ? permissionsCanOrig(perm, channel) : store.can(perm, channel)); } catch (_) { return false; }
+    }
+    function bulkDeleteManageCached(channelId) {
+        const chId = String(channelId);
+        if (bulkDelete.manageFor !== chId) { bulkDelete.manageFor = chId; bulkDelete.manage = bulkDeleteCanManage(chId); }
+        return bulkDelete.manage;
+    }
+    function bulkDeleteCanSelect(message, channelId, isCachedDeleted, manage) {
+        if (!message || typeof message !== "object") return false;
+        const id = message.id;
+        if (!id) return false;
+        const chId = channelId || message.channel_id || message.channelId;
+        if (isCachedDeleted === undefined && chId && features.noDelete && enabled("noDelete") && deleted.size) {
+            const bucket = deletedByChannel.get(chId);
+            isCachedDeleted = !!(bucket && bucket.has(deletedKey(chId, id)));
+        }
+        if (isCachedDeleted) return !!settings.bulkDeleteIncludeCached;
+        if (message.state && message.state !== "SENT") return false;
+        if ((Number(message.flags) || 0) & 64) return false;
+        const sets = gesture.typeSets || (gesture.typeSets = inspectedExport(1085, "MessageTypesSets"));
+        try { if (sets && sets.UNDELETABLE && typeof sets.UNDELETABLE.has === "function" && sets.UNDELETABLE.has(message.type)) return false; } catch (_) {}
+        if (gestureOwn(message)) return true;
+        return manage !== undefined ? !!manage : bulkDeleteCanManage(chId);
+    }
+    // Discord keeps a row until its message record changes, so its text changes for a moment (a zero-width space) and is
+    // put back, like Translate and Keep deleted messages do. Only content is sent: feeding the record's own embeds and
+    // components back through updateMessageRecord would run Discord's raw-API transforms on already transformed data.
+    // Every restore goes out from one timer, instead of one timer per message.
+    function bulkDeleteRedrawIds(channelId, ids) {
+        if (!channelId || !ids || !ids.length) return;
+        let d = dispatcher;
+        if (!d) {
+            const mod = inspectedExport(584, "default");
+            if (mod && typeof mod.dispatch === "function") d = dispatcher = mod.dispatch.bind(mod);
+        }
+        if (typeof d !== "function") return;
+        const store = msgStore || (msgStore = inspectedExport(5432, "default"));
+        if (!store || typeof store.getMessage !== "function") return;
+        const restores = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = String(ids[i]);
+            let msg = null;
+            try { msg = store.getMessage(channelId, id); } catch (_) {}
+            // Not in the store means it isn't drawn either: nothing to redraw.
+            if (!msg) continue;
+            const content = typeof msg.content === "string" ? msg.content : "";
+            try { d({type:"MESSAGE_UPDATE", message:{id, channel_id:channelId, content:content + "\u200b"}}); } catch (_) { continue; }
+            restores.push({id, channel_id:channelId, content});
+        }
+        if (restores.length) later(() => { for (let i = 0; i < restores.length; i++) try { d({type:"MESSAGE_UPDATE", message:restores[i]}); } catch (_) {} }, 35);
+    }
+    function bulkDeleteChannelSelectableIds(channelId) {
+        if (!channelId) return [];
+        const store = msgStore || (msgStore = inspectedExport(5432, "default"));
+        let messages = null;
+        try { messages = store && typeof store.getMessages === "function" ? store.getMessages(channelId) : null; } catch (_) {}
+        const me = currentUser(), meId = me && me.id;
+        const includeCached = !!(features.noDelete && enabled("noDelete") && settings.bulkDeleteIncludeCached);
+        // ChannelMessages is immutable: the same object means the same messages. The bar asks on every render and tap.
+        const cache = bulkDelete.selectable;
+        if (cache && cache.channelId === channelId && cache.messages === messages && cache.revision === deletedRevision &&
+            cache.includeCached === includeCached && cache.meId === meId && messages) return cache.ids;
+        const manage = bulkDeleteCanManage(channelId);
+        const out = [], seen = new Set();
+        const addIfSelectable = (msg, isCached) => {
+            if (!msg || !msg.id) return;
+            const id = String(msg.id);
+            if (seen.has(id)) return;
+            seen.add(id);
+            if (bulkDeleteCanSelect(msg, channelId, isCached, manage)) out.push(id);
+        };
+        try {
+            const arr = messages && Array.isArray(messages._array) ? messages._array : null;
+            if (arr) for (let i = 0; i < arr.length; i++) addIfSelectable(arr[i], undefined);
+            else if (messages && typeof messages.forEach === "function") messages.forEach(m => addIfSelectable(m, undefined));
+        } catch (_) {}
+        if (includeCached) {
+            const bucket = deletedByChannel.get(channelId);
+            if (bucket) bucket.forEach(entry => addIfSelectable(entry && entry.message, true));
+        }
+        bulkDelete.selectable = {channelId, messages, revision:deletedRevision, includeCached, meId, ids:out};
+        return out;
+    }
+    // Every selectable message plus anything still selected, each once.
+    function bulkDeleteRedrawChannel(channelId, extra) {
+        if (!channelId) return;
+        const ids = bulkDeleteChannelSelectableIds(channelId).slice();
+        const seen = new Set(ids);
+        const add = id => { if (!seen.has(id)) { seen.add(id); ids.push(id); } };
+        bulkDelete.selected.forEach(add);
+        if (extra) extra.forEach(add);
+        bulkDeleteRedrawIds(channelId, ids);
+    }
+    function bulkDeleteStart(channelId, message) {
+        if (!enabled("bulkDelete") || !channelId) return;
+        const chId = String(channelId);
+        if (bulkDelete.active && bulkDelete.channelId && bulkDelete.channelId !== chId) {
+            const prev = bulkDelete.channelId;
+            bulkDelete.active = false;
+            bulkDelete.selected.clear();
+            bulkDeleteRedrawChannel(prev);
+        }
+        haptic("IMPACT_MEDIUM");
+        // The bar takes the composer's place, so an open keyboard would only hide the messages you're picking.
+        try { if (RN && RN.Keyboard && typeof RN.Keyboard.dismiss === "function") RN.Keyboard.dismiss(); } catch (_) {}
+        animateLayout();
+        bulkDelete.active = true;
+        bulkDelete.deleting = false;
+        bulkDelete.progress = 0;
+        bulkDelete.total = 0;
+        bulkDelete.channelId = chId;
+        bulkDelete.manageFor = null;
+        bulkDelete.selectable = null;
+        const me = currentUser();
+        bulkDelete.userId = me && me.id ? String(me.id) : null;
+        bulkDelete.selected.clear();
+        if (message && message.id && bulkDeleteCanSelect(message, chId, undefined)) {
+            bulkDelete.selected.add(String(message.id));
+        }
+        notify("bulkDelete");
+        bulkDeleteRedrawChannel(chId);
+    }
+    function bulkDeleteCancel() {
+        if (!bulkDelete.active) return;
+        const prevChannel = bulkDelete.channelId;
+        // A run stopped halfway still says what it removed, instead of looking like nothing happened.
+        const stoppedAfter = bulkDelete.deleting ? bulkDelete.progress : 0;
+        bulkDelete.run++;
+        animateLayout();
+        bulkDelete.active = false;
+        bulkDelete.deleting = false;
+        bulkDelete.progress = 0;
+        bulkDelete.total = 0;
+        bulkDelete.channelId = null;
+        const prevSelected = Array.from(bulkDelete.selected);
+        bulkDelete.selected.clear();
+        notify("bulkDelete");
+        if (prevChannel) bulkDeleteRedrawChannel(prevChannel, prevSelected);
+        bulkDelete.manageFor = null;
+        bulkDelete.selectable = null;
+        if (stoppedAfter > 0) reviewToast(reviewUI(), pl(stoppedAfter, "Deleted {n} message", "Deleted {n} messages"), venusIcon(5049, "TrashIcon"));
+    }
+    function bulkDeleteToggleMessage(channelId, messageId) {
+        if (!bulkDelete.active || bulkDelete.deleting) return false;
+        const chId = String(channelId || bulkDelete.channelId || "");
+        if (!chId || chId !== String(bulkDelete.channelId)) return false;
+        const id = String(messageId || "");
+        if (!id) return false;
+        const store = msgStore || (msgStore = inspectedExport(5432, "default"));
+        let msg = null;
+        try { if (store && typeof store.getMessage === "function") msg = store.getMessage(chId, id); } catch (_) {}
+        if (!bulkDeleteCanSelect(msg, chId, undefined, bulkDeleteManageCached(chId))) return true;
+        haptic("SELECTION");
+        if (bulkDelete.selected.has(id)) bulkDelete.selected.delete(id);
+        else bulkDelete.selected.add(id);
+        notify("bulkDelete");
+        bulkDeleteRedrawIds(chId, [id]);
+        return true;
+    }
+    function bulkDeleteSelectAll() {
+        if (!bulkDelete.active || bulkDelete.deleting || !bulkDelete.channelId) return;
+        const chId = bulkDelete.channelId;
+        const selectable = bulkDeleteChannelSelectableIds(chId);
+        if (!selectable.length) return;
+        haptic("SELECTION");
+        const allSelected = selectable.every(id => bulkDelete.selected.has(id));
+        const changed = [];
+        if (allSelected) {
+            selectable.forEach(id => {
+                if (bulkDelete.selected.delete(id)) changed.push(id);
+            });
+        } else {
+            selectable.forEach(id => {
+                if (!bulkDelete.selected.has(id)) {
+                    bulkDelete.selected.add(id);
+                    changed.push(id);
+                }
+            });
+        }
+        notify("bulkDelete");
+        if (changed.length) bulkDeleteRedrawIds(chId, changed);
+    }
+    function bulkDeleteInterceptTap(event) {
+        if (!enabled("bulkDelete") || !bulkDelete.active) return false;
+        const data = event && event.nativeEvent;
+        const id = data && data.messageId;
+        const chId = data && data.channelId || bulkDelete.channelId;
+        if (!id) return true;
+        return bulkDeleteToggleMessage(chId, id);
+    }
+    function bulkDeleteConfirmAndRun() {
+        if (!bulkDelete.active || bulkDelete.deleting || !bulkDelete.selected.size || !bulkDelete.channelId) return;
+        const count = bulkDelete.selected.size;
+        if (!settings.bulkDeleteConfirm) {
+            bulkDeleteExecute();
+            return;
+        }
+        confirmAction(
+            pl(count, "Delete {n} message?", "Delete {n} messages?"),
+            pl(count, "Are you sure you want to delete {n} selected message? This can't be undone.",
+                "Are you sure you want to delete {n} selected messages? This can't be undone."),
+            "Delete",
+            bulkDeleteExecute
+        );
+    }
+    // Discord's DELETE /messages/:id. Its route bucket allows about 5 deletes per 5 seconds: one every 1.1 s rarely meets a
+    // 429, and when one comes the wait it asks for (retryAfter, in seconds) is honoured before trying that message again.
+    const BULK_DELETE_GAP_MS = 1100, BULK_DELETE_RETRIES = 3;
+    function bulkDeleteError(error) {
+        const status = error && (error.status || error.statusCode || error.body && error.body.status);
+        const body = error && error.body;
+        const retry = Number(error && (error.retryAfter != null ? error.retryAfter : body && (body.retry_after != null ? body.retry_after : body.retryAfter)));
+        return {status:Number(status) || 0, retryMs:Number.isFinite(retry) && retry > 0 ? Math.min(60000, Math.ceil(retry * 1000)) : 0};
+    }
+    function bulkDeleteExecute() {
+        if (!bulkDelete.active || bulkDelete.deleting || !bulkDelete.selected.size || !bulkDelete.channelId) return;
+        const chId = bulkDelete.channelId;
+        const ids = Array.from(bulkDelete.selected);
+        // Oldest first (snowflakes compare by length, then text), the order they were written.
+        ids.sort((a, b) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0));
+        const cachedEntries = [], liveIds = [];
+        const bucket = deletedByChannel.get(chId);
+        ids.forEach(id => {
+            const entry = bucket && bucket.get(deletedKey(chId, id));
+            if (entry) cachedEntries.push(entry);
+            else liveIds.push(id);
+        });
+        const run = ++bulkDelete.run;
+        bulkDelete.deleting = true;
+        bulkDelete.total = ids.length;
+        bulkDelete.progress = 0;
+        haptic("IMPACT_MEDIUM");
+
+        // Kept deleted messages are already gone from Discord: remove them here, in one batch.
+        if (cachedEntries.length) {
+            cachedEntries.forEach(entry => dropDeleted(deletedKey(entry.channelId, entry.id)));
+            invalidateDeleted();
+            persistDeleted();
+            dispatchRemovals(cachedEntries);
+            cachedEntries.forEach(entry => bulkDelete.selected.delete(String(entry.id)));
+            bulkDelete.progress += cachedEntries.length;
+            bulkDelete.deletedSession += cachedEntries.length;
+        }
+        notify("bulkDelete");
+        if (!liveIds.length) { bulkDeleteFinish(bulkDelete.progress, []); return; }
+
+        const actions = msgActions || (msgActions = inspectedExport(7174, "default"));
+        if (!actions || typeof actions.deleteMessage !== "function") { bulkDeleteFinish(bulkDelete.progress, liveIds); return; }
+        const failed = [];
+        let idx = 0, tries = 0;
+        function step() {
+            if (run !== bulkDelete.run || !bulkDelete.active || !bulkDelete.deleting) return;
+            // Signed in as someone else now: stop before another request goes out with their token.
+            const me = currentUser();
+            if (bulkDelete.userId && !(me && String(me.id) === bulkDelete.userId)) { bulkDeleteCancel(); return; }
+            if (idx >= liveIds.length) { bulkDeleteFinish(bulkDelete.progress, failed); return; }
+            const id = liveIds[idx];
+            let p;
+            try { p = actions.deleteMessage(chId, id, false); } catch (error) { p = Promise.reject(error); }
+            Promise.resolve(p).then(() => null, error => error || {}).then(error => {
+                if (run !== bulkDelete.run) return;
+                const info = error && bulkDeleteError(error);
+                if (info && info.status === 429 && tries < BULK_DELETE_RETRIES) {
+                    // Rate limited: same message again after the wait Discord asked for.
+                    tries++;
+                    later(step, Math.max(info.retryMs, BULK_DELETE_GAP_MS), false);
+                    return;
+                }
+                idx++; tries = 0;
+                // 404: someone else already deleted it, which is what you wanted.
+                if (!error || info.status === 404) {
+                    // Keep deleted messages keeps your own deletions too; a bulk delete is meant to clear them for real.
+                    const kept = deleted.size && dropDeleted(deletedKey(chId, id));
+                    if (kept) { invalidateDeleted(); persistDeleted(); dispatchRemovals([kept]); }
+                    bulkDelete.selected.delete(id);
+                    bulkDelete.progress++;
+                    bulkDelete.deletedSession++;
+                } else failed.push(id);
+                notify("bulkDelete");
+                if (idx >= liveIds.length) bulkDeleteFinish(bulkDelete.progress, failed);
+                else later(step, BULK_DELETE_GAP_MS, false);
+            });
+        }
+        step();
+    }
+    // Messages that couldn't be deleted stay selected, so you can see which ones are left and try again.
+    function bulkDeleteFinish(count, failed) {
+        const prevChannel = bulkDelete.channelId;
+        const left = failed && failed.length ? failed.slice() : [];
+        bulkDelete.run++;
+        bulkDelete.deleting = false;
+        bulkDelete.progress = 0;
+        bulkDelete.total = 0;
+        if (left.length && bulkDelete.active) {
+            bulkDelete.selected.clear();
+            left.forEach(id => bulkDelete.selected.add(id));
+            notify("bulkDelete");
+            haptic("IMPACT_MEDIUM");
+            const body = pl(left.length, "{n} message couldn't be deleted. It's still selected, so you can try again.",
+                "{n} messages couldn't be deleted. They're still selected, so you can try again.");
+            if (RN && RN.Alert && typeof RN.Alert.alert === "function") RN.Alert.alert(tr("Some messages weren't deleted"), body);
+            if (count > 0) reviewToast(reviewUI(), pl(count, "Deleted {n} message", "Deleted {n} messages"), venusIcon(5049, "TrashIcon"));
+            return;
+        }
+        animateLayout();
+        bulkDelete.active = false;
+        bulkDelete.channelId = null;
+        bulkDelete.selected.clear();
+        notify("bulkDelete");
+        if (prevChannel) bulkDeleteRedrawChannel(prevChannel);
+        bulkDelete.manageFor = null;
+        bulkDelete.selectable = null;
+        if (count > 0) {
+            reviewToast(reviewUI(), pl(count, "Deleted {n} message", "Deleted {n} messages"), venusIcon(5049, "TrashIcon"));
+        }
+    }
+    function bulkDeleteSheet(orig, self, args) {
+        const tree = orig.apply(self, args), props = args[0], message = props && props.message, channel = props && props.channel;
+        if (!enabled("bulkDelete") || !React || !tree || !message || !message.id) return tree;
+        const channelId = channel && channel.id || message.channel_id || message.channelId;
+        if (!channelId || !bulkDeleteCanSelect(message, String(channelId), undefined)) return tree;
+        let deleteText = "";
+        try {
+            const loc = locale || (locale = inspectedExport(1126));
+            if (loc && loc.intl && loc.t && loc.t["AMvpS4"]) deleteText = String(loc.intl.string(loc.t["AMvpS4"]) || "");
+        } catch (_) {}
+        const isDeleteRow = child => {
+            if (!child || typeof child !== "object" || !child.props) return false;
+            const p = child.props;
+            if (p.variant === "danger" || p.color === "danger" || p.destructive === true || p.isDestructive === true) return true;
+            const label = typeof p.label === "string" ? p.label : "";
+            return !!(label && (deleteText && label === deleteText || label === tr("Delete Message") || /delete message/i.test(label)));
+        };
+        let added = false;
+        const Icon = venusIcon(6868, "CircleCheckIcon");
+        const onPress = function () {
+            const sheets = reviewUI().sheets;
+            try { if (sheets && typeof sheets.hideActionSheet === "function") sheets.hideActionSheet("MessageLongPressActionSheet"); } catch (_) {}
+            if (props && typeof props.onClose === "function") try { props.onClose(); } catch (_) {}
+            later(() => bulkDeleteStart(String(channelId), message), 60, false);
+        };
+        // First pass: place right under Delete Message when Delete Message is in the sheet.
+        const withUnderDelete = cloneTree(tree, function (node, nodeProps) {
+            if (added || !Array.isArray(nodeProps.children)) return nodeProps;
+            if (nodeProps.children.some(child => child && child.key === "venus-bulk-delete")) { added = true; return nodeProps; }
+            const delIndex = nodeProps.children.findIndex(isDeleteRow);
+            if (delIndex < 0) return nodeProps;
+            const template = nodeProps.children[delIndex], icon = template.props.icon;
+            const row = React.cloneElement(template, {
+                key:"venus-bulk-delete",
+                label:tr("Select Messages"),
+                arrow:false,
+                variant:undefined,
+                color:undefined,
+                destructive:undefined,
+                isDestructive:undefined,
+                disabled:false,
+                icon:icon && icon.props && "IconComponent" in icon.props ? React.cloneElement(icon, {IconComponent:Icon}) : icon,
+                onPress
+            });
+            added = true;
+            const index = delIndex + 1;
+            return Object.assign({}, nodeProps, {children:nodeProps.children.slice(0, index).concat([row], nodeProps.children.slice(index))});
+        }, 0, () => added);
+        if (added) return withUnderDelete;
+        // Fallback (e.g. a cached deleted message whose sheet has no Delete Message row): place at the end of the sheet's action rows, like Translate.
+        return cloneTree(tree, function (node, nodeProps) {
+            if (added || !Array.isArray(nodeProps.children)) return nodeProps;
+            const rows = nodeProps.children.filter(child => child && child.props && typeof child.props.label === "string" && typeof child.props.onPress === "function");
+            if (!rows.length || nodeProps.children.some(child => child && child.key === "venus-bulk-delete")) return nodeProps;
+            added = true;
+            const template = rows[rows.length - 1], icon = template.props.icon;
+            const row = React.cloneElement(template, {
+                key:"venus-bulk-delete",
+                label:tr("Select Messages"),
+                arrow:false,
+                variant:undefined,
+                color:undefined,
+                destructive:undefined,
+                isDestructive:undefined,
+                disabled:false,
+                icon:icon && icon.props && "IconComponent" in icon.props ? React.cloneElement(icon, {IconComponent:Icon}) : icon,
+                onPress
+            });
+            const index = nodeProps.children.indexOf(template) + 1;
+            return Object.assign({}, nodeProps, {children:nodeProps.children.slice(0, index).concat([row], nodeProps.children.slice(index))});
+        }, 0, () => added);
+    }
+    // The selection bar takes the composer's own slot while you select (like Telegram or Discord on desktop): typing is
+    // pointless then, and the message list already keeps that space clear for the composer, so no message is ever
+    // covered (#94). The top of the chat stays free for the Translate pill.
+    const BULK_BAR_DARK = {
+        wrap:{position:"absolute", left:0, right:0, bottom:0, zIndex:100, elevation:12, justifyContent:"center", paddingHorizontal:10,
+            backgroundColor:"#1a1a1e"},
+        bar:{flexDirection:"row", alignItems:"center", gap:10, paddingLeft:8, paddingRight:6, paddingVertical:6, borderRadius:24,
+            backgroundColor:"#2b2d31", borderWidth:1, borderColor:"#ffffff18"},
+        badge:{minWidth:28, height:28, borderRadius:14, paddingHorizontal:8, alignItems:"center", justifyContent:"center", backgroundColor:"#5865f2"},
+        badgeMuted:{minWidth:28, height:28, borderRadius:14, paddingHorizontal:8, alignItems:"center", justifyContent:"center", backgroundColor:"#4e505880"},
+        badgeText:{color:"#ffffff", fontSize:13, fontWeight:"700"},
+        title:{color:"#f2f3f5", fontSize:14, fontWeight:"600"},
+        link:{color:"#00a8fc", fontSize:12, fontWeight:"600"},
+        pillText:{color:"#dbdee1", fontSize:13, fontWeight:"600"},
+        del:{flexDirection:"row", alignItems:"center", gap:6, height:36, paddingHorizontal:14, borderRadius:18, backgroundColor:"#f23f43"},
+        delDisabled:{opacity:0.4},
+        delText:{color:"#ffffff", fontSize:13, fontWeight:"700"},
+        close:{width:36, height:36, borderRadius:18, alignItems:"center", justifyContent:"center", backgroundColor:"#4e50584d"}
+    };
+    function useBulkBarStyles() {
+        return useThemed("bulkDeleteBar", c => ({
+            wrap:Object.assign({}, BULK_BAR_DARK.wrap, {backgroundColor:c.CHANNEL_BACKGROUND_DEFAULT || c.BACKGROUND_BASE_LOWER}),
+            bar:Object.assign({}, BULK_BAR_DARK.bar, {backgroundColor:c.BACKGROUND_SURFACE_HIGHEST || c.BACKGROUND_FLOATING || c.CARD_BACKGROUND_DEFAULT || c.BACKGROUND_BASE_LOW, borderColor:c.BORDER_SUBTLE}),
+            badge:Object.assign({}, BULK_BAR_DARK.badge, {backgroundColor:c.BACKGROUND_BRAND || "#5865f2"}),
+            badgeMuted:Object.assign({}, BULK_BAR_DARK.badgeMuted, {backgroundColor:c.BACKGROUND_MOD_STRONG || "#4e505880"}),
+            badgeText:BULK_BAR_DARK.badgeText,
+            title:Object.assign({}, BULK_BAR_DARK.title, {color:c.TEXT_STRONG}),
+            link:Object.assign({}, BULK_BAR_DARK.link, {color:c.TEXT_LINK || "#00a8fc"}),
+            pillText:Object.assign({}, BULK_BAR_DARK.pillText, {color:c.TEXT_DEFAULT}),
+            del:Object.assign({}, BULK_BAR_DARK.del, {backgroundColor:c.STATUS_DANGER || "#f23f43"}),
+            delDisabled:BULK_BAR_DARK.delDisabled,
+            delText:BULK_BAR_DARK.delText,
+            close:Object.assign({}, BULK_BAR_DARK.close, {backgroundColor:c.BACKGROUND_MOD_SUBTLE})
+        }), BULK_BAR_DARK);
+    }
+    function BulkDeleteBar(props) {
+        useSettings("bulkDelete");
+        useLanguage();
+        // Every hook runs before the early return, so starting or ending a selection never changes the hook order.
+        const s = useBulkBarStyles();
+        // The composer's measured height (the same store JumpToPresentButton reads): the bar fills exactly that slot.
+        // (inspectedExport needs a key; this reads the whole module, in case it loaded before Venus could keep it.)
+        if (!chatHeight && typeof global.__r === "function") try { chatHeight = global.__r(9379) || null; } catch (_) {}
+        const heightMod = chatHeight;
+        let inputHeight = 0;
+        try {
+            if (heightMod && typeof heightMod.useBestActiveChatInputContainerHeight === "function")
+                inputHeight = heightMod.useBestActiveChatInputContainerHeight();
+            else if (heightMod && typeof heightMod.useChatInputContainerHeight === "function")
+                inputHeight = heightMod.useChatInputContainerHeight(0);
+        } catch (_) {}
+        const shown = enabled("bulkDelete") && bulkDelete.active && !!React && !!RN &&
+            !(props && props.channelId && String(props.channelId) !== String(bulkDelete.channelId));
+        // Android's Back leaves selection first, like every other selection mode, instead of leaving the chat.
+        React.useEffect(() => {
+            const back = shown && RN.BackHandler;
+            if (!back || typeof back.addEventListener !== "function") return undefined;
+            const sub = back.addEventListener("hardwareBackPress", () => {
+                if (!bulkDelete.active) return false;
+                if (!bulkDelete.deleting) bulkDeleteCancel();
+                return true;
+            });
+            return () => { try { sub && typeof sub.remove === "function" && sub.remove(); } catch (_) {} };
+        }, [shown]);
+        if (!shown) return null;
+        const Press = inspectedExport(6185, "PressableOpacity") || RN.TouchableOpacity || RN.Pressable || RN.View;
+        const count = bulkDelete.selected.size;
+        const deleting = bulkDelete.deleting;
+        const selectable = deleting ? [] : bulkDeleteChannelSelectableIds(bulkDelete.channelId);
+        const allSelected = selectable.length > 0 && bulkDelete.selected.size >= selectable.length && selectable.every(id => bulkDelete.selected.has(id));
+        const Trash = venusIcon(5049, "TrashIcon"), Close = venusIcon(6296, "CircleXIcon");
+        const statusText = deleting ?
+            tr("Deleting {done} of {total}…", {done:Math.min(bulkDelete.progress + 1, bulkDelete.total), total:bulkDelete.total}) :
+            tr("{n} selected", {n:count});
+        const height = Math.max(56, Number.isFinite(inputHeight) && inputHeight > 0 ? inputHeight : 0);
+        // A plain view placed with layout, never a native-driven transform or popIn wrapper: on Android those draw the bar
+        // where it belongs but leave its touch area behind (#82). The slot takes every touch, so the hidden composer
+        // underneath can't be tapped by accident.
+        return el(RN.View, {collapsable:false, onStartShouldSetResponder:() => true, style:[s.wrap, {height}]},
+            el(RN.View, {style:s.bar, collapsable:false, accessible:false, accessibilityRole:"toolbar"},
+                el(RN.View, {style:count > 0 ? s.badge : s.badgeMuted},
+                    el(RN.Text, {style:s.badgeText}, String(count))),
+                el(RN.View, {style:{flex:1, gap:1}},
+                    el(RN.Text, {style:s.title, numberOfLines:1}, statusText),
+                    !deleting && selectable.length > 0 ? el(Press, {
+                        onPress:bulkDeleteSelectAll,
+                        accessibilityRole:"button",
+                        accessibilityLabel:tr(allSelected ? "Deselect all" : "Select all"),
+                        hitSlop:{top:8, bottom:8, left:8, right:8},
+                        style:{alignSelf:"flex-start"}
+                    }, el(RN.Text, {style:s.link, numberOfLines:1}, tr(allSelected ? "Deselect all" : "Select all"))) : null),
+                !deleting ? el(Press, {
+                    onPress:count > 0 ? bulkDeleteConfirmAndRun : undefined,
+                    disabled:count === 0,
+                    accessibilityRole:"button",
+                    accessibilityLabel:tr("Delete"),
+                    accessibilityState:{disabled:count === 0},
+                    hitSlop:{top:8, bottom:8, left:4, right:4},
+                    style:[s.del, count === 0 ? s.delDisabled : null]
+                },
+                    el(Trash, {size:"xs", color:"#ffffff"}),
+                    el(RN.Text, {style:s.delText}, tr("Delete"))) : null,
+                el(Press, {
+                    onPress:bulkDeleteCancel,
+                    accessibilityRole:"button",
+                    accessibilityLabel:tr("Cancel"),
+                    hitSlop:{top:8, bottom:8, left:6, right:8},
+                    style:s.close
+                }, el(Close, {size:"sm", color:s.pillText.color}))));
+    }
+    function bulkDeleteChatFooter(orig, self, args) {
+        const props = args[0];
+        // Appended after ChatViewWrapper's children (like TranslateBar and JumpToPresentButton) so it sits above
+        // DCDChatList's native GestureDetector on Android and receives touches directly instead of passing through to chat.
+        if (!features.bulkDelete || !props || !props.channelId || !React || !RN) return orig.apply(self, args);
+        const bar = el(BulkDeleteBar, {key:"venus-bulk-bar", channelId:props.channelId});
+        const children = Array.isArray(props.children) ? props.children.concat([bar]) : [props.children, bar];
+        const next = Object.assign({}, props, {children});
+        return args.length === 1 ? orig.call(self, next) : orig.apply(self, [next].concat(Array.prototype.slice.call(args, 1)));
+    }
+    function BulkDeletePreview(props) {
+        useSettings("bulkDelete");
+        const s = useChatPreviewStyles(), k = usePreviewChrome(), on = !!props.on;
+        const includeCached = !!settings.bulkDeleteIncludeCached;
+        const blank = {sheet:false, selecting:false, picked:["m1"], gone:false, pulse:null};
+        const [state, setState] = React.useState(blank);
+        const update = change => setState(st => Object.assign({}, st, typeof change === "function" ? change(st) : change));
+        const story = useStory(on, () => {
+            const steps = [
+                [0, () => setState(blank), tr("You sent a couple of messages you want to clean up")],
+                [900, () => update({pulse:{who:"m1", id:"hold"}}), tr("Hold a message to open its menu")],
+                [450, () => { animateLayout(); update({sheet:true, pulse:null}); }, tr("Tap Select Messages under Delete Message")],
+                [950, () => update({pulse:{who:"selectRow", id:"tapSelect"}})],
+                [450, () => { animateLayout(); haptic("IMPACT_LIGHT"); update({sheet:false, selecting:true, picked:["m1"], pulse:null}); },
+                    tr("A circle appears on the right of each message you can delete")],
+                [950, () => { haptic("SELECTION"); update({picked:["m1", "m2"], pulse:{who:"m2", id:"pick2"}}); },
+                    tr("Tap more messages to check them")]
+            ];
+            if (includeCached) {
+                steps.push([850, () => { haptic("SELECTION"); update({picked:["m1", "m2", "m3"], pulse:{who:"m3", id:"pick3"}}); },
+                    tr("Kept deleted messages can be selected too")]);
+            }
+            steps.push(
+                [950, () => update({pulse:{who:"delBtn", id:"del"}}), tr("Tap Delete on the bar to remove them all at once")],
+                [450, () => { animateLayout(); haptic("IMPACT_MEDIUM"); update({gone:true, selecting:false, pulse:null}); },
+                    tr("They're all gone at once")],
+                [1400, () => {}]
+            );
+            return steps;
+        }, [includeCached]);
+        const Check = venusIcon(6823, "CheckmarkSmallIcon"), Trash = venusIcon(5049, "TrashIcon"), CircleCheck = venusIcon(6868, "CircleCheckIcon");
+        const selecting = on ? state.selecting : true;
+        const picked = on ? state.picked : (includeCached ? ["m1", "m2", "m3"] : ["m1", "m2"]);
+        const gone = on ? state.gone : false;
+        const circle = isChecked => el(RN.View, {
+            style:{
+                width:22, height:22, borderRadius:11, alignItems:"center", justifyContent:"center",
+                backgroundColor:isChecked ? "#5865f2" : "#00000024",
+                borderWidth:isChecked ? 0 : 1.8,
+                borderColor:isChecked ? "transparent" : "#949ba499",
+                marginLeft:8, alignSelf:"center"
+            }
+        }, isChecked ? el(Check, {size:"xs", color:"#ffffff"}) : null);
+        const msgRow = (id, who, color, time, text, isCached) => {
+            const isChecked = selecting && picked.includes(id);
+            const delHex = isCached ? highlightColorHex(settings.noDeleteColor, "#f23f43") : null;
+            const bg = isChecked ? "#5865f224" : isCached ? delHex + "1a" : undefined;
+            return el(RN.View, {key:id, style:{backgroundColor:bg, position:"relative"}},
+                isCached ? el(RN.View, {style:{position:"absolute", left:0, top:0, bottom:0, width:4, backgroundColor:delHex}}) : null,
+                el(RN.View, {style:{flexDirection:"row", alignItems:"center", paddingRight:selecting ? 12 : 0}},
+                    el(RN.View, {style:{flex:1}},
+                        previewMessage(s, id, who, color, time, el(RN.Text, {style:s.text}, text))),
+                    selecting ? popIn("c:" + id + ":" + (isChecked ? "1" : "0"), circle(isChecked)) : null),
+                tapRipple(state.pulse, id));
+        };
+        const rows = [
+            previewMessage(s, "sam", "Sam", "#eb459e", tr("Today at 4:01 PM"), el(RN.Text, {style:s.text}, tr("Anyone up for a game later?"))),
+            gone ? null : msgRow("m1", tr("You"), "#5865f2", tr("Today at 4:02 PM"), tr("Wait, wrong link"), false),
+            gone ? null : msgRow("m2", tr("You"), "#5865f2", tr("Today at 4:03 PM"), tr("Let me clean these up"), false),
+            gone || !includeCached ? null : msgRow("m3", "Alex", "#3ba55c", tr("Today at 4:04 PM"), tr("Oops, wrong chat. Deleting this."), true)
+        ];
+        const sheet = on && state.sheet ? popIn("sheet", el(RN.View, {key:"sheet", style:[k.sheet, {borderTopLeftRadius:16, borderTopRightRadius:16, paddingTop:8, paddingBottom:10, paddingHorizontal:12, gap:4}]},
+            el(RN.View, {style:{alignSelf:"center", width:36, height:4, borderRadius:2, backgroundColor:"#80848e66", marginBottom:4}}),
+            el(RN.View, {style:{flexDirection:"row", alignItems:"center", gap:12, paddingVertical:8, paddingHorizontal:8, borderRadius:10}},
+                el(venusIcon(9720, "PencilIcon"), {size:"sm", color:k.icon.color}),
+                el(RN.Text, {style:[s.name, {fontSize:14}]}, tr("Edit Message"))),
+            el(RN.View, {style:{flexDirection:"row", alignItems:"center", gap:12, paddingVertical:8, paddingHorizontal:8, borderRadius:10}},
+                el(Trash, {size:"sm", color:"#f23f43"}),
+                el(RN.Text, {style:[s.name, {fontSize:14, color:"#f23f43"}]}, tr("Delete Message"))),
+            el(RN.View, {style:[{flexDirection:"row", alignItems:"center", gap:12, paddingVertical:8, paddingHorizontal:8, borderRadius:10}, k.selected]},
+                el(CircleCheck, {size:"sm", color:k.brandFg.color}),
+                el(RN.Text, {style:[s.name, {fontSize:14, flex:1}]}, tr("Select Messages")),
+                tapRipple(state.pulse, "selectRow")))) : null;
+        const bar = selecting ? popIn("bar", el(RN.View, {key:"bar", style:{marginHorizontal:10, marginBottom:8, paddingHorizontal:12, paddingVertical:8, borderRadius:18, backgroundColor:"#2b2d31", borderWidth:1, borderColor:"#ffffff18", flexDirection:"row", alignItems:"center", gap:8}},
+            el(RN.View, {style:{minWidth:22, height:22, borderRadius:11, paddingHorizontal:6, backgroundColor:"#5865f2", alignItems:"center", justifyContent:"center"}},
+                el(RN.Text, {style:{color:"#ffffff", fontSize:12, fontWeight:"700"}}, String(picked.length))),
+            el(RN.Text, {style:[s.name, {fontSize:13, flex:1}], numberOfLines:1}, tr("{n} selected", {n:picked.length})),
+            el(RN.View, {style:{flexDirection:"row", alignItems:"center", gap:5, paddingHorizontal:12, height:30, borderRadius:15, backgroundColor:"#f23f43"}},
+                el(Trash, {size:"xxs", color:"#ffffff"}),
+                el(RN.Text, {style:{color:"#ffffff", fontSize:12, fontWeight:"700"}}, tr("Delete")),
+                tapRipple(state.pulse, "delBtn")))) : null;
+        return el(RN.View, {key:"preview"},
+            previewScreen(s, "preview", "Bulk delete preview", [
+                el(RN.View, {key:"chat", style:{minHeight:176}}, rows),
+                bar,
+                sheet
+            ], {
+                header:previewHeader(k, {title:"general"}),
+                footer:el(RN.View, {key:"foot"},
+                    !selecting && !sheet ? previewInput(k, s, {placeholder:tr("Message {channel}", {channel:"#general"})}) : null,
+                    on ? storyStrip(k, s, story) : null)
+            }));
+    }
+    function BulkDeleteSettings() {
+        useSettings("bulkDelete");
+        useSettings("noDelete");
+        const ui = reviewUI();
+        if (!React || !RN) return null;
+        const on = enabled("bulkDelete"), Group = ui.TableRowGroup || RN.View, Switch = ui.TableSwitchRow;
+        const Icon = venusIcon(6868, "CircleCheckIcon");
+        const keptCount = deleted.size;
+        const clearCached = () => {
+            if (!keptCount) return;
+            clearDeleted(true);
+            reviewToast(ui, "Cleared kept deleted messages", venusIcon(5049, "TrashIcon"));
+            notify("bulkDelete");
+        };
+        const groups = [
+            !on ? offCard("status", Icon, "bulkDelete") :
+                bulkDelete.deletedSession > 0 ? statusCard("status",
+                    pl(bulkDelete.deletedSession, "Deleted {n} message in bulk since Discord opened.", "Deleted {n} messages in bulk since Discord opened."),
+                    {title:pl(bulkDelete.deletedSession, "{n} message deleted", "{n} messages deleted"), IconComponent:Icon, accent:true}) :
+                statusCard("status", "Hold any message you can delete and tap Select Messages under Delete Message.",
+                    {title:tr("Ready in chat"), IconComponent:Icon}),
+            el(BulkDeletePreview, {key:"preview", on}),
+            el(Group, {key:"options", title:tr("Selection")},
+                switchRow(Switch, "bulkDeleteConfirm", "Ask before deleting", "Shows a confirmation dialog before deleting the selected messages.", rowIcon(5046, "CircleInformationIcon")),
+                features.noDelete ? switchRow(Switch, "bulkDeleteIncludeCached", "Include kept deleted messages", "Lets you select and clear deleted messages kept by Keep deleted messages.", rowIcon(5049, "TrashIcon")) : null),
+            features.noDelete && keptCount > 0 ? el(Group, {key:"cached", title:tr("Kept deleted messages")},
+                actionRow(ui, "clearCached", "Clear kept deleted messages",
+                    pl(keptCount, "Removes {n} cached deleted message from chat and from this phone.", "Removes {n} cached deleted messages from chat and from this phone."),
+                    clearCached, !on, true)) : null,
+            footnote("note", "Your own messages can always be selected. In servers where you have Manage Messages, you can select other people's messages too.")
+        ];
+        return settingsBody(ui, groups);
     }
     function activatePlugins(id, exports) {
         switch (id) {
@@ -12331,16 +14594,17 @@
                 return exports;
             }
             case 15566: return features.nitroThemes ? hookComponent(exports, nitroThemePicker) : exports;
-            case 589: return features.customThemes ? hookSemanticColorsModule(exports) : exports;
-            case 591: return features.customThemes ? hookRawColorsModule(exports) : exports;
-            case 590: return features.customThemes ? hookExperimentColorsModule(exports) : exports;
-            case 11191: return (features.customThemes || features.iconPacks) ? hookComponent(exports, rootThemeContextProvider, "RootThemeContextProvider") : exports;
-            case 1205: if ((features.customThemes || features.iconPacks) && exports && exports.default) customThemes.themeStore = exports.default; return exports;
-            case 4831: return (features.customThemes || features.iconPacks) ? hookCreateThemedContext(exports) : exports;
+            case 589: return features.customThemes || features.materialYou ? hookSemanticColorsModule(exports) : exports;
+            case 591: return features.customThemes || features.materialYou ? hookRawColorsModule(exports) : exports;
+            case 590: return features.customThemes || features.materialYou ? hookExperimentColorsModule(exports) : exports;
+            case 11191: return (features.customThemes || features.materialYou || features.iconPacks) ? hookComponent(exports, rootThemeContextProvider, "RootThemeContextProvider") : exports;
+            case 1205: if ((features.customThemes || features.materialYou || features.iconPacks) && exports && exports.default) customThemes.themeStore = exports.default; return exports;
+            case 4831: return (features.customThemes || features.materialYou || features.iconPacks) ? hookCreateThemedContext(exports) : exports;
             case 10368:
                 // ChatViewWrapper {channelId, stickyHeader, children}: the theme background behind chat, and the translate bar (#82)
                 // in the sticky header slot above the messages, where Discord shows its own New messages bar.
                 if (features.translate) exports = hookComponent(exports, translateBarHeader);
+                if (features.bulkDelete) exports = hookComponent(exports, bulkDeleteChatFooter);
                 return features.customThemes ? hookComponent(exports, chatViewWrapperThemeBackground) : exports;
             case 12129: return features.accountSwitcher ? hookMultiAccountStore(exports) : exports;
             case 6623: return features.accountSwitcher ? hookComponent(exports, addAccountLogin) : exports;
@@ -12348,21 +14612,29 @@
             case 16387: return features.accountSwitcher ? hookRegisterForMultiAccount(exports) : exports;
             case 5938: return features.accountSwitcher ? hookTrackedHttpForSignUp(exports) : exports;
             case 12131: return features.accountSwitcher ? hookIsStaffForMultiAccount(exports) : exports;
-            case 4760: if (features.userNotif && exports && exports.default) { userNotif.relationships = exports.default; userNotifSeedStatuses(); } return exports;
+            case 4760:
+                if (features.hideBlocked && exports && exports.default) hideBlocked.relationships = exports.default;
+                if (features.userNotif && exports && exports.default) { userNotif.relationships = exports.default; userNotifSeedStatuses(); }
+                return exports;
+            case 1401: return features.experiments ? hookStaffEnv(exports) : exports;
+            case 7308: if (features.hideBlocked && exports && exports.default) hideBlocked.references = exports.default; return exports;
+            case 11624: return features.hideBlocked ? hookExport(exports, "default", hideBlockedChannelStream) : exports;
             case 2087: if (features.userNotif && exports && exports.default) { userNotif.guilds = exports.default; userNotifSubscribeGuilds(); } return exports;
             case 9699: if ((features.quests || features.badges || features.userNotif) && exports && exports.default) { bgKeepAlive.fg = exports.default; backgroundSync(); } return exports;
             case 13933: return (features.quests || features.badges || features.userNotif) ? hookGatewaySocket(exports) : exports;
             case 13968: return (features.quests || features.badges || features.userNotif) ? hookPauseGateway(exports) : exports;
             case 5759: return features.badges ? hookSelfPresenceStore(exports) : exports;
             case 8312: if (features.badges && exports && exports.default) badgesAttachStore(exports.default); return exports;
-            case 9675: return features.translate ? hookComponent(exports, translateSheet) : exports;
+            case 9675:
+                if (features.translate) exports = hookComponent(exports, translateSheet);
+                return features.bulkDelete ? hookComponent(exports, bulkDeleteSheet) : exports;
             case 9255: return features.splitMessages ? maxLengthModule(exports) : exports;
             case 16858: return (features.youBarSettings || features.accountSwitcher) ? hookComponent(exports, youBarButtons) : exports;
             // MurmurHashV3 is CommonJS (module.exports=function), not an ES default export.
             case 1264: if (features.pastelize) pastelHash = typeof exports === "function" ? exports : exports.default; return exports;
             case 2125: if (features.pastelize) guildMembers = exports.default; return exports;
             case 7742:
-                if ((features.pastelize || features.noDelete || features.translate || features.messageHighlight) && exports.default && exports.default.prototype)
+                if ((features.pastelize || features.noDelete || features.translate || features.messageHighlight || features.bulkDelete) && exports.default && exports.default.prototype)
                     hookExport(exports.default.prototype, "generate", messageRow);
                 return exports;
             case 5108: if (features.platformIndicators || features.userNotif) { presenceStore = exports.default; if (features.userNotif) userNotifSeedStatuses(); } return exports;
@@ -12430,12 +14702,12 @@
             case 14971: SettingsList = exports.SettingsList; return exports;
             case 10615: return features.copyBios ? hookComponent(exports, copyBio) : exports;
             case 5421:
-                if (!features.dashless && !features.hiddenChannels) return exports;
+                if (!features.dashless && !features.hiddenChannels && !features.cleanChannels) return exports;
                 exports = hookExport(exports, "computeChannelName", channelLabel);
                 return hookExport(exports, "default", useChannelLabel);
-            case 5412: return features.dashless ? hookExport(exports, "getChannel", mentionChannelInfo) : exports;
+            case 5412: return features.dashless || features.cleanChannels ? hookExport(exports, "getChannel", mentionChannelInfo) : exports;
             case 7365:
-                if (!features.dashless) return exports;
+                if (!features.dashless && !features.cleanChannels) return exports;
                 exports = hookExport(exports, "createParserState", parserStateChannels);
                 if (exports && exports.default) exports = replaceValue(exports, "default", hookExport(exports.default, "createParserState", parserStateChannels));
                 return exports;
@@ -12450,12 +14722,12 @@
             case 5300: return features.quickDelete ? replaceValue(exports, "default", hookExport(exports.default, "show", quickConfirm)) : exports;
             case 5434: if (features.noDelete) { messageRecords = exports; restoreDeleted(); } return exports;
             case 1390:
-                if (exports && exports.default && (features.validUser || features.splitMessages || features.fixEmbeds || features.translate || features.userNotif || features.accountSwitcher || features.appIcons || features.nitroThemes || features.messageHighlight || features.serverInfo || features.noDelete || features.reviewDB || features.platformIndicators || features.hiddenChannels || features.gestures || features.freeNitro || features.badges))
+                if (exports && exports.default && (features.validUser || features.splitMessages || features.fixEmbeds || features.translate || features.userNotif || features.accountSwitcher || features.appIcons || features.nitroThemes || features.messageHighlight || features.serverInfo || features.noDelete || features.reviewDB || features.platformIndicators || features.hiddenChannels || features.gestures || features.freeNitro || features.badges || features.bulkDelete || features.experiments))
                     userStore = exports.default;
                 if (features.noDelete || features.reviewDB || features.platformIndicators || features.hiddenChannels) restoreDeleted();
                 return exports;
             case 5432:
-                if (features.jumpToTop || features.messageHighlight || features.noDelete || features.translate) msgStore = exports.default;
+                if (features.jumpToTop || features.messageHighlight || features.noDelete || features.translate || features.hideBlocked || features.bulkDelete) msgStore = exports.default;
                 if (features.noDelete) {
                     exports = replaceValue(exports, "default", hookExport(hookExport(msgStore, "getMessage", retainedMessage), "getMessages", retainedMessages));
                     restoreDeleted();
@@ -12469,7 +14741,9 @@
                 if (features.quests) questsInit(exports.default);
                 if (features.badges && exports && exports.default) badgesInit(exports.default);
                 if (features.nitroThemes && exports && exports.default) nitroThemeAttach(exports.default);
-                if (features.messageHighlight && exports && exports.default && !dispatcher)
+                if (features.bulkDelete && exports && exports.default) bulkDeleteInit(exports.default);
+                if (features.experiments && exports && exports.default) experimentsInit(exports.default);
+                if ((features.messageHighlight || features.bulkDelete) && exports && exports.default && !dispatcher)
                     dispatcher = exports.default.dispatch.bind(exports.default);
                 if ((features.noDelete || features.reviewDB || features.hiddenChannels) && id === 584) {
                     dispatcher = exports.default.dispatch.bind(exports.default);
@@ -12478,6 +14752,8 @@
                 return exports;
             case 1085: case 1096:
                 if (features.hiddenChannels && exports.Permissions) viewPermission = exports.Permissions.VIEW_CHANNEL;
+                if (features.bulkDelete && exports.Permissions && bulkDelete.managePermission === undefined)
+                    bulkDelete.managePermission = exports.Permissions.MANAGE_MESSAGES;
                 return exports;
             case 1112:
                 if (!features.hiddenChannels) return exports;
@@ -12485,13 +14761,13 @@
                 exports = hookExport(exports, "replaceWith", hiddenNavigation);
                 return hookExport(exports, "transitionToGuild", hiddenGuildNavigation);
             case 4750: {
+                const candidate = exports && exports.default && typeof exports.default.can === "function" ? exports.default :
+                    exports && typeof exports.can === "function" ? exports : null;
+                if (candidate) permissions = candidate;
                 if (!features.hiddenChannels) return exports;
                 // Lioncat6 finds permissions via findByProps("getChannelPermissions","can");
                 // In 350.8 PermissionStore (4750) is the only module exporting both.
                 // Candidate may be default export or the exports object itself.
-                const candidate = exports && exports.default && typeof exports.default.can === "function" ? exports.default :
-                    exports && typeof exports.can === "function" ? exports : null;
-                if (candidate) permissions = candidate;
                 // Globally reveal VIEW_CHANNEL so Discord builds
                 // real channel records (names) instead of obfuscated "hidden" stubs.
                 // Message/voice access stays blocked via hiddenFetch/hiddenNavigation guards.
@@ -12512,7 +14788,7 @@
                 return replaceValue(exports, "default", store);
             }
             case 2116: return features.hiddenChannels && exports && exports.default ? replaceValue(exports, "default", hookExport(exports.default, "getChannelId", hiddenSelectedChannel)) : exports;
-            case 9379: if (features.jumpToTop) chatHeight = exports; return exports;
+            case 9379: if (features.jumpToTop || features.bulkDelete) chatHeight = exports; return exports;
             case 11969: if (features.jumpToTop) jumpPill = exports.default; return exports;
             // 350.8's arrow is a registered image asset: Metro exports the asset id itself, not a default.
             case 11970: if (features.jumpToTop) jumpIcon = exports && typeof exports === "object" && "default" in exports ? exports.default : exports; return exports;
@@ -12522,7 +14798,7 @@
             case 12837: return features.gestures ? hookExport(exports, "DoubleTapEmojiEditNudge", hideWhenGestures) : exports;
             case 9434: return features.gestures ? hookExport(exports, "maybeShowDoubleTapReminderToast", (orig, self, args) => enabled("gestures") ? undefined : orig.apply(self, args)) : exports;
             case 11990: return features.gestures ? hookExport(exports, "DoubleTapToReactChatInputBanner", hideWhenGestures) : exports;
-            case 10694: return features.gestures ? hookTapHandlers(exports) : exports;
+            case 10694: return (features.gestures || features.bulkDelete) ? hookTapHandlers(exports) : exports;
             case 7174: {
                 let actions = exports.default;
                 if (!actions) return exports;
@@ -12535,7 +14811,10 @@
                     actions = hookExport(actions, "_sendMessage", sendMessage);
                     actions = hookExport(actions, "sendStickers", sendStickers);
                 }
-                if (splitLater) actions = hookExport(actions, "sendMessage", splitSend);
+                if (splitLater) {
+                    actions = hookExport(actions, "sendMessage", splitSend);
+                    actions = hookExport(actions, "editMessage", splitEdit);
+                }
                 // Outermost, so Send long messages splits (and Nitro links converts) a message whose links are already fixed.
                 if (features.fixEmbeds) {
                     actions = hookExport(actions, "sendMessage", fixEmbedsSend);

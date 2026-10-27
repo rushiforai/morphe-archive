@@ -1,5 +1,7 @@
 package app.noam.extension.chesscom.gamereview;
 
+import android.webkit.CookieManager;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -54,6 +56,9 @@ final class LichessServerReview {
         HttpURLConnection connection = (HttpURLConnection) new URL(LichessSession.ORIGIN + "/game/export/" + id
             + "?evals=true&accuracy=true&clocks=false&opening=false").openConnection();
         connection.setRequestProperty("Accept", "application/json");
+        // Lichess exports most older games, imported ones among them, only to a signed-in user.
+        String cookies = CookieManager.getInstance().getCookie(LichessSession.ORIGIN);
+        if (cookies != null) connection.setRequestProperty("Cookie", cookies);
         connection.setConnectTimeout(15_000);
         connection.setReadTimeout(30_000);
         try {

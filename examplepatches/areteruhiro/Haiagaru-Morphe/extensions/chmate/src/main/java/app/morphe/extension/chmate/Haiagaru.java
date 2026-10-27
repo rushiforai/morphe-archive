@@ -503,6 +503,9 @@ public final class Haiagaru {
         Object result = addToolbarChoice(toolbarModel, QuickFilterToolbar.ID, "haiagaru_quick_filter");
         try {
             String version = applicationContext.getPackageManager().getPackageInfo(applicationContext.getPackageName(), 0).versionName;
+            if ("0.8.10.191 dev".equals(version) || "0.8.10.226 dev".equals(version)
+                    || "0.8.10.242 dev".equals(version))
+                result = addToolbarChoice(result, 0x7e000009, "haiagaru_hissi_droid_plus");
             if ("0.8.10.191 dev".equals(version) || "0.8.10.226 dev".equals(version) || "0.8.10.242 dev".equals(version))
                 result = addToolbarChoice(result, DIRECT_COPY_TOOLBAR_ID, "haiagaru_direct_copy");
         } catch (Exception ignored) { }
@@ -640,6 +643,19 @@ public final class Haiagaru {
 
     /** Handles the custom toolbar item before ChMate dispatches its stock actions. */
     public static boolean handleEdgeArchiveToolbarClick(Object fragment, int itemId) {
+        if (itemId == 0x7e000009) {
+            Activity activity=toolbarActivity(fragment);
+            if(activity!=null&&!activity.isFinishing())try{
+                Intent launch=new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+                        .setClassName("com.chikuwadon.hissidroidplus","com.chikuwadon.hissidroidplus.HomeActivity");
+                activity.startActivity(launch);
+            }catch(android.content.ActivityNotFoundException missing){
+                Toast.makeText(activity,"必死チェッカーDroid＋がインストールされていません",Toast.LENGTH_LONG).show();
+            }catch(SecurityException denied){
+                Toast.makeText(activity,"必死チェッカーDroid＋を開けませんでした",Toast.LENGTH_LONG).show();
+            }
+            return true;
+        }
         if (FavoriteThreads.refresh(fragment, itemId)) return true;
         if (itemId == 0x7e000005 || itemId == 0x7e000006) {
             Activity activity = toolbarActivity(fragment);
@@ -933,6 +949,7 @@ public final class Haiagaru {
         ImageVpnController.initialize(appContext);
         PatrolImages.initialize(appContext);
         ExternalBoardAuth.initialize(appContext);
+        BoardCookies.initialize(appContext);
         ExternalBoardEditor.initialize(appContext);
         EdgeReporterHistory.initialize(appContext);
         EdgeReporterOptions.initialize(appContext);
@@ -942,6 +959,7 @@ public final class Haiagaru {
         runtimePackageName = appContext.getPackageName();
         migrateRestoredPackageReferences(appContext);
         HttpsTransport.setEnabled(preferences(appContext).getBoolean("forceHttps", false));
+        ViewingUserAgent.init(preferences(appContext),BrowserUaTemplates.DEFAULT);
     }
 
     /** Installs the optional crash logger before ChMate's startup provider does any work. */
@@ -1833,6 +1851,11 @@ public final class Haiagaru {
         SharedPreferences settings = preferencesOrNull();
         int value = settings == null ? 0 : settings.getInt("update191TimeoutSeconds", 0);
         return value == 30 || value == 60 || value == 120 ? value : 0;
+    }
+
+    public static boolean fresh191UpdateConnection() {
+        SharedPreferences settings = preferencesOrNull();
+        return settings == null || settings.getBoolean(UpdateConnectionHeaders.KEY, true);
     }
 
     /**
@@ -3525,6 +3548,14 @@ public final class Haiagaru {
                 text("タブレットの追加画面をホーム側のタブで開く", "Open extra tablet screens in HOME tabs"),
                 preferences.getBoolean(NativeToolTabs.KEY, false));
         live.toggle(nativeTabs, NativeToolTabs.KEY);
+        Switch nativeGestures = addSwitch(layout, activity,
+                text("追加画面のタブでChMateのジェスチャーを使う", "Use ChMate gestures in tool tabs"),
+                preferences.getBoolean(NativeToolTabChMateGestures.KEY, false));
+        live.toggle(nativeGestures, NativeToolTabChMateGestures.KEY);
+        TextView nativeGestureHelp = new TextView(activity);
+        nativeGestureHelp.setText(text("ChMateの「設定 → ジェスチャー」の「タブを閉じる」「左のタブ」「右のタブ」「戻る」「進む」「新しいタブ」を使います。戻る・進むはビューア内の閲覧履歴を移動し、戻る履歴がなければタブを閉じます。設定のカテゴリ内では設定一覧へ戻ります。新しいタブは同じペインに本体の空タブを追加します。オンの間は固定スワイプを使いません。初期オフ、再起動不要です。",
+                "Uses ChMate's Close/Left/Right tab, Back, Forward and New tab assignments. Back/Forward navigate browser history; Back at the root closes the tool (or returns to the settings category list). New tab creates a native blank tab in the same pane. Replaces fixed swipes. Off by default; no restart required."));
+        layout.addView(nativeGestureHelp);
         EditText gestureSensitivity = addTextField(layout, activity,
                 text("Haiagaru設定内のジェスチャー感度（50〜200%）", "Settings gesture sensitivity (50–200%)"),
                 Integer.toString(preferences.getInt(HaiagaruSettingsGestures.SENSITIVITY, 100)));
@@ -3872,6 +3903,24 @@ public final class Haiagaru {
             View decor = activity.getWindow().getDecorView();
             decor.requestLayout(); decor.invalidate();
         });
+        Switch viewingUa = addSwitch(layout,activity,text("User-Agentを変更する","Change User-Agent"),
+                preferences.getBoolean(BrowserUaTemplates.ENABLED,false));
+        live.toggle(viewingUa,BrowserUaTemplates.ENABLED);
+        Button uaTemplate = new Button(activity);uaTemplate.setText(text("UAテンプレートを選ぶ","Choose UA template"));layout.addView(uaTemplate);
+        uaTemplate.setOnClickListener(v->new HaiagaruDialog.Builder(activity).setTitle("UAテンプレート")
+                .setItems(BrowserUaTemplates.labels(),(dialog,index)->{
+                    preferences.edit().putString("userAgent",BrowserUaTemplates.value(index)).apply();
+                    Toast.makeText(activity,"UAテンプレートを保存しました。開いている認証画面は一度閉じてください。",Toast.LENGTH_LONG).show();
+                }).setNegativeButton("閉じる",null).show());
+        TextView uaHelp = new TextView(activity);
+        uaHelp.setText(text("閲覧・投稿・認証に選択したAndroid情報を適用します。ChMateが付ける識別名と版番号は保持します。Cookie・SessionIDを保持し、テンプレートの自動切替は行いません。開いている認証画面のUAは変更しないため、認証中の切替は避けてください。UAの変更は、投稿制限や認証の解除を保証するものではありません。",
+                "Applies the selected Android information to reading, posting and authentication, retaining ChMate's client name and version where provided. Keeps cookies and SessionID; no automatic rotation. Existing authentication windows keep their original UA, so avoid switching during authentication. UA does not guarantee removal of restrictions or authentication."));
+        layout.addView(uaHelp);
+        Switch boardCookies=addSwitch(layout,activity,text("Cookieを板ごとに管理する","Manage cookies separately for each board"),preferences.getBoolean(BoardCookies.KEY,false));
+        live.toggle(boardCookies,BoardCookies.KEY);
+        TextView cookieHelp=new TextView(activity);
+        cookieHelp.setText("オンにしてアクセスした板からCookieを個別に保存します。既存の共通Cookieを使う板は「Cookieに合う板を探して割り当て」から選択してください。板を特定できない通信は、従来の共通Cookieをそのまま使います。書き込みメニューのCookie削除はその板のみが対象です。オフにすると本体の共通Cookieへ戻ります。保存済みの板別Cookieや他の板の認証は自動で削除しません。");
+        layout.addView(cookieHelp);BoardCookies.addSettings(layout,activity);
         Switch removeMonaKey = addSwitch(
                 layout,
                 activity,
@@ -3939,8 +3988,18 @@ public final class Haiagaru {
         }
         Switch update191Progress = null;
         Switch update191Connect = null;
+        Switch update191FreshConnection = null;
         Spinner update191Timeout = null;
         if ("0.8.10.191 dev".equals(chMateVersion)) {
+            update191FreshConnection = addSwitch(layout, activity,
+                    text("191の板・スレ取得で接続を再利用しない", "Avoid reusing board/thread connections (191)"),
+                    fresh191UpdateConnection());
+            TextView freshConnectionDescription = new TextView(activity);
+            freshConnectionDescription.setText(text(
+                    "巡回やスレ取得が詰まる場合に試してください。板・スレ取得の接続を使い終わるたびに閉じ、次は接続し直します。通信量・接続時間・電池消費が増える場合があります。投稿・画像・動画の取得は変更しません。次の取得から反映し、既に待機中の通信は中断しません。",
+                    "Try this when patrol or thread loading stalls. Closes each board/thread connection after use. New connections may increase latency, traffic and battery use. Posting and media are unchanged. Applies to future requests; does not interrupt an existing wait."));
+            freshConnectionDescription.setTextSize(13);
+            layout.addView(freshConnectionDescription, rowParams(activity));
             update191Connect = addSwitch(layout, activity,
                     text("191の代替IPへの切り替えを速くする", "Faster alternative IP fallback (191)"),
                     fast191UpdateConnect());
@@ -3967,6 +4026,7 @@ public final class Haiagaru {
         }
         final Switch update191ProgressSetting = update191Progress;
         final Switch update191ConnectSetting = update191Connect;
+        final Switch update191FreshConnectionSetting = update191FreshConnection;
         final Spinner update191TimeoutSetting = update191Timeout;
 
         ExternalBoardAuth.addSettingsButton(layout, activity);
@@ -3982,6 +4042,7 @@ public final class Haiagaru {
         live.toggle(tabletResumeReloadSetting,"suppressTabletThreadResumeReload");
         live.toggle(update191ProgressSetting,"optimize191UpdateProgress");
         live.toggle(update191ConnectSetting,"fast191UpdateConnect");
+        live.toggle(update191FreshConnectionSetting,UpdateConnectionHeaders.KEY);
         live.choice(update191TimeoutSetting,"update191TimeoutSeconds",i->new int[]{0,30,60,120}[i]);
         return layout;
     }
@@ -4365,6 +4426,15 @@ public final class Haiagaru {
             decor.requestLayout(); decor.invalidate();
         });
         HiddenIdNg.addSettingsButton(layout, activity);
+        Switch hideNgWordIdReplies = addSwitch(layout, activity,
+                text("NGWord-IDへの返信も非表示", "Hide replies to NGWord-ID responses"),
+                preferences.getBoolean("hideNgWordIdReplies", false));
+        TextView posterIdChainDescription = new TextView(activity);
+        posterIdChainDescription.setText(text(
+                "同じNGワードの「連鎖」「非表示」「投稿者のIDもNG」がすべてONのとき、その投稿者の別レスへの返信と、その先の返信も非表示にします。初期OFF。変更後はスレを閉じて開き直してください。",
+                "When one NG word rule enables chain, hidden and also block poster ID, also hides replies to that author's other responses and subsequent replies. Off by default. Close and reopen the thread after changing this setting."));
+        posterIdChainDescription.setTextSize(13);
+        layout.addView(posterIdChainDescription, rowParams(activity));
         Switch wacchoiNgFirstMenu = addSwitch(layout, activity,
                 "ワッチョイ長押しメニューをNG登録優先の順番にする",
                 preferences.getBoolean("wacchoiNgFirstMenu", false));
@@ -4458,6 +4528,7 @@ public final class Haiagaru {
         );
 
         live.toggle(wacchoiNgFirstMenu,"wacchoiNgFirstMenu");live.toggle(hideShowHiddenNgMenu,"hideShowHiddenNgMenu");
+        live.toggle(hideNgWordIdReplies,"hideNgWordIdReplies");
         live.number(ngRegistrationLimit,NG_REGISTRATION_LIMIT_KEY,0,100000);
         LiveSettings nativeLive=new LiveSettings(chMatePreferences,()->layout.invalidate());
         nativeLive.toggle(abbrevSingleId,CHMATE_ABBREV_SINGLE_ID_KEY);
@@ -5426,6 +5497,11 @@ public final class Haiagaru {
     private static SharedPreferences preferencesOrNull() {
         Context context = applicationContext;
         return context == null ? null : preferences(context);
+    }
+
+    public static boolean hideNgWordIdReplies() {
+        SharedPreferences prefs = preferencesOrNull();
+        return prefs != null && prefs.getBoolean("hideNgWordIdReplies", false);
     }
 
     public static boolean hideShowHiddenNgMenu() {

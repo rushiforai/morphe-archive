@@ -31,6 +31,13 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * "message.text" with. That reader checks the native tree is still there before it reads, so a
  * released model reads as no text rather than crashing.
  *
+ * <p>What a post shares counts too (#255): each attachment's {@code title}, a link card's headline,
+ * read with the same {@code getCachedString}, and its {@code description}, the line under it, a
+ * TextWithEntities read through the kept {@code getCachedModel(int, Class, int)} the way
+ * GraphQLStoryAttachment's own accessor reads it (584 {@code A02}, key {@code 0x993583fc}). The
+ * attachments come from PostSources' accessor, which the same patch fills in. A build where it
+ * isn't filled in reads the messages alone, as before.
+ *
  * <p>Nothing here keeps, logs or reports the text. What a read found is one of the shapes in
  * {@link Outcome}, and only the rule that asked sees the words.
  *
@@ -43,6 +50,11 @@ public final class PostText {
     static final String TEXT_TYPE = "TextWithEntities";
     static final String TEXT_FIELD = "text";
     static final String ATTACHED_STORY_FIELD = "attached_story";
+    static final String TEXT_CLASS = "com.facebook.graphql.model.GraphQLTextWithEntities";
+
+    /** An attachment's headline, a plain string, and the line under it, a TextWithEntities. */
+    static final int LINK_TITLE_KEY = "title".hashCode();
+    static final int LINK_DESCRIPTION_KEY = "description".hashCode();
 
     /** A tree model is tagged with the first four bytes of its GraphQL type name's MD5. */
     static final int TEXT_TYPE_TAG = StoryFlag.typeTag(TEXT_TYPE);
@@ -119,21 +131,25 @@ public final class PostText {
     }
 
     /**
-     * The words of a feed unit: its message's text, then the text of the post it shares when it
-     * shares one. Never throws. A unit that isn't a story, has no text, or has a part this can't
-     * read answers why, with no words, and the rule keeps it: a word from the keep list could be in
-     * the part that wasn't read.
+     * The words of a feed unit: its message's text and its attachments' headlines and descriptions,
+     * then the same of the post it shares when it shares one. Never throws. A unit that isn't a
+     * story, has no text, or has a part this can't read answers why, with no words, and the rule
+     * keeps it: a word from the keep list could be in the part that wasn't read. An attachments
+     * accessor that was never filled in reads no attachments, and the messages still count.
      */
-    static Read read(@Nullable Object feedUnit, StoryFlag.Accessor message, StoryFlag.Accessor attached) {
+    static Read read(@Nullable Object feedUnit, StoryFlag.Accessor message, StoryFlag.Accessor attached,
+            StoryFlag.Accessor links) {
         if (feedUnit == null) return Read.of(Outcome.NO_UNIT);
         Members found = members();
         report();
         if (!found.complete()) return Read.of(Outcome.NO_READER);
         if (!found.story.isInstance(feedUnit)) return Read.of(Outcome.NOT_A_STORY);
 
-        List<String> texts = new ArrayList<>(2);
+        List<String> texts = new ArrayList<>(4);
         Outcome own = messageText(feedUnit, message, found, texts);
         if (!readable(own)) return Read.of(own);
+        Outcome ownLinks = linkText(feedUnit, links, found, texts);
+        if (!readable(ownLinks)) return Read.of(ownLinks);
 
         Object wrapped;
         try {
@@ -150,6 +166,8 @@ public final class PostText {
         if (wrapped != null && found.story.isInstance(wrapped)) {
             Outcome shared = messageText(wrapped, message, found, texts);
             if (!readable(shared)) return Read.of(shared);
+            Outcome sharedLinks = linkText(wrapped, links, found, texts);
+            if (!readable(sharedLinks)) return Read.of(sharedLinks);
         }
 
         if (texts.isEmpty()) return Read.of(Outcome.NO_TEXT);
@@ -230,6 +248,52 @@ public final class PostText {
         }
     }
 
+    /**
+     * Adds the headline and description of each of [story]'s attachments to [texts], skipping one
+     * already there (a share often carries the card of the post it wraps). Answers
+     * {@link Outcome#TEXT} or {@link Outcome#NO_TEXT}, or {@link Outcome#READ_FAILED} when a read
+     * threw. An accessor the patch never filled in, or a build without the description's members,
+     * reads less and still answers cleanly, so the words read before #255 judge the post as they did.
+     */
+    private static Outcome linkText(Object story, StoryFlag.Accessor accessor, Members found, List<String> texts) {
+        Object list;
+        try {
+            list = accessor.model(story);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.POST_WORDS, "link accessor", failure);
+            return Outcome.READ_FAILED;
+        }
+        if (list == StoryFlag.NOT_PATCHED || !(list instanceof Iterable)) return Outcome.NO_TEXT;
+        boolean any = false;
+        try {
+            for (Object attachment : (Iterable<?>) list) {
+                if (!found.treeModel.isInstance(attachment)) continue;
+                any |= add(texts, found.cachedString.invoke(attachment, LINK_TITLE_KEY));
+                if (found.cachedModel == null || found.text == null) continue;
+                Object description = found.cachedModel.invoke(attachment, LINK_DESCRIPTION_KEY, found.text, TEXT_TYPE_TAG);
+                if (found.text.isInstance(description)) {
+                    any |= add(texts, found.cachedString.invoke(description, TEXT_KEY));
+                }
+            }
+        } catch (InvocationTargetException failure) {
+            HookStatus.threw(FamilyNames.POST_WORDS, "link text reader", failure.getCause());
+            return Outcome.READ_FAILED;
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            HookStatus.threw(FamilyNames.POST_WORDS, "link text reader", failure);
+            return Outcome.READ_FAILED;
+        }
+        return any ? Outcome.TEXT : Outcome.NO_TEXT;
+    }
+
+    /** Adds [value] to [texts] when it's a string with words that isn't there yet. */
+    private static boolean add(List<String> texts, @Nullable Object value) {
+        if (!(value instanceof String)) return false;
+        String text = (String) value;
+        if (text.trim().isEmpty() || texts.contains(text)) return false;
+        texts.add(text);
+        return true;
+    }
+
     /** Which Hook status row the members were last reported into. */
     private static volatile long reportedGeneration = -1;
 
@@ -253,13 +317,18 @@ public final class PostText {
         @Nullable final Class<?> treeModel;
         @Nullable final Method cachedString;
         @Nullable final Field typeTag;
+        /** Only an attachment's description needs these two, so neither is part of {@link #complete}. */
+        @Nullable final Class<?> text;
+        @Nullable final Method cachedModel;
 
         Members(@Nullable Class<?> story, @Nullable Class<?> treeModel, @Nullable Method cachedString,
-                @Nullable Field typeTag) {
+                @Nullable Field typeTag, @Nullable Class<?> text, @Nullable Method cachedModel) {
             this.story = story;
             this.treeModel = treeModel;
             this.cachedString = cachedString;
             this.typeTag = typeTag;
+            this.text = text;
+            this.cachedModel = cachedModel;
         }
 
         boolean complete() {
@@ -271,11 +340,20 @@ public final class PostText {
             Class<?> treeModel = classOrNull(StoryFlag.TREE_MODEL_CLASS, loader);
             Class<?> tree = classOrNull(StoryFlag.TREE_CLASS, loader);
             Method cachedString = null;
+            Method cachedModel = null;
             Field typeTag = null;
             try {
                 if (treeModel != null) {
                     Method method = treeModel.getMethod("getCachedString", int.class);
                     if (method.getReturnType() == String.class) cachedString = method;
+                }
+            } catch (NoSuchMethodException | RuntimeException missing) {
+                // Named in the report.
+            }
+            try {
+                if (treeModel != null) {
+                    Method method = treeModel.getMethod("getCachedModel", int.class, Class.class, int.class);
+                    if (treeModel.isAssignableFrom(method.getReturnType())) cachedModel = method;
                 }
             } catch (NoSuchMethodException | RuntimeException missing) {
                 // Named in the report.
@@ -288,10 +366,13 @@ public final class PostText {
             } catch (NoSuchFieldException | RuntimeException missing) {
                 // Named in the report.
             }
-            return new Members(story, treeModel, cachedString, typeTag);
+            return new Members(story, treeModel, cachedString, typeTag, classOrNull(TEXT_CLASS, loader), cachedModel);
         }
 
-        /** What was found and what wasn't, into one family's Hook status row. */
+        /**
+         * What was found and what wasn't, into one family's Hook status row. The description's two
+         * members show only when one is missing: the words still work without them.
+         */
         void reportInto(String family) {
             if (story != null) HookStatus.bound(family, "GraphQLStory");
             else HookStatus.missingMember(family, "class", "com.facebook.graphql.model", "GraphQLStory");
@@ -299,6 +380,10 @@ public final class PostText {
             else HookStatus.missingMember(family, "method", StoryFlag.TREE_MODEL_CLASS, "getCachedString(int)");
             if (typeTag != null) HookStatus.bound(family, "TreeJNI#mTypeTag");
             else HookStatus.missingMember(family, "field", StoryFlag.TREE_CLASS, "mTypeTag");
+            if (text == null) HookStatus.missingMember(family, "class", "com.facebook.graphql.model", "GraphQLTextWithEntities");
+            if (cachedModel == null) {
+                HookStatus.missingMember(family, "method", StoryFlag.TREE_MODEL_CLASS, "getCachedModel(int, Class, int)");
+            }
         }
 
         @Nullable

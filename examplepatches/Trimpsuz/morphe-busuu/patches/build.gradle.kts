@@ -2,9 +2,9 @@ group = "app.morphe"
 
 patches {
     about {
-        name = "Busuu Patches"
-        description = "Patches for Busuu"
-        source = "git@github.com:Trimpsuz/morphe-busuu.git"
+        name = "Morphe Patches"
+        description = "Collection of Morphe patches by me"
+        source = "git@github.com:Trimpsuz/morphe-patches.git"
         author = "Trimpsuz"
         contact = "me@trimpsuz.dev"
         website = "https://trimpsuz.dev"

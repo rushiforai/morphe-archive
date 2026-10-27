@@ -10,7 +10,9 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
 import app.morphe.patches.telegram.misc.extension.writeStub
@@ -62,6 +64,13 @@ internal const val MESSAGES_STORAGE = "Lorg/telegram/messenger/MessagesStorage;"
 internal const val STORAGE_INSTANCE = "$MESSAGES_STORAGE->getInstance(I)$MESSAGES_STORAGE"
 internal const val STORED_MESSAGE = "$MESSAGES_STORAGE->getMessage(JJ)$TL_MESSAGE"
 internal const val NEW_MESSAGE_OBJECT = "$MESSAGE_OBJECT-><init>(I${TL_MESSAGE}ZZ)V"
+internal const val TL_OBJECT = "Lorg/telegram/tgnet/TLObject;"
+internal const val IS_PHOTO = "$MESSAGE_OBJECT->isPhoto()Z"
+internal const val IS_VIDEO = "$MESSAGE_OBJECT->isVideo()Z"
+internal const val PHOTO_THUMBS = "$MESSAGE_OBJECT->photoThumbs:Ljava/util/ArrayList;"
+internal const val ANDROID_UTILITIES = "Lorg/telegram/messenger/AndroidUtilities;"
+internal const val PHOTO_SIZE = "$ANDROID_UTILITIES->getPhotoSize()I"
+internal const val CLOSEST_PHOTO_SIZE = "$FILE_LOADER->getClosestPhotoSizeWithSize(Ljava/util/ArrayList;I)Lorg/telegram/tgnet/TLRPC\$PhotoSize;"
 /** FileLoader's parser for the key the background download queue hands over instead of the message. */
 internal const val SENT_KEY = "sent_.*_([0-9]+)_([0-9]+)_([0-9]+)_([0-9]+)"
 
@@ -79,10 +88,22 @@ val saveDownloadsPatch = bytecodePatch(
     execute {
         val callback = resolveSaveDownloads()
         val account = delegateAccount(callback)
-        // Assembled on a copy first, so a refusal leaves the app untouched.
+        requireGalleryFolderRuntime()
+        val gallery = resolveGalleryFolder()
+        // Assembled on copies first, so a refusal leaves the app untouched.
         insertSaveDownloadsHook(MutableMethod(ImmutableMethod.of(callback)), account)
+        if (gallery.missing == null) gallery.rehearse()
         insertSaveDownloadsHook(callback, account)
         writeSaveDownloadsStubs()
+        if (gallery.missing == null) {
+            gallery.apply()
+            enableCapability("galleryFolder")
+            if (gallery.olderMissing != null) {
+                patchLog.warning("Save downloaded files: ${gallery.olderMissing}. Saves on Android 9 and older keep Telegram's folders.")
+            }
+        } else {
+            patchLog.warning("Save downloaded files: ${gallery.missing}. The patch goes on without the gallery folder choice.")
+        }
         enableStatus("saveDownloads")
     }
 }
@@ -182,8 +203,44 @@ private fun BytecodePatchContext.writeSaveDownloadsStubs() {
         const/4 v0, 0x1
         return v0
     """)
+    // A photo or a video, never self-destructing media, a GIF or a round video (#29).
+    writeStub(SAVE_DOWNLOADS, "photoOrVideo", 2, """
+        check-cast p0, $MESSAGE_OBJECT
+        invoke-virtual {p0}, $IS_SECRET_MEDIA
+        move-result v0
+        if-nez v0, :hush_no
+        invoke-virtual {p0}, $IS_GIF
+        move-result v0
+        if-nez v0, :hush_no
+        invoke-virtual {p0}, $IS_ROUND_VIDEO
+        move-result v0
+        if-nez v0, :hush_no
+        invoke-virtual {p0}, $IS_PHOTO
+        move-result v0
+        if-nez v0, :hush_yes
+        invoke-virtual {p0}, $IS_VIDEO
+        move-result v0
+        return v0
+        :hush_yes
+        const/4 v0, 0x1
+        return v0
+        :hush_no
+        const/4 v0, 0x0
+        return v0
+    """)
+    // The size a chat shows and Save to Gallery saves, the way ChatMessageCell picks it.
+    writeStub(SAVE_DOWNLOADS, "photo", 3, """
+        check-cast p0, $MESSAGE_OBJECT
+        iget-object v0, p0, $PHOTO_THUMBS
+        invoke-static {}, $PHOTO_SIZE
+        move-result v1
+        invoke-static {v0, v1}, $CLOSEST_PHOTO_SIZE
+        move-result-object v0
+        return-object v0
+    """)
+    // A document, or a photo's size: FileLoader names both the same way.
     writeStub(SAVE_DOWNLOADS, "attachName", 1, """
-        check-cast p0, $DOCUMENT
+        check-cast p0, $TL_OBJECT
         invoke-static {p0}, $ATTACH_NAME
         move-result-object p0
         return-object p0
@@ -235,6 +292,8 @@ internal fun BytecodePatchContext.resolveSaveDownloads(): MutableMethod {
     controlHook(SAVE_DOWNLOADS, "fileOrSong", listOf(OBJECT), "Z")
     controlHook(SAVE_DOWNLOADS, "savingForbidden", listOf(OBJECT), "Z")
     controlHook(SAVE_DOWNLOADS, "secretChat", listOf(OBJECT), "Z")
+    controlHook(SAVE_DOWNLOADS, "photoOrVideo", listOf(OBJECT), "Z")
+    controlHook(SAVE_DOWNLOADS, "photo", listOf(OBJECT), OBJECT)
     controlHook(SAVE_DOWNLOADS, "attachName", listOf(OBJECT), STRING)
     controlHook(SAVE_DOWNLOADS, "documentName", listOf(OBJECT), STRING)
 
@@ -263,13 +322,15 @@ internal fun BytecodePatchContext.resolveSaveDownloads(): MutableMethod {
         "the background download key changed")
     val types = mutableClassDefByOrNull(MESSAGE_OBJECT)?.staticFields
         ?.associate { it.name to (it.initialValue as? IntEncodedValue)?.value }.orEmpty()
-    controlShape(types["TYPE_FILE"] == 9 && types["TYPE_MUSIC"] == 14, "Telegram's message types changed")
+    controlShape(types["TYPE_FILE"] == 9 && types["TYPE_MUSIC"] == 14 && types["TYPE_PHOTO"] == 1 && types["TYPE_VIDEO"] == 3,
+        "Telegram's message types changed")
 
     for ((reference, static) in listOf(GET_DOCUMENT to false, IS_SECRET_MEDIA to false, IS_MUSIC to false,
         IS_DOCUMENT to false, IS_GIF to false, IS_ROUND_VIDEO to false, IS_VOICE to false, MESSAGE_OWNER to false,
         NO_FORWARDS to false, GET_DIALOG_ID to false, CURRENT_ACCOUNT to false, IS_ENCRYPTED to true,
         CONTROLLER_INSTANCE to true, PEER_NO_FORWARDS to false, ATTACH_NAME to true, DOCUMENT_NAME to true,
-        STORAGE_INSTANCE to true, STORED_MESSAGE to false, NEW_MESSAGE_OBJECT to false)) {
+        STORAGE_INSTANCE to true, STORED_MESSAGE to false, NEW_MESSAGE_OBJECT to false, IS_PHOTO to false,
+        IS_VIDEO to false, PHOTO_THUMBS to false, PHOTO_SIZE to true, CLOSEST_PHOTO_SIZE to true)) {
         requireReachable(reference, static)
     }
     return callback

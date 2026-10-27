@@ -169,6 +169,9 @@ public class CustomDialog {
         titleView.setTextColor(Utils.getAppForegroundColor());
         titleView.setGravity(Gravity.CENTER);
         titleView.setAccessibilityHeading(true);
+        // In Telegram's blues, as every HushTelegram title is, where the theme's dialog is dark
+        // enough for every stop to read. A light theme keeps its own text colour.
+        if (ShimmerTitle.readsOn(Utils.getDialogBackgroundColor())) ShimmerTitle.wear(titleView);
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,

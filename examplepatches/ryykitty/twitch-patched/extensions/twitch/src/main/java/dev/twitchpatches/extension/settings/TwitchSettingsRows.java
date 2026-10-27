@@ -25,22 +25,32 @@ final class TwitchSettingsRows {
                 section = option.section();
                 parent.addView(header(parent, section));
             }
-            if (option instanceof SettingGroup) parent.addView(navigation(parent, (SettingGroup) option, open));
+            if (option instanceof SettingGroup) parent.addView(navigation(parent, (SettingGroup) option, open, updates, option::summary));
             else if (option instanceof ToggleSetting) parent.addView(row(parent, (ToggleSetting) option, updates));
             else throw new IllegalStateException("Unknown settings entry type.");
         }
     }
 
     static View navigation(ViewGroup parent, SettingGroup group, Consumer<SettingGroup> open) {
+        return navigation(parent, group, open, new ArrayList<>(), group::summary);
+    }
+
+    private static View navigation(ViewGroup parent, SettingGroup group, Consumer<SettingGroup> open,
+            List<Runnable> updates, Supplier<String> summary) {
         View row = inflate(parent, "sub_menu_recycler_item");
         TextView title = TwitchSettingsResources.view(row, "menu_item_title", TextView.class);
         TextView description = TwitchSettingsResources.view(row, "menu_item_description", TextView.class);
         title.setText(group.title());
-        description.setText(group.summary());
-        description.setVisibility(group.summary().isEmpty() ? View.GONE : View.VISIBLE);
+        Runnable update = () -> {
+            String details = summary.get();
+            description.setText(details);
+            description.setVisibility(details.isEmpty() ? View.GONE : View.VISIBLE);
+            row.setContentDescription(group.title() + ". " + details);
+        };
+        updates.add(update);
+        update.run();
         title.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         description.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        row.setContentDescription(group.title() + ". " + group.summary());
         row.setFocusable(true);
         row.setOnClickListener(view -> open.accept(group));
         row.setSaveFromParentEnabled(false);
@@ -55,12 +65,7 @@ final class TwitchSettingsRows {
                 parent.addView(row(parent, (ToggleSetting) result.entry, updates, result::summary));
             else {
                 SettingGroup group = (SettingGroup) result.entry;
-                View row = navigation(parent, group, open);
-                TextView description = TwitchSettingsResources.view(row, "menu_item_description", TextView.class);
-                description.setText(result.summary());
-                description.setVisibility(View.VISIBLE);
-                row.setContentDescription(group.title() + ". " + result.summary());
-                parent.addView(row);
+                parent.addView(navigation(parent, group, open, updates, result::summary));
             }
         }
         if (results.isEmpty()) empty(parent, "No matching settings.");

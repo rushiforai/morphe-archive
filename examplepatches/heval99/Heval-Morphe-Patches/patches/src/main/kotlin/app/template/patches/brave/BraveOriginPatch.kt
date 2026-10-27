@@ -36,7 +36,8 @@ import org.w3c.dom.Element
 private const val PREF_PREFIX = "brave_origin_off_"
 
 // Sets XML defaultValue="true" on all Origin preference switches so they display as ON
-// before the binder runs. Ported from dh6k's EnableBraveOriginResourcePatch.
+// before the binder runs (the binder skips the native read, step 8). Fails when the
+// preferences file or any switch is missing. Ported from dh6k's EnableBraveOriginResourcePatch.
 private val braveOriginResourcePatch = resourcePatch(
     name = "Brave Origin Resource Defaults",
     description = "Turns the Brave Origin switches on by default.",
@@ -56,27 +57,38 @@ private val braveOriginResourcePatch = resourcePatch(
             "web_discovery_project_switch",
         )
         // The preferences XML filename is obfuscated and changes between Brave versions.
-        // Find the correct file by scanning all res/xml/*.xml files for our switch keys.
-        val xmlDir = get("res/xml")
-        val targetFile = xmlDir.listFiles()
-            ?.filter { it.extension == "xml" }
-            ?.firstOrNull { file -> file.readText().contains("rewards_switch") }
-            ?: return@execute
+        // Find the correct file by scanning all res/xml/*.xml files for the rewards switch key.
+        // morphe-patcher 2.0.0 decodes resources on request, so res/xml holds nothing until
+        // decode() has decoded the files to scan. Exactly one file must hold it, and every
+        // switch below must sit in it once: an upstream XML change fails here instead of
+        // applying as a silent no-op.
+        val rewardsKey = Regex("""\bkey="rewards_switch"""")
+        val candidates = decode("res/xml/*.xml").filter { path -> rewardsKey.containsMatchIn(get(path).readText()) }.toList()
+        val targetPath = candidates.singleOrNull()
+            ?: throw PatchException(
+                "Expected one res/xml file with key=\"rewards_switch\" (the Brave Origin preferences), " +
+                    "found ${candidates.size}: $candidates",
+            )
 
-        document(targetFile.absolutePath).use { doc ->
+        document(targetPath).use { doc ->
             val elements = doc.getElementsByTagName("*")
-            for (i in 0 until elements.length) {
-                val node = elements.item(i) as? Element ?: continue
-                val key = node.getAttribute("android:key").takeIf { it.isNotEmpty() }
-                    ?: node.getAttribute("key")
-                if (key in switches) {
-                    when {
-                        node.hasAttribute("android:defaultValue") ->
-                            node.setAttribute("android:defaultValue", "true")
-                        node.hasAttribute("defaultValue") ->
-                            node.setAttribute("defaultValue", "true")
-                    }
+            val byKey = (0 until elements.length)
+                .mapNotNull { elements.item(it) as? Element }
+                .groupBy { node ->
+                    node.getAttribute("android:key").takeIf { it.isNotEmpty() } ?: node.getAttribute("key")
                 }
+            switches.forEach { key ->
+                val node = byKey[key]?.singleOrNull()
+                    ?: throw PatchException(
+                        "$targetPath: expected one element with key \"$key\", found ${byKey[key]?.size ?: 0}",
+                    )
+                // A switch without a default is off, so a missing attribute is added as on too.
+                val attribute = if (node.hasAttribute("defaultValue") && !node.hasAttribute("android:defaultValue")) {
+                    "defaultValue"
+                } else {
+                    "android:defaultValue"
+                }
+                node.setAttribute(attribute, "true")
             }
         }
     }
@@ -100,7 +112,7 @@ val braveOriginPatch = bytecodePatch(
         Fingerprint(
             returnType = "Z",
             parameters = listOf("Lorg/chromium/chrome/browser/profiles/Profile;"),
-            strings = listOf("brave.origin.subscription_active_android"),
+            strings = listOf(string("brave.origin.subscription_active_android", StringComparisonType.CONTAINS)),
             filters = listOf(string("getIsSubscriptionActive", StringComparisonType.STARTS_WITH)),
         ).method.returnEarly(true)
 
@@ -109,8 +121,8 @@ val braveOriginPatch = bytecodePatch(
             returnType = "Z",
             parameters = listOf("Lorg/chromium/chrome/browser/profiles/Profile;"),
             strings = listOf(
-                "brave.origin.order_id_android",
-                "brave.origin.purchase_token_android",
+                string("brave.origin.order_id_android", StringComparisonType.CONTAINS),
+                string("brave.origin.purchase_token_android", StringComparisonType.CONTAINS),
             ),
         )
         hasValidSubscriptionTokensFingerprint.method.returnEarly(true)
@@ -119,7 +131,7 @@ val braveOriginPatch = bytecodePatch(
         Fingerprint(
             returnType = "Z",
             parameters = emptyList(),
-            strings = listOf("brave_origin_credential_summary_cached"),
+            strings = listOf(string("brave_origin_credential_summary_cached", StringComparisonType.CONTAINS)),
         ).method.returnEarly(true)
 
         // ── 4. a(Profile, String) / a(String, Profile) → skip (write package/product id) ─
@@ -132,8 +144,8 @@ val braveOriginPatch = bytecodePatch(
                 "Lorg/chromium/chrome/browser/profiles/Profile;",
             ),
             strings = listOf(
-                "brave.origin.package_name_android",
-                "brave.origin.product_id_android",
+                string("brave.origin.package_name_android", StringComparisonType.CONTAINS),
+                string("brave.origin.product_id_android", StringComparisonType.CONTAINS),
             ),
         ).method.returnEarly()
 
@@ -154,7 +166,9 @@ val braveOriginPatch = bytecodePatch(
                 "Lorg/chromium/chrome/browser/profiles/Profile;",
                 "Lorg/chromium/base/Callback;",
             ),
-            strings = listOf("SkusService is null, cannot request credential summary"),
+            strings = listOf(
+                string("SkusService is null, cannot request credential summary", StringComparisonType.CONTAINS),
+            ),
             filters = listOf(string("requestCredentialSummary profile is null", StringComparisonType.STARTS_WITH)),
         ).method.addInstructions(
             0,
@@ -221,10 +235,10 @@ val braveOriginPatch = bytecodePatch(
             returnType = "Ljava/lang/String;",
             parameters = listOf("Ljava/lang/String;"),
             strings = listOf(
-                "rewards_switch",
-                "BraveRewardsDisabled",
-                "wallet_switch",
-                "BraveWalletDisabled",
+                string("rewards_switch", StringComparisonType.CONTAINS),
+                string("BraveRewardsDisabled", StringComparisonType.CONTAINS),
+                string("wallet_switch", StringComparisonType.CONTAINS),
+                string("BraveWalletDisabled", StringComparisonType.CONTAINS),
             ),
         )
         val policyKeyMethod = policyKeyFingerprint.originalMethod
@@ -304,7 +318,10 @@ val braveOriginPatch = bytecodePatch(
         // The profile -> PrefService helper (owl.a here; renamed per build), resolved from the
         // Search engines screen's own web-discovery writer, which holds both strings.
         val webDiscoveryReads = Fingerprint(
-            strings = listOf("send_web_discovery", WEB_DISCOVERY_ENABLED_PREF),
+            strings = listOf(
+                string("send_web_discovery", StringComparisonType.CONTAINS),
+                string(WEB_DISCOVERY_ENABLED_PREF, StringComparisonType.CONTAINS),
+            ),
         ).matchAllOrNull().orEmpty()
         val profilePrefService = webDiscoveryReads.firstNotNullOfOrNull { match ->
             match.method.implementation?.instructions
@@ -497,7 +514,7 @@ val braveOriginPatch = bytecodePatch(
 
         // Rewards disabled check
         Fingerprint(
-            strings = listOf("brave.rewards.disabled_by_policy"),
+            strings = listOf(string("brave.rewards.disabled_by_policy", StringComparisonType.CONTAINS)),
         ).method.apply {
             removeInstructions(0, implementation!!.instructions.count())
             addInstructions(0, gatekeeperSmali("BraveRewardsDisabled"))
@@ -505,7 +522,7 @@ val braveOriginPatch = bytecodePatch(
 
         // News disabled check
         Fingerprint(
-            strings = listOf("brave.news.disabled_by_policy"),
+            strings = listOf(string("brave.news.disabled_by_policy", StringComparisonType.CONTAINS)),
         ).method.apply {
             removeInstructions(0, implementation!!.instructions.count())
             addInstructions(0, gatekeeperSmali("BraveNewsDisabled"))
@@ -513,7 +530,7 @@ val braveOriginPatch = bytecodePatch(
 
         // Wallet disabled check
         Fingerprint(
-            strings = listOf("brave.wallet.disabled_by_policy"),
+            strings = listOf(string("brave.wallet.disabled_by_policy", StringComparisonType.CONTAINS)),
         ).method.apply {
             removeInstructions(0, implementation!!.instructions.count())
             addInstructions(0, gatekeeperSmali("BraveWalletDisabled"))
@@ -521,7 +538,7 @@ val braveOriginPatch = bytecodePatch(
 
         // VPN disabled check
         Fingerprint(
-            strings = listOf("brave.brave_vpn.disabled_by_policy"),
+            strings = listOf(string("brave.brave_vpn.disabled_by_policy", StringComparisonType.CONTAINS)),
         ).method.apply {
             removeInstructions(0, implementation!!.instructions.count())
             addInstructions(0, gatekeeperSmali("BraveVPNDisabled"))
@@ -530,7 +547,7 @@ val braveOriginPatch = bytecodePatch(
         // Leo AI policy disabled check (e(key) && !b(key) = disabled).
         // We replace with the same SharedPreferences read pattern.
         Fingerprint(
-            strings = listOf("brave.ai_chat.enabled_by_policy"),
+            strings = listOf(string("brave.ai_chat.enabled_by_policy", StringComparisonType.CONTAINS)),
         ).method.apply {
             removeInstructions(0, implementation!!.instructions.count())
             addInstructions(0, gatekeeperSmali("BraveAIChatEnabled"))
@@ -543,7 +560,7 @@ val braveOriginPatch = bytecodePatch(
         Fingerprint(
             returnType = "Z",
             parameters = emptyList(),
-            strings = listOf("AIChat"),
+            strings = listOf(string("AIChat", StringComparisonType.CONTAINS)),
         ).method.apply {
             removeInstructions(0, implementation!!.instructions.count())
             addInstructions(

@@ -1,3 +1,22 @@
+## [1.5.3](https://github.com/dieroboter/morphe-patches/compare/v1.5.2...v1.5.3) (2026-10-27)
+
+### Bug Fixes
+
+* Fix Flappy launch crash on Android 17 by creating the DecorView before getInsetsController() ([b706f21](https://github.com/dieroboter/morphe-patches/commit/b706f21ce4e16f5ec20f2421c6c5a5dcb11e127b))
+* Fix Flappy VerifyError by targeting the onCreate window tail through an ExternalLabel ([c328546](https://github.com/dieroboter/morphe-patches/commit/c32854692d1c2796653c0153d516b145d422e49e))
+
+## [1.5.3-dev.2](https://github.com/dieroboter/morphe-patches/compare/v1.5.3-dev.1...v1.5.3-dev.2) (2026-10-26)
+
+### Bug Fixes
+
+* Fix Flappy VerifyError by targeting the onCreate window tail through an ExternalLabel ([c328546](https://github.com/dieroboter/morphe-patches/commit/c32854692d1c2796653c0153d516b145d422e49e))
+
+## [1.5.3-dev.1](https://github.com/dieroboter/morphe-patches/compare/v1.5.2...v1.5.3-dev.1) (2026-10-26)
+
+### Bug Fixes
+
+* Fix Flappy launch crash on Android 17 by creating the DecorView before getInsetsController() ([b706f21](https://github.com/dieroboter/morphe-patches/commit/b706f21ce4e16f5ec20f2421c6c5a5dcb11e127b))
+
 ## [1.5.2](https://github.com/dieroboter/morphe-patches/compare/v1.5.1...v1.5.2) (2026-10-24)
 
 ### Bug Fixes

@@ -34,6 +34,8 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "Hide suggested stories"
 internal const val HIDE_TRAY = "$EXTENSION_PACKAGE/stories/StoriesTray;->hideTray()Z"
+/** Asked where Instagram floats the tray over the feed: yes while the tray is hidden or kept in the feed (#357). */
+internal const val FLOAT_TRAY = "$EXTENSION_PACKAGE/stories/StoriesTray;->keepTrayOutOfOverlay()Z"
 internal const val TRAY_FILTER = "$EXTENSION_PACKAGE/stories/StoriesTray;->filter(Ljava/lang/Object;)Ljava/lang/Object;"
 internal const val TRAY_REMAINING_FILTER = "$EXTENSION_PACKAGE/stories/StoriesTray;->remaining(Ljava/util/ArrayList;)Ljava/util/ArrayList;"
 private const val ARRAY_LIST = "Ljava/util/ArrayList;"
@@ -100,7 +102,7 @@ val hideSuggestedStoriesPatch = bytecodePatch(
     execute {
         requireStatusMethod("storiesTray")
         guardTray(findTrayRowBuild())
-        guardTray(findFloatingTrayShow())
+        guardTray(findFloatingTrayShow(), FLOAT_TRAY)
         val parse = findTrayItemParse()
         val netegoCheck = findStoryNetegoCheck()
         val midcards = findStoryMidcards()
@@ -225,12 +227,12 @@ internal fun BytecodePatchContext.findFloatingTrayShow(): MethodSite {
     return MethodSite(type, method.name, parameters)
 }
 
-/** Asks [HIDE_TRAY] first thing in the method at [site], and on a yes returns before it shows the tray. */
-internal fun BytecodePatchContext.guardTray(site: MethodSite) {
+/** Asks [hook] ([HIDE_TRAY] unless named) first thing in the method at [site], and on a yes returns before it shows the tray. */
+internal fun BytecodePatchContext.guardTray(site: MethodSite, hook: String = HIDE_TRAY) {
     mutableMethod(site).addInstructions(
         0,
         """
-            invoke-static { }, $HIDE_TRAY
+            invoke-static { }, $hook
             move-result v0
             if-eqz v0, :show
             return-void

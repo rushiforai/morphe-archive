@@ -10,13 +10,13 @@ Technical documentation and patch catalog for Moovit on Android.
 | :--- | :--- |
 | **Target App** | Moovit |
 | **Package Name** | `com.tranzmate` |
-| **Target Version** | `5.201.1.1809` |
+| **Target Version** | `5.203.0.1812` |
 | **Target Package Format** | APKM |
-| **Primary Architecture** | `universal` |
+| **Primary Architecture** | `arm64-v8a` |
 | **Authoritative Source** | APKMirror |
-| **Download Target** | [Moovit 5.201.1.1809 (universal, 160-640dpi, versionCode 1809 / BUNDLE 31 S, Sept 30)](https://www.apkmirror.com/apk/moovit/moovit-bus-train-live-info/moovit-your-transit-tracker-5-201-1-1809-release/moovit-your-transit-tracker-5-201-1-1809-2-android-apk-download/) |
+| **Download Target** | [Moovit 5.203.0.1812 (arm64-v8a, 160-640dpi, versionCode 1812 / BUNDLE 31 S)](https://www.apkmirror.com/apk/moovit/moovit-bus-train-live-info/moovit-your-transit-tracker-5-203-0-1812-release/moovit-your-transit-tracker-5-203-0-1812-android-apk-download/) |
 
-Note: `versionCode 1809` corresponds to the actual build versionCode assigned on APKMirror, not a trailing versionName fragment.
+Note: `versionCode 1812` corresponds to the actual build versionCode assigned on APKMirror, not a trailing versionName fragment.
 
 ---
 
@@ -28,6 +28,7 @@ Note: `versionCode 1809` corresponds to the actual build versionCode assigned on
 | **Moovit Telemetry Manifest Purge** | `resourcePatch` | `false` (Opt-in) | None | Strips advertising and tracking permissions, disables analytics services, providers, and receivers, and injects opt-out metadata in AndroidManifest.xml. |
 | **Fix Google Maps** | `bytecodePatch` | `true` (Enabled) | `Moovit Custom Maps API Key` | Restores Google Maps rendering by spoofing the original package signature to Google Play Services. Includes opt-in toggle to force the Google Maps engine. |
 | **Moovit Custom Maps API Key** | `resourcePatch` | `false` (Opt-in) | None | Injects the required personal Google Maps API key into AndroidManifest.xml and web-service strings. |
+| **Use Places API (New)** | `bytecodePatch` | `true` (Enabled) | `Fix Google Maps` | Redirects search autocomplete from the legacy Places API to Places API (New). Requires Places API (New) to be enabled for the API key. |
 | **Remove Ads** | `bytecodePatch` | `true` (Enabled) | None | Hides banner and inline ads and neutralizes ad unit ID lookups. |
 | **Suppress Paywalls** | `bytecodePatch` | `true` (Enabled) | None | Suppresses subscription paywalls, onboarding upgrade dialogs, and promotional cards. |
 | **Unlock Moovit+** | `bytecodePatch` | `true` (Enabled) | None | Unlocks Moovit+ premium subscription features locally, including Safe Ride and address search in favorites. |
@@ -63,12 +64,21 @@ Note: `versionCode 1809` corresponds to the actual build versionCode assigned on
    ##### Step 1: Create an API Key in Google Cloud Console
    1. Open the [Google Cloud Console](https://console.cloud.google.com/).
    2. Create a new project (e.g. "Moovit Personal") or select an existing project.
-   3. Go to **APIs & Services > Library**, search for **Maps SDK for Android**, and click **Enable**.
+   3. Go to **APIs & Services > Library** and enable:
+      - **Maps SDK for Android** - map rendering.
+      - **Places API (New)** - place/address autocomplete.
+      - **Geocoding API** - resolving selected places and addresses.
    4. Go to **APIs & Services > Credentials**, click **Create Credentials** at the top, and select **API key**.
    5. Copy the generated API key.
 
+   > **Places API (Legacy) is not available in new Cloud projects.** The **Use Places API (New)** patch switches Moovit to the new endpoint, so the legacy API does not need to be enabled.
+
    ##### Step 2: Configure Key Restrictions (Recommended)
    - On the Credentials page, click on the newly created API key to edit its settings.
+   - Under **API restrictions**, either select **Don't restrict key**, or allow:
+     - **Maps SDK for Android**
+     - **Places API (New)**
+     - **Geocoding API**
    - Under **Set application restrictions**, select **Android apps**.
    - Click **Add an item** and enter:
      - **Package name**: `com.tranzmate`
@@ -106,17 +116,21 @@ Note: `versionCode 1809` corresponds to the actual build versionCode assigned on
    [Fix Google Maps] A personal Google Maps API key is required. See docs/apps/moovit.md, section Fix Google Maps.
    ```
 
-3. **Remove Ads**:
+3. **Use Places API (New)**:
+   - **Objective**: Keep search working now that legacy Places API is unavailable in new Cloud projects.
+   - **How**: Locates the search provider selector in `DefaultSearchLocationCallback` and forces the Places API (New) provider branch. Search autocomplete then uses `https://places.googleapis.com/v1/places:autocomplete` instead of the legacy `maps/api/place/autocomplete/json` endpoint. The patch finds the legacy and new provider classes through their `google_place_autocomplete_legacy` / `google_place_autocomplete` markers, so it does not depend on obfuscated class names.
+
+4. **Remove Ads**:
    - **Objective**: Remove banner and inline advertisements.
    - **How**: Hides advertisement views and returns empty strings for ad unit lookups.
 
-4. **Suppress Paywalls**:
+5. **Suppress Paywalls**:
    - **Objective**: Prevent subscription dialogs and upgrade popups from interrupting navigation.
-   - **How**: Bypasses onboarding upgrade flows, dismisses purchase dialogs, and hides premium promotional cards.
+   - **How**: Finishes `MoovitSubscriptionOnBoardingActivity` and `MoovitSubscriptionActivity` on creation, hides `MoovitSubscriptionMenuItemFragment` and help center menu items, dismisses `MoovitPlusPackagePopupFragment`, suppresses promo cells, and forces the `goPremiumCard` view to GONE visibility.
 
-5. **Unlock Moovit+**:
+6. **Unlock Moovit+**:
    - **Objective**: Enable Moovit+ premium features locally.
-   - **How**: Forces subscription status checks to return true and activates Safe Ride and favorite address search flags.
+   - **How**: Forces subscription status checks to return true, sets `SubscriptionPackage` state to `ACTIVE` on initialization, and activates Safe Ride and favorite address search flags.
 
 ---
 
@@ -129,6 +143,8 @@ None related to resource trimming.
 ## 5. Known Limitations
 
 If map tiles stay blank on very new Android versions, capture the "[Fix Google Maps]" verdict lines from the log when reporting.
+
+If search returns only stops/lines and no Places/Locations section, verify that **Places API (New)** and **Geocoding API** are enabled and allowed by the API key restrictions. The **Use Places API (New)** patch must also be enabled.
 
 ---
 

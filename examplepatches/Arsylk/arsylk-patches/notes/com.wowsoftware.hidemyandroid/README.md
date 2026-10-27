@@ -79,3 +79,33 @@ values spread across coroutine state machines) and are **pinned to the 1.7.1 obf
 
 The Morphe `.mpp` (steps 1–6) is the **complete, self-contained crack** — `morphe-desktop patch -p
 patches-1.0.0.mpp <apk>` produces the working, signed APK, no external toolkit.
+
+## 1.7.5 (versionCode 175)
+
+Same architecture as 1.7.2 (backend-issued Ed25519-signed token; `evalBlobNative` is the single
+native verdict). Re-derived pins:
+
+| Pin | 1.7.2 | 1.7.5 |
+|---|---|---|
+| LicenseStore premium flag | `Lcb/h;->c:Z` | `Leb/h;->c:Z` (still written straight from the eval wrapper `DeviceInfoProvider.f(...)Z` in the validate coroutine `Lsa/h1;`) |
+| Tier-2 identity (cached signed-licence blob) | `Lxa/k;->a` | `Lza/s;->a` (identity object moved to package `za`) |
+| Account-gated premium state | `Lqa/v0;`, `Lqa/z0;` | `Lsa/l1;` (StartupRepository — the premium `MutableStateFlow` `j`, created `Boolean.FALSE`, no-token and refresh-failure paths emit FALSE), `Lgb/c;` (account VM — logout emits FALSE into it) |
+
+The non-obfuscated `DeviceInfoProvider` JNI anchors (`evalBlobNative`, `bootstrapRuntime`,
+`installWatchdog`) survive unchanged, so steps 1, 4 and 6 need no re-derivation.
+
+**Step 7 change for 1.7.5:** the blanket `Boolean.FALSE` → `TRUE` rewrite is now emission-aware.
+`Lsa/l1;` also *compares* against FALSE for readiness checks (`x.equals(Boolean.FALSE)`), and
+flipping that operand makes the app report "App is not ready". The rewrite now only touches loads
+whose first consumer is a premium-StateFlow write (`Lid/g0;->j` setValue / `Lid/w;->b` factory),
+walking forward until the register is consumed or redefined — a load consumed by anything else
+first (the equality check) is left alone even if the same register is later reused for an emission
+on another control-flow path.
+
+Validated: built to `.mpp`, applied with morphe-desktop to `hidemyandroid-1.7.5.apk`; all steps
+confirmed in the patched DEX (forced eval verdict, 0 remaining flag reads, forced blob field,
+selective FALSE→TRUE with the comparison preserved, both anti-tamper callers no-op'd). On device
+(rooted Pixel 8, module enabled): the home screen reads **Premium Account** (the original build
+reads Free Account). Note the app gates a "System Framework" status on the module being injected
+into system_server; on the test device no module at all is injected there (framework limitation),
+so that status stays Inactive — the premium unlock itself is unaffected.

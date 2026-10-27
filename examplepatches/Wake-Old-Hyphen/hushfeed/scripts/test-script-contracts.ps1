@@ -3894,6 +3894,9 @@ Write-Host '[scripts] adb device lease contracts passed'
 & (Join-Path $Root 'scripts/test-storage-probe.ps1') -Root $Root
 & (Join-Path $Root 'scripts/test-verification-profile.ps1') -Root $Root
 & (Join-Path $Root 'tools/verification-probe/test-pinedrama.ps1') -Root $Root
+& (Join-Path $Root 'scripts/test-pinedrama-core.ps1') -Root $Root
+& (Join-Path $Root 'scripts/test-pinedrama-walk-lease.ps1') -Root $Root
+& (Join-Path $Root 'tools/verification-probe/test-pinedrama-core.ps1')
 & (Join-Path $Root 'scripts/test-fixture-jobs.ps1') -Root $Root
 & (Join-Path $Root 'scripts/test-release-publication.ps1') -Root $Root
 & (Join-Path $Root 'scripts/test-walk-receipt.ps1')
@@ -3903,6 +3906,7 @@ Write-Host '[scripts] adb device lease contracts passed'
 & (Join-Path $Root 'scripts/test-walk-app.ps1')
 & (Join-Path $Root 'scripts/test-device-lease.ps1')
 & (Join-Path $Root 'audit/test-evidence.ps1')
+& (Join-Path $Root 'scripts/test-auto-advance-watch.ps1') -Root $Root
 
 $global:LASTEXITCODE = 0
 Write-Host '[scripts] report, target, Java and guarded replacement contracts passed'

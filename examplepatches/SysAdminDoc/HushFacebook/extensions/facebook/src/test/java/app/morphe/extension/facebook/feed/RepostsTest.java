@@ -152,7 +152,7 @@ public class RepostsTest {
         GraphQLStory gone = new GraphQLStory();
         gone.released();
         assertFalse("a released shared story", guard(new GraphQLStory(gone), stand));
-        PostText.cachedMembers = new PostText.Members(null, null, null, null);
+        PostText.cachedMembers = new PostText.Members(null, null, null, null, null, null);
         assertFalse("a build without GraphQLStory", guard(share(), stand));
 
         assertEquals(PostText.REPOST_ROUTE + ": 7 lists, 7 items, 0 removed. Kinds: accessor not patched 1, "

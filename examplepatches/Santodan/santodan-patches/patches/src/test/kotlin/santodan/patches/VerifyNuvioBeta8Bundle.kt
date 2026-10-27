@@ -28,6 +28,7 @@ fun main(args: Array<String>) = runBlocking {
     val originals = mutableMapOf<String, ClassDef>()
     val libraryTypes = setOf("Lba/e1;", "Lq9/i;", "Lq9/j;", "Lba/lc;", "Lca/h3;", "Lu9/g6;",
         "Lba/q8;", "Lca/f7;", "Lu9/b3;")
+    val localStores = setOf("Lcom/nuvio/tv/data/local/vb;", "Lcom/nuvio/tv/data/local/mc;")
     val pickerCallers = mutableListOf<String>()
     val originalDex = File(args[2], "original-dex").apply { mkdirs() }
     ZipFile(args[0]).use { zip ->
@@ -35,7 +36,7 @@ fun main(args: Array<String>) = runBlocking {
             zip.getInputStream(entry).use { input -> File(originalDex, entry.name).outputStream().use { input.copyTo(it) } }
             zip.getInputStream(entry).buffered().use { input ->
                 for (owner in DexBackedDexFile.fromInputStream(null, input).classes) {
-                    if (owner.type in libraryTypes || owner.type in setOf("Lab/fh;", "Lab/qm;", "Lab/mc;")) originals[owner.type] = owner
+                    if (owner.type in libraryTypes || owner.type in localStores || owner.type in setOf("Lab/fh;", "Lab/qm;", "Lab/mc;")) originals[owner.type] = owner
                     for (method in owner.methods) for (instruction in method.implementation?.instructions ?: emptyList()) {
                         val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: continue
                         if (ref.toString() == "Lab/fh;->E(Lab/mc;Lcom/nuvio/tv/domain/model/Video;Z)V")
@@ -82,7 +83,45 @@ fun main(args: Array<String>) = runBlocking {
         !type.isPrimitive -> "L${type.name.replace('.', '/')};"
         else -> mapOf("void" to "V", "boolean" to "Z", "byte" to "B", "char" to "C", "short" to "S", "int" to "I", "long" to "J", "float" to "F", "double" to "D").getValue(type.name)
     }
+    // java.lang.Enum cannot be loaded from android.jar by a JVM ClassLoader (bootstrap wins).
+    // Read its SDK definitions rather than hiding inherited enum calls or trusting the host JDK API.
+    val bootMethods = mutableMapOf<String, Set<String>>()
+    fun sdkMethods(type: String): Set<String> = bootMethods.getOrPut(type) {
+        ZipFile(File(args[3], "platforms/android-36/android.jar")).use { sdk ->
+            val entry = sdk.getEntry(type.substring(1, type.length - 1) + ".class") ?: return@getOrPut emptySet()
+            java.io.DataInputStream(sdk.getInputStream(entry).buffered()).use { data ->
+                check(data.readInt() == 0xcafebabe.toInt())
+                data.readUnsignedShort(); data.readUnsignedShort()
+                val strings = arrayOfNulls<String>(data.readUnsignedShort())
+                var index = 1
+                while (index < strings.size) {
+                    when (val tag = data.readUnsignedByte()) {
+                        1 -> strings[index] = data.readUTF()
+                        3, 4, 9, 10, 11, 12, 17, 18 -> data.readInt()
+                        5, 6 -> { data.readLong(); index++ }
+                        7, 8, 16, 19, 20 -> data.readUnsignedShort()
+                        15 -> { data.readUnsignedByte(); data.readUnsignedShort() }
+                        else -> error("Unknown SDK constant pool tag $tag")
+                    }
+                    index++
+                }
+                fun attributes() { repeat(data.readUnsignedShort()) {
+                    data.readUnsignedShort(); val size = data.readInt()
+                    data.readFully(ByteArray(size))
+                } }
+                repeat(3) { data.readUnsignedShort() }
+                repeat(data.readUnsignedShort()) { data.readUnsignedShort() }
+                repeat(data.readUnsignedShort()) { repeat(3) { data.readUnsignedShort() }; attributes() }
+                buildSet { repeat(data.readUnsignedShort()) {
+                    data.readUnsignedShort()
+                    add(requireNotNull(strings[data.readUnsignedShort()]) + requireNotNull(strings[data.readUnsignedShort()]))
+                    attributes()
+                } }
+            }
+        }
+    }
     fun frameworkDefines(type: String, signature: String): Boolean {
+        if (type.startsWith("Ljava/")) return signature in sdkMethods(type)
         if (!type.startsWith("Landroid/")) return false
         val owner = frameworkLoader.loadClass(type.substring(1, type.length - 1).replace('/', '.'))
         return owner.methods.any { method ->
@@ -256,6 +295,20 @@ fun main(args: Array<String>) = runBlocking {
                                 check(entry[1].opcode == Opcode.MOVE_RESULT &&
                                     (entry[1] as OneRegisterInstruction).registerA == method.implementation!!.registerCount - 1)
                             }
+                            if ((combined || mergeOnly) && owner.type in localStores) {
+                                val names = if (owner.type.endsWith("/vb;")) setOf("C", "D", "A", "B") else setOf("p", "q")
+                                if (method.name in names) {
+                                    val body = instructions.toList()
+                                    check(body.size == 3 && body[0].opcode == Opcode.INVOKE_STATIC_RANGE &&
+                                        body[1].opcode == Opcode.MOVE_RESULT_OBJECT && body[2].opcode == Opcode.RETURN_OBJECT)
+                                    val native = originals.getValue(owner.type).methods.single { it.name == method.name }
+                                    val saved = owner.methods.single { it.name == "santodanLocal${method.name}" }
+                                    check(saved.parameterTypes == native.parameterTypes && saved.accessFlags == native.accessFlags)
+                                    check(NuvioPlaybackButtonsPatch.fingerprint(MutableMethod(saved)) == NuvioPlaybackButtonsPatch.fingerprint(MutableMethod(native)))
+                                    check((body[0] as RegisterRangeInstruction).startRegister == 0 &&
+                                        (body[0] as RegisterRangeInstruction).registerCount == native.parameterTypes.size + 1)
+                                }
+                            }
                             if ((combined || mergeOnly) && owner.type == "Lba/ad;" && method.name == "invokeSuspend") {
                                 val entry = instructions.toList()
                                 val returns = entry.indices.filter { entry[it].opcode == Opcode.RETURN_OBJECT }
@@ -327,11 +380,14 @@ fun main(args: Array<String>) = runBlocking {
             }
             }
             if (combined || mergeOnly) {
-                for (hook in listOf("registerNavigation", "activityResumed", "activityPaused", "activityDestroyed", "playbackScrobblers", "homePipelineStarted"))
+                for (hook in listOf("registerNavigation", "activityResumed", "activityPaused", "activityDestroyed", "playbackScrobblers", "homePipelineStarted",
+                    "localSave", "localSaveBatch", "localRemove", "localRemoveBatch", "localUnwatch", "localUnwatchBatch"))
                     check(mergeHooks[hook] == 1) { "Expected one merge $hook hook: $mergeHooks" }
                 check(mergeHooks["syncLocalProgress"] == 2 && mergeHooks["mergedProvider"] == 1)
                 check("setPlaybackPaused" !in mergeHooks) { "Search pause must not control merged sync" }
                 check("Lsoftware/santodan/extension/nuviomerged/NuvioMergePolicy;" in classes)
+                check("Lsoftware/santodan/extension/nuviomerged/NuvioLocalWriteContinuation;" in classes)
+                check("Lsoftware/santodan/extension/nuviomerged/NuvioPlaybackJournal;" in classes)
                 check("Lsoftware/santodan/extension/nuviomerged/NuvioSyncBanner;" in classes)
                 check("Lsoftware/santodan/extension/nuviomerged/NuvioMergeWork\$HomeRequests;" in classes)
                 check("Lsoftware/santodan/extension/nuviomerged/NuvioSyncBanner;->update(Landroid/app/Activity;Ljava/lang/String;IIZZ)V" in definitions)
@@ -360,6 +416,8 @@ fun main(args: Array<String>) = runBlocking {
             if (mergeOnly || combined) {
                 check(resolves("Lsoftware/santodan/extension/nuviomerged/NuvioStartupActivity;->getPackageName()Ljava/lang/String;"))
                 check(!resolves("Lsoftware/santodan/extension/nuviomerged/NuvioStartupActivity;->missingFrameworkMethod()V"))
+                check(resolves("Lsoftware/santodan/extension/nuviomerged/NuvioLocalOverlay\$Action;->ordinal()I"))
+                check(!resolves("Lsoftware/santodan/extension/nuviomerged/NuvioLocalOverlay\$Action;->missingEnumMethod()V"))
             }
             check(coroutineCalls.all { resolves(it) }) {
                 "Missing native coroutine APIs: ${coroutineCalls.filter { !resolves(it) }}"

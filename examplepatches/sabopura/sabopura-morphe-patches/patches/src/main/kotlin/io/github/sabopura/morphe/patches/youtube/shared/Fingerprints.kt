@@ -11,7 +11,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 internal object PlayerControllerSetTimeReferenceFingerprint : Fingerprint(
-    strings = listOf("Media progress reported outside media playback: "),
+    strings = listOf("Media progress reported outside media playback: %s"),
     filters = listOf(
         // 21.42 inserts a feature-flag check right after this call, so match the
         // media-progress constructor itself instead of the instruction that follows it.
@@ -25,7 +25,7 @@ internal object PlayerControllerSetTimeReferenceFingerprint : Fingerprint(
 )
 
 internal object LegacyPlayerControllerSetTimeReferenceFingerprint : Fingerprint(
-    strings = listOf("Media progress reported outside media playback: "),
+    strings = listOf("Media progress reported outside media playback: %s"),
     filters = OpcodesFilter.opcodesToFilters(
         Opcode.INVOKE_DIRECT_RANGE,
         Opcode.IGET_OBJECT,

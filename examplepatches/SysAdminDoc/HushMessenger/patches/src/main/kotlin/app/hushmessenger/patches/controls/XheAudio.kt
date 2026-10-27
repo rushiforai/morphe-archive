@@ -73,9 +73,14 @@ internal fun Method.shareCopySite(): Int? {
     return sites.singleOrNull()
 }
 
-/** A no-argument `call()` that names its copies orca_share_media and ends one copy as [shareCopySite] reads it. */
+/**
+ * A no-argument `call()`, or the static body Redex moves it into in some 584.1 arm64 builds (its one parameter is its
+ * own class), that names its copies orca_share_media and ends one copy as [shareCopySite] reads it.
+ */
 internal fun Method.isShareCopy(): Boolean =
-    name == "call" && parameterTypes.isEmpty() && returnType == "Ljava/lang/Object;" &&
+    returnType == "Ljava/lang/Object;" &&
+        ((name == "call" && parameterTypes.isEmpty() && !AccessFlags.STATIC.isSet(accessFlags)) ||
+            (AccessFlags.STATIC.isSet(accessFlags) && parameterTypes.map { it.toString() } == listOf(definingClass))) &&
         implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == SHARE_MEDIA_NAME } == true &&
         shareCopySite() != null
 

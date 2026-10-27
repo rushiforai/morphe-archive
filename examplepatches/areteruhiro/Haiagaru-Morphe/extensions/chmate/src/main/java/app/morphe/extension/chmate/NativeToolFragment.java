@@ -148,6 +148,7 @@ public final class NativeToolFragment extends android.app.Fragment {
     public void openSettingsFile(){
         startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT).setType("*/*").addCategory(Intent.CATEGORY_OPENABLE),SettingsProfiles.OPEN);
     }
+    boolean navigateHistory(boolean forward){return content!=null&&content.navigateHistory(forward);}
     @Override public void onActivityResult(int request,int result,Intent data){
         super.onActivityResult(request,result,data);
         if(request==SettingsProfiles.OPEN&&result==Activity.RESULT_OK&&data!=null&&data.getData()!=null&&host!=null)

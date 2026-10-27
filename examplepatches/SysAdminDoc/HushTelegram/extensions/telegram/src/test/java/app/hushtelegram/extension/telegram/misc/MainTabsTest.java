@@ -13,15 +13,20 @@ import app.hushtelegram.extension.shared.settings.PauseForTests;
 import app.hushtelegram.extension.shared.settings.SettingReadsForTests;
 import app.hushtelegram.extension.telegram.settings.FamilyNames;
 import app.hushtelegram.extension.telegram.settings.Settings;
+import android.app.Activity;
 import android.view.View;
+import android.widget.FrameLayout;
+import java.util.ArrayList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.android.controller.ActivityController;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -37,6 +42,7 @@ public class MainTabsTest {
         Settings.COMPACT_TAB_BAR.resetToDefault();
         SettingReadsForTests.mend(Settings.HIDE_NEW_MESSAGE);
         Settings.HIDE_NEW_MESSAGE.resetToDefault();
+        MainTabs.clearNewMessageButtonsForTests();
         HookStatus.clear();
     }
 
@@ -189,7 +195,108 @@ public class MainTabsTest {
         Settings.HIDE_NEW_MESSAGE.save(true);
         MainTabs.newMessageButton(null);
         MainTabs.newMessageButton("not a view");
+        MainTabs.newMessageDone(null);
+        MainTabs.newMessageVisibility("not a view", View.VISIBLE);
         assertTrue(HookStatus.missing(FamilyNames.HIDE_CONTACTS_TAB).isEmpty());
+    }
+
+    @Test public void animationFramesCannotReshowComposeOrHideOtherFloatingViews() {
+        Settings.HIDE_NEW_MESSAGE.save(true);
+        View compose = new View(RuntimeEnvironment.getApplication());
+        View story = new View(RuntimeEnvironment.getApplication());
+        View done = new View(RuntimeEnvironment.getApplication());
+        View progress = new View(RuntimeEnvironment.getApplication());
+        View contacts = new View(RuntimeEnvironment.getApplication());
+        MainTabs.newMessageButton(compose);
+        MainTabs.newMessageDone(done);
+        for (int visibility : new int[] {View.GONE, View.VISIBLE, View.VISIBLE, View.GONE, View.VISIBLE}) {
+            // The native animator decides visibility again after the compose icon was assigned.
+            MainTabs.newMessageVisibility(compose, visibility);
+            assertEquals(View.GONE, compose.getVisibility());
+            for (View other : new View[] {story, done, progress, contacts}) {
+                MainTabs.newMessageVisibility(other, visibility);
+                assertEquals(visibility, other.getVisibility());
+            }
+        }
+    }
+
+    @Test public void doneRoleRestoresTheLatestNativeVisibilityAndStopsFilteringThatInstance() {
+        Settings.HIDE_NEW_MESSAGE.save(true);
+        View button = new View(RuntimeEnvironment.getApplication());
+        MainTabs.newMessageButton(button);
+        MainTabs.newMessageVisibility(button, View.VISIBLE);
+        // Reassigning the compose icon must not mistake our GONE for Telegram's requested state.
+        MainTabs.newMessageButton(button);
+        MainTabs.newMessageDone(button);
+        assertEquals(View.VISIBLE, button.getVisibility());
+        MainTabs.newMessageVisibility(button, View.VISIBLE);
+        assertEquals(View.VISIBLE, button.getVisibility());
+
+        MainTabs.newMessageButton(button);
+        MainTabs.newMessageVisibility(button, View.GONE);
+        MainTabs.newMessageDone(button);
+        assertEquals("a natively hidden Done button stays hidden", View.GONE, button.getVisibility());
+    }
+
+    @Test public void hiddenComposeIsExcludedFromNativeTouchAndAccessibilityChildren() {
+        ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup();
+        try {
+            Activity activity = controller.get();
+            FrameLayout parent = new FrameLayout(activity);
+            View compose = new View(activity);
+            compose.setClickable(true);
+            compose.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+            parent.addView(compose, new FrameLayout.LayoutParams(64, 64));
+            activity.setContentView(parent);
+            controller.visible();
+            parent.measure(View.MeasureSpec.makeMeasureSpec(320, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+            parent.layout(0, 0, 320, 480);
+            assertTrue(compose.isAttachedToWindow());
+            Settings.HIDE_NEW_MESSAGE.save(true);
+            MainTabs.newMessageButton(compose);
+            MainTabs.newMessageVisibility(compose, View.VISIBLE);
+            assertFalse(parent.getTouchables().contains(compose));
+            ArrayList<View> accessible = new ArrayList<>();
+            parent.addChildrenForAccessibility(accessible);
+            assertFalse(accessible.contains(compose));
+
+            Settings.HIDE_NEW_MESSAGE.save(false);
+            MainTabs.newMessageVisibility(compose, View.VISIBLE);
+            assertTrue(parent.getTouchables().contains(compose));
+            parent.addChildrenForAccessibility(accessible);
+            assertTrue(accessible.contains(compose));
+        } finally {
+            controller.pause().stop().destroy();
+        }
+    }
+
+    @Test public void offPauseEarlyContextAndReadFailurePassThroughNativeVisibility() {
+        View button = new View(RuntimeEnvironment.getApplication());
+        Settings.HIDE_NEW_MESSAGE.save(true);
+        MainTabs.newMessageButton(button);
+        assertEquals(View.GONE, button.getVisibility());
+        Settings.HIDE_NEW_MESSAGE.save(false);
+        MainTabs.newMessageVisibility(button, View.VISIBLE);
+        assertEquals(View.VISIBLE, button.getVisibility());
+        MainTabs.newMessageVisibility(button, View.INVISIBLE);
+        assertEquals(View.INVISIBLE, button.getVisibility());
+        Settings.HIDE_NEW_MESSAGE.save(true);
+        for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+            if (reason == HushTelegramPause.Reason.NONE) continue;
+            PauseForTests.pause(reason);
+            MainTabs.newMessageVisibility(button, View.VISIBLE);
+            assertEquals(reason.name(), View.VISIBLE, button.getVisibility());
+            PauseForTests.resume();
+        }
+        SettingsContextRule.withoutContext(() -> {
+            MainTabs.newMessageVisibility(button, View.VISIBLE);
+            assertEquals(View.VISIBLE, button.getVisibility());
+        });
+        SettingReadsForTests.breakReads(Settings.HIDE_NEW_MESSAGE);
+        MainTabs.newMessageVisibility(button, View.VISIBLE);
+        assertEquals(View.VISIBLE, button.getVisibility());
+        assertFalse(HookStatus.missing(FamilyNames.HIDE_CONTACTS_TAB).isEmpty());
     }
 
     @Test public void pausingAnEarlyStartOrAnUnreadableSwitchKeepsTheButton() {

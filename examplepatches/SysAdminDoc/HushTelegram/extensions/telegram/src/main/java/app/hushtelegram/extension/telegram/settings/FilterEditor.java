@@ -12,6 +12,7 @@ import android.text.InputFilter;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
@@ -159,6 +160,8 @@ final class FilterEditor {
                 .setNegativeButton(L10n.t("Cancel"), null)
                 .show();
         ScreenColors.dialog(dialog);
+        // The keyboard makes room rather than covering Save and Cancel.
+        if (dialog.getWindow() != null) dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         // Set after show, so neither one closes the dialog on its own.
         Button tryIt = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
         tryIt.setOnClickListener(v -> {

@@ -55,6 +55,7 @@ public final class FamilyNames {
     public static final String FOLLOWING_FEED = "Start Home on Following";
     public static final String SWIPE_TO_CREATE = "Stop swipe to create";
     public static final String TAB_SWIPE = "Stop swiping between tabs";
+    public static final String TAB_BAR_LAYOUT = "Tab bar layout";
     public static final String FULL_RESOLUTION = "Full resolution photos";
     public static final String META_AI = "Hide Meta AI";
     public static final String EXPLORE_GRID = "Hide the Explore grid";

@@ -49,8 +49,8 @@ object Constants {
     )
 
     const val TWITTER_PACKAGE_NAME = "com.twitter.android"
-    const val TWITTER_TARGET_VERSION = "12.36.1-prod.01"
-    const val TWITTER_INPUT_SHA256 = "0bef573e442f4aa7dd6111467859b97644d6e3bd2c8d6aadff3cffc175e1d6d2"
+    const val TWITTER_TARGET_VERSION = "12.37.2-prod.01"
+    const val TWITTER_INPUT_SHA256 = "96cf1742acfd28a70fd8dc1e6603cc4d00bbc3925abcfe1d086235c525a8e75d"
 
     val COMPATIBILITY_TWITTER = Compatibility(
         name = "X",
@@ -60,14 +60,14 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = TWITTER_TARGET_VERSION,
-                description = "Download com.twitter.android v$TWITTER_TARGET_VERSION (APKM) arm64-v8a 120-640dpi versionCode 312361001 (BUNDLE 35 S) from APKMirror",
+                description = "Download com.twitter.android v$TWITTER_TARGET_VERSION (APKM) arm64-v8a 120-640dpi versionCode 312372001 (BUNDLE 35 S) from APKMirror",
             )
         )
     )
 
     const val MOOVIT_PACKAGE_NAME = "com.tranzmate"
-    const val MOOVIT_TARGET_VERSION = "5.201.1.1809"
-    const val MOOVIT_INPUT_SHA256 = "135e7a1964dd71395e6e2f00625d555d9efddb6c1d0b320dffd6f0bb12e4863d"
+    const val MOOVIT_TARGET_VERSION = "5.203.0.1812"
+    const val MOOVIT_INPUT_SHA256 = "d0a819ca0c5512612a38a88db0664963ef9da89222d058ae9b42682462e5524c"
 
     val COMPATIBILITY_MOOVIT = Compatibility(
         name = "Moovit",
@@ -77,7 +77,7 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = MOOVIT_TARGET_VERSION,
-                description = "Download com.tranzmate v$MOOVIT_TARGET_VERSION (APKM) arm64-v8a 160-640dpi versionCode 1809 (BUNDLE 31 S) from APKMirror",
+                description = "Download com.tranzmate v$MOOVIT_TARGET_VERSION (APKM) arm64-v8a 160-640dpi versionCode 1812 (BUNDLE 31 S) from APKMirror",
             )
         )
     )
@@ -112,23 +112,6 @@ object Constants {
             AppTarget(
                 version = CAPCUT_TARGET_VERSION,
                 description = "Download com.lemon.lvoverseas v$CAPCUT_TARGET_VERSION (APK) arm64-v8a nodpi versionCode 19900002 from APKMirror",
-            )
-        )
-    )
-
-    const val OFFICEHUB_PACKAGE_NAME = "com.microsoft.office.officehubrow"
-    const val OFFICEHUB_TARGET_VERSION = "16.0.20604.20012"
-    const val OFFICEHUB_INPUT_SHA256 = "09b0ba87a2d8e630c5bc1b807b3f9cb7db3135f2e8d582fe51fdf923bf3c1201"
-
-    val COMPATIBILITY_OFFICEHUB = Compatibility(
-        name = "Copilot",
-        packageName = OFFICEHUB_PACKAGE_NAME,
-        apkFileType = ApkFileType.APKM,
-        appIconColor = 0x109CF0,
-        targets = listOf(
-            AppTarget(
-                version = OFFICEHUB_TARGET_VERSION,
-                description = "Download $OFFICEHUB_PACKAGE_NAME v$OFFICEHUB_TARGET_VERSION (APKM) arm64-v8a 120-480dpi versionCode 45489613 (BUNDLE 32 S) from APKMirror",
             )
         )
     )
@@ -214,6 +197,40 @@ object Constants {
             AppTarget(
                 version = SDMSE_TARGET_VERSION,
                 description = "Download eu.darken.sdmse v$SDMSE_TARGET_VERSION (APK) FOSS-RELEASE versionCode 20202000",
+            )
+        )
+    )
+
+    const val WORD_PACKAGE_NAME = "com.microsoft.office.word"
+    const val WORD_TARGET_VERSION = "16.0.20527.20034"
+    const val WORD_INPUT_SHA256 = "a8a49a89eb2ec077049cfcb9ffbd68467597ab6a22dc032801496f37884d3213"
+
+    val COMPATIBILITY_WORD = Compatibility(
+        name = "Word",
+        packageName = WORD_PACKAGE_NAME,
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x2B579A,
+        targets = listOf(
+            AppTarget(
+                version = WORD_TARGET_VERSION,
+                description = "Download com.microsoft.office.word v$WORD_TARGET_VERSION (APKM) arm64-v8a 120-480dpi versionCode 2005437911 from APKMirror",
+            )
+        )
+    )
+
+    const val IBIS_PAINT_PACKAGE_NAME = "jp.ne.ibis.ibispaintx.app"
+    const val IBIS_PAINT_TARGET_VERSION = "14.1.2"
+    const val IBIS_PAINT_INPUT_SHA256 = ""
+
+    val COMPATIBILITY_IBIS_PAINT = Compatibility(
+        name = "IbisPaint X",
+        packageName = IBIS_PAINT_PACKAGE_NAME,
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x0B649B,
+        targets = listOf(
+            AppTarget(
+                version = IBIS_PAINT_TARGET_VERSION,
+                description = "Download jp.ne.ibis.ibispaintx.app v$IBIS_PAINT_TARGET_VERSION (XAPK bundle) from APKPure",
             )
         )
     )

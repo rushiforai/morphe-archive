@@ -22,6 +22,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.telegram.misc.api.passkeyGatePatch
 import app.morphe.patches.telegram.misc.api.signInHelpPatch
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.telegram.misc.extension.TELEGRAM_APPLICATION
@@ -684,10 +685,11 @@ val settingsPatch = bytecodePatch(
     default = true,
 ) {
     category("Settings")
-    // Sign-in help and the dialogs' theme ride along here because every selection carries this
-    // patch, the default one that issue #11 patched with included. The chat list title's long
-    // press is optional and says so itself when Telegram's chat list changes shape.
-    dependsOn(telegramExtensionPatch, settingsManifestPatch, signInHelpPatch, appThemePatch, chatListTitlePressPatch)
+    // Sign-in help, the passkey gate and the dialogs' theme ride along here because every selection
+    // carries this patch, the default one that issue #11 patched with included. The chat list
+    // title's long press is optional and says so itself when Telegram's chat list changes shape.
+    dependsOn(telegramExtensionPatch, settingsManifestPatch, signInHelpPatch, passkeyGatePatch, appThemePatch,
+        chatListTitlePressPatch)
     compatibleWith(*AppCompatibilities.telegram())
 
     execute {

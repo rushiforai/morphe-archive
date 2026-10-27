@@ -9,6 +9,7 @@ import android.app.AlertDialog;
 import android.preference.Preference;
 import android.text.InputType;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 
 import app.hushtelegram.extension.shared.L10n;
@@ -69,6 +70,8 @@ final class TranslateServiceEditor {
                 .setNegativeButton(L10n.t("Cancel"), null)
                 .show();
         ScreenColors.dialog(dialog);
+        // The keyboard makes room rather than covering Save and Cancel.
+        if (dialog.getWindow() != null) dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         // Set after show, so a service that can't be saved keeps the dialog and what was typed.
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String a = address.getText().toString(), m = model.getText().toString(), k = key.getText().toString();

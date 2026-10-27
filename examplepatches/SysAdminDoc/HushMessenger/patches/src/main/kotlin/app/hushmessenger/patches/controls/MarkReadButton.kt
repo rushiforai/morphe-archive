@@ -191,6 +191,22 @@ internal fun Method.markReadFactorySite(): MarkReadFactory? {
     return MarkReadFactory(site, list, session, thread, mig, scratch)
 }
 
+/**
+ * The narrow constant a register holds at [target], following plain moves to the register they copy. The 584.1 armv7
+ * bar hoists the listener case into a high register and moves it down at the call, so the definition is not always a
+ * literal. Null unless one definition reaches each step.
+ */
+private fun ReadFlow.narrowConstantAt(target: Int, register: Int, depth: Int = 4): Int? {
+    if (depth < 0) return null
+    val definition = definitionsAt(target, register).singleOrNull()?.takeIf { it >= 0 } ?: return null
+    val instruction = code[definition]
+    if (instruction is NarrowLiteralInstruction &&
+        instruction.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST)) return instruction.narrowLiteral
+    if (instruction is TwoRegisterInstruction && instruction.opcode.toString().startsWith("MOVE") &&
+        !instruction.opcode.toString().startsWith("MOVE_RESULT")) return narrowConstantAt(definition, instruction.registerB, depth - 1)
+    return null
+}
+
 /** Reads the recipe from the one builder that names the QR scanner plugin and reads it from the socket, or null. */
 internal fun resolveMarkReadRecipe(classes: Iterable<ClassDef>): MarkReadRecipe? {
     val byType = classes.associateBy { it.type }
@@ -251,10 +267,8 @@ internal fun resolveMarkReadRecipe(classes: Iterable<ClassDef>): MarkReadRecipe?
                 val args = insn.markArgs()
                 if (ref.params() == listOf("Ljava/lang/Object;", "I") && args.getOrNull(1) == pluginRead.registerA) {
                     listener = ref.definingClass
-                    // The case is a constant set wherever the method keeps it, so it's the one definition that reaches the call.
-                    listenerCase = flow.definitionsAt(i, args[2]).singleOrNull()?.takeIf { it >= 0 }?.let { def ->
-                        (c[def] as? NarrowLiteralInstruction)?.takeIf { c[def].opcode == Opcode.CONST_4 || c[def].opcode == Opcode.CONST_16 }?.narrowLiteral
-                    }
+                    // The case is a constant set wherever the method keeps it, so follow any plain move to the call.
+                    listenerCase = flow.narrowConstantAt(i, args[2])
                     listenerRegister = args[0]
                 } else if (ref.params() == listOf(builder)) spec = ref.definingClass
             }

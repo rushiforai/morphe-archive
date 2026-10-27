@@ -28,7 +28,7 @@ tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Generate metadata for the current patch bundle"
 
-        dependsOn(build)
+        dependsOn(build, "buildAndroid")
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")

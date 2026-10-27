@@ -31,9 +31,8 @@ import java.util.List;
 import app.morphe.extension.shared.SettingsContextRule;
 
 /**
- * The settings page is long enough that reaching Downloads took several screens of swiping on a
- * phone. A row at the top lists the sections, a tap on one scrolls its heading to the top, and Back
- * goes back once to where the list was before closing the page as it always did.
+ * Every category stays on the main list. A requested section expands in place and scrolls into
+ * view; Back closes settings without walking through a category history.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30, qualifiers = "w411dp-h891dp-xxhdpi")
@@ -56,35 +55,32 @@ public class SectionJumpTest {
     }
 
     @Test
-    public void theRowUnderTheStatusCardListsEverySectionInOrder() {
+    public void theMainListContainsEverySectionInOrderWithoutAMoreHub() {
         SettingsDialog dialog = show();
         HushfacebookPreferenceFragment page = page(dialog);
         ListView list = laidOut(dialog);
 
-        // Quick setups sits between the status card and the sections.
-        assertEquals(SettingsNavigation.QUICK_SETUPS, ((Preference) list.getItemAtPosition(1)).getKey());
-        assertEquals("Browse settings", ((Preference) list.getItemAtPosition(2)).getTitle());
         List<String> titles = new ArrayList<>();
-        // The sections run from under the heading to More settings. Report a problem, Restart
-        // Facebook and Support Hushfacebook come last.
-        for (int i = 3; i < list.getCount() - 4; i++) titles.add(((Preference) list.getItemAtPosition(i)).getTitle().toString());
-        Preference more = (Preference) list.getItemAtPosition(list.getCount() - 4);
-        assertEquals("More settings", more.getTitle());
-        assertEquals(SettingsNavigation.REPORT, ((Preference) list.getItemAtPosition(list.getCount() - 3)).getKey());
-        assertEquals(SettingsNavigation.RESTART_NOW, ((Preference) list.getItemAtPosition(list.getCount() - 2)).getKey());
-        assertEquals(HushfacebookPages.SUPPORT, ((Preference) list.getItemAtPosition(list.getCount() - 1)).getKey());
-        assertTrue(more.getOnPreferenceClickListener().onPreferenceClick(more));
-        for (int i = 0; i < list.getCount(); i++) titles.add(((Preference) list.getItemAtPosition(i)).getTitle().toString());
-        List<String> expected = new ArrayList<>();
-        for (Preference section : page.sections()) expected.add(section.getTitle().toString());
-        assertEquals(new java.util.HashSet<>(expected), new java.util.HashSet<>(titles));
-        assertEquals(expected.size(), titles.size());
+        for (int i = 0; i < page.sections().size(); i++) {
+            Preference header = (Preference) list.getItemAtPosition(i);
+            assertTrue(header.getKey(), header.getKey().startsWith("section_"));
+            titles.add(header.getTitle().toString());
+        }
+        List<String> expected = java.util.Arrays.asList("Opening Facebook", "News feed", "Stories", "Reels and Watch",
+                "Playback", "Downloads", "Comments", "Writing", "Chats", "Menu", "Meta's other products", "Search",
+                "Marketplace", "Notifications", "Links", "Privacy", "Updates", "Appearance", "Set when you patched",
+                "Pause, backup and diagnostics", "About");
+        assertEquals(expected, titles);
+        assertEquals(21, titles.size());
+        assertEquals(SettingsNavigation.SUPPORT, ((Preference) list.getItemAtPosition(21)).getKey());
+        assertEquals(23, list.getCount());
+        assertFalse(titles.contains("More settings"));
         assertTrue(titles.contains("Downloads"));
         assertTrue(titles.contains("Links"));
     }
 
     @Test
-    public void aSectionComesToTheTopAndBackReturnsOnceBeforeClosing() {
+    public void aSectionIsRevealedInTheMainListAndBackClosesSettings() {
         SettingsDialog dialog = show();
         HushfacebookPreferenceFragment page = page(dialog);
         ListView list = laidOut(dialog);
@@ -93,18 +89,19 @@ public class SectionJumpTest {
         Preference downloads = sectionTitled(page, "Downloads");
         assertTrue(page.jumpTo(downloads));
         relayout(list);
-        assertEquals(((android.preference.PreferenceCategory) downloads).getPreferenceCount(), list.getCount());
-        assertEquals(downloads, ((Preference) list.getItemAtPosition(0)).getParent());
-
+        assertTrue(page.navigation.isExpanded("Downloads"));
+        assertEquals(23 + ((android.preference.PreferenceCategory) downloads).getPreferenceCount(), list.getCount());
+        int header = -1;
+        for (int i = 0; i < list.getCount(); i++) {
+            if ("section_Downloads".equals(((Preference) list.getItemAtPosition(i)).getKey())) header = i;
+        }
+        assertTrue("the Downloads header is off screen", header >= list.getFirstVisiblePosition()
+                && header <= list.getLastVisiblePosition());
+        assertTrue(downloads == ((Preference) list.getItemAtPosition(header + 1)).getParent());
+        assertFalse(page.backFromJump());
         dialog.getDialog().onBackPressed();
-        relayout(list);
-        assertTrue("Back closed the page instead of going back", dialog.getDialog().isShowing());
-        // The status card at 0 can't be selected while Hushfacebook is on, so outside touch mode
-        // the same rule lands on the row under it, Quick setups.
-        assertTrue("Back didn't return to the top: " + list.getFirstVisiblePosition(), list.getFirstVisiblePosition() <= 1);
-
-        dialog.getDialog().onBackPressed();
-        assertFalse("a second Back should close the page", dialog.getDialog().isShowing());
+        assertFalse("Back should close settings directly", dialog.getDialog().isShowing());
+        assertFalse("Back should leave Facebook running", controller.get().isFinishing());
     }
 
     @Test

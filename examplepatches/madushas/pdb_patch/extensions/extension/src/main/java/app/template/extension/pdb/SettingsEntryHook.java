@@ -14,7 +14,7 @@ import android.widget.TextView;
  * {@code res/layout/fragment_app_setting.xml}:
  * <ul>
  *   <li>{@code morphe_extras_entry} — opens the full-screen {@link PdbExtrasActivity}.</li>
- *   <li>{@code morphe_dev_entry} — opens Pdb's own hidden dev screen
+ *   (removed: {@code morphe_dev_entry} — the native dev screen, not useful
  *       ({@code pdb.app.tweak.TweaksActivity}, normally behind a 4-tap gesture).</li>
  * </ul>
  *
@@ -25,8 +25,7 @@ import android.widget.TextView;
 public final class SettingsEntryHook {
 
     public static final String ENTRY_ID = "morphe_extras_entry";
-    public static final String DEV_ID = "morphe_dev_entry";
-
+    
     private SettingsEntryHook() {}
 
     /** Called from the settings fragment's {@code onViewCreated(View, Bundle)}. */
@@ -37,7 +36,6 @@ public final class SettingsEntryHook {
             if (ctx == null) return;
 
             wireExtras(root, ctx);
-            wireDevScreen(root, ctx);
         } catch (Throwable ignored) {
         }
     }
@@ -45,23 +43,12 @@ public final class SettingsEntryHook {
     private static void wireExtras(View root, Context ctx) {
         View entry = find(root, ctx, ENTRY_ID);
         if (entry == null) return;
-        setRowText(entry, "Pdb Extras \u2014 settings, tools & unlocks  \u00b7  v"
+        setRowText(entry, "Pdb Extras \u2014 settings & unlocks  \u00b7  v"
             + BuildConfig.EXTRAS_VERSION);
         entry.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 open(v, PdbExtrasActivity.class.getName());
-            }
-        });
-    }
-
-    private static void wireDevScreen(View root, Context ctx) {
-        View entry = find(root, ctx, DEV_ID);
-        if (entry == null) return;
-        entry.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                open(v, PdbNav.TWEAKS);
             }
         });
     }

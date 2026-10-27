@@ -6,6 +6,9 @@ package app.hushtelegram.extension.telegram.misc;
 
 import android.view.View;
 
+import java.util.Map;
+import java.util.WeakHashMap;
+
 import app.hushtelegram.extension.shared.Utils;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.telegram.settings.FamilyNames;
@@ -35,6 +38,9 @@ public final class MainTabs {
     static final float COMPACT_CORNER = 24f;
     /** The least the compact bar's tabs stretch to across, in dp: four 48 dp tabs. */
     static final float COMPACT_MIN_WIDTH = 192f;
+
+    /** Only views given the compose icon, with the last visibility Telegram requested. */
+    private static final Map<View, Integer> newMessageButtons = new WeakHashMap<>();
 
     private MainTabs() {}
 
@@ -77,20 +83,70 @@ public final class MainTabs {
     }
 
     /**
-     * Called each time the chat list gives its round button the pencil, which is when it builds the
-     * list. With the switch on the button is gone from the layout, so there's no empty spot left to
-     * tap. The story camera button and everything else on the list are separate views.
+     * Registers the chat list's compose instance before its icon is assigned. Its native animator
+     * can write visibility again later, so those writes also pass through {@link #newMessageVisibility}.
+     * Weak keys let Telegram release the screen normally.
      *
      * @param button the chat list's round button
      */
     public static void newMessageButton(Object button) {
-        HookStatus.invoked(FamilyNames.HIDE_CONTACTS_TAB);
+        if (!(button instanceof View)) return;
+        View view = (View) button;
         try {
-            if (!(button instanceof View) || !Utils.settingsReady() || !Settings.HIDE_NEW_MESSAGE.get()) return;
-            ((View) button).setVisibility(View.GONE);
-            HookStatus.counted(FamilyNames.HIDE_CONTACTS_TAB, "new message button hidden");
+            int stock;
+            synchronized (newMessageButtons) {
+                Integer previous = newMessageButtons.get(view);
+                stock = previous == null ? view.getVisibility() : previous;
+                newMessageButtons.put(view, stock);
+            }
+            newMessageVisibility(view, stock);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.HIDE_CONTACTS_TAB, "new message button", failure);
+        }
+    }
+
+    /** The same widget has a Done role in chat selection. That role always follows Telegram. */
+    public static void newMessageDone(Object button) {
+        if (!(button instanceof View)) return;
+        View view = (View) button;
+        Integer stock;
+        synchronized (newMessageButtons) {
+            stock = newMessageButtons.remove(view);
+        }
+        if (stock != null) view.setVisibility(stock);
+    }
+
+    /**
+     * Replaces only the floating-button animator's visibility write. Its story, progress and other
+     * screen views aren't registered here, so their requested visibility passes through unchanged.
+     * Keep the native value even while hidden, including GONE during search or a transition.
+     */
+    public static void newMessageVisibility(Object button, int visibility) {
+        if (!(button instanceof View)) return;
+        View view = (View) button;
+        boolean compose;
+        synchronized (newMessageButtons) {
+            compose = newMessageButtons.containsKey(view);
+            if (compose) newMessageButtons.put(view, visibility);
+        }
+        int applied = visibility;
+        if (compose) {
+            HookStatus.invoked(FamilyNames.HIDE_CONTACTS_TAB);
+            try {
+                if (Utils.settingsReady() && Settings.HIDE_NEW_MESSAGE.get()) {
+                    applied = View.GONE;
+                    HookStatus.counted(FamilyNames.HIDE_CONTACTS_TAB, "new message button hidden");
+                }
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.HIDE_CONTACTS_TAB, "new message visibility", failure);
+            }
+        }
+        view.setVisibility(applied);
+    }
+
+    static void clearNewMessageButtonsForTests() {
+        synchronized (newMessageButtons) {
+            newMessageButtons.clear();
         }
     }
 

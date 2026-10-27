@@ -8,6 +8,7 @@ import app.morphe.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_WSJ
 import app.template.patches.shared.addInstructionChecked
 import app.template.patches.shared.addInstructionsChecked
+import app.template.patches.shared.requireNoBranchTargetAt
 import app.template.patches.shared.misc.ads.neutraliseMobileAdsStatics
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -16,13 +17,16 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val ADS = "Lcom/dowjones/advertisement/"
-private const val SECTION_STRATEGY = "${ADS}util/SectionAdPlacementStrategy;"
-private const val SECTION_PLACEMENT_TYPE = "${ADS}data/model/SectionAdPlacementType;"
+private const val SECTION_STRATEGY = "${ADS}SectionAdPlacementStrategyContract;"
+private const val SECTION_PLACEMENT_MODEL = "${ADS}data/model/SectionAdPlacementModel;"
 private const val ARTICLE_STRATEGY = "${ADS}util/ArticleAdPlacementStrategy;"
+private const val LIVE_COVERAGE_STRATEGY = "${ADS}util/LiveCoveragePlacementStrategy;"
+private const val DISCOVER_VIEW_MODEL = "Lcom/dowjones/section/ui/DiscoverScreenViewModel;"
 private const val AD_STORE = "${ADS}uac/AdManagerAdViewStore;"
 private const val AD_PADDING = "${ADS}ui/component/AdPaddingDefaults;"
 private const val FLAGS = "${ADS}config/UACFeatureFlagRepository;"
@@ -36,9 +40,10 @@ private const val MUTABLE_STATE_FLOW = "Lkotlinx/coroutines/flow/MutableStateFlo
 
 // The Wall Street Journal shows Google Ad Manager display and native ads (with Amazon TAM, Ozone /
 // Prebid and Permutive feeding the targeting) as Compose slots from com.dowjones.advertisement,
-// for subscribers too, plus IMA pre-rolls in the media3 video player. All of the ad wiring lives
-// in kept (unobfuscated) classes: placement strategies, the ad view store, the feature flag
-// repository and the video ads handler. Compose functions carry hashed suffixes, so they are
+// for subscribers too, plus IMA pre-rolls in the media3 video player and (since 15.x) video
+// interstitials in the Discover feed. All of the ad wiring lives in kept (unobfuscated) classes:
+// placement strategies, the ad view store, the feature flag repository, the video ads handler and
+// the Discover view model. Compose functions carry hashed suffixes, so they are
 // never anchored on and no @Composable body is touched; every hook changes a plain method the
 // composables read. Every hook is mandatory.
 //
@@ -54,14 +59,17 @@ val disableAdsPatch = bytecodePatch(
 
     execute {
         // 1. Section fronts, markets, For You and Magazine: every feed asks the section placement
-        // strategy for the item indices that get an ad after them, and SectionPageAdWithPrefetch
-        // only composes the ad, its loading skeleton and the prefetch for an index in that list.
-        // Every implementation answers an empty list, so no slot is ever emitted.
+        // strategy for its ad slots (getAdSlotConfigList(cardCount, isSingleModule, placementModel),
+        // one AdSlotConfig per card index that gets an ad after it; SectionAdViewmodel is the only
+        // caller), and SectionPageAdWithPrefetch only composes the ad, its loading skeleton and the
+        // prefetch for an index in that list. Every implementation answers an empty list, so no
+        // slot is ever emitted. (Up to 6.43 this was SectionAdPlacementStrategy's ad indices
+        // method; 15.11 split it into a contract plus a remote placement registry.)
         mutableClassDefByOrNull(SECTION_STRATEGY) ?: throw PatchException("Disable ads: $SECTION_STRATEGY not found")
         var sectionHooks = 0
         classDefForEach { classDef ->
             if (SECTION_STRATEGY !in classDef.interfaces) return@classDefForEach
-            mutableClassDefBy(classDef).methods.filter { it.isSectionAdIndices() }.forEach { method ->
+            mutableClassDefBy(classDef).methods.filter { it.isSectionAdSlots() }.forEach { method ->
                 method.addInstructionsChecked(
                     0,
                     """
@@ -74,7 +82,7 @@ val disableAdsPatch = bytecodePatch(
             }
         }
         if (sectionHooks == 0) {
-            throw PatchException("Disable ads: no $SECTION_STRATEGY implementation returns ad indices")
+            throw PatchException("Disable ads: no $SECTION_STRATEGY implementation returns ad slots")
         }
 
         // 2. Articles: the article page asks the strategy, paragraph by paragraph, whether an ad
@@ -180,8 +188,9 @@ val disableAdsPatch = bytecodePatch(
         neutraliseMobileAdsStatics("initialize", "registerWebView")
 
         // Backstop at the SDK: banner / Ad Manager view loads (AdManagerAdView.loadAd does not call
-        // super) and native loads. The app loads no interstitial, rewarded or app-open ad; only
-        // the unused Prebid GAM wrappers reference those formats.
+        // super) and native loads (including the Discover video interstitial, a native custom
+        // format loaded through AdLoader, see step 10). The app loads no GMA interstitial, rewarded
+        // or app-open ad; only the unused Prebid GAM wrappers reference those formats.
         val gmaHooks = mapOf(
             "${GMA}BaseAdView;" to setOf("loadAd"),
             "${GMA}admanager/AdManagerAdView;" to setOf("loadAd"),
@@ -251,7 +260,54 @@ val disableAdsPatch = bytecodePatch(
             throw PatchException("Disable ads: no concrete $MEDIA_ITEM_BUILDER->setAdsConfiguration")
         }
         builderSetters.forEach { it.addInstructionsChecked(0, "return-object p0") }
+
+        // 9. Live coverage (new in 15.x): the live coverage screen puts an ad before every third
+        // card. Every check (adSlotForCard, isFinalAdSlot and the screen's own lambdas) goes
+        // through the strategy's only (I)Z, shouldInsertAdBeforeCard, which always answers false.
+        val liveCoverageGate = mutableClassDefBy(LIVE_COVERAGE_STRATEGY).methods.filter {
+            !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "Z" &&
+                it.params() == listOf("I") && it.implementation != null
+        }
+        if (liveCoverageGate.size != 1) {
+            throw PatchException("Disable ads: expected one (I)Z on $LIVE_COVERAGE_STRATEGY, found ${liveCoverageGate.size}")
+        }
+        liveCoverageGate.single().returnEarly(false)
+
+        // 10. Discover vertical video feed (new in 15.x): onFeedData puts an interstitial ad page
+        // (DiscoverVideoInterstitialAd, a full-screen native video ad) after every N videos, only
+        // when N > 0. N comes from the DiscoverAds remote config and lives in the view model's only
+        // int field; every store to it stores 0, so the feed holds videos only and no ad page is
+        // ever shown or loaded.
+        val discover = mutableClassDefBy(DISCOVER_VIEW_MODEL)
+        val adFrequency = discover.fields.singleOrNull {
+            !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == "I"
+        } ?: throw PatchException("Disable ads: expected one int field (ad frequency) on $DISCOVER_VIEW_MODEL")
+        val onFeedData = discover.methods.singleOrNull { it.name == "onFeedData" && it.implementation != null }
+            ?: throw PatchException("Disable ads: no concrete $DISCOVER_VIEW_MODEL->onFeedData")
+        if (onFeedData.instructions.none { it.opcode == Opcode.IGET && it.isField(adFrequency) }) {
+            throw PatchException("Disable ads: $DISCOVER_VIEW_MODEL.onFeedData no longer reads ${adFrequency.name}")
+        }
+        var frequencyStores = 0
+        discover.methods.filter { it.implementation != null }.forEach { method ->
+            val stores = method.instructions.withIndex()
+                .filter { (_, insn) -> insn.opcode == Opcode.IPUT && insn.isField(adFrequency) }
+                .map { (index, insn) -> index to (insn as TwoRegisterInstruction).registerA }
+            // Descending, so an insert never shifts an index still to be visited.
+            for ((index, register) in stores.reversed()) {
+                method.requireNoBranchTargetAt(index, "zero the Discover ad frequency")
+                method.addInstructionChecked(index, "const/4 v$register, 0x0")
+                frequencyStores++
+            }
+        }
+        if (frequencyStores == 0) {
+            throw PatchException("Disable ads: nothing in $DISCOVER_VIEW_MODEL stores ${adFrequency.name}")
+        }
     }
+}
+
+private fun Instruction.isField(field: FieldReference): Boolean {
+    val ref = (this as? ReferenceInstruction)?.reference as? FieldReference ?: return false
+    return ref.definingClass == field.definingClass && ref.name == field.name && ref.type == field.type
 }
 
 private fun Method.params() = parameterTypes.map(CharSequence::toString)
@@ -262,8 +318,8 @@ private fun Instruction.writesField(field: FieldReference): Boolean {
     return ref.definingClass == field.definingClass && ref.name == field.name && ref.type == field.type
 }
 
-private fun Method.isSectionAdIndices() = implementation != null &&
-    returnType == "Ljava/util/List;" && params() == listOf("I", SECTION_PLACEMENT_TYPE)
+private fun Method.isSectionAdSlots() = implementation != null &&
+    returnType == "Ljava/util/List;" && params() == listOf("I", "Z", SECTION_PLACEMENT_MODEL)
 
 private fun Method.isAdTagRequest() = returnType == "Lkotlinx/coroutines/Deferred;" &&
     params() == listOf("Lcom/dowjones/query/fragment/VideoData;", "Z", "Z")

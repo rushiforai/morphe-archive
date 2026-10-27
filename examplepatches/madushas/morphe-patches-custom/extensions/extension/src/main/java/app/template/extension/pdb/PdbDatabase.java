@@ -107,6 +107,40 @@ public final class PdbDatabase {
         return null;
     }
 
+    /**
+     * Resolves the IM channel of a known user id from the app's local room
+     * database: {@code channel_members(channelId, userId)} joined with
+     * {@code channels(id, type, ...)}. Returns {@code {channelType, channelId}}
+     * or {@code null} when the user has no local channel yet. Read-only.
+     */
+    public static String[] channelForUser(Context ctx, String userId) {
+        File file = dbWith(ctx, "channel_members");
+        if (file == null) return null;
+        SQLiteDatabase db = null;
+        Cursor c = null;
+        try {
+            db = open(file);
+            c = db.rawQuery(
+                "SELECT c.type, c.id FROM channel_members cm"
+                    + " JOIN channels c ON c.id = cm.channelId"
+                    + " WHERE cm.userId = ? LIMIT 1",
+                new String[]{userId});
+            if (c.moveToFirst()) {
+                String type = c.getString(0);
+                String id = c.getString(1);
+                if (type != null && !type.isEmpty() && id != null && !id.isEmpty()) {
+                    return new String[]{type, id};
+                }
+            }
+            return null;
+        } catch (Throwable t) {
+            return null;
+        } finally {
+            if (c != null) c.close();
+            if (db != null) db.close();
+        }
+    }
+
     /* ── tools ── */
 
     /** Database files, their tables and row counts. */

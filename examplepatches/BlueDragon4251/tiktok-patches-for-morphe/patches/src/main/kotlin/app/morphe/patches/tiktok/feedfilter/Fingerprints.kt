@@ -56,16 +56,24 @@ internal object ForYouFinalCommitFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = emptyList(),
-    strings = listOf(
-        "Feed0VVManager@",
-        "full_feed_commit_process_data",
-        "homepage_hot",
-        "filter_show_ad",
-        "filter_installed_ad",
-        "fyp",
-        "soft_ads",
-        "roi2",
-    ),
+    // Patcher 2.x matches declared strings by equality, not substring.
+    // Keep an exact semantic anchor for efficient discovery and verify the
+    // remaining 46.7.3 markers with the original substring contract.
+    strings = listOf("full_feed_commit_process_data"),
+    custom = { method, _ ->
+        val literals = method.implementation?.instructions
+            ?.mapNotNull { it.getReference<com.android.tools.smali.dexlib2.iface.reference.StringReference>()?.string }
+            ?: emptyList()
+        listOf(
+            "Feed0VVManager@",
+            "homepage_hot",
+            "filter_show_ad",
+            "filter_installed_ad",
+            "fyp",
+            "soft_ads",
+            "roi2",
+        ).all { marker -> literals.any { it.contains(marker) } }
+    },
 )
 
 internal object FeedItemListGetItemsFingerprint : Fingerprint(

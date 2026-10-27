@@ -113,14 +113,13 @@ public class UiFeatureRegistryTest {
     @Test public void catalogueGroupsControlsByPurposeAndEveryOptionIsOff() {
         UiFeatureRegistry registry = registry();
         var categories = UiOptions.create(registry, true);
-        assertEquals(9, categories.size());
-        assertEquals(java.util.List.of(SettingSection.PLAYER_CONTROLS, SettingSection.CHANNEL_ACTIONS, SettingSection.DISPLAY),
+        assertEquals(java.util.List.of(SettingSection.PLAYER_CONTROLS, SettingSection.CHANNEL_ACTIONS, SettingSection.CHAT_OVERLAYS, SettingSection.DISPLAY),
                 categories.stream().map(option -> option.section()).distinct().collect(java.util.stream.Collectors.toList()));
         assertTrue(categories.stream().allMatch(option -> !option.title().isEmpty() && !option.icon().isEmpty()));
         assertTrue(categories.stream().noneMatch(option -> option.title().contains("Classic") || option.title().contains("Vertical")));
         assertEquals("ic_clip", group(categories, "ui_clip").icon());
         assertEquals("ic_subscribe", group(categories, "ui_subscribe").icon());
-        assertEquals(18, registry.options().size());
+        assertTrue(registry.snapshot().keySet().containsAll(List.of("hide_hype_trains", "hide_leaderboards")));
         assertFalse(registry.snapshot().containsKey("classic_support_hide_row"));
         assertFalse(registry.snapshot().containsKey("vertical_support_hide_row"));
         assertTrue(registry.options().stream().noneMatch(ToggleSetting::isEnabled));
@@ -153,6 +152,7 @@ public class UiFeatureRegistryTest {
         UiFeatureRegistry registry = registry();
         var groups = UiOptions.create(registry, true);
         ToggleSetting all = master(groups, "ui_gift");
+        assertEquals("All visible.", group(groups, "ui_gift").summary());
         assertEquals("Hide everywhere", all.title());
         assertFalse(all.isEnabled());
         registry.options().stream().filter(option -> option.key().equals("vertical_header_hide_gift"))
@@ -160,6 +160,7 @@ public class UiFeatureRegistryTest {
         assertFalse(registry.enabled("vertical_header_hide_leaderboard"));
         assertFalse(registry.enabled("vertical_support_hide_gift"));
         assertEquals("1 of 3 hidden.", all.summary());
+        assertEquals(all.summary(), group(groups, "ui_gift").summary());
         AtomicInteger changes = new AtomicInteger();
         registry.observe(() -> {
             assertEquals(registry.enabled("classic_support_hide_gift"), registry.enabled("vertical_support_hide_gift"));
@@ -167,6 +168,7 @@ public class UiFeatureRegistryTest {
             changes.incrementAndGet();
         });
         all.setEnabled(true);
+        assertEquals("All hidden.", group(groups, "ui_gift").summary());
         assertTrue(registry.enabled("vertical_header_hide_gift"));
         assertTrue(registry.enabled("vertical_support_hide_gift"));
         assertTrue(registry.enabled("classic_support_hide_gift"));
@@ -183,8 +185,6 @@ public class UiFeatureRegistryTest {
     @Test public void unavailableLeaderboardIsExcludedAndLocationPreferencesRemainIndependent() {
         UiFeatureRegistry previous = registry();
         var groups = UiOptions.create(previous, false);
-        assertEquals(8, groups.size());
-        assertEquals(17, previous.options().size());
         assertFalse(previous.snapshot().containsKey("vertical_header_hide_leaderboard"));
         SettingGroup subscribe = group(groups, "ui_subscribe");
         assertEquals(4, subscribe.children().size());
@@ -195,6 +195,19 @@ public class UiFeatureRegistryTest {
         assertTrue(previous.enabled("vertical_header_hide_subscribe"));
         master(groups, "ui_subscribe").setEnabled(false);
         assertFalse(previous.enabled("vertical_header_hide_subscribe"));
+    }
+
+    @Test public void leaderboardsMasterIncludesRankingsAndPlayerButton() {
+        UiFeatureRegistry registry = registry();
+        var groups = UiOptions.create(registry, true);
+        ToggleSetting all = master(groups, "ui_leaderboards");
+        all.setEnabled(true);
+        assertTrue(registry.enabled("hide_leaderboards"));
+        assertTrue(registry.enabled("vertical_header_hide_leaderboard"));
+        assertFalse(registry.enabled("hide_hype_trains"));
+        all.setEnabled(false);
+        assertFalse(registry.enabled("hide_leaderboards"));
+        assertFalse(registry.enabled("vertical_header_hide_leaderboard"));
     }
 
     @Test public void playerFeatureMasterRetainsSavedStateAndOnlyChangesItsLocations() {

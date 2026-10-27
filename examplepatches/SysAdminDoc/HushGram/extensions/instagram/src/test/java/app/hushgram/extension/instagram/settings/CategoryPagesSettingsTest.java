@@ -38,7 +38,7 @@ import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.settings.BaseSettings;
 import app.hushgram.extension.shared.settings.PauseForTests;
 
-/** Open categories as pages: a list of categories, one page each, Back to the list, and search across all of them. */
+/** Categories expand on one screen, retain their choices, and return after search or recreation. */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = {28, 37}, qualifiers = "w320dp-h480dp-mdpi")
 @SuppressWarnings("deprecation")
@@ -52,6 +52,7 @@ public class CategoryPagesSettingsTest {
         RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
         Settings.CATEGORY_PAGES.resetToDefault();
         Settings.START_ON_FOLLOWING.resetToDefault();
+        Settings.ONLY_FOLLOWING.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         BaseSettings.SAFE_MODE.save(false);
@@ -67,6 +68,7 @@ public class CategoryPagesSettingsTest {
         PatchFamily.inBuildForTests = null;
         Settings.CATEGORY_PAGES.resetToDefault();
         Settings.START_ON_FOLLOWING.resetToDefault();
+        Settings.ONLY_FOLLOWING.resetToDefault();
         Settings.SIGN_IN_NOTICE_HIDDEN.resetToDefault();
         SettingsEntry.onClosedByUser();
     }
@@ -79,26 +81,28 @@ public class CategoryPagesSettingsTest {
         ShadowLooper.idleMainLooper();
     }
 
-    /** The titles of the categories and the category rows on the screen itself, in order. */
+    /** Titles of sections with visible children, or of expandable headers, in screen order. */
     private List<String> shown(Class<? extends Preference> type) {
         PreferenceScreen screen = page.getPreferenceScreen();
         List<String> titles = new ArrayList<>();
         for (int i = 0; i < screen.getPreferenceCount(); i++) {
             Preference item = screen.getPreference(i);
-            boolean row = item.getKey() != null && item.getKey().startsWith(HushgramPreferenceFragment.CATEGORY_ROW_KEY);
-            if (type == PreferenceCategory.class ? item instanceof PreferenceCategory : row) {
+            boolean row = item instanceof HushgramPreferenceFragment.Heading
+                    && ((HushgramPreferenceFragment.Heading) item).collapsible;
+            if (type == PreferenceCategory.class ? item instanceof PreferenceCategory
+                    && ((PreferenceCategory) item).getPreferenceCount() > 0 : row) {
                 titles.add(String.valueOf(item.getTitle()));
             }
         }
         return titles;
     }
 
-    private Preference categoryRow(String title) {
+    private HushgramPreferenceFragment.Heading categoryRow(String title) {
         PreferenceScreen screen = page.getPreferenceScreen();
         for (int i = 0; i < screen.getPreferenceCount(); i++) {
             Preference item = screen.getPreference(i);
             if (item.getKey() != null && item.getKey().startsWith(HushgramPreferenceFragment.CATEGORY_ROW_KEY)
-                    && title.contentEquals(item.getTitle())) return item;
+                    && title.contentEquals(item.getTitle())) return (HushgramPreferenceFragment.Heading) item;
         }
         throw new AssertionError("no row for " + title + " in " + shown(Preference.class));
     }
@@ -106,6 +110,19 @@ public class CategoryPagesSettingsTest {
     private void tap(Preference row) {
         assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
         ShadowLooper.idleMainLooper();
+    }
+
+    private int positionOf(Preference preference) {
+        ListAdapter adapter = page.getPreferenceScreen().getRootAdapter();
+        for (int i = 0; i < adapter.getCount(); i++) {
+            if (adapter.getItem(i) == preference) return i;
+        }
+        throw new AssertionError("no visible row for " + preference.getTitle());
+    }
+
+    private String toolbarTitle() {
+        LinearLayout bar = (LinearLayout) ((LinearLayout) dialog.getView()).getChildAt(0);
+        return ((TextView) bar.getChildAt(1)).getText().toString();
     }
 
     private void openDialog() throws Exception {
@@ -134,13 +151,17 @@ public class CategoryPagesSettingsTest {
         ShadowLooper.idleMainLooper();
     }
 
-    @Test public void onToStartTheCategoriesAreListed() throws Exception {
+    @Test public void categoriesStartCollapsedWithSearchAndTheListOptionFirst() throws Exception {
         open();
         SwitchPreference pages = (SwitchPreference) page.findPreference(Settings.CATEGORY_PAGES.key);
         assertNotNull(pages);
-        assertEquals("Open categories as pages", pages.getTitle().toString());
+        assertEquals("Expandable categories", pages.getTitle().toString());
         assertTrue(pages.isChecked());
         assertTrue(shown(Preference.class).contains("Feed"));
+        assertFalse(categoryRow("Feed").expanded);
+        assertEquals(0, categoryRow("Feed").getPreferenceCount());
+        assertEquals("hushgram_settings_search", page.getPreferenceScreen().getPreference(0).getKey());
+        assertEquals("hushgram_view_toggle", page.getPreferenceScreen().getPreference(1).getKey());
     }
 
     @Test @Config(qualifiers = "zh-rTW-w320dp-h480dp-mdpi")
@@ -173,6 +194,10 @@ public class CategoryPagesSettingsTest {
 
     @Test public void theTopButtonSwitchesBetweenListAndCategories() throws Exception {
         open();
+        HushgramPreferenceFragment.Heading feed = categoryRow("Feed");
+        HushgramPreferenceFragment.Heading ads = categoryRow("Ads and privacy");
+        tap(feed);
+        Preference following = page.findPreference(Settings.START_ON_FOLLOWING.key);
         Preference button = page.findPreference("hushgram_view_toggle");
         assertEquals("Show all settings as a list", button.getTitle().toString());
         tap(button);
@@ -181,6 +206,8 @@ public class CategoryPagesSettingsTest {
         assertTrue(shown(Preference.class).isEmpty());
         assertTrue(shown(PreferenceCategory.class).containsAll(
                 List.of("Settings entry", "Ads and privacy", "Feed", "Notifications", "Pause and diagnostics")));
+        assertFalse(feed.collapsible);
+        assertSame(following, page.getPreferenceScreen().findPreference(Settings.START_ON_FOLLOWING.key));
         // The switch the long list shows says the same as the button did, so a tap on it changes the view.
         SwitchPreference pages = (SwitchPreference) page.findPreference(Settings.CATEGORY_PAGES.key);
         assertSame(pages, page.getPreferenceScreen().findPreference(Settings.CATEGORY_PAGES.key));
@@ -189,6 +216,12 @@ public class CategoryPagesSettingsTest {
         assertTrue(Settings.CATEGORY_PAGES.savedValue());
         assertTrue(shown(Preference.class).contains("Feed"));
         assertTrue(pages.isChecked());
+        assertSame(feed, categoryRow("Feed"));
+        assertTrue(feed.expanded);
+        assertSame(following, page.getPreferenceScreen().findPreference(Settings.START_ON_FOLLOWING.key));
+        assertFalse(ads.expanded);
+        assertEquals(0, ads.getPreferenceCount());
+        assertSame(button, page.getPreferenceScreen().getPreference(1));
     }
 
     @Test public void offTheCategoriesStayOneList() throws Exception {
@@ -198,6 +231,25 @@ public class CategoryPagesSettingsTest {
         assertTrue(shown(PreferenceCategory.class).containsAll(
                 List.of("Settings entry", "Ads and privacy", "Feed", "Notifications", "Pause and diagnostics")));
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.CATEGORY_PAGES.key));
+    }
+
+    /** Everyday controls lead; Settings entry and the upkeep sections follow them, About last. */
+    @Test public void settingsAccessAndUpkeepComeAfterTheEverydayControls() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        Settings.CATEGORY_PAGES.save(true);
+        open();
+        List<String> categories = shown(Preference.class);
+        assertEquals(categories.toString(), "Ads and privacy", categories.get(0));
+        int entry = categories.indexOf("Settings entry");
+        for (String everyday : List.of("Feed", "Messages", "Notifications", "Downloads", "Battery", "Version warnings")) {
+            assertTrue(everyday + " before Settings entry: " + categories, categories.indexOf(everyday) >= 0
+                    && categories.indexOf(everyday) < entry);
+        }
+        assertEquals(categories.toString(), List.of("Settings entry", "Set when you patched", "Settings backup"),
+                categories.subList(entry, entry + 3));
+        assertEquals(categories.toString(), "About", categories.get(categories.size() - 1));
+        assertEquals("hushgram_settings_search", page.getPreferenceScreen().getPreference(0).getKey());
+        assertEquals("hushgram_view_toggle", page.getPreferenceScreen().getPreference(1).getKey());
     }
 
     @Test public void onTheCategoriesAreListedWithPauseStillOpen() throws Exception {
@@ -212,25 +264,71 @@ public class CategoryPagesSettingsTest {
         assertNotNull(page.findPreference(Settings.HIDE_ADS.key));
     }
 
-    @Test public void aTapOpensOnlyThatCategoryAndBackGoesToTheList() throws Exception {
-        Settings.CATEGORY_PAGES.save(true);
+    @Test public void eachHeaderExpandsItsSettingsBelowItAndCollapsesIndependently() throws Exception {
         open();
-        tap(categoryRow("Feed"));
-        assertEquals(List.of("Feed"), shown(PreferenceCategory.class));
-        assertTrue(shown(Preference.class).isEmpty());
+        PreferenceScreen screen = page.getPreferenceScreen();
+        List<String> headers = shown(Preference.class);
+        HushgramPreferenceFragment.Heading feed = categoryRow("Feed");
+        HushgramPreferenceFragment.Heading ads = categoryRow("Ads and privacy");
+        Preference following = page.findPreference(Settings.START_ON_FOLLOWING.key);
+        Preference hideAds = page.findPreference(Settings.HIDE_ADS.key);
+        tap(feed);
+        assertSame(screen, page.getPreferenceScreen());
+        assertTrue(feed.expanded);
+        assertSame(feed, following.getParent());
+        assertEquals(positionOf(feed) + 1, positionOf(feed.getPreference(0)));
+        assertEquals(headers, shown(Preference.class));
+        assertEquals(List.of("Feed", "Pause and diagnostics"), shown(PreferenceCategory.class));
 
-        assertTrue(page.closeCategory());
-        ShadowLooper.idleMainLooper();
-        assertEquals(List.of("Pause and diagnostics"), shown(PreferenceCategory.class));
-        assertTrue(shown(Preference.class).contains("Feed"));
-        assertFalse("Back from the list closes settings", page.closeCategory());
+        tap(ads);
+        assertTrue(feed.expanded);
+        assertTrue(ads.expanded);
+        assertSame(ads, hideAds.getParent());
+        assertEquals(positionOf(ads) + 1, positionOf(ads.getPreference(0)));
+        assertEquals(headers, shown(Preference.class));
+
+        tap(feed);
+        assertFalse(feed.expanded);
+        assertEquals(0, feed.getPreferenceCount());
+        assertNull(screen.findPreference(Settings.START_ON_FOLLOWING.key));
+        assertSame(following, page.findPreference(Settings.START_ON_FOLLOWING.key));
+        assertTrue(ads.expanded);
+        assertSame(hideAds, screen.findPreference(Settings.HIDE_ADS.key));
+        assertFalse("expanded categories add no Back level", page.closeCategory());
+
+        tap(feed);
+        assertSame(following, screen.findPreference(Settings.START_ON_FOLLOWING.key));
+        assertEquals(headers, shown(Preference.class));
     }
 
-    /**
-     * Before you sign in is the home page's card, like the status card above it. On a category's
-     * page it stood a third of the screen tall above Search (S25, 2026-10-13).
-     */
-    @Test public void theSignInNoticeStaysOnTheHomePage() throws Exception {
+    @Test public void collapsedRowsKeepTheirSavedChoicesAndParentAvailability() throws Exception {
+        Settings.START_ON_FOLLOWING.save(true);
+        open();
+        HushgramPreferenceFragment.Heading feed = categoryRow("Feed");
+        tap(feed);
+        SwitchPreference parent = (SwitchPreference) page.findPreference(Settings.START_ON_FOLLOWING.key);
+        SwitchPreference child = (SwitchPreference) page.findPreference(Settings.ONLY_FOLLOWING.key);
+        assertTrue("an expanded heading must not disable its children", parent.isEnabled());
+        assertTrue(child.isEnabled());
+        child.setChecked(true);
+        assertTrue(Settings.ONLY_FOLLOWING.savedValue());
+
+        tap(feed);
+        Settings.START_ON_FOLLOWING.save(false);
+        ShadowLooper.idleMainLooper();
+        assertSame(child, page.findPreference(Settings.ONLY_FOLLOWING.key));
+        assertNull(page.getPreferenceScreen().findPreference(Settings.ONLY_FOLLOWING.key));
+        tap(feed);
+        assertSame(parent, page.getPreferenceScreen().findPreference(Settings.START_ON_FOLLOWING.key));
+        assertSame(child, page.getPreferenceScreen().findPreference(Settings.ONLY_FOLLOWING.key));
+        assertTrue(parent.isEnabled());
+        assertFalse(parent.isChecked());
+        assertFalse(child.isEnabled());
+        assertTrue(child.isChecked());
+        assertTrue(Settings.ONLY_FOLLOWING.savedValue());
+    }
+
+    @Test public void expansionKeepsTheSignInNoticeAndNavigationOnTheMainScreen() throws Exception {
         Settings.SIGN_IN_NOTICE_HIDDEN.save(false);
         Settings.CATEGORY_PAGES.save(true);
         open();
@@ -238,44 +336,53 @@ public class CategoryPagesSettingsTest {
         Preference notice = screen.findPreference(HushgramPreferenceFragment.SIGN_IN_NOTICE_KEY);
         assertNotNull(notice);
         tap(categoryRow("Feed"));
-        assertNull("the notice is on a category's page",
+        assertSame("expansion keeps the notice attached", notice,
                 screen.findPreference(HushgramPreferenceFragment.SIGN_IN_NOTICE_KEY));
-        assertTrue(page.closeCategory());
-        ShadowLooper.idleMainLooper();
-        assertSame("the home page has it back", notice,
-                screen.findPreference(HushgramPreferenceFragment.SIGN_IN_NOTICE_KEY));
-        assertEquals("right under the status card", HushgramPreferenceFragment.SIGN_IN_NOTICE_KEY,
-                screen.getPreference(1).getKey());
+        assertEquals("Search leads the page", "hushgram_settings_search", screen.getPreference(0).getKey());
+        assertEquals("the list switch follows Search", "hushgram_view_toggle", screen.getPreference(1).getKey());
+        assertEquals("the notice follows navigation", HushgramPreferenceFragment.SIGN_IN_NOTICE_KEY,
+                screen.getPreference(2).getKey());
 
         assertTrue(notice.getOnPreferenceClickListener().onPreferenceClick(notice));
         assertTrue(Settings.SIGN_IN_NOTICE_HIDDEN.savedValue());
         tap(categoryRow("Feed"));
-        assertTrue(page.closeCategory());
-        ShadowLooper.idleMainLooper();
+        tap(categoryRow("Feed"));
         assertNull("a notice hidden by a tap stays hidden",
                 screen.findPreference(HushgramPreferenceFragment.SIGN_IN_NOTICE_KEY));
     }
 
-    @Test public void searchLooksThroughEveryCategoryFromAPage() throws Exception {
+    @Test public void searchRevealsCollapsedMatchesThenRestoresEveryExpansion() throws Exception {
         Settings.CATEGORY_PAGES.save(true);
         open();
         tap(categoryRow("Feed"));
+        tap(categoryRow("Notifications"));
+        List<String> headers = shown(Preference.class);
+        Preference feed = categoryRow("Feed");
+        Preference ads = page.findPreference(Settings.HIDE_ADS.key);
         page.searchSettings("Hide ads");
         assertTrue(shown(PreferenceCategory.class).contains("Ads and privacy"));
         assertFalse(shown(PreferenceCategory.class).contains("Feed"));
         assertTrue(shown(Preference.class).isEmpty());
+        assertSame(ads, page.getPreferenceScreen().findPreference(Settings.HIDE_ADS.key));
 
         page.searchSettings("");
-        assertEquals(List.of("Feed"), shown(PreferenceCategory.class));
+        assertEquals(List.of("Feed", "Notifications", "Pause and diagnostics"), shown(PreferenceCategory.class));
+        assertEquals(headers, shown(Preference.class));
+        assertSame(feed, categoryRow("Feed"));
+        assertNull(page.getPreferenceScreen().findPreference(Settings.HIDE_ADS.key));
+        assertSame(ads, page.findPreference(Settings.HIDE_ADS.key));
+        assertFalse(categoryRow("Ads and privacy").expanded);
     }
 
-    @Test public void theRealSearchInputStaysReachableInsideACategory() throws Exception {
+    @Test public void expansionAndSearchKeepTheSameLiveInput() throws Exception {
         openDialog();
+        EditText input = page.getView().findViewWithTag("hushgram-settings-search");
         tap(categoryRow("Feed"));
         layoutPage();
         assertNotNull(page.getPreferenceScreen().findPreference("hushgram_settings_search"));
-        EditText input = page.getView().findViewWithTag("hushgram-settings-search");
         assertNotNull(input);
+        assertSame(input, page.getView().findViewWithTag("hushgram-settings-search"));
+        assertEquals("HushGram", toolbarTitle());
         assertTrue(input.isShown());
         assertEquals("Search settings", input.getContentDescription());
         touchMode(input, true);
@@ -290,19 +397,16 @@ public class CategoryPagesSettingsTest {
         assertFalse(shown(PreferenceCategory.class).contains("Feed"));
         input.setText("");
         layoutPage();
-        assertEquals(List.of("Feed"), shown(PreferenceCategory.class));
+        assertEquals(List.of("Feed", "Pause and diagnostics"), shown(PreferenceCategory.class));
         assertSame(input, page.getView().findViewWithTag("hushgram-settings-search"));
         assertTrue(input.hasFocus());
+        assertEquals("HushGram", toolbarTitle());
     }
 
-    /**
-     * Back during a search ends the search on the page it started from. From a category's page it
-     * used to drop the category under the search: the matches stayed, and the status card and the
-     * list switch came in above the field (S25, 2026-10-13).
-     */
-    @Test public void backDuringASearchEndsItOnThePageItStartedFrom() throws Exception {
+    @Test public void backClearsSearchWithoutCollapsingTheExpandedSections() throws Exception {
         openDialog();
         tap(categoryRow("Feed"));
+        tap(categoryRow("Notifications"));
         layoutPage();
         EditText input = page.getView().findViewWithTag("hushgram-settings-search");
         assertNotNull(input);
@@ -315,17 +419,17 @@ public class CategoryPagesSettingsTest {
 
         assertTrue("Back ends the search", page.closeCategory());
         layoutPage();
-        assertEquals("the page the search started from is back", List.of("Feed"), shown(PreferenceCategory.class));
+        assertEquals(List.of("Feed", "Notifications", "Pause and diagnostics"), shown(PreferenceCategory.class));
         input = page.getView().findViewWithTag("hushgram-settings-search");
         assertNotNull(input);
         assertEquals("", input.getText().toString());
-        LinearLayout bar = (LinearLayout) ((LinearLayout) dialog.getView()).getChildAt(0);
-        assertEquals("Feed", ((TextView) bar.getChildAt(1)).getText().toString());
+        assertEquals("HushGram", toolbarTitle());
+        assertFalse("the next Back closes settings", page.closeCategory());
+        assertTrue(categoryRow("Feed").expanded);
+        assertTrue(categoryRow("Notifications").expanded);
 
-        assertTrue("the next Back leaves the category", page.closeCategory());
-        layoutPage();
-        assertTrue(shown(Preference.class).contains("Feed"));
-
+        tap(categoryRow("Feed"));
+        tap(categoryRow("Notifications"));
         page.searchSettings("Hide ads");
         layoutPage();
         assertFalse("the search took the category rows off", shown(Preference.class).contains("Feed"));
@@ -335,23 +439,31 @@ public class CategoryPagesSettingsTest {
         assertFalse("and the Back after it closes settings", page.closeCategory());
     }
 
-    @Test public void everyCategoryStartsAtSearchOutsideTouchModeEvenFromALaterOverviewRow() throws Exception {
+    @Test public void aLaterHeaderKeepsItsViewportWhenExpandedAndCollapsedOutsideTouchMode() throws Exception {
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
         openDialog();
         touchMode(page.getView(), false);
         List<String> categories = shown(Preference.class);
         assertEquals(22, categories.size());
-        for (String title : categories) {
-            ListView list = page.getView().findViewById(android.R.id.list);
-            list.setSelectionFromTop(12, -8);
+        HushgramPreferenceFragment.Heading header = categoryRow(categories.get(categories.size() / 2));
+        ListView list = page.getView().findViewById(android.R.id.list);
+        list.setSelectionFromTop(positionOf(header), -8);
+        layoutPage();
+        assertTrue("the test must start below Search", list.getFirstVisiblePosition() > 0);
+        assertSame(header, list.getItemAtPosition(list.getFirstVisiblePosition()));
+        int top = list.getChildAt(0).getTop() - list.getPaddingTop();
+        for (boolean expanded : new boolean[]{true, false}) {
+            int position = positionOf(header);
+            View row = list.getChildAt(position - list.getFirstVisiblePosition());
+            assertNotNull("the header must be visible for its tap", row);
+            assertTrue(list.performItemClick(row, position, list.getItemIdAtPosition(position)));
             layoutPage();
-            tap(categoryRow(title));
-            layoutPage();
-            assertEquals(title + " must start at Search", 0, list.getFirstVisiblePosition());
-            assertNotNull(title + " must keep Search visible",
-                    page.getView().findViewWithTag("hushgram-settings-search"));
-            assertTrue(page.closeCategory());
-            layoutPage();
+            assertEquals(expanded, header.expanded);
+            assertSame("the tapped header remains the viewport anchor", header,
+                    list.getItemAtPosition(list.getFirstVisiblePosition()));
+            assertEquals(top, list.getChildAt(0).getTop() - list.getPaddingTop());
+            assertEquals(categories, shown(Preference.class));
+            assertEquals("HushGram", toolbarTitle());
         }
     }
 
@@ -387,7 +499,7 @@ public class CategoryPagesSettingsTest {
         tap(categoryRow("Feed"));
         layoutPage();
         assertFalse(body.isFocusable());
-        assertTrue("a page opened by keyboard starts in its rows: " + root.findFocus(), list.hasFocus());
+        assertTrue("expansion by keyboard keeps focus in the rows: " + root.findFocus(), list.hasFocus());
 
         touchMode(body, true);
         assertTrue(root.isFocusableInTouchMode());
@@ -412,7 +524,7 @@ public class CategoryPagesSettingsTest {
         Preference field = page.getPreferenceScreen().findPreference("hushgram_settings_search");
         int at = -1;
         for (int i = 0; i < list.getAdapter().getCount(); i++) if (list.getAdapter().getItem(i) == field) at = i;
-        assertTrue("the field sits under other rows to begin with: " + at, at > 0);
+        assertEquals("Search remains the first row while typing", 0, at);
         assertEquals(at, list.getFirstVisiblePosition());
         assertEquals(list.getPaddingTop(), list.getChildAt(0).getTop());
         assertTrue("moving the list lost typing focus: " + page.getView().findFocus(), input.hasFocus());
@@ -437,13 +549,13 @@ public class CategoryPagesSettingsTest {
      * and putting it in moved the rows under the finger (S25, 2026-10-13). It's the screen's bar
      * under the page now: in view wherever the page is scrolled, and no row goes in or out.
      */
-    @Test public void aPendingRestartShowsItsBarUnderTheCategoryAndMovesNoRow() throws Exception {
+    @Test public void aPendingRestartShowsItsBarBelowTheListAndMovesNoRow() throws Exception {
         openDialog();
-        Preference status = page.getPreferenceScreen().getPreference(0);
+        Preference homeControl = page.getPreferenceScreen().findPreference("hushgram_view_toggle");
         View bar = dialog.getView().findViewById(SettingsDialog.RESTART_ID);
         tap(categoryRow("Feed"));
         layoutPage();
-        assertNull(status.getParent());
+        assertSame(page.getPreferenceScreen(), homeControl.getParent());
         assertEquals("nothing waits on a restart yet", View.GONE, bar.getVisibility());
         ListView list = page.getView().findViewById(android.R.id.list);
         int rows = list.getAdapter().getCount();
@@ -457,7 +569,7 @@ public class CategoryPagesSettingsTest {
                 ((android.widget.TextView) bar).getText().toString());
         assertTrue("under the page, not over its rows",
                 bar.getTop() >= dialog.getView().findViewById(SettingsDialog.CONTAINER_ID).getBottom());
-        assertNull("no row goes in above the one that was flipped", status.getParent());
+        assertSame("the list option stays attached", page.getPreferenceScreen(), homeControl.getParent());
         assertEquals(rows, list.getAdapter().getCount());
         assertEquals("hushgram_settings_search", page.getPreferenceScreen().getPreference(0).getKey());
         following.setChecked(before);
@@ -466,13 +578,14 @@ public class CategoryPagesSettingsTest {
         assertEquals(rows, list.getAdapter().getCount());
     }
 
-    @Test public void recreationKeepsTheCategoryTitleAndScrollWithoutSavingTheSearchText() throws Exception {
+    @Test public void recreationKeepsExpandedSectionsAndScrollWithoutSavingTheSearchText() throws Exception {
         PatchFamily.inBuildForTests.add(PatchFamily.REEL_DECLUTTER);
         openDialog();
+        tap(categoryRow("Feed"));
         tap(categoryRow("Reels"));
         layoutPage();
         ListView list = page.getView().findViewById(android.R.id.list);
-        list.setSelectionFromTop(3, -8);
+        list.setSelectionFromTop(positionOf(categoryRow("Reels")) + 2, -8);
         layoutPage();
         int position = list.getFirstVisiblePosition();
         int top = list.getChildAt(0).getTop() - list.getPaddingTop();
@@ -482,6 +595,11 @@ public class CategoryPagesSettingsTest {
         Bundle state = new Bundle();
         page.onSaveInstanceState(state);
         assertFalse(state.containsKey("hushgram_settings_query"));
+        List<String> expanded = state.getStringArrayList("hushgram_expanded_categories");
+        assertNotNull(expanded);
+        assertEquals(2, expanded.size());
+        assertTrue(expanded.containsAll(
+                List.of(categoryRow("Feed").getKey(), categoryRow("Reels").getKey())));
 
         controller.recreate();
         ShadowLooper.idleMainLooper();
@@ -490,9 +608,10 @@ public class CategoryPagesSettingsTest {
         page = (HushgramPreferenceFragment) dialog.getChildFragmentManager()
                 .findFragmentById(SettingsDialog.CONTAINER_ID);
         layoutPage();
-        assertEquals(List.of("Reels"), shown(PreferenceCategory.class));
-        LinearLayout bar = (LinearLayout) ((LinearLayout) dialog.getView()).getChildAt(0);
-        assertEquals("Reels", ((TextView) bar.getChildAt(1)).getText());
+        assertEquals(List.of("Feed", "Reels", "Pause and diagnostics"), shown(PreferenceCategory.class));
+        assertTrue(categoryRow("Feed").expanded);
+        assertTrue(categoryRow("Reels").expanded);
+        assertEquals("HushGram", toolbarTitle());
         list = page.getView().findViewById(android.R.id.list);
         assertEquals(position, list.getFirstVisiblePosition());
         assertEquals(top, list.getChildAt(0).getTop() - list.getPaddingTop());
@@ -503,15 +622,16 @@ public class CategoryPagesSettingsTest {
         page = (HushgramPreferenceFragment) dialog.getChildFragmentManager()
                 .findFragmentById(SettingsDialog.CONTAINER_ID);
         layoutPage();
-        assertEquals("the page returns without retaining what was searched", List.of("Reels"),
+        assertEquals("expansions return without retaining what was searched",
+                List.of("Feed", "Reels", "Pause and diagnostics"),
                 shown(PreferenceCategory.class));
         EditText input = page.getView().findViewWithTag("hushgram-settings-search");
         assertNotNull("the restored page starts at its search field", input);
         assertEquals("", input.getText().toString());
         assertFalse(input.isSaveEnabled());
-        assertTrue(page.closeCategory());
-        ShadowLooper.idleMainLooper();
+        assertFalse(page.closeCategory());
         assertTrue(shown(Preference.class).contains("Reels"));
+        assertEquals("HushGram", toolbarTitle());
     }
 
     @Test public void recreationAlsoKeepsOverviewAndFlatListScroll() throws Exception {
@@ -533,7 +653,8 @@ public class CategoryPagesSettingsTest {
             list = page.getView().findViewById(android.R.id.list);
             assertEquals(position, list.getFirstVisiblePosition());
             assertEquals(top, list.getChildAt(0).getTop() - list.getPaddingTop());
-            assertFalse("restoration must not open a category", page.closeCategory());
+            if (pages) assertEquals(List.of("Pause and diagnostics"), shown(PreferenceCategory.class));
+            assertFalse("restoration adds no Back level", page.closeCategory());
             dialog.dismissAllowingStateLoss();
             controller.close();
             dialog = null;
@@ -541,7 +662,7 @@ public class CategoryPagesSettingsTest {
         }
     }
 
-    @Test public void theSwitchChangesTheOpenPage() throws Exception {
+    @Test public void theSettingsSwitchChangesModeAndKeepsTheExpandedSections() throws Exception {
         Settings.CATEGORY_PAGES.save(false);
         open();
         ((SwitchPreference) page.findPreference(Settings.CATEGORY_PAGES.key)).setChecked(true);
@@ -550,10 +671,18 @@ public class CategoryPagesSettingsTest {
         assertTrue(shown(Preference.class).contains("Feed"));
 
         tap(categoryRow("Settings entry"));
+        tap(categoryRow("Feed"));
         ((SwitchPreference) page.findPreference(Settings.CATEGORY_PAGES.key)).setChecked(false);
         ShadowLooper.idleMainLooper();
         assertTrue(shown(Preference.class).isEmpty());
         assertTrue(shown(PreferenceCategory.class).containsAll(List.of("Settings entry", "Feed", "Ads and privacy")));
+        assertFalse(page.closeCategory());
+        ((SwitchPreference) page.findPreference(Settings.CATEGORY_PAGES.key)).setChecked(true);
+        ShadowLooper.idleMainLooper();
+        assertTrue(categoryRow("Settings entry").expanded);
+        assertTrue(categoryRow("Feed").expanded);
+        assertFalse(categoryRow("Ads and privacy").expanded);
+        assertNotNull(page.getPreferenceScreen().findPreference(Settings.START_ON_FOLLOWING.key));
         assertFalse(page.closeCategory());
     }
 
@@ -568,24 +697,24 @@ public class CategoryPagesSettingsTest {
         }
     }
 
-    @Test public void theDialogsBackClosesThePageFirst() throws Exception {
-        Settings.CATEGORY_PAGES.save(true);
-        controller = Robolectric.buildActivity(Activity.class).setup().visible();
-        dialog = new SettingsDialog();
-        dialog.show(controller.get().getFragmentManager(), "category_pages");
-        controller.get().getFragmentManager().executePendingTransactions();
-        ShadowLooper.idleMainLooper();
-        page = (HushgramPreferenceFragment) dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID);
-        assertNotNull(page);
+    @Test public void theDialogsBackClosesSettingsWithExpandedCategories() throws Exception {
+        openDialog();
         tap(categoryRow("Notifications"));
+        tap(categoryRow("Feed"));
         Dialog window = dialog.getDialog();
 
         window.onBackPressed();
         ShadowLooper.idleMainLooper();
-        assertTrue("the first Back goes to the list", window.isShowing());
-        assertTrue(shown(Preference.class).contains("Notifications"));
+        assertFalse("expansion adds no separate screen to close", window.isShowing());
+        dialog = null;
+    }
 
-        window.onBackPressed();
+    @Test public void theToolbarBackClosesSettingsWithExpandedCategories() throws Exception {
+        openDialog();
+        tap(categoryRow("Feed"));
+        Dialog window = dialog.getDialog();
+        LinearLayout bar = (LinearLayout) ((LinearLayout) dialog.getView()).getChildAt(0);
+        assertTrue(bar.getChildAt(0).performClick());
         ShadowLooper.idleMainLooper();
         assertFalse(window.isShowing());
         dialog = null;

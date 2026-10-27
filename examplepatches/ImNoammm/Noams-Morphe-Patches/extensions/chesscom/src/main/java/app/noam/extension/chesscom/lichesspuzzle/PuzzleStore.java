@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteFullException;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.io.BufferedReader;
@@ -78,6 +79,11 @@ final class PuzzleStore extends SQLiteOpenHelper {
         return number("SELECT COUNT(*) FROM puzzles");
     }
 
+    /** Whether any puzzle is on the phone, without counting them all. */
+    boolean any() {
+        return number("SELECT EXISTS (SELECT 1 FROM puzzles)") == 1;
+    }
+
     int solvedCount() {
         return number("SELECT COUNT(*) FROM puzzles WHERE state = " + SOLVED);
     }
@@ -93,20 +99,24 @@ final class PuzzleStore extends SQLiteOpenHelper {
         getWritableDatabase().execSQL("DELETE FROM puzzles");
     }
 
+    /** Puzzles stored per transaction, so nothing else waits on the database for longer than one. */
+    private static final int BATCH = 2_000;
+
     /**
      * Downloads and imports a pack (puzzles already here keep whether they were solved); never on
-     * the main thread.
+     * the main thread. Returns null when it worked, or what went wrong.
      */
-    boolean download(int pack, Progress progress) {
+    String download(int pack, Progress progress) {
         HttpURLConnection connection = null;
-        SQLiteDatabase db = getWritableDatabase();
+        SQLiteDatabase db = null;
         try {
+            db = getWritableDatabase();
             connection = (HttpURLConnection) new URL(PACK_URL + PACKS[pack] + ".csv.gz").openConnection();
             connection.setConnectTimeout(15_000);
             connection.setReadTimeout(30_000);
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 Utils.log("Lichess puzzle pack answered " + connection.getResponseCode());
-                return false;
+                return OFFLINE;
             }
             long total = connection.getContentLength();
             try (CountingStream in = new CountingStream(connection.getInputStream(), total, progress);
@@ -114,6 +124,7 @@ final class PuzzleStore extends SQLiteOpenHelper {
                 reader.readLine();
                 db.beginTransaction();
                 ContentValues values = new ContentValues();
+                int batch = 0;
                 String line;
                 while ((line = reader.readLine()) != null) {
                     // PuzzleId,FEN,Moves,Rating,Themes
@@ -124,18 +135,36 @@ final class PuzzleStore extends SQLiteOpenHelper {
                     values.put("moves", f[2]);
                     values.put("rating", Integer.parseInt(f[3]));
                     db.insertWithOnConflict("puzzles", null, values, SQLiteDatabase.CONFLICT_IGNORE);
+                    if (++batch == BATCH) {
+                        db.setTransactionSuccessful();
+                        db.endTransaction();
+                        db.beginTransaction();
+                        batch = 0;
+                    }
                 }
                 db.setTransactionSuccessful();
             }
-            return true;
-        } catch (Exception e) {
+            return null;
+        } catch (SQLiteFullException e) {
             Utils.logError("Lichess puzzle pack failed", e);
-            return false;
+            return "Not enough free space on this phone for that pack.";
+        } catch (IOException e) {
+            Utils.logError("Lichess puzzle pack failed", e);
+            return OFFLINE;
+        } catch (Throwable e) {
+            Utils.logError("Lichess puzzle pack failed", e);
+            return "Couldn't store the Lichess puzzles.";
         } finally {
-            if (db.inTransaction()) db.endTransaction();
+            try {
+                if (db != null && db.inTransaction()) db.endTransaction();
+            } catch (Throwable e) {
+                Utils.logError("Lichess puzzle pack not finished", e);
+            }
             if (connection != null) connection.disconnect();
         }
     }
+
+    private static final String OFFLINE = "Couldn't download Lichess puzzles. Check your connection.";
 
     /** The download's bytes as they arrive, reported as a percentage. */
     private static final class CountingStream extends FilterInputStream {

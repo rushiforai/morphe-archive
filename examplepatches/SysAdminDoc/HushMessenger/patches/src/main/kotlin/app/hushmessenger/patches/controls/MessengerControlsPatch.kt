@@ -169,6 +169,7 @@ internal fun MutableMethod.validateHook(hook: String) {
         WIFI_IDENTITY -> validateWifiIdentity()
         PHONE_ID_SYNC -> validatePhoneIdSync()
         STORY_HOLD -> validateStoryHold()
+        SHARE_STORY -> validateShareStory()
         QUIET_CALL_RING -> validateQuietCallRing()
         QUIET_CALL_NOTIFICATION -> validateQuietCallNotification()
         TEXT_STYLE -> validateTextStyleField()
@@ -247,6 +248,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             WIFI_IDENTITY -> method.injectWifiIdentity()
             PHONE_ID_SYNC -> method.injectPhoneIdSync()
             STORY_HOLD -> method.injectStoryHold()
+            SHARE_STORY -> method.injectShareStory()
             QUIET_CALL_RING -> method.injectQuietCallRing()
             QUIET_CALL_NOTIFICATION -> method.injectQuietCallNotification()
             TEXT_STYLE -> method.injectTextStyleField()
@@ -470,6 +472,9 @@ val disappearingSwipePatch = controlPatch("disappearing_swipe", "Ignore the swip
 @Suppress("unused")
 val hideRecentMediaPatch = controlPatch("recent_media", "Hide the recent photo card",
     "Stops the card above the message box that offers to send the screenshot, photo or video you just took. You can still send it from the gallery.", "Photos and videos")
+@Suppress("unused")
+val hideShareStoryPatch = controlPatch("share_story", "Hide Your story when sharing",
+    "When you share a photo, video or link into Messenger from another app, the Send to list no longer offers Your story, so a tap on Add can't post it by mistake. Your chats and groups are still there.", "Photos and videos")
 @Suppress("unused")
 val keepMessageLogPatch = controlPatch("message_log", "Keep a message log",
     "Saves each message when its notification arrives, so you can still read it if it's unsent. Works in end-to-end encrypted chats too. Stays on your phone.", "Privacy")

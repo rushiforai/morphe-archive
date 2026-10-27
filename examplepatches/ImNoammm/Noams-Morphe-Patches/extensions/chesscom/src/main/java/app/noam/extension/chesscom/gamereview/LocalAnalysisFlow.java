@@ -97,7 +97,6 @@ final class LocalAnalysisFlow {
     }
 
     private static void runCollect(AppTypes types, String pgn, FlowBridge.Emitter emitter) throws Throwable {
-        GameReview.reviewing = true;
         Activity activity = Utils.topActivity();
         // Fair-play gate: never analyse while a game against a person is on screen.
         if (GameReview.isLiveMatch(activity)) {
@@ -304,10 +303,13 @@ final class LocalAnalysisFlow {
                 Object color = isWhite ? colorWhite : colorBlack;
 
                 // Lichess marks inaccuracies, mistakes and blunders (a lost forced mate shows as a
-                // Miss); moves of the opening Lichess names are Book, the engine's own best move is
-                // Best, and anything else carries no mark.
+                // Miss); moves of the opening Lichess names are Book and the engine's own best move
+                // is Best. Local Stockfish marks the rest Excellent or Good, as chess.com would;
+                // Lichess's review leaves them unmarked, as Lichess does.
                 String classification = ply.miss ? LichessMath.MISS : ply.judgment != null ? ply.judgment
-                    : i < bookPlies ? LichessMath.BOOK : ply.best ? LichessMath.BEST : LichessMath.EXCELLENT;
+                    : i < bookPlies ? LichessMath.BOOK : ply.best ? LichessMath.BEST
+                    : lichess ? LichessMath.EXCELLENT
+                    : LichessMath.unjudged(ply.scoreBefore, ply.mateBefore, ply.scoreAfter, ply.mateAfter, isWhite);
                 int[] tally = isWhite ? wT : bT;
                 tally[tallyIndex(classification)]++;
 
@@ -585,6 +587,7 @@ final class LocalAnalysisFlow {
         switch (c) {
             case LichessMath.BOOK: return 0;
             case LichessMath.BEST: return 3;
+            case LichessMath.GOOD: return 5;
             case LichessMath.INACCURACY: return 6;
             case LichessMath.MISTAKE: return 7;
             case LichessMath.BLUNDER: return 8;

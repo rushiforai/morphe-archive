@@ -299,6 +299,8 @@ Hide suggested stories	Nascondi le storie suggerite
 Hides stories from accounts you don't follow, and accounts Instagram suggests, in the row at the top of Home. Stories from accounts you follow stay.	Nasconde le storie di account che non segui, e gli account suggeriti da Instagram, nella riga in alto nella Home. Le storie degli account che segui restano.
 Hide the Stories tray	Nascondi la barra delle storie
 Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.	Toglie l'intera riga delle storie dalla parte alta della Home, compresa La tua storia. Le storie si aprono comunque da un profilo o da un messaggio.
+Keep the Stories tray in the feed	Tieni la barra delle storie nel feed
+Stops Instagram from floating the row of stories over Home when you come back to it mid-feed or scroll up fast. The row stays at the top of the feed and scrolls away with it.	Impedisce a Instagram di far galleggiare la riga delle storie sopra la Home quando ci torni a metà feed o scorri in su velocemente. La riga resta in cima al feed e scorre via con esso.
 Hide the Music for you card	Nascondi la scheda Musica per te
 Keeps Instagram's Music for you card from turning up between the stories you watch. The stories themselves stay.	Impedisce alla scheda Musica per te di Instagram di comparire tra le storie che guardi. Le storie restano.
 Hide Suggested for you between stories	Nascondi Suggeriti per te tra le storie
@@ -311,6 +313,8 @@ the start-up fix for x86 devices	la correzione di avvio per i dispositivi x86
 # context: toasts when a long press of Home gave up waiting on Instagram's developer options to load
 Pure black dark mode	Modalità scura nero puro
 Instagram's dark mode uses pure black instead of its near-black gray, and so do the menus that slide up from the bottom. Buttons keep their own grays.	La modalità scura di Instagram usa il nero puro invece del suo grigio quasi nero, e così i menu che salgono dal basso. I pulsanti mantengono i loro grigi.
+Pure black dark mode isn't in this build	Modalità scura nero puro non è in questa build
+To make dark mode pure black instead of dark gray, which can save battery on an OLED screen, pick Pure black dark mode in Morphe Manager the next time you patch Instagram.	Per avere la modalità scura in nero puro invece che grigio scuro, che può far risparmiare batteria su uno schermo OLED, scegli Modalità scura nero puro in Morphe Manager la prossima volta che patchi Instagram.
 the pure black dark mode	la modalità scura nero puro
 No Play Store updates	Nessun aggiornamento dal Play Store
 Google Play won't offer Meta's updates over this build. To go back to the normal Instagram, uninstall this one first, which deletes Instagram's data on this phone. Later HushGram builds need Change version code too, or they won't install over this one.	Google Play non offrirà gli aggiornamenti di Meta su questa build. Per tornare al normale Instagram, disinstalla prima questo, il che cancella i dati di Instagram su questo telefono. Anche le build future di HushGram richiedono Cambia il codice versione, altrimenti non si installeranno sopra questa.
@@ -582,8 +586,10 @@ Hide comments	Nascondi i commenti
 Hide memories and recaps	Nascondi ricordi e riepiloghi
 Hide story rewinds	Nascondi i riavvolgimenti delle storie
 Nothing in the row of stories at the top of Home loads, your own story included, and highlights on profiles stay empty too. Saves data. A story ring on a profile or in a chat still opens its stories.	Nulla nella riga delle storie in alto nella Home si carica, compresa la tua storia, e anche le storie in evidenza sui profili restano vuote. Risparmia dati. Un cerchio di storia su un profilo o in una chat apre comunque le sue storie.
-Open categories as pages	Apri le categorie come pagine
-Settings shows a list of its categories, and a tap opens one on its own page. Search still looks through all of them.	Le impostazioni mostrano un elenco delle categorie e un tocco ne apre una nella sua pagina. La ricerca guarda comunque in tutte.
+Expandable categories	Categorie espandibili
+Tap a category to show or hide its settings on this page.	Tocca una categoria per mostrare o nascondere le sue impostazioni in questa pagina.
+Expanded	Espansa
+Collapsed	Compressa
 Hide the HushGram row in Instagram's menu	Nascondi la riga HushGram nel menu di Instagram
 Settings shortcut on the app icon	Scorciatoia alle impostazioni sull'icona dell'app
 Open settings from the logo	Apri le impostazioni dal logo
@@ -822,6 +828,8 @@ Chat %1$s	Chat %1$s
 # context: Hidden chats under Messages, the list of chats left out of the inbox with their notifications dropped, and the toasts after checking a chat in it
 Hidden chats	Chat nascoste
 Hide single chats. A hidden chat leaves your inbox and its notifications don't post until you show it here again.	Nascondi singole chat. Una chat nascosta lascia la tua posta in arrivo e le sue notifiche non compaiono finché non la mostri di nuovo qui.
+Double-tap Messages for hidden chats	Doppio tocco su Messaggi per le chat nascoste
+Two quick taps on the Messages button, on the tab bar or at the top of Home, open your hidden chats. While a lock is on, it asks for it first. One tap opens Messages as usual.	Due tocchi veloci sul pulsante Messaggi, nella barra delle schede o in cima alla Home, aprono le tue chat nascoste. Se è attivo un blocco, lo chiede prima. Un tocco apre Messaggi come al solito.
 Open a chat in Instagram, then come back here to hide it.	Apri una chat in Instagram, poi torna qui per nasconderla.
 %1$s is hidden	%1$s è nascosta
 %1$s is shown again	%1$s è di nuovo visibile
@@ -942,15 +950,15 @@ Hides the status bar and the navigation bar while your messages or a chat shows.
 Hide Notes on profile pictures	Nascondi le Note sulle foto profilo
 Takes the Notes bubble off profile pictures, yours included. Notes in Messages stay as they are.	Toglie la bolla delle Note dalle foto profilo, compresa la tua. Le note nei Messaggi restano come sono.
 # context: the line that opens a category's page in HushGram settings, under the page title
-How you open HushGram, and how this screen is laid out.	Come apri HushGram e come è organizzata questa schermata.
-Hide ads and share less about yourself with Instagram.	Nascondi gli annunci e condividi meno di te con Instagram.
+How you open HushGram and lay out settings.	Come apri HushGram e organizzi le impostazioni.
+Hide ads and share less with Instagram.	Nascondi gli annunci e condividi meno con Instagram.
 Choose what Home shows and how it behaves.	Scegli cosa mostra la Home e come si comporta.
-Take Meta AI out of search, your feed, reels and profiles.	Togli Meta AI dalla ricerca, dal feed, dai reel e dai profili.
-Tidy up the Search tab and what it remembers.	Metti in ordine la scheda Cerca e ciò che ricorda.
-Keep your chats private and your inbox clear of extras.	Tieni private le tue chat e libera la posta in arrivo dagli extra.
-Choose what reels show, and how they play and scroll.	Scegli cosa mostrano i reel, e come partono e scorrono.
-Choose which stories you see and what people see you do.	Scegli quali storie vedi e cosa vedono le persone di ciò che fai.
-Choose how videos start, sound and look.	Scegli come partono, suonano e appaiono i video.
+Control where Meta AI appears.	Scegli dove compare Meta AI.
+Search, suggestions and the Explore grid.	Ricerca, suggerimenti e griglia Esplora.
+Privacy and controls for your chats.	Privacy e controlli per le tue chat.
+Playback and controls in the Reels tab.	Riproduzione e controlli nella scheda Reels.
+Viewing, sound and the stories tray.	Visualizzazione, audio e vassoio delle storie.
+Media quality, auto-play and controls.	Qualità dei contenuti, riproduzione automatica e controlli.
 Take buttons you don't use off posts and the share sheet.	Togli da post e foglio di condivisione i pulsanti che non usi.
 Copy, save or hide comments.	Copia, salva o nascondi i commenti.
 See who follows you back, and clear extras off profiles.	Guarda chi ti segue a sua volta e togli gli extra dai profili.
@@ -1040,28 +1048,6 @@ Loading the picture...	Caricamento dell'immagine...
 # context: the settings row right above Support HushGram that opens a new bug report on GitHub
 Report a problem	Segnala un problema
 Opens a GitHub report with your versions and settings filled in. Add what happened.	Apre una segnalazione su GitHub con le tue versioni e impostazioni già compilate. Aggiungi cos'è successo.
-# context: the settings row under Search, and the title of its dialog of one-tap choices
-Quick setups	Configurazioni rapide
-Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	Attiva un gruppo di interruttori con un tocco, oppure rimetti ogni interruttore come all'inizio. Tieni premuto per nascondere questa riga.
-# context: row on Settings backup that hides or shows the Quick setups row on the home page, and its two summaries
-Quick setups on the home page	Configurazioni rapide nella pagina iniziale
-Shown. Tap to hide it.	Visibile. Tocca per nasconderla.
-Hidden. Tap to show it again.	Nascosta. Tocca per mostrarla di nuovo.
-# context: toast after a long press hides Quick setups; the page named is Settings backup
-Quick setups hidden. Bring it back from %1$s.	Configurazioni rapide nascoste. Riportale da %1$s.
-# context: a Quick setups choice that hides ads, suggestions and promotions
-Quiet	Silenzioso
-# context: a Quick setups choice that turns on the privacy switches
-Privacy	Privacy
-# context: a Quick setups choice that puts every switch back the way it started
-Back to defaults	Torna ai predefiniti
-Hides ads, suggested accounts and posts, surveys and promotions.	Nasconde annunci, account e post suggeriti, sondaggi e promozioni.
-Hides your seen receipts, typing and active status. Allows screenshots and cleans shared links. Stops the analytics upload alarm.	Nasconde le conferme di lettura, la scrittura e lo stato di attività. Consente gli screenshot e pulisce i link condivisi. Ferma l'allarme per il caricamento dei dati di analisi.
-Puts every switch back the way it started. Your locks stay as they are.	Rimette ogni interruttore come all'inizio. I tuoi blocchi restano come sono.
-# context: toast after a Quick setups choice changed exactly one switch
-Changed %1$d setting	Cambiata %1$d impostazione
-# context: the same toast for any other count, zero included; %1$d is how many
-Changed %1$d settings	Cambiate %1$d impostazioni
 Hide the reply bar on reels from chats	Nascondi la barra di risposta sui reel dalle chat
 The Reply to box under a reel you open from a chat, with its reactions and plus button. The chat's own message box stays.	La casella Rispondi a sotto un reel che apri da una chat, con le sue reazioni e il pulsante più. La casella dei messaggi della chat resta.
 # context: Layout list title; it picks the font Instagram's text draws in
@@ -1261,3 +1247,13 @@ Date in backup file names	Data nei nomi dei file di backup
 Add the current date and time when exporting settings. Off keeps HushGram-settings.json.	Aggiunge la data e l’ora attuali quando esporti le impostazioni. Se disattivato, resta HushGram-settings.json.
 %1$s is the post's shortcode. Stories and unknown posts leave it out. Using it also names photos.	%1$s è il codice breve del post. Viene omesso per storie e post sconosciuti. Usandolo, il modello vale anche per le foto.
 Videos and photos use %1$s. Unknown codes are left out.	Video e foto usano %1$s. I codici sconosciuti vengono omessi.
+Tab bar layout	Layout della barra delle schede
+Swipe between tabs	Scorri tra le schede
+Classic	Classica
+Instagram's choice	Scelta di Instagram
+Keeps the newer bar, with Messages on it, and you can swipe sideways between every tab, even if Instagram moves your account back to the older one. Restart Instagram to see the change.	Mantiene la barra più nuova, con Messaggi, e puoi scorrere di lato tra tutte le schede, anche se Instagram riporta il tuo account a quella vecchia. Riavvia Instagram per vedere la modifica.
+Keeps the older bar, with Create on it and Messages at the top of Home. Swiping only moves between Home and the screens beside it. Restart Instagram to see the change.	Mantiene la barra vecchia, con Crea e con Messaggi in alto nella Home. Lo scorrimento passa solo tra la Home e le schermate accanto. Riavvia Instagram per vedere la modifica.
+Instagram picks the tab bar for your account, and it can switch between the two on its own.	Instagram sceglie la barra delle schede per il tuo account e può passare dall'una all'altra da sola.
+Group Instagram's notifications, and take suggestions off the Notifications page.	Raggruppa le notifiche di Instagram e togli i suggerimenti dalla pagina Notifiche.
+Take suggestions and Featured off the Notifications page.	Togli i suggerimenti e In evidenza dalla pagina Notifiche.
+Version warnings	Avvisi di versione

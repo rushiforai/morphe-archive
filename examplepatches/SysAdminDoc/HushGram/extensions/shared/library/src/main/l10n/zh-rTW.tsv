@@ -304,6 +304,8 @@ Hide suggested stories	隱藏推薦限時動態
 Hides stories from accounts you don't follow, and accounts Instagram suggests, in the row at the top of Home. Stories from accounts you follow stay.	隱藏首頁頂端橫列中來自未追蹤帳號的限時動態，以及 Instagram 建議的帳號。已追蹤帳號的限時動態仍會保留。
 Hide the Stories tray	隱藏限時動態橫幅
 Takes the whole row of stories off the top of Home, Your story included. Stories still open from a profile or a message.	移除首頁頂端整列限時動態，包括「你的限時動態」。仍可從個人檔案或訊息開啟限時動態。
+Keep the Stories tray in the feed	讓限時動態橫幅留在動態中
+Stops Instagram from floating the row of stories over Home when you come back to it mid-feed or scroll up fast. The row stays at the top of the feed and scrolls away with it.	在動態中途回到首頁或快速往上滑時，不讓 Instagram 把限時動態列浮在首頁上方。這一列會留在動態頂端，並隨動態一起捲走。
 Hide the Music for you card	隱藏「為你推薦的音樂」卡片
 Keeps Instagram's Music for you card from turning up between the stories you watch. The stories themselves stay.	不讓 Instagram 的「為你推薦的音樂」卡片出現在觀看中的限時動態之間。限時動態本身仍會保留。
 Hide Suggested for you between stories	隱藏限時動態之間的「為你推薦」
@@ -316,6 +318,8 @@ the start-up fix for x86 devices	x86 裝置啟動修正
 # context: toasts when a long press of Home gave up waiting on Instagram's developer options to load
 Pure black dark mode	AMOLED 純黑模式
 Instagram's dark mode uses pure black instead of its near-black gray, and so do the menus that slide up from the bottom. Buttons keep their own grays.	將 Instagram 深色模式的近黑灰色改為純黑，底部滑出的選單也適用。按鈕仍保留原本的灰色。
+Pure black dark mode isn't in this build	這個版本沒有 AMOLED 純黑模式
+To make dark mode pure black instead of dark gray, which can save battery on an OLED screen, pick Pure black dark mode in Morphe Manager the next time you patch Instagram.	想讓深色模式變成純黑而不是深灰（在 OLED 螢幕上可以省電），下次修補 Instagram 時，請在 Morphe Manager 中選取 AMOLED 純黑模式。
 the pure black dark mode	純黑深色模式
 No Play Store updates	停用 Play 商店更新
 Google Play won't offer Meta's updates over this build. To go back to the normal Instagram, uninstall this one first, which deletes Instagram's data on this phone. Later HushGram builds need Change version code too, or they won't install over this one.	Google Play 不會再為此版本提供 Meta 的更新。若要恢復一般 Instagram，請先解除安裝此版本，這會刪除手機上的 Instagram 資料。之後的 HushGram 版本也需套用「變更版本號碼」，否則無法覆蓋安裝。
@@ -586,8 +590,10 @@ Hide comments	隱藏留言
 Hide memories and recaps	隱藏回憶與回顧
 Hide story rewinds	隱藏限時動態往事回顧
 Nothing in the row of stories at the top of Home loads, your own story included, and highlights on profiles stay empty too. Saves data. A story ring on a profile or in a chat still opens its stories.	首頁頂端的限時動態橫列將不載入任何內容，包括您自己的限時動態；個人檔案的精選也會保持空白，以節省數據。仍可點擊個人檔案或聊天中的光圈開啟限時動態。
-Open categories as pages	以獨立頁面開啟分類
-Settings shows a list of its categories, and a tap opens one on its own page. Search still looks through all of them.	設定會顯示分類清單，點擊後在獨立頁面開啟該分類。搜尋仍會涵蓋所有分類。
+Expandable categories	可展開的分類
+Tap a category to show or hide its settings on this page.	點選分類即可在此頁面顯示或隱藏該分類的設定。
+Expanded	已展開
+Collapsed	已收合
 Hide the HushGram row in Instagram's menu	隱藏 Instagram 選單中的 HushGram 項目
 Settings shortcut on the app icon	應用程式圖示的設定捷徑
 Open settings from the logo	從標誌開啟設定
@@ -822,6 +828,8 @@ Chat %1$s	聊天 %1$s
 # context: Hidden chats under Messages, the list of chats left out of the inbox with their notifications dropped, and the toasts after checking a chat in it
 Hidden chats	已隱藏的聊天
 Hide single chats. A hidden chat leaves your inbox and its notifications don't post until you show it here again.	隱藏個別聊天。隱藏的聊天會從收件匣移除，也不會發出通知，直到您在此重新顯示。
+Double-tap Messages for hidden chats	點兩下訊息開啟隱藏的聊天
+Two quick taps on the Messages button, on the tab bar or at the top of Home, open your hidden chats. While a lock is on, it asks for it first. One tap opens Messages as usual.	在分頁列或首頁頂端的訊息按鈕上快速點兩下，就會開啟你隱藏的聊天。開啟鎖定時會先要求解鎖。點一下則照常開啟訊息。
 Open a chat in Instagram, then come back here to hide it.	先在 Instagram 開啟聊天，再回到此處隱藏。
 %1$s is hidden	已隱藏 %1$s
 %1$s is shown again	已重新顯示 %1$s
@@ -940,15 +948,15 @@ Hides the status bar and the navigation bar while your messages or a chat shows.
 Hide Notes on profile pictures	隱藏個人檔案相片上的筆記
 Takes the Notes bubble off profile pictures, yours included. Notes in Messages stay as they are.	移除個人檔案相片上的筆記泡泡，自己的也適用。私訊中的筆記不受影響。
 # context: the line that opens a category's page in HushGram settings, under the page title
-How you open HushGram, and how this screen is laid out.	設定 HushGram 的開啟方式與此畫面的排列方式。
-Hide ads and share less about yourself with Instagram.	隱藏廣告，並減少向 Instagram 分享個人資訊。
+How you open HushGram and lay out settings.	開啟 HushGram 的方式與設定版面。
+Hide ads and share less with Instagram.	隱藏廣告，減少與 Instagram 分享的資訊。
 Choose what Home shows and how it behaves.	選擇首頁顯示的內容與操作方式。
-Take Meta AI out of search, your feed, reels and profiles.	從搜尋、動態、Reels 與個人檔案移除 Meta AI。
-Tidy up the Search tab and what it remembers.	整理搜尋分頁與它保留的記錄。
-Keep your chats private and your inbox clear of extras.	保護聊天隱私，並移除收件匣中的額外內容。
-Choose what reels show, and how they play and scroll.	選擇 Reels 顯示的內容、播放與捲動方式。
-Choose which stories you see and what people see you do.	選擇觀看哪些限時動態，以及他人能看到您的哪些活動。
-Choose how videos start, sound and look.	選擇影片的播放方式、聲音與畫質。
+Control where Meta AI appears.	選擇 Meta AI 出現的位置。
+Search, suggestions and the Explore grid.	搜尋、建議與探索網格。
+Privacy and controls for your chats.	聊天室的隱私與控制選項。
+Playback and controls in the Reels tab.	Reels 分頁的播放與控制選項。
+Viewing, sound and the stories tray.	觀看、音效與限時動態列。
+Media quality, auto-play and controls.	媒體品質、自動播放與控制選項。
 Take buttons you don't use off posts and the share sheet.	移除貼文與分享表單中用不到的按鈕。
 Copy, save or hide comments.	複製、儲存或隱藏留言。
 See who follows you back, and clear extras off profiles.	查看誰回追了您，並移除個人檔案的額外內容。
@@ -1038,28 +1046,6 @@ Loading the picture...	正在載入圖片…
 # context: the settings row right above Support HushGram that opens a new bug report on GitHub
 Report a problem	回報問題
 Opens a GitHub report with your versions and settings filled in. Add what happened.	開啟已填入版本與設定的 GitHub 問題回報，請補充發生的情況。
-# context: the settings row under Search, and the title of its dialog of one-tap choices
-Quick setups	快速設定
-Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	點一下即可啟用一組開關，或將所有開關還原為初始狀態。長按可隱藏此列。
-# context: row on Settings backup that hides or shows the Quick setups row on the home page, and its two summaries
-Quick setups on the home page	設定首頁的快速設定
-Shown. Tap to hide it.	已顯示。點擊即可隱藏。
-Hidden. Tap to show it again.	已隱藏。點擊即可重新顯示。
-# context: toast after a long press hides Quick setups; the page named is Settings backup
-Quick setups hidden. Bring it back from %1$s.	已隱藏快速設定，可從 %1$s 重新顯示。
-# context: a Quick setups choice that hides ads, suggestions and promotions
-Quiet	清靜
-# context: a Quick setups choice that turns on the privacy switches
-Privacy	隱私
-# context: a Quick setups choice that puts every switch back the way it started
-Back to defaults	還原預設值
-Hides ads, suggested accounts and posts, surveys and promotions.	隱藏廣告、建議帳號、推薦貼文、問卷與推廣內容。
-Hides your seen receipts, typing and active status. Allows screenshots and cleans shared links. Stops the analytics upload alarm.	隱藏已讀標記、正在輸入與上線狀態。允許截圖並清理分享連結。停用分析資料上傳的鬧鐘。
-Puts every switch back the way it started. Your locks stay as they are.	將所有開關還原為初始狀態。鎖定設定維持不變。
-# context: toast after a Quick setups choice changed exactly one switch
-Changed %1$d setting	已變更 %1$d 項設定
-# context: the same toast for any other count, zero included; %1$d is how many
-Changed %1$d settings	已變更 %1$d 項設定
 Hide the reply bar on reels from chats	隱藏從聊天開啟的 Reels 回覆列
 The Reply to box under a reel you open from a chat, with its reactions and plus button. The chat's own message box stays.	隱藏從聊天開啟的 Reel 下方的回覆框、心情回應與加號按鈕。聊天本身的訊息輸入框仍會保留。
 # context: Layout list title; it picks the font Instagram's text draws in
@@ -1264,3 +1250,13 @@ Date in backup file names	在備份檔名加入日期
 Add the current date and time when exporting settings. Off keeps HushGram-settings.json.	匯出設定時加入目前的日期與時間。關閉時保留 HushGram-settings.json。
 %1$s is the post's shortcode. Stories and unknown posts leave it out. Using it also names photos.	%1$s 是貼文網址中的短代碼。限時動態和未知貼文會省略。加入此代碼後，範本也會用於相片檔名。
 Videos and photos use %1$s. Unknown codes are left out.	影片和相片使用 %1$s。未知的代碼會省略。
+Tab bar layout	分頁列版面
+Swipe between tabs	在分頁間滑動
+Classic	經典
+Instagram's choice	Instagram 的選擇
+Keeps the newer bar, with Messages on it, and you can swipe sideways between every tab, even if Instagram moves your account back to the older one. Restart Instagram to see the change.	保留含有私訊的新版分頁列，即使 Instagram 把你的帳號改回舊版，也能在所有分頁之間左右滑動。重新啟動 Instagram 即可看到變更。
+Keeps the older bar, with Create on it and Messages at the top of Home. Swiping only moves between Home and the screens beside it. Restart Instagram to see the change.	保留含有建立按鈕、私訊位於首頁頂端的舊版分頁列。滑動只會在首頁和旁邊的畫面之間切換。重新啟動 Instagram 即可看到變更。
+Instagram picks the tab bar for your account, and it can switch between the two on its own.	Instagram 會為你的帳號挑選分頁列，也可能自行在兩者之間切換。
+Group Instagram's notifications, and take suggestions off the Notifications page.	將 Instagram 通知分組，並移除通知頁面上的建議。
+Take suggestions and Featured off the Notifications page.	移除通知頁面上的建議和精選內容。
+Version warnings	版本警告

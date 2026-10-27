@@ -211,11 +211,17 @@ class PictureInPictureFixtureTest {
                 assertEquals("$name: the register handed over is the activity", activity, (first as RegisterRangeInstruction).startRegister)
                 assertEquals("$name: one register handed over", 1, first.registerCount)
                 assertEquals("$name: the yes branch", Opcode.IF_EQZ, patched[2].opcode)
-                assertEquals("$name: a no runs Facebook's first instruction", 5, patched.target(2))
-                assertEquals("$name: Facebook's first instruction moved", originalCheck[0].opcode, patched[5].opcode)
                 assertEquals("$name: the yes answers true", 1, (patched[3] as NarrowLiteralInstruction).narrowLiteral)
                 assertEquals("$name: the yes returns", Opcode.RETURN, patched[4].opcode)
-                assertEquals("$name: the rest of Facebook's check", originalCheck.size + 5, patched.size)
+                // #252, #256: with the switch off, the check says no to Facebook's own window too.
+                assertEquals("$name: a no asks whether the switch refuses", 5, patched.target(2))
+                assertEquals("$name: the refusal's call", REFUSED, patched[5].call.toString())
+                assertEquals("$name: the refusal's branch", Opcode.IF_EQZ, patched[7].opcode)
+                assertEquals("$name: a refusal answers false", 0, (patched[8] as NarrowLiteralInstruction).narrowLiteral)
+                assertEquals("$name: a refusal returns", Opcode.RETURN, patched[9].opcode)
+                assertEquals("$name: neither runs Facebook's first instruction", 10, patched.target(7))
+                assertEquals("$name: Facebook's first instruction moved", originalCheck[0].opcode, patched[10].opcode)
+                assertEquals("$name: the rest of Facebook's check", originalCheck.size + 10, patched.size)
 
                 val gated = context.mutableClassDefBy(gate.definingClass).methods.single {
                     it.name == gate.name && it.shape() == gate.shape() && it.returnType == "Z"

@@ -107,7 +107,7 @@ class MailcomSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "9.18.3",
+            version = "9.19.0",
             patchNames = setOf("Disable ads", "Disable telemetry", "Disable rating prompts", "Hide upsells"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -195,11 +195,22 @@ class MailcomSmokeTest {
         val (_, canRequestReview) = allMethods.byCall("canRequestInAppReviewFlow", "getCurrentTimeMillis", calleeReturns = "J")
         assertForcedBoolean(canRequestReview, expected = false, label = "InAppRatingManager.canRequestInAppReviewFlow")
 
-        // Hide upsells: the swipe-to-upsell toggle answers false; the IAP upselling toggle (Settings
-        // "Upgrade", drawer Premium) is untouched.
+        // Hide upsells: the swipe-to-upsell toggle answers false; the IAP upselling check (Settings
+        // "Upgrade", drawer Premium) is untouched. 9.19.0 replaced the IapUpsellingFeature toggle
+        // with the per-account suspend check UpsellFeatureImpl.isIapUpsellEnabled(Account, Continuation).
         val (_, swipe2Upsell) = allMethods.byCall("isEnabledByConfig", "isSwipe2UpsellEnabled")
         assertForcedBoolean(swipe2Upsell, expected = false, label = "Swipe2UpsellFeature.isEnabledByConfig")
-        val (_, iapUpselling) = allMethods.byCall("isEnabledByConfig", "isIapUpsellingEnabled")
-        assertTrue(!iapUpselling.isForcedFalse(), "IapUpsellingFeature.isEnabledByConfig must stay untouched")
+        val iapUpsell = allMethods.filter { (_, method) ->
+            method.name == "isIapUpsellEnabled" && method.implementation != null &&
+                method.parameterTypes.lastOrNull()?.toString() == "Lkotlin/coroutines/Continuation;"
+        }
+        assertTrue(iapUpsell.isNotEmpty(), "IAP upsell check isIapUpsellEnabled(..., Continuation) not found")
+        iapUpsell.forEach { (classDef, method) ->
+            val returns = setOf(Opcode.RETURN, Opcode.RETURN_OBJECT, Opcode.RETURN_VOID)
+            assertTrue(
+                method.instructions().take(2).none { it.opcode in returns },
+                "${classDef.type}.isIapUpsellEnabled must stay untouched",
+            )
+        }
     }
 }

@@ -86,6 +86,22 @@ class TopBarButtonsFixtureTest {
                 assertTrue("$name: nothing in the bar calls ${button.type}->$countName(I)V",
                     bar.methods.any { m -> m.implementation?.instructions?.any { it.call() == "${button.type}->$countName(I)V" } == true })
 
+                // Create button (#257): one builder holds the kept setupCreateGlyphView string, and the
+                // bar's addView of the field it keeps the button in is found once, after the string.
+                val createBuilders = buildersHolding(bar, SETUP_CREATE_GLYPH_VIEW)
+                assertEquals("$name: builders holding $SETUP_CREATE_GLYPH_VIEW", 1, createBuilders.size)
+                val createBuilder = createBuilders.single()
+                val create = createButtonSite(createBuilder)
+                assertEquals("$name: the Create button's field is the bar's", WORDMARK_NAVIGATION_BAR, create.field.definingClass)
+                assertNotEquals("$name: the Create button isn't the Messenger button", site.buttonType, create.field.type)
+                assertTrue("$name: the Create addView follows its glyph string", create.addView > createBuilder.code().indexOfFirst {
+                    (it as? ReferenceInstruction)?.reference?.toString()?.contains(SETUP_CREATE_GLYPH_VIEW) == true
+                })
+                val readers = bar.methods.filter { m ->
+                    m.implementation?.instructions?.any { (it as? ReferenceInstruction)?.reference?.toString() == create.field.toString() } == true
+                }
+                assertEquals("$name: only the Create builder touches its field", listOf(createBuilder.name), readers.map { it.name })
+
                 // Apply the whole hook set the way the patch does: settings has already sent the logo's
                 // touch listener through its stand-in when this patch runs.
                 val context = PatchContexts.of(listOf(bar, button) + newerBar(bundle).classes)
@@ -94,8 +110,12 @@ class TopBarButtonsFixtureTest {
                 mutableLogo.sendToStandIn(logoTouchListenerIndex(logoBuilder), LOGO_TOUCH_STAND_IN)
                 val logoBefore = mutableLogo.code().size
                 val glyphBefore = mutableBar.findMutableMethodOf(glyphBuilder).code().size
-                val sameMethod = glyphBuilder.name == logoBuilder.name &&
-                    glyphBuilder.parameterTypes.map(CharSequence::toString) == logoBuilder.parameterTypes.map(CharSequence::toString)
+                // this.name: a bare name would be the fixture's, the local above.
+                fun Method.isLike(other: Method) =
+                    this.name == other.name && parameterTypes.map(CharSequence::toString) == other.parameterTypes.map(CharSequence::toString)
+                val sameMethod = glyphBuilder.isLike(logoBuilder)
+                val createInLogo = createBuilder.isLike(logoBuilder)
+                val createBefore = mutableBar.findMutableMethodOf(createBuilder).code().size
                 val countBefore = counts.map { c ->
                     context.mutableClassDefBy(button.type).methods.single {
                         it.name == c.name && it.parameterTypes.map(CharSequence::toString) == c.parameters
@@ -117,8 +137,22 @@ class TopBarButtonsFixtureTest {
                 val logoHooks = logoAfter.withIndex().filter { it.value.call() == HIDE_FACEBOOK_LOGO_HOOK }
                 assertEquals("$name: logo hooks", 1, logoHooks.size)
                 assertEquals("$name: the logo hook is range invoke-static", Opcode.INVOKE_STATIC_RANGE, logoAfter[logoHooks.single().index].opcode)
-                val expected = (if (sameMethod) glyphBefore else logoBefore) + (if (sameMethod) 2 else 1)
+                val expected = (if (sameMethod) glyphBefore else logoBefore) + (if (sameMethod) 2 else 1) + (if (createInLogo) 1 else 0)
                 assertEquals("$name: the builder grew by its hooks only", expected, logoAfter.size)
+
+                val createAfter = patchedBar.findMutableMethodOf(createBuilder).code()
+                val createHooks = createAfter.withIndex().filter { it.value.call() == HIDE_CREATE_BUTTON_HOOK }
+                assertEquals("$name: Create button hooks", 1, createHooks.size)
+                val createAt = createHooks.single().index
+                assertEquals("$name: the Create hook is range invoke-static", Opcode.INVOKE_STATIC_RANGE, createAfter[createAt].opcode)
+                assertEquals("$name: the Create hook hands over the register addView took",
+                    create.register, (createAfter[createAt] as RegisterRangeInstruction).startRegister)
+                assertEquals("$name: the Create hook sits right after the addView", ADD_VIEW_CALL, createAfter[createAt - 1].call())
+                assertEquals("$name: the Create hook comes after the button's own field load",
+                    create.field.toString(), (createAfter[createAt - 2] as ReferenceInstruction).reference.toString())
+                if (!createBuilder.isLike(glyphBuilder) && !createInLogo) {
+                    assertEquals("$name: the Create builder grew by its hook only", createBefore + 1, createAfter.size)
+                }
 
                 counts.forEachIndexed { i, c ->
                     val after = context.mutableClassDefBy(button.type).methods.single {
@@ -172,6 +206,10 @@ class TopBarButtonsFixtureTest {
                 val builders = FixtureDex.classesHolding(bundle, MESSENGER_SPEC).flatMap { it.methods }
                     .filter { it.returnType == spec && holdsString(it, MESSENGER_SPEC) }
                 assertTrue("$name: no method loads \"$MESSENGER_SPEC\" and returns $spec", builders.isNotEmpty())
+                // The same for the Create button's spec (#257).
+                val createBuilders = FixtureDex.classesHolding(bundle, CREATE_SPEC).flatMap { it.methods }
+                    .filter { it.returnType == spec && holdsString(it, CREATE_SPEC) }
+                assertTrue("$name: no method loads \"$CREATE_SPEC\" and returns $spec", createBuilders.isNotEmpty())
 
                 val counts = glyphCountMethods(newer.glyph, newer.faces)
                 assertEquals("$name: the (I)V setter's int", 1, counts[0].intRegister)
@@ -233,15 +271,21 @@ class TopBarButtonsFixtureTest {
         val calls = ExtensionDex.classDef(TOP_BAR_BUTTONS).methods
             .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
             .map { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
-        for (hook in listOf(HIDE_MESSENGER_BUTTON_HOOK, HIDE_MESSENGER_COUNT_HOOK, HIDE_FACEBOOK_LOGO_HOOK, BAR_BUTTON_HOOK, BAR_BUTTON_COUNT_HOOK)) {
+        for (hook in listOf(
+            HIDE_MESSENGER_BUTTON_HOOK, HIDE_MESSENGER_COUNT_HOOK, HIDE_FACEBOOK_LOGO_HOOK, BAR_BUTTON_HOOK, BAR_BUTTON_COUNT_HOOK,
+            HIDE_CREATE_BUTTON_HOOK,
+        )) {
             assertTrue("the extension declares no public static $hook: $calls", hook in calls)
         }
         assertEquals("the extension looks for the spec name the fixtures hold",
             MESSENGER_SPEC, ExtensionDex.stringConstant(TOP_BAR_BUTTONS, "MESSENGER_SPEC"))
+        assertEquals("the extension looks for the Create spec name the fixtures hold",
+            CREATE_SPEC, ExtensionDex.stringConstant(TOP_BAR_BUTTONS, "CREATE_SPEC"))
     }
 
     private companion object {
         const val ADD_VIEW_CALL = "Landroid/view/ViewGroup;->addView(Landroid/view/View;)V"
         const val MESSENGER_SPEC = "messenger"
+        const val CREATE_SPEC = "trep-composer-button"
     }
 }

@@ -311,17 +311,19 @@ public class YandexVoiceOverTranslationPatch {
     private static volatile long translationGeneration = 0;
 
     public static void initialize(@SuppressWarnings("unused") VideoInformation.PlaybackController controller) {
-        VideoState.getOnChange().addObserver(state -> {
-            if (state == VideoState.PLAYING) {
-                Utils.runOnMainThread(() -> resumeAudio(-1));
-            } else {
-                Utils.runOnMainThread(() -> {
-                    mainHandler.removeCallbacks(pauseCheckRunnable);
-                    pauseAudio();
-                });
-            }
-            return kotlin.Unit.INSTANCE;
-        });
+        YandexPlayerEvents.<VideoState>observe(VideoState.getOnChange(),
+                YandexVoiceOverTranslationPatch::onVideoStateChanged);
+    }
+
+    private static void onVideoStateChanged(VideoState state) {
+        if (state == VideoState.PLAYING) {
+            Utils.runOnMainThread(() -> resumeAudio(-1));
+        } else {
+            Utils.runOnMainThread(() -> {
+                mainHandler.removeCallbacks(pauseCheckRunnable);
+                pauseAudio();
+            });
+        }
     }
 
     public static void onVideoIdChanged(String videoId) {

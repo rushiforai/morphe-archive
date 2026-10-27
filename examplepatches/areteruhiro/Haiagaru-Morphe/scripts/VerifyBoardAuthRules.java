@@ -28,6 +28,7 @@ public final class VerifyBoardAuthRules {
         String browserError="計算による投稿確認 専用ブラウザからは投稿出来ません。通常のブラウザを使ってください。";
         check(BoardAuthRules.required(browserError),"proof-of-work error detected");
         check(BoardAuthRules.browserRequired(browserError),"explicit browser-only route");
+        check(BoardAuthRules.browserRequired(browserError.replace("計算による投稿確認","Captcha認証")),"browser-only CAPTCHA route");
         check(!BoardAuthRules.browserRequired("計算による投稿確認"),"no browser prohibition inferred");
         check(!BoardAuthRules.browserRequired(null),"null browser requirement");
         check(!BoardAuthRules.browserRequired(browserError+"x".repeat(65536)),"bounded browser scan");
@@ -43,6 +44,18 @@ public final class VerifyBoardAuthRules {
         check(BoardAuthRules.suggested("https://board.example/a/","認証コード: https://evil.example/check").isEmpty(),"cross site suggestion rejected");
         check(BoardAuthRules.suggested("https://board.example/a/","認証コード: /auth-code").equals("https://board.example/auth-code"),"relative auth link");
         check(BoardAuthRules.suggested("https://board.example/a/","https://board.example/check").isEmpty(),"ordinary link ignored");
+        String cssError="<link rel='stylesheet' href='https://043044.xyz/test/datas/design.css'>認証が必要です <a href='https://043044.xyz/check'>認証</a>";
+        check(BoardAuthRules.suggested("https://043044.xyz/krsw/",cssError).equals("https://043044.xyz/check"),"stylesheet preceding real authentication link excluded");
+        check(BoardAuthRules.suggested("https://043044.xyz/krsw/","CAPTCHA https://043044.xyz/test/datas/design.css").isEmpty(),"CSS-only error cannot become authentication page");
+        for(String resource:new String[]{"style.css?x=1","script.JS","logo.png","font.woff2","style%2ecss","test/bbs.cgi?x=1","write.cgi","subbbs.cgi"}) {
+            boolean rejected=false;try{BoardAuthRules.validateAuthPage("https://board.example/"+resource);}catch(IllegalArgumentException expected){rejected=true;}
+            check(rejected,"resource/submission URL rejected "+resource);
+        }
+        check(BoardAuthRules.validateAuthPage("https://board.example/auth.php?token=abc").endsWith("auth.php?token=abc"),"real auth query preserved");
+        check(BoardAuthRules.configuredPage("https://043044.xyz/krsw/","https://043044.xyz/test/datas/design.css","").isEmpty(),"bad stored CSS requires reconfiguration, no guessed auth path");
+        check(BoardAuthRules.configuredPage("https://043044.xyz/krsw/","https://043044.xyz/test/datas/design.css","https://043044.xyz/check").equals("https://043044.xyz/check"),"valid suggestion replaces bad stored CSS");
+        check(BoardAuthRules.configuredPage("https://bbs.eddibb.cc/liveedge/","https://bbs.eddibb.cc/style.css","").equals("https://bbs.eddibb.cc/auth-code"),"known board preset replaces bad stored CSS");
+        check(BoardAuthRules.configuredPage("https://board.example/a/","https://board.example/verify","https://board.example/other").equals("https://board.example/verify"),"valid saved authentication URL retained");
         check(BoardAuthRules.validate("https://board.example/auth?x=1").equals("https://board.example/auth?x=1"),"explicit configurable URL");
         check(BoardAuthRules.code("認証コード: AbC12-34_xyz\n認証してください").equals("AbC12-34_xyz"),"exact code preserved");
         check(BoardAuthRules.code("認証コード：「123456」").equals("123456"),"quoted Japanese code");

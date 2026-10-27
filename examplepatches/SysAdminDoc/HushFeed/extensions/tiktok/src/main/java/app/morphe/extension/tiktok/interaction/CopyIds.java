@@ -105,7 +105,9 @@ public final class CopyIds {
     /** From the bio item's bind, with its text view and the signature it's about to show. */
     public static void onBio(@Nullable View view, @Nullable String bio) {
         try {
-            if (!(view instanceof TextView) || !enabled()) return;
+            if (!(view instanceof TextView)) return;
+            BioMentions.onBio((TextView) view);
+            if (!enabled()) return;
             BIOS.put(view, bio);
             view.setOnLongClickListener(BIO_LISTENER);
         } catch (Throwable ex) {

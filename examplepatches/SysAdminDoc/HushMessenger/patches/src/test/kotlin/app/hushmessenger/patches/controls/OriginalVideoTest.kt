@@ -39,8 +39,8 @@ internal val VIDEO_TRANSCODE_BODY = """
     return-void
 """.trimIndent()
 
-/** 583 added a configured KB margin and branched to the original on less-than. 584 doesn't, so it's refused. */
-private val CONFIGURED_MARGIN_583_BODY = """
+/** 583 and 584.1 armv7 derive the margin from the target bitrate and branch on less-than. */
+private val CONFIGURED_MARGIN_BODY = """
     const-string v0, "$VIDEO_PASSTHROUGH_MARK"
     if-lez v5, :other_checks
     iget-wide v13, v0, LX/YCo;->A09:J
@@ -72,7 +72,8 @@ private fun Method.strings() = code().mapNotNull { ((it as? ReferenceInstruction
  * The compare result goes through the helper with the size pair, and every stock instruction stays in place. [target] is
  * where the stock branch landed before the edit; the native branch jumps back over the new call.
  */
-private fun assertPassthroughHook(before: List<Instruction>, target: Int, after: List<Instruction>, site: Int, message: String) {
+private fun assertPassthroughHook(before: List<Instruction>, target: Int, after: List<Instruction>, site: Int, message: String,
+                                  branch: Opcode = Opcode.IF_GEZ) {
     val call = after[site + 1] as FiveRegisterInstruction
     assertEquals("$SETTINGS->videoPassthrough(IJ)I", (call as ReferenceInstruction).reference.toString(), message)
     assertEquals(Opcode.INVOKE_STATIC, after[site + 1].opcode, message)
@@ -80,7 +81,7 @@ private fun assertPassthroughHook(before: List<Instruction>, target: Int, after:
     assertEquals(Opcode.MOVE_RESULT, after[site + 2].opcode, message)
     assertEquals(11, (after[site + 2] as OneRegisterInstruction).registerA, message)
     assertEquals(before, after.filterIndexed { i, _ -> i != site + 1 && i != site + 2 }, message)
-    assertEquals(Opcode.IF_GEZ, after[site + 3].opcode, message)
+    assertEquals(branch, after[site + 3].opcode, message)
     assertTrue(target >= 0, message)
     assertEquals(if (target > site) target + 2 else target, after.branchTarget(site + 3), message)
 }
@@ -106,17 +107,22 @@ class OriginalVideoTest {
             VIDEO_TRANSCODE_BODY.replace("if-gez v11, :encode", "if-ltz v11, :encode"),
             VIDEO_TRANSCODE_BODY.replace("add-long/2addr v3, v11", "add-long/2addr v3, v12"),
             VIDEO_TRANSCODE_BODY.replace("const-wide/16 v11, 8000", "const-wide/16 v11, 8192"),
-            CONFIGURED_MARGIN_583_BODY,
         )) {
             val method = fixtureMethod(VIDEO_TRANSCODE, changed, registers = 24)
             assertFailsWith<PatchException> { method.videoPassthroughSite() }
         }
-        // Discovery still finds 583's configured-margin worker by its strings, and the patch refuses it before any edit.
-        val found = mirroredControls(listOf(fixtureClass(MEDIA_TRANSCODER, listOf(fixtureMethod(VIDEO_TRANSCODE, CONFIGURED_MARGIN_583_BODY, registers = 24)))))
+    }
+
+    @Test fun theConfiguredMarginAsksTheSwitchAndKeepsEveryStockInstruction() {
+        val site = 13
+        val found = mirroredControls(listOf(fixtureClass(MEDIA_TRANSCODER,
+            listOf(fixtureMethod(VIDEO_TRANSCODE, CONFIGURED_MARGIN_BODY, registers = 24)))))
+        validateControls(found, setOf(ORIGINAL_VIDEO))
         val method = found.getValue(ORIGINAL_VIDEO).single() as MutableMethod
         val before = method.code()
-        assertFailsWith<PatchException> { injectControl(ORIGINAL_VIDEO, mapOf(ORIGINAL_VIDEO to listOf(method))) }
-        assertEquals(before, method.code())
+        val target = before.branchTarget(site + 1)
+        injectControl(ORIGINAL_VIDEO, mapOf(ORIGINAL_VIDEO to listOf(method)))
+        assertPassthroughHook(before, target, method.code(), site, "configured margin at $site", Opcode.IF_LTZ)
     }
 
     @Test fun everySupportedBuildHooksItsOneVideoSizeCheck() {
@@ -135,8 +141,9 @@ class OriginalVideoTest {
             val before = method.code()
             val site = method.videoPassthroughSite()
             val target = before.branchTarget(site + 1)
+            val branch = before[site + 1].opcode
             method.injectOriginalVideo()
-            assertPassthroughHook(before, target, method.code(), site, code)
+            assertPassthroughHook(before, target, method.code(), site, code, branch)
         }
     }
 }

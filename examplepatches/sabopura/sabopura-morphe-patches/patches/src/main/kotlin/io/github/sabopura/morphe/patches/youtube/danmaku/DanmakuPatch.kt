@@ -6,7 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.intOption
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
-import io.github.sabopura.morphe.patches.youtube.Constants.YOUTUBE_21_04_223
+import io.github.sabopura.morphe.patches.youtube.Constants.YOUTUBE
 import io.github.sabopura.morphe.patches.youtube.shared.enableFeature
 import io.github.sabopura.morphe.patches.youtube.shared.playerHooksPatch
 import io.github.sabopura.morphe.patches.youtube.shared.replaceExtensionConstant
@@ -24,7 +24,7 @@ val danmakuPatch = bytecodePatch(
     default = true,
 ) {
     dependsOn(playerHooksPatch, danmakuResourcePatch)
-    compatibleWith(YOUTUBE_21_04_223)
+    compatibleWith(YOUTUBE)
 
     val fontSizeOption = intOption(
         key = "danmaku_font_size",

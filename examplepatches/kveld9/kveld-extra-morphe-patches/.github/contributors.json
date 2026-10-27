@@ -11,6 +11,10 @@
           "issue": 12
         }
       ]
+    },
+    {
+      "username": "springfurst",
+      "customText": "Contributed the Use Places API (New) Moovit search patch ([#44](https://github.com/kveld9/kveld-extra-morphe-patches/pull/44))."
     }
   ]
 }

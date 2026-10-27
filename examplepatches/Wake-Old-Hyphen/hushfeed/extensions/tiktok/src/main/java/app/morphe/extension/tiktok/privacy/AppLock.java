@@ -45,6 +45,7 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
+import app.morphe.extension.tiktok.settings.preference.ShimmerTitle;
 import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
 import app.morphe.extension.tiktok.wellbeing.SessionPlaybackHold;
 
@@ -505,6 +506,7 @@ public final class AppLock {
         title.setTextColor(SettingsUi.OVERLAY_TEXT);
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_HEADLINE);
         title.setGravity(Gravity.CENTER);
+        ShimmerTitle.wear(title);
         column.addView(title);
 
         // The way back to the prompt once it was closed.

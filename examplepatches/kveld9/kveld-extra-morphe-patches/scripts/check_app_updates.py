@@ -112,6 +112,23 @@ APP_SPECS: List[Dict[str, Any]] = [
         },
     },
     {
+        "id": "word",
+        "name": "Word",
+        "package_name": "com.microsoft.office.word",
+        "constant_key": "WORD_TARGET_VERSION",
+        "run_patch_test_id": "word",
+        "source_type": "apkmirror",
+        "source_name": "APKMirror",
+        "source_url": "https://www.apkmirror.com/apk/microsoft-corporation/word/",
+        "path_prefix": "/apk/microsoft-corporation/word/microsoft-word-edit-documents-",
+        "allow_beta": False,
+        "variant_match": {
+            "arch": "arm64-v8a",
+            "dpi": "120-480dpi",
+            "type": "BUNDLE",
+        },
+    },
+    {
         "id": "capcut",
         "name": "CapCut",
         "package_name": "com.lemon.lvoverseas",
@@ -126,23 +143,6 @@ APP_SPECS: List[Dict[str, Any]] = [
             "arch": "arm64-v8a",
             "dpi": "nodpi",
             "type": "APK",
-        },
-    },
-    {
-        "id": "officehub",
-        "name": "Office Hub",
-        "package_name": "com.microsoft.office.officehubrow",
-        "constant_key": "OFFICEHUB_TARGET_VERSION",
-        "run_patch_test_id": "officehub",
-        "source_type": "apkmirror",
-        "source_name": "APKMirror",
-        "source_url": "https://www.apkmirror.com/apk/microsoft-corporation/office-mobile-2/",
-        "path_prefix": "/apk/microsoft-corporation/office-mobile-2/",
-        "allow_beta": False,
-        "variant_match": {
-            "arch": "arm64-v8a",
-            "dpi": "120-480dpi",
-            "type": "BUNDLE",
         },
     },
     {
@@ -207,6 +207,22 @@ APP_SPECS: List[Dict[str, Any]] = [
         "source_name": "GitHub",
         "source_url": "https://github.com/d4rken-org/sdmaid-se/releases",
         "allow_beta": True,
+    },
+    # Upstream source divergence: Version monitoring uses APKMirror HTML scraping
+    # because APKPure lacks stable, unauthenticated endpoints for programmatic checks.
+    # Patch candidate packages must be sourced as XAPK bundles from APKPure because
+    # APKMirror downloads return HTTP 451 (legal restriction) in multiple regions.
+    {
+        "id": "ibispaint",
+        "name": "IbisPaint X",
+        "package_name": "jp.ne.ibis.ibispaintx.app",
+        "constant_key": "IBIS_PAINT_TARGET_VERSION",
+        "run_patch_test_id": "ibispaint",
+        "source_type": "apkmirror",
+        "source_name": "APKMirror",
+        "source_url": "https://www.apkmirror.com/apk/ibis-inc/ibispaint-x/",
+        "path_prefix": "/apk/ibis-inc/ibispaint-x/ibis-paint-x-",
+        "allow_beta": False,
     },
 ]
 

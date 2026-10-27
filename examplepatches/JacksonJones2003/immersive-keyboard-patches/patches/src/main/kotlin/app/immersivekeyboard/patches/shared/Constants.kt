@@ -16,7 +16,11 @@ object Constants {
                 version = null,
                 isExperimental = true
             ),
-            // Same Gboard build that jasonwu1994/Gboard-patches targets.
+            // Same Gboard build that jasonwu1994/Gboard-patches 4.x targets.
+            AppTarget(
+                version = "18.5.4.993608717-release-arm64-v8a"
+            ),
+            // The build that jasonwu1994/Gboard-patches 3.x targets.
             AppTarget(
                 version = "18.0.3.954559732-release-arm64-v8a"
             )

@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
+import app.morphe.extension.facebook.settings.ShimmerTitle;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -356,6 +357,7 @@ public final class ClipboardLink {
                 .create();
         showing = new WeakReference<>(dialog);
         dialog.show();
+        ShimmerTitle.wearTitleOf(dialog);
     }
 
     // ---------------------------------------------------------------- what was offered

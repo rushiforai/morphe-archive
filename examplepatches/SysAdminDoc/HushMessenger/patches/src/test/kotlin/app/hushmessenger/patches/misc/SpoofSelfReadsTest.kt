@@ -1,6 +1,7 @@
 package app.hushmessenger.patches.misc
 
 import app.hushmessenger.patches.MessengerTarget
+import app.hushmessenger.patches.controls.controlProfileFor
 import app.hushmessenger.patches.controls.fixtureMethod
 import app.hushmessenger.patches.controls.hookId
 import app.morphe.patcher.patch.PatchException
@@ -12,6 +13,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import java.nio.file.Files
 import java.nio.file.Path
@@ -20,6 +22,8 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
+
+private const val VERSION_CHECK_LOG = "Android PackageManager returned version code"
 
 class SpoofSelfReadsTest {
     private val static = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
@@ -186,18 +190,41 @@ class SpoofSelfReadsTest {
         assertTrue(spoofSelfReadsPatch in spoofPackageVersionPatch.dependencies)
     }
 
-    /** Every supported stock build has the same 15 own reads, AppComponentManager's mismatch check among them. */
-    @Test fun everyStockBuildHasFifteenOwnVersionReads() {
+    /** The armv7 builds expect ACRA's extra pre-Android 9 read, and every arm64 build the usual 15. */
+    @Test fun theArmv7BuildsExpectOneMoreRead() {
+        for (code in MessengerTarget.VERSION_CODES) {
+            val armv7 = code in setOf(346816949, 346816966, 346817019)
+            assertEquals(if (armv7) 16 else 15, selfVersionReadsFor(controlProfileFor(code.toString())), "$code")
+        }
+    }
+
+    /** Every supported stock build has its family's own reads, AppComponentManager's mismatch check among them. */
+    @Test fun everyStockBuildHasItsFamilysOwnVersionReads() {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
         assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
         val apks = Files.list(Path.of(root!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
         assertEquals(MessengerTarget.VERSION_CODES.size, apks.size)
+        // Every build's miscount is listed at once, with its readers, so one run shows what moved.
+        val miscounts = mutableListOf<String>()
         for (apk in apks) {
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
             val methods = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes.flatMap { it.methods } }
-            val found = planSelfVersionReads(methods)
-            for (anchor in listOf("LX/037;->A03(", "Lcom/facebook/appcomponentmanager/AppComponentManagerService;->A06(",
-                "Lcom/facebook/acra/CrashTimeDataCollector;->getPackageManagerVersionCode(", "LX/010;->logOnTraceEnd(",
+            val expected = selfVersionReadsFor(controlProfileFor(apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')))
+            val reads = findSelfVersionReads(methods)
+            if (reads.values.sum() != expected) {
+                miscounts += "${apk.fileName} ${reads.values.sum()} not $expected: ${reads.entries.map { "${it.key.hookId()} x${it.value}" }.sorted()}"
+                continue
+            }
+            val found = planSelfVersionReads(methods, expected)
+            // The obfuscated owners move between 584.1's families, so those two go by the version check's log line and the trace hook's name.
+            val versionCheck = methods.filter { m ->
+                m.implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string?.startsWith(VERSION_CHECK_LOG) == true } == true
+            }.map { it.hookId() }.distinct()
+            assertEquals(1, versionCheck.size, "$apk $versionCheck")
+            assertContains(found, versionCheck.single(), "$apk")
+            assertEquals(1, found.count { it.startsWith("LX/") && it.contains(";->logOnTraceEnd(") }, "$apk $found")
+            for (anchor in listOf("Lcom/facebook/appcomponentmanager/AppComponentManagerService;->A06(",
+                "Lcom/facebook/acra/CrashTimeDataCollector;->getPackageManagerVersionCode(",
                 "Lcom/mapbox/mapboxsdk/http/HttpIdentifier;->getIdentifier(",
                 "Lcom/meta/hatch/ui/settings/bugreport/data/HatchBugReportSender\$send\$1;->invokeSuspend(")) {
                 assertTrue(found.any { it.startsWith(anchor) }, "$apk $anchor")
@@ -205,5 +232,6 @@ class SpoofSelfReadsTest {
             // Android's ART, Google Play services and WebView keep what Android reports.
             assertTrue(found.none { "DexStoreUtils" in it || "BlockStoreSetupManager" in it || "playservices" in it }, "$apk $found")
         }
+        assertEquals(emptyList(), miscounts)
     }
 }

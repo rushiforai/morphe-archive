@@ -44,7 +44,7 @@ class HideSuggestedStoriesHookTest {
     /** Both hooks the patch writes are in the StoriesTray the bundle ships, public and static. */
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(HIDE_TRAY, TRAY_FILTER, TRAY_REMAINING_FILTER)) {
+        for (hook in listOf(HIDE_TRAY, FLOAT_TRAY, TRAY_FILTER, TRAY_REMAINING_FILTER)) {
             val declared = ExtensionDex.classDef(hook.substringBefore("->")).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
                 .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
@@ -62,14 +62,17 @@ class HideSuggestedStoriesHookTest {
         assertGuardedFirst("stand-in", context.mutableClassDefBy(ROWS).methods.single { it.name == "buildRowViewTypes" })
     }
 
-    /** The floating tray's show asks the extension first, and on a yes returns before moving the tray over the feed (#88). */
+    /**
+     * The floating tray's show asks the extension first, and on a yes returns before moving the tray
+     * over the feed (#88), with the hook that also answers Keep the Stories tray in the feed (#357).
+     */
     @Test
     fun theFloatingTrayIsGuarded() {
         val context = PatchContexts.of(listOf(floatingTray()))
 
-        context.guardTray(context.findFloatingTrayShow())
+        context.guardTray(context.findFloatingTrayShow(), FLOAT_TRAY)
 
-        assertGuardedFirst("stand-in", context.mutableClassDefBy(FLOATING).methods.single { it.name == "A0V" })
+        assertGuardedFirst("stand-in", context.mutableClassDefBy(FLOATING).methods.single { it.name == "A0V" }, FLOAT_TRAY)
     }
 
     @Test
@@ -223,12 +226,12 @@ class HideSuggestedStoriesHookTest {
         }
         val stock = listOf(rows, floating).map { NeutralNativePath(guarded(it)) }
         context.guardTray(rows)
-        context.guardTray(floating)
+        context.guardTray(floating, FLOAT_TRAY)
         context.hookTrayParser(parse, remaining)
 
         for ((site, original) in listOf(rows, floating).zip(stock)) {
             val what = "${label} ${site.type}->${site.name}"
-            assertGuardedFirst(what, guarded(site))
+            assertGuardedFirst(what, guarded(site), if (site == floating) FLOAT_TRAY else HIDE_TRAY)
             // The guard's call, answer, test, return and the nop its label lands on.
             original.assertPreserved(what, guarded(site), (0..4).toSet())
         }
@@ -242,10 +245,11 @@ class HideSuggestedStoriesHookTest {
     } == true
 
     /** The method opens with the extension call, its answer, a test of it and a return-void; one call in all. */
-    private fun assertGuardedFirst(what: String, method: Method) {
+    private fun assertGuardedFirst(what: String, method: Method, hook: String = HIDE_TRAY) {
         val code = method.implementation!!.instructions.toList()
-        assertEquals("$what: hooks", 1, code.count { (it as? ReferenceInstruction)?.reference?.toString() == HIDE_TRAY })
-        assertEquals("$what: the call", HIDE_TRAY, (code[0] as ReferenceInstruction).reference.toString())
+        val guards = listOf(HIDE_TRAY, FLOAT_TRAY)
+        assertEquals("$what: hooks", 1, code.count { (it as? ReferenceInstruction)?.reference?.toString() in guards })
+        assertEquals("$what: the call", hook, (code[0] as ReferenceInstruction).reference.toString())
         assertEquals("$what: the answer", Opcode.MOVE_RESULT, code[1].opcode)
         assertEquals("$what: the test", Opcode.IF_EQZ, code[2].opcode)
         assertEquals("$what: the tested register", (code[1] as OneRegisterInstruction).registerA, (code[2] as OneRegisterInstruction).registerA)

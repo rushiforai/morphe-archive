@@ -32,27 +32,27 @@ class ControlProfileTest {
 
     @Test fun theVersionCodePicksTheProfile() {
         assertEquals(MessengerTarget.VERSION_CODES.toSet(), controlProfiles.keys)
-        assertSame(PROFILE_346814894, BASE_PROFILE)
-        for (code in listOf("346814894", "346814999", null)) assertSame(BASE_PROFILE, controlProfileFor(code))
+        assertSame(PROFILE_346816935, BASE_PROFILE)
+        for (code in listOf("346816935", "346814999", null)) assertSame(BASE_PROFILE, controlProfileFor(code))
         val profiles = controlProfiles + (348000001 to SYNTHETIC_PROFILE)
         assertSame(SYNTHETIC_PROFILE, controlProfileFor("348000001", profiles))
-        assertSame(BASE_PROFILE, controlProfileFor("346814894", profiles))
+        assertSame(BASE_PROFILE, controlProfileFor("346816935", profiles))
     }
 
     @Test fun aSecondVersionNameUsesItsOwnBuildsProfile() {
         val versions = MessengerTarget.VERSIONS + ("585.0.0.1.91" to listOf(348000001))
         val profiles = controlProfiles + (348000001 to SYNTHETIC_PROFILE)
         assertSame(SYNTHETIC_PROFILE, controlProfileFor("348000001", profiles))
-        assertSame(BASE_PROFILE, controlProfileFor("346814894", profiles))
+        assertSame(BASE_PROFILE, controlProfileFor("346816935", profiles))
         val found = mapOf("ad_context_banner" to SYNTHETIC_PROFILE.hooks.getValue("ad_context_banner").map { id ->
             fixtureMethod(id, "const/4 v0, 0x0\nreturn v0")
         })
         activeProfile = controlProfileFor("348000001", profiles)
         validateControls(found, setOf("ad_context_banner"), versions)
-        activeProfile = controlProfileFor("346814894", profiles)
+        activeProfile = controlProfileFor("346816935", profiles)
         val failure = assertFailsWith<PatchException> { validateControls(found, setOf("ad_context_banner"), versions) }
         assertContains(failure.message.orEmpty(),
-            "Use an unmodified arm64 Messenger ${MessengerTarget.supportedApks()} or 585.0.0.1.91 APK (version code 348000001).")
+            "Use an unmodified Messenger ${MessengerTarget.supportedApks()} or 585.0.0.1.91 APK (version code 348000001).")
     }
 
     @Test fun validationFollowsTheActiveBuild() {

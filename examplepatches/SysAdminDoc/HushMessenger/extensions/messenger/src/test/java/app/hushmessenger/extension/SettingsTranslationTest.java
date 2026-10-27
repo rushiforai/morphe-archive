@@ -32,6 +32,7 @@ public class SettingsTranslationTest {
     @Before public void reset() {
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().commit();
+        OpenSections.all();
     }
 
     private Map<String, String> shippedSpanish;
@@ -227,6 +228,38 @@ public class SettingsTranslationTest {
         assertEquals("ES 3 of 20 installed controls", new SettingsText(Locale.forLanguageTag("es-MX")).get("results_many", 3, 20));
         // "zxx" is the tag for no linguistic content, so no table will ever be added for it.
         assertEquals("3 of 20 installed controls", new SettingsText(Locale.forLanguageTag("zxx")).get("results_many", 3, 20));
+    }
+
+    @Test public void aTableThatGivesAnIdTwiceIsRefused() {
+        IllegalStateException refused = assertThrows(IllegalStateException.class,
+            () -> SettingsTranslations.add("zxx", new String[][] {{"controls", "A"}, {"apply", "B"}, {"controls", "C"}}));
+        assertEquals("zxx translates controls twice", refused.getMessage());
+        assertFalse(SettingsTranslations.LOCALES.containsKey("zxx"));
+    }
+
+    @Test public void traditionalChineseReachesEveryTraditionalTagAndSimplifiedStaysEnglish() {
+        String traditional = "功能控制";
+        for (String tag : new String[] {"zh-TW", "zh-Hant-TW", "zh-Hant", "zh-Hant-HK", "zh-Hant-MO", "zh-HK", "zh-MO", "zh-TW-u-nu-latn"})
+            assertEquals(tag, traditional, new SettingsText(Locale.forLanguageTag(tag)).get("controls"));
+        for (String tag : new String[] {"zh", "zh-CN", "zh-SG", "zh-Hans", "zh-Hans-CN", "zh-Hans-TW", "zh-Hans-HK", "ja-TW", "en-TW"})
+            assertEquals(tag, "Controls", new SettingsText(Locale.forLanguageTag(tag)).get("controls"));
+    }
+
+    @Test public void traditionalChineseSearchFindsChineseLabelsAndEnglishAndKeepsPreferenceKeys() {
+        RuntimeEnvironment.setQualifiers("zh-rTW-w400dp-h800dp-mdpi");
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            assertEquals("功能控制", ((TextView) root.findViewWithTag("tab_controls")).getText().toString());
+            assertTrue(showsText(root, "隱藏你可能認識的人"));
+            root.findViewWithTag("people").performClick();
+            assertEquals(Map.of("people", true), Settings.preferences.getAll());
+            EditText search = root.findViewWithTag("find_control");
+            for (String query : new String[] {"你可能認識", "People You"}) {
+                search.setText(query);
+                assertTrue(query, root.findViewWithTag("people").isShown());
+                assertFalse(query, root.findViewWithTag("stories").isShown());
+            }
+        }
     }
 
     @Test public void setupScopesUseEnglishFallbackForEsUs() {

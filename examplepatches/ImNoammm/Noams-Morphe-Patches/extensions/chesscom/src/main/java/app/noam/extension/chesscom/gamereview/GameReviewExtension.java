@@ -60,10 +60,10 @@ public final class GameReviewExtension {
      * Whether a review item should fall back to a neutral "book" entry instead of the locally
      * synthesised one, because the app's own move converter cannot replay the suggested move
      * (chess.com's converter assumes server data with certain guarantees our local review
-     * cannot always meet exactly).
+     * cannot always meet exactly). A review from chess.com's servers always keeps its own items.
      */
     public static boolean shouldUseDummyMove(Object positionObj, Object positionAndMoveObj) {
-        if (!GameReview.reviewing) return true;
+        if (!GameReview.local()) return false;
         if (positionObj == null) return true;
         try {
             Object playedMove = getPlayedMove(positionObj);

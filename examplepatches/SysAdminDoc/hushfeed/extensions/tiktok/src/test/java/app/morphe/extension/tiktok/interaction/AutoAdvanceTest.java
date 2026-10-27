@@ -2,12 +2,14 @@ package app.morphe.extension.tiktok.interaction;
 
 import static org.junit.Assert.*;
 import android.view.View;
+import android.widget.ListView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.wellbeing.FeedLock;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import app.morphe.extension.tiktok.wellbeing.SessionPlaybackHold;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.SettingsMenuPreference;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -486,9 +488,32 @@ public class AutoAdvanceTest {
             fragment.setArguments(arguments);
             activity.getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
             activity.getFragmentManager().executePendingTransactions();
-            assertNotNull(fragment.findPreference("auto_advance"));
+            var playback = (SettingsMenuPreference) fragment.findPreference("section_playback");
+            assertNotNull(playback);
+            assertTrue(playback.isExpanded());
+            var preference = playback.findPreference(Settings.AUTO_ADVANCE.key);
+            assertNotNull(preference);
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
-            app.morphe.extension.tiktok.UiCapture.save(activity.getWindow().getDecorView(), "auto-advance-settings.png");
+            ListView list = fragment.getView().findViewById(android.R.id.list);
+            int position = -1;
+            for (int index = 0; index < list.getCount(); index++) {
+                if (list.getItemAtPosition(index) == preference) position = index;
+            }
+            assertTrue("Auto-advance is absent from the expanded list", position >= 0);
+            list.setSelectionFromTop(position, 0);
+            View decor = activity.getWindow().getDecorView();
+            for (int frame = 0; frame < 4; frame++) {
+                org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+                        .idleFor(java.time.Duration.ofMillis(16));
+                decor.measure(View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(960, View.MeasureSpec.EXACTLY));
+                decor.layout(0, 0, 480, 960);
+            }
+            View shown = list.getChildAt(position - list.getFirstVisiblePosition());
+            assertNotNull("Auto-advance was not laid out for its capture", shown);
+            assertTrue(shown.isShown());
+            assertTrue(shown.getGlobalVisibleRect(new android.graphics.Rect()));
+            app.morphe.extension.tiktok.UiCapture.save(decor, "auto-advance-settings.png");
         }
     }
 

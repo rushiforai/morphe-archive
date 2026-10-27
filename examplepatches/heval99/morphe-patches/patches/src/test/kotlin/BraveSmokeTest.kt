@@ -27,6 +27,20 @@ private const val RETENTION_PUBLISHER =
     "Lorg/chromium/chrome/browser/notifications/retention/RetentionNotificationPublisher;"
 private const val MAIN_PREFERENCES = "Lorg/chromium/chrome/browser/settings/BraveMainPreferencesBase;"
 private const val SHARED_PREFS = "Landroid/content/SharedPreferences;"
+private const val PROFILE = "Lorg/chromium/chrome/browser/profiles/Profile;"
+
+// The switch keys braveOriginResourcePatch turns on by default; all are required.
+private val ORIGIN_SWITCHES = setOf(
+    "rewards_switch",
+    "privacy_preserving_analytics_switch",
+    "email_aliases_switch",
+    "leo_ai_switch",
+    "news_switch",
+    "statistics_reporting_switch",
+    "vpn_switch",
+    "wallet_switch",
+    "web_discovery_project_switch",
+)
 private const val CRASH_CONSENT = "Chrome.Privacy.UsageAndCrashReportingPermittedByUser"
 
 class BraveSmokeTest {
@@ -86,13 +100,25 @@ class BraveSmokeTest {
             expected = true,
             label = "isSubscriptionActive(Profile)",
         )
+        // Found by shape like the patch: the order-credentials callback (ql2.a(wth) in 1.97.56)
+        // also reads the order id pref and stays unpatched. Since morphe-patcher 2.0.0 the
+        // modified classes sit in a dex after the originals, so a first match by string alone
+        // lands on that callback.
         assertForcedBoolean(
-            methodWithString("brave.origin.order_id_android"),
+            allMethods.firstOrNull { method ->
+                method.returnType == "Z" &&
+                    method.parameterTypes.map(CharSequence::toString) == listOf(PROFILE) &&
+                    method.instructions().any { it.referencesString("brave.origin.order_id_android") }
+            } ?: error("no (Profile)Z method references 'brave.origin.order_id_android'"),
             expected = true,
             label = "hasValidSubscriptionTokens(Profile)",
         )
+        // By shape too: the same callback and a Runnable also write this pref.
         assertForcedBoolean(
-            methodWithString("brave_origin_credential_summary_cached"),
+            allMethods.firstOrNull { method ->
+                method.returnType == "Z" && method.parameterTypes.isEmpty() &&
+                    method.instructions().any { it.referencesString("brave_origin_credential_summary_cached") }
+            } ?: error("no ()Z method references 'brave_origin_credential_summary_cached'"),
             expected = true,
             label = "credential summary cached",
         )
@@ -109,8 +135,12 @@ class BraveSmokeTest {
                 summaryHead.map { it.opcode },
         )
 
-        // The package/product writer is a no-op.
+        // The package/product writer is a no-op. Found by its (String, Profile)V shape like the
+        // patch, as other methods read the same prefs.
         val writer = allMethods.firstOrNull { method ->
+            if (method.returnType != "V" ||
+                method.parameterTypes.map(CharSequence::toString) != listOf("Ljava/lang/String;", PROFILE)
+            ) return@firstOrNull false
             val strings = method.instructions()
                 .filter { it.referencesString("brave.origin.package_name_android") }
             strings.isNotEmpty() &&
@@ -212,6 +242,28 @@ class BraveSmokeTest {
                 binderInsns.none { it.opcode == Opcode.NOP },
             "Origin listener does not call $restartPrompt with the callback's ids $expectedIds",
         )
+
+        // Brave Origin Resource Defaults: every Origin switch in the preferences XML defaults
+        // to on. morphe-patcher 2.0.0 decodes resources on request, so this also proves the
+        // patch decoded res/xml before scanning it. The patcher keeps its decoded, patched
+        // working copy under <temporary files>/apk. Like the patch, exactly one file may hold
+        // the rewards switch key, and each required switch must appear in it once.
+        val originXmls = File(workDir, "out/apk").walkTopDown()
+            .filter { it.isFile && it.extension == "xml" && it.parentFile.name == "xml" && it.parentFile.parentFile.name == "res" }
+            .filter { Regex("""\bkey="rewards_switch"""").containsMatchIn(it.readText()) }
+            .toList()
+        val originXml = originXmls.singleOrNull()
+            ?: error("expected one decoded res/xml file with key=\"rewards_switch\", found ${originXmls.map { it.name }}")
+        val switchTags = Regex("""<[^>]*\bandroid:key="(\w+)"[^>]*>""").findAll(originXml.readText())
+            .groupBy { it.groupValues[1] }
+        ORIGIN_SWITCHES.forEach { key ->
+            val tag = switchTags[key]?.singleOrNull()
+                ?: error("${originXml.name}: expected one element with key \"$key\", found ${switchTags[key]?.size ?: 0}")
+            assertTrue(
+                """android:defaultValue="true"""" in tag.value,
+                "$key in ${originXml.name} does not default to true: ${tag.value}",
+            )
+        }
 
         // ── Disable telemetry (experimental) ─────────────────────────────────────────────
         val localState = classes.firstOrNull { it.type == LOCAL_STATE_PREFS }

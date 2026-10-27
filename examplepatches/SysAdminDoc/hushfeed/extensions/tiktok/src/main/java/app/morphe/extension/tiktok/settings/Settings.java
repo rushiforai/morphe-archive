@@ -334,6 +334,12 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_LAUNCHER_SHORTCUTS =
             new BooleanSetting("hide_launcher_shortcuts", FALSE);
     /**
+     * Leaves the Hushfeed row out of Settings and privacy (#264). Long pressing For You or Home
+     * still opens the page, and Pause brings the row back, since a paused setting reads stock.
+     */
+    public static final BooleanSetting HIDE_SETTINGS_ROW =
+            new BooleanSetting("hide_settings_row", FALSE);
+    /**
      * On by default: the setup runs before anyone can reach this switch, so picking the patch is
      * the choice. Off brings the screens back the next time TikTok runs its setup.
      */
@@ -935,6 +941,43 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting GLASS_VIDEO_BLUR = new BooleanSetting(
             "glass_video_blur", FALSE, false, Setting.parent(LIQUID_GLASS_BOTTOM_BAR));
     /**
+     * With Blur the video behind the bar, how strongly it blurs: "light", "standard" or "strong",
+     * the three strengths of HushGram's glass tab bar. Read on each draw.
+     */
+    public static final StringSetting GLASS_BLUR_STRENGTH = new StringSetting(
+            "glass_blur_strength", "standard", false, Setting.parent(GLASS_VIDEO_BLUR));
+    /**
+     * With Liquid glass look, how solid the glass's tint is: "clear", "light", "standard" or
+     * "frosted", which scale the tint by a half, three quarters, one and 1.35. Read on each draw.
+     */
+    public static final StringSetting GLASS_OPACITY = new StringSetting(
+            "glass_opacity", "standard", false, Setting.parent(LIQUID_GLASS_BOTTOM_BAR));
+    /**
+     * With Floating bottom bar, how tall the pill is inside the bar: "standard" fills the bar but
+     * for a hairline above and under, "compact" is 4dp slimmer on each side. The bar keeps its
+     * size, so the tabs keep their taps. Read on each draw.
+     */
+    public static final StringSetting GLASS_BAR_HEIGHT = new StringSetting(
+            "glass_bar_height", "standard", false, Setting.parent(FLOATING_BOTTOM_BAR));
+    /**
+     * With Floating bottom bar, the corners of the pill and the lens: "standard" (12dp and 8dp),
+     * "rounder" (20dp and 14dp) or "round" (half circle ends). Read on each draw.
+     */
+    public static final StringSetting GLASS_CORNERS = new StringSetting(
+            "glass_corners", "round", false, Setting.parent(FLOATING_BOTTOM_BAR));
+    /**
+     * With Glass lens on the current tab, a finger slid along the pill carries the lens, and
+     * lifting it opens the tab it ended on (GlassTabSlide). Read on each touch.
+     */
+    public static final BooleanSetting GLASS_TAB_SLIDE = new BooleanSetting(
+            "glass_tab_slide", FALSE, false, Setting.parent(GLASS_TAB_LENS));
+    /** With Glass lens on the current tab, a tick each time the lens passes a tab. Read on each draw. */
+    public static final BooleanSetting GLASS_HAPTICS = new BooleanSetting(
+            "glass_haptics", FALSE, false, Setting.parent(GLASS_TAB_LENS));
+    /** The tick Glass haptics plays: "short", "system", "soft" or "full" (GlassBarHaptics). */
+    public static final StringSetting GLASS_HAPTIC_STYLE = new StringSetting(
+            "glass_haptic_style", "system", false, Setting.parent(GLASS_HAPTICS));
+    /**
      * Lets the main feed's video draw up under the status bar, with the clock over it (#145).
      * VideoOverlayHider collapses the spacer TikTok keeps above each video for the bar and
      * SeeThroughStatusBar clears the bar's color while the feed is in front; both go back when
@@ -1220,6 +1263,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting COMMENT_SEARCH = new BooleanSetting("comment_search", FALSE);
     /** Adds Export CSV and Export JSON under the comment search box. */
     public static final BooleanSetting COMMENT_EXPORT = new BooleanSetting("comment_export", FALSE);
+    /** Keeps the comment search box behind a button in the sheet's header until it's tapped (#254). */
+    public static final BooleanSetting COMMENT_SEARCH_FOLDED = new BooleanSetting("comment_search_folded", FALSE);
     public static final BooleanSetting COMMENT_LINKS = new BooleanSetting("comment_links", FALSE);
     public static final BooleanSetting HIDE_COMMENT_MEDIA = new BooleanSetting("hide_comment_media", FALSE);
     /** Drops bot comments that point to a bio, a link or a messenger, or bait follows (#187). */
@@ -1298,6 +1343,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting COPY_IDS = new BooleanSetting("copy_ids", TRUE);
     // An Account facts button on a profile's share sheet, from what TikTok already sent about the account.
     public static final BooleanSetting ACCOUNT_FACTS = new BooleanSetting("account_facts", FALSE);
+    // @usernames in a profile's bio open those profiles on a tap (#247).
+    public static final BooleanSetting BIO_MENTION_LINKS = new BooleanSetting("bio_mention_links", TRUE);
     // Package names of the apps added to the Share via row, comma separated, in the order picked.
     public static final StringSetting SHARE_ADDED_APPS = new StringSetting("share_added_apps", "");
     public static final BooleanSetting DISABLE_LONG_PRESS_QUICK_SHARE =

@@ -73,7 +73,7 @@ class FirefoxFocusAddonsSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "158.0",
+            version = "158.0.2",
             patchNames = setOf("Add-on support"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

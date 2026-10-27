@@ -5,6 +5,15 @@
         parts.forEach(function (part) { result[part] = runtime.ui.useEnabled(React, prefix + '_hide_' + part); });
         return result;
     }
+    function supportProps(props, hidden) {
+        if (!Object.keys(hidden).some(function (key) { return hidden[key]; }) || !Array.isArray(props.buttons)) return props;
+        var buttons = props.buttons.filter(function (button) {
+            return !hidden[button.kind === 'upgrade' ? 'subscribe' : button.kind];
+        });
+        if (!buttons.length) return null;
+        if (buttons.length === props.buttons.length) return props;
+        return Object.assign({}, props, {buttons: buttons});
+    }
     runtime.ui.filterControls = function (React, result, hidden, clipType) {
         if (!Object.keys(hidden).some(function (key) { return hidden[key]; })) return result;
         var count = 0, limit = {};
@@ -61,15 +70,26 @@
             var prefix = props.twitchPatchUiLayout === 'vertical_header' ? 'vertical_header' :
                 (props.twitchPatchUiLayout === 'vertical' ? 'vertical' : 'classic') + '_support';
             var hidden = useOptions(React, prefix, ['subscribe', 'gift', 'bits']);
-            if (!hidden.subscribe && !hidden.gift && !hidden.bits || !Array.isArray(props.buttons)) return React.createElement(original, props);
-            var buttons = props.buttons.filter(function (button) {
-                return !hidden[button.kind === 'upgrade' ? 'subscribe' : button.kind];
-            });
-            if (!buttons.length && !props.notificationSetting) return null;
-            return React.createElement(original, Object.assign({}, props, {buttons: buttons}));
+            var next = supportProps(props, hidden);
+            return next === null ? null : React.createElement(original, next);
         };
     }); }
     supportRow(__TWITCH_UI_SUPPORT_ROW_MODULE__, 'SupportActionRow');
+    runtime.decorate(__TWITCH_UI_METADATA_MODULE__, 'ChannelMetadata', function (original, React, policy, require) {
+        var Row = require(__TWITCH_UI_SUPPORT_ROW_MODULE__).SupportActionRow;
+        return function (props) {
+            var hidden = useOptions(React, 'classic_support', ['subscribe', 'gift', 'bits']);
+            var hideExtensions = runtime.ui.useEnabled(React, 'hide_channel_extensions');
+            var actions = props.actions;
+            if (React.isValidElement(actions) && actions.type === Row) {
+                var next = supportProps(actions.props, hidden);
+                if (next !== actions.props) actions = next === null ? null : React.cloneElement(actions, next);
+            }
+            var showExtensions = props.showExtensionsIcon && !hideExtensions;
+            if (actions === props.actions && showExtensions === props.showExtensionsIcon) return React.createElement(original, props);
+            return React.createElement(original, Object.assign({}, props, {actions: actions, showExtensionsIcon: showExtensions}));
+        };
+    });
     var skylineRowName = '__TWITCH_UI_SKYLINE_ROW_EXPORT__';
     if (skylineRowName !== 'SupportActionRow') supportRow(__TWITCH_UI_SKYLINE_ROW_MODULE__, skylineRowName);
     function supportHost(module, name, header) {
@@ -89,14 +109,9 @@
                     if (!React.isValidElement(node)) return node;
                     if (header && hidden.leaderboard && node.type === Trophy) return null;
                     if (node.type === Row) {
-                        var buttons = node.props.buttons;
-                        if (Array.isArray(buttons) && (hidden.gift || hidden.subscribe || hidden.bits || hidden.leaderboard)) {
-                            buttons = buttons.filter(function (button) {
-                                return !hidden[button.kind === 'upgrade' ? 'subscribe' : button.kind];
-                            });
-                            if (!buttons.length && !node.props.notificationSetting) return null;
-                        }
-                        return React.cloneElement(node, {twitchPatchUiLayout: header ? 'vertical_header' : 'vertical', buttons: buttons});
+                        var nextProps = supportProps(node.props, hidden);
+                        return nextProps === null ? null : React.cloneElement(node,
+                            Object.assign({}, nextProps, {twitchPatchUiLayout: header ? 'vertical_header' : 'vertical'}));
                     }
                     if (node.props.children === undefined) return node;
                     var children = visit(node.props.children, depth + 1);
@@ -117,4 +132,15 @@
             return runtime.ui.filterControls(React, result, hidden);
         };
     });
+    function extensions(module, name) {
+        if (module === null) return;
+        runtime.decorate(module, name, function (original, React) {
+            return function (props) {
+                var hidden = runtime.ui.useEnabled(React, 'hide_channel_extensions');
+                return hidden ? null : React.createElement(original, props);
+            };
+        });
+    }
+    extensions(__TWITCH_UI_EXTENSIONS_MODULE__, 'ClassicExtensionsIcon');
+    extensions(__TWITCH_UI_EXTENSION_ENTRY_MODULE__, 'ExtensionsEntryButton');
 })(globalThis.__twitchPatchRuntime);

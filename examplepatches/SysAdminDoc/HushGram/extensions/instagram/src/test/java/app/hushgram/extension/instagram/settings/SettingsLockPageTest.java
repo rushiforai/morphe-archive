@@ -25,7 +25,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -50,12 +49,11 @@ import app.hushgram.extension.instagram.misc.FontChoice;
 import app.hushgram.extension.shared.SettingsContextRule;
 import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.settings.BaseSettings;
-import app.hushgram.extension.shared.settings.BooleanSetting;
 import app.hushgram.extension.shared.settings.PauseForTests;
 
 /**
  * Lock these settings (#301) on the page: locked, every row that changes something is greyed out,
- * Pause and Quick setups included, while Debug logging, the exports and the lock itself stay open.
+ * Pause included, while Debug logging, the exports and the lock itself stay open.
  * The rows come back when the wait is over and lock again when the open time ends.
  */
 @RunWith(RobolectricTestRunner.class)
@@ -98,7 +96,6 @@ public class SettingsLockPageTest {
         Settings.SPOOF_LOCATION_PLACE.resetToDefault();
         ConfigurationBackup.forgetUndo();
         HushgramPreferenceFragment.importFeedback = null;
-        for (BooleanSetting setting : QuickSetupKeys.quiet().keySet()) setting.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
         BaseSettings.DEBUG.resetToDefault();
         PauseForTests.resume();
@@ -134,7 +131,6 @@ public class SettingsLockPageTest {
             assertFalse(row(page, Settings.HIDE_REELS_TOP_BAR.key).isEnabled());
             assertFalse("Pause would undo the lock", row(page, BaseSettings.PAUSED.key).isEnabled());
             assertFalse("a settings file would undo the lock", page.importConfiguration.isEnabled());
-            assertFalse(row(page, HushgramPreferenceFragment.QUICK_SETUPS_ROW_KEY).isEnabled());
             assertTrue(row(page, BaseSettings.DEBUG.key).isEnabled());
             assertTrue(page.exportConfiguration.isEnabled());
             assertTrue(lock.isEnabled());
@@ -145,20 +141,6 @@ public class SettingsLockPageTest {
             page.searchSettings("");
             assertFalse(row(page, Settings.HIDE_REELS_TOP_BAR.key).isEnabled());
             assertFalse(row(page, BaseSettings.PAUSED.key).isEnabled());
-        }
-    }
-
-    @Test public void aQuickSetupChangesNothingWhileLocked() {
-        try (ActivityController<Activity> host = Robolectric.buildActivity(Activity.class).setup().visible()) {
-            HushgramPreferenceFragment page = DownloadSettingsTest.pageIn(host);
-            assertTrue(SettingsLock.lock(6));
-            Map<BooleanSetting, Boolean> quiet = QuickSetupKeys.quiet();
-            List<Boolean> before = new ArrayList<>();
-            for (BooleanSetting setting : quiet.keySet()) before.add(setting.savedValue());
-            assertEquals(0, page.applyQuickSetup(quiet));
-            int i = 0;
-            for (BooleanSetting setting : quiet.keySet()) assertEquals(setting.key, before.get(i++), setting.savedValue());
-            assertEquals("These settings are locked. Ask to unlock first.", ShadowToast.getTextOfLatestToast());
         }
     }
 
@@ -186,7 +168,6 @@ public class SettingsLockPageTest {
             assertTrue(row(page, Settings.HIDE_REELS_TOP_BAR.key).isEnabled());
             assertTrue(row(page, BaseSettings.PAUSED.key).isEnabled());
             assertTrue(page.importConfiguration.isEnabled());
-            assertTrue(row(page, HushgramPreferenceFragment.QUICK_SETUPS_ROW_KEY).isEnabled());
 
             phone.pass(SettingsLock.OPEN_MS);
             page.showLock();

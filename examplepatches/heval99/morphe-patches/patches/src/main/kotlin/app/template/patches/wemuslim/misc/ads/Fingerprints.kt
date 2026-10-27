@@ -1,6 +1,8 @@
 package app.template.patches.wemuslim.misc.ads
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
 internal const val AUTHORITY_TYPE = "Lcom/fyxtech/muslim/protobuf/MembershipConfigProto\$AuthorityType;"
@@ -27,5 +29,5 @@ internal object OpenPageAdGateFingerprint : Fingerprint(
 internal object NewUserAdGraceFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf(),
-    strings = listOf(NEW_USER_AD_DAYS),
+    strings = listOf(string(NEW_USER_AD_DAYS, StringComparisonType.CONTAINS)),
 )

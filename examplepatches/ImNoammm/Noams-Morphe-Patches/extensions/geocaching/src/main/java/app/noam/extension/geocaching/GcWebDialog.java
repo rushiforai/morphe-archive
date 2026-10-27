@@ -22,9 +22,23 @@ import android.widget.TextView;
 final class GcWebDialog {
     private GcWebDialog() {}
 
+    /** Tells the sign-in page when a loaded page means you're signed in. */
+    interface SignedIn {
+        boolean check(String url);
+    }
+
+    static void show(Context context, String url) {
+        open(context, url, null, null);
+    }
+
+    /** The site's sign-in page; closes itself once [signedIn] accepts a loaded page. */
+    static void signIn(Context context, String url, SignedIn signedIn, Runnable onClosed) {
+        open(context, url, signedIn, onClosed);
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     @SuppressWarnings("deprecation")
-    static void show(Context context, String url) {
+    private static void open(Context context, String url, SignedIn finished, Runnable onClosed) {
         Dialog dialog = new Dialog(context, android.R.style.Theme_DeviceDefault_NoActionBar);
         LinearLayout root = new LinearLayout(context);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -66,6 +80,7 @@ final class GcWebDialog {
             public void onPageFinished(WebView view, String loaded) {
                 String pageTitle = view.getTitle();
                 title.setText(pageTitle == null || pageTitle.isEmpty() ? android.net.Uri.parse(loaded).getHost() : pageTitle);
+                if (finished != null && finished.check(loaded)) dialog.dismiss();
             }
         });
         web.setWebChromeClient(new WebChromeClient() {
@@ -97,7 +112,10 @@ final class GcWebDialog {
             }
             return false;
         });
-        dialog.setOnDismissListener(d -> web.destroy());
+        dialog.setOnDismissListener(d -> {
+            web.destroy();
+            if (onClosed != null) onClosed.run();
+        });
         dialog.show();
         web.loadUrl(url);
     }

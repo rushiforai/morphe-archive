@@ -1,7 +1,9 @@
 package app.template.patches.brave
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
 // Brave keeps P3A and the usage ping switches in Chromium's native "local state" prefs. Java
@@ -27,7 +29,7 @@ internal const val ORIGIN_PREFERENCES_CLASS =
 // R4(II)V since 1.98 (title and message string ids loaded by `const` right before the call); the
 // patch accepts both shapes and checks there is exactly one Origin preferences void call.
 internal object OriginRestartPromptFingerprint : Fingerprint(
-    strings = listOf("Failed to set policy value for "),
+    strings = listOf(string("Failed to set policy value for ", StringComparisonType.CONTAINS)),
     filters = listOf(
         methodCall(
             definingClass = ORIGIN_PREFERENCES_CLASS,

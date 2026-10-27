@@ -78,7 +78,7 @@ class LaunchFolderFixtureTest {
     @Test fun `the whole patch fills every stub and turns the switch on`() {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
-            val context = PatchContexts.of((ExtensionDex.classes() + folderCounterHosts(build) + launchFolderHosts(build)).distinctBy { it.type })
+            val context = PatchContexts.of((ExtensionDex.classes() + folderCounterHosts(build) + menuHosts(build)).distinctBy { it.type })
             val refs = context.resolveLaunchFolder().refs!!
             assertEquals(name, emptyList<String>(), PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) })
             val stubs = context.mutableClassDefBy(LAUNCH_FOLDER).methods.associateBy { it.name }
@@ -172,9 +172,11 @@ class LaunchFolderFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val context = PatchContexts.of((ExtensionDex.classes() + folderCounterHosts(build)).distinctBy { it.type })
             val warnings = PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) }
-            assertEquals(build.name, 1, warnings.size)
-            assertTrue(warnings.single(), warnings.single().contains("the folder tabs' build is missing or ambiguous") &&
-                warnings.single().contains("without opening a folder at launch"))
+            // Without Telegram's MessagesController the hidden chats are left out too, with their own warning.
+            assertEquals(build.name, 2, warnings.size)
+            val launch = warnings.single { it.contains("without opening a folder at launch") }
+            assertTrue(launch, launch.contains("the folder tabs' build is missing or ambiguous"))
+            assertTrue(warnings.toString(), warnings.any { it.contains("without hiding chats") })
             assertEquals(1, statusOf(context, "hideFolderCounters"))
             assertEquals(0, statusOf(context, "launchFolder"))
             assertTrue(context.mutableClassDefBy(LAUNCH_FOLDER).methods.single { it.name == "select" }.body().none { it.opcode == Opcode.IPUT })
@@ -190,7 +192,7 @@ class LaunchFolderFixtureTest {
 private val LAUNCH_FOLDER_HOSTS = ConcurrentHashMap<String, List<ClassDef>>()
 private val LAUNCH_FOLDER_LISTS = ConcurrentHashMap<String, String>()
 
-private fun Method.isTabBuildLike() = returnType == "V" && parameterTypes.map(CharSequence::toString) == listOf("Z", "Z") &&
+internal fun Method.isTabBuildLike() = returnType == "V" && parameterTypes.map(CharSequence::toString) == listOf("Z", "Z") &&
     body().any { it.ref()?.endsWith("->getCurrentTabStableId()I") == true } &&
     body().any { it.ref() == "Lorg/telegram/messenger/R\$string;->FilterAllChats:I" }
 
@@ -207,7 +209,9 @@ internal fun launchFolderHosts(build: File): List<ClassDef> = LAUNCH_FOLDER_HOST
     val list = launchFolderList(build)
     val first = FixtureDex.classes(build, setOf(list)).getValue(list)
     val tabs = first.methods.single { it.isTabBuildLike() }
-    val wanted = mutableSetOf(list, MESSAGES_CONTROLLER, LOCAL_FILTER, USER_CONFIG)
+    // The dialog and notification classes are for the hidden chats' stubs, which go in with the same patch.
+    val wanted = mutableSetOf(list, MESSAGES_CONTROLLER, LOCAL_FILTER, USER_CONFIG, "Lorg/telegram/tgnet/TLRPC\$Dialog;",
+        "Lorg/telegram/messenger/NotificationCenter;")
     for (instruction in tabs.body()) {
         val field = (instruction as? ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.FieldReference ?: continue
         if (field.definingClass == list || field.definingClass.startsWith("Lorg/telegram/ui/")) {

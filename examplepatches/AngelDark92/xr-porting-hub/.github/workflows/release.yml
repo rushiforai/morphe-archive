@@ -64,11 +64,54 @@ jobs:
       # (see patches/build.gradle.kts); :patches:test is a local step (AGENTS.md) and is
       # never compiled or executed here.
       # Only dev and main branch will generate a release as specified by .releaserc
+      #
+      # semantic-release pushes the release commit and tag before the small
+      # refs/notes/semantic-release-<tag> push. GitHub can reject that last push with
+      # "(missing necessary objects)" while objects from the preceding pushes are still
+      # replicating (a known transient). The build from prepareCmd is already on disk at
+      # that point, so the recovery step retries only the notes push and then runs the
+      # configured @semantic-release/github publish hook with the notes recorded in the
+      # release commit. It never rebuilds the bundle and never rewrites pushed history.
       - name: Release
+        id: semantic_release
+        continue-on-error: true
         uses: cycjimmy/semantic-release-action@v6
-        id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Complete interrupted release
+        id: complete_release
+        if: steps.semantic_release.outcome == 'failure'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node .github/scripts/complete_interrupted_release.mjs
+
+      # The Release step owns the output contract. This selector lets the rest of the
+      # job consume either a normal release or one completed by the recovery step.
+      - name: Select release outputs
+        id: release
+        if: always()
+        env:
+          FIRST_PUBLISHED: ${{ steps.semantic_release.outputs.new_release_published }}
+          FIRST_VERSION: ${{ steps.semantic_release.outputs.new_release_version }}
+          FIRST_TAG: ${{ steps.semantic_release.outputs.new_release_git_tag }}
+          COMPLETED_PUBLISHED: ${{ steps.complete_release.outputs.new_release_published }}
+          COMPLETED_VERSION: ${{ steps.complete_release.outputs.new_release_version }}
+          COMPLETED_TAG: ${{ steps.complete_release.outputs.new_release_git_tag }}
+        run: |
+          published="${FIRST_PUBLISHED:-false}"
+          version="${FIRST_VERSION:-}"
+          tag="${FIRST_TAG:-}"
+          if [ "$published" != "true" ] && [ "${COMPLETED_PUBLISHED:-false}" = "true" ]; then
+            published=true
+            version="$COMPLETED_VERSION"
+            tag="$COMPLETED_TAG"
+          fi
+          {
+            echo "new_release_published=$published"
+            echo "new_release_version=$version"
+            echo "new_release_git_tag=$tag"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Resolve released bundle
         if: steps.release.outputs.new_release_published == 'true'

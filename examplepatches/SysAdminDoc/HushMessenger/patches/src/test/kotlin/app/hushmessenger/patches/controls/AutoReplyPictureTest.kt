@@ -30,6 +30,7 @@ private const val READER = "LX/ArReader;"
 private const val BUILDER = "LX/ArBuilder;"
 private const val TYPE = "LX/ArType;"
 private const val SENDING = "LX/ArSending;"
+private const val UNRELATED_HANDLER = "LX/ArOtherService;"
 private const val INTENT = "Landroid/content/Intent;"
 private const val STRING = "Ljava/lang/String;"
 private const val MAP = "Lcom/google/common/collect/ImmutableMap;"
@@ -141,10 +142,15 @@ private fun pictureClasses(
     senderFlags: Int = PUBLIC,
     photo: String = AUTO_REPLY_PHOTO,
     factory: String = FACTORY_BUILD,
+    handlerOn: String = AUTO_REPLY_SERVICE,
 ): List<ClassDef> {
     val enum = "Ljava/lang/Enum;"
+    val parent = "LX/GAt;"
+    fun handlers(owner: String) = if (owner == handlerOn) listOf(fixtureMethod("$owner->A03($INTENT)V", service, 11, PUBLIC)) else emptyList()
     return listOf(
-        fixtureClass(AUTO_REPLY_SERVICE, listOf(fixtureMethod("$AUTO_REPLY_SERVICE->A03($INTENT)V", service, 11, PUBLIC))),
+        fixtureClass(AUTO_REPLY_SERVICE, handlers(AUTO_REPLY_SERVICE), superclass = parent),
+        fixtureClass(parent, handlers(parent), flags = PUBLIC or AccessFlags.ABSTRACT.value),
+        fixtureClass(UNRELATED_HANDLER, handlers(UNRELATED_HANDLER)),
         fixtureClass(REPLY, listOf(fixtureMethod(REPLY_SEND, reply, 14, STATIC))),
         fixtureClass(READER, listOf(fixtureMethod(READ, """
             const-string v0, "thread_key_string"
@@ -182,6 +188,12 @@ class AutoReplyPictureTest {
 
     @Test fun theRecipeComesFromTheReplySendAndTheMediaFactory() {
         assertEquals(recipe, resolveAutoReplyPictureRecipe(pictureClasses()))
+    }
+
+    /** 584.1's armv7 build keeps the reply handler on the service's abstract parent, its only subclass being the service. */
+    @Test fun aHandlerOnTheServicesParentGivesTheSameRecipeButOneOnAnUnrelatedClassDoesNot() {
+        assertEquals(recipe, resolveAutoReplyPictureRecipe(pictureClasses(handlerOn = "LX/GAt;")))
+        assertNull(resolveAutoReplyPictureRecipe(pictureClasses(handlerOn = UNRELATED_HANDLER)))
     }
 
     @Test fun aSendThatMovedLeavesThePictureOut() {

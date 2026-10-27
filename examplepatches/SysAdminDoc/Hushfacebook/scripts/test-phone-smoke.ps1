@@ -76,8 +76,23 @@ Assert-That ($null -ne $smokeAst.Find({ param($node)
             $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Read-SmokeReport' }, $true)) `
     'device-audit.ps1 looks for Read-SmokeReport in phone-smoke.ps1 and it is gone.'
 $settingsSource = Join-Path $PSScriptRoot '..\extensions\facebook\src\main\java\app\morphe\extension\facebook\settings'
-Assert-That ([regex]::Matches([IO.File]::ReadAllText((Join-Path $settingsSource 'SettingsNavigation.java')), 'section\("([^"]+)"').Count -ge 10) `
-    'device-audit.ps1 reads the settings pages as section("..." in SettingsNavigation.java and found fewer than 10.'
+$declaredSections = [regex]::Matches([IO.File]::ReadAllText((Join-Path $settingsSource 'SettingsNavigation.java')), 'section\("([^"]+)"')
+Assert-That ($declaredSections.Count -eq 21) `
+    'device-audit.ps1 reads the accordion sections as section("..." in SettingsNavigation.java and did not find all 21.'
+$pageReader = $audit.Find({ param($node)
+    $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Get-SettingsPages' }, $true)
+Assert-That ($null -ne $pageReader) 'The settings route reader is missing.'
+if ($pageReader) {
+    $testScriptRoot = $PSScriptRoot
+    . ([scriptblock]::Create($pageReader.Extent.Text.Replace('$PSScriptRoot', '$testScriptRoot')))
+    $sweptPages = @(Get-SettingsPages)
+    Assert-That ($sweptPages.Count -eq 23 -and $sweptPages[0] -ceq '' -and $sweptPages[-1] -ceq 'support' -and
+        $sweptPages -cnotcontains 'more') 'The audit sweep does not cover the home list, all 21 categories and Support directly.'
+    foreach ($section in $declaredSections) {
+        Assert-That (@($sweptPages | Where-Object { $_ -ceq $section.Groups[1].Value }).Count -eq 1) `
+            "The audit did not sweep section $($section.Groups[1].Value) exactly once."
+    }
+}
 Assert-That ([regex]::Matches([IO.File]::ReadAllText((Join-Path $settingsSource 'FamilyNames.java')), 'public static final String \w+ = "([^"]+)"').Count -ge 50) `
     'device-audit.ps1 reads the family names out of FamilyNames.java and found fewer than 50.'
 $expectations = Join-Path $PSScriptRoot 'device-audit-expectations.json'

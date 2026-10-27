@@ -56,6 +56,9 @@ public class OutsideTranslateTest {
         int applied;
         int refreshed;
         String shown;
+        String language;
+        /** What Telegram's translate bar shows for the chat; null is a stock app with nothing to read. */
+        String telegramTarget;
         /** Runs once, the next time the account is read. */
         Runnable onOwnerRead;
         /** Runs each time the chat is told to draw the message again. */
@@ -72,7 +75,8 @@ public class OutsideTranslateTest {
         @Override public boolean eligible() { return eligible; }
         @Override public String original() { return original; }
         @Override public boolean translated() { return translated; }
-        @Override public void apply(String text, String language) { applied++; shown = text; translated = true; }
+        @Override public String telegramTarget() { return telegramTarget; }
+        @Override public void apply(String text, String language) { applied++; shown = text; this.language = language; translated = true; }
         @Override public void refresh() {
             refreshed++;
             if (onRefresh != null) onRefresh.run();
@@ -165,6 +169,62 @@ public class OutsideTranslateTest {
         ShadowLooper.idleMainLooper();
         assertFalse(OutsideTranslate.showMessage(message, message));
         assertEquals(0, message.applied);
+    }
+
+    @Test public void aPickedChineseScriptIsWrittenEvenFromTheOtherOne() {
+        Settings.OUTSIDE_TRANSLATE.save(true);
+        Settings.TRANSLATE_TARGET.save("zh-TW");
+        try {
+            OutsideTranslate.toggleChat(OWNER, 10);
+            List<String> asked = new ArrayList<>();
+            OutsideTranslate.fetcher = (service, target, text) -> {
+                asked.add(target);
+                return new GoogleTranslate.Result("你好，世界", "zh-CN");
+            };
+            Fake message = new Fake();
+            message.original = "你好，世界";
+            OutsideTranslate.showMessage(message, message);
+            ShadowLooper.idleMainLooper();
+            assertTrue("Simplified Chinese is written out in Traditional", OutsideTranslate.showMessage(message, message));
+            assertEquals(1, message.applied);
+            assertEquals(Collections.singletonList("zh-TW"), asked);
+        } finally {
+            Settings.TRANSLATE_TARGET.resetToDefault();
+        }
+    }
+
+    @Test public void theLanguagePickedInTelegramsTranslateBarIsWrittenUnlessTranslateIntoHasAPick() {
+        Settings.OUTSIDE_TRANSLATE.save(true);
+        try {
+            OutsideTranslate.toggleChat(OWNER, 10);
+            List<String> asked = new ArrayList<>();
+            OutsideTranslate.fetcher = (service, target, text) -> {
+                asked.add(target);
+                return new GoogleTranslate.Result("你好，世界", "zh-CN");
+            };
+            Fake message = new Fake();
+            message.original = "你好，世界";
+            message.telegramTarget = "zh-tw";
+            OutsideTranslate.showMessage(message, message);
+            ShadowLooper.idleMainLooper();
+            assertTrue("the bar's Traditional is written out from Simplified", OutsideTranslate.showMessage(message, message));
+            assertEquals("zh-TW", message.language);
+            // Telegram's own language as a bare code is what it answers with nothing picked, so the old target stays.
+            Fake fallback = new Fake();
+            fallback.id = 2;
+            fallback.original = "Привет";
+            fallback.telegramTarget = Locale.getDefault().getLanguage();
+            OutsideTranslate.showMessage(fallback, fallback);
+            Settings.TRANSLATE_TARGET.save("fa");
+            Fake chosen = new Fake();
+            chosen.id = 3;
+            chosen.original = "Пока";
+            chosen.telegramTarget = "de";
+            OutsideTranslate.showMessage(chosen, chosen);
+            assertEquals(Arrays.asList("zh-TW", OutsideTranslate.tagOf(Locale.getDefault()), "fa"), asked);
+        } finally {
+            Settings.TRANSLATE_TARGET.resetToDefault();
+        }
     }
 
     @Test public void aFailedRequestIsNotRepeatedAtOnceAndNothingIsShown() {

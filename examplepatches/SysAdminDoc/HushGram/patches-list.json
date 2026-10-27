@@ -34,7 +34,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -71,7 +74,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -108,7 +114,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -145,7 +154,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -182,7 +194,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -219,7 +234,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -256,7 +274,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -293,7 +314,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -330,7 +354,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -367,7 +394,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -404,7 +434,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -441,7 +474,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -478,7 +514,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -517,7 +556,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -554,7 +596,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -591,7 +636,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -628,7 +676,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -665,7 +716,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -703,7 +757,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -740,7 +797,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -778,7 +838,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -815,7 +878,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -852,7 +918,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -889,7 +958,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -926,7 +998,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -963,7 +1038,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1000,7 +1078,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1037,7 +1118,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1074,7 +1158,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1111,7 +1198,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1148,7 +1238,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1185,7 +1278,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1222,7 +1318,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1259,7 +1358,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1296,7 +1398,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1333,7 +1438,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1370,7 +1478,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1407,7 +1518,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1444,7 +1558,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1481,7 +1598,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1518,7 +1638,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1555,7 +1678,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1592,7 +1718,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1629,7 +1758,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1666,7 +1798,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1703,7 +1838,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1740,7 +1878,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1777,7 +1918,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1814,7 +1958,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1851,7 +1998,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1888,7 +2038,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1925,7 +2078,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1962,7 +2118,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -1999,7 +2158,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2036,7 +2198,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2073,7 +2238,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2110,7 +2278,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2147,7 +2318,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2184,7 +2358,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2221,7 +2398,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2259,7 +2439,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2295,7 +2478,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2332,7 +2518,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2397,7 +2586,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2434,7 +2626,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2471,7 +2666,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2508,7 +2706,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2545,7 +2746,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2582,7 +2786,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2619,7 +2826,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2656,7 +2866,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2693,7 +2906,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2730,7 +2946,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2768,7 +2987,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2805,7 +3027,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2843,7 +3068,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2880,7 +3108,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2890,7 +3121,7 @@
     },
     {
       "name": "Remove build expired popup",
-      "description": "Stops Instagram from locking you out with a screen that says this version is too old. A patched build can't update itself, so it would stop working after a few weeks. On by default. Turn it off in HushGram settings > Updates.",
+      "description": "Stops Instagram from locking you out with a screen that says this version is too old. A patched build can't update itself, so it would stop working after a few weeks. On by default. Turn it off in HushGram settings > Version warnings.",
       "category": "Updates",
       "use": true,
       "dependencies": [
@@ -2917,7 +3148,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2955,7 +3189,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -2992,7 +3229,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3029,7 +3269,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3066,7 +3309,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3103,7 +3349,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3140,7 +3389,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3177,7 +3429,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3214,7 +3469,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3251,7 +3509,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3288,7 +3549,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3325,7 +3589,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3362,7 +3629,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3399,7 +3669,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3436,7 +3709,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3473,7 +3749,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3510,7 +3789,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3547,7 +3829,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3584,7 +3869,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3621,7 +3909,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3658,7 +3949,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3695,7 +3989,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3732,7 +4029,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3769,7 +4069,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3806,7 +4109,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3843,7 +4149,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3880,7 +4189,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3917,7 +4229,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3954,7 +4269,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -3991,7 +4309,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -4028,7 +4349,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -4065,7 +4389,50 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Tab bar layout",
+      "description": "Lets you keep the newer tab bar, where you swipe between every tab, or the classic one, instead of the one Instagram picks for your account. Starts on Instagram's choice. Pick one in HushGram settings > Tab bar.",
+      "category": "Interface",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "452.1.0.53.64"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -4102,7 +4469,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -4139,7 +4509,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -4176,7 +4549,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -4213,7 +4589,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -4250,7 +4629,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -4287,7 +4669,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -4324,7 +4709,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]
@@ -4361,7 +4749,10 @@
               "version": "452.1.0.53.64",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 385811006
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
               }
             }
           ]

@@ -79,10 +79,13 @@ public final class MessageMenu {
         boolean copy = on(Settings.MESSAGE_MENU_COPY_PHOTO);
         boolean details = on(Settings.MESSAGE_MENU_DETAILS);
         boolean quick = on(Settings.MESSAGE_MENU_QUICK_FORWARD);
-        if (!repeat && !copy && !details && !quick || icons == null || items == null || options == null) return;
+        boolean history = KeepEdits.on();
+        if (!repeat && !copy && !details && !quick && !history || icons == null || items == null || options == null) return;
         try {
             Object message = selected(chat);
             if (message == null) return;
+            // Keep edit history shows a message's earlier text in Message details, with or without that switch.
+            details = details || history && !earlier(message).isEmpty();
             boolean forwardable = options.contains(forwardOption());
             repeat = repeat && forwardable && repeatable(chat, message);
             copy = copy && forwardable && photo(message) && downloaded(message) != null;
@@ -102,7 +105,7 @@ public final class MessageMenu {
             BooleanSetting setting = option == REPEAT ? Settings.MESSAGE_MENU_REPEAT
                     : option == DETAILS ? Settings.MESSAGE_MENU_DETAILS
                     : option == COPY_PHOTO ? Settings.MESSAGE_MENU_COPY_PHOTO : Settings.MESSAGE_MENU_QUICK_FORWARD;
-            if (!on(setting)) return;
+            if (!on(setting) && !(option == DETAILS && KeepEdits.on())) return;
             context = Utils.getContext();
             Context host = activity(chat);
             if (host != null) context = host;
@@ -399,6 +402,12 @@ public final class MessageMenu {
         int forwardDate;
         int dc;
         long size;
+        List<KeepEdits.Version> earlier = new ArrayList<>();
+    }
+
+    /** What Keep edit history kept for the message, oldest first. */
+    static List<KeepEdits.Version> earlier(Object message) {
+        return KeepEdits.earlier(selfId(account(message)), dialog(message), id(message));
     }
 
     static Facts facts(Object message) {
@@ -424,6 +433,7 @@ public final class MessageMenu {
                 }
             }
         }
+        facts.earlier = earlier(message);
         return facts;
     }
 
@@ -444,6 +454,9 @@ public final class MessageMenu {
         }
         if (facts.dc > 0) lines.add(L10n.f(context, "File data center: %1$s", Integer.toString(facts.dc)));
         if (facts.size > 0) lines.add(L10n.f(context, "File size: %1$s", Formatter.formatFileSize(context, facts.size)));
+        for (KeepEdits.Version version : facts.earlier) {
+            lines.add(L10n.f(context, "Before the edit at %1$s: %2$s", time(context, version.replaced), L10n.isolate(version.text)));
+        }
         return String.join("\n", lines);
     }
 

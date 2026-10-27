@@ -321,6 +321,7 @@ public final class SelectionCheck {
         hook(calls, flags, "hideKeyboardOnScroll", "misc/ScrollKeyboard", "chatScrolled");
         hook(calls, flags, "keepVideosMuted", "misc/VolumeKeys", "chatTakesKey");
         hook(calls, flags, "videoEitherLandscape", "misc/VideoTurn", "fullScreen");
+        hook(calls, flags, "videoOnlyFromButton", "misc/VideoUpright", "listenerOn", "listenerOff", "requested", "restore");
         hook(calls, flags, "swipeBackOnProfiles", "misc/SwipeBack", "touchBlocks");
         hook(calls, flags, "hidePhoneNumber", "misc/HidePhone", "shown");
         hook(calls, flags, "shareNumberUnticked", "misc/ContactShare", "startsTicked");
@@ -332,6 +333,7 @@ public final class SelectionCheck {
         hook(calls, flags, "reactionEffectsOff", "misc/ReactionEffects", "skipped");
         hook(calls, flags, "hideFolderCounters", "misc/FolderTabs", "countersHidden");
         hook(calls, flags, "launchFolder", "misc/LaunchFolder", "firstTabs");
+        hook(calls, flags, "hiddenChats", "misc/HiddenChats", "prune");
         hook(calls, flags, "forwardHideSender", "misc/ForwardSender", "starts");
         hook(calls, flags, "voiceMusicPlayer", "misc/VoicePlayer", "music");
         hook(calls, flags, "silenceNonContacts", "misc/NonContacts", "silenced");
@@ -342,13 +344,14 @@ public final class SelectionCheck {
         hook(calls, flags, "stickerSize", "misc/StickerSize", "size");
         hook(calls, flags, "ignoreMutedMentions", "misc/MutedMentions", "notifyDialog");
         hook(calls, flags, "hideBlockedInGroups", "misc/BlockedSenders", "type", "hideReply");
-        hook(calls, flags, "hideFeaturesAndInvite", "misc/FeaturesInvite", "addFeaturesRow");
+        hook(calls, flags, "hideFeaturesAndInvite", "misc/FeaturesInvite", "addFeaturesRow", "listShown");
         hook(calls, flags, "messageMenuRepeat", "misc/MessageMenu", "fill");
         hook(calls, flags, "keepDeleted", "misc/KeepDeleted", "userUpdate", "channelUpdate", "push", "measuring");
         hook(calls, flags, "redDeletedLabel", "misc/KeepDeleted", "painted");
         hook(calls, flags, "askBeforeSending", "misc/SendConfirm", "sticker", "gif", "voice", "call");
         hook(calls, flags, "outsideTranslate", "misc/OutsideTranslate", "show", "fill", "chosen", "headerMenu", "headerClick");
         hook(calls, flags, "hideChannelButtons", "misc/ChannelButtons", "set");
+        hook(calls, flags, "hideChannelMute", "misc/ChannelMute", "begin", "muteLabelled", "finish", "visibility");
         hook(calls, flags, "hideSendAs", "misc/SendAs", "show");
         hook(calls, flags, "hideContactsTab", "misc/MainTabs", "tabsShown", "blocksSwipe");
         hook(calls, flags, "compactTabBar", "misc/MainTabs", "barPadding", "barCorner", "barHeight", "barMinWidth");

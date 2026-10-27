@@ -23,7 +23,6 @@ import app.morphe.extension.tiktok.settings.preference.ImportSeenVideoHistoryPre
 import app.morphe.extension.tiktok.settings.preference.SeenHistoryFilePreference;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
 import app.morphe.extension.tiktok.settings.preference.CreatorListPreference;
-import app.morphe.extension.tiktok.settings.preference.CalmFeedPresetPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.feedfilter.AdvancedFeedRules;
@@ -58,7 +57,6 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         // Each patch's rows go behind its own flag. The page is reachable when any of them
         // is in the bundle, and a page reachable because of one of them must not offer the
         // others' settings, which would sit there doing nothing.
-        if (SettingsStatus.feedFilterEnabled) addQuickSetup(context);
         if (SettingsStatus.feedFilterEnabled) addAds(context);
         if (SettingsStatus.feedFilterEnabled) addKindsOfPost(context);
         if (SettingsStatus.feedFilterEnabled) addLimits(context);
@@ -69,10 +67,6 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         if (SettingsStatus.feedFilterEnabled) addAdvanced(context);
     }
 
-    private void addQuickSetup(Context context) {
-        addPreference(new SectionHeadingPreference(context, "Quick setup"));
-        addPreference(new CalmFeedPresetPreference(context));
-    }
 
     private void addKindsOfPost(Context context) {
         addPreference(new SectionHeadingPreference(context, "Kinds of post"));

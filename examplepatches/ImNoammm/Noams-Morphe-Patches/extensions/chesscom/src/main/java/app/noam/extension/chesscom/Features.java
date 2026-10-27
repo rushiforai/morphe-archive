@@ -122,8 +122,9 @@ public final class Features {
             null, Features::premiumUnlockPatched),
         new Feature(GAME_REVIEW, "Games", "glyph_board_analysis", "Unlimited Game Review",
             "Game Review asks who reviews: chess.com, Lichess's servers (with your Lichess account) or, "
-                + "with Stockfish analysis, Stockfish on your phone. The phone and Lichess both mark moves "
-                + "the Lichess way: ?! ? ??, accuracy and centipawn loss. Reviews are saved, so a game opens "
+                + "with Stockfish analysis, Stockfish on your phone. The phone and Lichess both judge moves "
+                + "the Lichess way: ?! ? ??, accuracy and centipawn loss. The phone also marks the moves "
+                + "Lichess leaves unmarked Best, Excellent or Good, as chess.com does. Reviews are saved, so a game opens "
                 + "straight away the next time.",
             PAGE_GAME_REVIEW, Features::gameReviewPatched),
         new Feature(LIMIT_TOASTS, "Less clutter", "glyph_message_bubble_fill_pair", "Limits as toasts",

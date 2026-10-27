@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "generatedBy": "extensions/gxr-spacewarp-layer/tests/derive_gate0_vts.py (2.0.24 port 2026-10-26; hand-frozen appendix, same shape as the restored legacy bases)",
+  "generatedAt": "2026-10-26T00:00:00Z",
+  "base": {
+    "app": "Steam Link VR",
+    "package": "com.valvesoftware.steamlinkvr",
+    "versionName": "2.0.24",
+    "versionCode": 5002395
+  },
+  "soname": "libvrlink_scene.so",
+  "decodedTree": "android-steamlinkvr-release-base-2.0.24-5002395",
+  "size": 2301432,
+  "sha256": "5fab23a7eac1429c93520bdd4d7c579b75a6d55525a755379d15388272571a4b",
+  "sha256Use": "diagnostics only; never a full-file gate",
+  "addressing": "code segment is PT_LOAD-identity (VA == file offset); GOT slots are runtime vaddrs added to dlpi_addr",
+  "carrier": {
+    "id": 72,
+    "payloadBytes": 4,
+    "payloadSemantics": "nonzero int32 = spacewarp synthesis enabled",
+    "readApi": "ValueTransportSystem::BGetRemoteValue(ValueTransportID id, void* out, unsigned size)",
+    "readCallShape": "fn(base + 0x17ba50)(svlRoot + 0xa08, id, out, 4)",
+    "clientUnusedEvidence": {
+      "movzW1ImmediateSites": [],
+      "allAttributedNonValueTransport": true,
+      "note": "carrier id 0x48 is unused by the client value transport on this base; the derivation census is the audit record"
+    },
+    "rxIngest": {
+      "symbol": "SVLRoot::RXUnreliableStream",
+      "va": 1498092,
+      "size": 352,
+      "signature": "SVLDataLink*, unsigned long (4 args)"
+    }
+  },
+  "readReturnSemantics": {
+    "5002395": "bool in w0; true only when the id holder exists and the FULL requested size was copied (same 42-instruction body as 5002363)"
+  },
+  "bGetRemoteValue": {
+    "mangledName": "_ZN20ValueTransportSystem15BGetRemoteValueE16ValueTransportIDPvj",
+    "demangledName": "ValueTransportSystem::BGetRemoteValue",
+    "va": 1555024,
+    "size": 164,
+    "anchor": {
+      "name": "ValueTransportSystem::BGetRemoteValue",
+      "offset": 1555024,
+      "size": 128,
+      "sha256": "9701b8dffa8277fb88f2fe7989bf7caa96b922c33b8f73ce356b950e6b6c9dc9",
+      "occurrences": 1
+    },
+    "pltSlotRuntimeVaddr": 2299848
+  },
+  "capture": [
+    {
+      "mangled": "_ZN7SVLRoot22ParsePeerValueSettingsEPK16TransportValue_ti",
+      "va": 1498444,
+      "size": 740,
+      "slotRuntimeVaddr": 2299904,
+      "anchor": {
+        "offset": 1498444,
+        "size": 128,
+        "sha256": "5923592d8f8675634571537abf2a04f2a5d513a57efc0981e91d62f068a924e2",
+        "occurrences": 1
+      },
+      "capturedAbi": "x0 = the SVLRoot*; one void ret path"
+    },
+    {
+      "mangled": "_ZN7SVLRoot18RXUnreliableStreamEP7datasetP11SVLDataLinkm",
+      "va": 1498092,
+      "size": 352,
+      "slotRuntimeVaddr": 2299744,
+      "anchor": {
+        "offset": 1498092,
+        "size": 128,
+        "sha256": "2808819d4d269ecae43aca1c731e85e8bae64125d05e0853e1f348c717853463",
+        "occurrences": 1
+      },
+      "capturedAbi": "x0 = the SVLRoot*; SVLDataLink*, unsigned long (4 args)"
+    }
+  ],
+  "vtsEmbedOffset": "0xa08 (proven from 11 real add x0, xN, #0xa08 + bl-to-BGetRemoteValue pairs on this base)"
+}

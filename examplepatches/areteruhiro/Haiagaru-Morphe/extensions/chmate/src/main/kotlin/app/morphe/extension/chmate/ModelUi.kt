@@ -486,7 +486,7 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
             BoxWithConstraints(Modifier.fillMaxSize().padding(insets).imePadding()) {
                 val checker = root.getTag(HissiMenuController.CHECKER_LAYOUT_TAG) == true
                 val percent = if (checker) root.context.getSharedPreferences(WacchoiSearchOptions.PREFS, 0)
-                    .getInt("checkerHeaderPercent", 20).coerceIn(10, 60) else 25
+                    .getInt("checkerHeaderPercent", 20).coerceIn(10, 60) else if (activity is ExternalBoardAuthActivity) 55 else 25
                 val controlsHeight = maxHeight * (percent / 100f)
                 Column(Modifier.fillMaxSize()) {
                     if (surfaceIndex > 0) Column(Modifier.fillMaxWidth().heightIn(max = controlsHeight)

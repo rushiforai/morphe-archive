@@ -68,6 +68,12 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  *   `(I)V` and `(FbUserSession, I, Z)V` methods of the one interface it implements that declares
  *   both (arm64 LX/DQv;, F32 and F33, the same interface the Messenger button class implements).
  *   Their hooks go first and get the glyph too, so only the Messenger one loses its count.
+ * - Hide the Create (+) button (#257), read from 584 arm64, 2026-10-26. The classic bar's method
+ *   holding the kept "WordmarkNavigationBar#setupCreateGlyphView" (A0D) makes the button, keeps it
+ *   in a View field of the bar (A0d) and adds it further down with addView(View), the view loaded
+ *   from that field by the iget-object just before the call. The hook goes right after that call.
+ *   On the newer bar the Create spec is named "trep-composer-button", so the same [BAR_BUTTON_HOOK]
+ *   covers it.
  *
  * A missing anchor refuses the whole Tab bar at the bottom patch, like every other anchor in it.
  */
@@ -78,8 +84,10 @@ internal const val HIDE_MESSENGER_COUNT_HOOK = "$TOP_BAR_BUTTONS->messengerCount
 internal const val HIDE_FACEBOOK_LOGO_HOOK = "$TOP_BAR_BUTTONS->facebookLogo(Landroid/view/View;)V"
 internal const val BAR_BUTTON_HOOK = "$TOP_BAR_BUTTONS->barButton(Landroid/view/View;Ljava/lang/String;)V"
 internal const val BAR_BUTTON_COUNT_HOOK = "$TOP_BAR_BUTTONS->barButtonCount(Landroid/view/View;I)I"
+internal const val HIDE_CREATE_BUTTON_HOOK = "$TOP_BAR_BUTTONS->createButton(Landroid/view/View;)V"
 
 internal const val SETUP_MESSENGER_GLYPH_VIEW = "WordmarkNavigationBar#setupMessengerGlyphView"
+internal const val SETUP_CREATE_GLYPH_VIEW = "WordmarkNavigationBar#setupCreateGlyphView"
 internal const val BADGABLE_GLYPH_VIEW = "badgableGlyphView"
 internal const val NAVIGATION_BAR = "Lcom/facebook/navigation/navbar/NavigationBar;"
 private const val FRAME_LAYOUT_INIT = "Landroid/widget/FrameLayout;-><init>(Landroid/content/Context;)V"
@@ -137,6 +145,34 @@ internal fun messengerButtonSite(builder: Method): MessengerButtonSite {
     }
     val add = adds.singleOrNull() ?: refuse("expected one addView of the $buttonType field in $where, found ${adds.size}")
     return MessengerButtonSite(buttonType, add, (code[add - 1] as OneRegisterInstruction).registerA)
+}
+
+/** Where the bar adds the Create button: the bar's field holding it, the addView call's index and the register holding the button. */
+internal class CreateButtonSite(val field: FieldReference, val addView: Int, val register: Int)
+
+/**
+ * Where [builder] (the bar's method holding setupCreateGlyphView) adds the Create button. After the
+ * string it puts objects in fields of the bar; the one of those fields whose iget-object comes right
+ * before an addView(View) of the view it loaded is the button. Refuses unless that finds exactly one.
+ */
+internal fun createButtonSite(builder: Method): CreateButtonSite {
+    val where = "${builder.definingClass}->${builder.name}"
+    val code = builder.implementation?.instructions?.toList() ?: refuse("$where has no body")
+    val marks = code.indices.filter { (code[it].reference() as? StringReference)?.string == SETUP_CREATE_GLYPH_VIEW }
+    val mark = marks.singleOrNull() ?: refuse("expected one \"$SETUP_CREATE_GLYPH_VIEW\" in $where, found ${marks.size}")
+    val kept = (mark + 1 until code.size).filter { code[it].opcode == Opcode.IPUT_OBJECT }
+        .mapNotNull { code[it].reference() as? FieldReference }
+        .filter { it.definingClass == builder.definingClass }
+        .map { it.smali() }.toSet()
+    val adds = (mark + 1 until code.size).filter { index ->
+        if (code[index].opcode != Opcode.INVOKE_VIRTUAL || code[index].signature() != ADD_VIEW) return@filter false
+        val load = code[index - 1]
+        val field = load.reference() as? FieldReference
+        load.opcode == Opcode.IGET_OBJECT && field != null && field.smali() in kept &&
+            (code[index] as FiveRegisterInstruction).let { it.registerCount == 2 && it.registerD == (load as OneRegisterInstruction).registerA }
+    }
+    val add = adds.singleOrNull() ?: refuse("expected one addView of a bar field kept after \"$SETUP_CREATE_GLYPH_VIEW\" in $where, found ${adds.size}")
+    return CreateButtonSite(code[add - 1].reference() as FieldReference, add, (code[add - 1] as OneRegisterInstruction).registerA)
 }
 
 /** The register of an instance method's int parameter at [at], counted from the parameters. */
@@ -288,6 +324,11 @@ internal fun MutableMethod.hideMessengerButtonAfter(site: MessengerButtonSite) {
     addInstructions(site.addView + 1, "invoke-static/range { v${site.register} .. v${site.register} }, $HIDE_MESSENGER_BUTTON_HOOK")
 }
 
+/** Puts the Create button's hook after the addView call. */
+internal fun MutableMethod.hideCreateButtonAfter(site: CreateButtonSite) {
+    addInstructions(site.addView + 1, "invoke-static/range { v${site.register} .. v${site.register} }, $HIDE_CREATE_BUTTON_HOOK")
+}
+
 /** Sends the count through the extension first thing, so a hidden count reaches Facebook as 0. */
 internal fun MutableMethod.hideCountFirst(register: Int) {
     addInstructions(
@@ -325,6 +366,10 @@ internal fun BytecodePatchContext.hideTopBarButtons() {
             ?: refuse("this Facebook has no ${button.buttonType}, the Messenger button")
         val counts = countMethods(buttonClass)
         logoDressSite(logoBuilder)
+        val createBuilders = buildersHolding(bar, SETUP_CREATE_GLYPH_VIEW)
+        val createBuilder = createBuilders.singleOrNull()
+            ?: refuse("expected one method of $WORDMARK_NAVIGATION_BAR holding \"$SETUP_CREATE_GLYPH_VIEW\", found ${createBuilders.size}")
+        createButtonSite(createBuilder)
 
         bar.findMutableMethodOf(glyphBuilder).hideMessengerButtonAfter(button)
         counts.forEach { count ->
@@ -332,10 +377,13 @@ internal fun BytecodePatchContext.hideTopBarButtons() {
                 it.name == count.name && it.parameterTypes.map(CharSequence::toString) == count.parameters
             }.hideCountFirst(count.intRegister)
         }
-        // The logo builder may be the glyph builder, which now holds more instructions: find the site again.
-        val logoMethod = bar.methods.single {
-            it.name == logoBuilder.name && it.parameterTypes.map(CharSequence::toString) == logoBuilder.parameterTypes.map(CharSequence::toString)
-        }
+        // Each builder may be one the hooks above went into, which now holds more instructions: find
+        // its method and site again.
+        fun MutableMethod.isLike(method: Method) =
+            this.name == method.name && parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString)
+        val createMethod = bar.methods.single { it.isLike(createBuilder) }
+        createMethod.hideCreateButtonAfter(createButtonSite(createMethod))
+        val logoMethod = bar.methods.single { it.isLike(logoBuilder) }
         val site = logoDressSite(logoMethod)
         logoMethod.hideLogoAfter(site.stockLoad, site.logo)
     }

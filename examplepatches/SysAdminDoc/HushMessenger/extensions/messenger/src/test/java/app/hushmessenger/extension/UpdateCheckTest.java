@@ -44,6 +44,7 @@ public class UpdateCheckTest {
     @Before public void start() throws IOException {
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().commit();
+        OpenSections.all();
         server = new ServerSocket(0, 50, InetAddress.getByName("127.0.0.1"));
         Thread acceptor = new Thread(() -> {
             while (true) {

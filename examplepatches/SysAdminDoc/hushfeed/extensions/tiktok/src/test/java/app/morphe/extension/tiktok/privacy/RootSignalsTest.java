@@ -22,6 +22,7 @@ import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.SettingsMenuPreference;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 
@@ -204,14 +205,17 @@ public class RootSignalsTest {
             assertNull(openPrivacy(activity).findPreference(Settings.HIDE_ROOT.key));
             SettingsStatus.devicePrivacyGuardEnabled = true;
             var privacy = openPrivacy(activity);
-            SwitchPreference row = (SwitchPreference) privacy.findPreference(Settings.HIDE_ROOT.key);
+            SettingsMenuPreference group = (SettingsMenuPreference) privacy.findPreference("section_privacy");
+            assertNotNull(group);
+            assertTrue("Privacy stayed collapsed", group.isExpanded());
+            SwitchPreference row = (SwitchPreference) group.findPreference(Settings.HIDE_ROOT.key);
             assertNotNull(row);
             assertEquals("Hide root", row.getTitle());
             assertEquals("Hide root status and details about root tools from TikTok. "
                     + TogglePreference.RESTART_SENTENCE, row.getSummary());
             assertFalse(row.isChecked());
-            assertEquals(1, java.util.stream.IntStream.range(0, privacy.getPreferenceScreen().getPreferenceCount())
-                    .mapToObj(index -> privacy.getPreferenceScreen().getPreference(index).getKey())
+            assertEquals(1, java.util.stream.IntStream.range(0, group.getPreferenceCount())
+                    .mapToObj(index -> group.getPreference(index).getKey())
                     .filter(Settings.HIDE_ROOT.key::equals).count());
         }
     }

@@ -262,7 +262,7 @@ public class PausedHooksTest {
     private enum ShareItem { SHARE_NOW, SHARE_TO_HATCH, SHARE_TO_THREADS }
 
     /** Stands in for Facebook's icon enum, whose constants the reel sidebar walks one button each. */
-    private enum SidebarIcon { LIKE, BOOKMARK }
+    private enum SidebarIcon { LIKE, BOOKMARK, APP_WHATSAPP }
 
     /** Stands in for FDS's colour token enum: the theme goes by the constant's name. */
     private enum Surface { CARD_BACKGROUND }
@@ -572,6 +572,8 @@ public class PausedHooksTest {
                 () -> !"12".equals(ReelDeclutter.countText("12")),
                 // The sidebar's Save button is skipped only while the patch runs.
                 () -> ReelDeclutter.hideSidebarButton(SidebarIcon.BOOKMARK),
+                // The direct WhatsApp button has its own switch in the same type walk.
+                () -> ReelDeclutter.hideSidebarButton(SidebarIcon.APP_WHATSAPP),
                 // So is the speaker button under it.
                 () -> !ReelDeclutter.showsSoundButton(true),
                 // And the footer's speaker, when the footer builds it.
@@ -799,6 +801,7 @@ public class PausedHooksTest {
                 () -> CommentSheetOptions.loadWholeReplyThreads(false),
                 () -> !CommentSheetOptions.viewMoreRepliesTextOnly(true),
                 () -> CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS),
+                () -> CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS),
                 () -> CommentSheetOptions.hidesComment(new GraphQLComment("https://s.shopee.vn/9zKs")),
                 () -> CommentSheetOptions.hidesComment(new GraphQLComment("Big SPOILER inside")),
                 () -> CommentSheetOptions.incomingTypers(3) == 0,

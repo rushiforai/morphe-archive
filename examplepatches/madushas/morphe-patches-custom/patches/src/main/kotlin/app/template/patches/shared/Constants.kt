@@ -13,7 +13,7 @@ object Constants {
         packageName = "pdb.app",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x6C5CE7,
-        targets = listOf(AppTarget(version = "2.134.6", versionCode = 2694))
+        targets = listOf(AppTarget(version = "2.135.1", versionCode = 2709))
     )
 
     val MYDIALOG_COMPATIBILITY = Compatibility(

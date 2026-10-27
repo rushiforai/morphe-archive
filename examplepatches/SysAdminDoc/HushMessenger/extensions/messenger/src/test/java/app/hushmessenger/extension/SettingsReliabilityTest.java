@@ -37,6 +37,7 @@ public class SettingsReliabilityTest {
     @Before public void reset() {
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().commit();
+        OpenSections.all();
     }
 
     @Test @Config(sdk = {28, 36}) public void wholeControlRowIsOneAccessibleSwitchWithLiveState() {
@@ -302,9 +303,9 @@ public class SettingsReliabilityTest {
     public void aFocusedAccentButtonsRingStandsOutFromTheButtonAndThePage() {
         for (boolean light : new boolean[] {false, true}) {
             SettingsUi ui = new SettingsUi(RuntimeEnvironment.getApplication(), light);
-            // The primary buttons, and the selected tab and category, are all accent fills.
+            // The primary buttons and the selected tab are both accent fills.
             for (android.graphics.drawable.Drawable background : new android.graphics.drawable.Drawable[] {
-                    ui.primaryButton("Save").getBackground(), ui.interactive(ui.accent, 0, 10)}) {
+                    ui.primaryButton("Save").getBackground(), ui.interactive(ui.accentFill, 0, 10)}) {
                 int[] focused = edge(ui, background, true), plain = edge(ui, background, false);
                 String theme = light ? "light" : "dark";
                 assertTrue(theme + " outer ring against the page", contrast(focused[0], ui.background) >= 3);
@@ -496,6 +497,42 @@ public class SettingsReliabilityTest {
                 assertReachable(screen.get(), root.findViewWithTag("restart_messenger"), size[0], size[1]);
             }
         }
+    }
+
+    /** Each section's chevron turns a quarter round as it opens, so its box holds the whole glyph either way up. */
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    @Test @Config(sdk = {28, 36}) public void sectionChevronsStayWholeAtLargeText() {
+        RuntimeEnvironment.setQualifiers("w411dp-h891dp-mdpi");
+        RuntimeEnvironment.setFontScale(2f);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = layout(screen.get(), 411, 891);
+            int checked = 0;
+            for (String tab : new String[] {"tab_controls", "tab_app"}) {
+                root.findViewWithTag(tab).performClick();
+                layout(screen.get(), 411, 891);
+                for (View header : sectionHeaders(root)) {
+                    if (!header.isShown()) continue;
+                    TextView chevron = (TextView) ((ViewGroup) header).getChildAt(2);
+                    float glyph = Math.max(chevron.getPaint().getFontSpacing(),
+                        chevron.getPaint().measureText(chevron.getText().toString()));
+                    // Real text metrics, grown past the old fixed 24dp box (one px a dp here).
+                    assertTrue("glyph " + glyph, glyph > 24f);
+                    assertTrue(header.getTag() + " chevron " + chevron.getWidth() + "x" + chevron.getHeight() + " for " + glyph,
+                        Math.min(chevron.getWidth(), chevron.getHeight()) >= glyph);
+                    checked++;
+                }
+            }
+            assertTrue(checked >= 2);
+        }
+    }
+
+    private static java.util.List<View> sectionHeaders(View view) {
+        java.util.List<View> found = new java.util.ArrayList<>();
+        if (view.getTag() instanceof String && ((String) view.getTag()).startsWith("section_")) found.add(view);
+        if (view instanceof ViewGroup)
+            for (int child = 0; child < ((ViewGroup) view).getChildCount(); child++)
+                found.addAll(sectionHeaders(((ViewGroup) view).getChildAt(child)));
+        return found;
     }
 
     @Test @Config(sdk = {28, 36}) public void keyboardSizedWindowKeepsSearchReadableAndRestoresNavigation() {

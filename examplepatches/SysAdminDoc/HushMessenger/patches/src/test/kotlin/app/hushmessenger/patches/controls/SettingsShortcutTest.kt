@@ -94,6 +94,16 @@ class SettingsShortcutTest {
         assertEquals("res/los.xml", resolveShortcutsPath(listOf("res/los.xml")) { shortcuts() })
     }
 
+    /** decode() takes decoded directories: a shrunk archive name like res/eve.xml matched nothing and left one APK load per read. */
+    @Test fun shortcutsAreLookedUpAmongTheDecodedXmlDirectories() {
+        assertEquals("res/xml*", SHORTCUTS_DIRECTORIES)
+        val docs = mapOf("res/xml/eve.xml" to shortcuts(), "res/xml-v25/abc.xml" to xml("<resources/>"))
+        val reads = mutableListOf<String>()
+        val path = resolveShortcutsPath(listOf("res/xml/eve.xml", "res/xml-v25/abc.xml", "res/xml/raw.bin")) { reads += it; docs.getValue(it) }
+        assertEquals("res/xml/eve.xml", path)
+        assertEquals(listOf("res/xml/eve.xml", "res/xml-v25/abc.xml"), reads)
+    }
+
     @Test fun resolveRejectsZeroOrMultipleShortcutsFiles() {
         assertFailsWith<PatchException> {
             resolveShortcutsPath(listOf("res/values/strings.xml")) { xml("<resources/>") }

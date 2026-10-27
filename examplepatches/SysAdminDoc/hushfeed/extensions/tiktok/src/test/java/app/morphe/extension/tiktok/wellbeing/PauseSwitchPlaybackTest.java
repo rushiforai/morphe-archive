@@ -831,6 +831,380 @@ public class PauseSwitchPlaybackTest {
         }
     }
 
+    @Test public void leavingCommentsForSearchDoesNotResumeTheHiddenFeed() {
+        Settings.PAUSE_ON_COMMENTS.save(true);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            View home = feedTabForNavigation(activity);
+            NativeController player = playing("first");
+            Dialog sheet = openSheet(activity);
+            PausePlayback.onCommentCellBound(cellIn(sheet));
+            idle();
+            assertEquals(1, player.manager.pauses);
+
+            // Search replaces the visible feed before the comment sheet detaches.
+            home.setSelected(false);
+            sheet.dismiss();
+            idle();
+            assertEquals("closing comments resumed the feed behind Search", 0, player.manager.resumes);
+        } finally { clearNavigationFeedTab(); }
+    }
+
+    @Test public void anEmbeddedCommentPanelClosingUnderSearchLeavesItsFeedPaused() {
+        Settings.PAUSE_ON_COMMENTS.save(true);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            View home = feedTabForNavigation(activity);
+            NativeController player = playing("first");
+            FrameLayout panel = panelIn(activity, true);
+            PausePlayback.onCommentCellBound(panel.getChildAt(1));
+            idleFor(300);
+            assertEquals(1, player.manager.pauses);
+
+            home.setSelected(false);
+            park(panel);
+            idleFor(300);
+            assertEquals("parked comments resumed the feed behind Search", 0, player.manager.resumes);
+        } finally { clearNavigationFeedTab(); }
+    }
+
+    @Test public void removingTheReturnCoverOnAnotherTabDoesNotStartItsHiddenFeed() {
+        Settings.NO_RESUME_ON_FOREGROUND.save(true);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            View home = feedTabForNavigation(activity);
+            NativeController player = playing("first");
+            ReflectionHelpers.callStaticMethod(PausePlayback.class, "onBackground");
+            ReflectionHelpers.callStaticMethod(PausePlayback.class, "onForeground",
+                    ClassParameter.from(Activity.class, activity));
+            idle();
+            assertEquals(1, player.manager.pauses);
+            assertNotNull(ReflectionHelpers.callStaticMethod(PausePlayback.class, "catcherForTests"));
+
+            home.setSelected(false);
+            activity.getWindow().getDecorView().getViewTreeObserver().dispatchOnGlobalLayout();
+            idle();
+            assertEquals("leaving the tap cover started an offscreen feed", 0, player.manager.resumes);
+        } finally { clearNavigationFeedTab(); }
+    }
+
+    @Test public void aNewSearchActivityCannotResumeTheFeedBeforeItsStopCallback() {
+        Settings.PAUSE_ON_COMMENTS.save(true);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            feedTabForNavigation(activity);
+            NativeController player = playing("first");
+            Dialog sheet = openSheet(activity);
+            PausePlayback.onCommentCellBound(cellIn(sheet));
+            idle();
+            assertEquals(1, player.manager.pauses);
+
+            try (var search = Robolectric.buildActivity(FeedActivity.class).setup().visible()) {
+                assertTrue(Utils.getVisibleActivity() == search.get());
+                sheet.dismiss();
+                idle();
+                assertEquals("Search resumed while the old Main had not stopped", 0, player.manager.resumes);
+            }
+        } finally { clearNavigationFeedTab(); }
+    }
+
+    @Test public void closingCommentsOnTheVisibleDetailPageStillResumesItsOwnPlayer() {
+        Settings.PAUSE_ON_COMMENTS.save(true);
+        try (var main = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Utils.setActivity(main.get());
+            View home = feedTabForNavigation(main.get());
+            home.setSelected(false);
+            try (var detail = Robolectric.buildActivity(FeedActivity.class).setup().visible()) {
+                assertTrue(Utils.getVisibleActivity() == detail.get());
+                NativeController player = playing("detail");
+                Dialog sheet = openSheet(detail.get());
+                PausePlayback.onCommentCellBound(cellIn(sheet));
+                idle();
+                assertEquals(1, player.manager.pauses);
+                sheet.dismiss();
+                idle();
+                assertEquals("a visible detail page lost its ordinary comment handback", 1, player.manager.resumes);
+            }
+        } finally { clearNavigationFeedTab(); }
+    }
+
+    @Test public void aDetailFragmentReplacingTheFeedCannotResumeTheOldFeed() {
+        Settings.PAUSE_ON_COMMENTS.save(true);
+        Object page = new Object();
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            View home = feedTabForNavigation(activity);
+            NativeController player = playing("first");
+            Dialog sheet = openSheet(activity);
+            PausePlayback.onCommentCellBound(cellIn(sheet));
+            idle();
+            assertEquals(1, player.manager.pauses);
+
+            home.setSelected(false);
+            home.setVisibility(View.GONE);
+            addNativeDetailPage(activity, page);
+            assertTrue("the native detail fixture is not active", FeedVisibility.isOnFeed(activity));
+            sheet.dismiss();
+            idle();
+            assertEquals("same-activity detail resumed the hidden source feed", 0, player.manager.resumes);
+        } finally { FeedVisibility.onDetailDestroyed(page); clearNavigationFeedTab(); }
+    }
+
+    @Test public void aDetailFragmentDoesNotInheritTheOldCommentHold() {
+        Settings.PAUSE_ON_COMMENTS.save(true);
+        Object page = new Object();
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            View home = feedTabForNavigation(activity);
+            NativeController source = playing("first");
+            Dialog sheet = openSheet(activity);
+            PausePlayback.onCommentCellBound(cellIn(sheet));
+            idle();
+            assertEquals(1, source.manager.pauses);
+
+            home.setSelected(false);
+            home.setVisibility(View.GONE);
+            addNativeDetailPage(activity, page);
+            assertTrue("the native detail fixture is not active", FeedVisibility.isOnFeed(activity));
+            NativeController destination = new NativeController();
+            destination.bind("detail");
+            destination.reportProgress();
+            idle();
+            assertEquals("the destination inherited the source comment hold", 0, destination.manager.pauses);
+            sheet.dismiss();
+            idle();
+            assertEquals(0, source.manager.resumes);
+        } finally { FeedVisibility.onDetailDestroyed(page); clearNavigationFeedTab(); }
+    }
+
+    @Test public void commentsOnTheSameNativeDetailPageStillResumeItsOwnVideo() {
+        Settings.PAUSE_ON_COMMENTS.save(true);
+        Object page = new Object();
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            View home = feedTabForNavigation(activity);
+            home.setSelected(false);
+            home.setVisibility(View.GONE);
+            addNativeDetailPage(activity, page);
+            assertTrue("the native detail fixture is not active", FeedVisibility.isOnFeed(activity));
+            NativeController player = playing("detail");
+            Dialog sheet = openSheet(activity);
+            PausePlayback.onCommentCellBound(cellIn(sheet));
+            idle();
+            assertEquals(1, player.manager.pauses);
+            sheet.dismiss();
+            idle();
+            assertEquals(1, player.manager.resumes);
+        } finally { FeedVisibility.onDetailDestroyed(page); clearNavigationFeedTab(); }
+    }
+
+    private static void addNativeDetailPage(Activity activity, Object page) {
+        FrameLayout content = activity.findViewById(android.R.id.content);
+        FrameLayout detail = new FrameLayout(activity);
+        content.addView(detail, new FrameLayout.LayoutParams(500, 700));
+        FeedVisibility.onDetailView(page, detail);
+        FeedVisibility.onDetailResume(page);
+        idle();
+    }
+
+    @Test public void leavingDetailWhileCommentsCloseDoesNotHoldTheDestination() {
+        assertDetailExitClearsItsHold("pause");
+    }
+
+    @Test public void hidingDetailWhileCommentsCloseDoesNotHoldTheDestination() {
+        assertDetailExitClearsItsHold("hide");
+    }
+
+    @Test public void destroyingDetailWhileCommentsCloseDoesNotHoldTheDestination() {
+        assertDetailExitClearsItsHold("destroy");
+    }
+
+    private void assertDetailExitClearsItsHold(String exit) {
+        Settings.PAUSE_ON_COMMENTS.save(true);
+        Object page = new Object();
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            View home = feedTabForNavigation(activity);
+            home.setSelected(false);
+            home.setVisibility(View.GONE);
+            addNativeDetailPage(activity, page);
+            NativeController source = playing("detail");
+            Dialog sheet = openSheet(activity);
+            PausePlayback.onCommentCellBound(cellIn(sheet));
+            idle();
+            assertEquals(1, source.manager.pauses);
+
+            home.setVisibility(View.VISIBLE);
+            home.setSelected(true);
+            if ("pause".equals(exit)) FeedVisibility.onDetailPause(page);
+            else if ("hide".equals(exit)) FeedVisibility.onDetailVisibility(page, false);
+            else FeedVisibility.onDetailDestroyed(page);
+            NativeController destination = new NativeController();
+            destination.bind("home");
+            destination.reportProgress();
+            idle();
+            assertEquals("detail exit left its hold on the destination", 0, destination.manager.pauses);
+            sheet.dismiss();
+            idle();
+            assertEquals(0, source.manager.resumes);
+        } finally { FeedVisibility.onDetailDestroyed(page); clearNavigationFeedTab(); }
+    }
+
+    @Test public void closingFriendsFeedCommentsResumesTheSameOwnedPager() {
+        Settings.PAUSE_ON_COMMENTS.save(true);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            View home = feedTabForNavigation(activity);
+            home.setSelected(false);
+            FrameLayout content = activity.findViewById(android.R.id.content);
+            View pager = new com.ss.android.ugc.aweme.common.widget.VerticalViewPager(activity);
+            content.addView(pager, new FrameLayout.LayoutParams(500, 700));
+            NativeController player = playing("friends");
+            Dialog sheet = openSheet(activity);
+            PausePlayback.onCommentCellBound(cellIn(sheet));
+            idle();
+            assertEquals(1, player.manager.pauses);
+            sheet.dismiss();
+            idle();
+            assertEquals("an unchanged Friends video lost its normal handback", 1, player.manager.resumes);
+        } finally { clearNavigationFeedTab(); }
+    }
+
+    @Test public void aColdStartCoverCanResumeAfterItsFirstPagerAppears() {
+        Settings.PAUSE_FIRST_VIDEO.save(true);
+        Intent launcher = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+        try (var owner = Robolectric.buildActivity(FeedActivity.class, launcher).create()) {
+            Utils.setActivity(owner.get());
+            PausePlayback.install(owner.get());
+            NativeController player = new NativeController();
+            player.bind("cold");
+            owner.start().resume().visible();
+            BlockAuthorPatch.onFirstFrame(player);
+            idle();
+            assertEquals(1, player.manager.pauses);
+            View cover = ReflectionHelpers.callStaticMethod(PausePlayback.class, "catcherForTests");
+            assertNotNull(cover);
+            feedTabForNavigation(owner.get());
+            addNavigationPager(owner.get());
+            assertTrue(cover.performClick());
+            idle();
+            assertEquals("first pager creation lost the cold-start handback", 1, player.manager.resumes);
+        } finally { clearNavigationFeedTab(); }
+    }
+
+    @Test public void anotherNativePagerDoesNotInheritTheOpenCommentHold() {
+        Settings.PAUSE_ON_COMMENTS.save(true);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            View home = feedTabForNavigation(activity);
+            View sourcePager = addNavigationPager(activity);
+            NativeController source = playing("home");
+            Dialog sheet = openSheet(activity);
+            PausePlayback.onCommentCellBound(cellIn(sheet));
+            idle();
+            assertEquals(1, source.manager.pauses);
+            sourcePager.setVisibility(View.GONE);
+            home.setSelected(false);
+            addNavigationPager(activity);
+            NativeController destination = new NativeController();
+            destination.bind("friends");
+            destination.reportProgress();
+            idle();
+            assertEquals("Friends inherited the Home comment hold", 0, destination.manager.pauses);
+            sheet.dismiss();
+            idle();
+            assertEquals(0, source.manager.resumes);
+        } finally { clearNavigationFeedTab(); }
+    }
+
+    @Test public void anOldEmbeddedPanelCannotReacquireADetailPagesPlayback() {
+        Settings.PAUSE_ON_COMMENTS.save(true);
+        Object page = new Object();
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            View home = feedTabForNavigation(activity);
+            View sourcePager = addNavigationPager(activity);
+            NativeController source = playing("home");
+            FrameLayout panel = panelIn(activity, true);
+            PausePlayback.onCommentCellBound(panel.getChildAt(1));
+            idleFor(300);
+            assertEquals(1, source.manager.pauses);
+            sourcePager.setVisibility(View.GONE);
+            home.setVisibility(View.GONE);
+            home.setSelected(false);
+            addNativeDetailPage(activity, page);
+            NativeController destination = new NativeController();
+            destination.bind("detail");
+            destination.reportProgress();
+            activity.getWindow().getDecorView().getViewTreeObserver().dispatchOnGlobalLayout();
+            idleFor(300);
+            destination.reportProgress();
+            idle();
+            assertEquals("the old inline sheet reacquired the destination", 0, destination.manager.pauses);
+            PausePlayback.onCommentCellBound(panel.getChildAt(1));
+            idleFor(300);
+            destination.reportProgress();
+            idle();
+            assertEquals("a late bind reassigned the old panel to its destination", 0, destination.manager.pauses);
+        } finally { FeedVisibility.onDetailDestroyed(page); clearNavigationFeedTab(); }
+    }
+
+    @Test public void aColdStartPagerDoesNotNeedTheHomeTabToBeDrawnFirst() {
+        Settings.PAUSE_FIRST_VIDEO.save(true);
+        Intent launcher = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+        try (var owner = Robolectric.buildActivity(FeedActivity.class, launcher).create()) {
+            Utils.setActivity(owner.get());
+            PausePlayback.install(owner.get());
+            NativeController player = new NativeController();
+            player.bind("cold");
+            owner.start().resume().visible();
+            BlockAuthorPatch.onFirstFrame(player);
+            idle();
+            assertEquals(1, player.manager.pauses);
+            View cover = ReflectionHelpers.callStaticMethod(PausePlayback.class, "catcherForTests");
+            assertNotNull(cover);
+            addNavigationPager(owner.get());
+            player.reportProgress();
+            idle();
+            assertTrue("pager hydration removed the cover before a tap", cover.getParent() != null);
+            assertTrue(cover.performClick());
+            idle();
+            assertEquals(1, player.manager.resumes);
+        } finally { clearNavigationFeedTab(); }
+    }
+
+    private static View addNavigationPager(Activity activity) {
+        FrameLayout content = activity.findViewById(android.R.id.content);
+        View pager = new com.ss.android.ugc.aweme.common.widget.VerticalViewPager(activity);
+        content.addView(pager, new FrameLayout.LayoutParams(500, 700));
+        return pager;
+    }
+
+    private static View feedTabForNavigation(Activity activity) {
+        View home = new View(activity);
+        ((ViewGroup) activity.findViewById(android.R.id.content)).addView(home);
+        home.setSelected(true);
+        ReflectionHelpers.setStaticField(FeedVisibility.class, "homeTabReference",
+                new java.lang.ref.WeakReference<>(home));
+        return home;
+    }
+
+    private static void clearNavigationFeedTab() {
+        ReflectionHelpers.setStaticField(FeedVisibility.class, "homeTabReference",
+                new java.lang.ref.WeakReference<View>(null));
+    }
+
     // ------------------------------------------------------------------------------- fixture
 
     /**

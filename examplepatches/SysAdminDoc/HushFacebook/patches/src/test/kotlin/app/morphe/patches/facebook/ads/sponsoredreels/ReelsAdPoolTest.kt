@@ -45,6 +45,7 @@ class ReelsAdPoolTest {
     private val expected = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
             "arm64-v8a" to ("LX/5pp;" to listOf("A0T", "A0V")),
+            "armeabi-v7a" to ("LX/5pp;" to listOf("A0T", "A0V")),
         ),
     )
 
@@ -118,6 +119,7 @@ class ReelsAdPoolTest {
     private val rowPool = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
             "arm64-v8a" to Triple("LX/5RW;", "LX/3T6;", setOf("A0V")),
+            "armeabi-v7a" to Triple("LX/5RW;", "LX/3T6;", setOf("A0V")),
         ),
     )
 

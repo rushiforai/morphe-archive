@@ -1,12 +1,14 @@
 package app.dieroboter.patches.flappybird
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -133,9 +135,31 @@ private fun MutableMethod.replacePipeSetupWithFlags(fieldRef: String, span: Int)
     )
 }
 
-private const val ONCREATE_WINDOW_BLOCK = """
+// Window handling inserted into GameActivity.onCreate right after the super
+// call, in two pieces. The head holds the guarded cutout/immersive work;
+// the tail (getDecorView + legacy system-UI flags) runs unconditionally and
+// is the convergence point of the head's three forward branches.
+//
+// The split is load-bearing. The head's branches target the tail through an
+// ExternalLabel, never through a label written inside inserted text: when
+// this block was inserted whole at superCall + 1 (dev.1), the inline
+// compiler resolved the in-text :flappy_port_cond label one instruction
+// early — onto the hide call instead of the trailing getDecorView — so on
+// the SDK-guard paths v1 reached the hide call holding an int and the
+// method failed verification on every device (VerifyError at class load).
+//
+// The getDecorView() at the head is also load-bearing: on Android 17
+// PhoneWindow.getInsetsController() dereferences the DecorView field
+// directly, so calling it before the DecorView exists throws inside the
+// framework getter (the null-check on the returned controller below cannot
+// catch that). Forcing the DecorView into existence first keeps the insets
+// call safe on Android 17 and changes nothing on older versions, where the
+// getter created the DecorView itself.
+private const val ONCREATE_WINDOW_HEAD = """
     invoke-virtual {p0}, Landroid/app/Activity;->getWindow()Landroid/view/Window;
     move-result-object v0
+    invoke-virtual {v0}, Landroid/view/Window;->getDecorView()Landroid/view/View;
+    move-result-object v1
     sget v1, Landroid/os/Build${'$'}VERSION;->SDK_INT:I
     const/16 v2, 0x1c
     if-lt v1, v2, :flappy_port_cond
@@ -156,7 +180,9 @@ private const val ONCREATE_WINDOW_BLOCK = """
     invoke-interface {v1, v2}, Landroid/view/WindowInsetsController;->setSystemBarsBehavior(I)V
     const/4 v2, 0x3
     invoke-interface {v1, v2}, Landroid/view/WindowInsetsController;->hide(I)V
-    :flappy_port_cond
+"""
+
+private const val ONCREATE_WINDOW_TAIL = """
     invoke-virtual {v0}, Landroid/view/Window;->getDecorView()Landroid/view/View;
     move-result-object v1
     const/16 v2, 0x1706
@@ -416,8 +442,28 @@ val widescreenPatch = bytecodePatch(
             addInstructions(0, ADAPTIVE_COMPUTE_BLOCK)
         }
 
-        // onCreate: prepend the port's cutout/immersive window block.
-        GameActivityOnCreateFingerprint.method.addInstructions(0, ONCREATE_WINDOW_BLOCK)
+        // onCreate: insert the port's cutout/immersive window block right
+        // after the super call (never at index 0: before super.onCreate the
+        // window has no DecorView, and on Android 17 getInsetsController()
+        // throws on the missing DecorView instead of returning null).
+        // Tail first so its getDecorView is a real instruction the head's
+        // branches can target through an ExternalLabel.
+        GameActivityOnCreateFingerprint.method.apply {
+            val superCall = requireFirstIndex {
+                it.opcode == Opcode.INVOKE_SUPER &&
+                    it.refString() == "Lorg/andengine/ui/activity/SimpleBaseGameActivity;->onCreate(Landroid/os/Bundle;)V"
+            }
+            if (superCall != 0) {
+                throw PatchException("Unexpected onCreate shape: super call is not first")
+            }
+            addInstructions(superCall + 1, ONCREATE_WINDOW_TAIL)
+            val tailStart = getInstruction(superCall + 1)
+            addInstructionsWithLabels(
+                superCall + 1,
+                ONCREATE_WINDOW_HEAD,
+                ExternalLabel("flappy_port_cond", tailStart),
+            )
+        }
 
         // Bird: init position is center-anchored (H/2 - 10); the update floor
         // checks run against the ground top (H - 112).

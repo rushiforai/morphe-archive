@@ -71,6 +71,8 @@ internal const val PICTURE_IN_PICTURE = "Lapp/morphe/extension/facebook/media/Pi
 
 internal const val ALLOWED = "$PICTURE_IN_PICTURE->allowed($ACTIVITY)Z"
 
+internal const val REFUSED = "$PICTURE_IN_PICTURE->refused()Z"
+
 internal const val SURFACE_ALLOWED = "$PICTURE_IN_PICTURE->surfaceAllowed()Z"
 
 internal const val ARMED = "$PICTURE_IN_PICTURE->armed(${ACTIVITY}Ljava/lang/Object;[Ljava/lang/Object;)V"
@@ -130,7 +132,9 @@ internal const val SHOWN_AGAIN = "$PICTURE_IN_PICTURE->shownAgain(${VIEW}I)V"
  * it: Android 12 or later, a server flag or a preference of Facebook's, the phone's feature and a
  * memory check. The patch puts the extension first in both; its yes returns true, and Facebook's
  * own code then sets the window's shape and Android's auto-enter. The activities the viewer plays
- * in already declare picture-in-picture in Facebook's manifest.
+ * in already declare picture-in-picture in Facebook's manifest. With the switch off the check says
+ * no: Facebook turns the window on by itself for some accounts, from a server flag or a switch in
+ * its own Media settings, and every arming asks the check first (#252, #256).
  *
  * Facebook arms the window once as the viewer opens, and turns auto-enter off and on as that one
  * player pauses and plays, through a runnable ReelsPipUtil posts (581 `LX/Ciq;`). A swipe pauses
@@ -328,8 +332,10 @@ internal fun BytecodePatchContext.findSurfaceGate(arming: Method): Method {
 
 /**
  * The extension goes first in the check, handed the activity through the range form, which names
- * any register. Its yes returns true from v0, free at the method's start; anything else runs
- * Facebook's check as it was.
+ * any register. Its yes returns true from v0, free at the method's start. Otherwise it's asked
+ * again, and with the switch off its yes returns false: Facebook turns this window on by itself for
+ * some accounts, and every one of its armings asks this check first (#252, #256). Anything else
+ * runs Facebook's check as it was.
  */
 internal fun BytecodePatchContext.applyPipCheck(check: Method) {
     val method = mutableClassDefBy(check.definingClass).findMutableMethodOf(check)
@@ -340,8 +346,14 @@ internal fun BytecodePatchContext.applyPipCheck(check: Method) {
         """
             invoke-static/range { $activity .. $activity }, $ALLOWED
             move-result v0
-            if-eqz v0, :facebook
+            if-eqz v0, :refused
             const/4 v0, 0x1
+            return v0
+            :refused
+            invoke-static { }, $REFUSED
+            move-result v0
+            if-eqz v0, :facebook
+            const/4 v0, 0x0
             return v0
         """,
         ExternalLabel("facebook", method.getInstruction(0)),

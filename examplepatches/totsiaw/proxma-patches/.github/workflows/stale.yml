@@ -1,0 +1,30 @@
+name: Close stale issues
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          days-before-issue-stale: 30
+          days-before-issue-close: 7
+          stale-issue-label: stale
+          stale-issue-message: >
+            This issue has had no activity for 30 days. It will close automatically
+            in 7 days unless someone comments.
+          close-issue-message: >
+            Closed after 37 days without activity. If this is still a problem,
+            please open a new issue.
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          exempt-all-assignees: true
+          exempt-issue-labels: "app-update,in progress"
+          operations-per-run: 30

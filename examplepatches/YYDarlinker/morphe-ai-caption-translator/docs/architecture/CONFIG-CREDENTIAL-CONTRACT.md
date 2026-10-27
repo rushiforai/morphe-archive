@@ -1,5 +1,7 @@
 # 配置与凭据读取、编辑和故障合同
 
+> 版本口径（2026-10-26）：当前公开产品为1.5.8 / release-1.5.8，继承本合同已接受的行为和保留限制。正文中的M5/M6等版本、计数及“待复核”属于各段形成时的历史时点；当前状态及新的远端CI/发布覆盖以[PROJECT-STATE](../PROJECT-STATE.md)和[发布结果](../maintenance/results/RELEASE-1.5.8-RESULT.md)为准，不改写原失败/原测试事实。
+
 2026-10-25，M5h v1经[统筹复核](../maintenance/reviews/M5h-REVIEW.md)接受**规定路径与保留限制，配置组本轮有界收尾**。当前接受本地1.5.8 / local-1.5.8-m5h / candidate-03，公开1.5.7。以下C2–C5表中的修复路径/有依据限制按本复核接受，不扩大成所有故障可自动恢复或跨store事务。原M5f/M5g/R1结果、卡和证据保留；执行结果见[M5h-RESULT](../maintenance/results/M5h-RESULT.md)。
 
 [状态合同](CAPTION-STATE-CONTRACT.md)与[网络失败合同](NETWORK-FAILURE-CONTRACT.md)保持。原生 CC/语言、AI 开关正常产品语义、源模式零模型请求、F1/F2/F4、F3 语义缓存复用、F5 诊断分类没有新策略。坏配置的未就绪是 infrastructure/application 的读取保护，不重写 core 错误分类。

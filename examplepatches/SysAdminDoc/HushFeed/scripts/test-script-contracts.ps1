@@ -3894,6 +3894,9 @@ Write-Host '[scripts] adb device lease contracts passed'
 & (Join-Path $Root 'scripts/test-storage-probe.ps1') -Root $Root
 & (Join-Path $Root 'scripts/test-verification-profile.ps1') -Root $Root
 & (Join-Path $Root 'tools/verification-probe/test-pinedrama.ps1') -Root $Root
+& (Join-Path $Root 'scripts/test-pinedrama-core.ps1') -Root $Root
+& (Join-Path $Root 'scripts/test-pinedrama-walk-lease.ps1') -Root $Root
+& (Join-Path $Root 'tools/verification-probe/test-pinedrama-core.ps1')
 & (Join-Path $Root 'scripts/test-fixture-jobs.ps1') -Root $Root
 & (Join-Path $Root 'scripts/test-release-publication.ps1') -Root $Root
 & (Join-Path $Root 'scripts/test-walk-receipt.ps1')

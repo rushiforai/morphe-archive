@@ -25,6 +25,8 @@ Open **Discord Settings → Venus → Features** to turn things on or off at any
 | Group | Feature | What it does |
 | --- | --- | --- |
 | **Messages** | Keep deleted messages | Deleted messages stay in chat, outlined in red, and edits keep their history. Pick their color, brightness and how many to keep |
+| | Bulk delete messages | Select multiple messages in chat and delete them all at once |
+| | Hide blocked or ignored messages | Removes the "blocked messages" and "ignored messages" rows from chat, and can hide replies to them too |
 | | Message highlights | Pick bar width, plus the color and brightness of replies and mentions |
 | | Translate messages | Messages in other languages show in yours, automatically or only when you ask: a whole chat from a bar that appears when it has messages in another language, or one message from its menu. Translate into Discord's language, your phone's, or any of 70 others |
 | | Double-tap to reply | Double-tap a message to reply, or your own to edit it |
@@ -33,7 +35,7 @@ Open **Discord Settings → Venus → Features** to turn things on or off at any
 | | Favourite any image or video | Star any image or video to keep it in your GIF favourites |
 | **Sending** | Send Nitro stickers and emojis as links | Sends Nitro emojis and stickers as links that show as the image |
 | | Bring back Tenor GIFs | Tenor GIFs show in Discord's own GIF picker again: search, trending and categories. Mix them with Discord's GIFs or use only Tenor. If Tenor doesn't answer, Discord's own GIFs show |
-| | Fix link previews | Links to X, Instagram, TikTok, Reddit, Bluesky, Threads, Facebook, pixiv and Bilibili show the post, with its picture or video. Pick the embed service per site (FxTwitter or vxTwitter, and so on), and share tracking like `?igsh=` is removed |
+| | Fix link previews | Links to X, Instagram, TikTok, Reddit, Bluesky, Threads, Tumblr, Facebook, PTT, Twitch clips, Bilibili, pixiv, DeviantArt and Fur Affinity show the post, with its picture or video. YouTube, Spotify, Mastodon and Pinterest can be turned on too. Pick the embed service per site (FxTwitter, vxTwitter or FixEmbed, and so on), Tumblr posts can be drawn dark to match Discord, and share tracking like `?igsh=` is removed |
 | | Send audio as voice messages | Audio files are sent as real voice messages, with a waveform |
 | | Send long messages | Type past the character limit; long messages are sent in parts |
 | | Hide typing indicator | Others won't see when you're typing |
@@ -49,21 +51,29 @@ Open **Discord Settings → Venus → Features** to turn things on or off at any
 | | Show hidden channels | Channels you can't open appear with a lock. Only a tap opens their details menu, which you can turn off |
 | | Server info | Hold a server's icon to see live details: who's online, channels, roles, emojis, boost progress, the owner, your friends there, when it was made and when you joined |
 | | Spaces in channel names | "general chat" instead of "general-chat" |
+| | Clean channel names | Removes emoji, dividers and symbols (🎫┃, ✦, 「」) and fancy fonts (𝐂𝐎𝐌𝐌𝐔𝐍𝐈𝐓𝐘) from channel and category names, each with its own switch. Only how names look changes: links, mentions and search still use the real name, and a name made only of emoji stays as it is |
 | **Appearance** | Use your phone's font | Replaces Discord's font everywhere |
-| | Use your phone's emojis | Your phone's emojis instead of Discord's |
+| | Use your phone's emojis | Your phone's emojis instead of Discord's, or the emojis from a color emoji font you import (like Twemoji or Noto Color Emoji) |
 | | Hide the gift button | Removes the Nitro gift button from the message bar |
 | | Hide the call button | Removes Call from people's profiles |
 | | Hide extra buttons | Removes the Quests, Shop and Nitro buttons from your profile and Apps from the attach menu; you can also pick Polls and Photos. The rest close up, so the pill and the menu shrink with no gaps |
 | | Venus button on profile bar | A shortcut to Venus, next to the notifications bell |
 | | Unlock app icons | Use any Discord app icon in Settings without Nitro |
 | | Unlock Nitro themes | Use Discord's gradient themes in Settings > Appearance without Nitro. Only this phone sees them |
+| | Material You colors | Colors Discord to match your wallpaper, in light and dark, like Android 12+ apps. Or pick one of five colors or any color; choose how much the backgrounds take the tint. Wallpaper colors need Android 12 or newer |
 | | Custom themes | Install Revenge and Vendetta color themes from a link, then pick one from a gallery that previews each in its own colors |
 | | Icon packs | Replace Discord's icons across the app with built-in community icon packs (Rosiecord Plumpy, Rosiecord Iconsax, MD3, Solar, Deco, Material Two Tone, Iconsax Bulk) or a custom icon pack link |
 | **Quests** | Complete Quests automatically | Finishes video, Play and timed Activity Quests in the background |
 | | Hide the Quests banner | Removes the Quest promotion above your profile bar |
 | | Complete badges automatically | **Risky, experimental:** the row is marked Risky and Experimental, and turning it on asks "Are you sure?" first. Plays real, detectable PC games in the background the way Discord for Windows reports them, toward your Hours Played and Unique Games Played badges, with each game's own art on your profile. Up to 3 games at once count up to 3 hours of game time every hour. Advanced Add hours now sends past sessions right away, behind a warning you confirm three times, because it can get an account suspended. Needs Discord's "Use data to personalize my Discord experience" on; progress can take a day or two to show |
+| **Advanced** | Unlock Discord experiments | Adds Dev Tools to Discord's Settings, with its Experiments screen, so you can try features Discord is still testing (like server folders or favorites). Only on this phone, nothing is sent anywhere. Turning it off asks to reopen Discord. Based on Experiments by maisy |
+| | Keep Bluetooth audio clear in calls | Bluetooth headphones stay in music quality (A2DP) when you join a call, voice channel or Stage, instead of switching to the muffled hands-free mode. Your phone's own microphone picks up your voice. Only while Bluetooth headphones are connected; applies from the next call |
 
 **In the background:** Play and Activity Quests keep going while Discord is in the background or the screen is off, like Discord for Windows running unfocused. Video Quests are reported at normal speed, and only while Discord is open, the same as Discord's own player. Leaving Discord pauses a video Quest, the background Quests go ahead in the meantime, and the video picks up where it stopped when you come back. New Quests are accepted while Discord is open.
+
+**Double-tap to reply:** a double-tap replies, or opens the editor on your own message; with Triple-tap to delete, a third tap deletes it. It follows Discord's own rules: messages Discord won't let you delete (calls, group DM changes, a thread's first message) are never deleted, and where you can't reply (an announcement channel, a locked thread, a timeout) a double-tap adds your double-tap reaction as usual. Kept deleted messages ignore double-taps, and the screen reader's Add quick reaction action still reacts.
+
+**Send long messages:** parts go out one at a time, a second apart (or after the slowmode wait), so they stay in order. Each part keeps code blocks closed, `@silent`, text-to-speech and Nitro emoji links. If a part fails to send, Venus says so and lets you copy the parts that didn't go out. An edit replaces one message, so it can't be split: an edit over Discord's limit isn't sent, and you can copy it instead. Scheduled messages are never split.
 
 **Activity Quest support:** automatic completion currently handles `PLAY_ACTIVITY` tasks, which count time. It does not handle `ACHIEVEMENT_IN_ACTIVITY` tasks, such as **VALORANT Aces Round 3**, which require an achievement event rather than elapsed time. Those quests are skipped, including automatic acceptance, and must currently be completed in the Activity through Discord's Launch button. A one-achievement target is not a one-second timer; sending time heartbeats does not implement achievement completion.
 

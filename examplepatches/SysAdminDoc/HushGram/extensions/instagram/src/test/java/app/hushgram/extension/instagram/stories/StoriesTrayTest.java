@@ -164,4 +164,24 @@ public class StoriesTrayTest {
             Settings.HIDE_STORIES_TRAY.save(false);
         }
     }
+
+    /** #357: the floating tray stays in the feed while Keep the Stories tray in the feed or Hide the Stories tray is on. */
+    @Test
+    public void theTrayFloatsUntilOneOfItsSwitchesIsOn() {
+        assertFalse(StoriesTray.keepTrayOutOfOverlay());
+        Settings.KEEP_TRAY_IN_FEED.save(true);
+        try {
+            assertTrue(StoriesTray.keepTrayOutOfOverlay());
+            assertFalse("keeping the tray in the feed doesn't hide its row", StoriesTray.hideTray());
+        } finally {
+            Settings.KEEP_TRAY_IN_FEED.save(false);
+        }
+        Settings.HIDE_STORIES_TRAY.save(true);
+        try {
+            assertTrue(StoriesTray.keepTrayOutOfOverlay());
+        } finally {
+            Settings.HIDE_STORIES_TRAY.save(false);
+        }
+        assertFalse(StoriesTray.keepTrayOutOfOverlay());
+    }
 }

@@ -1,6 +1,8 @@
 package app.immersivekeyboard.extension;
 
+import android.app.Dialog;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -11,11 +13,12 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
+import android.inputmethodservice.InputMethodService;
 import android.os.Build;
 import android.os.SystemClock;
 import android.util.Log;
-import android.view.View;
 import android.view.RoundedCorner;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
@@ -319,6 +322,9 @@ public final class BottomBarOpacity {
             squareKeyboardBlur(inputView);
             keyboardTop = findKeyboardTop(inputView);
             keyboardHidden = isKeyboardHidden(inputView);
+            if (keyboardHidden) {
+                clearWindowBlur(inputView);
+            }
             topColor = keyboardTop == NO_TOP ? 0 : sampleTop(inputView);
             int sampled = sampleKeyboard(inputView);
             boolean transparentTheme = panelFound && Color.alpha(sampled) == 0;
@@ -964,6 +970,28 @@ public final class BottomBarOpacity {
          * The keyboard window itself can be as tall as the screen, so its own top edge says
          * nothing about where the keyboard starts.
          */
+        /**
+         * With no keyboard showing, the keyboard window shrinks to the strip at the bottom of
+         * the screen, and Frosted Glass then blurs everything behind the whole window. That
+         * leaves a blurred bar over the bottom of the app, so switch the window blur off.
+         */
+        private static void clearWindowBlur(View inputView) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                return;
+            }
+            Context context = inputView.getContext();
+            while (context instanceof ContextWrapper && !(context instanceof InputMethodService)) {
+                context = ((ContextWrapper) context).getBaseContext();
+            }
+            if (context instanceof InputMethodService) {
+                Dialog dialog = ((InputMethodService) context).getWindow();
+                Window window = dialog == null ? null : dialog.getWindow();
+                if (window != null) {
+                    window.setBackgroundBlurRadius(0);
+                }
+            }
+        }
+
         private boolean isKeyboardHidden(View inputView) {
             View base = find(inputView, BASE_AREA_TAG);
             float minimum = MIN_KEYBOARD_HEIGHT_DP

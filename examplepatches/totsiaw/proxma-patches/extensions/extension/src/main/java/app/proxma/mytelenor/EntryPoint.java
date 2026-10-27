@@ -18,7 +18,7 @@ public final class EntryPoint {
             Context context = activity.getApplicationContext();
             if (!sScheduled) {
                 sScheduled = true;
-                DailyWorker.schedule(context);
+                ClaimJobService.schedule(context);
             }
         } catch (Throwable t) {
             Log.w(TAG, "ENTRY_POINT_ERR " + t);

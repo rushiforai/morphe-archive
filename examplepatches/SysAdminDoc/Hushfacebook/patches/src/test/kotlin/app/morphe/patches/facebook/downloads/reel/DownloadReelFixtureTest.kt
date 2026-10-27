@@ -64,11 +64,16 @@ class DownloadReelFixtureTest {
      * the scoped context over the player in v29 at instruction 549, so the block goes in at 532,
      * where the button loop ends and the call's straight run starts, 38 instructions before the
      * call. The story, the call's second argument, is still in v14 there, which the helper call
-     * names as it is. 584 has no armeabi-v7a fixture yet, so one that arrives fails here for want
-     * of its pin.
+     * names as it is.
+     *
+     * The armeabi-v7a build is a separate rebuild of the same render, and lays the call out the
+     * same way: its button loop ends and the call's straight run starts at 532, so the block goes
+     * in there, 38 instructions before the call at 570. v0 to v2 are free at 532, so the block
+     * keeps its own three locals, and the story resolves to v14 as on arm64.
      */
     private val pins = mapOf(
         "${AppCompatibilities.FACEBOOK_TARGET_VERSION}-arm64-v8a.apkm" to Pin(before = 38, story = 14),
+        "${AppCompatibilities.FACEBOOK_TARGET_VERSION}-armeabi-v7a.apkm" to Pin(before = 38, story = 14),
     )
 
     private fun callsButtonFactory(method: Method) = method.implementation?.instructions?.any { instruction ->

@@ -173,6 +173,51 @@ EXPECTED = {
             "carrierIdBound": 255,  # u8 record id space
         },
     },
+    # 2.0.24/5002395 (sixth base, 2026-10-26): verify-only entry. The appendix
+    # emit below still encodes the two originally derived call shapes (the
+    # 2-site 2363 proof and the 22-site 1712 census), so this base's frozen
+    # appendix is the same hand-assembled shape the restored 1812/1968/2244
+    # bases use. The compiled C++ pins are still cross-checked with --check.
+    "5002395": {
+        "versionName": "2.0.24",
+        "versionCode": 5002395,
+        "tree": "android-steamlinkvr-release-base-2.0.24-5002395",
+        "appendixEmit": False,
+        # Tree-derived verification used by --check (the appendix emitter is not
+        # generalized to this call shape). These are re-derived, not trusted.
+        "verify": {
+            "size": 2301432,
+            "sha256": "5fab23a7eac1429c93520bdd4d7c579b75a6d55525a755379d15388272571a4b",
+            "textShndx": 14,
+            "anchor": {
+                "offset": 0xFE954,
+                "sha256": "ef7f310bbd65499404aa89a18f873c42a87282a16799b84119c75377654003a3",
+            },
+            "read": {
+                "mangled": "_ZN20ValueTransportSystem15BGetRemoteValueE16ValueTransportIDPvj",
+                "va": 0x17BA50,
+                "size": 164,
+                "anchorSha256":
+                    "9701b8dffa8277fb88f2fe7989bf7caa96b922c33b8f73ce356b950e6b6c9dc9",
+                "slotRuntimeVaddr": 0x2317C8,
+            },
+            "capture": [
+                {"mangled": "_ZN7SVLRoot22ParsePeerValueSettingsEPK16TransportValue_ti",
+                 "va": 0x16DD4C, "size": 740,
+                 "anchorSha256":
+                     "5923592d8f8675634571537abf2a04f2a5d513a57efc0981e91d62f068a924e2",
+                 "slotRuntimeVaddr": 0x231800},
+                {"mangled": "_ZN7SVLRoot18RXUnreliableStreamEP7datasetP11SVLDataLinkm",
+                 "va": 0x16DBEC, "size": 352,
+                 "anchorSha256":
+                     "2808819d4d269ecae43aca1c731e85e8bae64125d05e0853e1f348c717853463",
+                 "slotRuntimeVaddr": 0x231760},
+            ],
+            "eglSlotRuntimeVaddr": 0x232170,
+            "embedImmediate": 0xA08,
+            "embedSiteCount": 11,
+        },
+    },
 }
 
 R_AARCH64_JUMP_SLOT = 1026
@@ -449,6 +494,31 @@ CHECK_PINS = {
              "base anchor sha"),
         ],
     },
+    "5002395": {
+        "profileName": "kVtsProfile5002395",
+        "vts": [
+            ("0xfe954", "base anchor offset"),
+            ("ef7f310bbd65499404aa89a18f873c42a87282a16799b84119c75377654003a3",
+             "base anchor sha"),
+            ("0x17ba50", "read API va"),
+            ("9701b8dffa8277fb88f2fe7989bf7caa96b922c33b8f73ce356b950e6b6c9dc9",
+             "read API anchor sha"),
+            ("0x16dd4c", "ParsePeerValueSettings va"),
+            ("5923592d8f8675634571537abf2a04f2a5d513a57efc0981e91d62f068a924e2",
+             "ParsePeerValueSettings anchor sha"),
+            ("0x231800", "ParsePeerValueSettings slot"),
+            ("0x16dbec", "RXUnreliableStream va"),
+            ("2808819d4d269ecae43aca1c731e85e8bae64125d05e0853e1f348c717853463",
+             "RXUnreliableStream anchor sha"),
+            ("0x231760", "RXUnreliableStream slot"),
+            ("0xa08", "VTS embed offset"),
+        ],
+        "hooks": [
+            ("0x232170", "eglCreateImageKHR slot"),
+            ("ef7f310bbd65499404aa89a18f873c42a87282a16799b84119c75377654003a3",
+             "base anchor sha"),
+        ],
+    },
 }
 
 
@@ -474,15 +544,152 @@ def run_vts_check(spec_key):
     block = profile_block(vts_src, pins["profileName"])
     if block is None:
         g0.die("no %s profile block in src/swp_vts.cpp" % pins["profileName"])
+    # Strip comments so a pinned literal must appear as the actual initializer
+    # value, not in the record's prose.
+    code_only = g0.code_without_comments(block)
     for needle, label in pins["vts"]:
-        if needle not in block:
-            g0.die("C++ pin drift: %s (%s) not found in the %s profile"
+        if needle not in code_only:
+            g0.die("C++ pin drift: %s (%s) not found in the %s profile initializer"
                    % (needle, label, pins["profileName"]))
+    _, hooks_code = g0.compiled_got_profile(hooks_src, EXPECTED[spec_key]["versionCode"])
     for needle, label in pins["hooks"]:
-        if needle not in hooks_src:
-            g0.die("C++ pin drift: %s (%s) not found in swp_hooks.cpp" % (needle, label))
+        if needle not in hooks_code:
+            g0.die("C++ pin drift: %s (%s) not found in the kProfile%s initializer"
+                   % (needle, label, EXPECTED[spec_key]["versionCode"]))
+    expected = EXPECTED[spec_key]
+    if "verify" in expected:
+        verify_tree_pins(spec_key)
     print("C++ pin cross-check passed (swp_hooks.cpp + swp_vts.cpp, %s)" % spec_key)
     return 0
+
+
+def count_embed_sites(data, text, stub_vas, immediate):
+    """Real `add x0, xN, #imm` + `bl <read-API PLT stub>` pairs in .text."""
+    count = 0
+    lo, hi, va = text["offset"], text["offset"] + text["size"], text["addr"]
+    for off in range(lo, hi - 4, 4):
+        word = g0.u32(data, off)
+        if not is_add_imm_x0(word):
+            continue
+        if ((word >> 5) & 0x1F) == 31:
+            continue  # add x0, sp, #imm is not an object pointer feed
+        if ((word >> 10) & 0xFFF) != immediate:
+            continue
+        nxt = g0.u32(data, off + 4)
+        if (nxt & 0xFC000000) != 0x94000000:
+            continue
+        delta = nxt & 0x03FFFFFF
+        if delta & 0x02000000:
+            delta |= ~0x03FFFFFF
+        pc = va + (off - lo)
+        # off is the add; the BL is one word later, so PC+4 is the BL address.
+        if pc + 4 + delta * 4 in stub_vas:
+            count += 1
+    return count
+
+
+def verify_tree_pins(spec_key):
+    """Re-derive every CHECK_PINS value from the exact decoded scene tree."""
+    entry = EXPECTED[spec_key]
+    spec = entry["verify"]
+    pins = CHECK_PINS[spec_key]
+    scene_path = ("%s/%s/lib/arm64-v8a/libvrlink_scene.so"
+                  % (g0.REPO_ROOT, entry["tree"]))
+    try:
+        with open(scene_path, "rb") as fh:
+            data = fh.read()
+    except OSError as failure:
+        g0.die("cannot read the exact %s scene for --check (%s); no substitution"
+               % (entry["tree"], failure))
+    if len(data) != spec["size"]:
+        g0.die("scene size %d, expected %d" % (len(data), spec["size"]))
+    digest = hashlib.sha256(data).hexdigest()
+    if digest != spec["sha256"]:
+        g0.die("scene sha256 %s, expected %s" % (digest, spec["sha256"]))
+    loads, dyn = g0.parse_dynamic_mappings(data)
+    dyn_off, dyn_size = dyn
+    sections = section_headers(data)
+    text = section_or_die(sections, ".text")
+    text_shndx = text_shndx_of(sections, text)
+    if text_shndx != spec["textShndx"]:
+        g0.die("expected .text dynsym shndx %d, derived %d"
+               % (spec["textShndx"], text_shndx))
+    names, _defined = dyn_tables(data, loads, dyn_off, dyn_size, text_shndx)
+    bti_enforcement_check(data)
+
+    def require_pin(needles, value, label):
+        """The tree-derived value must be one of the compiled CHECK_PINS needles."""
+        allowed = {needle.lower() for needle, _pin_label in needles}
+        if value.lower() not in allowed:
+            g0.die("tree-derived %s (%s) is not a compiled CHECK_PINS literal"
+                   % (label, value))
+
+    def check_defined(label, item, anchors, slot_is_profile_field=True):
+        index, st_value, st_size = find_defined_symbol(
+            data, loads, dyn_off, dyn_size, item["mangled"], text_shndx, names)
+        if st_value != item["va"] or st_size != item["size"]:
+            g0.die("%s re-derived at 0x%x (%d bytes), expected 0x%x (%d bytes)"
+                   % (label, st_value, st_size, item["va"], item["size"]))
+        anchor = anchor_window(data, st_value, label)
+        if anchor["sha256"] != item["anchorSha256"]:
+            g0.die("%s anchor sha %s, expected %s"
+                   % (label, anchor["sha256"], item["anchorSha256"]))
+        slots, _glob = jump_slots_for(data, loads, dyn_off, dyn_size, index)
+        if len(slots) != 1:
+            g0.die("%s must have exactly one JUMP_SLOT; found %r" % (label, slots))
+        if slots[0]["slotRuntimeVaddr"] != item["slotRuntimeVaddr"]:
+            g0.die("%s slot 0x%x, expected 0x%x"
+                   % (label, slots[0]["slotRuntimeVaddr"], item["slotRuntimeVaddr"]))
+        require_pin(anchors, hex(st_value), label + " va")
+        require_pin(anchors, anchor["sha256"], label + " anchor")
+        if slot_is_profile_field:
+            # Capture slots are VtsProfile fields; the read API is called
+            # directly, so its JUMP_SLOT is verified against the tree only.
+            require_pin(anchors, hex(slots[0]["slotRuntimeVaddr"]), label + " slot")
+        return index
+
+    identity = spec["anchor"]
+    identity_sha = g0.derive_anchor(data, identity["offset"], "identity anchor")
+    if identity_sha != identity["sha256"]:
+        g0.die("identity anchor re-derived %s, expected %s"
+               % (identity_sha, identity["sha256"]))
+    require_pin(pins["vts"], hex(identity["offset"]), "identity anchor offset")
+    require_pin(pins["vts"], identity_sha, "identity anchor sha")
+    require_pin(pins["hooks"], identity_sha, "identity anchor sha (hooks)")
+
+    read_index = check_defined("ValueTransportSystem read API", spec["read"],
+                               pins["vts"], slot_is_profile_field=False)
+    for item in spec["capture"]:
+        check_defined(item["mangled"].split("E")[0][-24:], item, pins["vts"])
+
+    egl_index, _ = g0.find_symbol_index(data, loads, dyn_off, dyn_size,
+                                        "eglCreateImageKHR")
+    if egl_index is None:
+        g0.die("eglCreateImageKHR is not imported")
+    egl_hits = g0.relocation_hits(data, loads, dyn_off, dyn_size, egl_index)
+    if len(egl_hits) != 1 or egl_hits[0]["slotOffset"] != spec["eglSlotRuntimeVaddr"]:
+        g0.die("eglCreateImageKHR slots %r, expected one at 0x%x"
+               % (egl_hits, spec["eglSlotRuntimeVaddr"]))
+    require_pin(pins["hooks"], hex(spec["eglSlotRuntimeVaddr"]), "egl slot")
+    require_pin(pins["vts"], hex(spec["embedImmediate"]), "embed immediate")
+
+    # A counted stub must bind the read API's own dynsym index AND its pinned
+    # GOT slot, so a same-named import or a shifted .rela.plt mapping cannot
+    # stand in for the real read call.
+    read_stubs = {stub for stub, info in plt_stub_map(data, sections, names).items()
+                  if info[2] == spec["read"]["mangled"]
+                  and info[1] == read_index
+                  and info[0] == spec["read"]["slotRuntimeVaddr"]}
+    if not read_stubs:
+        g0.die("no PLT stub binds the read API slot 0x%x"
+               % spec["read"]["slotRuntimeVaddr"])
+    sites = count_embed_sites(data, text, read_stubs, spec["embedImmediate"])
+    if sites != spec["embedSiteCount"]:
+        g0.die("VTS embed census %d add+bl sites at +0x%x, expected %d"
+               % (sites, spec["embedImmediate"], spec["embedSiteCount"]))
+    print("  tree-derived verification passed (%s: size/sha, identity/read/capture"
+          " VAs, anchors, slots, embed census %d)" % (spec_key, sites))
+    return read_index
 
 
 def main():
@@ -499,6 +706,9 @@ def main():
 
     if args.check:
         return run_vts_check(spec_key)
+    if spec.get("appendixEmit") is False:
+        g0.die("%s is verify-only in this script (--check); its frozen appendix is"
+               " hand-assembled like the restored legacy bases" % spec_key)
 
     default_scene = ("%s/%s/lib/arm64-v8a/libvrlink_scene.so"
                      % (repo_root, spec["tree"]))

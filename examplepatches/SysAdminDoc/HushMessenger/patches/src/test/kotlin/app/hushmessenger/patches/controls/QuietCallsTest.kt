@@ -101,8 +101,8 @@ class QuietCallsTest {
     @Test fun eachProfileHooksItsOwnDecisionAndPoster() {
         assertEquals(setOf(SYNTHETIC_RING_DECISION), SYNTHETIC_PROFILE.hooks.getValue(QUIET_CALL_RING))
         assertEquals(setOf(SYNTHETIC_CALL_POSTER), SYNTHETIC_PROFILE.hooks.getValue(QUIET_CALL_NOTIFICATION))
-        assertEquals(setOf("LX/AES;->run()V"), BASE_PROFILE.hooks.getValue(QUIET_CALL_RING))
-        assertEquals(setOf("$RTC_NOTIFICATION_SERVICE->A00(Landroid/app/Notification;Landroid/content/Context;LX/AZg;LX/Ahb;LX/AFu;LX/R8C;Ljava/lang/Integer;Ljava/lang/String;IZZZ)V"),
+        assertEquals(setOf("LX/AEu;->run()V"), BASE_PROFILE.hooks.getValue(QUIET_CALL_RING))
+        assertEquals(setOf("$RTC_NOTIFICATION_SERVICE->A00(Landroid/app/Notification;Landroid/content/Context;LX/Aa3;LX/Ahe;LX/AGM;LX/LTI;Ljava/lang/Integer;Ljava/lang/String;IZZZ)V"),
             BASE_PROFILE.hooks.getValue(QUIET_CALL_NOTIFICATION))
     }
 

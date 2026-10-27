@@ -3,10 +3,13 @@ package app.morphe.extension.tiktok.speed;
 import static org.junit.Assert.*;
 import android.os.Bundle;
 import android.preference.SwitchPreference;
+import android.view.View;
+import android.widget.ListView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.PausedProcess;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.SettingsMenuPreference;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import com.ss.android.ugc.aweme.feed.model.Aweme;
 import java.util.List;
@@ -121,9 +124,32 @@ public class PlaybackSpeedTest {
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
             assertTrue(Settings.DEFAULT_SPEED_ENABLED.get());
             assertEquals("1, 1.5, 2.5, 3", Settings.CUSTOM_SPEEDS.get());
-            assertNotNull(fragment.findPreference("default_speed"));
+            var playback = (SettingsMenuPreference) fragment.findPreference("section_playback");
+            assertNotNull(playback);
+            assertTrue(playback.isExpanded());
+            var speed = playback.findPreference(Settings.DEFAULT_SPEED.key);
+            assertNotNull(speed);
             assertNull(fragment.findPreference("playback_quality"));
-            app.morphe.extension.tiktok.UiCapture.save(activity.getWindow().getDecorView(), "playback-speed-settings.png");
+            ListView list = fragment.getView().findViewById(android.R.id.list);
+            int position = -1;
+            for (int index = 0; index < list.getCount(); index++) {
+                if (list.getItemAtPosition(index) == speed) position = index;
+            }
+            assertTrue("Default speed is absent from the expanded list", position >= 0);
+            list.setSelectionFromTop(position, 0);
+            View decor = activity.getWindow().getDecorView();
+            for (int frame = 0; frame < 4; frame++) {
+                org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+                        .idleFor(java.time.Duration.ofMillis(16));
+                decor.measure(View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(960, View.MeasureSpec.EXACTLY));
+                decor.layout(0, 0, 480, 960);
+            }
+            View shown = list.getChildAt(position - list.getFirstVisiblePosition());
+            assertNotNull("Default speed was not laid out for its capture", shown);
+            assertTrue(shown.isShown());
+            assertTrue(shown.getGlobalVisibleRect(new android.graphics.Rect()));
+            app.morphe.extension.tiktok.UiCapture.save(decor, "playback-speed-settings.png");
         }
     }
     @Test public void theHoldSpeedRowReplacesTikToksTwoTimesAndBadValuesLeaveIt() {

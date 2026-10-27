@@ -23,10 +23,11 @@ import dev.twitchpatches.extension.ads.AdSettings;
 import dev.twitchpatches.extension.emotes.EmoteRuntime;
 import dev.twitchpatches.extension.reload.ReloadRuntime;
 import dev.twitchpatches.extension.ui.UiSettings;
+import dev.twitchpatches.extension.chat.DeletedMessageSettings;
 
 public final class ReactNativeRuntime implements Application.ActivityLifecycleCallbacks {
     private static final WeakHashMap<Object, Boolean> instances = new WeakHashMap<>();
-    private static final boolean[] selected = new boolean[8];
+    private static final boolean[] selected = new boolean[9];
     private static boolean initialized;
     private static int resumed;
     private static volatile CompletableFuture<String> bootstrap;
@@ -108,7 +109,8 @@ public final class ReactNativeRuntime implements Application.ActivityLifecycleCa
                 resumed > 0, selected[3] && AdSettings.displayAdsBlocked(), selected[4] && EmoteRuntime.enabled(),
                 selected[5] && AdSettings.enabled(2), selected[6] && ReloadRuntime.enabled(),
                 selected[4] && EmoteRuntime.providerEnabled(0), selected[4] && EmoteRuntime.providerEnabled(1),
-                selected[4] && EmoteRuntime.providerEnabled(2), TwitchTheme.light()};
+                selected[4] && EmoteRuntime.providerEnabled(2), TwitchTheme.light(),
+                selected[8] && DeletedMessageSettings.enabled()};
     }
 
     private static void dispatch(Object instance, boolean[] policy) {

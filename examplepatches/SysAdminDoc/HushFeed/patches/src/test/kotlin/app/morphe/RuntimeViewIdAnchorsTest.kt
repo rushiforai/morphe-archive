@@ -896,8 +896,9 @@ class RuntimeViewIdAnchorsTest {
 
     /**
      * The five panels of the platform's own alert dialog, looked up under `android` to make them
-     * transparent. They belong to Android, not to TikTok's build, so they have no owner to hold
-     * and no table line; the rule is that nothing else is looked up under that package.
+     * transparent, and its title, looked up to wear the shimmer. They belong to Android, not to
+     * TikTok's build, so they have no owner to hold and no table line; the rule is that nothing
+     * else is looked up under that package.
      */
     @Test
     fun `only the dialog panels are looked up under the platform's own package`() {
@@ -979,8 +980,13 @@ class RuntimeViewIdAnchorsTest {
 
     private companion object {
         const val EXTENSION = "extensions/tiktok/src/main/java/app/morphe/extension/tiktok"
-        /** The platform dialog panels SettingsUi makes transparent: Android's, not TikTok's. */
-        val FRAMEWORK_IDS = sortedSetOf("buttonPanel", "contentPanel", "customPanel", "parentPanel", "topPanel")
+        /**
+         * The platform dialog panels SettingsUi makes transparent, and the title it gives the
+         * shimmer: Android's, not TikTok's.
+         */
+        val FRAMEWORK_IDS = sortedSetOf(
+            "alertTitle", "buttonPanel", "contentPanel", "customPanel", "parentPanel", "topPanel",
+        )
         const val SPARSE = 0x01
         const val OFFSET16 = 0x02
 

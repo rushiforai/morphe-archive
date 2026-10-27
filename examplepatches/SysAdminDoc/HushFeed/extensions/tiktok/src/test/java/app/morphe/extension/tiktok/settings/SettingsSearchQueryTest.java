@@ -3,6 +3,7 @@ package app.morphe.extension.tiktok.settings;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -16,6 +17,8 @@ import android.widget.TextView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.featuregatelab.FeatureGateLabFragment;
 import app.morphe.extension.tiktok.settings.preference.ReleaseNotesData;
+import app.morphe.extension.tiktok.settings.preference.SettingsMenuPreference;
+import app.morphe.extension.tiktok.settings.preference.SettingsSearchEntryPreference;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -112,8 +115,10 @@ public class SettingsSearchQueryTest {
     @Test public void filteredSettingsExposeAndAnnounceTheirResultCount() throws Exception {
         TikTokPreferenceFragment search = attachSearch();
         search(search, "comment");
+        settle(search);
         TextView count = search.getView().findViewWithTag("settings_search_result_count");
         assertNotNull("the search field has no result status", count);
+        assertTrue("the result status is not visible", count.isShown());
         int rows = dynamicRows(search);
         assertEquals(rows == 1 ? "1 result" : rows + " results",
                 count.getText().toString());
@@ -121,6 +126,8 @@ public class SettingsSearchQueryTest {
                 count.getAccessibilityLiveRegion());
 
         search(search, "nothing-could-match-this-query");
+        settle(search);
+        assertSame(count, search.getView().findViewWithTag("settings_search_result_count"));
         assertEquals("0 results", count.getText().toString());
     }
 
@@ -181,24 +188,36 @@ public class SettingsSearchQueryTest {
         Shadows.shadowOf(Looper.getMainLooper()).idle();
 
         java.util.List<String> titles = new java.util.ArrayList<>();
-        PreferenceScreen screen = fragment.getPreferenceScreen();
-        for (int index = 0; index < screen.getPreferenceCount(); index++) {
-            Preference row = screen.getPreference(index);
+        Field results = TikTokPreferenceFragment.class.getDeclaredField("searchRows");
+        results.setAccessible(true);
+        for (Object item : (java.util.List<?>) results.get(fragment)) {
+            Preference row = (Preference) item;
             if (row.getTitle() != null) titles.add(row.getTitle().toString());
         }
         return titles;
     }
 
     private static TikTokPreferenceFragment attachSearch() {
-        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().visible().get();
         TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
         Bundle arguments = new Bundle();
         arguments.putBoolean("morphe_settings_search", true);
         fragment.setArguments(arguments);
         activity.getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
         activity.getFragmentManager().executePendingTransactions();
-        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        settle(fragment);
         return fragment;
+    }
+
+    private static void settle(TikTokPreferenceFragment fragment) {
+        View decor = fragment.getActivity().getWindow().getDecorView();
+        for (int frame = 0; frame < 4; frame++) {
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(16));
+            decor.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(1920, View.MeasureSpec.EXACTLY));
+            decor.layout(0, 0, 1080, 1920);
+        }
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
     }
 
     @Test public void theSearchFindsTheRowsPeopleReachForWhenSomethingHasGoneWrong() throws Exception {
@@ -292,7 +311,7 @@ public class SettingsSearchQueryTest {
      * A hand-indexed About row has no section to open, so opening it fell through to the master
      * menu. It lands on About Hushfeed with the row as the target.
      */
-    @Test public void openingFoundBuildDetailsLandsOnAboutHushfeed() throws Exception {
+    @Test public void openingFoundBuildDetailsExpandsAboutOnTheSameMainList() throws Exception {
         TikTokPreferenceFragment search = attachSearch();
         search(search, "build details");
         Preference result = null;
@@ -311,8 +330,11 @@ public class SettingsSearchQueryTest {
         android.app.Fragment opened = search.getActivity().getFragmentManager()
                 .findFragmentById(android.R.id.content);
         assertTrue(opened instanceof TikTokPreferenceFragment);
-        assertEquals("ABOUT", opened.getArguments().getString("morphe_settings_hub"));
-        assertEquals("action_build_details", opened.getArguments().getString("morphe_settings_target_key"));
+        assertSame(search, opened);
+        assertTrue(((SettingsMenuPreference) search.findPreference("hub_about")).isExpanded());
+        assertTrue(search.findPreference("action_search_settings") instanceof SettingsSearchEntryPreference);
+        assertEquals(0, search.getFragmentManager().getBackStackEntryCount());
+        assertVisible(search, "action_build_details");
     }
 
     /** What's new leaves About Hushfeed once its notes are read, and its result goes with it. */
@@ -353,8 +375,10 @@ public class SettingsSearchQueryTest {
             android.app.Fragment opened = search.getActivity().getFragmentManager()
                     .findFragmentById(android.R.id.content);
             assertTrue(opened instanceof TikTokPreferenceFragment);
-            assertEquals("ABOUT", opened.getArguments().getString("morphe_settings_hub"));
-            assertEquals("action_release_notes", opened.getArguments().getString("morphe_settings_target_key"));
+            assertSame(search, opened);
+            assertTrue(((SettingsMenuPreference) search.findPreference("hub_about")).isExpanded());
+            assertEquals(0, search.getFragmentManager().getBackStackEntryCount());
+            assertVisible(search, "action_release_notes");
         } finally {
             TikTokPreferenceFragment.setReleaseVersionForTests(null);
         }
@@ -383,7 +407,7 @@ public class SettingsSearchQueryTest {
         throw new AssertionError(wanted + " is not in the index at all");
     }
 
-    @Test public void openingAFoundBackupRowLandsOnDiagnostics() throws Exception {
+    @Test public void aFoundBackupRowNamesTheBackupAndRestoreCategory() throws Exception {
         TikTokPreferenceFragment search = attachSearch();
         java.lang.reflect.Field field = TikTokPreferenceFragment.class.getDeclaredField("searchIndex");
         field.setAccessible(true);
@@ -401,5 +425,17 @@ public class SettingsSearchQueryTest {
         section.setAccessible(true);
         assertEquals("opening it would not land on Backup and restore",
                 "BACKUP", ((Enum<?>) section.get(found)).name());
+    }
+
+    private static void assertVisible(TikTokPreferenceFragment fragment, String key) {
+        android.widget.ListView list = fragment.getView().findViewById(android.R.id.list);
+        int target = -1;
+        for (int position = 0; position < list.getCount(); position++) {
+            Object row = list.getItemAtPosition(position);
+            if (row instanceof Preference && key.equals(((Preference) row).getKey())) target = position;
+        }
+        assertTrue("located row is absent " + key, target >= 0);
+        assertTrue("located row is outside the viewport " + key,
+                target >= list.getFirstVisiblePosition() && target <= list.getLastVisiblePosition());
     }
 }

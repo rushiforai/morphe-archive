@@ -208,12 +208,13 @@ class LogoLongPressTest {
      * armeabi-v7a build had nine more instructions ahead of it, and 583's two put it at the same
      * index again (the builder is `A0J` on arm64 and `A0I` on armeabi-v7a, the click listener one
      * instruction before). 583's two hide the logo at 157 on the path with no tap, then jump past
-     * the description. 584 ships arm64-v8a only, with the builder back at `A0G`: the touch listener
-     * at 123 and the logo hidden at 114.
+     * the description. 584's two builds both have the builder at `A0G`, the touch listener at 123
+     * and the logo hidden at 114, on the same registers.
      */
     private val pins = mapOf(
         "584.0.0.51.56" to mapOf(
             "arm64-v8a" to Pin(123, listOf(6, 3), 114, listOf(6, 10)),
+            "armeabi-v7a" to Pin(123, listOf(6, 3), 114, listOf(6, 10)),
         ),
     )
 

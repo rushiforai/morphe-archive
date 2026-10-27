@@ -1,4 +1,5 @@
 import java.util.Properties
+import java.util.zip.ZipFile
 
 group = "software.santodan.patches"
 
@@ -19,6 +20,7 @@ patches {
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
 
 tasks.named<org.gradle.api.tasks.compile.JavaCompile>("compileTestJava") {
+    source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioLocalWriteContinuation.java"))
     source(file("../extensions/nuvio-apk-updates/src/main/java/software/santodan/extension/nuvioupdate/UpdateProgress.java"))
 }
 tasks.register<JavaExec>("verifyNuvioUpdateProgressRuntime") {
@@ -109,7 +111,7 @@ tasks.register("verifyNuvioLatest") {
         "verifyNuvioUpdateFlow", "verifyNuvioUpdateProgressRuntime", "verifyNuvioUpdateUiRuntime",
         "verifyNuvioBeta8DateStyleRuntime", "verifyNuvioBeta8SettingsMenuRuntime", "verifyNuvioBeta8TrackingDialogs",
         "verifyNuvioCurrentStreamRuntime", "verifyNuvioPreferredAddonRuntime", "verifyNuvioPlaybackButtonsRuntime",
-        "verifyNuvioIntroDbRuntime", "verifyNuvioStreamPreloadRuntime", "verifyNuvioProviderRefreshRuntime", "verifyNuvioSyncBannerRuntime",
+        "verifyNuvioIntroDbRuntime", "verifyNuvioStreamPreloadRuntime", "verifyNuvioProviderRefreshRuntime", "verifyNuvioPlaybackOverlayRuntime", "verifyNuvioSyncBannerRuntime",
         "verifyNuvioSettingsStoreRuntime", "verifyNuvioWatchedSnapshotRuntime", "verifyNuvioPlayerStability",
         "verifyNuvioNextEpisodeCooldown", "verifyNuvioBeta8Bundle")
 }
@@ -263,6 +265,9 @@ tasks.named<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>("compileTestKotlin"
     source(file("../extensions/nuvio-launcher-channels/src/main/java/software/santodan/extension/nuviolauncher/LauncherDates.kt"))
     source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioProviderRefresh.kt"))
     source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioMergeWork.kt"))
+    source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioLocalOverlay.kt"))
+    source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioPlaybackJournal.kt"))
+    source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioLocalWriteContinuation.java"))
     source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioSourceContinuation.java"))
 }
 
@@ -421,6 +426,11 @@ tasks {
         dependsOn("testClasses")
         classpath = sourceSets["test"].runtimeClasspath
         mainClass.set("santodan.patches.VerifyNuvioProviderRefreshRuntimeKt")
+    }
+    register<JavaExec>("verifyNuvioPlaybackOverlayRuntime") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyNuvioPlaybackOverlayRuntimeKt")
     }
     register<JavaExec>("verifyNuvioWatchedSnapshotRuntime") {
         dependsOn("testClasses")
@@ -622,7 +632,7 @@ tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 
-        dependsOn(build)
+        dependsOn(build, "buildAndroid")
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
@@ -630,7 +640,35 @@ tasks {
 
     // Used by gradle-semantic-release-plugin.
     publish {
-        dependsOn("generatePatchesList")
+        dependsOn("generatePatchesList", "verifyAndroidBundle")
+    }
+}
+
+// buildAndroid adds DEX to the JVM archive in place. A later jar/build task can
+// replace that archive, so validate after both metadata generation and dexing.
+tasks.register("verifyAndroidBundle") {
+    group = "verification"
+    description = "Reject release bundles without root-level Android DEX entries."
+    dependsOn("generatePatchesList")
+    doLast {
+        val bundle = tasks.named<org.gradle.jvm.tasks.Jar>("jar").get().archiveFile.get().asFile
+        ZipFile(bundle).use { zip ->
+            val dexEntries = zip.entries().asSequence()
+                .filter { !it.isDirectory && it.name.matches(Regex("classes([2-9][0-9]*|1[0-9]+)?\\.dex")) }
+                .toList()
+            check(dexEntries.any { it.name == "classes.dex" }) {
+                "Patch bundle is missing root classes.dex: $bundle"
+            }
+            dexEntries.forEach { entry ->
+                val header = zip.getInputStream(entry).use { it.readNBytes(8) }
+                check(entry.size >= 112 && header.size == 8 &&
+                    header.copyOfRange(0, 4).contentEquals(byteArrayOf(100, 101, 120, 10)) &&
+                    header[7] == 0.toByte()) {
+                    "Invalid DEX entry ${entry.name} in $bundle"
+                }
+            }
+            logger.lifecycle("Verified {} Android DEX entries in {}", dexEntries.size, bundle)
+        }
     }
 }
 
@@ -846,4 +884,75 @@ tasks.register<JavaExec>("verifyNuvioBeta8SettingsMenuRuntime") {
     args(file("../extensions/nuvio-settings-menu/src/main/java/software/santodan/extension/nuviomenu/NuvioSettingsMenu.java").absolutePath,
         file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioSourceContinuation.java").absolutePath,
         file("${layout.buildDirectory.get()}/verification/beta8-menu-runtime").absolutePath)
+}
+
+tasks.register<JavaExec>("verifyMonetCatalogRuntime") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyMonetCatalogRuntime")
+    args(file("../extensions/monet-catalog-channels/src/main/java/software/santodan/extension/monetchannels/MonetCatalogChannels.java").absolutePath,
+        layout.buildDirectory.dir("verification/monet/catalog-runtime").get().asFile.absolutePath,
+        file("src/test/fixtures/monet-catalog/Fixture.java").absolutePath)
+}
+
+tasks.register<JavaExec>("verifyMonetCatalog") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyMonetCatalog")
+    args(file("../../OriginalApps/monet-1.0.97.apk").absolutePath,
+        layout.buildDirectory.file("verification/monet/catalog-hooks.dex").get().asFile.absolutePath)
+}
+
+tasks.register<JavaExec>("verifyMonetCatalogBundle") {
+    dependsOn("testClasses", "buildAndroid")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyMonetCatalogBundleKt")
+    maxHeapSize = "3g"
+    args(file("../../OriginalApps/monet-1.0.97.apk").absolutePath,
+        layout.buildDirectory.file("libs/patches-${project.version}.mpp").get().asFile.absolutePath,
+        layout.buildDirectory.dir("verification/monet/catalog-bundle").get().asFile.absolutePath)
+}
+
+tasks.register<JavaExec>("verifyMonetCatalogApk") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyMonetCatalogApk")
+    args(file("../../OriginalApps/monet-1.0.97.apk").absolutePath,
+        file(providers.gradleProperty("monetCatalogApk").getOrElse("../../Apps/Monet/monet-1.0.97-catalog-rows-unsigned.apk")).absolutePath,
+        providers.gradleProperty("monetCatalogCombined").getOrElse("false"))
+}
+
+tasks.register<JavaExec>("verifyMonetDisplayedCardsRuntime") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyMonetDisplayedCardsRuntime")
+    args(file("src/test/fixtures/monet-cards").absolutePath,
+        file("../extensions/monet-displayed-cards/src/main/java").absolutePath,
+        layout.buildDirectory.dir("verification/monet/displayed-cards-runtime").get().asFile.absolutePath)
+}
+
+tasks.register<JavaExec>("verifyMonetDisplayedCards") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyMonetDisplayedCards")
+    args(file("../../OriginalApps/monet-1.0.97.apk").absolutePath,
+        layout.buildDirectory.file("verification/monet/displayed-cards-hooks.dex").get().asFile.absolutePath)
+}
+
+tasks.register<JavaExec>("verifyMonetDisplayedCardsBundle") {
+    dependsOn("testClasses", "buildAndroid")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyMonetDisplayedCardsBundleKt")
+    maxHeapSize = "3g"
+    args(file("../../OriginalApps/monet-1.0.97.apk").absolutePath,
+        layout.buildDirectory.file("libs/patches-${project.version}.mpp").get().asFile.absolutePath,
+        layout.buildDirectory.dir("verification/monet/displayed-cards-bundle").get().asFile.absolutePath)
+}
+
+tasks.register<JavaExec>("verifyMonetDisplayedCardsApk") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyMonetDisplayedCardsApk")
+    args(file("../../OriginalApps/monet-1.0.97.apk").absolutePath,
+        file("../../Apps/Monet/monet-1.0.97-displayed-cards-unsigned.apk").absolutePath)
 }

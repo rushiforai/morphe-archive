@@ -9,7 +9,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.facebook.graphql.model.GraphQLMedia;
 import com.facebook.graphql.model.GraphQLStory;
+import com.facebook.graphql.model.GraphQLStoryAttachment;
+import com.facebook.graphql.model.GraphQLTextWithEntities;
 import com.facebook.graphql.modelutil.BaseModelWithTree;
 
 import org.junit.After;
@@ -351,6 +354,80 @@ public class PostWordsRuleTest {
         }
     }
 
+    /** A link card: an attachment with a headline, and the line under it when [description] isn't null. */
+    private static GraphQLStoryAttachment card(String title, String description) {
+        GraphQLStoryAttachment card = new GraphQLStoryAttachment((GraphQLMedia) null);
+        if (title != null) card.with("title", title);
+        if (description != null) card.withModel("description", new GraphQLTextWithEntities(description));
+        return card;
+    }
+
+    private static String words(Object story, StoryFlag.Accessor message, StoryFlag.Accessor attached,
+            StoryFlag.Accessor links) {
+        return FeedFilter.wordsReason(story, message, attached, links);
+    }
+
+    /** #255: a news post whose only mention of the word is its link card's headline or description. */
+    @Test
+    public void aLinkCardsHeadlineOrDescriptionCounts() {
+        listen("us election", "");
+        Answers noMessage = new Answers(null);
+        Answers noShare = new Answers(null);
+        GraphQLStory headline = new GraphQLStory();
+        GraphQLStory description = new GraphQLStory();
+        Answers links = new Answers(null)
+                .with(headline, Arrays.asList(card("What the US election means for you", null)))
+                .with(description, Arrays.asList(card("Tonight's results", "Live updates from the US Election")));
+
+        assertEquals(FeedFilter.WORDS_REASON, words(headline, noMessage, noShare, links));
+        assertEquals(FeedFilter.WORDS_REASON, words(description, noMessage, noShare, links));
+        assertEquals(FeedFilter.WORDS_ROUTE + ": 2 lists, 2 items, 2 removed. Last reason: hide word. "
+                + "Removed: hide word 2. Kinds: hide word 2", wordsLine());
+    }
+
+    /** The controls: a card without the phrase, a keep phrase on the card, and a card on the shared post. */
+    @Test
+    public void aLinkCardIsJudgedLikeThePostsOwnWords() {
+        listen("us election", "my team");
+        Answers noShare = new Answers(null);
+        GraphQLStory plain = new GraphQLStory();
+        GraphQLStory kept = new GraphQLStory();
+        Answers links = new Answers(null)
+                .with(plain, Arrays.asList(card("Weather this weekend", "Sunny and 72")))
+                .with(kept, Arrays.asList(card("US election night", "What it means for my team")));
+        assertNull(words(plain, new Answers(null), noShare, links));
+        assertNull(words(kept, new Answers(null), noShare, links));
+        assertNull("the message's keep phrase still keeps a post whose card has the hidden one",
+                words(plain, new Answers(FeedGuardForTests.postText("Go my team")), noShare,
+                        new Answers(Arrays.asList(card("US election", null)))));
+
+        GraphQLStory shared = new GraphQLStory();
+        GraphQLStory share = new GraphQLStory(shared);
+        Answers sharedCard = new Answers(null).with(shared, Arrays.asList(card("US election recap", null)));
+        assertEquals("a share of a post whose card has the phrase", FeedFilter.WORDS_REASON,
+                words(share, new Answers(null), new Answers(null).with(share, shared), sharedCard));
+        assertEquals(FeedFilter.WORDS_ROUTE + ": 4 lists, 4 items, 1 removed. Last reason: hide word. "
+                + "Removed: hide word 1. Kinds: keep word 2, hide word 1, no match 1", wordsLine());
+    }
+
+    /**
+     * An attachments accessor the patch never filled in reads the message alone, as before #255,
+     * and one that throws keeps the post: a keep phrase could be on the card it couldn't read.
+     */
+    @Test
+    public void anUnreadableLinkCardKeepsTheOldRuleOrThePost() {
+        listen("spoiler", "");
+        Answers spoiler = new Answers(FeedGuardForTests.postText("a spoiler"));
+        Answers noShare = new Answers(null);
+        assertEquals(FeedFilter.WORDS_REASON, words(new GraphQLStory(), spoiler, noShare, PostSources.ATTACHMENTS));
+        assertNull(words(new GraphQLStory(), new Answers(null), noShare, PostSources.ATTACHMENTS));
+        assertNull(words(new GraphQLStory(), spoiler, noShare, new Answers(new IllegalStateException())));
+        assertNull("a list of things that aren't cards",
+                words(new GraphQLStory(), new Answers(null), noShare, new Answers(Arrays.asList(new Object(), null))));
+        assertEquals(FeedFilter.WORDS_ROUTE + ": 4 lists, 4 items, 1 removed. Last reason: hide word. "
+                + "Removed: hide word 1. Kinds: no text 2, hide word 1, read failed 1", wordsLine());
+    }
+
     /**
      * A build missing a member the reader needs keeps every post, and the Hook status row names
      * what's missing. The control, with every member there, reports three found.
@@ -365,7 +442,8 @@ public class PostWordsRuleTest {
         HookStatus.clear();
         FeedFilterCounters.clear();
         PostText.Members complete = PostText.Members.lookUp(PostText.class.getClassLoader());
-        PostText.cachedMembers = new PostText.Members(complete.story, complete.treeModel, null, complete.typeTag);
+        PostText.cachedMembers = new PostText.Members(complete.story, complete.treeModel, null, complete.typeTag,
+                complete.text, complete.cachedModel);
         assertFalse(guard("spoiler"));
         String report = String.join("\n", HookStatus.report());
         assertTrue(report, report.contains(FamilyNames.POST_WORDS + ": invoked 1, 2 found, 1 missing. "

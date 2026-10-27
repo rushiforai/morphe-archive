@@ -41,8 +41,19 @@ internal fun Element.validateScreenHosts() {
             entry.children("intent-filter").isNotEmpty()) invalid("${host.substringAfterLast('.')} changed ($changed)")
     }
 }
-internal fun resolveShortcutsPath(apkEntries: List<String>, readDocument: (String) -> Document): String {
-    val candidates = apkEntries.filter { it.startsWith("res/") && it.endsWith(".xml") && !it.startsWith("res/values") }
+/**
+ * The directories a shortcuts file can sit in once decoded: the `xml` type, any configuration. Decode them with one
+ * `decode(SHORTCUTS_DIRECTORIES)` call. Patcher 2.0.1 loads the whole APK again for each file it decodes on request,
+ * and reading Messenger's thousands of shrunk XML archive entries (`res/eve.xml`) one by one kept Desktop busy for hours.
+ */
+internal const val SHORTCUTS_DIRECTORIES = "res/xml*"
+
+/** The one XML file among [decodedFiles] whose root is `shortcuts`, under whatever name Meta's resource shrinking gave it. */
+internal fun resolveShortcutsPath(
+    decodedFiles: List<String>,
+    readDocument: (String) -> Document,
+): String {
+    val candidates = decodedFiles.filter { it.startsWith("res/") && it.endsWith(".xml") && !it.startsWith("res/values") }
     val matches = candidates.filter { path ->
         runCatching { readDocument(path).documentElement.tagName == "shortcuts" }.getOrDefault(false)
     }

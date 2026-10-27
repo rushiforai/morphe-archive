@@ -59,7 +59,7 @@ final class AutoClaim {
         return 0;
     }
 
-    private static String today() {
+    static String today() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd", Locale.US);
         sdf.setTimeZone(TimeZone.getTimeZone("Asia/Karachi"));
         return sdf.format(new Date());

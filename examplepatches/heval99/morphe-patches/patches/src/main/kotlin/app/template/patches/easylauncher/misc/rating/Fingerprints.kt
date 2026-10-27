@@ -11,7 +11,7 @@ import app.morphe.patcher.string
 internal object ReviewObserverOnResumeFingerprint : Fingerprint(
     name = "onResume",
     returnType = "V",
-    strings = listOf("app_launch_count_for_review"),
+    strings = listOf(string("app_launch_count_for_review", StringComparisonType.CONTAINS)),
     filters = listOf(string("getDaysSinceInstall", StringComparisonType.STARTS_WITH)),
     custom = { method, _ -> method.parameterTypes.size == 1 },
 )

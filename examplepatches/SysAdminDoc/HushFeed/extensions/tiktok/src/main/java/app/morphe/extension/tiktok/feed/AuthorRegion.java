@@ -54,6 +54,9 @@ public final class AuthorRegion {
      */
     public static final String SEPARATOR = " · ";
 
+    private static final String FIRST_STRONG_ISOLATE = String.valueOf((char) 0x2068);
+    private static final String POP_DIRECTIONAL_ISOLATE = String.valueOf((char) 0x2069);
+
     private static int nameViewId;
     private static int postTimeViewId;
 
@@ -70,6 +73,7 @@ public final class AuthorRegion {
     /** What that text was asked to say, so a name shortened to fit still counts as settled. */
     private static String decoratedHandle;
     private static String decoratedRegion;
+    private static boolean decoratedIsolated;
 
     /** The row's width when the name was cut to fit, or -1 while no cut of ours is showing. */
     private static int fittedRowWidth = -1;
@@ -291,7 +295,8 @@ public final class AuthorRegion {
         boolean ours = name == decoratedName.get() && current != null && written != null
                 && current.toString().equals(written.toString());
 
-        if (ours && Objects.equals(handle, decoratedHandle) && Objects.equals(region, decoratedRegion)) {
+        if (ours && Objects.equals(handle, decoratedHandle) && Objects.equals(region, decoratedRegion)
+                && decoratedIsolated == (region != null && isolate(name, label(originalName, handle), region))) {
             // Already saying this. Every layout pass lands here, and the first one after the
             // write is when a name TikTok cut short can be fitted. A call before that pass, from
             // a video change posted ahead of it, still sees the width of the name the row had
@@ -307,7 +312,7 @@ public final class AuthorRegion {
         restore();
 
         CharSequence text = name.getText();
-        CharSequence updated = build(text, handle, region);
+        CharSequence updated = build(name, text, handle, region);
         if (text == null || updated == null || updated.toString().equals(text.toString())) {
             return;
         }
@@ -317,6 +322,7 @@ public final class AuthorRegion {
         decoratedText = updated;
         decoratedHandle = handle;
         decoratedRegion = region;
+        decoratedIsolated = region != null && isolate(name, label(text, handle), region);
         name.setText(updated);
         if (hasFixedWidth(name)) {
             // A row with a fixed width takes the new text without a layout pass, so no later pass
@@ -362,16 +368,17 @@ public final class AuthorRegion {
      * since the cut. A row that keeps its width widens the name instead, which counts the same.
      */
     private static void regrow(TextView name, CharSequence original, String handle, String region) {
-        CharSequence whole = build(original, handle, region);
+        CharSequence whole = build(name, original, handle, region);
         CharSequence label = label(original, handle);
         CharSequence shown = name.getText();
         if (whole == null || label == null || region == null || shown == null || fittedRowWidth < 0
                 || whole.toString().equals(shown.toString()) || !(name.getParent() instanceof View)) {
             return;
         }
-        String tail = SEPARATOR + region;
+        boolean isolated = isolate(name, label, region);
+        String tail = tail(region, isolated);
         if (!shown.toString().endsWith(tail)) return;
-        String cutName = shown.subSequence(0, shown.length() - tail.length()).toString();
+        String cutName = shown.subSequence(isolated ? 1 : 0, shown.length() - tail.length()).toString();
         int gaveUp = Math.max(0, fittedRowWidth - ((View) name.getParent()).getWidth());
         float room = name.getWidth() - name.getCompoundPaddingLeft() - name.getCompoundPaddingRight()
                 + gaveUp - name.getPaint().measureText(tail);
@@ -401,14 +408,15 @@ public final class AuthorRegion {
         if (layout == null || layout.getLineCount() != 1 || layout.getEllipsisCount(0) == 0) {
             return null;
         }
-        String tail = SEPARATOR + region;
+        boolean isolated = isolate(name, label, region);
+        String tail = tail(region, isolated);
         float room = name.getWidth() - name.getCompoundPaddingLeft() - name.getCompoundPaddingRight()
                 - name.getPaint().measureText(tail);
         if (room <= 0) {
             return null;
         }
         CharSequence shortened = TextUtils.ellipsize(label, name.getPaint(), room, TextUtils.TruncateAt.END);
-        return shortened.length() == 0 ? null : TextUtils.concat(shortened, tail);
+        return shortened.length() == 0 ? null : join(shortened, tail, isolated);
     }
 
     /**
@@ -416,12 +424,57 @@ public final class AuthorRegion {
      * follows whichever of the two is showing. concat rather than string addition, so a
      * styled name keeps its spans.
      */
-    private static CharSequence build(CharSequence original, String handle, String region) {
+    private static CharSequence build(TextView name, CharSequence original, String handle, String region) {
         CharSequence text = label(original, handle);
         if (text == null) {
             return null;
         }
-        return region == null ? text : TextUtils.concat(text, SEPARATOR + region);
+        if (region == null) return text;
+        boolean isolated = isolate(name, text, region);
+        return join(text, tail(region, isolated), isolated);
+    }
+
+    /** Keep names and suffixes separate, letting their separator follow TikTok's paragraph direction. */
+    private static boolean isolate(TextView name, CharSequence label, String region) {
+        if (hasRtl(label) || hasRtl(region)) return true;
+        switch (name.getTextDirection()) {
+            case View.TEXT_DIRECTION_RTL:
+            case View.TEXT_DIRECTION_FIRST_STRONG_RTL:
+                return true;
+            case View.TEXT_DIRECTION_LOCALE:
+                return TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_RTL;
+            case View.TEXT_DIRECTION_INHERIT:
+            case View.TEXT_DIRECTION_FIRST_STRONG:
+                return name.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
+            default:
+                return false;
+        }
+    }
+
+    private static boolean hasRtl(CharSequence text) {
+        for (int at = 0; at < text.length();) {
+            int point = Character.codePointAt(text, at);
+            at += Character.charCount(point);
+            byte direction = Character.getDirectionality(point);
+            if (direction == Character.DIRECTIONALITY_RIGHT_TO_LEFT
+                    || direction == Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC
+                    || direction == Character.DIRECTIONALITY_RIGHT_TO_LEFT_EMBEDDING
+                    || direction == Character.DIRECTIONALITY_RIGHT_TO_LEFT_OVERRIDE || point == 0x2067) return true;
+        }
+        return false;
+    }
+
+    private static String tail(String region, boolean isolated) {
+        String text = SEPARATOR + region;
+        // Country and rate are separate fields. Their own directions keep localized numbers
+        // intact, while the paragraph puts the country nearest the name in either direction.
+        return isolated ? POP_DIRECTIONAL_ISOLATE + SEPARATOR + FIRST_STRONG_ISOLATE
+                + region.replace(SEPARATOR, POP_DIRECTIONAL_ISOLATE + SEPARATOR + FIRST_STRONG_ISOLATE)
+                + POP_DIRECTIONAL_ISOLATE : text;
+    }
+
+    private static CharSequence join(CharSequence label, String tail, boolean isolated) {
+        return isolated ? TextUtils.concat(FIRST_STRONG_ISOLATE, label, tail) : TextUtils.concat(label, tail);
     }
 
     /** The name part of the row: the handle when asked for, otherwise TikTok's own name. */
@@ -660,6 +713,7 @@ public final class AuthorRegion {
         decoratedText = null;
         decoratedHandle = null;
         decoratedRegion = null;
+        decoratedIsolated = false;
         fittedRowWidth = -1;
 
         if (name == null || previous == null || written == null) {

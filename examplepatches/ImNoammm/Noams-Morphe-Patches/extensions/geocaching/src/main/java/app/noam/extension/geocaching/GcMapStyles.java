@@ -32,18 +32,19 @@ public final class GcMapStyles {
                 .getInt("UserMapPrefs.PREFERRED_MAP_TYPE", 5);
             switch (type) {
                 case STREET:
-                    return raster("street", "© OpenStreetMap contributors",
+                    return raster("street", "© OpenStreetMap contributors", 19,
                         "https://tile.openstreetmap.org/{z}/{x}/{y}.png");
                 case SATELLITE:
-                    return raster("satellite", "© Esri, Maxar, Earthstar Geographics",
+                    return raster("satellite", "© Esri, Maxar, Earthstar Geographics", 19,
                         ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}");
                 case TERRAIN:
-                    return raster("terrain", "© OpenStreetMap contributors, SRTM | © OpenTopoMap (CC-BY-SA)",
+                    // OpenTopoMap stops at 17 and answers deeper zooms with a "max zoom" placeholder tile.
+                    return raster("terrain", "© OpenStreetMap contributors, SRTM | © OpenTopoMap (CC-BY-SA)", 17,
                         "https://a.tile.opentopomap.org/{z}/{x}/{y}.png",
                         "https://b.tile.opentopomap.org/{z}/{x}/{y}.png",
                         "https://c.tile.opentopomap.org/{z}/{x}/{y}.png");
                 case HYBRID:
-                    return raster("hybrid", "© Esri, Maxar, Earthstar Geographics",
+                    return raster("hybrid", "© Esri, Maxar, Earthstar Geographics", 19,
                         ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}",
                         null,
                         ESRI + "Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}");
@@ -91,7 +92,7 @@ public final class GcMapStyles {
     }
 
     /** Writes a raster style (base tiles, optionally a label overlay after a null) and returns its file:// URI. */
-    private static String raster(String name, String attribution, String... tiles) throws Exception {
+    private static String raster(String name, String attribution, int maxZoom, String... tiles) throws Exception {
         JSONArray base = new JSONArray(), overlay = new JSONArray();
         JSONArray target = base;
         for (String tile : tiles) {
@@ -101,10 +102,10 @@ public final class GcMapStyles {
                 target.put(tile);
             }
         }
-        JSONObject sources = new JSONObject().put("base", source(base, attribution));
+        JSONObject sources = new JSONObject().put("base", source(base, attribution, maxZoom));
         JSONArray layers = new JSONArray().put(new JSONObject().put("id", "base").put("type", "raster").put("source", "base"));
         if (overlay.length() > 0) {
-            sources.put("labels", source(overlay, attribution));
+            sources.put("labels", source(overlay, attribution, maxZoom));
             layers.put(new JSONObject().put("id", "labels").put("type", "raster").put("source", "labels"));
         }
         JSONObject style = new JSONObject().put("version", 8).put("name", name).put("glyphs", GLYPHS)
@@ -119,8 +120,8 @@ public final class GcMapStyles {
         return "file://" + file.getAbsolutePath();
     }
 
-    private static JSONObject source(JSONArray tiles, String attribution) throws Exception {
+    private static JSONObject source(JSONArray tiles, String attribution, int maxZoom) throws Exception {
         return new JSONObject().put("type", "raster").put("tiles", tiles).put("tileSize", 256)
-            .put("maxzoom", 19).put("attribution", attribution);
+            .put("maxzoom", maxZoom).put("attribution", attribution);
     }
 }

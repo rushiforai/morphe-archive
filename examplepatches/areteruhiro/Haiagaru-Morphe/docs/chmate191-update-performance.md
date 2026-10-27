@@ -165,3 +165,16 @@ Frida再接続中にART/Fridaのnativeスタックで起きたSIGSEGVは完了�
 最終試験は8/8成功（証明書拒否335ms、キャンセル56ms）。試験用DROPルール2件と
 16881/16883のADB reverseを削除し、OUTPUTが元の4つのシステムチェーンだけであることを確認。
 ローカルの検証サーバー2プロセスも終了した。
+
+## 2026-10-27: 再利用接続が無応答になる場合の対策
+
+過去の会話と上記の検証を再確認。先頭IP無応答の対策は既に存在し、標準15秒の接続/TLS/ヘッダー/本文タイムアウトも既に検証済みだった。今回の報告は巡回・スレ取得のみ停止、機内モードで一時復旧、226では未報告。報告回線そのものの停止時スタックは未取得であり、原因は断定しない。
+
+新しいローカル条件として、HTTP/1.1で初回だけ正常応答し、同じTCP接続の2回目以降は無応答にした。191 native clientでは初回521ms成功、再利用時15037msでSocketTimeoutException、その後の新規接続543ms成功。Connection: closeを付けると3回とも別ソケットになり544/566/555msで成功。`scripts/network191-reuse/`、`build/network191-reuse-baseline2.log`。これは特定の接続経路の劣化を模擬した結果であり、191だけに起きる現象と証明したものではない。
+
+この条件への対策として、191の既存getLabel reader内15個のexecute前フックに限って、対象GETのConnectionをcloseにする設定を追加。設定名は「191の板・スレ取得で接続を再利用しない」。利用者の明示指定で初期オン、明示オフは尊重する。HTTPエンジン/TLS検証/接続先/投稿/Cookie保存は維持。板・スレ以外の画像/GIF/動画、POSTは対象外。元Request/Headersは変更せず、URL/メソッド/本文/tags/他ヘッダーを引き継いだCall専用Requestへ置換する。既に待機中のCallの強制停止やプール全破棄はしない。OFFは次の取得から従来の再利用方式へ戻る。
+
+通信全体の上限設定0/30/60/120秒は既存仕様のまま、初期0を維持。接続を毎回作るため、待ち時間/通信量/電池消費が増える可能性がある。設定内にも記載。設定共有・プリセットの既定値も登録。hostのヘッダー不変性/スコープ14項目成功。最終APKの生成・native bridge・初期ON/明示OFF・スコープ・ローカル再現条件の再検証は実施中。
+検証追記: 最終候補通常LintVital付きbuild/network191-fresh-final-build.log成功3m4s。初回再buildはC1 CodeCache不足でpackageRelease停止、ReservedCodeCacheSize256mへ増やして成功（チェック無効化なし）。15execute位置/bridge引数/既存timeout保持検査、native runtimeの初期ON/明示OFF/GET POST mediaスコープ/Request不変性16項目成功。設定実Switchの保存・復元成功。無応答再利用は15013ms失敗、対策ONでは3回527/80/60ms成功。191混在media24項目も成功し312ms cancel、各GIF1取得。記録build/network191-reuse-final-runtime.log / network191-reuse-settings.log / network191-media-final-runtime.log。Part3本文表示・新規crash空を確認、実回線の長期巡回停止自体は未再現。
+
+補足: Connection: closeは対象の取得が使い終えた接続をプールへ戻さない方式。別の画像取得等が既に共有プールへ戻した接続まで強制破棄するものではなく、最初に既存接続を使用する可能性は残る。通信中の画像や投稿へ影響させないため、共有プールの一括破棄は採用しない。

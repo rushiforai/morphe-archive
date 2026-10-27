@@ -9,8 +9,10 @@ import static org.junit.Assert.*;
 
 import android.app.Activity;
 import android.preference.Preference;
+import android.preference.PreferenceGroup;
 import android.preference.SwitchPreference;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -62,6 +64,14 @@ public class TabSwitchesSettingsTest {
         return page.getPreferenceScreen().findPreference(key);
     }
 
+    private Preference titledSection(String title) {
+        for (int i = 0; i < page.getPreferenceScreen().getPreferenceCount(); i++) {
+            Preference child = page.getPreferenceScreen().getPreference(i);
+            if (child instanceof PreferenceGroup && title.equals(String.valueOf(child.getTitle()))) return child;
+        }
+        return null;
+    }
+
     @Test public void withoutThePatchNoTabRowShows() throws Exception {
         open();
         for (BooleanSettingKey key : keys()) assertNull(key.key, row(key.key));
@@ -97,8 +107,26 @@ public class TabSwitchesSettingsTest {
         assertEquals("Show the Activity tab", String.valueOf(activity.getTitle()));
         assertTrue("names the switch that hides the heart", String.valueOf(activity.getSummary())
                 .contains("Hide notifications on Home's header"));
-        assertNotNull("Hide the Reels tab stays under Reels", row(Settings.HIDE_REELS_TAB.key));
+        PreferenceGroup tabBar = sectionOf(page.getPreferenceScreen(), home);
+        List<String> order = new ArrayList<>();
+        for (int i = 0; i < tabBar.getPreferenceCount(); i++) order.add(tabBar.getPreference(i).getKey());
+        int after = order.indexOf(Settings.HIDE_HOME_TAB.key);
+        assertEquals("the Reels tab's switches come right after Hide the Home tab: " + order,
+                Arrays.asList(Settings.HIDE_REELS_TAB.key, Settings.SHOW_REELS_TAB.key), order.subList(after + 1, after + 3));
+        assertEquals("Hide the Reels tab", String.valueOf(row(Settings.HIDE_REELS_TAB.key).getTitle()));
+        assertEquals("Show the Reels tab", String.valueOf(row(Settings.SHOW_REELS_TAB.key).getTitle()));
+        assertNull("Reels lists nothing with only the tab patch", titledSection("Reels"));
         assertNull("the glass bar's rows need their own patch", row(Settings.GLASS_TAB_BAR.key));
+    }
+
+    /** The Reels tab's switches sat under Reels before they moved to Tab bar, so a search for Reels still finds them. */
+    @Test public void aSearchForReelsStillFindsTheTabSwitches() throws Exception {
+        open(PatchFamily.REELS_TAB);
+        page.searchSettings("Reels");
+        assertNotNull(row(Settings.HIDE_REELS_TAB.key));
+        assertNotNull(row(Settings.SHOW_REELS_TAB.key));
+        page.searchSettings("Spoof location");
+        assertNull(row(Settings.HIDE_REELS_TAB.key));
     }
 
     /** #298: Hide the Messages tab sits under Tab bar, starts off, needs no restart and points at the header's button. */

@@ -14,6 +14,7 @@ import android.view.View;
 
 import app.morphe.extension.shared.settings.PausedProcess;
 import app.morphe.extension.tiktok.SettingsContextRule;
+import app.morphe.extension.tiktok.SignedInUser;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import java.util.ArrayList;
@@ -38,6 +39,10 @@ import org.robolectric.annotation.Config;
 @Config(sdk = 28)
 public class StoryOverLiveTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+
+    @org.junit.Before public void signedInReader() {
+        SignedInUser.idForTests = "story-reader";
+    }
 
     /** TikTok's enum of what a picture shows, renamed each build, with its constants' names. */
     enum Business { LIVE, STORY, PERSON }
@@ -82,6 +87,7 @@ public class StoryOverLiveTest {
         PausedProcess.set(false);
         Settings.OPEN_STORY_OVER_LIVE.resetToDefault();
         StoryOverLive.reset();
+        SignedInUser.idForTests = null;
     }
 
     private Map<Business, Object> liveWithStory() {
@@ -182,6 +188,10 @@ public class StoryOverLiveTest {
 
         public Map<Business, Object> getCurrentActiveBusiness() {
             return business;
+        }
+
+        public String getUid() {
+            return "story-creator";
         }
     }
 

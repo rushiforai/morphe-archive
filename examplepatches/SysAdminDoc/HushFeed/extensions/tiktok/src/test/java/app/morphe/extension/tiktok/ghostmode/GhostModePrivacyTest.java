@@ -12,7 +12,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.preference.Preference;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.ListView;
 import android.widget.TextView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
@@ -22,6 +22,7 @@ import app.morphe.extension.tiktok.UiCapture;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsPagesTest.PageActivity;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.SettingsMenuPreference;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import com.ss.android.ugc.aweme.feed.model.Aweme;
 import java.lang.reflect.Field;
@@ -71,13 +72,13 @@ public class GhostModePrivacyTest {
         try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
             TikTokPreferenceFragment page = privacy(owner.get());
             Preference row = page.findPreference(Settings.GHOST_MODE.key);
-            View shown = row.getView(null, (ViewGroup) page.getView());
+            showPreference(page, row, 480, 960);
             assertTrue("the untouched process was not identified", summary(row).contains("hasn't seen TikTok send any reports since it started."));
             failStoryGetter();
             idle();
             assertTrue("the open row never learned about the failure", summary(row).contains("may still be reported"));
             assertTrue(Settings.GHOST_MODE.savedValue());
-            shown = row.getView(shown, (ViewGroup) page.getView());
+            View shown = showPreference(page, row, 480, 960);
             assertTrue(String.valueOf(shown.getStateDescription()).contains("Problem"));
             TextView text = shown.findViewById(android.R.id.summary);
             assertTrue(text.getText().toString().contains("may still be reported"));
@@ -118,10 +119,7 @@ public class GhostModePrivacyTest {
         try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
             TikTokPreferenceFragment page = privacy(owner.get());
             Preference row = page.findPreference(Settings.GHOST_MODE.key);
-            View shown = row.getView(null, (ViewGroup) page.getView());
-            shown.measure(View.MeasureSpec.makeMeasureSpec(320, View.MeasureSpec.EXACTLY),
-                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-            shown.layout(0, 0, 320, shown.getMeasuredHeight());
+            View shown = showPreference(page, row, 320, 960);
             UiCapture.save(page.getView(), "ghost-warning-light-large.png", 320, 960);
             TextView text = shown.findViewById(android.R.id.summary);
             assertTrue(text.getText().toString().contains("may still be reported"));
@@ -147,6 +145,33 @@ public class GhostModePrivacyTest {
         activity.getFragmentManager().executePendingTransactions();
         idle();
         return page;
+    }
+
+    private static View showPreference(TikTokPreferenceFragment page, Preference preference, int width, int height) {
+        var privacy = (SettingsMenuPreference) page.findPreference("section_privacy");
+        assertNotNull(privacy);
+        assertTrue(privacy.isExpanded());
+        assertSame(preference, privacy.findPreference(preference.getKey()));
+        idle();
+        ListView list = page.getView().findViewById(android.R.id.list);
+        int position = -1;
+        for (int index = 0; index < list.getCount(); index++) {
+            if (list.getItemAtPosition(index) == preference) position = index;
+        }
+        assertTrue("Ghost mode is absent from the expanded list", position >= 0);
+        list.setSelectionFromTop(position, 0);
+        View root = page.getView();
+        for (int frame = 0; frame < 4; frame++) {
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(16));
+            root.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
+            root.layout(0, 0, width, height);
+        }
+        View shown = list.getChildAt(position - list.getFirstVisiblePosition());
+        assertNotNull("Ghost mode was not laid out for its capture", shown);
+        assertTrue(shown.isShown());
+        assertTrue(shown.getGlobalVisibleRect(new android.graphics.Rect()));
+        return shown;
     }
 
     private static String summary(Preference row) {

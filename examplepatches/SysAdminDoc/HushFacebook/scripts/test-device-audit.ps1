@@ -1,19 +1,20 @@
 <# Tests audit control flow without connecting to a device. #>
 $ErrorActionPreference = 'Stop'
+$testScriptRoot = $PSScriptRoot
 $auditPath = Join-Path $PSScriptRoot 'device-audit.ps1'
 $parseErrors = $null
 $auditAst = [System.Management.Automation.Language.Parser]::ParseFile($auditPath, [ref]$null, [ref]$parseErrors)
 if ($parseErrors.Count) { throw ($parseErrors -join "`n") }
 $testFunctions = @('Assert-AuditLease', 'Assert-AuditSteps', 'Assert-AuditForeground', 'Invoke-Adb',
     'Get-AuditLocales', 'Get-AuditNightMode', 'Restore-AuditState', 'Format-Shell',
-    'New-AuditBaseline', 'Compare-AuditWalk', 'Test-AuditBaseline', 'Publish-AuditBaseline', 'Save-SettingsPages', 'Get-AuditLocaleTable', 'Write-Step', 'Test-AuditDestination', 'Select-AuditTapNode', 'Find-AuditTapNode', 'Get-UiNodes', 'Send-Profile', 'Test-AuditLocaleList', 'Get-AuditLauncher', 'Get-Report',
-    'Test-AuditReelViewer', 'Get-AuditReelProof', 'Test-AuditKeyboard', 'Test-AuditSettingsRestored', 'Resolve-AuditStateBefore', 'Get-AuditCrashes')
+    'New-AuditBaseline', 'Compare-AuditWalk', 'Test-AuditBaseline', 'Publish-AuditBaseline', 'Save-SettingsPages', 'Get-SettingsPages', 'Test-AuditSectionShown', 'Get-AuditLocaleTable', 'Write-Step', 'Test-AuditDestination', 'Select-AuditTapNode', 'Find-AuditTapNode', 'Get-UiNodes', 'Send-Profile', 'Test-AuditLocaleList', 'Get-AuditLauncher', 'Get-Report',
+    'Test-AuditReelViewer', 'Get-AuditReelProof', 'Test-AuditKeyboard', 'Test-AuditSettingsRestored', 'ConvertFrom-AuditJsonTable', 'Resolve-AuditStateBefore', 'Get-AuditCrashes')
 foreach ($functionName in $testFunctions) {
     $definition = $auditAst.Find({ param($node)
         $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq $functionName
     }, $true)
     if (-not $definition) { throw "Missing audit function $functionName" }
-    . ([scriptblock]::Create($definition.Extent.Text))
+    . ([scriptblock]::Create($definition.Extent.Text.Replace('$PSScriptRoot', '$testScriptRoot')))
 }
 
 . (Join-Path $PSScriptRoot 'device-install.ps1')
@@ -116,6 +117,12 @@ function Invoke-FakeAdb {
 }
 function New-TestBackup([Collections.IDictionary]$Switches) {
     return ([ordered]@{ format = 'hushfacebook-settings'; schema = 1; settings = $Switches } | ConvertTo-Json -Compress)
+}
+function New-TestSectionAck([string]$Metadata) {
+    if (-not $Metadata) { return '' }
+    $record = $Metadata | ConvertFrom-Json
+    $record | Add-Member -NotePropertyMembers @{ schema = 3; expandedSections = @('News feed'); sectionRows = 4; targetExpanded = $true }
+    return ConvertTo-Json -InputObject $record -Compress -Depth 5
 }
 function Write-TestLease([string]$Owner = $testToken, [double]$Minutes = 25) {
     $body = [ordered]@{ schemaVersion = 1; serial = $Serial; project = 'Hushfacebook'; chatIdentity = 'audit-tests'
@@ -483,7 +490,7 @@ try {
     $script:dropOnImport = $null
     $script:deviceSwitches = [ordered]@{ hide_ads = $true; hide_reels = $true; added_later = $true }
     function Send-Profile([string]$Json) {
-        $imported = $Json | ConvertFrom-Json -AsHashtable
+        $imported = ConvertFrom-AuditJsonTable $Json
         if ($imported.format -ceq 'hushfacebook-audit') {
             foreach ($key in @($script:deviceSwitches.Keys)) { $script:deviceSwitches[$key] = $false }
         } else {
@@ -676,8 +683,13 @@ try {
     # The baselines are committed as LF. ConvertTo-Json writes CRLF on Windows.
     Assert-That (-not [IO.File]::ReadAllText($Expectations).Contains("`r")) 'The promoted baseline has CR line endings.'
 
+    $declaredPages = @(Get-SettingsPages)
+    Assert-That ($declaredPages.Count -eq 23 -and $declaredPages[0] -ceq '') 'The settings sweep did not include the home list, all 21 categories and Support.'
+    Assert-That (@($declaredPages | Select-Object -Unique).Count -eq 23) 'The settings sweep included a route more than once.'
+    Assert-That ($declaredPages -cnotcontains 'more' -and $declaredPages[-1] -ceq 'support') 'The settings sweep still uses More or omits Support.'
     function Start-Sleep { param([int]$Seconds, [int]$Milliseconds) }
-    function Get-SettingsPages { return 'News feed' }
+    $script:settingsPage = 'News feed'
+    function Get-SettingsPages { return $script:settingsPage }
     function Close-Settings { }
     function Get-ScreenText { return $script:screenText }
     function Save-Screenshot([string]$Path) {
@@ -781,8 +793,8 @@ try {
         $script:adbCalls.Clear()
         Start-FacebookReal
         try { Get-Report (Join-Path $OutDir 'report-launcher.txt') | Out-Null } catch { }
-        $script:pageAck = '{"schema":2,"route":"News feed","title":"Newsfeed","locale":"de-DE","localeTags":["de-rde","de"]}'
-        $script:screenText = @('Newsfeed')
+        $script:pageAck = New-TestSectionAck '{"route":"News feed","title":"Newsfeed","locale":"de-DE","localeTags":["de-rde","de"]}'
+        $script:screenText = @('Hushfacebook', 'Newsfeed')
         Save-SettingsPages 'dark' | Out-Null
         $starts = @($script:adbCalls | Where-Object { $_ -like '*am start*' -and $_ -notlike '*android.intent.action.VIEW*' })
         Assert-That ($starts.Count -ge 3) "Launch commands were not issued for $launcher."
@@ -801,12 +813,15 @@ try {
     Assert-That (-not @($script:adbCalls | Where-Object { $_ -like '*am *' }).Count) 'An unresolved launcher reached ADB.'
     $Entry = "$Package/.LoginActivity"
     $script:foreground = "topResumedActivity=ActivityRecord{1 u0 $Package/.Main t1}"
-    $script:screenText = @('Newsfeed')
-    $script:pageAck = '{"schema":2,"route":"News feed","title":"Newsfeed","locale":"de-DE","localeTags":["de-rde","de"]}'
+    $script:screenText = @('Hushfacebook', 'Newsfeed')
+    $script:pageAck = New-TestSectionAck '{"route":"News feed","title":"Newsfeed","locale":"de-DE","localeTags":["de-rde","de"]}'
     $script:crashBuffer = @('1729999999.100 1000 1000 E AndroidRuntime: Process: com.facebook.katana, PID: 1000')
     Assert-That ((Get-AuditCrashes -SinceEpoch 1730000000).Fatal.Count -eq 0) 'An old crash entered the current audit.'
     $script:crashOnScreenshot = $true
     Assert-That (@(Save-SettingsPages 'dark-de' 'de')[0].Opened) 'Proved translated page was rejected.'
+    $savedAck = Get-Content -LiteralPath (Join-Path $OutDir 'pages-dark-de/news-feed.json') -Raw | ConvertFrom-Json
+    Assert-That ($savedAck.schema -eq 3 -and $savedAck.expandedSections -ccontains 'News feed' -and $savedAck.sectionRows -eq 4) `
+        'The native expansion and row proof was not kept beside the section screenshots.'
     $lateCrashes = Get-AuditCrashes -SinceEpoch 1730000000
     Assert-That ($lateCrashes.Fatal.Count -eq 1 -and $lateCrashes.Fatal[0] -like '1730000001.*') `
         'A crash recorded during the settings pass was missing from the final collection.'
@@ -830,17 +845,80 @@ try {
                 "$(Split-Path -Leaf $scriptPath) didn't fail promptly on a disconnected crash-read transport."
         }
     } finally { $script:offlineCrashRead = $false }
-    $script:pageAck = '{"schema":2,"route":"Playback","title":"Newsfeed","locale":"de-DE","localeTags":["de-rde","de"]}'
+    # Every category header is visible while collapsed, so a title alone cannot prove its content opened.
+    $expandedAck = New-TestSectionAck '{"route":"News feed","title":"Newsfeed","locale":"de-DE","localeTags":["de-rde","de"]}'
+    foreach ($case in @(
+        @{ Name = 'legacy-schema'; Change = { param($record) $record.schema = 2 } },
+        @{ Name = 'string-schema'; Change = { param($record) $record.schema = '3' } },
+        @{ Name = 'fractional-schema'; Change = { param($record) $record.schema = 3.1 } },
+        @{ Name = 'collapsed'; Change = { param($record) $record.expandedSections = @('Playback'); $record.targetExpanded = $false; $record.sectionRows = 0 } },
+        @{ Name = 'wrong-expanded-target'; Change = { param($record) $record.expandedSections = @('Playback') } },
+        @{ Name = 'empty-expanded'; Change = { param($record) $record.expandedSections = @(); $record.targetExpanded = $false } },
+        @{ Name = 'scalar-expanded'; Change = { param($record) $record.expandedSections = 'News feed' } },
+        @{ Name = 'null-expanded'; Change = { param($record) $record.expandedSections = $null } },
+        @{ Name = 'object-expanded'; Change = { param($record) $record.expandedSections = @('News feed', @{ route = 'Playback' }) } },
+        @{ Name = 'empty-id'; Change = { param($record) $record.expandedSections = @('News feed', '') } },
+        @{ Name = 'duplicate-id'; Change = { param($record) $record.expandedSections = @('News feed', 'News feed') } },
+        @{ Name = 'case-changed-id'; Change = { param($record) $record.expandedSections = @('News Feed') } },
+        @{ Name = 'empty-section'; Change = { param($record) $record.sectionRows = 0 } },
+        @{ Name = 'missing-row-count'; Change = { param($record) $record.PSObject.Properties.Remove('sectionRows') } },
+        @{ Name = 'negative-row-count'; Change = { param($record) $record.sectionRows = -1 } },
+        @{ Name = 'string-row-count'; Change = { param($record) $record.sectionRows = '4' } },
+        @{ Name = 'fractional-row-count'; Change = { param($record) $record.sectionRows = 4.5 } },
+        @{ Name = 'boolean-row-count'; Change = { param($record) $record.sectionRows = $true } },
+        @{ Name = 'missing-expanded-flag'; Change = { param($record) $record.PSObject.Properties.Remove('targetExpanded') } },
+        @{ Name = 'string-expanded-flag'; Change = { param($record) $record.targetExpanded = 'true' } },
+        @{ Name = 'false-expanded-flag'; Change = { param($record) $record.targetExpanded = $false } }
+    )) {
+        $record = $expandedAck | ConvertFrom-Json
+        & $case.Change $record
+        $script:pageAck = ConvertTo-Json -InputObject $record -Compress -Depth 5
+        Assert-That (-not @(Save-SettingsPages "dark-de-$($case.Name)" 'de')[0].Opened) `
+            "The visible header passed invalid accordion proof for $($case.Name)."
+    }
+    $record = $expandedAck | ConvertFrom-Json
+    $record.expandedSections = @('Playback', 'News feed', 'support')
+    $script:pageAck = ConvertTo-Json -InputObject $record -Compress -Depth 5
+    $severalOpen = @(Save-SettingsPages 'dark-de-several-open' 'de')[0]
+    Assert-That ($severalOpen.Opened -and $severalOpen.ExpandedSections.Count -eq 3 -and $severalOpen.SectionRows -eq 4 -and $severalOpen.TargetExpanded) `
+        'Independent open sections were rejected or their proof was missing from the result.'
+    $script:screenText = @('Newsfeed')
+    Assert-That (-not @(Save-SettingsPages 'dark-de-no-toolbar' 'de')[0].Opened) 'Section proof passed without the Hushfacebook toolbar.'
+    $script:screenText = @('Hushfacebook', 'Newsfeed')
+    $script:pageAck = New-TestSectionAck '{"route":"Playback","title":"Newsfeed","locale":"de-DE","localeTags":["de-rde","de"]}'
     Assert-That (-not @(Save-SettingsPages 'dark-de' 'de')[0].Opened) 'Wrong localized page was accepted.'
-    $script:screenText = @('News feed')
-    $script:pageAck = '{"schema":2,"route":"News feed","title":"News feed","locale":"en-US","localeTags":["en-rus","en"]}'
+    $script:screenText = @('Hushfacebook', 'News feed')
+    $script:pageAck = New-TestSectionAck '{"route":"News feed","title":"News feed","locale":"en-US","localeTags":["en-rus","en"]}'
     Assert-That (-not @(Save-SettingsPages 'dark-de' 'de')[0].Opened) 'An English page passed a requested German pass.'
-    $script:pageAck = '{"schema":2,"route":"News feed","title":"News feed","locale":"de-DE","localeTags":["de-rde","de"]}'
+    $script:pageAck = New-TestSectionAck '{"route":"News feed","title":"News feed","locale":"de-DE","localeTags":["de-rde","de"]}'
     Assert-That (-not @(Save-SettingsPages 'dark-de' 'de')[0].Opened) 'An English title under German configuration passed.'
-    $script:pageAck = '{"schema":2,"route":"News feed","title":"News feed","localeTags":["de-rde","de"]}'
+    $script:pageAck = New-TestSectionAck '{"route":"News feed","title":"News feed","localeTags":["de-rde","de"]}'
     Assert-That (-not @(Save-SettingsPages 'dark-de' 'de')[0].Opened) 'A missing effective locale passed a localized pass.'
     $script:pageAck = ''
     Assert-That (-not @(Save-SettingsPages 'dark-de' 'de')[0].Opened) 'Missing page acknowledgement passed.'
+    try {
+        $script:settingsPage = ''
+        $script:screenText = @('Hushfacebook', 'Newsfeed', 'Hilfe')
+        $script:pageAck = '{"schema":3,"route":"","title":"Hushfacebook","locale":"de-DE","localeTags":["de-rde","de"],"expandedSections":["Playback"],"sectionRows":0,"targetExpanded":false}'
+        Assert-That (@(Save-SettingsPages 'dark-de-home' 'de')[0].Opened) 'The main list with another independently expanded section was refused.'
+        $record = $script:pageAck | ConvertFrom-Json
+        $record.sectionRows = 4
+        $script:pageAck = ConvertTo-Json -InputObject $record -Compress -Depth 5
+        Assert-That (-not @(Save-SettingsPages 'dark-de-home-rows' 'de')[0].Opened) 'The main list claimed children for an absent target.'
+
+        $script:settingsPage = 'support'
+        $script:pageAck = '{"schema":3,"route":"support","title":"Hilfe","locale":"de-DE","localeTags":["de-rde","de"],"expandedSections":["News feed","support"],"sectionRows":4,"targetExpanded":true}'
+        $supportPage = @(Save-SettingsPages 'dark-de-support' 'de')[0]
+        Assert-That ($supportPage.Opened -and $supportPage.Name -ceq 'support') 'The translated Support section was omitted or used its lowercase route as the translation key.'
+        $record = $script:pageAck | ConvertFrom-Json
+        $record.expandedSections = @('News feed')
+        $record.targetExpanded = $false
+        $record.sectionRows = 0
+        $script:pageAck = ConvertTo-Json -InputObject $record -Compress -Depth 5
+        Assert-That (-not @(Save-SettingsPages 'dark-de-support-collapsed' 'de')[0].Opened) 'The collapsed Support header passed without its content.'
+    } finally {
+        $script:settingsPage = 'News feed'
+    }
     # The configuration's primary locale and the runtime's translation lookup order are independent.
     $actualTranslationTables = $translationTables
     $translationTables = Join-Path $testRoot 'fallback-translations'
@@ -848,29 +926,29 @@ try {
     [IO.File]::WriteAllText((Join-Path $translationTables 'de.tsv'), "News feed`tNewsfeed`n")
     try {
         foreach ($case in @(
-            @{ Name = 'base'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar"]}'; Text = 'News feed'; Opened = $true },
-            @{ Name = 'regional'; Requested = 'ar-SA'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar-SA","localeTags":["ar-rsa","ar"]}'; Text = 'News feed'; Opened = $true },
-            @{ Name = 'german-secondary'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"Newsfeed","locale":"ar","localeTags":["ar","de-rde","de"]}'; Text = 'Newsfeed'; Opened = $true },
-            @{ Name = 'english-before-german'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar","en-rus","en","de"]}'; Text = 'News feed'; Opened = $true },
-            @{ Name = 'unknown-secondary'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar","zz-rzz","zz"]}'; Text = 'News feed'; Opened = $true },
-            @{ Name = 'wrong-secondary-title'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar","de-rde","de"]}'; Text = 'News feed'; Opened = $false },
-            @{ Name = 'wrong-english-priority'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"Newsfeed","locale":"ar","localeTags":["ar","en-rus","en","de"]}'; Text = 'Newsfeed'; Opened = $false },
-            @{ Name = 'missing-tags'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar"}'; Text = 'News feed'; Opened = $false },
-            @{ Name = 'null-tags'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":null}'; Text = 'News feed'; Opened = $false },
-            @{ Name = 'scalar-tags'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":"ar"}'; Text = 'News feed'; Opened = $false },
-            @{ Name = 'empty-tags'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":[]}'; Text = 'News feed'; Opened = $false },
-            @{ Name = 'nonscalar-tags'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar",{"tag":"de"}]}'; Text = 'News feed'; Opened = $false },
-            @{ Name = 'malformed-tags'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar","not a tag"]}'; Text = 'News feed'; Opened = $false },
-            @{ Name = 'foreign-first'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"Newsfeed","locale":"ar","localeTags":["de-rde","de","ar"]}'; Text = 'Newsfeed'; Opened = $false },
-            @{ Name = 'wrong-locale'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"en-US","localeTags":["en-rus","en"]}'; Text = 'News feed'; Opened = $false },
-            @{ Name = 'missing-locale'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","localeTags":["ar"]}'; Text = 'News feed'; Opened = $false },
-            @{ Name = 'wrong-route'; Requested = 'ar'; Ack = '{"schema":2,"route":"Playback","title":"News feed","locale":"ar","localeTags":["ar"]}'; Text = 'News feed'; Opened = $false },
-            @{ Name = 'wrong-title'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"Playback","locale":"ar","localeTags":["ar"]}'; Text = 'Playback'; Opened = $false },
-            @{ Name = 'wrong-visible-title'; Requested = 'ar'; Ack = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar"]}'; Text = 'Playback'; Opened = $false },
+            @{ Name = 'base'; Requested = 'ar'; Ack = '{"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar"]}'; Text = 'News feed'; Opened = $true },
+            @{ Name = 'regional'; Requested = 'ar-SA'; Ack = '{"route":"News feed","title":"News feed","locale":"ar-SA","localeTags":["ar-rsa","ar"]}'; Text = 'News feed'; Opened = $true },
+            @{ Name = 'german-secondary'; Requested = 'ar'; Ack = '{"route":"News feed","title":"Newsfeed","locale":"ar","localeTags":["ar","de-rde","de"]}'; Text = 'Newsfeed'; Opened = $true },
+            @{ Name = 'english-before-german'; Requested = 'ar'; Ack = '{"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar","en-rus","en","de"]}'; Text = 'News feed'; Opened = $true },
+            @{ Name = 'unknown-secondary'; Requested = 'ar'; Ack = '{"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar","zz-rzz","zz"]}'; Text = 'News feed'; Opened = $true },
+            @{ Name = 'wrong-secondary-title'; Requested = 'ar'; Ack = '{"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar","de-rde","de"]}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'wrong-english-priority'; Requested = 'ar'; Ack = '{"route":"News feed","title":"Newsfeed","locale":"ar","localeTags":["ar","en-rus","en","de"]}'; Text = 'Newsfeed'; Opened = $false },
+            @{ Name = 'missing-tags'; Requested = 'ar'; Ack = '{"route":"News feed","title":"News feed","locale":"ar"}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'null-tags'; Requested = 'ar'; Ack = '{"route":"News feed","title":"News feed","locale":"ar","localeTags":null}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'scalar-tags'; Requested = 'ar'; Ack = '{"route":"News feed","title":"News feed","locale":"ar","localeTags":"ar"}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'empty-tags'; Requested = 'ar'; Ack = '{"route":"News feed","title":"News feed","locale":"ar","localeTags":[]}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'nonscalar-tags'; Requested = 'ar'; Ack = '{"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar",{"tag":"de"}]}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'malformed-tags'; Requested = 'ar'; Ack = '{"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar","not a tag"]}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'foreign-first'; Requested = 'ar'; Ack = '{"route":"News feed","title":"Newsfeed","locale":"ar","localeTags":["de-rde","de","ar"]}'; Text = 'Newsfeed'; Opened = $false },
+            @{ Name = 'wrong-locale'; Requested = 'ar'; Ack = '{"route":"News feed","title":"News feed","locale":"en-US","localeTags":["en-rus","en"]}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'missing-locale'; Requested = 'ar'; Ack = '{"route":"News feed","title":"News feed","localeTags":["ar"]}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'wrong-route'; Requested = 'ar'; Ack = '{"route":"Playback","title":"News feed","locale":"ar","localeTags":["ar"]}'; Text = 'News feed'; Opened = $false },
+            @{ Name = 'wrong-title'; Requested = 'ar'; Ack = '{"route":"News feed","title":"Playback","locale":"ar","localeTags":["ar"]}'; Text = 'Playback'; Opened = $false },
+            @{ Name = 'wrong-visible-title'; Requested = 'ar'; Ack = '{"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar"]}'; Text = 'Playback'; Opened = $false },
             @{ Name = 'missing-ack'; Requested = 'ar'; Ack = ''; Text = 'News feed'; Opened = $false }
         )) {
-            $script:screenText = @($case.Text)
-            $script:pageAck = $case.Ack
+            $script:screenText = @('Hushfacebook', $case.Text)
+            $script:pageAck = New-TestSectionAck $case.Ack
             $fallbackPages = @()
             $fallbackError = $null
             try { $fallbackPages = @(Save-SettingsPages "dark-ar-$($case.Name)" $case.Requested) }
@@ -879,8 +957,8 @@ try {
                 "Arabic runtime-locale case $($case.Name) did not validate the actual page (error: $fallbackError)."
         }
         [IO.File]::WriteAllText((Join-Path $translationTables 'ar.tsv'), "News feed`t`n")
-        $script:screenText = @('News feed')
-        $script:pageAck = '{"schema":2,"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar","de-rde","de"]}'
+        $script:screenText = @('Hushfacebook', 'News feed')
+        $script:pageAck = New-TestSectionAck '{"route":"News feed","title":"News feed","locale":"ar","localeTags":["ar","de-rde","de"]}'
         Assert-That (@(Save-SettingsPages 'dark-ar-empty-row' 'ar')[0].Opened) 'An empty translation row refused the English fallback title under Arabic configuration.'
     } finally {
         $translationTables = $actualTranslationTables

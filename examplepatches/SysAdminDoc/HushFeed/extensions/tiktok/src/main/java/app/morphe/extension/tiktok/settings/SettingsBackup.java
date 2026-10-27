@@ -265,7 +265,6 @@ public final class SettingsBackup {
                     Setting.preferences.preferences.getAll());
             if (saveUndo) {
                 writeUndo(context, previousText);
-                CalmFeedPreset.holdForUndo(context);
                 FeatureGateLabStore.holdLabUndo();
             }
             BudgetChanges.Split budget = BudgetChanges.forRestore(next.values, SessionBudget.now());
@@ -297,10 +296,6 @@ public final class SettingsBackup {
                     if (undoCopy) FeatureGateLabStore.swapLabUndoWithHeld();
                     else FeatureGateLabStore.discardLabUndo();
                 }
-                // The Calm feed card offered "Restore setup" from before a reset or an import,
-                // which would have put back values it had just replaced. Its copy went aside
-                // with the undo copy above, so the Undo below brings both back.
-                if (saveUndo) CalmFeedPreset.clearAfterRestore(context);
             } catch (Exception error) {
                 try { Setting.saveAll(previous.values, true); } catch (Exception rollback) { error.addSuppressed(rollback); }
                 // Only put the Lab back when the apply above reached it. Writing the same
@@ -334,7 +329,6 @@ public final class SettingsBackup {
         BudgetChanges.applyDue(SessionBudget.now());
         String replaced = create(false);
         String text = restoreFrom(context, readableUndoFile(context).openRead(), false, false);
-        CalmFeedPreset.swapWithUndo(context);
         // What the undo replaced becomes the copy, once it has worked, so a second Undo brings
         // back whatever changed since the restore instead of losing it for good. Written after,
         // not before: a failed undo must leave the copy it was asked for in place.

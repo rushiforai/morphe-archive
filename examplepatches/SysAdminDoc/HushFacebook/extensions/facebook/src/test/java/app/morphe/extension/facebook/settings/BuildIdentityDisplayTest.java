@@ -78,9 +78,6 @@ public class BuildIdentityDisplayTest {
                 root.layout(0, 0, 1080, 2340);
                 ShadowLooper.idleMainLooper();
                 ListView list = root.findViewById(android.R.id.list);
-                TextView summary = list.getChildAt(0).findViewById(android.R.id.summary);
-                assertTrue(summary.getText().toString(), summary.getText().toString().contains("0.7.1"));
-                assertTrue("detail lines: " + summary.getLineCount(), summary.getLineCount() <= 4);
                 int categories = 0;
                 for (int i = 0; i < list.getChildCount(); i++) {
                     View row = list.getChildAt(i);
@@ -91,6 +88,12 @@ public class BuildIdentityDisplayTest {
                 }
                 assertTrue("only " + categories + " categories fit", categories >= 4);
                 capture(root, "identity-overview-1080" + (paused ? "-paused" : "-active"));
+                list.setSelection(list.getCount() - 1);
+                ShadowLooper.idleMainLooper();
+                TextView summary = root.findViewWithTag(SettingsDialog.BUILD_DETAILS);
+                assertNotNull("build details are missing from the end of the main list", summary);
+                assertTrue(summary.getText().toString(), summary.getText().toString().contains("0.7.1"));
+                assertTrue("detail lines: " + summary.getLineCount(), summary.getLineCount() <= 4);
             }
         }
     }
@@ -151,7 +154,10 @@ public class BuildIdentityDisplayTest {
                     root.layout(0, 0, width, height);
                     ShadowLooper.idleMainLooper();
                     ListView list = root.findViewById(android.R.id.list);
-                    TextView summary = list.getChildAt(0).findViewById(android.R.id.summary);
+                    list.setSelection(list.getCount() - 1);
+                ShadowLooper.idleMainLooper();
+                TextView summary = root.findViewWithTag(SettingsDialog.BUILD_DETAILS);
+                assertNotNull(summary);
                     String text = summary.getText().toString();
                     String identity = L10n.f("Build %1$s (modified)", L10n.isolate("11111111"));
                     assertTrue(reason + "/" + savedPause + ": " + text, text.contains(identity));
@@ -163,7 +169,7 @@ public class BuildIdentityDisplayTest {
                     assertEquals("the compact detail isn't cut off", text.length(),
                             layout.getLineEnd(layout.getLineCount() - 1));
                     for (int line = 0; line < layout.getLineCount(); line++) assertEquals(0, layout.getEllipsisCount(line));
-                    android.widget.Button action = firstButton(list.getChildAt(0));
+                    android.widget.Button action = firstButton(root);
                     assertNotNull(action);
                     String label = savedPause != (reason != HushfacebookPause.Reason.NONE) ? "Undo"
                             : savedPause ? "Resume" : "Pause";
@@ -249,7 +255,9 @@ public class BuildIdentityDisplayTest {
                 View row = list.getAdapter().getView(0, null, list);
                 String text = ((TextView) row.findViewById(android.R.id.summary)).getText().toString();
                 assertTrue(text, text.contains("couldn't be removed") && text.contains("then tap Resume again."));
-                assertTrue(text, text.contains(L10n.f("Build %1$s", L10n.isolate(IdentityUtils.value))));
+                View footer = list.getAdapter().getView(list.getCount() - 1, null, list);
+                String detail = ((TextView) footer.findViewWithTag(SettingsDialog.BUILD_DETAILS)).getText().toString();
+                assertTrue(detail, detail.contains(L10n.f("Build %1$s", L10n.isolate(IdentityUtils.value))));
             } finally {
                 held.delete();
                 marker.delete();

@@ -36,9 +36,12 @@ import org.junit.Test
  * each argument, the id last, and Facebook's own rows pass their address first.
  */
 class SettingsRowFixtureTest {
-    /** How many row loggers each declared build's tap class has, by ABI. 582's 32-bit build dropped both. */
+    /**
+     * How many row loggers each declared build's tap class has, by ABI. 582's 32-bit build dropped
+     * both; 584's 32-bit build keeps them, as its arm64 build does.
+     */
     private val loggerCount = mapOf(
-        "584.0.0.51.56" to mapOf("arm64-v8a" to 2),
+        "584.0.0.51.56" to mapOf("arm64-v8a" to 2, "armeabi-v7a" to 2),
     )
 
     private fun Method.instructionList() = implementation?.instructions?.toList().orEmpty()

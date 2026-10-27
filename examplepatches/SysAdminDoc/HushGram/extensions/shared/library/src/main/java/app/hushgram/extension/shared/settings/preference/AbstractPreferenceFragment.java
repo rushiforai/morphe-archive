@@ -657,7 +657,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
     private static boolean restartNoteHeld;
 
     /**
-     * Runs [changes], several switches set in one go such as a Quick setup, and gives the "restart
+     * Runs [changes], several switches set in one go, and gives the "restart
      * to apply" note once at the end if any of them needed one, instead of once per switch.
      */
     public static void restartNoteOnce(Context context, Runnable changes) {

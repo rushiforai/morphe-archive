@@ -15,17 +15,25 @@ const TABLES = JSON.parse(fs.readFileSync(path.join(ROOT, 'work/discord_colors.j
 const index = JSON.parse(fs.readFileSync(path.join(ROOT, 'work/themes/index.json'), 'utf8'));
 const SLOTS = Object.values(TABLES.themes);
 // Module IDs as bootstrap.js uses them, so this harness follows every Discord port by itself.
-const caseId = hook => +(new RegExp('case (\\d+): return features\\.customThemes \\? ' + hook).exec(src) || [])[1];
+const caseId = hook => +(new RegExp('case (\\d+): return features\\.customThemes(?: \\|\\| features\\.materialYou)? \\? ' + hook).exec(src) || [])[1];
 const partId = name => +(new RegExp('\\b' + name + ':(?:\\w+ \\|\\| )?x\\((\\d+),').exec(src) || [])[1];
 const ID = {RawColors:caseId('hookRawColorsModule'), SemanticColors:caseId('hookSemanticColorsModule'),
     SemanticColorExperiments:caseId('hookExperimentColorsModule'),
     ThemeStore:+(/case (\d+): if \(\(features\.customThemes[^\n]*themeStore =/.exec(src) || [])[1],
-    ThemeContext:+(/case (\d+): return \(features\.customThemes \|\| features\.iconPacks\) \? hookCreateThemedContext/.exec(src) || [])[1],
+    ThemeContext:+(/case (\d+): return \(features\.customThemes (?:\|\| features\.materialYou )?\|\| features\.iconPacks\) \? hookCreateThemedContext/.exec(src) || [])[1],
     SettingsRegistry:+(/case (\d+): exports\.SETTING_RENDERER_CONFIG = nativeRegistry/.exec(src) || [])[1],
     toasts:partId('toasts'), TableRow:partId('TableRow'), TableRowGroup:partId('TableRowGroup'), TextInput:partId('TextInput')};
 for (const [name, id] of Object.entries(ID)) if (!id) throw new Error(`theme_compat: can't find ${name}'s module ID in bootstrap.js`);
 // Venus's own alias table, read from bootstrap.js so the report follows the code.
 const ALIASES = (0, eval)('(' + /const LEGACY_SEMANTIC_ALIASES = (\{[\s\S]*?\n    \});/.exec(src)[1] + ')');
+// Keys Discord no longer reads (CHAT_BACKGROUND, *_MOBILE_*, BG_BASE_*) only fill in for their plain key, so when the
+// theme sets that plain key too, a variant's color losing to it is the rule working, not a miss.
+// Desktop-only keys mobile Discord never draws (Android has no themed scrollbars), and native-only tokens that reach
+// Discord's Android views through the native color table instead of the JS tables: neither can be checked here.
+const NOT_IN_JS_TABLES = new Set(['SCROLLBAR_THIN_THUMB', 'SCROLLBAR_THIN_TRACK', 'SCROLLBAR_AUTO_THUMB', 'SCROLLBAR_AUTO_TRACK',
+    'SCROLLBAR_AUTO_SCROLLBAR_COLOR_THUMB', 'SCROLLBAR_AUTO_SCROLLBAR_COLOR_TRACK']
+    .concat(Object.keys((0, eval)('(' + (/const NATIVE_ONLY_TOKENS = (\{[\s\S]*?\n    \});/.exec(src) || [0, '{}'])[1] + ')'))));
+const VARIANTS = (0, eval)('(' + (/const LEGACY_ALIAS_VARIANT = (\{[^}]*\});/.exec(src) || [0, '{}'])[1] + ')');
 const clone = o => JSON.parse(JSON.stringify(o));
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
@@ -109,9 +117,10 @@ const hexOf = v => { const c = Array.isArray(v) ? v[0] : v; if (typeof c !== 'st
         const drawn = new Set(Object.keys(after).filter(k => k.endsWith(':' + SLOTS[0])).map(k => String(after[k]).split('@')[0].toLowerCase().slice(0, 7)));
         const targetsOf = k => (k in TABLES.sem ? [k] : []).concat(ALIASES[k] || []);
         const unlanded = Object.entries(declaredKeys).filter(([k, v]) => {
-            const h = hexOf(v); if (!h) return false;
+            const h = hexOf(v); if (!h || NOT_IN_JS_TABLES.has(k)) return false;
             const all = targetsOf(k), own = all.filter(token => token === k || !(token in declaredKeys));
             if (all.length && !own.length) return false;
+            if (VARIANTS[k] && Object.keys(declaredKeys).some(other => other !== k && !VARIANTS[other] && (ALIASES[other] || []).some(t => all.includes(t)))) return false;
             if (own.length) return !own.some(token => String(after[token + ':' + SLOTS[0]]).split('@')[0].toLowerCase().slice(0, 7) === h);
             return !drawn.has(h);
         }).map(([k]) => k);

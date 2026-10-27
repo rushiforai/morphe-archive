@@ -1,0 +1,58 @@
+labels: ["app request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you post:
+
+        - Check the [open requests](https://github.com/totsiaw/proxma-patches/discussions/categories/app-requests?discussions_q=is%3Aopen+category%3A%22App+Requests%22+sort%3Atop) first. If your app is there, upvote it instead of opening another one.
+        - One app per request. Use the app's name as the title.
+        - This is a hobby project. Upvotes show demand but nothing is promised.
+        - Features that depend on the app's servers (AI, cloud sync, streaming quality) may not be patchable.
+  - type: input
+    id: app_name
+    attributes:
+      label: App
+      description: Full name of the app as shown on the Play Store, with a link.
+      placeholder: Duolingo, https://play.google.com/store/apps/details?id=com.duolingo
+    validations:
+      required: true
+  - type: input
+    id: package_name
+    attributes:
+      label: Package name
+      description: The Android package name, if you know it.
+      placeholder: com.duolingo
+    validations:
+      required: false
+  - type: dropdown
+    id: features
+    attributes:
+      label: Requested features
+      multiple: true
+      options:
+        - Unlock premium
+        - Remove ads
+        - Disable tracking
+        - Bypass a check the app does locally
+        - Something else, described below
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional info
+      description: Anything else useful — which features sit behind the paywall, specific ads you want gone, etc.
+    validations:
+      required: false
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched open and closed requests and this isn't a duplicate.
+          required: true
+        - label: I understand that features depending on the app's servers may not be patchable.
+          required: true
+        - label: "This isn't about a region lock. A VPN handles that, a patch doesn't."
+          required: true

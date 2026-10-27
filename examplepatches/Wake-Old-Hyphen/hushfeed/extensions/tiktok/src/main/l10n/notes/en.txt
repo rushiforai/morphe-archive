@@ -1,5 +1,27 @@
 ## Unreleased
 
+* **Settings:** A new switch takes the Hushfeed row out of TikTok's Settings and privacy. Press and hold For You to open the settings after that (#264).
+* **Comments:** Full-height comments now stop below the status bar instead of covering the clock and battery, and they open full height on the first video after starting TikTok too (#261).
+* **Feed:** Add a floating glass pill to the main feed's bottom bar with a lens that slides across the tabs, a slide-along gesture, optional haptics, and new Interface settings for blur strength, glass opacity, pill height and corners (#259).
+* **Patching:** Patches with settings now have Morphe options that set their starting values, so a build can come with your switches already on. Thanks to @XEGARE (#256).
+* **Settings:** Categories expand and collapse right under their rows in the main list. Search shows controls in that same list, and open categories stay open after rotation or a restart.
+* **Settings:** Replace large home cards with a compact full-width list. Remove Quick setups.
+* **TikTok:** Hushfeed now needs Morphe Manager 2.2.0 or newer, or morphe-desktop 1.19.1 on a computer.
+* **Build checks:** Add a PineDrama core walk for launch, expanding and collapsing settings in place, and return. Full qualification stays incomplete.
+* **Build checks:** Check every LIVE preview and drama label that See-through bottom bar uses against the supported TikTok APK.
+* **Feed:** Keep country flags and codes next to names written from right to left (#258).
+* **Feed:** With `See-through bottom bar` on, the name and "Tap to watch" line of LIVE previews and mini dramas stay above the tabs (#250).
+* **Grids:** Give the sort control a 48 dp touch target.
+* **Grids:** Hide the sort control while its grid is detached, then restore it when the grid returns.
+* **Grids:** Leave the current order in place when a sort change can't be saved.
+* **Grids:** Choosing Original order keeps the current grid's sort menu available (#180).
+* **Comments:** Comments beside the video uses the same width for its layout and rebuild checks (#253).
+* **Inbox:** A reused chat picture now opens the current creator's Story on its first tap when Story-first is enabled (#233).
+* **Playback:** Keep the source video paused when a comment link opens another page. Leaving the tap-to-start cover for another tab also keeps its feed paused (#257).
+* **Diagnostics:** Notification reports count registration and posting stages without message contents (#126, #222, #86).
+* **Screen recording:** Keep TikTok in Android's recent-apps recording choices on Android 14 and newer.
+* **Build checks:** Auto-advance audits follow native playback without per-video labels. Unfinished clips and unavailable playback stay inconclusive.
+* **TikTok:** Hold a settings-search switch to reveal and highlight its control in the main list (#248).
 * **Diagnostics:** First-frame callback records keep source ownership and monotonic timestamps for startup checks (#150).
 * **Build checks:** Release checks require matching APK and native evidence for every advertised package. Walks verify the installed build and patch options.
 * **TikTok:** Recording recovery exports use bulk writes to avoid long waits when saving large files.

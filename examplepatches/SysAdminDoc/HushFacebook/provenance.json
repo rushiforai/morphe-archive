@@ -358,12 +358,22 @@
     },
     {
       "paths": [
+        "extensions/shared/library/src/main/l10n/zh-rTW.tsv"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/JhouHank/HushFacebook",
+      "commit": "be766e7e629931d376974c642435de22f8970c26",
+      "license": "GPL-3.0-only",
+      "changes": "Traditional Chinese (Taiwan) translation contributed by JhouHank in pull request 227. The submitted translations are preserved, with contributor credit and one added Save video row for the later Story menu change. The contributor credits their Piko Instagram translations for terminology; no Piko source revision was supplied."
+    },
+    {
+      "paths": [
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTranslations.java"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Generated for Hushfacebook by scripts/gen-l10n.py from its own translation tables in extensions/shared/library/src/main/l10n."
+      "changes": "Generated for Hushfacebook by scripts/gen-l10n.py from the translation tables in extensions/shared/library/src/main/l10n, including the separately credited Traditional Chinese contribution."
     },
     {
       "paths": [

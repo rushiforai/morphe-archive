@@ -67,6 +67,16 @@ public final class SensitiveWarnings {
     }
 
     /**
+     * One label off a video shared into a chat ("Caution · May contain inaccurate information",
+     * or a policy title), read by the card as its cover loads. The sender's app writes these into
+     * the message, so they never pass through the risk model. A null is what a share without a
+     * label has, and the card then draws no strip.
+     */
+    public static Object chatCardLabel(Object label) {
+        return hideUnverifiedNotices() ? null : label;
+    }
+
+    /**
      * True while TikTok's Know the facts warnings should stay down. Asked in front of the gate the
      * top caution banner ("Check your sources before sharing") and its trigger both call, where a
      * false is what every video without that warning gets, and in front of the prompt TikTok

@@ -314,7 +314,7 @@ class HideContactsTabFixtureTest {
         }
     }
 
-    @Test fun `the chat list's pencil button goes through the runtime only where it gets the pencil`() {
+    @Test fun `compose and Done roles scope the native animation visibility guard to the right button`() {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
@@ -322,27 +322,89 @@ class HideContactsTabFixtureTest {
             assertNull("$name: ${found.missing}", found.missing)
             val method = found.method!!
             val stock = ImmutableMethod.of(method).controlBody()
+            val animation = found.animation!!
+            val animationStock = ImmutableMethod.of(animation).controlBody()
+            val buttonClass = context.mutableClassDefBy(animation.definingClass)
+            val neighboringMethods = buttonClass.methods.filter { it != animation }.associateWith { it.controlBody().map(::operands) }
             assertEquals("$name: the compose icon", COMPOSE_ICON, stock[found.at].controlRef())
             assertEquals("$name: the picture is set on the button right after", listOf(found.register),
                 stock[found.at + 1].namedRegisters().take(1))
-            // The check mark Done button's branch loads another icon and is not the one hooked.
+            // The Done branch clears the registration if Telegram ever reuses a compose instance.
             assertTrue("$name: the check mark branch comes first", stock.take(found.at).any { it.controlRef()?.endsWith("->floating_check:I") == true })
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
 
             val after = method.controlBody()
-            val hook = found.at
-            assertEquals("$name: one instruction", stock.size + 1, after.size)
+            val hook = found.at + 1
+            assertEquals("$name: two role hooks", stock.count { it.opcode != Opcode.NOP } + 2, after.count { it.opcode != Opcode.NOP })
             assertEquals(name, Opcode.INVOKE_STATIC_RANGE, after[hook].opcode)
             assertEquals(name, NEW_MESSAGE_BUTTON, after[hook].controlRef())
             assertEquals("$name: the icon load follows the hook", COMPOSE_ICON, after[hook + 1].controlRef())
+            assertEquals("$name: Done clears the compose role", NEW_MESSAGE_DONE, after[found.doneAt].controlRef())
+            assertEquals("$name: Done keeps its icon", DONE_ICON, after[found.doneAt + 1].controlRef())
             // The way into the pencil's branch now lands on the hook, and nothing else leads into it.
             val flow = ControlFlow.of(method)
             val into = after.indices.filter { hook in flow.normal[it] || hook in flow.exceptional[it] }
             assertEquals("$name: one way in", 1, into.size)
             assertTrue("$name: a branch, not the check mark's return", after[into.single()].opcode != Opcode.RETURN_VOID)
-            assertStock(name, stock, after) { if (it < hook) it else it + 1 }
+            assertStock(name, stock, after) { it + (if (it >= found.doneAt) 1 else 0) + (if (it >= found.at) 1 else 0) }
+            val animated = animation.controlBody()
+            assertEquals("$name: the animator keeps all instructions", animationStock.size, animated.size)
+            assertEquals(name, Opcode.INVOKE_STATIC, animated[found.visibilityAt].opcode)
+            assertEquals(name, NEW_MESSAGE_VISIBILITY, animated[found.visibilityAt].controlRef())
+            assertEquals("$name: the same view and native visibility", animationStock[found.visibilityAt].namedRegisters(),
+                animated[found.visibilityAt].namedRegisters())
+            for (index in animationStock.indices.filter { it != found.visibilityAt }) {
+                assertEquals("$name: animator instruction $index", operands(animationStock[index]), operands(animated[index]))
+            }
+            for ((other, before) in neighboringMethods) {
+                assertEquals("$name: ${other.name} stays native", before, other.controlBody().map(::operands))
+            }
             val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideNewMessage" }.controlBody()
             assertEquals("$name: hideNewMessage", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
+        }
+    }
+
+    @Test fun `a changed native visibility writer disables only new message hiding before any role hook is added`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
+            val found = context.resolveNewMessageButton()
+            assertNull("$name: ${found.missing}", found.missing)
+            val animation = found.animation!!
+            val registers = animation.controlBody()[found.visibilityAt].namedRegisters()
+            animation.replaceInstruction(found.visibilityAt, "invoke-virtual {v${registers[0]}, v${registers[1]}}, Landroid/view/View;->setMinimumHeight(I)V")
+            val role = found.method!!
+            val beforeRole = role.controlBody().map(::operands)
+            val beforeAnimation = animation.controlBody().map(::operands)
+            assertEquals(name, listOf("Hide Contacts tab: the compose button no longer has one native visibility animator (0). " +
+                "The patch goes on without the new message switch."), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+            assertEquals("$name: no compose or Done hook", beforeRole, role.controlBody().map(::operands))
+            assertEquals("$name: no partial animator edit", beforeAnimation, animation.controlBody().map(::operands))
+            assertNewMessageUnavailable(context, name)
+        }
+    }
+
+    @Test fun `a changed Done role disables new message hiding rather than hiding selection controls`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
+            val found = context.resolveNewMessageButton()
+            assertNull("$name: ${found.missing}", found.missing)
+            val method = found.method!!
+            val iconRegister = method.controlBody()[found.doneAt].namedRegisters().first()
+            method.replaceInstruction(found.doneAt, "const/4 v$iconRegister, 0x0")
+            val before = method.controlBody().map(::operands)
+            assertEquals(name, listOf("Hide Contacts tab: the chat list no longer sets one Done button role. " +
+                "The patch goes on without the new message switch."), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+            assertEquals("$name: no partial role edit", before, method.controlBody().map(::operands))
+            assertNewMessageUnavailable(context, name)
+        }
+    }
+
+    private fun assertNewMessageUnavailable(context: BytecodePatchContext, name: String) {
+        for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to 1L, "sideMenu" to 1L, "hideNewMessage" to 0L)) {
+            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
+            assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }
 
@@ -400,7 +462,15 @@ class HideContactsTabFixtureTest {
         assertEquals("${build.name}: one main screen", 1, screens.size)
         val loaded = LinkedHashMap<String, ClassDef>()
         screens.forEach { loaded[it.type] = it }
-        if (withChatList) FixtureDex.classesWhere(build, { true }, ::isChatListButton).forEach { loaded[it.type] = it }
+        if (withChatList) {
+            val chatLists = FixtureDex.classesWhere(build, { true }, ::isChatListButton)
+            chatLists.forEach { loaded[it.type] = it }
+            val buttonTypes = chatLists.flatMap { cls -> cls.methods.filter(::isChatListButton).map { method ->
+                val body = method.controlBody()
+                body[body.indexOfFirst { it.controlRef() == COMPOSE_ICON } + 1].call()!!.definingClass
+            } }.toSet()
+            loaded.putAll(FixtureDex.classes(build, buttonTypes))
+        }
         val asked = HashSet<String>(leaveOut)
         var wanted = setOfNotNull(screens.single().superclass) + (SIDE_MENU_HOSTS - leaveOut)
         while (wanted.isNotEmpty()) {

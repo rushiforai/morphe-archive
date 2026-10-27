@@ -7,8 +7,11 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import java.io.File
 import org.junit.Assert.assertEquals
@@ -71,6 +74,60 @@ class CommentSheetHeightAnchorsTest {
                         } == true
                 },
             )
+
+            // #261: the second sizing pass is one method that writes one FrameLayout height, on
+            // the params of a view it read them from, both in registers an invoke can name.
+            val resizes = methods.filter { (classDef, method) -> CommentPanelResizeFingerprint.takes(method, classDef) }
+            assertEquals("${apk.name}: resize took ${resizes.map { it.second.name }}", 1, resizes.size)
+            val resize = resizes.single().second.implementation!!.instructions.toList()
+            val heightWrites = resize.withIndex().filter { (_, instruction) ->
+                instruction.opcode == Opcode.IPUT &&
+                    ((instruction as ReferenceInstruction).reference as? FieldReference)?.let {
+                        it.definingClass == "Landroid/widget/FrameLayout\$LayoutParams;" && it.name == "height"
+                    } == true
+            }
+            assertEquals("${apk.name}: the resize writes ${heightWrites.size} panel heights", 1, heightWrites.size)
+            val (heightIndex, heightWrite) = heightWrites.single()
+            val paramsIndex = resize.subList(0, heightIndex).indexOfLast { instruction ->
+                instruction.opcode == Opcode.INVOKE_VIRTUAL &&
+                    ((instruction as ReferenceInstruction).reference as? MethodReference)?.name == "getLayoutParams"
+            }
+            assertTrue("${apk.name}: the resize reads no layout params", paramsIndex >= 0)
+            val paramsRead = resize[paramsIndex + 1]
+            assertEquals(Opcode.MOVE_RESULT_OBJECT, paramsRead.opcode)
+            assertEquals(
+                "${apk.name}: the height goes on other params than the panel's",
+                (paramsRead as OneRegisterInstruction).registerA,
+                (heightWrite as TwoRegisterInstruction).registerB,
+            )
+            assertTrue("${apk.name}: the height register is out of reach", heightWrite.registerA <= 15)
+            assertTrue(
+                "${apk.name}: the panel register is out of reach",
+                (resize[paramsIndex] as FiveRegisterInstruction).registerC <= 15,
+            )
+
+            // #261: the input check is one method, and every height it writes goes on the
+            // params of the fragment's panel, read just before, in registers an invoke can name.
+            val checks = methods.filter { (classDef, method) -> CommentInputCheckFingerprint.takes(method, classDef) }
+            assertEquals("${apk.name}: input check took ${checks.map { "${it.first.type}->${it.second.name}" }}", 1, checks.size)
+            val check = checks.single().second
+            val checkInstructions = check.implementation!!.instructions.toList()
+            val writes = panelHeightWrites(check, "Landroid/view/ViewGroup\$LayoutParams;")
+            assertEquals("${apk.name}: the input check writes ${writes.size} panel heights", 2, writes.size)
+            for ((index, heightRegister, panelRegister) in writes) {
+                assertTrue("${apk.name}: the height register is out of reach", heightRegister <= 15)
+                assertTrue("${apk.name}: the panel register is out of reach", panelRegister <= 15)
+                val panelRead = checkInstructions.subList(0, index).last { instruction ->
+                    instruction.opcode == Opcode.IGET_OBJECT && (instruction as TwoRegisterInstruction).registerA == panelRegister
+                }
+                val field = (panelRead as ReferenceInstruction).reference as FieldReference
+                assertEquals(
+                    "${apk.name}: the input check sizes another view",
+                    "Lcom/ss/android/ugc/aweme/commentv2/commentpage/commonvideo/DefaultCommentPageContainerFragment;",
+                    field.definingClass,
+                )
+                assertEquals("Landroid/view/View;", field.type)
+            }
         }
     }
 
@@ -81,6 +138,18 @@ class CommentSheetHeightAnchorsTest {
         assertTrue("the height is not guarded", source.contains("height.guardAtEntry("))
         assertTrue("the answer is not the switch's", source.contains("openAtFullHeight()Z"))
         assertTrue("the mode is not lifted", source.contains("heightMode(I)I"))
+        assertTrue(
+            "the full height is not kept below the status bar (#261)",
+            source.contains("belowStatusBar(\${CONTEXT}I)I"),
+        )
+        assertTrue(
+            "the second sizing pass keeps its share (#261)",
+            source.contains("panelHeight(Landroid/view/View;I)I"),
+        )
+        assertTrue(
+            "the input check keeps its share (#261)",
+            source.contains("keepPanelHeight(inputCheck, "),
+        )
         assertTrue("the row's flag is not set", source.contains("SettingsStatus;->enableCommentsFullHeight()V"))
     }
 

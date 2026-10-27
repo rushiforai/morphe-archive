@@ -55,7 +55,8 @@ import app.hushtelegram.extension.telegram.settings.Settings;
  * <p>Only what Telegram would let you save by hand: a document or a song from a message. Photos and
  * videos have Telegram's own Save to gallery, and GIFs, voice and round videos stay put. Nothing
  * from a secret chat, self-destructing media, or a chat or message that doesn't allow saving. A
- * second switch, off until turned on, lets that last kind through (#29), never the first two. On
+ * second switch, off until turned on, lets that last kind through (#29), never the first two, and
+ * with it photos and videos from such a chat too, since Save to gallery is gone there. On
  * Android 9 and 10 with storage access, Telegram's folder is already shared, so there's nothing to
  * copy.
  *
@@ -94,6 +95,12 @@ public final class SaveDownloads {
 
         /** The account's stored message, as a MessageObject, or null when it isn't stored. Waits for Telegram's storage queue. */
         Object storedMessage(int account, long dialogId, int messageId);
+
+        /** Whether the message is a photo or a video, not a GIF, round video or self-destructing media. */
+        boolean photoOrVideo(Object message);
+
+        /** The photo size a chat shows and Save to Gallery saves, or null. */
+        Object photo(Object message);
     }
 
     static Telegram telegram = new Telegram() {
@@ -131,6 +138,16 @@ public final class SaveDownloads {
         public Object storedMessage(int account, long dialogId, int messageId) {
             return SaveDownloads.storedMessage(account, dialogId, messageId);
         }
+
+        @Override
+        public boolean photoOrVideo(Object message) {
+            return SaveDownloads.photoOrVideo(message);
+        }
+
+        @Override
+        public Object photo(Object message) {
+            return SaveDownloads.photo(message);
+        }
     };
 
     /** Copies run here one at a time, off Telegram's download queue. Tests swap in a direct one. */
@@ -155,8 +172,8 @@ public final class SaveDownloads {
             if (name == null || file == null || !Utils.settingsReady() || !Settings.SAVE_DOWNLOADS.get()) return;
             if (parent instanceof String) {
                 Queued queued = Queued.parse((String) parent);
-                // Photos and videos auto-download the same way; only a file or a song is looked up.
-                if (queued == null || (queued.type != FILE_TYPE && queued.type != SONG_TYPE)) return;
+                // Photos and videos auto-download the same way, and are only looked up for the second switch.
+                if (queued == null || !queuedWanted(queued.type)) return;
                 work.execute(() -> loadedInBackground(account, name, file, queued));
                 return;
             }
@@ -167,9 +184,17 @@ public final class SaveDownloads {
         }
     }
 
-    /** Telegram's MessageObject.TYPE_FILE and TYPE_MUSIC, which the patch checks are still these. */
+    /** Telegram's MessageObject.TYPE_FILE, TYPE_MUSIC, TYPE_PHOTO and TYPE_VIDEO, which the patch checks are still these. */
     static final int FILE_TYPE = 9;
     static final int SONG_TYPE = 14;
+    static final int PHOTO_TYPE = 1;
+    static final int VIDEO_TYPE = 3;
+
+    /** Whether a background download of this message type could be copied. */
+    private static boolean queuedWanted(int type) {
+        if (type == FILE_TYPE || type == SONG_TYPE) return true;
+        return (type == PHOTO_TYPE || type == VIDEO_TYPE) && Settings.SAVE_RESTRICTED_DOWNLOADS.get();
+    }
 
     static final String KEPT = "file kept in Telegram, saving not allowed";
     static final String NOT_STORED = "file's message not found, kept in Telegram";
@@ -227,7 +252,9 @@ public final class SaveDownloads {
     private static Runnable check(String name, File file, Object message) {
         Object document = telegram.document(message);
         // A message's thumbnail or cover loads with the message as its parent too; only the document itself counts.
-        if (document == null || !name.equals(telegram.attachName(document)) || !telegram.fileOrSong(message)) return null;
+        if (document == null || !name.equals(telegram.attachName(document)) || !telegram.fileOrSong(message)) {
+            return restrictedMedia(name, file, message, document);
+        }
         boolean restricted = telegram.savingForbidden(message);
         if (restricted && (!Settings.SAVE_RESTRICTED_DOWNLOADS.get() || telegram.secretChat(message))) {
             HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, KEPT);
@@ -236,6 +263,24 @@ public final class SaveDownloads {
         if (restricted) HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, RESTRICTED);
         String display = displayName(telegram.documentName(document), file.getName());
         return () -> save(file, display, name, restricted);
+    }
+
+    /**
+     * A photo or video from a chat that doesn't allow saving, copied with the second switch on (#29),
+     * since Telegram's Save to Gallery is gone there. Anywhere else Save to Gallery has it, so it stays put.
+     */
+    private static Runnable restrictedMedia(String name, File file, Object message, Object document) {
+        if (!Settings.SAVE_RESTRICTED_DOWNLOADS.get() || !telegram.photoOrVideo(message)) return null;
+        // A video's file is its document, a photo's the size the chat shows. Thumbnails load with the message too.
+        Object media = document != null ? document : telegram.photo(message);
+        if (media == null || !name.equals(telegram.attachName(media)) || !telegram.savingForbidden(message)) return null;
+        if (telegram.secretChat(message)) {
+            HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, KEPT);
+            return null;
+        }
+        HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, RESTRICTED_MEDIA);
+        String display = displayName(document == null ? null : telegram.documentName(document), file.getName());
+        return () -> save(file, display, name, true);
     }
 
     /** What ext4 and FAT give a file name: 255 bytes of UTF-8. Over that, MediaStore refuses the file. */
@@ -276,6 +321,7 @@ public final class SaveDownloads {
     static final String ALREADY_SAVED = "file already in Download/Telegram";
     static final String DROPPED = "copy dropped, switched off or paused";
     static final String RESTRICTED = "file from a chat that doesn't allow saving, copied as switched on";
+    static final String RESTRICTED_MEDIA = "photo or video from a chat that doesn't allow saving, copied as switched on";
 
     /** The private list of copies: the downloader's name for a document, to the Downloads entry holding it. */
     static final String RECEIPTS = "hushtelegram_saved_downloads";
@@ -472,8 +518,14 @@ public final class SaveDownloads {
     /** {@code messageOwner} missing, or {@code DialogObject.isEncryptedDialog(getDialogId())}. */
     public static boolean secretChat(Object message) { return true; }
 
-    /** {@code FileLoader.getAttachFileName(document)}. */
+    /** {@code FileLoader.getAttachFileName(document)}, for a document or a photo size. */
     public static String attachName(Object document) { return null; }
+
+    /** Not {@code isSecretMedia()}, {@code isGif()} or {@code isRoundVideo()}, and {@code isPhoto()} or {@code isVideo()}. */
+    public static boolean photoOrVideo(Object message) { return false; }
+
+    /** {@code FileLoader.getClosestPhotoSizeWithSize(photoThumbs, AndroidUtilities.getPhotoSize())}. */
+    public static Object photo(Object message) { return null; }
 
     /** {@code FileLoader.getDocumentFileName(document)}. */
     public static String documentName(Object document) { return null; }

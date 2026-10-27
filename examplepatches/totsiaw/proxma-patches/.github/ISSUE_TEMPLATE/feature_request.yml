@@ -1,0 +1,54 @@
+name: "\U00002728 Feature request"
+description: Request a new patch for an app that is already supported.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Request a new patch (e.g. dark mode, premium unlock) for an app this bundle already supports.
+
+        - App not supported yet? [Request it in Discussions](https://github.com/totsiaw/proxma-patches/discussions/new?category=app-requests).
+  - type: dropdown
+    id: app
+    attributes:
+      label: App
+      options:
+        # generated:apps
+        - "foodpanda"
+        - "inDrive"
+        - "Investify"
+        - "MTProxy"
+        - "My Telenor"
+        - "MyZong"
+        - "NetMonster"
+        - "OLX"
+        - "OLX India"
+        - "Safar"
+        - "Simosa"
+        - "Storywise"
+        # /generated
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What should the patch do?
+      description: Be specific — "remove ads" is clear, "make the app better" is not.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Why is this useful?
+      description: What problem does this solve, or what improvement does it bring?
+    validations:
+      required: true
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched open and closed issues and this isn't a duplicate.
+          required: true
+        - label: I understand that features depending on the app's servers may not be patchable.
+          required: true

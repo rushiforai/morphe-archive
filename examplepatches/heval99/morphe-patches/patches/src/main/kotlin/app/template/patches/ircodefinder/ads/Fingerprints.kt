@@ -1,7 +1,9 @@
 package app.template.patches.ircodefinder.ads
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.string
 
 // The app is R8-renamed, but Yandex Mobile Ads keeps its public class and method names, so every
 // anchor below is a Yandex SDK call, a stable string or method shape.
@@ -34,7 +36,7 @@ internal object BannerHelperConstructorFingerprint : Fingerprint(
 // load failure it logs under "InterstitialAdLoadResult" and returns kotlin.Unit.
 internal object InterstitialLoadFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
-    strings = listOf("InterstitialAdLoadResult"),
+    strings = listOf(string("InterstitialAdLoadResult", StringComparisonType.CONTAINS)),
     filters = listOf(
         methodCall(
             definingClass = "Lcom/yandex/mobile/ads/interstitial/InterstitialAdLoader;",
@@ -53,5 +55,5 @@ internal object KotlinUnitToStringFingerprint : Fingerprint(
     name = "toString",
     returnType = "Ljava/lang/String;",
     parameters = listOf(),
-    strings = listOf("kotlin.Unit"),
+    strings = listOf(string("kotlin.Unit", StringComparisonType.CONTAINS)),
 )

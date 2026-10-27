@@ -71,7 +71,31 @@ class KeepDeletedFixtureTest {
             val updates = plan.updates.controlBody()
             val group = listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT,
                 Opcode.IF_EQZ, Opcode.MOVE_OBJECT_FROM16, Opcode.GOTO_32, Opcode.NOP)
-            assertEquals("$name: eight instructions per branch", updatesBefore.size + 16, updates.size)
+            assertEquals("$name: ${plan.editsMissing}", null, plan.editsMissing)
+            assertEquals("$name: both edit updates", listOf(USER_EDIT, CHANNEL_EDIT), plan.edits.map { it.type })
+            assertEquals("$name: eight instructions per branch and three per edit", updatesBefore.size + 16 + 6, updates.size)
+            val editStarts = mutableListOf<Int>()
+            for (edit in plan.edits) {
+                val start = updates.indices.single { i ->
+                    updates[i].controlRef() == "$KEEP_EDITS->edited(Ljava/lang/Object;Ljava/lang/Object;)V" &&
+                        updates[i - 2].namedRegisters() == listOf(edit.scratch, edit.message)
+                } - 2
+                editStarts += start
+                assertEquals("$name: ${edit.type} instructions", listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC_RANGE),
+                    (start until start + 3).map { updates[it].opcode })
+                assertEquals("the controller is this, in the register after", listOf(edit.scratch + 1, plan.updates.localRegisterCount()),
+                    updates[start + 1].namedRegisters())
+                assertEquals(listOf(edit.scratch, edit.scratch + 1), updates[start + 2].namedRegisters())
+                // Read independently: the hook follows the read of the edit's new message, right after its cast.
+                assertEquals("$name: ${edit.type}", Opcode.IGET_OBJECT, updates[start - 1].opcode)
+                assertEquals("${edit.type}->message:Lorg/telegram/tgnet/TLRPC\$Message;", updates[start - 1].controlRef())
+                assertEquals(edit.message, updates[start - 1].namedRegisters().first())
+                assertEquals(edit.type, updates[start - 2].controlRef())
+                val flow = ControlFlow.of(plan.updates)
+                assertTrue("$name: ${edit.type} only the read leads into the hook", flow.normal.indices.none { from ->
+                    from != start - 1 && start in flow.normal[from]
+                })
+            }
             val starts = mutableListOf<Int>()
             for (branch in plan.branches) {
                 val call = updates.indices.single { updates[it].controlRef() == "$KEEP_DELETED->${branch.hook}(Ljava/lang/Object;Ljava/lang/Object;)Z" }
@@ -89,7 +113,9 @@ class KeepDeletedFixtureTest {
                 assertEquals("$name: ${branch.hook} an answer carries on with the loop's own trailing moves",
                     updatesBefore[branch.tailStart], shape(updates[carryOn]))
             }
-            assertEquals("$name: the loop's own code is unchanged", updatesBefore, without(updates, starts, 8))
+            val loopHooks = starts.associateWith { 8 } + editStarts.associateWith { 3 }
+            assertEquals("$name: the loop's own code is unchanged", updatesBefore,
+                updates.indices.filter { i -> loopHooks.none { (start, size) -> i >= start && i < start + size } }.map { shape(updates[it]) })
 
             // The push deletion answers first and returns when the extension took it over.
             val push = plan.push.controlBody()
@@ -147,6 +173,31 @@ class KeepDeletedFixtureTest {
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
             val painted = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "redDeletedLabel" }.controlBody()
             assertEquals(1L, (painted.first() as WideLiteralInstruction).wideLiteral)
+            val history = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "keepEditHistory" }.controlBody()
+            assertEquals(1L, (history.first() as WideLiteralInstruction).wideLiteral)
+        }
+    }
+
+    @Test fun `an edit read that moved leaves the edit history out and keeps the rest`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = context(build)
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageSecondsPatch.execute(context) })
+            val known = context.resolveKeepDeleted()
+            // The channel edit's cast goes, so its message read no longer follows it.
+            val cast = known.edits.single { it.type == CHANNEL_EDIT }.insertAt - 2
+            assertEquals(CHANNEL_EDIT, known.updates.controlBody()[cast].controlRef())
+            known.updates.replaceInstruction(cast, "nop")
+            val before = known.updates.controlBody().map(::shape)
+            val warnings = PatchLogCapture.warnings { keepDeletedPatch.execute(context) }
+            assertEquals("$name: $warnings", 1, warnings.size)
+            assertTrue(warnings.single(), "isn't cast right before its message is read" in warnings.single() && "without Keep edit history" in warnings.single())
+            val updates = known.updates.controlBody()
+            assertEquals("$name: only the deletion hooks", before.size + 16, updates.size)
+            assertTrue("$name: no edit hook at all", updates.none { it.controlRef()?.startsWith(KEEP_EDITS) == true })
+            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods
+            assertEquals(1L, (status.single { it.name == "keepDeleted" }.controlBody().first() as WideLiteralInstruction).wideLiteral)
+            assertEquals(0L, (status.single { it.name == "keepEditHistory" }.controlBody().first() as WideLiteralInstruction).wideLiteral)
         }
     }
 

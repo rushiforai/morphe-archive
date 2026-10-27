@@ -82,6 +82,24 @@ public class SettingsDialogTest {
         }
     }
 
+    /** The bar's title, which every page and search show their name in, wears Facebook's gradient. */
+    @Test
+    public void theBarTitleWearsTheGradient() {
+        SettingsDialog dialog = show(controller.get());
+        List<android.widget.TextView> headings = new ArrayList<>();
+        headings(dialog.getDialog().getWindow().getDecorView(), headings);
+        assertFalse("the bar has no title", headings.isEmpty());
+        assertEquals("Hushfacebook", String.valueOf(headings.get(0).getText()));
+        assertTrue(ShimmerTitle.wears(headings.get(0)));
+    }
+
+    private static void headings(View view, List<android.widget.TextView> into) {
+        if (view instanceof android.widget.TextView && view.isAccessibilityHeading()) into.add((android.widget.TextView) view);
+        if (!(view instanceof android.view.ViewGroup)) return;
+        android.view.ViewGroup group = (android.view.ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) headings(group.getChildAt(i), into);
+    }
+
     @Test
     public void retryRebuildsThePageInsideTheDialog() {
         HushfacebookPreferenceFragment.failNextInitialization = new IllegalStateException("injected");

@@ -19,9 +19,16 @@ final class UiOptions {
         entries.add(channelButton(registry, "bits", "Bits button", "ic_bits", false));
         entries.add(registry.register("hide_channel_extensions", "Hide channel extensions",
                 "Hide extension buttons above chat.", SettingSection.CHANNEL_ACTIONS, "ic_extensions"));
+        entries.add(registry.register("hide_hype_trains", "Hide Hype Trains",
+                "Hide Hype Train banners and player overlays.", SettingSection.CHAT_OVERLAYS, "ic_settings"));
+        List<ToggleSetting> leaderboards = new ArrayList<>();
+        leaderboards.add(registry.register("hide_leaderboards", "Hide rankings",
+                "Hide channel rankings and their chat entry point.", SettingSection.CHAT_OVERLAYS, "ic_trophy"));
         if (hasLeaderboard)
-            entries.add(registry.register("vertical_header_hide_leaderboard", "Hide leaderboard button",
-                    "Hide the leaderboard above the video in Vertical View.", SettingSection.CHANNEL_ACTIONS, "ic_trophy"));
+            leaderboards.add(registry.register("vertical_header_hide_leaderboard", "Hide player button",
+                    "Hide the leaderboard button above the video.", SettingSection.CHAT_OVERLAYS, "ic_trophy"));
+        entries.add(group(registry, "leaderboards", "Leaderboards", SettingSection.CHAT_OVERLAYS, "ic_trophy",
+                "", "Hide everywhere", leaderboards));
         List<ToggleSetting> bars = Arrays.asList(
                 registry.register("fullscreen_hide_status_bar", "Hide status bar",
                         "Use the camera cutout area during fullscreen playback.", SettingSection.DISPLAY, "ic_fullscreen_enter"),
@@ -64,7 +71,7 @@ final class UiOptions {
         return new SettingGroup() {
             @Override public String key() { return "ui_" + key; }
             @Override public String title() { return title; }
-            @Override public String summary() { return description; }
+            @Override public String summary() { return description.isEmpty() ? master.summary() : description + " " + master.summary(); }
             @Override public SettingSection section() { return section; }
             @Override public String icon() { return icon; }
             @Override public List<? extends SettingEntry> children() { return entries; }

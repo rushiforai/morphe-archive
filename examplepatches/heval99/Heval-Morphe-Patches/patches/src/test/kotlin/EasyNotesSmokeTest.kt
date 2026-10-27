@@ -41,12 +41,7 @@ class EasyNotesSmokeTest {
         // absent, so CI stays green; locally it is present and the test really runs.
         assumeTrue(apk.exists(), "skipping: base.apk not present at ${apk.path}")
 
-        val bundle = File(root, "patches/build/libs").walkTopDown()
-            .filter {
-                it.isFile && it.extension == "mpp" &&
-                    !it.name.contains("sources") && !it.name.contains("javadoc")
-            }
-            .maxByOrNull { it.lastModified() } ?: error("no patch bundle (.mpp) found in patches/build/libs")
+        val bundle = newestPatchBundle(root)
 
         assertTrue(bundle.exists(), "patch bundle missing at ${bundle.path}")
 
@@ -62,12 +57,8 @@ class EasyNotesSmokeTest {
             "expected ${wanted.size} EasyNotes patches in the bundle, found ${target.map { it.name }}"
         )
 
-        val config = PatcherConfig(
-            apk,
-            workDir.resolve("out"),
-            PKG,
-            "1.3.63.0921",
-        )
+        // validate = true: every match()/matchOrNull() must match at most one method.
+        val config = PatcherConfig(apk, workDir.resolve("out"), validate = true)
 
         // Patcher.invoke() only executes the patches. Patcher.get() finalizes the bytecode
         // context and emits the patched dex files - without it you just re-read the unpatched

@@ -17,7 +17,7 @@ public final class VerifyAdsOnlyApk {
  }
  public static void main(String[] args)throws Exception{
   var original=load(args[0]);var patched=load(args[1]);
-  var allowed=Set.of("installSignatureSpoof","originalPackageName","retargetSelfIntent","shouldHideAds","hideAdView","hideHomeBanner","hideLegacyBanner","hideLegacyThreadListAd","hideModernThreadListAd","suppressTabletThreadHeaderAdSpace");
+  var allowed=Set.of("installSignatureSpoof","originalPackageName","retargetSelfIntent","shouldHideAds","hideAdView","hideHomeBanner","hideLegacyBanner","hideLegacyThreadListAd","hideModernThreadListAd","suppressTabletThreadHeaderAdSpace","rewrite5chUrl","rewriteBbsMenuUrl");
   Set<String> runtime=new HashSet<>();
   try(var in=new BufferedInputStream(new FileInputStream(args[2]))){for(var c:DexBackedDexFile.fromInputStream(Opcodes.getDefault(),in).getClasses())runtime.add(c.getType());}
   int added=0,hooks=0;Set<String> entries=new TreeSet<>();
@@ -40,6 +40,11 @@ public final class VerifyAdsOnlyApk {
   if(!patched.containsKey("Lapp/morphe/extension/chmate/AdsOnlyRuntime;"))throw new AssertionError("Ads-only marker missing");
   if(added>40||added==0)throw new AssertionError("Unexpected runtime class count "+added);
   if(!entries.contains("installSignatureSpoof")||!entries.contains("hideAdView")||hooks==0)throw new AssertionError("Required hooks missing");
+  if(!entries.contains("rewriteBbsMenuUrl"))throw new AssertionError("Menu migration hook missing");
+  boolean defaultMenu=false;
+  for(var c:patched.values())for(var m:c.getMethods())if(m.getImplementation()!=null)for(var i:m.getImplementation().getInstructions())
+   if(i instanceof ReferenceInstruction r && r.getReference() instanceof StringReference ref && ref.getString().equals("https://menu.5ch.io/bbsmenu.html"))defaultMenu=true;
+  if(!defaultMenu)throw new AssertionError("IO menu default missing");
   System.out.println("PASS ads-only APK: "+added+" added classes; "+hooks+" allowed compatibility/ad calls; "+entries);
  }
 }

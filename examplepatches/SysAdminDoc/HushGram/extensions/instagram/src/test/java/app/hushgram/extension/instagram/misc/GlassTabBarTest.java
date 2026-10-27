@@ -2303,6 +2303,43 @@ public class GlassTabBarTest {
     }
 
     /**
+     * #347: a reel opened from a feed post has Instagram hide the bar with Home selected, and the
+     * pill's slot kept under that viewer was a blank band. The slot stays while the bar shows, and with
+     * the Reels tab selected, where Instagram hides the bar for a paused reel (#221).
+     */
+    @Test
+    public void reelsKeepTheSlotWhileTheBarShowsOrReelsIsTheTab() {
+        Context context = RuntimeEnvironment.getApplication();
+        int reelsTab = 0x7f0b0c68;
+        FrameLayout bar = new FrameLayout(context);
+        View home = new View(context);
+        home.setId(0x7f0b17ff);
+        View reels = new View(context);
+        reels.setId(reelsTab);
+        bar.addView(home);
+        bar.addView(reels);
+        home.setSelected(true);
+
+        assertTrue("the bar shows over Home", GlassTabBar.reelsKeepTheSlot(bar, reelsTab));
+        bar.setTranslationY(200f);
+        assertTrue("the bar slid away still holds its slot (#170)", GlassTabBar.reelsKeepTheSlot(bar, reelsTab));
+        bar.setVisibility(View.GONE);
+        assertFalse("a feed post's reel with the bar hidden", GlassTabBar.reelsKeepTheSlot(bar, reelsTab));
+        bar.setVisibility(View.INVISIBLE);
+        assertFalse(GlassTabBar.reelsKeepTheSlot(bar, reelsTab));
+
+        home.setSelected(false);
+        reels.setSelected(true);
+        bar.setVisibility(View.GONE);
+        assertTrue("a paused reel in the Reels tab", GlassTabBar.reelsKeepTheSlot(bar, reelsTab));
+        assertFalse("no Reels tab id", GlassTabBar.reelsKeepTheSlot(bar, 0));
+        reels.setVisibility(View.INVISIBLE);
+        assertTrue("a Reels tab tucked out of the bar", GlassTabBar.reelsKeepTheSlot(bar, reelsTab));
+        reels.setSelected(false);
+        assertFalse(GlassTabBar.reelsKeepTheSlot(bar, reelsTab));
+    }
+
+    /**
      * #221: what's raised clear of a floating pill is the child of a reel's layer of controls that holds
      * the caption or the seek bar, as in Instagram 451's Reels, never the layer or the reel, so the video,
      * stickers and play button stay where they are. The footer under the viewer (#260) is found apart

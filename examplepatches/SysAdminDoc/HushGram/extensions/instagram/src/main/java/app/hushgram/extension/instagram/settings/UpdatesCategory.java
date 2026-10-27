@@ -17,13 +17,13 @@ import java.util.Set;
 
 import app.hushgram.extension.shared.L10n;
 
-/** Builds the Updates category of HushGram settings. */
+/** Builds the Version warnings category of HushGram settings, named Updates until 2026-10-27. */
 final class UpdatesCategory {
     private UpdatesCategory() { }
 
     static void add(HushgramPreferenceFragment page, PreferenceScreen screen, Context context, Set<PatchFamily> build) {
         if (build.contains(PatchFamily.BUILD_EXPIRED_POPUP)) {
-            PreferenceCategory updates = category(screen, L10n.t("Updates"), SettingsIcons.UPDATES,
+            PreferenceCategory updates = category(screen, L10n.t("Version warnings"), SettingsIcons.UPDATES,
                     L10n.t("Stop Instagram from saying this version is too old."));
             updates.addPreference(toggle(context, Settings.REMOVE_BUILD_EXPIRED_POPUP,
                     L10n.t("Remove build expired popup"),

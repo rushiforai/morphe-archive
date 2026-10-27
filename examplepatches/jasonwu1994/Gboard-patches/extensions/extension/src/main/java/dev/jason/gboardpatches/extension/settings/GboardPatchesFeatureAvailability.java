@@ -71,8 +71,6 @@ public final class GboardPatchesFeatureAvailability {
             "dev.jason.gboardpatches.feature.spacebar_logo";
     public static final String FEATURE_CLOSE_PROACTIVE_SUGGESTIONS =
             "dev.jason.gboardpatches.feature.close_proactive_suggestions";
-    public static final String FEATURE_FLOW_MODE_ANIMATION =
-            "dev.jason.gboardpatches.feature.flow_mode_animation";
     public static final String FEATURE_QUICK_INSERT =
             "dev.jason.gboardpatches.feature.quick_insert";
     public static final String FEATURE_ACCESS_POINT_COUNT =

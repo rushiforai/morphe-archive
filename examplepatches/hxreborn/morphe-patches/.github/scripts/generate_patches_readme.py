@@ -147,6 +147,8 @@ def versions_table(targets):
 
 ICONS = {
     "com.thesortdapp.sortd": "albo.png",
+    "com.hardcodedjoy.iototoy": "iototoy.png",
+    "com.oneletters.audiobooksai": "audiobookunlimited.png",
     "ir.ilmili.telegraph": "graphmessenger.png",
     "all.in.one.calculator": "allinonecalculator.png",
     "com.allformatplayer.streamvideoplayer": "allvideoplayer.png",
@@ -174,7 +176,11 @@ ICONS = {
     "app.privacynotes": "privacynotes.png",
     "com.myvitale.forus": "forus.png",
     "com.psiphon3.subscription": "psiphon.png",
+    "com.hypenet.focused": "blockit.png",
     "im.thebot.messenger": "botim.png",
+    "com.klevico.monet": "monet.png",
+    "com.pengyou.cloneapp": "cloneapp.png",
+    "com.athan": "athan.png",
     "com.cardfeed.video_public": "publicvideos.png",
     "com.michaldrabik.showly2": "showly.png",
     "co.steezy.app": "steezy.png",
@@ -189,6 +195,7 @@ ICONS = {
     "com.poe.android": "poe.png",
     "com.thetrainline": "trainline.png",
     "org.readera": "readera.png",
+    "com.pleco.chinesesystem": "pleco.png",
     "com.kick.mobile": "kick.png",
     "com.etsy.android": "etsy.png",
     "com.gamma.scan": "qrscanner.png",
@@ -244,7 +251,9 @@ ICONS = {
     "com.greenstone.pocketwhip": "pocketwhip.png",
     "apps.automan.blurwallpaper": "blurwall.png",
     "com.nieruo.healthapp": "catzy.png",
+    "tech.coddy.coddyapp": "coddy.png",
     "jp.co.celsys.clipstudiopaint.googleplay": "clipstudiopaint.png",
+    "ltd.anti.clink": "clink.png",
     "com.steinberg.cubasisle3": "cubasisle3.png",
     "com.one4studio.one4home": "one4home.png",
     "com.keepa.mobile": "keepa.png",
@@ -267,7 +276,10 @@ ICONS = {
     "com.jndapp.glass.widgets": "glasswidgets.png",
     "io.yuka.android": "yuka.png",
     "vpn.usa_tap2free": "usavpn.png",
+    "india.vpn_tap2free": "vpnindia.png",
     "com.viber.voip": "viber.png",
+    "com.telug.keyboard.for.android": "deshtelugu.png",
+    "com.fillobotto.mp3tagger": "automatag.png",
 }
 
 ICON_DIR = Path(".github/assets/icons")

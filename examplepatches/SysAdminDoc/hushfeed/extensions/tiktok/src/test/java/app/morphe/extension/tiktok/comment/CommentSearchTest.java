@@ -635,8 +635,116 @@ public class CommentSearchTest {
             PreferenceScreen screen = activity.getPreferenceManager().createPreferenceScreen(activity);
             new CommentsPreferenceCategory(activity, screen);
             assertNotNull(screen.findPreference("comment_search"));
+            assertNotNull(screen.findPreference("comment_search_folded"));
         } finally {
             SettingsStatus.commentToolsEnabled = false;
+        }
+    }
+
+    @Test public void aFoldedSearchWaitsBehindAButtonInTheHeader() {
+        // #254: the box took a row of the sheet whether or not anyone was searching.
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            Settings.COMMENT_SEARCH.save(true);
+            Settings.COMMENT_SEARCH_FOLDED.save(true);
+            Settings.COMPACT_COMMENT_HEADER.save(false);
+            CommentSearch.setQuery("");
+
+            LinearLayout sheet = new LinearLayout(activity);
+            sheet.setOrientation(LinearLayout.VERTICAL);
+            FrameLayout header = new FrameLayout(activity);
+            sheet.addView(header, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 96));
+            LinearLayout column = new LinearLayout(activity);
+            column.setOrientation(LinearLayout.VERTICAL);
+            sheet.addView(column);
+            LinearLayout listView = new LinearLayout(activity);
+            listView.setOrientation(LinearLayout.VERTICAL);
+            column.addView(listView);
+            activity.setContentView(sheet);
+            CommentSearch.onHeaderBound(header);
+
+            View row = new View(activity);
+            row.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 120));
+            listView.addView(row);
+            CommentSearch.onCellBound(row, new Comment("Great recipe", "cook", "Sam"));
+            shadowOf(Looper.getMainLooper()).idle();
+
+            android.widget.ImageView toggle = header.findViewWithTag(CommentSearch.TOGGLE_TAG);
+            assertNotNull("no search button in the header", toggle);
+            assertEquals("Search these comments", toggle.getContentDescription().toString());
+            EditText box = column.findViewWithTag(CommentSearch.FIELD_TAG);
+            TextView status = column.findViewWithTag(CommentSearch.STATUS_TAG);
+            assertEquals("the folded box still showed", View.GONE, box.getVisibility());
+            int restingColor = ((CommentSearch.SearchGlyphDrawable) toggle.getDrawable()).getColor();
+
+            toggle.performClick();
+            assertEquals(View.VISIBLE, box.getVisibility());
+            assertEquals("Put the comment search away", toggle.getContentDescription().toString());
+
+            box.setText("recipe");
+            assertEquals(View.VISIBLE, status.getVisibility());
+            box.onEditorAction(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);
+            assertEquals("searching left the box open", View.GONE, box.getVisibility());
+            assertEquals("folding dropped the search", "recipe", CommentSearch.query());
+            assertEquals("the narrowed list stopped saying so", View.VISIBLE, status.getVisibility());
+            assertTrue("a folded filter left the button looking idle",
+                    ((CommentSearch.SearchGlyphDrawable) toggle.getDrawable()).getColor() != restingColor);
+
+            toggle.performClick();
+            assertEquals(View.VISIBLE, box.getVisibility());
+            assertEquals("recipe", box.getText().toString());
+
+            // A hardware Enter folds it the same way, instead of moving focus on.
+            box.requestFocus();
+            box.dispatchKeyEvent(new android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_ENTER));
+            assertEquals("Enter folded before the key came up", View.VISIBLE, box.getVisibility());
+            box.dispatchKeyEvent(new android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_ENTER));
+            assertEquals("Enter left the box open", View.GONE, box.getVisibility());
+            assertEquals("recipe", CommentSearch.query());
+
+            // The button leaves with the sheet, like the box.
+            column.removeView(listView);
+            shadowOf(Looper.getMainLooper()).idle();
+            assertNull("the search button outlived its sheet", header.findViewWithTag(CommentSearch.TOGGLE_TAG));
+        } finally {
+            CommentSearch.setQuery("");
+            Settings.COMMENT_SEARCH_FOLDED.save(false);
+            Settings.COMMENT_SEARCH.save(false);
+        }
+    }
+
+    @Test public void aFoldedSearchWithNoHeaderTakesASmallRowAboveTheList() {
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            Settings.COMMENT_SEARCH.save(true);
+            Settings.COMMENT_SEARCH_FOLDED.save(true);
+            CommentSearch.setQuery("");
+            // A header from somewhere else, never shown, is no place for the button.
+            CommentSearch.onHeaderBound(new FrameLayout(activity));
+
+            LinearLayout column = new LinearLayout(activity);
+            column.setOrientation(LinearLayout.VERTICAL);
+            LinearLayout listView = new LinearLayout(activity);
+            listView.setOrientation(LinearLayout.VERTICAL);
+            column.addView(listView);
+            activity.setContentView(column);
+
+            View row = new View(activity);
+            row.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 120));
+            listView.addView(row);
+            CommentSearch.onCellBound(row, new Comment("Great recipe", "cook", "Sam"));
+            shadowOf(Looper.getMainLooper()).idle();
+
+            assertEquals(CommentSearch.TOGGLE_TAG, column.getChildAt(0).getTag());
+            assertTrue(column.getChildAt(1) instanceof EditText);
+            assertEquals(View.GONE, column.getChildAt(1).getVisibility());
+            assertEquals(listView, column.getChildAt(column.getChildCount() - 1));
+        } finally {
+            CommentSearch.setQuery("");
+            Settings.COMMENT_SEARCH_FOLDED.save(false);
+            Settings.COMMENT_SEARCH.save(false);
         }
     }
 }

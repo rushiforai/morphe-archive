@@ -30,6 +30,22 @@ public final class BoardAuthRules {
     public static String preset(String board) {
         return "https://bbs.eddibb.cc".equals(origin(board)) ? "https://bbs.eddibb.cc/auth-code" : "";
     }
+    /** Stylesheets/scripts linked in an error page are not authentication destinations. */
+    public static String validateAuthPage(String value) {
+        String url = validate(value);
+        String path = URI.create(url).getPath().toLowerCase(Locale.ROOT);
+        if (Pattern.compile("\\.(?:css|js|mjs|map|png|jpe?g|gif|webp|svg|ico|woff2?|ttf|otf|mp[34]|webm|zip|pdf)(?:/|$)").matcher(path).find()
+                || Pattern.compile("(?:^|/)(?:bbs|write|subbbs)\\.cgi(?:/|$)").matcher(path).find())
+            throw new IllegalArgumentException("CSS・画像・投稿先ではなく、認証画面のURLを指定してください。");
+        return url;
+    }
+
+    public static String configuredPage(String board, String stored, String suggestion) {
+        for (String value : new String[]{stored, suggestion, preset(board)}) {
+            try { return validateAuthPage(value); } catch (IllegalArgumentException ignored) { }
+        }
+        return "";
+    }
     public static boolean required(String message) {
         if (message == null || message.length() > 65536) return false;
         String lower = message.toLowerCase(Locale.ROOT);
@@ -46,7 +62,7 @@ public final class BoardAuthRules {
     /** A site explicitly requiring a regular browser is not a cookie-only auth flow. */
     public static boolean browserRequired(String message) {
         return message!=null&&message.length()<=65536
-                &&message.contains("計算による投稿確認")
+                &&(message.contains("計算による投稿確認")||message.toLowerCase(Locale.ROOT).contains("captcha"))
                 &&message.contains("専用ブラウザからは投稿")
                 &&message.contains("通常のブラウザ");
     }
@@ -65,7 +81,7 @@ public final class BoardAuthRules {
             String url = links.group().replace("&amp;", "&");
             if (url.startsWith("/")) url = origin + url;
             if (origin.equals(origin(url))) {
-                try { return validate(url); } catch (IllegalArgumentException ignored) { }
+                try { return validateAuthPage(url); } catch (IllegalArgumentException ignored) { }
             }
         }
         return preset(board);

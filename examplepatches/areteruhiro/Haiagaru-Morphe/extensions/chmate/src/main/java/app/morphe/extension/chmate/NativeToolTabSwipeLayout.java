@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
 final class NativeToolTabSwipeLayout extends LinearLayout {
     private final Activity host;
     private final Object fragment;
+    private final NativeToolTabChMateGestures chMateGestures;
     private final android.os.Handler mainHandler=new android.os.Handler(android.os.Looper.getMainLooper());
     private final float minimum,slop;
     private float startX,startY;
@@ -21,18 +22,25 @@ final class NativeToolTabSwipeLayout extends LinearLayout {
         super(host);this.host=host;this.fragment=fragment;
         minimum=96*getResources().getDisplayMetrics().density;
         slop=ViewConfiguration.get(host).getScaledTouchSlop();
+        chMateGestures=new NativeToolTabChMateGestures(host,fragment,this);
     }
     static boolean ownsHistoryGesture(View view){
         for(View current=view;current!=null;){
-            if(current instanceof NativeToolTabSwipeLayout)return ((NativeToolTabSwipeLayout)current).threadSide;
+            if(current instanceof NativeToolTabSwipeLayout){
+                NativeToolTabSwipeLayout layout=(NativeToolTabSwipeLayout)current;
+                return NativeToolTabChMateGestures.enabled(layout.host)||layout.threadSide;
+            }
             ViewParent parent=current.getParent();current=parent instanceof View?(View)parent:null;
         }
         return false;
     }
     @Override public void onWindowFocusChanged(boolean focus){
         super.onWindowFocusChanged(focus);
+        if(!focus)chMateGestures.cancel();
         if(focus)post(()->NativeToolTabs.restoreToolVisibility(this));
     }
+    @Override protected void onDetachedFromWindow(){chMateGestures.cancel();super.onDetachedFromWindow();}
+    boolean dispatchChildTouchEvent(MotionEvent event){return super.dispatchTouchEvent(event);}
     @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){
         if(event.getKeyCode()==android.view.KeyEvent.KEYCODE_BACK&&isShown()
                 &&NativeToolTabs.isArchiveFragment(fragment)){
@@ -49,6 +57,12 @@ final class NativeToolTabSwipeLayout extends LinearLayout {
         return true;
     }
     @Override public boolean dispatchTouchEvent(MotionEvent event){
+        if(NativeToolTabChMateGestures.enabled(host)){
+            tracking=false;consumed=false;threadSide=false;
+            if(chMateGestures.dispatch(event))return true;
+            return super.dispatchTouchEvent(event);
+        }
+        chMateGestures.cancel();
         int action=event.getActionMasked();
         if(action==MotionEvent.ACTION_DOWN){
             threadSide=NativeToolTabs.isSelectedThreadTool(host,fragment);

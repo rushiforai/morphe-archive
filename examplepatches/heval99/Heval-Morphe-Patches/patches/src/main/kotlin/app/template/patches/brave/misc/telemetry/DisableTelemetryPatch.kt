@@ -1,10 +1,12 @@
 package app.template.patches.brave.misc.telemetry
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.util.returnEarly
 import app.template.patches.brave.LocalStatePrefsGetterFingerprint
@@ -91,14 +93,14 @@ val disableTelemetryPatch = bytecodePatch(
         Fingerprint(
             returnType = "Z",
             parameters = emptyList(),
-            strings = listOf(CRASH_CONSENT_PREF),
+            strings = listOf(string(CRASH_CONSENT_PREF, StringComparisonType.CONTAINS)),
         ).method.returnEarly(false)
 
         Fingerprint(
             accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
             returnType = "V",
             parameters = listOf("I", "Z"),
-            strings = listOf(CRASH_CONSENT_PREF),
+            strings = listOf(string(CRASH_CONSENT_PREF, StringComparisonType.CONTAINS)),
         ).method.addInstruction(0, "const/4 p1, 0x0")
 
         // ── 3. Install referrer: never turn the Play referrer into a promo/attribution code ─
@@ -109,7 +111,10 @@ val disableTelemetryPatch = bytecodePatch(
             definingClass = "Lorg/chromium/chrome/browser/referrer/BraveReferrer;",
             returnType = "Ljava/lang/String;",
             parameters = listOf("Landroid/net/Uri;", "Ljava/lang/String;"),
-            strings = listOf("urpc", "gclid"),
+            strings = listOf(
+                string("urpc", StringComparisonType.CONTAINS),
+                string("gclid", StringComparisonType.CONTAINS),
+            ),
         ).method.addInstructions(
             0,
             """

@@ -54,6 +54,7 @@ public final class VideoViewerGestures {
 
     /** Down is delivered normally; once recognized, cancel the video's pending click. */
     boolean dispatch(MotionEvent event, View surface) {
+        if(!VideoViewerSettings.prefs(activity).getBoolean(VideoViewerSettings.CHMATE_GESTURES,true)){if(tracking)cancel();return false;}
         if (closed || recognizer == null || surface == null) return false;
         try {
             if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {

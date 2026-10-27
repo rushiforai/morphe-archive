@@ -72,13 +72,14 @@ private fun microgC(): String {
 val legacyIconPatch = resourcePatch(
     name = "Legacy icon",
     description = "Uses the flat multicolour pin Maps had before the 2025 gradient icon as the launcher icon " +
-        "and on the screen Maps opens with. With Add microG support, microG's C sits in the pin's circle.",
+        "and on the screen Maps opens with. With Add microG-RE support, microG's C sits in the pin's circle.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_MAPS)
 
     execute {
         val res = this["res"]
+        File(res, "drawable").mkdirs()
         // microG Maps: the same pin with microG's C laid over its circle.
         val pin = if (MicrogSelection.builds(this, "Legacy icon")) {
             File(res, "drawable/${LEGACY}_microg_c.xml").writeText(microgC())

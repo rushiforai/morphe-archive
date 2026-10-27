@@ -33,12 +33,24 @@ public final class NotificationControls {
      * when that switch asks.
      */
     public static boolean shouldDropPush(Object message) {
-        if (message == null) return false;
-        if (PushShutoff.isOn()) return true;
-        if (!Settings.HIDE_FOLLOWER_NOTIFICATIONS.get()) return false;
+        if (message == null) {
+            PushDeliveryReport.record(PushDeliveryReport.Stage.HANDLER_ALLOWED, PushDeliveryReport.Family.UNKNOWN);
+            return false;
+        }
+        if (PushShutoff.isOn()) {
+            PushDeliveryReport.record(PushDeliveryReport.Stage.HANDLER_PUSH_OFF, PushDeliveryReport.Family.UNKNOWN);
+            return true;
+        }
+        if (!Settings.HIDE_FOLLOWER_NOTIFICATIONS.get()) {
+            PushDeliveryReport.record(PushDeliveryReport.Stage.HANDLER_ALLOWED, PushDeliveryReport.Family.UNKNOWN);
+            return false;
+        }
         Object extra = Reflect.property(message, "getExtra", "extra");
         String channel = Reflect.string(extra, "getNotificationChannelId", "notificationChannelId");
-        return FOLLOWER_CHANNEL.equals(channel);
+        boolean drop = FOLLOWER_CHANNEL.equals(channel);
+        PushDeliveryReport.record(drop ? PushDeliveryReport.Stage.HANDLER_FOLLOWER
+                : PushDeliveryReport.Stage.HANDLER_ALLOWED, PushDeliveryReport.family(channel));
+        return drop;
     }
 
     /** True when the streak button and its reminder should not be offered. */

@@ -227,13 +227,21 @@ public class ActiveSavesTest {
         assertNotNull("the overview has no Downloads entry", downloads);
         assertTrue(downloads.getOnPreferenceClickListener().onPreferenceClick(downloads));
         layout();
+        Preference original = (Preference) list().getItemAtPosition(positionOf(id));
+        assertTrue(downloads.getOnPreferenceClickListener().onPreferenceClick(downloads));
+        layout();
+        assertEquals("collapsing does not cancel a running save", -1, positionOf(id));
+        assertFalse(SavesForTests.cancelled(id));
+        assertTrue(downloads.getOnPreferenceClickListener().onPreferenceClick(downloads));
+        layout();
+        assertSame("expanding reuses the live Cancel row", original, list().getItemAtPosition(positionOf(id)));
         View row = row(id);
         assertNotNull("the Downloads page has no running save", row);
         assertTrue(cancelOf(row).performClick());
         assertTrue("the page's Cancel didn't reach the save", SavesForTests.cancelled(id));
         layout();
         assertNull(row(id));
-        assertTrue(page.closeCategory());
+        assertTrue(downloads.getOnPreferenceClickListener().onPreferenceClick(downloads));
         layout();
         assertEquals(0, savesListed());
     }

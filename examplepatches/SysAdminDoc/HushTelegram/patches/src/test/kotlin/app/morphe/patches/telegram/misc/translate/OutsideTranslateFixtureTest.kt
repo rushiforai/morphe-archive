@@ -47,7 +47,7 @@ class OutsideTranslateFixtureTest {
     private val fixed = setOf(
         "Lorg/telegram/messenger/MessageObject;", "Lorg/telegram/tgnet/TLRPC\$Message;", "Lorg/telegram/tgnet/TLRPC\$TL_textWithEntities;",
         "Lorg/telegram/messenger/TranslateController;", "Lorg/telegram/messenger/NotificationCenter;", "Lorg/telegram/messenger/UserConfig;",
-        "Lorg/telegram/messenger/LocaleController;", "Lorg/telegram/messenger/R\$drawable;",
+        "Lorg/telegram/messenger/LocaleController;", "Lorg/telegram/messenger/R\$drawable;", "Lorg/telegram/messenger/MessagesController;",
     )
 
     /** What the message menu family reads besides the chat screen, for the shared-method test. */
@@ -169,8 +169,8 @@ class OutsideTranslateFixtureTest {
             // The stubs reach what Telegram's own translation reads, and nothing of its Premium path.
             val stub = { n: String -> context.mutableClassDefBy(OUTSIDE_TRANSLATE).methods.single { it.name == n }.controlBody() }
             val everything = listOf("selected", "original", "translatable", "messageType", "dialog", "id", "entities", "isTranslated", "applyTranslated",
-                "notifyTranslated", "notifyDialog", "translateIcon", "appLocale", "hasTranslateItem", "addHeaderItem", "setHeaderText", "chatOf", "chatDialog",
-                "owner", "chatOwner")
+                "notifyTranslated", "notifyDialog", "translateIcon", "appLocale", "dialogTarget", "hasTranslateItem", "addHeaderItem", "setHeaderText", "chatOf",
+                "chatDialog", "owner", "chatOwner")
                 .flatMap { stub(it) }.mapNotNull { it.controlRef() }
             assertFalse("$name: Telegram's Premium and availability stay untouched",
                 everything.any { it.contains("isFeatureAvailable") || it.contains("isPremium") || it.contains("setHideTranslateDialog") || it.contains("toggleTranslatingDialog") })
@@ -180,6 +180,15 @@ class OutsideTranslateFixtureTest {
             assertTrue("$name: the flag is set", stub("applyTranslated").any { it.opcode == Opcode.IPUT_BOOLEAN && it.controlRef() == "Lorg/telegram/messenger/MessageObject;->translated:Z" })
             assertTrue("$name: the chat is told through Telegram's own notice", stub("notifyTranslated").any { it.controlRef() == "Lorg/telegram/messenger/NotificationCenter;->messageTranslated:I" })
             assertEquals("Lorg/telegram/messenger/R\$drawable;->msg_translate:I", stub("translateIcon").first().controlRef())
+            // The translate bar's language comes from the message's own account and chat, as Telegram reads it there.
+            assertEquals("$name: Telegram's translate bar language", listOf("Lorg/telegram/messenger/MessageObject;",
+                "Lorg/telegram/messenger/MessageObject;->currentAccount:I",
+                "Lorg/telegram/messenger/MessagesController;->getInstance(I)Lorg/telegram/messenger/MessagesController;",
+                "Lorg/telegram/messenger/MessagesController;->getTranslateController()Lorg/telegram/messenger/TranslateController;",
+                "Lorg/telegram/messenger/MessageObject;->getDialogId()J",
+                "Lorg/telegram/messenger/TranslateController;->getDialogTranslateTo(J)Ljava/lang/String;"),
+                stub("dialogTarget").mapNotNull { it.controlRef() })
+            assertEquals(Opcode.RETURN_OBJECT, stub("dialogTarget").last().opcode)
             assertEquals("$name: adds through the item adder Telegram's own Translate uses", site.lazyAdd.toString(), stub("addHeaderItem").single { it.opcode == Opcode.INVOKE_VIRTUAL }.controlRef())
             assertEquals("$name: the native item is returned for later updates", listOf(Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT),
                 stub("addHeaderItem").takeLast(2).map { it.opcode })

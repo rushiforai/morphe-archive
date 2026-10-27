@@ -1,6 +1,6 @@
 # Release process
 
-Current accepted local product: **1.5.8 / local-1.5.8-m7b / candidate-02**; public release remains **1.5.7**. [M7b review](maintenance/reviews/M7b-REVIEW.md) accepts the local source, two finite compositions and installation preparation. The [first-round acceptance](maintenance/reviews/M7-FINAL-ACCEPTANCE.md) now includes user-reported manual device checklist success and a matching m7b export, with a bounded user real-provider sample. Hardware metrics, installed signature/APK hash and billing remain unverified; no agent signing/installation, future real API call or publication is authorized. [The device handoff](maintenance/M7b-DEVICE-ACCEPTANCE.md) binds unsigned artifacts, actual package/signature conditions and the user's original on-phone Manager path. Local validation, semantic-release prepare and remote publication remain separate evidence levels.
+Current public product: **1.5.8 / release-1.5.8**, tag`83a8b72a795285234f6c164991f65007750e6272`, asset SHA-256`5c9dfb19a3b0b88f55516bfca38bf47ee18ed3f282511b6b6401c37e8c5db686`. The [release result](maintenance/results/RELEASE-1.5.8-RESULT.md) records real876-test strict prepare, final publication, anonymous main/dev checks and two fresh compositions of the downloaded asset. The device sample is retained from m7b with unchanged production inputs. Publication does not authorize model calls or device installation.
 
 The existing `.github/workflows/release.yml` and `.releaserc` are the only publisher. This follows the [official template](https://github.com/MorpheApp/morphe-patches-template/blob/main/README.md).
 
@@ -12,7 +12,7 @@ The existing `.github/workflows/release.yml` and `.releaserc` are the only publi
 6. Verify anonymous retrieval of `main/patches-bundle.json`, patch list, changelog and asset; match the downloaded asset SHA-256 to the final CI build. Keep source metadata/version/URL and actual MPP identity coherent.
 7. Record tag/source/asset identity and known evidence boundaries in the project state. Do not overwrite published assets; fix mistakes with a new release. Keep backups for local rollback.
 
-Generated `patches-list.json`, `patches-bundle.json`, `CHANGELOG.md` and version changes are produced by the pipeline, not hand-maintained. Keep `main` stable; dev prerelease publishing is optional and must be deliberately enabled rather than creating accidental releases during preparation.
+Generated `patches-list.json`, `patches-bundle.json` and version changes are produced by the pipeline, not hand-maintained. The pipeline also generates a first draft of `CHANGELOG.md` and the GitHub Release description from commits. Review that draft and replace generic commit titles with concise, user-facing changes compared with the previous release, keeping the current CHANGELOG entry and Release description aligned. Follow the existing English bullet-list style, without language headings or added translations unless requested. Editorial corrections to release notes may update those two texts after publication; preserve the published tag and download asset. Keep version-specific update lists in Releases and CHANGELOG, rather than the README. Verification details belong in the linked release report. Keep `main` stable; dev prerelease publishing is optional and must be deliberately enabled rather than creating accidental releases during preparation.
 
 ## Current verification and release gates
 
@@ -50,6 +50,8 @@ Maintain a clear README, repository About and relevant topics. The official webs
 
 The official community [r/MorpheApp](https://www.reddit.com/r/MorpheApp/) permits discussion subject to its current rules; do not share or link pre-patched APKs. Share the source, instructions and compatibility limits instead. Community inclusion is not official endorsement. Prepare outreach separately and only send it when explicitly authorized.
 
-## Pending GitHub synchronization
+## Completed1.5.8 publication and cleanup
 
-The [read-only GitHub plan](maintenance/GITHUB-UPDATE-PLAN.md) records that remote main/dev still point to the 1.5.7 post-release source commit; accepted m7b changes remain local and uncommitted. Feature-branch CI/source synchronization precedes any separately authorized release. A main push can run the publisher and a dev push can open a PR automatically; neither is part of local workspace cleanup. Private snapshots, raw diagnostics, APK inputs, toolchains/caches and validation archives stay off GitHub. See the [workspace map](WORKSPACE.md).
+[GitHub record](maintenance/GITHUB-UPDATE-PLAN.md) lists the completed source/CI/release and branch/PR cleanup. The unavailable third-party Action wrapper was removed; the workflow invokes the official semantic-release JavaScript API from the locked npm toolchain and uses its actual boolean/version/tag result for outputs. The no-release main path has been tested too. Old releases/tags/assets remain immutable. main/dev prevent force pushes/deletion while normal publisher-generated version commits remain allowed; no mandatory solo-maintainer approval gate was added.
+
+The1.5.8 user authorization covered this release and cleanup. Future releases require the corresponding user request; routine maintenance does not imply permission to publish a new version. Source synchronization, candidate verification, actual publication and device/model operations remain distinct.

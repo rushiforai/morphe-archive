@@ -84,6 +84,19 @@ internal fun BytecodePatchContext.patchNativeUpdatePolicy(version: String) {
     // The rest of this patch is specific to the 191 transport implementation.
     if (!legacy191) return
 
+    val nativeRequest = mutableClassDefBy("Lo/r8lambda17vlhACr7B0IDgCdn1Q67LKhir8;")
+    check(nativeRequest.methods.count { it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf(
+        "Lo/r8lambdaDTvcCbM00GfL6vhIvhD78yZ0Us;", "Ljava/lang/String;", "Lokhttp3/Headers;",
+        "Lo/r8lambdaGZC8a_4Sth8OENyznWf4FMVcU0;", "Ljava/util/Map;"
+    ) } == 1) { "191 immutable request copy constructor changed" }
+    for ((name, type) in mapOf("f" to "Lo/r8lambdaDTvcCbM00GfL6vhIvhD78yZ0Us;",
+        "c" to "Ljava/lang/String;", "a" to "Lokhttp3/Headers;",
+        "e" to "Lo/r8lambdaGZC8a_4Sth8OENyznWf4FMVcU0;", "b" to "Ljava/util/Map;")) {
+        check(nativeRequest.instanceFields.count { it.name == name && it.type == type } == 1) {
+            "191 request copy field changed: $name"
+        }
+    }
+
     val bridge = mutableClassDefBy(POLICY)
     fun newBridge(name: String, registers: Int): MutableMethod {
         val old = bridge.methods.single { it.name == name }
@@ -115,6 +128,7 @@ internal fun BytecodePatchContext.patchNativeUpdatePolicy(version: String) {
             iget-object v0, v0, Lo/r8lambda17vlhACr7B0IDgCdn1Q67LKhir8;->f:Lo/r8lambdaDTvcCbM00GfL6vhIvhD78yZ0Us;
             invoke-virtual {v0}, Lo/r8lambdaDTvcCbM00GfL6vhIvhD78yZ0Us;->toString()Ljava/lang/String;
             move-result-object v0
+            invoke-static {p0, v1, v0}, $POLICY->prepareRequest191(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)V
             invoke-static {v1, v0}, $POLICY->timeoutNanos(Ljava/lang/String;Ljava/lang/String;)J
             move-result-wide v0
             const-wide/16 v2, 0x0

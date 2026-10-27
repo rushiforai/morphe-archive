@@ -1,0 +1,58 @@
+name: Reply to issue comments
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  reply:
+    if: >-
+      !github.event.issue.pull_request &&
+      !github.event.issue.locked &&
+      github.event.comment.user.type != 'Bot' &&
+      !contains(github.event.issue.labels.*.name, 'bot-wrong') &&
+      !contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
+    permissions:
+      issues: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github/scripts/issue_comment.py
+            .github/scripts/replies.py
+          sparse-checkout-cone-mode: false
+
+      - name: Generate reply
+        id: reply
+        run: |
+          status=0
+          python3 .github/scripts/issue_comment.py "$GITHUB_EVENT_PATH" > "$RUNNER_TEMP/comment.md" || status=$?
+          if [ "$status" -eq 3 ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          [ "$status" -eq 0 ] || exit "$status"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Post reply
+        if: steps.reply.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Dedup: check if bot already posted a comment with this marker
+          marker=$(head -n 1 "$RUNNER_TEMP/comment.md")
+          existing=$(gh api "repos/$REPO/issues/$ISSUE/comments" --paginate \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | contains(\"$marker\"))) | .id" | wc -l)
+          [ "$existing" -eq 0 ] || { echo "Already replied"; exit 0; }
+          gh issue comment "$ISSUE" --repo "$REPO" --body-file "$RUNNER_TEMP/comment.md"

@@ -1,0 +1,9 @@
+Java.perform(function(){
+ const app=Java.use('android.app.ActivityThread').currentApplication();if(!String(app.getPackageName()).endsWith('.haiagaru.settingsfix191'))throw Error('191 verification only');
+ Java.classFactory.loader=app.getClassLoader();const E=Java.use('app.morphe.extension.chmate.ExtraQuickFilters'),F=Java.use('app.morphe.extension.chmate.FilterPosition'),P=Java.use('app.morphe.extension.chmate.ExtraQuickFilters$PinnedPanel');
+ const prefs=app.getSharedPreferences('io.github.areteruhiro.chmate.haiagaru.ui-config',0),had=prefs.contains('persistentBottomQuickFilters'),old=prefs.getBoolean('persistentBottomQuickFilters',false);let fragment,list,activity,n=0;
+ function field(o,name){const f=o.getClass().getDeclaredField(name);f.setAccessible(true);return f.get(o);}
+ P.layout.implementation=function(){this.layout();if(n++<12){const v=field(this,'list');if(v){const l=Java.cast(v,Java.use('android.view.View')),r=Java.use('android.graphics.Rect').$new();l.getGlobalVisibleRect(r);console.log('LAYOUT list='+r+' height='+l.getHeight()+' params='+l.getLayoutParams()+' parent='+l.getParent());}}};
+ Java.choose('o.pa',{onMatch(f){if(f.getView()&&f.getView().isShown())fragment=Java.retain(f);},onComplete(){Java.scheduleOnMainThread(()=>{if(!fragment)throw Error('No fragment');activity=fragment.getActivity();list=F.findList(fragment.getView());console.log('BASE '+list+' params='+list.getLayoutParams()+' parent='+list.getParent());prefs.edit().putBoolean('persistentBottomQuickFilters',true).commit();E.updateOptions(activity);});}});
+ setTimeout(()=>Java.perform(()=>Java.scheduleOnMainThread(()=>{const e=prefs.edit();if(had)e.putBoolean('persistentBottomQuickFilters',old);else e.remove('persistentBottomQuickFilters');e.commit();if(activity)E.updateOptions(activity);console.log('PREF_RESTORED');})),6000);
+});

@@ -54,7 +54,7 @@ class FishingPointsSmokeTest {
         assertTrue(aggregates.size >= 3, "expected >= 3 premium aggregates, found $aggregates")
 
         val patched = applyPatches(
-            apk = apk, workDir = workDir.resolve("patched"), pkg = PKG, version = "4.7.3",
+            apk = apk, workDir = workDir.resolve("patched"), pkg = PKG, version = "4.8.0",
             patchNames = setOf("Enable Premium"), allPatches = loadAllPatches(newestPatchBundle(root)),
         ).single { it.type == APP_CLASS }
         for (name in aggregates) {

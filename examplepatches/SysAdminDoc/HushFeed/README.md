@@ -32,11 +32,11 @@ Most switches start off, so a freshly patched TikTok looks and works the way it 
 
 Hushfeed v0.79.0 contains 141 patches for TikTok 47.5.3 and PineDrama 47.5.3. New in this one: PineDrama moves to 47.5.3, six more patches run on it, and imported fonts work there. TikTok gets a spam comment filter, screen recording for LIVEs and a blur behind the glass bar, and Hide videos you have already seen works on For You again. It needs Morphe Manager 2.0.0 or newer.
 
-The main branch contains 141 patches, the same set as v0.79.0.
+The main branch contains 141 patches, the same set as v0.79.0. Bundles built from main require Morphe Manager 2.2.0 or newer, or morphe-desktop 1.19.1 or newer.
 
 ## What it changes
 
-- **Feed:** Start with the Calm feed preset, or hide ads, Shop, LIVEs, stories, photo posts and any creator or video that matches your own rules. Your own posts are never hidden. TikTok can open on Following, Friends, Inbox or Profile instead of For You.
+- **Feed:** Hide ads, Shop, LIVEs, stories, photo posts and any creator or video that matches your own rules. Your own posts are never hidden. TikTok can open on Following, Friends, Inbox or Profile instead of For You.
 - **Touch controls:** Ask for a second tap before Follow, Like or a quick repost goes through. Remap or turn off long press and double tap, and keep For You where it is when you tap Home.
 - **Playback:** Choose the speed and quality, stop loops, pick up where you left off or move on by itself. A video can keep playing after you leave the app.
 - **Downloads:** Save videos without the watermark, full-size photos, the sound on its own and SRT subtitles, into folders and file names you choose. Saving works even when the creator turned downloads off.
@@ -63,36 +63,40 @@ The block, hide, sound and Not interested buttons Hushfeed can put on a video:
 
 The patches that take files out of TikTok do it while patching, so Pause and a settings import can't put those files back. Read the [native-language recovery steps](#tiktok-stays-in-english-after-removing-language-packs) before you remove languages.
 
+## Choose defaults while patching
+
+Each patch with settings has Morphe options that set the patched app's starting values. They apply until you change a setting, and Reset goes back to them. An update keeps whatever you already saved. For example, to show an author's country as a flag:
+
+```powershell
+java -jar morphe-desktop-all.jar patch -p patches.mpp -e "Show author region" -Oshow_author_region=true -Oregion_as_flag=true tiktok.apk
+```
+
+For repeat builds, `options-create -p patches.mpp -o options.json` writes every option to a file you can edit and pass back with `--options-file`. A setting shared by two patches needs the same value in both, or patching stops and says which one conflicts. The keys are in [the patch catalog](patches-list.json).
+
 ## Settings
 
 Besides the row at the top of TikTok's **Settings and privacy**, two shortcuts skip Profile and work while you're signed out: press and hold **For You** at the top of the feed, or long-press **Home** on the bottom bar. A quick tap on either still does what it always did. The Home shortcut needs **Feed tab navigation** selected along with **Settings** when you patch, and it's the one to use if you've hidden the tab names at the top of the feed.
 
-The home page has a search box, which finds any row by its title or description and flips a plain switch right in the results. In unreleased builds, hold a result switch to open its original page and highlight the setting. Back restores the search. Screen readers offer **Open setting location**. Under it, Quick setups turns on Quiet or Privacy, or puts every switch back to its default, in one tap with Undo. Every settings page sits right on the home page under a small heading, so nothing is more than one tap away:
+The search box finds controls by title or description and flips a plain switch right in the results. In unreleased builds, categories open and collapse directly beneath their main-list rows. Several can stay open at once. Hold a result switch to reveal its control in that same list; screen readers offer **Open setting location**. Back dismisses search first. Quick setups has been removed.
 
-| Heading | Pages |
-| --- | --- |
-| Your feed | Feed filter, Feed tabs, Feed screen, Playback and Screen time |
-| Conversations | Comments and Inbox |
-| Saving and sharing | Downloads and Share sheet |
-| Privacy and app | Privacy, App, Region, Backup and restore, and Feature Gate Lab when it's installed |
-| Hushfeed | Status, Pause Hushfeed, Diagnostics, About Hushfeed, Report a problem and Support Hushfeed |
-
-The status chip next to the Hushfeed title scrolls down to the full status card. About Hushfeed has the build details and the license notices. **Report a problem** opens a GitHub bug report with your versions and the switches you have on filled in, and **Support Hushfeed** opens Ko-fi. A few pages you'll want to know about:
+The status chip next to the Hushfeed title scrolls down to the full status card. About Hushfeed has the build details and the license notices. **Report a problem** opens a GitHub bug report with your versions and the switches you have on filled in, and **Support Hushfeed** opens Ko-fi. A few controls you'll want to know about:
 
 - **Pause Hushfeed**, under the Hushfeed heading, turns the runtime features off from the next start and keeps every choice you made. [Is it Hushfeed?](#is-it-hushfeed-pause-it-and-see) lists what it can't reach.
 - **Backup and restore** saves your settings and Feature Gate Lab rules to a JSON file. A backup from an older Hushfeed restores what it has and leaves the rest as you set it. Restore and reset keep one undo copy inside TikTok, but clearing TikTok's data takes that copy too, so back up to a file first.
 - **Import watch history**, under Feed filter > Seen videos, reads the JSON file from [your TikTok data download](https://support.tiktok.com/en/account-and-privacy/personalized-ads-and-data/requesting-your-data) so Hide already seen videos knows what you've watched. The file's dates don't name a time zone, so they're read in your phone's zone when you pick the file. It takes up to 2 MB and 10,000 entries.
 - **Diagnostics** exports a report you can attach to a bug, and the report stays on your phone until you share it. Its **Hook status** row says whether the hooks found what they need in your TikTok build. It hears from comments, comment translation, the inbox, the share sheet, the feed overlay, the bottom navigation and the story viewer, feed models, playback quality, sensitive warnings, CAPTCHA account state, the external browser, sticker saves and story saves. A switch can read on while its hook found nothing, and this row is how you'd know.
+
+Unreleased builds add a PUSH DELIVERY section to exported diagnostics. Its counters cover stages observed in the current process. Zero means unobserved. During timed capture, actual notification attempts also record Android permission and channel state. Native registration tracing covers global TikTok 47.5.3; PineDrama marks it unsupported. Shared upload counters cover all transports, and cache hits aren't fresh server acknowledgments. Tokens and message contents stay out of the report.
 - **Feature Gate Lab** changes values TikTok reads for its own features. Its reviewed presets show each value before you apply it, and Undo last Lab change puts the old ones back. A gate outside those presets can break sign-in or the feed, so leave it alone unless you know what it does.
 
-Settings use the same rounded panels and controls across every page, in dark and light mode. The [page mockups and implementation notes](concepts/patch-development.md#settings-design-concepts) show the design behind them.
+Unreleased settings use flat rows with the same controls in dark and light mode.
 
-<img src="assets/settings/settings.png" alt="Hushfeed settings home" width="260" /> <img src="assets/settings/playback-sound.png" alt="The Player card on the Playback page" width="260" /> <img src="assets/settings/playback-sound-light.png" alt="The Player card on the Playback page in light mode" width="260" />
+<img src="assets/settings/settings.png" alt="Hushfeed settings home" width="260" /> <img src="assets/settings/playback-sound.png" alt="Player controls in the expanded Playback section" width="260" /> <img src="assets/settings/playback-sound-light.png" alt="Expanded Playback controls in light mode" width="260" />
 
 <details>
-<summary>Every settings page</summary>
+<summary>Settings sections and tools</summary>
 
-| Page | Screenshot |
+| Section | Screenshot |
 |---|---|
 | Feed filter | [View](assets/settings/feed_filter.png) |
 | Local creator list | [View](assets/settings/creator-list.png) |
@@ -154,7 +158,7 @@ Simple mode in Morphe Manager selects 122 of these patches. Each row says what t
 | `Comment sort controls` | Shows TikTok's full comment sort menu on every video, with hot, newest, media and creator options, even when your account only got a cut-down version. Starts off. Turn it on in Hushfeed settings > Comments. |
 | `Comment tools` | Hides comments with words you pick or from accounts you pick, and adds a search box for a video's comments. It can also make links tappable and show poll results before you vote. Starts off. Turn it on in Hushfeed settings > Comments. |
 | `Confirm feed interactions` | Asks for a second tap before Follow, a like, or a quick repost goes through, so a stray tap doesn't count. Starts off. Turn it on in Hushfeed settings > Feed screen. |
-| `Copy bio and IDs` | Lets you long-press a bio to copy it, and adds share sheet buttons that copy a username, user ID or video ID. On by default. Turn it off in Hushfeed settings > App. |
+| `Copy bio and IDs` | Lets you long-press a bio to copy it, makes the @names in a bio open those profiles on a tap, and adds share sheet buttons that copy a username, user ID or video ID. On by default. Turn it off in Hushfeed settings > App. |
 | `Copy comments without username` | When you copy a comment, you get just its text, without the username in front. On by default. Turn it off in Hushfeed settings > Comments. |
 | `Custom launcher icon` | Gives TikTok's home screen icon a themed version that takes your wallpaper's color on Android 13 and up. The options can also make it black, plain or your own picture. Only patching again without it puts the old icon back. |
 | `Custom offline videos limit` | Lets you pick how many videos TikTok saves for watching offline, from 1 to 10,000, and keep them until you delete them. Handy when you're often without internet. Starts off. Turn it on in Hushfeed settings > Downloads. |
@@ -273,6 +277,8 @@ Simple mode in Morphe Manager selects 122 of these patches. Each row says what t
 | `Use non-personalized search` | Shows search results that aren't tailored to your account. Starts off. Turn it on in Hushfeed settings > App. |
 | `Use system font` | Shows TikTok's text in your phone's own font or in a .ttf or .otf font file you import, instead of TikTok's, and can use your phone's emoji too. Starts off. Turn it on in Hushfeed settings > App, then restart TikTok. |
 
+Unreleased builds keep a profile grid's sort menu available after you choose Original order.
+
 ## Help
 
 ### Logging in fails
@@ -381,9 +387,11 @@ The release also carries `release-receipt-<version>.json`. It records the tag an
 You need JDK 21 or newer, an Android SDK set in `local.properties`, and `GITHUB_ACTOR` plus a `GITHUB_TOKEN` with `read:packages` for the Morphe dependencies on GitHub Packages. On Windows, run the runtime tests on JDK 25, since JDK 21 there couldn't replace a file through `File.renameTo`.
 
 ```bash
+pwsh -File scripts/gen-patch-defaults.ps1
+./gradlew :patches:generatePatchesList
+pwsh -File scripts/test-patch-defaults.ps1
 ./gradlew :extensions:tiktok:test
 ./gradlew :patches:test
-./gradlew :patches:generatePatchesList
 pwsh -File scripts/validate-release-facts.ps1
 ./gradlew :patches:buildAndroid
 ```
@@ -396,7 +404,13 @@ To add a language to the settings screen, copy one of the tables under `extensio
 
 The patch audit's catalog check is `pwsh -File audit/run-audit.ps1 -Validate`. To check a saved report without changing it, use `-ValidateResults -Results <report> -OutDir <evidence folder>`. A current result needs its exact definition, build receipt and APK identity, unchanged evidence files, and the same executable inputs as the build being qualified. Each check keeps its own input digest, so a partial rerun cannot qualify older checks. Documentation changes alone leave the digest unchanged. Old or mixed-build records stay historical. The [audit routine](concepts/patch-development.md#patch-audit) covers the device builder's `.audit-build.json`, shared device leases and receipt-bound screenshot verdicts.
 
-Unreleased release checks require a separate fixture and native audit for every package and version in the catalog. Each record includes the source APK's manifest and hash, the selected patches and options, and the exact bundle and source commit. A whole-app walk also verifies the installed APK before and after navigation. Older published receipts remain readable as historical records. PineDrama still needs its own native audit and walk profiles before these checks can permit another publication.
+Unreleased release checks require a separate fixture and native audit for every package and version in the catalog. Each record includes the source APK's manifest and hash, the selected patches and options, and the exact bundle and source commit. A whole-app walk also verifies the installed APK before and after navigation. Older published receipts remain readable as historical records. PineDrama still needs a complete native audit and whole-app walk before these checks can permit another publication.
+
+PineDrama's partial `pinedrama-47.5.3-core-walk-v2` profile follows five steps. It launches the native MainActivity and opens Hushfeed with `TikTokActivityHook.openSettings()`. The Comments row expands its controls inline, then collapses them on the same settings page. Back returns to the original native activity. Each step needs a fresh boolean observation and a screenshot. The result retains installed APK identities before and after the walk and rejects a process change or native crash. Even if all five steps pass, it stays `INCOMPLETE`, with `full=false` and `eligibleForPublication=false`. Historical v1 page-navigation evidence remains tied to v1. Native Profile/settings entry, served comments and photo gallery or posting flows still need their own checks.
+
+Build and install the separate probe with `tools/verification-probe/build.ps1 -Profile pinedrama-47.5.3-core-walk-v2`, the target APK's signing arguments and `-Install -Serial <device>`. Run `scripts/walk-pinedrama.ps1 -Serial <device> -StockApk <merged stock apk> -PatchedApk <signed apk> -AuditBuild <device build receipt> -Bundle <mpp> -Aapt2 <aapt2> -Out <new result path>`. The driver requires the reviewed merged source and all 95 declared patches. Never install the split-required base alone. Pass any exact patch options as an `-ExpectedOptions` array in an in-process call.
+
+An in-process controller can pass its live owned object to the walk with `-Lease`. The controller handles startup, installation and rollback under the same lease. The walk validates and renews it without releasing it. Standalone runs acquire and release their own lease. The [PineDrama coverage profile](audit/profiles/pinedrama-47.5.3-core-v2.json) lists the native routes and prerequisites still needed for every selected patch. `Get-PineDramaCoreResultProblem` in `tools/verification-probe/pinedrama-core.ps1` validates a saved result against its plan and retained evidence.
 
 On Windows, device builds, probe installation, the probe tools, the injected-register check and audit runs need `-LeaseDir <shared lease folder>` and `-ChatIdentity <task identifier>`, or `HUSHFEED_DEVICE_LEASE_DIR` and `HUSHFEED_CHAT_IDENTITY`. Every device command checks the exact serial and current ownership. Existing leases are never reclaimed automatically, including expired ones. Local builds and offline audit checks don't acquire a device lease.
 

@@ -36,10 +36,6 @@ internal const val SYNTHETIC_LOGO_LONG_PRESS = "$CHATS_TITLE->CY1(Landroid/conte
 internal const val SYNTHETIC_MENU_TITLE_LONG_PRESS = "$MORE_TITLE->CY1(Landroid/content/Context;)V"
 private val FINAL_PUBLIC = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
 
-/** Where the Chats and Menu titles' long press handlers live in 584. */
-private const val NATIVE_LOGO_LONG_PRESS = "LX/2Rg;->CdZ(Landroid/content/Context;)V"
-private const val NATIVE_MENU_TITLE_LONG_PRESS = "LX/3FY;->CdZ(Landroid/content/Context;)V"
-
 /**
  * The Chats title's long press handler as Messenger writes it: a null check, then the TitleShortcut plugin lookup with the
  * session and the Context, then the plugin call. p0 is v3 and the Context, p1, is v4.
@@ -218,12 +214,13 @@ class LogoLongPressTest {
             val code = apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
             val classes = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
-            for ((title, expected) in listOf(
-                CHATS_TAB_TITLE to NATIVE_LOGO_LONG_PRESS,
-                MENU_TAB_TITLE to NATIVE_MENU_TITLE_LONG_PRESS,
-            )) {
+            // 584.1's four families name the handlers differently, so each title gets its own one Context handler.
+            val handlers = mutableSetOf<String>()
+            for (title in listOf(CHATS_TAB_TITLE, MENU_TAB_TITLE)) {
                 val sites = findLogoLongPress(classes, title)
-                assertEquals(listOf(expected), sites.map { it.hookId() }, "$code ${title.handler}")
+                assertEquals(1, sites.size, "$code ${title.handler} ${sites.map { it.hookId() }}")
+                assertTrue(sites.single().hookId().endsWith("(Landroid/content/Context;)V"), "$code ${sites.single().hookId()}")
+                assertTrue(handlers.add(sites.single().hookId()), "$code: both titles share ${sites.single().hookId()}")
                 val method = MutableMethod(assertNotNull(logoLongPressSite(sites, title), code))
                 val stock = method.code().map { it.opcode }
                 method.injectLogoLongPress()

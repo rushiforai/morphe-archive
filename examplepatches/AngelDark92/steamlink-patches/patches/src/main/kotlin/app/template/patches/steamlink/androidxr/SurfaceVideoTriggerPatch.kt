@@ -17,7 +17,7 @@ internal const val SURFACE_VIDEO_TRIGGER_MANIFEST =
 internal const val SURFACE_VIDEO_TRIGGER_BUILD_ID =
     "surface-video-trigger-2proj-v1.0-20261025"
 internal const val SURFACE_VIDEO_TRIGGER_HELPER_SHA256 =
-    "4fef35515bdd8b0d4b32ebc3a79667a748329ead1153188b688b76dab1ae7c79"
+    "1e223bfec56fc3e39355a5fda25464fc54d45887d98e8591884b1f4d80c8b384"
 internal const val SURFACE_VIDEO_TRIGGER_MANIFEST_SHA256 =
     "328d54a019fb1263a8fc76f3b35a3e23bcaa1ec66725b3d52775b62d3fe1b8fa"
 

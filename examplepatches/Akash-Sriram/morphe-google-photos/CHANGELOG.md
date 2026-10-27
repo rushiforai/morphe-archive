@@ -1,3 +1,11 @@
+## [1.16.1](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.16.0...v1.16.1) (2026-10-26)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Seeder:** exclude non-ML promo assets and prevent model health revert ([#44](https://github.com/Akash-Sriram/morphe-google-photos/issues/44)) ([28214c4](https://github.com/Akash-Sriram/morphe-google-photos/commit/28214c4c349282794ae0f8e2a42c8f18cb086ff8))
+* **Google Photos - Theme:** ensure translucent expander windows retain transparent background in night mode ([#45](https://github.com/Akash-Sriram/morphe-google-photos/issues/45)) ([4c45121](https://github.com/Akash-Sriram/morphe-google-photos/commit/4c45121b7743ec570b1c7fda142c25263e460c79))
+* **Google Photos - Theme:** preserve transparent window background on bottom sheet and translucent dialogs ([#45](https://github.com/Akash-Sriram/morphe-google-photos/issues/45)) ([856db4d](https://github.com/Akash-Sriram/morphe-google-photos/commit/856db4d9893081e715a483f8ecaf241338d38579))
+
 ## [1.16.0](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.15.4...v1.16.0) (2026-10-25)
 
 ### 🐛 Bug Fixes

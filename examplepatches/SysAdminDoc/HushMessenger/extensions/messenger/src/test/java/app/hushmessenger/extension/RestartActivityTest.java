@@ -122,7 +122,10 @@ public class RestartActivityTest {
                 TextView status = pane.findViewWithTag("restart_status");
                 SettingsUi ui = new SettingsUi(screen.get(), light);
                 assertEquals(ui.background, ((android.graphics.drawable.ColorDrawable) pane.getBackground()).getColor());
-                assertEquals(ui.text, status.getCurrentTextColor());
+                // Both titles wear Messenger's gradient in this theme's stops.
+                assertTrue(ShimmerTitle.wears(status));
+                assertTrue(ShimmerTitle.wears(pane.findViewWithTag("restart_brand")));
+                assertEquals(light, ui.light);
                 // From API 35 enforced edge-to-edge ignores bar colors; the full-window status view shows behind them.
                 if (android.os.Build.VERSION.SDK_INT < 35) {
                     assertEquals(ui.background, screen.get().getWindow().getStatusBarColor());

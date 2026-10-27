@@ -61,6 +61,7 @@ extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/VideoOverlayHid
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/VideoOverlayHider.java|lk3
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/VideoOverlayHider.java|lke
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/VideoOverlayHider.java|nfz
+extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/VideoOverlayHider.java|o5c
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/VideoOverlayHider.java|o8s
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/VideoOverlayHider.java|o_l
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/VideoOverlayHider.java|op9
@@ -196,6 +197,23 @@ patches/src/main/kotlin/app/morphe/patches/tiktok/misc/featuregatelab/FeatureGat
 patches/src/main/kotlin/app/morphe/patches/tiktok/misc/featuregatelab/FeatureGateLabPatch.kt|LJIIIIZZ
 patches/src/main/kotlin/app/morphe/patches/tiktok/misc/follow/FollowDiagnosticsPatch.kt|LIZ
 patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/InboxQueryPublicationHooks.kt|LIZ
+# Global 47.5.3 passive-push profile. These opaque callback/task/cache contracts are pinned
+# alongside native body/control-flow guards in PushDeliveryDiagnosticsTest. Named SDK entrypoints
+# alone do not identify the completion, cached-upload and server-outcome branches. Other package/
+# version profiles remain unsupported; these names are not treated as portable identities.
+patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/PushDeliveryDiagnosticsPatch.kt|LX/
+patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/PushDeliveryDiagnosticsPatch.kt|LX/03K7;
+patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/PushDeliveryDiagnosticsPatch.kt|LX/03Ln;
+patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/PushDeliveryDiagnosticsPatch.kt|LX/05C8;
+patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/PushDeliveryDiagnosticsPatch.kt|LX/07ca;
+patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/PushDeliveryDiagnosticsPatch.kt|LX/0FdT;
+patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/PushDeliveryDiagnosticsPatch.kt|LX/0Fdx;
+patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/PushDeliveryDiagnosticsPatch.kt|LX/0Fe2;
+patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/PushDeliveryDiagnosticsPatch.kt|LX/0Fe3;
+patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/PushDeliveryDiagnosticsPatch.kt|LX/0Fej;
+patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/PushDeliveryDiagnosticsPatch.kt|LX/0Fen;
+patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/PushDeliveryDiagnosticsPatch.kt|LX/0Fep;
+patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/PushDeliveryDiagnosticsPatch.kt|LX/0Feq;
 patches/src/main/kotlin/app/morphe/patches/tiktok/misc/settings/SettingsPatch.kt|LIZ
 patches/src/main/kotlin/app/morphe/patches/tiktok/misc/settings/SettingsPatch.kt|LX/
 patches/src/main/kotlin/app/morphe/patches/tiktok/misc/settings/SettingsPatch.kt|l0

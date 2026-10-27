@@ -92,6 +92,23 @@ public class NotificationGroupsSettingsTest {
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.GROUP_NOTIFICATIONS.key));
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.GROUP_NOTIFICATIONS_BY_TYPE.key));
     }
+    /** Hide suggested people alone opens Notifications for its Notifications page switches, without the grouping rows. */
+    @Test public void suggestionsAloneOpenNotificationsWithoutGrouping() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.PROFILE_SUGGESTIONS);
+        controller = Robolectric.buildActivity(Activity.class).setup();
+        page = new HushgramPreferenceFragment();
+        controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
+        Utils.awaitBackgroundTasksForTests();
+        assertNull(page.getPreferenceScreen().findPreference(Settings.GROUP_NOTIFICATIONS.key));
+        assertNull(page.getPreferenceScreen().findPreference(Settings.GROUP_NOTIFICATIONS_BY_TYPE.key));
+        PreferenceCategory section = categoryHolding(page.getPreferenceScreen(),
+                page.getPreferenceScreen().findPreference(Settings.HIDE_NOTIFICATION_FEATURED.key));
+        assertNotNull(section);
+        assertEquals("Notifications", section.getTitle().toString());
+        assertEquals(3, section.getPreferenceCount());
+        assertEquals("Take suggestions and Featured off the Notifications page.",
+                ((HushgramPreferenceFragment.Heading) section).intro);
+    }
     /** Turning Group notifications off preserves the children and the summary that must stay with them. */
     @Test public void turningTheSwitchOffKeepsTheChildrenAndTheirSummary() throws Exception {
         open(true);

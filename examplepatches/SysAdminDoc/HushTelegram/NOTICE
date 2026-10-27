@@ -15,6 +15,7 @@ Morphe, which hard forked ReVanced. Some of the files Hushfacebook carries are
 rewritten from Andrew Liang's patches, which credit FroggoMorphePatches for
 some of their ideas and implementations. The settings screen's restart row,
 Report a problem and Quick setups come from HushPinterest, its Pinterest
+sibling, and the animated settings title from HushGram, its Instagram
 sibling. The Telegram patches
 themselves are written here, from Telegram's own code. The notices below are
 reproduced from those projects. Morphe requires its text to be carried in
@@ -25,6 +26,7 @@ HushTelegram, then More settings, About and Licenses.
   HushTelegram                https://github.com/SysAdminDoc/HushTelegram
   HushThreads                 https://github.com/SysAdminDoc/HushThreads
   HushPinterest               https://github.com/SysAdminDoc/HushPinterest
+  HushGram                    https://github.com/SysAdminDoc/HushGram
   Hushfacebook               https://github.com/SysAdminDoc/Hushfacebook
   Hushfeed                    https://github.com/SysAdminDoc/hushfeed
   morphe-patches (Andrew's)   https://github.com/andrewliang25/morphe-patches
@@ -34,7 +36,7 @@ HushTelegram, then More settings, About and Licenses.
   morphe-patches-library      https://github.com/MorpheApp/morphe-patches-library
   ReVanced                    https://gitlab.com/ReVanced/revanced-patches
 
-HushThreads, HushPinterest, Hushfacebook, Andrew Liang's patches and
+HushThreads, HushPinterest, HushGram, Hushfacebook, Andrew Liang's patches and
 FroggoMorphePatches are licensed under the GNU General Public License v3.0. Files that came from
 another project keep a "Forked from" line naming it and the commit they came
 from, and provenance.json records every rule.

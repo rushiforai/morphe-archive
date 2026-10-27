@@ -21,7 +21,7 @@ internal object AdAllowedPreferenceFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Z",
     parameters = listOf(),
-    strings = listOf("preferences.ad.allowed.key"),
+    strings = listOf(string("preferences.ad.allowed.key", StringComparisonType.CONTAINS)),
 )
 
 // FbApplication's ad SDK init ("Ad Log -> int GAM/Numbus"): starts Google Ad Manager and Nimbus.

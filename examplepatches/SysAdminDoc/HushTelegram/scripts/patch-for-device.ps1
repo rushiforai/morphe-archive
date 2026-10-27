@@ -100,15 +100,7 @@ if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) { throw "No patch
 try { $catalog = Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json }
 catch { throw "Could not read patch list ${catalogPath}: $($_.Exception.Message)" }
 $target = Get-PatchTarget -PatchList $catalog -PackageName $PackageName
-if (-not $Apk -and $env:HUSHTELEGRAM_FIXTURE_DIR -and (Test-Path -LiteralPath $env:HUSHTELEGRAM_FIXTURE_DIR -PathType Container)) {
-    $fixtureNames = @(foreach ($code in @($target.PackageVersionCodes[$target.PackageVersion])) {
-        Get-VendorFixtureName -Target $target -VersionName $target.PackageVersion -VersionCode $code
-    })
-    $matching = @(Get-ChildItem -LiteralPath $env:HUSHTELEGRAM_FIXTURE_DIR -File |
-        Where-Object { $fixtureNames -ccontains $_.Name })
-    if ($matching.Count -gt 1) { throw 'More than one declared default fixture is present. Pass an exact -Apk.' }
-    if ($matching.Count -eq 1) { $Apk = $matching[0].FullName }
-}
+if (-not $Apk) { $Apk = Find-DefaultVendorApk -Target $target -FixtureDirectory $env:HUSHTELEGRAM_FIXTURE_DIR }
 if (-not $Apk -or -not (Test-Path -LiteralPath $Apk -PathType Leaf)) {
     throw ("No vendor APK. Pass -Apk with the $($target.PackageVersion) build, or set " +
         'HUSHTELEGRAM_FIXTURE_DIR to the folder that holds it.')
@@ -224,7 +216,7 @@ try {
         $signing += @('--keystore-password', $keystorePassword, '--keystore-entry-alias', $KeyAlias,
             '--keystore-entry-password', $keystorePassword)
     }
-    $arguments = @('patch', '--exclusive', '-p', $bundle, '-o', $out, '-t', $temp, '-r', $result) + $signing + $enable + @($Apk)
+    $arguments = @('patch', '--validate', '--exclusive', '-p', $bundle, '-o', $out, '-t', $temp, '-r', $result) + $signing + $enable + @($Apk)
     $argumentFile = Resolve-WithinRoot -Root $runDir -Path (Join-Path $runDir 'morphe-patch.args')
     $argumentFileLines = @($arguments | ForEach-Object {
         $value = [string]$_

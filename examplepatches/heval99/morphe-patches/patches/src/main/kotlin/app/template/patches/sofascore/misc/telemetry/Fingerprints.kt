@@ -1,6 +1,8 @@
 package app.template.patches.sofascore.misc.telemetry
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 // The "firebase_analytics_collection_deactivated" read fingerprint lives in
 // shared/misc/telemetry/FirebaseAnalyticsDeactivated.kt (shared with FotMob, 2026-10-22).
@@ -21,7 +23,10 @@ object GmsMeasurementLogEventFingerprint : Fingerprint(
 object SofascoreAnalyticsEventFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Ljava/lang/String;", "Lcom/sofascore/model/FirebaseBundle;"),
-    strings = listOf("event_date", "event_timestamp"),
+    strings = listOf(
+        string("event_date", StringComparisonType.CONTAINS),
+        string("event_timestamp", StringComparisonType.CONTAINS),
+    ),
 )
 
 // Firebase Performance: ConfigResolver.isPerformanceMonitoringEnabled() (R8-renamed, vp3.o in
@@ -31,5 +36,9 @@ object SofascoreAnalyticsEventFingerprint : Fingerprint(
 object PerformanceMonitoringEnabledFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf(),
-    strings = listOf("fpr_enabled", "fpr_disabled_android_versions", "com.google.firebase.perf.SdkEnabled"),
+    strings = listOf(
+        string("fpr_enabled", StringComparisonType.CONTAINS),
+        string("fpr_disabled_android_versions", StringComparisonType.CONTAINS),
+        string("com.google.firebase.perf.SdkEnabled", StringComparisonType.CONTAINS),
+    ),
 )

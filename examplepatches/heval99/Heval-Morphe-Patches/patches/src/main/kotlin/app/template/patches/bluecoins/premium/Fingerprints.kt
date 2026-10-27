@@ -26,7 +26,10 @@ internal object PremiumStateEmitFingerprint : Fingerprint(
 // "versionOverride" preferences and combines them. Only exists from 13.1.149 on (13.1.79
 // has no Google Play version override), so it tells the patch whether step 2 is required.
 internal object PremiumUseCaseFingerprint : Fingerprint(
-    strings = listOf("premiumKey", "versionOverride"),
+    strings = listOf(
+        string("premiumKey", StringComparisonType.CONTAINS),
+        string("versionOverride", StringComparisonType.CONTAINS),
+    ),
 )
 
 // invokeSuspend(result) of the combine lambda that merges the salted premium state with the

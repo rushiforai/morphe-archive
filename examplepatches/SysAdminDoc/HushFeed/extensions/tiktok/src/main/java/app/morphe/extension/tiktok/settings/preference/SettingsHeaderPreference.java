@@ -25,7 +25,7 @@ import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragmen
 @SuppressWarnings("deprecation")
 public final class SettingsHeaderPreference extends Preference {
     /** The product name, which reads the same in every language and is not translated. */
-    private static final String BRAND_MARK = "HUSHFEED";
+    private static final String BRAND_MARK = "Hushfeed";
 
     private enum Kind {
         MASTER,
@@ -48,7 +48,7 @@ public final class SettingsHeaderPreference extends Preference {
         SettingsHeaderPreference preference = new SettingsHeaderPreference(
                 context,
                 Kind.MASTER,
-                "Make it yours.",
+                BRAND_MARK,
                 null,
                 backAction
         );
@@ -127,12 +127,6 @@ public final class SettingsHeaderPreference extends Preference {
         } else {
             toolbar.addView(statusView, new LinearLayout.LayoutParams(-2, -2));
         }
-        TextView subtitle = SettingsUi.text(context, L10n.t(context, "Your feed. Your rules."),
-                SettingsUi.TEXT_BODY, SettingsUi.textSecondary(), 0);
-        subtitle.setTag("hushfeed_home_subtitle");
-        LinearLayout.LayoutParams subtitleParams = new LinearLayout.LayoutParams(-1, -2);
-        subtitleParams.topMargin = SettingsUi.dp(context, 6);
-        header.addView(subtitle, subtitleParams);
         refreshStatus();
         return header;
     }
@@ -170,9 +164,7 @@ public final class SettingsHeaderPreference extends Preference {
     private View createSectionHeader() { return createHeader(getContext(), heading, backAction); }
 
     /**
-     * Shared app-owned heading used by settings and the Lab. Parent supplies the 16 dp gutter.
-     * The extra 8 dp inset keeps the heading and navigation aligned while the whole 48 dp Back
-     * control remains inside its parent, without the negative margin that once clipped it.
+     * Shared compact toolbar for settings and the Lab. Back retains its whole 48 dp target.
      */
     public static LinearLayout createHeader(Context context, String title, Runnable onBack) {
         return createHeader(context, title, onBack, false);
@@ -182,52 +174,50 @@ public final class SettingsHeaderPreference extends Preference {
         LinearLayout header = new LinearLayout(context);
         header.setTag("hushfeed_page_header");
         header.setOrientation(LinearLayout.VERTICAL);
-        header.setPaddingRelative(SettingsUi.dp(context, 8), SettingsUi.dp(context, 8),
-                SettingsUi.dp(context, 8), SettingsUi.dp(context, compact ? 12 : 0));
+        header.setPaddingRelative(0, SettingsUi.dp(context, 4), 0, SettingsUi.dp(context, 4));
         header.setBackgroundColor(SettingsUi.background());
         LinearLayout toolbar = new LinearLayout(context);
         toolbar.setTag("hushfeed_toolbar");
         toolbar.setGravity(Gravity.CENTER_VERTICAL);
+        toolbar.setPaddingRelative(0, 0, SettingsUi.dp(context, 16), 0);
         ImageView back = new ImageView(context);
         back.setContentDescription(L10n.t(context, "Back"));
-        // An ImageView with a click listener is read as an image; this says it is a button.
         SettingsUi.markAsButton(back);
         back.setImageDrawable(new BackDrawable(context));
         back.setOnClickListener(view -> { if (onBack != null) onBack.run(); });
         back.setFocusable(true);
-        // The same accent-at-15%-alpha the grouped rows use. divider() is 1.3:1 against the
-        // dark surface, which is no press feedback at all. The ring under it is what a reader
-        // moving by keyboard or d-pad sees: the ripple's own focus tint is fainter still.
         android.graphics.drawable.LayerDrawable backSurface = new android.graphics.drawable.LayerDrawable(
-                new Drawable[]{SettingsUi.borderedSurface(context, SettingsUi.RADIUS_PILL, false),
-                        SettingsUi.focusRing(context, SettingsUi.RADIUS_PILL)});
-        back.setBackground(SettingsUi.pressAndFocusOver(context, SettingsUi.RADIUS_PILL, backSurface));
+                new Drawable[]{new android.graphics.drawable.ColorDrawable(SettingsUi.background()),
+                        SettingsUi.focusRing(context, SettingsUi.RADIUS_CONTROL)});
+        back.setBackground(SettingsUi.pressAndFocusOver(context, SettingsUi.RADIUS_CONTROL, backSurface));
         toolbar.addView(back, new LinearLayout.LayoutParams(SettingsUi.dp(context, 48), SettingsUi.dp(context, 48)));
-        TextView brand = SettingsUi.text(context, BRAND_MARK, SettingsUi.TEXT_CAPTION, SettingsUi.accent(), 1);
-        brand.setLetterSpacing(0.12f);
-        brand.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams brandParams = new LinearLayout.LayoutParams(0, -2, 1);
-        brandParams.setMarginStart(SettingsUi.dp(context, 8));
-        toolbar.addView(brand, brandParams);
-        header.addView(toolbar, new LinearLayout.LayoutParams(-1, -2));
-        TextView heading = SettingsUi.text(
-                context, title, headingSizeSp(context, title),
+        TextView heading = SettingsUi.text(context, title, headingSizeSp(context, title),
                 SettingsUi.textPrimary(), 1);
         heading.setTag("hushfeed_page_title");
+        heading.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
         heading.setHyphenationFrequency(android.text.Layout.HYPHENATION_FREQUENCY_NONE);
         SettingsUi.markHeading(heading);
-        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, -2);
-        titleParams.topMargin = SettingsUi.dp(context, 12);
-        header.addView(heading, titleParams);
+        ShimmerTitle.wear(heading);
+        boolean stacked = !compact && context.getResources().getConfiguration().fontScale >= 1.3f;
+        if (!stacked) {
+            LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(0, -2, 1);
+            titleParams.setMarginStart(SettingsUi.dp(context, 12));
+            toolbar.addView(heading, titleParams);
+        }
+        header.addView(toolbar, new LinearLayout.LayoutParams(-1, -2));
+        if (stacked) {
+            heading.setPaddingRelative(SettingsUi.dp(context, 16), 0, SettingsUi.dp(context, 16), 0);
+            header.addView(heading, new LinearLayout.LayoutParams(-1, -2));
+        }
         return header;
     }
 
     private View createCaption() {
         Context context = getContext();
-        TextView caption = SettingsUi.text(context, detail, SettingsUi.TEXT_BODY, SettingsUi.textSecondary(), 0);
-        caption.setLineSpacing(SettingsUi.dp(context, 3), 1f);
-        caption.setPadding(SettingsUi.dp(context, 8), SettingsUi.dp(context, 6),
-                SettingsUi.dp(context, 8), SettingsUi.dp(context, 24));
+        TextView caption = SettingsUi.text(context, detail, SettingsUi.TEXT_LABEL, SettingsUi.textSecondary(), 0);
+        caption.setLineSpacing(SettingsUi.dp(context, 1), 1f);
+        caption.setPadding(SettingsUi.dp(context, 16), SettingsUi.dp(context, 2),
+                SettingsUi.dp(context, 16), SettingsUi.dp(context, 12));
         caption.setBackgroundColor(SettingsUi.background());
         return caption;
     }
@@ -235,13 +225,13 @@ public final class SettingsHeaderPreference extends Preference {
     /**
      * How large the page title may be at the reader's text scale.
      *
-     * <p>The 34sp display title grows through the first large-text preset, then adapts to keep
+     * <p>The compact title grows through the first large-text preset, then adapts to keep
      * the page below it within reach. The 20sp floor keeps it readable at larger text scales.
      */
     public static int headingSizeSp(Context context) {
         float scale = context.getResources().getConfiguration().fontScale;
-        if (scale <= 1.3f) return 34;
-        return Math.max(20, Math.round(34 * 1.3f / scale));
+        if (scale <= 1.3f) return 22;
+        return Math.max(20, Math.round(22 * 1.3f / scale));
     }
 
     /**
@@ -249,7 +239,7 @@ public final class SettingsHeaderPreference extends Preference {
      * Android otherwise breaks an unhyphenated word at an arbitrary character, which made the
      * German "wiederherstellen" end with a two-line fragment even though a modestly smaller
      * display heading could keep the word intact. Body text and the system font scale are left
-     * untouched; only this oversized display title adapts, with 20sp as its floor.
+     * untouched; only this page title adapts, with 20sp as its floor.
      */
     static int headingSizeSp(Context context, String title) {
         int preferred = headingSizeSp(context);

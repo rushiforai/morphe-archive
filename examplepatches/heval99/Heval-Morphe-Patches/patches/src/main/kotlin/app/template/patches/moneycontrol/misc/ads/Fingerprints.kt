@@ -10,7 +10,12 @@ import app.morphe.patcher.string
 internal object AdConfigParserFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Ljava/lang/String;", "Landroid/content/Context;"),
-    strings = listOf("native_ad", "splash_top", "splash_bottom", "dfp_custom"),
+    strings = listOf(
+        string("native_ad", StringComparisonType.CONTAINS),
+        string("splash_top", StringComparisonType.CONTAINS),
+        string("splash_bottom", StringComparisonType.CONTAINS),
+        string("dfp_custom", StringComparisonType.CONTAINS),
+    ),
 )
 
 // Utility's sticky bottom-ad container toggles (members R8-renamed: r / p on 14.6.2). Both take

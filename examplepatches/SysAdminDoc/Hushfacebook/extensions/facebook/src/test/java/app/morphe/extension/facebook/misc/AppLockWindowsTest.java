@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import app.morphe.extension.facebook.settings.Settings;
+import app.morphe.extension.facebook.settings.ShimmerTitleTest;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.settings.PauseForTests;
 
@@ -180,12 +181,14 @@ public class AppLockWindowsTest {
     }
 
     @Test
-    public void aLockedFacebookThatIsAwayStopsLookingForWindowsAndComingBackStartsAgain() {
+    public void aLockedFacebookThatIsAwayStopsLookingForWindowsAndComingBackStartsAgain() throws Exception {
         Activity screen = lockedScreen();
         AppLock.roots.list();
         assertFalse("no look was scheduled while the cover was up", nothingScheduled());
 
         AppLock.paused(screen);
+        // Away, Android hides Facebook's windows, the cover's with them, and its title stops moving.
+        ShimmerTitleTest.appVisible(ShadowDialog.getLatestDialog().getWindow().getDecorView(), false);
         // The look already on its way runs once, finds nothing in front and doesn't go again.
         ShadowLooper.idleMainLooper(AppLock.WATCH_MS * 3, TimeUnit.MILLISECONDS);
         assertTrue("the poll kept waking the main thread with Facebook away", nothingScheduled());

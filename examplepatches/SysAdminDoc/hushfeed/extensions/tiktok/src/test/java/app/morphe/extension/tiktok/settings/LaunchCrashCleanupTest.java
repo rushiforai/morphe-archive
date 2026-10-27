@@ -64,7 +64,7 @@ public class LaunchCrashCleanupTest {
         String[] kept = LaunchCrashCleanup.keepHushfeedFiles(TIKTOK_KEEPS.clone());
         assertArrayEquals("TikTok's own names moved or went", TIKTOK_KEEPS,
                 Arrays.copyOf(kept, TIKTOK_KEEPS.length));
-        assertEquals(Arrays.asList("morphe_prefs", "morphe_feature_gate_lab", "hushfeed-calm-feed-preset",
+        assertEquals(Arrays.asList("morphe_prefs", "morphe_feature_gate_lab",
                         "hushfeed_release_notes", "hushfeed_device_identity"),
                 Arrays.asList(kept).subList(TIKTOK_KEEPS.length, kept.length));
         assertArrayEquals(LaunchCrashCleanup.HUSHFEED_FILES, LaunchCrashCleanup.keepHushfeedFiles(null));
@@ -78,7 +78,6 @@ public class LaunchCrashCleanupTest {
         expected.put("featuregatelab/FeatureGateLabStore.java", Arrays.asList("PREFS_NAME"));
         expected.put("settings/preference/ReleaseNotes.java", Arrays.asList(
                 "PREFS_NAME", "PREFS_NAME", "PREFS_NAME"));
-        expected.put("settings/CalmFeedPreset.java", Arrays.asList("PREFERENCES"));
         expected.put("privacy/DeviceIdentity.java", Arrays.asList("PREFERENCES", "PREFERENCES"));
         expected.put("translation/DmTranslationPreview.java", Arrays.asList("Setting.preferences.name"));
         expected.put("translation/ReceivedDmTranslationPreview.java", Arrays.asList("Setting.preferences.name"));
@@ -94,7 +93,6 @@ public class LaunchCrashCleanupTest {
         assertTrue(kept.contains(Setting.preferences.name));
         assertTrue(kept.contains(constant(JavaCrashCapture.class, "PREFS_NAME")));
         assertTrue(kept.contains(FeatureGateLabStore.PREFS_NAME));
-        assertTrue(kept.contains(CalmFeedPreset.PREFERENCES));
         assertTrue(kept.contains(ReleaseNotes.PREFS_NAME));
         assertTrue(kept.contains(DeviceIdentity.PREFERENCES));
     }

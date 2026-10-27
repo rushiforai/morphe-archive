@@ -164,140 +164,82 @@ sh tests/bench/cold_boot.sh <old bootstrap.js>     # the real bundle boots with 
 5. **Version string:** `AppTarget` in `DiscordPatches.kt`, `DISCORD_VERSION` in `bootstrap.js`, `README.md`.
 6. Check every feature in the patched app. Functions Discord changed (a toast API, a store getter) only show up there.
 
-## Settings design
+## Seeing the UI
 
-Venus settings should feel like part of Discord: simple, modern and calm, never a wall of switches. Every screen
-starts from these rules. Use them for every new feature and every change to an existing one.
+**Use it before and after every UI change**, whenever you're asked to improve, review or change how anything in Venus
+looks, and any other time it helps (an edge case, a long translation, a fresh install, showing what a page looks like).
+Code can look right and still draw badly; the screenshot is what a user actually sees.
 
-### These rules are a starting point, not a cage
+`tests/ui` draws the real `bootstrap.js` (every feature patched in) in Chromium, at a phone's width, with Discord's own
+icons, gg sans font and color tokens taken from the APK, and saves screenshots you can open with the image viewer.
 
-The layouts, page order and styling below are what the user likes, so start from them. They are purely suggestions,
-not fixed requirements. What the user wants most is the best-looking, easiest-to-use UI, and what they like won't
-always be what looks or works best. Use your own judgement: if you believe something would look better or be easier
-to use another way, do it that way, and say what you changed and why in the pull request. This covers the whole Venus
-UI inside Discord, not only the settings pages: chat additions, buttons, sheets, toasts, previews and the Features list.
+```bash
+sh tests/ui/setup.sh                                   # once per sandbox, about a minute (work/ui; safe to rerun after a reset)
+node tests/ui/shot.cjs features 'page=VENUS_PLUGINS'   # -> work/ui/shots/features.png
+node tests/ui/shot.cjs nd-off 'page=VENUS_NODELETE' nd-on 'page=VENUS_NODELETE&on=noDelete'
+node tests/ui/shot.cjs --all before                    # every page, on and off, plus a fresh install
+python3 tests/ui/sheet.py work/ui/shots/cmp.png a.png b.png --scale 0.6   # side by side, to compare
+sh tests/ui/check.sh                                   # before committing: runtime parses, every text translated
+python3 tests/ui/icon.py NewUserIcon                   # which module exports a Discord icon
+python3 tests/ui/i18n.py drop "Old text"               # remove (or `add texts.json`) a text in every language at once
+```
 
-Change something only when it's genuinely better, though. Don't invent changes to look busy, and leave things alone when
-the current design already works. Wherever a rule here touches something other than looks (a name staying the same in
-Venus and Morphe, translations, tests, the module map), keep following it.
+- **Query:** `page=` a route (`VENUS_PLUGINS`, `VENUS_GENERAL`, `VENUS_BACKUP`, `VENUS_LANGUAGE`, `VENUS_<FEATURE>`),
+  `on=` features or switches turned on, `set=` any other saved settings as JSON (`set={"readAllMode":"dms"}`), `fresh=1`
+  for a first launch, `theme=light|midnight|darker`, `lang=de`, `search=` typed into the Features search bar, `tap=` the label or text of something to tap first.
+- **Inside Discord:** `scene=` draws a Discord screen with what Venus adds to it, instead of a settings page
+  (`tests/ui/scenes.jsx`): `serverMenu` (the server hold menu with Server info), `serverInfo` (the Server info sheet),
+  `readAll` and `readAllHold` (the Read all pill and its choices), `reviews` (a profile with the Reviews card), `hiddenChannel` (the locked-channel dialog), `settings` (Discord's Settings screen with the Venus section), `youBar` (the profile bar buttons), `translateBar` (the Translate pill in a chat), `bulkDelete` (the selection bar in a chat, after Select Messages), `messageMenu` (a message's hold menu with Translate), `serverSheet` (the server sheet with the Reviews row); parameters
+  for edge cases are listed at the top of `scenes.jsx`. Check these too when a feature's settings change what
+  it does in Discord, and add a scene for any other place Venus draws.
+- `DPR=2` gives sharper shots for reading small text; `WIDTH=360` checks a narrow phone. The script prints the page's
+  errors, warnings, dialogs and toasts.
+- Look at a page you change on and off, in another theme and in a long language (`lang=de`, `lang=ru`).
+- It's a close stand-in, not Discord: `tests/ui/discord.jsx` redraws Discord's components (rows, switches, buttons) from
+  their sizes and tokens, and animations jump to their end. It shows layout, wording, spacing and states; things that depend on Discord's native code (exact ripples, the real chat list) still need a phone. When a
+  page reads a Discord module the preview doesn't have, add a stand-in to `entry.jsx`.
 
-### Fewer, better settings
+## UI design
 
-- **One main switch per feature.** It sits on the Features list. Only add options that most users would actually
-  change. Don't add an option because something *could* be configurable.
-- **Remove options that are useless, near useless or confusing.** If an option only matters in a rare case, does
-  something the main switch could do by itself, or needs a paragraph to explain, pick the better behaviour and
-  drop the option.
-- When you remove an option, take its key out of `settings` and `featureFor`. An older settings file that still
-  has it is then ignored, and nothing else needs migrating. Say so under 🔧 Improvements in the changelog.
-- Every feature starts off. Options inside a feature keep sensible defaults, so turning the feature on does what
-  its title says straight away.
+**The only requirement for anything Venus shows, in Discord or in its settings: modern, beautiful and clean.**
 
-### The Features list
+Nothing else about looks or layout is a rule: not the page order, the components, the wording, the length of a
+description, which rows exist or whether a page has a preview. Decide all of it yourself, judged on how it looks and
+feels to use (`tests/ui`, above, shows you). Say what you changed and why in the pull request.
 
-- Rows are grouped by where you notice them: **Messages, Sending, People, Servers, Appearance, Quests**. Put a
-  new feature in the group that fits. Add a group only when none does.
-- Every row has its own Discord icon from `FEATURE_ICONS`: a design-system icon module that exports exactly that
-  name (check it with `scripts/hbc`). Never reuse another feature's icon.
-- A feature with options is a `withOptions` row: the switch and a button to its page. A feature without options
-  is a plain `toggle`.
+## Engineering notes
 
-### Titles and descriptions
+These keep features working and the project consistent. They say nothing about how anything should look.
 
-- **Titles say what it does, in plain words**, at most 40 characters: "Keep deleted messages", "Send long
-  messages", "Hide the gift button". Use sentence case and no full stop. Never use a plugin or code name
-  (FreeNitro, NoDelete, Pastelize).
-- **Descriptions are one short line**: aim for about 65 characters in English (at most 130), so they fit in one or
-  two lines of the Features list in every language. Say what the user will see, then only what really matters (a
-  limit, what leaves the phone, what it needs). For example: "Sends Nitro emojis and stickers as links that show as
-  the image." Details belong on the feature's own page, and a restart is explained by the Reopen Discord dialog.
-- Rows with their own page show a switch and a small arrow (`SubpageTrailing`). Keep the trailing side that narrow:
-  anything wider takes width from the title and description, which then wrap.
-- Write for someone who has never heard of the feature. Use "you", say "your phone" (not "the device"), and
-  don't use words like "spoof", "hook", "prelude" or "endpoint".
-- Credits ("Based on … by …") go in the Morphe description and README, not in the Venus row.
+**Settings**
 
-### Option pages
+- When you remove an option, take its key out of `settings` and `featureFor`. An older settings file that still has it
+  is then ignored, and nothing else needs migrating. Say so under 🔧 Improvements in the changelog.
+- Every feature starts off, so Discord is unchanged until someone turns something on.
+- **Backup and restore** saves `settings` (plus watched people and installed themes). A new setting needs nothing extra as
+  long as `acceptedSetting` can validate it: add a check there for any setting with a fixed list of values, so a
+  hand-edited backup can't put a page in a state it can't show. Never add sign-ins, tokens, saved accounts or kept messages
+  to `backupText`.
+- Pages whose options are also native setting nodes (Nitro links, Pastel names, Device indicators) keep those nodes for
+  Discord's settings search and pass `{page, sections}` to `withOptions`.
+- Features list search reads `featureSearch.rows` and `FEATURE_KEYWORDS`; add a page's option names there when people
+  would search for them.
 
-Every option page shares one look (User activity notifications and Message highlights are good references):
-calm, roomy and visual, built from Discord's own components so it feels like part of the app. Follow it for every
-new page and every change to an existing one. Check each page yourself, on and off, against the rules below.
+**React and theme colors**
 
-**Page order, top to bottom**
+- Discord's color tokens (`ui.colors.X`) are token objects, not colors: they only become colors through `createStyles`
+  (`useThemed(name, c => styles, darkFallback)`, one unique name per style set). Used straight in a style they silently
+  fall back.
+- Helpers called straight from a page render (`VenusStatusCard`, `venusSegmented`…) must not change the number of hooks a
+  page calls between renders; anything with its own hooks that can come and go is created with `el`.
+- Every animation checks `motion()` and `reduceMotion`, so Android's Remove animations shows everything at once. Never make
+  anything depend on an animation finishing. Opacity, position and scale run on the native driver.
+- Haptics go through `haptic(kind)`. Discord's `FormSwitch` already buzzes by itself, so don't add a second one there.
 
-1. **Status card** (`statusCard(key, text, {title, IconComponent, leading})`): shown at the top of a page only when the
-   feature is off (`offCard(key, Icon, feature)` — "Turned off" / "Turn it on here to start.", with Discord's own switch on the
-   card so you never have to go back to Features), when a sub-option state
-   needs calling out (e.g. every device indicator location turned off, or both emojis and stickers turned off), or when the
-   feature has genuine live runtime state to report (who you're watching in User activity notifications, which account is
-   signed in, Quest progress, ReviewDB account, active custom theme, translation engine status, or a non-zero count of kept
-   deleted/edited messages). Never show a redundant "Turned on" or "Nothing kept yet" filler card at the top of a page when
-   its preview or options below already speak for themselves.
-2. **A preview, only when words aren't enough.** Most features don't need one: their title, description and options
-   already say what they do. Add a preview only when someone could misunderstand the feature without seeing it: how
-   something looks in chat changes with the options below (bar width and colors, kept edits, pastel names, device
-   icons, translation notes), or a gesture or flow is easy to get wrong (triple-tap deletes, holding a server's icon).
-   A preview that only restates the description is clutter: Bring back Tenor GIFs has none, because "Tenor GIFs show
-   in Discord's own GIF picker again" says it all. When unsure, leave it out.
-   - Draw it as the part of Discord it changes: `previewScreen` with `previewHeader`, `previewMessage`, `previewInput`
-     and `previewBar`, or that screen's own layout (member list, profile, channel list, message menu, dialog), with
-     `useChatPreviewStyles()` / `usePreviewChrome()` tokens. Use plain sample people and text, or art bundled in
-     Discord (the Wumpus drawables), never anything from the user's servers.
-   - **Static by default**: one picture of the result that updates live as the options below change.
-   - **Watch only when a still picture could mislead**: a sequence of steps where the order or the gesture matters.
-     Watch is `useStory(active, () => [[waitMs, step, caption?], …], deps)` with `storyStrip(k, s, story)` under the
-     preview; it plays while the feature is on. Each caption says in plain words what happens and stays up at least
-     `readMs` (2.4–5 s).
-   - **No Try it, no Watch/Try it toggle, no step-by-step tips.** Watch already shows the flow; making people re-enact
-     it adds nothing. A preview may be directly interactive only when the interaction *is* the option (Show device
-     indicators' DM / Members / Profile switcher mirrors the switches below it).
-3. **Choices**, each group with a short title:
-   - a choice of 2–4 short values (widths, who to watch): `venusSegmented` under a `groupTitle`;
-   - a choice of one with explanations: `radioGroup`, every choice with a `rowIcon` (4th item);
-   - on/off options: `switchRow(Switch, key, label, subLabel, rowIcon(id, "NameIcon"))`;
-   - colors: a row of round swatches plus an "Any color" swatch that opens Discord's color picker
-     (`showCustomColorPickerActionSheet`), with a hex box only as a fallback;
-   - people: rows with `avatarBubble` (status dot when known) and a trailing ✕ (`XSmallIcon`) to remove; never a
-     list of IDs or "Tap to remove" text;
-   - a text box with an action: `inputWithButton` (Discord's `Button` beside the field), never a separate
-     "Add"/"Use" row under it.
-4. **Manage**: `actionRow`s for one-time actions (clear, reset). Destructive ones use the danger style, are
-   disabled (or hidden) when there's nothing to act on, and always ask first with `confirmAction`. A page that has
-   options that can drift from the defaults gets "Reset to defaults".
-5. **Footnote**: one or two muted sentences, only for what isn't obvious from the page.
+**Translations**
 
-**Rules**
-
-- **Every switch and radio row has its own Discord icon** (`rowIcon`, a design-system icon module that exports
-  exactly that name; check it with `scripts/hbc` and add it to `BOOTSTRAP_MODULES` in `port_check.py`). Pick an icon
-  that shows what the row does, not the feature's icon again. The Language list is the only exception.
-- **Colors come from Discord's theme tokens through `useThemed(name, c => styles, darkFallback)`** (createStyles),
-  never `ui.colors.X` straight in a style: those are token objects, not colors, and silently fall back. Each style
-  set gets a unique name, and the fallback is Discord's dark theme. Status colors use `STATUS_HEX`.
-- **Text uses Discord's `Text` variants**: titles `text-md/semibold` + `text-strong`, details
-  `text-sm/medium` + `text-muted`. Cards are 16 radius, 16 horizontal padding, with `CARD_BACKGROUND_DEFAULT`.
-- **Show, don't list**: summarize long lists (an avatar pile with "12 friends" rather than 12 checkboxes) and only
-  expand them when the user chose to pick one by one. Never use "✓ " in front of a label to show a choice; use a
-  radio, a segmented control, a check icon in `trailing`, or a ring around a swatch.
-- **Nothing on the page is useless**: hide rows that can't do anything right now (Manage with nothing to reset),
-  and keep switches greyed out while the main switch is off.
-- Helpers called from a page render (`VenusStatusCard`, `venusSegmented`, `highlightPreview`…) are plain
-  functions called directly, not components, so the page stays one render tree; components with their own hooks
-  (`HighlightPreview`-style previews that use `useSettings`) are created with `el`.
-- The Features list is Discord's own `SettingsList` with `FeatureSearchBar` as its `ListHeaderComponent` (#68). Every
-  `toggle`/`withOptions` row is added to `featureSearch.rows` automatically; when a new feature page has options people would
-  search for by name, add their labels to `FEATURE_KEYWORDS`.
-- **Start with the essentials** (`STARTER_FEATURES`, `starterCard`) sits above the Features search on a fresh install, until any
-  feature has been on, Not now is tapped (`setupDone` in the settings file), or you search. Only add a feature there if it works
-  on its own: no sign-in, no outside service (ReviewDB, Google Translate), no restart, nothing that acts for you (Quests,
-  Skip delete confirmation) or changes what others see (Hide typing indicator).
-- **Backup and restore** saves `settings` (plus watched people and installed themes). A new setting needs nothing extra as long
-  as `acceptedSetting` can validate it: add a check there for any setting with a fixed list of values, so a hand-edited backup
-  can't put a page in a state it can't show. Never add sign-ins, tokens, saved accounts or kept messages to `backupText`.
-- Pages whose options are also native setting nodes (Nitro links, Pastel names, Device indicators) keep those
-  nodes for Discord's settings search and pass `{page, sections}` to `withOptions`, so the designed page is shown.
-- Every new text goes through `tr()`/`pl()` and gets added to every language file (`i18n/index.txt` lists them).
-  When a text is no longer used, remove it from every language file too.
+- Every text Venus shows goes through `tr()`/`pl()` and is added to every language file (`i18n/index.txt` lists them).
+  When a text is no longer used, remove it from every language file and `scripts/i18n_overrides/` too.
 - **Hand-review every language to be as accurate and as natural as possible (no Google Translate, Acorn, or lazy partial reviews):**
   - **Translations must be both as accurate as possible and as natural as possible.** Never settle for literal, stiff,
     or machine-translated phrasing, and never sacrifice accuracy for fluency. Every string must read the way a native
@@ -333,17 +275,32 @@ new page and every change to an existing one. Check each page yourself, on and o
 
 **Custom themes**
 
-- The page leads with a gallery (`themeTile` + `themeMiniChat`), not a status card: Discord's colors first, then each installed
-  theme drawn in its own colors (`themePalette`), then a Browse tile. The tile in use has the brand ring and a check.
-- Tiles are radios (`accessibilityRole:"radio"`): tapping one uses it (`customThemesUse`), holding one asks to remove it.
-  Discord's colors is the way back, so tapping the theme in use does nothing.
-- Install problems show under the link field, never at the top of the page.
 - Colors are compiled into Discord's RawColors, SemanticColors and SemanticColorExperiments tables, plus the theme
   slot keys from Themes (ASH=`dark`, LIGHT=`light`, DARK=`darker`, ONYX=`midnight`). An experiment override wins over
   SemanticColors while the experiment is on, so every themed token's overrides follow it. Changes reach the screen
   through ThemeStore, the ThemeContext key and the memoized RootThemeContextProvider (module IDs in `port_check.py`).
-- Parts of the chat list are drawn by Discord's native Android code with built-in theme colors (`ThemeModule`
-  accepts only a theme name), so a JS theme can't recolor everything there.
+- **Wallpapers** (`background`) follow Revenge: the image sits behind `ChatViewWrapper` (10368), and `alpha` is how much of
+  it shows (1 or missing = all, above 1 = 1), so chat keeps `1 - alpha` of its color. Only `CHAT_WALLPAPER_TOKENS` go
+  see-through (`CHANNEL_BACKGROUND_DEFAULT` is the message list's own background in ChatView 10364); never fade
+  `BACKGROUND_BASE_LOWER` or `PANEL_BG`, which sheets and settings use too. `blur` is `blurRadius` in pixels. Discord
+  attachment links are signed again through `/attachments/refresh-urls` (`themeWallpaperUri`), since bare ones answer 404.
+- **Native views follow too.** The chat list, embeds and code blocks are drawn by Discord's Android code with built-in
+  theme colors, so Custom themes uses Material You's native color swap (`nativeThemeColors` in `DiscordPatches.kt`, the
+  `venus-monet-v1:map:` table). `customNativeTable` pairs each `NATIVE_THEME_TOKENS` token's Discord color in the
+  appearance in use with the theme's, then every raw color the theme changed; pure white and black are never remapped.
+  `NATIVE_ONLY_TOKENS` are keys only the Android side has (swipe to reply, `TEXT_CODE_*`), reached only this way. The table
+  follows the appearance (`nativeThemeSlot`, rechecked in `rootThemeContextProvider`), is kept on a cold start until the
+  saved themes are read, and the native side loads it while `materialYou` or `customThemes` is on.
+- **Legacy keys mobile no longer reads** (`LEGACY_ALIAS_VARIANT`: `CHAT_BACKGROUND`, `*_MOBILE_*`, `BG_BASE_*`, `INFO_*_TEXT`,
+  pressed/hover states) only fill in when the theme doesn't set the plain key that feeds the same token. Revenge colored
+  by exact name, so those variants never showed there; letting them win painted Pyontheme's chat and panels near-black.
+- **Legacy raw colors** (`PRIMARY_*`, `PLUM_*`, `BRAND_*`, `WHITE`, `BLACK`) reach the tokens Discord has since moved to
+  NEUTRAL / OPACITY / BLURPLE through `LEGACY_TOKEN_RAWS`: each token's last legacy raw (and opacity) per slot, from
+  Discord's own tables over time (nexpid/Themelings). A theme's `PRIMARY_600` then colors what `PRIMARY_600` used to
+  color, so cards stay lighter than the page under them; mapping it to a NEUTRAL shade instead made rainForest's cards
+  darker than their page. A dark slot without its own raw borrows the other dark slots' (`LEGACY_SLOT_ORDER`). A
+  token the theme recolors by its current raw is left alone. Regenerate with `python3 scripts/hbc/legacy_colors.py`
+  when porting; keep the table a plain literal (parsing it at boot cost ~1 ms per theme compile).
 - Revenge rules Venus follows: arrays are `[dark, light, midnight, darker]`; a slot the array doesn't reach borrows
   index 0, but a slot written as `false` keeps Discord's own color, even if a legacy alias reached it first. When two
   legacy keys feed one token, the key that lists it earlier (then the shorter list) wins. Values tolerate
@@ -355,40 +312,48 @@ new page and every change to an existing one. Check each page yourself, on and o
 - Test any theme change against Discord's real tables and the published themes:
   `python3 scripts/hbc/color_tables.py` (decodes the color tables to `work/discord_colors.json`), `python3
   tests/themes_fetch.py` (downloads every theme to `work/themes/`), then `node tests/theme_compat.cjs`. It must show
-  no errors, `notRestored`, `chainLeaks` or `falseSlotsChanged`, and install and switch times must not get worse. `WHO=KEY` lists the themes where KEY didn't land; `--each` shows
+  no errors, `notRestored`, `chainLeaks` or `falseSlotsChanged`, every declared key placed (100%), and install and switch times must not get worse. `WHO=KEY` lists the themes where KEY didn't land; `--each` shows
   every theme.
 
-**Motion**
+**Material You colors** (#90)
 
-- `settingsBody` wraps each group in `VenusReveal`: groups rise in one after another when a page opens. Don't add a
-  second entrance animation of your own.
-- Something that's picked (a swatch's check, the theme or account in use, a status badge) goes through
-  `popIn(key, child)`. Key it on what was picked, so it pops again only when the choice changes.
-- `switchRow` and `venusSegmented` call `animateLayout()` before changing a setting, so rows that appear or move
-  ease into place. Call it yourself before any other setting change that adds or removes rows.
-- `venusSegmented` slides its pill (`SegmentedSlider`); `VenusProgress` is the bar for anything with progress.
-- Opacity, position and scale animate on the native driver only. Width (`VenusProgress`) is the one exception.
-- Every animation checks `motion()` and `reduceMotion`. Without `Animated`, or with Android's Remove animations on,
-  everything shows at once. Never make anything depend on an animation finishing.
-- **Haptics** go through `haptic(kind)`, Discord's own `triggerHapticFeedback`. Switches already buzz by
-  themselves (Discord's `FormSwitch`), so never add a second one there. `venusSegmented` ticks `IMPACT_MEDIUM` like Discord's
-  segmented control, and radio choices and color swatches (which Discord leaves silent) tick `SELECTION`. Only buzz when
-  something actually changed, never for re-picking the current choice, for toasts, or on a timer.
-- Motion confirms what you did. Never loop it on its own, except a preview's Watch story (`useStory`), whose timers
-  stop when the feature is turned off or you leave the page.
+- A separate feature from Custom themes on purpose: it's a system look you turn on once, not a theme you install. It builds
+  a theme spec in memory (`myThemeSpec`) and hands it to the same compiler (`colorThemeEntry`), so it gets journaling,
+  restore and the RootThemeContextProvider re-key for free. An installed custom theme in use wins; the page says so.
+- Gray ramps (NEUTRAL, PRIMARY, PLUM, translucent OPACITY_n) are redrawn at the same HCT tone in the neutral palettes and
+  BLURPLE/BRAND in the accent, so every Discord appearance keeps its own contrast. Status colors are never touched.
+- Filled controls use accent tone 45/40, not Material's pastel 80: Discord draws plain white on brand fills in places no
+  token reaches. Keep any new filled role dark enough for white (at least 4.5:1).
+- The palettes come from `extensions/monet` through `FileModule.getFileHash` (`venus-monet-v1:colors`); Discord's JS
+  never calls it. They're re-read whenever Discord comes to the front and remembered in the settings file
+  (`materialYouSystem`), so a cold start colors Discord before the phone answers. In wallpaper mode nothing is applied
+  until the first answer, so it never flashes the fallback color.
+- **Native views follow too.** The chat list, voice overlay, reactions, notifications and the window background are drawn by
+  Discord's Android code, and every theme color they use (672 per appearance) goes through
+  `ColorUtilsKt.applySaturationFactor(I)I` via `getColorCompat`. A 5-instruction guard there calls
+  `SystemColors.remap` while `SystemColors.enabled`; the four views that call `Context.getColor` directly
+  (`MATERIAL_YOU_DIRECT_READS`: CTA and forum buttons, voice message progress) get the same swap after each read.
+- The swap table is JS's own result: every RawColors value the spec changed, as `rrggbbRRGGBB` pairs sorted by Discord's
+  color (`myNativeTable`, solid grays before translucent ones), sent as `venus-monet-v1:map:...` or `venus-monet-v1:off`
+  whenever `customThemesApply` changes the palette. Android's color resources hold the same values as RawColors, so this
+  needs no second color engine. Alpha is kept; status colors aren't in the table, so they stay Discord's.
+- The native side saves the table (`venus-monet.txt`) and loads it right after `super.onCreate()` (only while the settings
+  file still says `"materialYou":true`), so the chat is colored from the first frame. On a change it rebuilds the cached
+  theme objects in `ThemeManager.themes` and copies their fresh lazy colors into the objects views already hold, reruns
+  `updateActivityTheming`, and rebinds every RecyclerView, so the open chat recolors without a restart.
+- `tests/ui` hands Discord's real color tables to the runtime (modules 589/590/591), so themed pages draw in the compiled
+  colors. `monet=0` acts like a phone without wallpaper colors; `MONET=1 node tests/ui/shot.cjs ...` also saves the native
+  tables the page sent next to the screenshot.
 
-The page title is short ("Deleted messages", "Tap gestures").
-
-### Keeping everything in step
+**Keeping everything in step**
 
 - The feature's name is **the same in Venus and in Morphe**: the Venus row title, the Morphe patch `name` in
-  `DiscordPatches.kt` and the README features table. Morphe patches sit in the **Features** category. The
-  Morphe description is the Venus description, plus any credit.
-- Update `README.md` (features table) whenever a title, group or option changes. Keep titles at most 40 characters,
-  descriptions at most 130, and every feature icon unique.
-- **Every Metro module `bootstrap.js` uses is in `BOOTSTRAP_MODULES`** (`scripts/hbc/port_check.py`). After adding,
-  changing or removing one, run `python3 scripts/hbc/port_check.py` (it fails on any module ID it doesn't check) and
-  `python3 scripts/hbc/port_check.py --map` (regenerates `module-map.md`).
+  `DiscordPatches.kt` and the README features table. Morphe patches sit in the **Features** category, and the Morphe
+  description is the Venus description plus any credit.
+- Update `README.md` (features table) whenever a title, group or option changes.
+- **Every Metro module `bootstrap.js` uses is in `BOOTSTRAP_MODULES`** (`scripts/hbc/port_check.py`), icons included.
+  After adding, changing or removing one, run `python3 scripts/hbc/port_check.py` (it fails on any module ID it doesn't
+  check) and `python3 scripts/hbc/port_check.py --map` (regenerates `module-map.md`).
 
 ## Benchmarking optimizations (required)
 
@@ -444,8 +409,8 @@ What belongs in the repository:
   prelude injects cleanly) and `tests/native/VerifyApk.kt` (the patched APK is consistent; run it with
   `sh scripts/verify_apk.sh`, which patches with the newest Morphe CLI first).
 - **General performance tools:** the five files in `tests/bench/` and `tests/hermes-startup.js`.
-- **Developer tools with a future use:** `tests/theme_compat.cjs` and `tests/themes_fetch.py`, and the porting tools
-  in `scripts/hbc/`.
+- **Developer tools with a future use:** `tests/theme_compat.cjs` and `tests/themes_fetch.py`, the UI preview in `tests/ui/`
+  (see "Seeing the UI"), and the porting tools in `scripts/hbc/`.
 - **Build gates** in `scripts/build.py`: changelog format, HBC98 compilation of the runtime, language files (valid,
   placeholders kept, everything translated) and the bench rule above.
 

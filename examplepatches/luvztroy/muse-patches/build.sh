@@ -16,7 +16,7 @@ fetch json-20240303.jar https://repo.maven.apache.org/maven2/org/json/json/20240
 if [[ ! -x .tools/kotlin/kotlinc/bin/kotlinc ]]; then unzip -q .tools/kotlin-compiler-2.4.21.zip -d .tools/kotlin; fi
 RUNTIME="$PWD/.tools/morphe-desktop-1.19.0-all.jar"
 javac --release 11 -cp "$RUNTIME" -d build/tools tools/Assemble.java
-for group in mcdebug trust jsonhooks; do
+for group in mcdebug trust jsonhooks hatchdebug; do
   java -cp "$RUNTIME:build/tools" Assemble "src/replacements/$group" "build/resources/muse/$group.dex"
 done
 javac --release 11 -cp .tools/android-4.1.1.4.jar:.tools/json-20240303.jar -d build/jsonbridge/classes tools/jsonbridge/src/com/facebook/aura/settings/internal/mcdebug/AuraMCDebugJsonBridge.java
@@ -27,7 +27,7 @@ cp build/jsonbridge/dex/classes.dex build/resources/muse/jsonbridge.dex
 cat > build/MANIFEST.MF <<'EOF'
 Manifest-Version: 1.0
 Name: luvztroy patches
-Description: Clone, MC Debug, Mobile Config JSON import/export and local trust
+Description: Clone, MC Debug, top-left menu long-press, Mobile Config JSON import/export and local trust
 Version: 1.2.2
 Patcher-Version: 2.0.0
 Author: luvztroy custom patches

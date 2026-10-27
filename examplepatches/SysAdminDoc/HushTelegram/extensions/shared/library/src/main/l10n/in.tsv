@@ -43,7 +43,6 @@ Export diagnostic report	Ekspor laporan diagnostik
 Export settings	Ekspor pengaturan
 After Telegram restarts, every switch except Debug logging acts as if it were off. Your choices stay saved. Edits made when you patched stay in.	Setelah Telegram dimulai ulang, semua sakelar kecuali Pencatatan debug dianggap mati. Pilihan Anda tetap tersimpan. Perubahan yang dibuat saat menambal tetap berlaku.
 Hide ads	Sembunyikan iklan
-Links, updates, backup and more	Tautan, pembaruan, cadangan, dan lainnya
 Privacy	Privasi
 Settings exported but not checked. Open the file to make sure.	Pengaturan diekspor tapi belum diperiksa. Buka filenya untuk memastikan.
 That app is slow to answer. Nothing was changed. Try again.	Aplikasi itu lambat merespons. Tidak ada yang diubah. Coba lagi.
@@ -111,14 +110,12 @@ Your switches already match that file, so nothing will change.	Sakelar Anda suda
 Copy a short report to the clipboard.	Salin laporan singkat ke papan klip.
 Settings imported.	Pengaturan diimpor.
 Can't open the link. Go to %1$s.	Tautan tidak bisa dibuka. Buka %1$s.
-# context: Separate pages under More settings. Settings backup contains export and import; Diagnostics contains logging and diagnostic data controls.
+# context: Sections on the settings home list. Settings backup contains export and import; Diagnostics contains logging and diagnostic data controls.
 Settings backup	Cadangan setelan
 Diagnostics	Diagnostik
 Updates	Pembaruan
 Jump to a section	Lompat ke bagian
 Go straight to one group of settings. Back returns to where you were.	Langsung ke satu kelompok setelan. Kembali membawamu ke tempat semula.
-Browse settings	Jelajahi pengaturan
-More settings	Pengaturan lainnya
 No matching settings	Tidak ada pengaturan yang cocok
 %1$d setting found	%1$d pengaturan ditemukan
 %1$d settings found	%1$d pengaturan ditemukan
@@ -334,6 +331,12 @@ Full screen videos turn either way	Video layar penuh berputar ke dua arah
 After you tap full screen, a video follows your phone to either landscape side, even with auto-rotate off.	Setelah kamu mengetuk layar penuh, video mengikuti ponselmu ke sisi lanskap mana pun, meski putar otomatis nonaktif.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that lets a full screen video turn to either landscape side.
 full screen video turning either way	putaran video layar penuh ke dua arah
+# context: a third switch under Keep videos muted on volume keys (#27). With it on, an open video in the viewer stays in portrait when the phone is turned, and goes landscape only from Telegram's full screen button.
+Turn videos only from the full screen button	Putar video hanya dari tombol layar penuh
+# context: that switch's summary. "full screen" is Telegram's full screen button on a video; use the phone's own words for turning the phone.
+An open video stays upright when you turn your phone. It goes landscape only when you tap full screen.	Video yang terbuka tetap tegak saat kamu memutar ponsel. Video baru berubah ke lanskap saat kamu mengetuk layar penuh.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that keeps an open video upright until full screen.
+keeping a video upright until full screen	menjaga video tetap tegak sampai layar penuh
 Swipe back on profiles	Geser kembali di profil
 Swiping right on a profile's photos or media tabs goes back, like the rest of the profile, instead of showing the previous photo or tab.	Menggeser ke kanan pada foto atau tab media profil akan kembali, seperti di bagian profil lainnya, bukan menampilkan foto atau tab sebelumnya.
 Hide phone number	Sembunyikan nomor telepon
@@ -404,6 +407,22 @@ Removing %1$d kept messages.	Menghapus %1$d pesan yang disimpan.
 # context: the notice once Telegram has finished removing them, with how many went
 Removed %1$d kept message.	%1$d pesan yang disimpan telah dihapus.
 Removed %1$d kept messages.	%1$d pesan yang disimpan telah dihapus.
+# context: a third switch under Keep deleted messages. Turned on, the text a message had before someone else edited it is kept on the phone.
+Keep edit history	Simpan riwayat edit
+# context: that switch's summary. "Message details" is HushTelegram's own message menu item, translated the same as that row.
+Keeps the text a message had before someone else edited it, on this phone only. Message details in the message's menu shows it.	Menyimpan teks pesan sebelum orang lain mengeditnya, hanya di ponsel ini. Detail pesan di menu pesan menampilkannya.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that keeps the text from before an edit.
+earlier text of edited messages	teks lama dari pesan yang diedit
+# context: an action row under Keep edit history; a tap forgets every earlier text that switch kept
+Clear edit history	Hapus riwayat edit
+Forgets the earlier text this phone kept for edited messages, in every account.	Melupakan teks lama yang disimpan ponsel ini untuk pesan yang diedit, di setiap akun.
+# context: the notice after that tap when nothing was kept. A toast: two short lines at most.
+There's no edit history to clear.	Tidak ada riwayat edit untuk dihapus.
+# context: the notice after that tap, with how many messages had earlier text. A toast: two short lines at most.
+Cleared the edit history of %1$d message.	Riwayat edit %1$d pesan telah dihapus.
+Cleared the edit history of %1$d messages.	Riwayat edit %1$d pesan telah dihapus.
+# context: a line in Message details. %1$s is the date and time of the edit, %2$s the text the message had before it.
+Before the edit at %1$s: %2$s	Sebelum diedit (%1$s): %2$s
 Ask before sending a sticker	Tanya dulu sebelum mengirim stiker
 Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it. Scheduled stickers go out without asking.	Menanyakan Kirim atau Batal sebelum stiker yang Anda ketuk masuk ke obrolan. Batal membuangnya. Stiker terjadwal terkirim tanpa bertanya.
 Translate with an outside service	Terjemahkan dengan layanan luar
@@ -529,6 +548,12 @@ Look and feel	Tampilan dan penggunaan
 # context: Hide channel bar buttons and Hide Send as button. Search, Direct messages, Info, Mute and Join are Telegram's own button names in a channel; Send as is Telegram's name for the picture that picks who you post as.
 Hide channel bar buttons	Sembunyikan tombol bilah kanal
 Search, Direct messages and Info leave the bar at the bottom of a channel. Mute and Join stay, and tapping the channel's name at the top still opens its info. A channel picks this up the next time you open it.	Cari, Pesan langsung, dan Info hilang dari bilah di bagian bawah kanal. Bisukan dan Gabung tetap ada, dan mengetuk nama kanal di atas tetap membuka infonya. Kanal akan menerapkannya saat Anda membukanya lagi.
+# context: a second switch under Hide channel bar buttons (#26). Mute, Search, Info and Join are Telegram's own button names in a channel; Mute is the middle button of the bar at the bottom of a joined channel, and it reads Unmute while the channel is muted.
+Hide channel Mute button	Sembunyikan tombol Bisukan kanal
+# context: that switch's summary. Use each button's name as Telegram shows it in your language.
+The bar at the bottom of a channel you've joined goes away, along with its Mute button and the Search and Info buttons beside it. Channels you haven't joined still show Join. To mute a channel, open its info. A channel picks this up the next time you open it.	Bilah di bagian bawah kanal yang sudah Anda ikuti hilang, bersama tombol Bisukan dan tombol Cari serta Info di sebelahnya. Kanal yang belum Anda ikuti tetap menampilkan Gabung. Untuk membisukan kanal, buka infonya. Kanal akan menerapkannya saat Anda membukanya lagi.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide channel bar buttons that hides the Mute button of a joined channel's bar.
+Mute button on the channel bar	tombol Bisukan di bilah kanal
 Hide Send as button	Sembunyikan tombol Kirim sebagai
 Your picture next to the message box goes away in groups and channels where you could post as a channel, while you're posting as yourself. Once you pick a channel it shows again, so you can always see who you're posting as. To pick one, turn this off first. A chat picks this up the next time you open it.	Foto Anda di samping kotak pesan hilang di grup dan kanal tempat Anda bisa memposting sebagai kanal, selama Anda memposting sebagai diri sendiri. Setelah Anda memilih kanal, foto itu muncul lagi, jadi Anda selalu tahu sebagai siapa Anda memposting. Untuk memilih kanal, matikan ini dulu. Obrolan akan menerapkannya saat Anda membukanya lagi.
 # context: Hide Contacts tab. Contacts, Calls and Settings are Telegram's own names for the tabs in the bar at the bottom of the main screen; the new message button is the round pencil button on the chat list.
@@ -703,8 +728,6 @@ Open the guide	Buka panduan
 %1$s turns on	%1$s dinyalakan
 %1$s turns off	%1$s dimatikan
 Preparing the diagnostic report	Menyiapkan laporan diagnostik
-Your Telegram.	Telegram milikmu.
-A quieter space, your way.	Ruang yang lebih tenang, sesuai keinginanmu.
 # context: Readable actions, validation, import details and notification recovery.
 Open notification settings	Buka setelan notifikasi
 Tap for details and Android settings.	Ketuk untuk melihat detail dan setelan Android.
@@ -871,9 +894,58 @@ Couldn't save the folder. Try again in a moment.	Folder tidak dapat disimpan. Co
 Couldn't read your folders.	Folder Anda tidak dapat dibaca.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that opens the chat list on a picked folder
 which folder the chat list opens on	folder tempat daftar obrolan terbuka
+# context: Switch on the Chat list page under Hide folder tab counters, off by default. With it on, the chats the user ticks in Chats to hide stop showing in the chat list
+Hide picked chats	Sembunyikan obrolan pilihan
+# context: Summary of Hide picked chats. All Chats is Telegram's own name for the first folder tab and Archived Chats Telegram's name for the archive (ArchivedChats): use Telegram's translations. The app badge is the unread count on the app's icon
+The chats you pick below leave All Chats, your folders and archived chats. They keep their messages and notifications, search still finds them, and nothing changes on your other devices. Each account keeps its own list. Folder tab counts and the app badge still count their unread messages.	Obrolan yang Anda pilih di bawah tidak muncul lagi di Semua Obrolan, folder Anda, dan Obrolan yang diarsipkan. Pesan dan notifikasinya tetap ada, pencarian tetap menemukannya, dan tidak ada yang berubah di perangkat Anda yang lain. Setiap akun punya daftarnya sendiri. Jumlah di tab folder dan lencana aplikasi tetap menghitung pesan yang belum dibaca.
+# context: Row under Hide picked chats. Its summary names the hidden chats, and a tap lists the account's chats to tick
+Chats to hide	Obrolan yang disembunyikan
+# context: Summary of Chats to hide when no chat is ticked
+No chats hidden yet.	Belum ada obrolan yang disembunyikan.
+# context: Toast when Chats to hide is tapped and Telegram's chat list can't be read
+Couldn't read your chats.	Obrolan Anda tidak dapat dibaca.
+# context: Toast when Chats to hide is tapped and the account has no chats
+You don't have any chats yet.	Anda belum punya obrolan.
+# context: Toast when the ticked chats couldn't be written to the phone's storage
+Couldn't save the chats. Try again in a moment.	Obrolan tidak dapat disimpan. Coba lagi sebentar lagi.
+# context: Item in the chat list's long press menu (the three dots, under Block). It hides the selected chats from the chat list
+Hide from chat list	Sembunyikan dari daftar obrolan
+# context: Toast after the long press menu's Hide from chat list hid the selected chats
+Hidden from your chat list.	Disembunyikan dari daftar obrolan.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that hides picked chats
+chats hidden from the chat list	obrolan yang disembunyikan dari daftar obrolan
+# context: Chats to hide's list names the account's own chat this way, as Telegram's chat list does (SavedMessages): use Telegram's applied translation
+Saved Messages	Pesan Tersimpan
 # context: Chat list page switch title, under Hide Contacts tab. When on, the round pencil button (new message) on the chat list is removed.
 Hide new message button	Sembunyikan tombol pesan baru
 # context: Summary under that switch. The menu is the side menu or Telegram's own menu; search is the chat list's search.
 Removes the round pencil button from the chat list. Start a chat from the menu or search. Restart Telegram to see the change.	Menghapus tombol pensil bulat dari daftar obrolan. Mulai obrolan dari menu atau pencarian. Mulai ulang Telegram untuk melihat perubahannya.
 # context: Lowercase noun phrase in a status line. It names the part of Hide Contacts tab that removes the round pencil (new message) button from the chat list.
 new message button	tombol pesan baru
+# context: Playback page row title under Save downloaded files. Tapping it picks the gallery folder Save to Gallery writes photos and videos to.
+Gallery folder	Folder galeri
+# context: Choice in the gallery folder list and its summary. Pictures/Telegram and Movies/Telegram are folder names on the phone, keep them as they are.
+Pictures/Telegram and Movies/Telegram (Telegram's own)	Pictures/Telegram dan Movies/Telegram (bawaan Telegram)
+# context: Summary under the gallery folder row. %1$s is the picked folder name, like DCIM/Telegram.
+Photos and videos you save to the gallery go to %1$s. Camera photos and automatic saving keep Telegram's folders.	Foto dan video yang Anda simpan ke galeri masuk ke %1$s. Foto kamera dan penyimpanan otomatis tetap memakai folder Telegram.
+# context: Line in the settings import preview when the file changes only the gallery folder.
+The gallery folder will change.	Folder galeri akan berubah.
+# context: Lowercase noun phrase in a status line. It names the part of Save downloaded files that picks the gallery folder.
+gallery folder for saved photos and videos	folder galeri untuk foto dan video yang disimpan
+# context: Conversations page row title under Translation service, and the title of the language list it opens. Tapping it picks the language outside translations are written in.
+Translate into	Terjemahkan ke
+# context: Summary under the Translate into row. %1$s is the picked language's name, or Telegram's language.
+Language for outside translations: %1$s. Tap to pick another.	Bahasa untuk terjemahan luar: %1$s. Ketuk untuk memilih yang lain.
+# context: First choice in the Translate into list: translate into the language Telegram's app is set to, as before there was a choice.
+Telegram's language	Bahasa Telegram
+# context: A language in the Translate into list: %1$s is the name the language calls itself, %2$s its name in the app's language, like Deutsch (German).
+%1$s (%2$s)	%1$s (%2$s)
+# context: Hint in the search field at the top of the Translate into list.
+Search languages	Cari bahasa
+# context: Toast when the language picked in the Translate into list couldn't be saved.
+Couldn't save the language. Try again in a moment.	Bahasa tidak dapat disimpan. Coba lagi sebentar lagi.
+# context: Line in the settings import preview when the file changes the Translate into language.
+The translation language will change.	Bahasa terjemahan akan berubah.
+# context: A screen reader's state for a settings section heading that opens and closes in place.
+Expanded	Diluaskan
+Collapsed	Diciutkan

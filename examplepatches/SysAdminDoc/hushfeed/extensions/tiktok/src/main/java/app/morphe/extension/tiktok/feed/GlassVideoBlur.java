@@ -64,8 +64,18 @@ final class GlassVideoBlur {
     static final int MAX_FAILURES = 3;
     /** How long the plain glass stays after those failures. */
     static final long RETRY_MS = 3000;
-    /** The blur's size in dp, at the pill's own size. */
+    /** The blur's size in dp, at the pill's own size, for the standard strength. */
     static final float BLUR_DP = 10f;
+
+    /**
+     * The blur's size in dp for Blur strength: half of {@link #BLUR_DP} for "light" and five
+     * thirds of it for "strong", the steps of HushGram's glass tab bar.
+     */
+    static float blurDp(String strength) {
+        if ("light".equals(strength)) return BLUR_DP / 2f;
+        if ("strong".equals(strength)) return BLUR_DP * 5f / 3f;
+        return BLUR_DP;
+    }
 
     /** Tells a read finished; java.util.function needs API 24. */
     interface Done {
@@ -82,6 +92,13 @@ final class GlassVideoBlur {
         int bufferHeight();
 
         void read(Rect from, Bitmap into, Done done);
+
+        /**
+         * Whether this is still the video on screen. A swipe hands the next video a new player
+         * layer, often under the same SurfaceView, while the last one keeps its final frame, so a
+         * source kept for {@link #FIND_MS} went on blurring the video before into the pill.
+         */
+        boolean current();
     }
 
     /** Finds the video behind the bar, or null; a test stands in its own, since Robolectric draws no surface. */
@@ -103,6 +120,8 @@ final class GlassVideoBlur {
     private int[] pixels = new int[0];
     private int[] before = new int[0];
     private Painter painter;
+    /** The strip the last draw put in the pill, null when it drew none. */
+    private RenderNode drawn;
     private boolean hasFrame;
     private boolean copying;
     private boolean running;
@@ -134,17 +153,32 @@ final class GlassVideoBlur {
     }
 
     /**
+     * Where the picture shows inside a video view at {@code video}: the whole view for a buffer at
+     * least as tall for its width as the view, else the band TikTok fits a wider, landscape buffer
+     * into, as wide as the view and centred top to bottom. The pill sat over the black under a
+     * landscape video and still blurred the buffer's bottom rows into it.
+     */
+    static Rect picture(Rect video, int bufferWidth, int bufferHeight) {
+        if ((long) bufferWidth * video.height() <= (long) bufferHeight * video.width()) return video;
+        int height = Math.round(video.width() * (float) bufferHeight / bufferWidth);
+        int top = video.centerY() - height / 2;
+        return new Rect(video.left, top, video.right, top + height);
+    }
+
+    /**
      * The part of the video the pill covers, in the video buffer's pixels, or null when the pill
      * isn't over the video. A pill hanging a little past the video's edge (a full width bar a few
      * pixels lower than a scaled video) reads the part that is over it, as long as that is at least
-     * three quarters of the pill. Both rects are in the window's coordinates, and the buffer is
-     * taken to fill the video's bounds.
+     * three quarters of the pill. Both rects are in the window's coordinates. A buffer as tall as
+     * or taller than the view fills it; a wider one, a landscape video, is shown fitted across with
+     * black above and under ({@link #picture}), and a pill over that black reads nothing.
      */
     static Rect sourceRect(Rect pill, Rect video, int bufferWidth, int bufferHeight) {
         if (pill == null || video == null || pill.isEmpty() || video.isEmpty()
                 || bufferWidth <= 0 || bufferHeight <= 0) {
             return null;
         }
+        video = picture(video, bufferWidth, bufferHeight);
         Rect over = new Rect(pill);
         if (!over.intersect(video)) return null;
         if ((long) over.width() * over.height() * 4 < (long) pill.width() * pill.height() * 3) return null;
@@ -187,6 +221,14 @@ final class GlassVideoBlur {
         return hasFrame;
     }
 
+    /**
+     * The blurred strip the last {@link #drawBehind} drew into the pill, pill-sized and drawn at
+     * the pill's corner, or null when it drew none. The glass lens magnifies it.
+     */
+    RenderNode drawnBackdrop() {
+        return drawn;
+    }
+
     /** True while the sampling loop is scheduled. */
     boolean sampling() {
         return running;
@@ -195,9 +237,11 @@ final class GlassVideoBlur {
     /**
      * Called from the glass background's draw, with the pill's bounds in the bar. Starts the
      * sampling when it isn't running, and draws the blurred strip into the pill's shape once
-     * there is a picture. Draws nothing when the blur can't run, which leaves the plain glass.
+     * there is a picture, clipped to the pill's {@code radius} corners. Draws nothing when the
+     * blur can't run, which leaves the plain glass.
      */
-    void drawBehind(Canvas canvas, View view, Rect pill) {
+    void drawBehind(Canvas canvas, View view, Rect pill, float radius) {
+        drawn = null;
         if (!wanted() || pill.isEmpty()) return;
         bar = new WeakReference<>(view);
         watch(view);
@@ -205,9 +249,8 @@ final class GlassVideoBlur {
         if (!hasFrame || sample == null || !canvas.isHardwareAccelerated()
                 || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
         if (painter == null) painter = new Painter();
-        float radius = Math.min(app.morphe.extension.tiktok.settings.preference.SettingsUi.RADIUS_ROUND_ENDS * density,
-                pill.height() / 2f);
-        painter.draw(canvas, sample, pill, radius, BLUR_DP * density);
+        painter.draw(canvas, sample, pill, radius, blurDp(Settings.GLASS_BLUR_STRENGTH.get()) * density);
+        drawn = painter.node;
     }
 
     /** Starts the loop when it isn't already going. */
@@ -261,6 +304,12 @@ final class GlassVideoBlur {
 
     private void read(View view, long now) {
         lastRead = now;
+        if (source != null && !source.current()) {
+            // Another video now: its picture, not the last one's, or none until it's read.
+            source = null;
+            hasFrame = false;
+            still = 0;
+        }
         if (source == null || now - lastFind >= FIND_MS) {
             source = finder.find(view);
             lastFind = now;
@@ -344,7 +393,7 @@ final class GlassVideoBlur {
             Rect bounds = boundsInWindow(video);
             PlayerLayers.Layer layer = PlayerLayers.under(surface);
             if (layer != null) {
-                return new LayerSource(layer.surface, bounds, layer.width, layer.height);
+                return new LayerSource(surface, layer.surface, bounds, layer.width, layer.height);
             }
             Rect frame = surface.getHolder().getSurfaceFrame();
             if (frame != null && !frame.isEmpty()) {
@@ -354,18 +403,25 @@ final class GlassVideoBlur {
         return null;
     }
 
+    /** Whether {@code view} is shown and still draws where it did at {@code bounds}. */
+    private static boolean stillAt(SurfaceView view, Rect bounds) {
+        return view.isShown() && boundsInWindow(view).equals(bounds);
+    }
+
     private static Handler mainHandler() {
         return new Handler(Looper.getMainLooper());
     }
 
     @android.annotation.TargetApi(26)
     private static final class LayerSource implements Source {
+        private final SurfaceView view;
         private final Surface surface;
         private final Rect bounds;
         private final int width;
         private final int height;
 
-        LayerSource(Surface surface, Rect bounds, int width, int height) {
+        LayerSource(SurfaceView view, Surface surface, Rect bounds, int width, int height) {
+            this.view = view;
             this.surface = surface;
             this.bounds = bounds;
             this.width = width;
@@ -382,6 +438,12 @@ final class GlassVideoBlur {
 
         @Override public int bufferHeight() {
             return height;
+        }
+
+        @Override public boolean current() {
+            if (!surface.isValid() || !stillAt(view, bounds)) return false;
+            PlayerLayers.Layer layer = PlayerLayers.under(view);
+            return layer != null && layer.surface == surface;
         }
 
         @Override public void read(Rect from, Bitmap into, Done done) {
@@ -413,6 +475,10 @@ final class GlassVideoBlur {
 
         @Override public int bufferHeight() {
             return height;
+        }
+
+        @Override public boolean current() {
+            return view.getHolder().getSurface().isValid() && stillAt(view, bounds);
         }
 
         @Override public void read(Rect from, Bitmap into, Done done) {

@@ -56,15 +56,20 @@ final class GalleryPicker {
             Intent media = anyType().setPackage(app);
             return media.resolveActivity(packages) != null ? media : photos;
         }
-        // Android asks which gallery to use. It finds the apps to list by the selector, so only gallery apps are offered,
-        // Always still sets one, and the gallery picked gets the any-type pick.
+        // Android asks which gallery to use. An any-type pick behind a photo-pick selector still let contact pickers and
+        // other apps onto Samsung's list (#94), so each gallery gets its own any-type pick by name and the chooser lists
+        // only those. A default gallery set in Android's settings skips the question through the branch above.
         if (galleries.isEmpty()) return photos;
+        java.util.List<Intent> named = new java.util.ArrayList<>();
         for (String gallery : galleries) {
-            if (anyType().setPackage(gallery).resolveActivity(packages) == null) return photos;
+            Intent media = anyType().setPackage(gallery);
+            ComponentName screen = media.resolveActivity(packages);
+            if (screen == null) return photos;
+            named.add(media.setComponent(screen));
         }
-        Intent media = anyType();
-        media.setSelector(new Intent(Intent.ACTION_PICK).setType("image/*"));
-        return media;
+        if (named.size() == 1) return named.get(0);
+        Intent chooser = Intent.createChooser(named.remove(0), null);
+        return chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, named.toArray(new android.os.Parcelable[0]));
     }
 
     /** Samsung's Gallery honors several items on a pick, not only on a get-content. */

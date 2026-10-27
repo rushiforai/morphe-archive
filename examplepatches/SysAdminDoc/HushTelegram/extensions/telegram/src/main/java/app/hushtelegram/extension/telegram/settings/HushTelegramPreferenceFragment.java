@@ -31,6 +31,7 @@ import android.preference.TwoStatePreference;
 import android.text.Layout;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.text.util.Linkify;
@@ -57,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -82,7 +84,10 @@ import app.hushtelegram.extension.shared.settings.preference.QuickSetups;
 import app.hushtelegram.extension.telegram.misc.ChatTypeFolders;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloads;
 import app.hushtelegram.extension.telegram.misc.FirebasePush;
+import app.hushtelegram.extension.telegram.misc.GalleryFolder;
+import app.hushtelegram.extension.telegram.misc.HiddenChats;
 import app.hushtelegram.extension.telegram.misc.KeepDeleted;
+import app.hushtelegram.extension.telegram.misc.KeepEdits;
 import app.hushtelegram.extension.telegram.misc.LaunchFolder;
 import app.hushtelegram.extension.telegram.misc.OutsideTranslate;
 import app.hushtelegram.extension.telegram.misc.StickerSize;
@@ -116,10 +121,15 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     static final String SUPPORTED_LINKS = "action_supported_links";
     /** The Clear kept messages row's key, which stores nothing. */
     static final String CLEAR_KEPT = "action_clear_kept_messages";
+    /** The Clear edit history row's key, which stores nothing. */
+    static final String CLEAR_EDITS = "action_clear_edit_history";
     /** The Sticker size row's key. The size itself is saved under {@link Settings#STICKER_SIZE}. */
     static final String STICKER_SIZE_ROW = "action_sticker_size";
+    /** The Gallery folder row's key. The choice itself is saved under {@link Settings#GALLERY_FOLDER}. */
+    static final String GALLERY_FOLDER_ROW = "action_gallery_folder";
     /** The Folder to open row's key. The picks are kept by {@link LaunchFolder}, one for each account. */
     static final String LAUNCH_FOLDER_ROW = "action_launch_folder";
+    static final String HIDDEN_CHATS_ROW = "action_hidden_chats";
 
     /** Thrown by the next initialize() and then cleared: how a test reaches the recovery page. */
     static volatile RuntimeException failNextInitialization;
@@ -259,7 +269,8 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     void refreshSwitches() {
         updateUIToSettingValues();
         onRestartPendingChanged();
-        // An import can change the filter lists, the sticker size and the title emoji too, and their rows say so.
+        // An import can change the filter lists, the sticker size, the title emoji, the gallery folder and the
+        // translation language too, and their rows say so.
         if (getPreferenceScreen() == null) return;
         Preference groups = findPreference(FilterEditor.GROUPS);
         if (groups != null) groups.setSummary(FilterEditor.summary(Settings.MESSAGE_FILTERS_GROUPS));
@@ -269,6 +280,10 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         if (size != null) size.setSummary(stickerSizeSummary());
         Preference emoji = findPreference(TitleEmojiEditor.KEY);
         if (emoji != null) emoji.setSummary(TitleEmojiEditor.summary(Settings.TITLE_EMOJI.savedValue()));
+        Preference gallery = findPreference(GALLERY_FOLDER_ROW);
+        if (gallery != null) gallery.setSummary(galleryFolderSummary());
+        Preference target = findPreference(TranslateTargetPicker.KEY);
+        if (target != null) target.setSummary(TranslateTargetPicker.summary(Settings.TRANSLATE_TARGET.savedValue()));
     }
 
     @Override
@@ -393,6 +408,20 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                                 + "own pick, and the folder order doesn't change. If that folder is gone, renamed or locked, "
                                 + "All Chats opens as usual.")));
                 folderTabs.addPreference(launchFolderRow(context));
+            }
+            if (PatchFamily.Capability.HIDDEN_CHATS.installed()) {
+                SwitchPreference hide = toggle(context, Settings.HIDDEN_CHATS, L10n.t("Hide picked chats"),
+                        L10n.t("The chats you pick below leave All Chats, your folders and archived chats. They keep their "
+                                + "messages and notifications, search still finds them, and nothing changes on your other "
+                                + "devices. Each account keeps its own list. Folder tab counts and the app badge still count "
+                                + "their unread messages."));
+                hide.setOnPreferenceChangeListener((row, value) -> {
+                    // Once the switch is saved, so the chat list sorts by what it says.
+                    Utils.runOnMainThreadDelayed(HiddenChats::refreshShown, 0);
+                    return true;
+                });
+                folderTabs.addPreference(hide);
+                folderTabs.addPreference(hiddenChatsRow(context));
             }
         }
         if (build.contains(PatchFamily.CHAT_TYPE_FOLDERS)) {
@@ -532,6 +561,13 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                                 + " it stands out in the chat. Works with Keep deleted messages on.")));
             }
             on(pages, PatchFamily.KEEP_DELETED_MESSAGES).addPreference(clearKeptRow(context));
+            // The earlier text shows in Message details, which the message menu patch adds.
+            if (PatchFamily.Capability.EDIT_HISTORY.installed()) {
+                on(pages, PatchFamily.KEEP_DELETED_MESSAGES).addPreference(toggle(context, Settings.KEEP_EDIT_HISTORY,
+                        L10n.t("Keep edit history"), L10n.t("Keeps the text a message had before someone else edited it, on this"
+                                + " phone only. Message details in the message's menu shows it.")));
+                on(pages, PatchFamily.KEEP_DELETED_MESSAGES).addPreference(clearEditsRow(context));
+            }
         }
         if (build.contains(PatchFamily.ASK_BEFORE_STICKER)) {
             on(pages, PatchFamily.ASK_BEFORE_STICKER).addPreference(toggle(context, Settings.ASK_BEFORE_STICKER, L10n.t("Ask before sending a sticker"),
@@ -561,6 +597,7 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             });
             on(pages, PatchFamily.OUTSIDE_TRANSLATE).addPreference(outside);
             on(pages, PatchFamily.OUTSIDE_TRANSLATE).addPreference(translateServiceRow(context));
+            on(pages, PatchFamily.OUTSIDE_TRANSLATE).addPreference(translateTargetRow(context));
         }
     }
 
@@ -574,6 +611,11 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 on(pages, PatchFamily.KEEP_VIDEOS_MUTED).addPreference(toggle(context, Settings.VIDEO_EITHER_LANDSCAPE,
                         L10n.t("Full screen videos turn either way"), L10n.t("After you tap full screen, a video follows"
                                 + " your phone to either landscape side, even with auto-rotate off.")));
+            }
+            if (PatchFamily.Capability.VIDEO_ONLY_FROM_BUTTON.installed()) {
+                on(pages, PatchFamily.KEEP_VIDEOS_MUTED).addPreference(toggle(context, Settings.VIDEO_ONLY_FROM_BUTTON,
+                        L10n.t("Turn videos only from the full screen button"), L10n.t("An open video stays upright when you"
+                                + " turn your phone. It goes landscape only when you tap full screen.")));
             }
         }
         if (build.contains(PatchFamily.VOICE_ONE_AT_A_TIME)) {
@@ -617,6 +659,9 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                     L10n.t("With Save downloaded files on, files from chats whose owner turned off saving get copied too. Only use"
                             + " it where the owner is fine with you keeping a copy, since it goes past their setting. Secret chats"
                             + " still stay in Telegram.")));
+            if (PatchFamily.Capability.GALLERY_FOLDER.installed()) {
+                on(pages, PatchFamily.SAVE_DOWNLOADS).addPreference(galleryFolderRow(context));
+            }
         }
     }
 
@@ -838,9 +883,15 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         }
         if (build.contains(PatchFamily.HIDE_CHANNEL_BUTTONS)) {
             on(pages, PatchFamily.HIDE_CHANNEL_BUTTONS).addPreference(toggle(context, Settings.HIDE_CHANNEL_BUTTONS, L10n.t("Hide channel bar buttons"),
-                    PatchFamily.HIDE_CHANNEL_BUTTONS.coverageSummary(L10n.t("Search, Direct messages and Info leave the bar at the bottom of a channel. "
+                    L10n.t("Search, Direct messages and Info leave the bar at the bottom of a channel. "
                             + "Mute and Join stay, and tapping the channel's name at the top still opens its info. A channel picks "
-                            + "this up the next time you open it."))));
+                            + "this up the next time you open it.")));
+            if (PatchFamily.Capability.HIDE_CHANNEL_MUTE.installed()) {
+                on(pages, PatchFamily.HIDE_CHANNEL_BUTTONS).addPreference(toggle(context, Settings.HIDE_CHANNEL_MUTE,
+                        L10n.t("Hide channel Mute button"), L10n.t("The bar at the bottom of a channel you've joined goes away, along with its "
+                                + "Mute button and the Search and Info buttons beside it. Channels you haven't joined still show "
+                                + "Join. To mute a channel, open its info. A channel picks this up the next time you open it.")));
+            }
         }
         if (build.contains(PatchFamily.HIDE_SEND_AS)) {
             on(pages, PatchFamily.HIDE_SEND_AS).addPreference(toggle(context, Settings.HIDE_SEND_AS, L10n.t("Hide Send as button"),
@@ -1375,6 +1426,21 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         return row;
     }
 
+    /** Forgets every earlier text Keep edit history kept, in every account, and says how many messages had some. */
+    private static Preference clearEditsRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(CLEAR_EDITS);
+        row.setPersistent(false);
+        row.setTitle(L10n.t("Clear edit history"));
+        row.setSummary(L10n.t("Forgets the earlier text this phone kept for edited messages, in every account."));
+        row.actsAtOnce = true;
+        row.setOnPreferenceClickListener(p -> {
+            Utils.showToastLong(KeepEdits.clearedMessage(KeepEdits.clear()));
+            return true;
+        });
+        return row;
+    }
+
     /** The size stickers show at: the row says the one picked, and a tap lists the others. */
     private Preference stickerSizeRow(Context context) {
         Row row = new Row(context);
@@ -1432,6 +1498,68 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
 
     static String stickerSizeSummary() {
         return L10n.f("%1$s of Telegram's size", percent(StickerSize.percent(Settings.STICKER_SIZE.savedValue())));
+    }
+
+    /** Where Save to gallery puts photos and videos: the row names the folders, and a tap lists the others. */
+    private Preference galleryFolderRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(GALLERY_FOLDER_ROW);
+        row.setTitle(L10n.t("Gallery folder"));
+        row.setPersistent(false);
+        row.setSummary(galleryFolderSummary());
+        row.setOnPreferenceClickListener(p -> {
+            showGalleryFolders(context, p);
+            return true;
+        });
+        return row;
+    }
+
+    /** The folder choices with the saved one checked, saved and closed the way the sticker sizes are. */
+    void showGalleryFolders(Context context, Preference row) {
+        if (SettingsLock.refuses()) return;
+        CharSequence[] labels = new CharSequence[GalleryFolder.CHOICES.size()];
+        for (int i = 0; i < labels.length; i++) labels[i] = galleryFolderLabel(GalleryFolder.CHOICES.get(i));
+        show(new AlertDialog.Builder(context)
+                .setTitle(L10n.t("Gallery folder"))
+                .setSingleChoiceItems(labels, savedGalleryChoice(), (dialog, which) -> {
+                    boolean started = save((AlertDialog) dialog,
+                            () -> Settings.GALLERY_FOLDER.saveCommitted(GalleryFolder.CHOICES.get(which)), landed -> {
+                                if (landed) {
+                                    row.setSummary(galleryFolderSummary());
+                                    dialog.dismiss();
+                                } else {
+                                    checkSavedGalleryFolder((AlertDialog) dialog);
+                                    Utils.showToastLong(L10n.t("Couldn't save the folder. Try again in a moment."));
+                                }
+                            });
+                    if (!started) checkSavedGalleryFolder((AlertDialog) dialog);
+                })
+                .setNegativeButton(L10n.t("Cancel"), null));
+    }
+
+    /** Where the saved folder choice sits in the list. One that's none of them reads as Telegram's. */
+    static int savedGalleryChoice() {
+        String saved = Settings.GALLERY_FOLDER.savedValue();
+        return GalleryFolder.CHOICES.indexOf(GalleryFolder.allowed(saved) ? saved : GalleryFolder.TELEGRAM);
+    }
+
+    private static void checkSavedGalleryFolder(AlertDialog dialog) {
+        dialog.getListView().setItemChecked(savedGalleryChoice(), true);
+    }
+
+    /**
+     * A choice as the list, the row and an import preview name it, with anything that isn't one read
+     * as Telegram's. The folder names are the ones on the phone and stay as they are.
+     */
+    static String galleryFolderLabel(String choice) {
+        if (GalleryFolder.DCIM.equals(choice)) return "DCIM/Telegram";
+        if (GalleryFolder.DCIM_APART.equals(choice)) return L10n.join(Arrays.asList("DCIM/Telegram/Photos", "DCIM/Telegram/Videos"));
+        return L10n.t("Pictures/Telegram and Movies/Telegram (Telegram's own)");
+    }
+
+    static String galleryFolderSummary() {
+        return L10n.f("Photos and videos you save to the gallery go to %1$s. Camera photos and automatic saving keep"
+                + " Telegram's folders.", galleryFolderLabel(Settings.GALLERY_FOLDER.savedValue()));
     }
 
     /** The folder the chat list opens on for the account shown now: the row says which, and a tap lists the others. */
@@ -1499,6 +1627,78 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         LaunchFolder.Shown shown = LaunchFolder.shown();
         int choice = shown == null ? 0 : shown.choice();
         return choice == 0 ? L10n.t("All Chats") : shown.folders.get(choice - 1).name;
+    }
+
+    /** The chats hidden for the account shown now: the row names them, and a tap lists every chat to tick. */
+    private Preference hiddenChatsRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(HIDDEN_CHATS_ROW);
+        row.setTitle(L10n.t("Chats to hide"));
+        row.setPersistent(false);
+        row.setSummary(hiddenChatsSummary(HiddenChats.shown()));
+        row.setOnPreferenceClickListener(p -> {
+            showHiddenChats(context, p);
+            return true;
+        });
+        return row;
+    }
+
+    /**
+     * The account's chats, archived ones too, with the hidden ones ticked. Save writes the ticks and
+     * the list closes once they're saved; ticks that can't be saved leave the list open as it was.
+     */
+    void showHiddenChats(Context context, Preference row) {
+        if (SettingsLock.refuses()) return;
+        HiddenChats.Shown shown = HiddenChats.shown();
+        if (shown == null) {
+            Utils.showToastLong(L10n.t("Couldn't read your chats."));
+            return;
+        }
+        if (shown.user == 0) {
+            Utils.showToastLong(L10n.t("Sign in to Telegram first."));
+            return;
+        }
+        List<HiddenChats.Chat> chats = shown.chats;
+        if (chats.isEmpty()) {
+            Utils.showToastLong(L10n.t("You don't have any chats yet."));
+            return;
+        }
+        CharSequence[] labels = new CharSequence[chats.size()];
+        for (int i = 0; i < chats.size(); i++) labels[i] = chats.get(i).name;
+        boolean[] ticked = shown.ticked();
+        AlertDialog dialog = show(new AlertDialog.Builder(context)
+                .setTitle(L10n.t("Chats to hide"))
+                .setMultiChoiceItems(labels, ticked, (d, which, checked) -> ticked[which] = checked)
+                .setPositiveButton(L10n.t("Save"), null)
+                .setNegativeButton(L10n.t("Cancel"), null));
+        if (dialog == null) return;
+        // Set here rather than on the builder, so a tap waits for the save instead of closing the list.
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            Set<Long> hide = new LinkedHashSet<>();
+            for (int i = 0; i < ticked.length; i++) {
+                if (ticked[i]) hide.add(chats.get(i).id);
+            }
+            save(dialog, () -> HiddenChats.hide(shown.user, hide), landed -> {
+                if (landed) {
+                    HiddenChats.refresh(shown.account);
+                    row.setSummary(hiddenChatsSummary(HiddenChats.shown()));
+                    dialog.dismiss();
+                } else {
+                    Utils.showToastLong(L10n.t("Couldn't save the chats. Try again in a moment."));
+                }
+            });
+        });
+    }
+
+    /** The hidden chats' names for the account shown now, or that there are none. */
+    static String hiddenChatsSummary(@Nullable HiddenChats.Shown shown) {
+        List<String> names = new ArrayList<>();
+        if (shown != null) {
+            for (HiddenChats.Chat chat : shown.chats) {
+                if (shown.hidden.contains(chat.id)) names.add(chat.name);
+            }
+        }
+        return names.isEmpty() ? L10n.t("No chats hidden yet.") : TextUtils.join(", ", names);
     }
 
     /** What the Data Saver switch does, then what Android reports right now, read when the page opens. */
@@ -1581,6 +1781,22 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             Activity activity = getActivity();
             if (SettingsLock.refuses()) return true;
             if (activity != null && !activity.isFinishing() && !activity.isDestroyed()) own(TranslateServiceEditor.open(activity, p));
+            return true;
+        });
+        return row;
+    }
+
+    /** The language the outside translate writes in: the row names it, and a tap lists every one with a search. */
+    private Preference translateTargetRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(TranslateTargetPicker.KEY);
+        row.setTitle(L10n.t("Translate into"));
+        row.setPersistent(false);
+        row.setSummary(TranslateTargetPicker.summary(Settings.TRANSLATE_TARGET.savedValue()));
+        row.setOnPreferenceClickListener(p -> {
+            Activity activity = getActivity();
+            if (SettingsLock.refuses()) return true;
+            if (activity != null && !activity.isFinishing() && !activity.isDestroyed()) own(TranslateTargetPicker.open(activity, p));
             return true;
         });
         return row;
@@ -2127,7 +2343,7 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
      * A double tap goes through the list, the way a tap does, so the preference's own click runs.
      * A dialog's choice card has no preference behind it, and is always there to tap.
      */
-    static final class RowSemantics extends View.AccessibilityDelegate {
+    static class RowSemantics extends View.AccessibilityDelegate {
         @Nullable private final Preference preference;
         private final Class<? extends View> role;
 

@@ -1,8 +1,9 @@
 package app.morphe.extension.tiktok.settings;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -13,9 +14,12 @@ import android.preference.Preference;
 import android.preference.PreferenceScreen;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.preference.LicensesPreference;
+import app.morphe.extension.tiktok.settings.preference.SettingsMenuPreference;
 import app.morphe.extension.tiktok.settings.preference.SettingsSearchInputPreference;
+import app.morphe.extension.tiktok.settings.preference.SettingsSearchEntryPreference;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 
 import java.lang.reflect.Field;
@@ -70,21 +74,21 @@ public class SettingsSearchSummaryTest {
         Settings.CAPTION_BACKGROUND.resetToDefault();
     }
 
-    @Test public void aListSettingChangedOnItsPageShowsItsNewValueBackOnTheResults() throws Exception {
+    @Test public void aListSettingChangedInlineShowsItsNewValueWhenSearchReopens() throws Exception {
         Settings.CAPTION_BACKGROUND.save("dark");
         TikTokPreferenceFragment search = searchFor(attachSearch());
         assertEquals("Dark", value(row(search, TITLE)));
 
-        // Its page opens over the results and the reader picks another value there, then Back
-        // brings the results to the front again.
+        // Locate the original row, change its value, and search again on the same main list.
         Preference result = row(search, TITLE);
         assertTrue(result.getOnPreferenceClickListener().onPreferenceClick(result));
         search.getFragmentManager().executePendingTransactions();
         idle();
-        assertNull("the result's page didn't open over the search", search.getView());
+        assertSame(search, search.getActivity().getFragmentManager().findFragmentById(android.R.id.content));
+        assertTrue(search.findPreference("action_search_settings") instanceof SettingsSearchEntryPreference);
+        assertEquals(0, search.getFragmentManager().getBackStackEntryCount());
         Settings.CAPTION_BACKGROUND.save("default");
-        assertTrue(search.getFragmentManager().popBackStackImmediate());
-        idle();
+        searchFor(search);
 
         assertEquals("the result kept the value from before its page changed it",
                 "TikTok default", value(row(search, TITLE)));
@@ -102,13 +106,12 @@ public class SettingsSearchSummaryTest {
         assertTrue("the index was rebuilt after a pause that opened nothing", index == searchIndex(search));
         assertSame("the results were redrawn after a pause that opened nothing", before, row(search, TITLE));
 
-        // Opening a result still owes a rebuild on the way back.
+        // Closing search to locate a result still requires fresh values when search opens again.
         assertTrue(before.getOnPreferenceClickListener().onPreferenceClick(before));
         search.getFragmentManager().executePendingTransactions();
         idle();
-        assertTrue(search.getFragmentManager().popBackStackImmediate());
-        idle();
-        assertTrue("the index wasn't rebuilt after its result's page", index != searchIndex(search));
+        searchFor(search);
+        assertTrue("the index wasn't rebuilt after locating its result", index != searchIndex(search));
     }
 
     @Test public void aResultThatOnlyOpensADialogLeavesTheResultsAsTheyWere() throws Exception {
@@ -125,11 +128,112 @@ public class SettingsSearchSummaryTest {
         assertTrue("the index was rebuilt after the licenses notice", index == searchIndex(search));
     }
 
+    @Test public void retainedDependentSummaryClearsWhenSearchTurnsItsParentBackOn() throws Exception {
+        boolean saved = Settings.AUTO_ADVANCE.savedValue();
+        Settings.AUTO_ADVANCE.save(true);
+        try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            TikTokPreferenceFragment page = attachSection(owner.get(), "PLAYBACK");
+            SettingsMenuPreference playback = (SettingsMenuPreference) page.findPreference("section_playback");
+            Preference original = page.findPreference(Settings.AUTO_ADVANCE.key);
+            Preference dependent = page.findPreference(Settings.AUTO_ADVANCE_SEARCH.key);
+            String summary = String.valueOf(dependent.getSummary());
+            String reason = "Turn on Auto-advance videos first.";
+            assertTrue(playback.isExpanded());
+            assertTrue(dependent.isEnabled());
+            assertFalse(summary.contains(reason));
+
+            searchFor(page, "auto-advance");
+            Preference proxy = row(page, "Auto-advance videos");
+            assertTrue(proxy instanceof android.preference.SwitchPreference);
+            assertNotSame(original, proxy);
+            assertSame(dependent, playback.findPreference(Settings.AUTO_ADVANCE_SEARCH.key));
+            assertFalse(playback.isExpanded());
+            click(proxy);
+            assertFalse(Settings.AUTO_ADVANCE.savedValue());
+            assertFalse(dependent.isEnabled());
+            assertTrue(String.valueOf(dependent.getSummary()).contains(reason));
+
+            click(proxy);
+            assertTrue(Settings.AUTO_ADVANCE.savedValue());
+            assertTrue(page.closeInlineSearch());
+            idle();
+            assertTrue(playback.isExpanded());
+            assertSame(dependent, page.findPreference(Settings.AUTO_ADVANCE_SEARCH.key));
+            assertTrue(dependent.isEnabled());
+            assertFalse("the retained row still says its enabled parent is off",
+                    String.valueOf(dependent.getSummary()).contains(reason));
+            assertEquals(summary, String.valueOf(dependent.getSummary()));
+        } finally {
+            Settings.AUTO_ADVANCE.save(saved);
+        }
+    }
+
+    @Test public void searchAndRetainedRowsShowAndClearTheirOwnRestartSummaries() throws Exception {
+        boolean saved = Settings.FOLDABLE_SPLIT_VIEW.savedValue();
+        java.util.Set<String> debt = AbstractPreferenceFragment.restartPending;
+        java.util.Set<String> previousDebt = new java.util.HashSet<>(debt);
+        debt.clear();
+        Settings.FOLDABLE_SPLIT_VIEW.save(false);
+        try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            TikTokPreferenceFragment page = attachSection(owner.get(), "BEHAVIOR");
+            SettingsMenuPreference app = (SettingsMenuPreference) page.findPreference("section_behavior");
+            Preference original = page.findPreference(Settings.FOLDABLE_SPLIT_VIEW.key);
+            String originalSummary = String.valueOf(original.getSummary());
+            searchFor(page, "comments beside the video");
+            Preference proxy = row(page, "Comments beside the video");
+            String searchSummary = String.valueOf(proxy.getSummary());
+            assertTrue(proxy instanceof android.preference.SwitchPreference);
+            assertNotSame(original, proxy);
+            assertSame(original, app.findPreference(Settings.FOLDABLE_SPLIT_VIEW.key));
+            assertFalse(app.isExpanded());
+            assertFalse(originalSummary.contains("Restart pending."));
+            assertFalse(searchSummary.contains("Restart pending."));
+
+            click(proxy);
+            assertTrue(Settings.FOLDABLE_SPLIT_VIEW.savedValue());
+            assertTrue(debt.contains(Settings.FOLDABLE_SPLIT_VIEW.key));
+            for (Preference displayed : new Preference[]{proxy, original}) {
+                String pending = String.valueOf(displayed.getSummary());
+                assertTrue("a retained copy lost its restart note", pending.contains("Restart pending."));
+                assertFalse("the restart note was appended to the old instruction",
+                        pending.contains("Restart TikTok to apply this."));
+            }
+
+            click(proxy);
+            assertFalse(Settings.FOLDABLE_SPLIT_VIEW.savedValue());
+            assertFalse(debt.contains(Settings.FOLDABLE_SPLIT_VIEW.key));
+            assertEquals("the original row kept the search row's summary", originalSummary,
+                    String.valueOf(original.getSummary()));
+            assertEquals("the search row kept the original row's summary", searchSummary,
+                    String.valueOf(proxy.getSummary()));
+            assertTrue(page.closeInlineSearch());
+            idle();
+            assertSame(original, page.findPreference(Settings.FOLDABLE_SPLIT_VIEW.key));
+            assertEquals(originalSummary, String.valueOf(original.getSummary()));
+        } finally {
+            Settings.FOLDABLE_SPLIT_VIEW.save(saved);
+            debt.clear();
+            debt.addAll(previousDebt);
+        }
+    }
+
+    private static void click(Preference preference) throws Exception {
+        Method click = Preference.class.getDeclaredMethod("onClick");
+        click.setAccessible(true);
+        click.invoke(preference);
+        idle();
+    }
+
     private static TikTokPreferenceFragment searchFor(TikTokPreferenceFragment search) throws Exception {
         return searchFor(search, QUERY);
     }
 
     private static TikTokPreferenceFragment searchFor(TikTokPreferenceFragment search, String query) throws Exception {
+        Preference entry = search.findPreference("action_search_settings");
+        if (entry instanceof SettingsSearchEntryPreference) {
+            assertTrue(entry.getOnPreferenceClickListener().onPreferenceClick(entry));
+            idle();
+        }
         Field input = TikTokPreferenceFragment.class.getDeclaredField("searchInput");
         input.setAccessible(true);
         ((SettingsSearchInputPreference) input.get(search)).setQuery(query);
@@ -168,9 +272,19 @@ public class SettingsSearchSummaryTest {
 
     private static TikTokPreferenceFragment attachSearch() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
         Bundle arguments = new Bundle();
         arguments.putBoolean("morphe_settings_search", true);
+        return attach(activity, arguments);
+    }
+
+    private static TikTokPreferenceFragment attachSection(Activity activity, String section) {
+        Bundle arguments = new Bundle();
+        arguments.putString("morphe_settings_section", section);
+        return attach(activity, arguments);
+    }
+
+    private static TikTokPreferenceFragment attach(Activity activity, Bundle arguments) {
+        TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
         fragment.setArguments(arguments);
         activity.getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
         activity.getFragmentManager().executePendingTransactions();

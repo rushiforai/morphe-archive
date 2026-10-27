@@ -25,7 +25,9 @@ import java.util.Locale;
 import app.morphe.extension.facebook.settings.PatchFamily;
 import app.morphe.extension.facebook.settings.PatchFamilyForTests;
 import app.morphe.extension.facebook.settings.Settings;
+import app.morphe.extension.facebook.reels.ReelDeclutter;
 import app.morphe.extension.shared.SettingsContextRule;
+import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.FailingStore;
 import app.morphe.extension.shared.settings.HushfacebookPause;
@@ -43,6 +45,7 @@ public class ShareSheetItemsTest {
 
     /** Stands in for Facebook's enum of share sheet items, which names its constants the same way. */
     private enum ShareItem { SHARE_NOW, SHARE_TO_THREADS, OFF_PLATFORM_WHATSAPP, COPY_LINK }
+    private enum SidebarIcon { APP_WHATSAPP }
 
     private static final List<ShareItem> ITEMS = Collections.unmodifiableList(Arrays.asList(ShareItem.values()));
 
@@ -53,8 +56,10 @@ public class ShareSheetItemsTest {
         Settings.HIDDEN_SHARE_ITEMS.resetToDefault();
         Settings.SEEN_SHARE_ITEMS.resetToDefault();
         Settings.HIDE_THREADS_SHARE_BUTTON.resetToDefault();
+        Settings.HIDE_REEL_WHATSAPP_BUTTON.resetToDefault();
         ShareSheetItems.forgetForTests();
         HookStatus.clear();
+        FeedFilterCounters.clear();
     }
 
     @Test
@@ -63,6 +68,19 @@ public class ShareSheetItemsTest {
         assertSame(ITEMS, ShareSheetItems.targets(ITEMS));
         assertEquals("SHARE_NOW,SHARE_TO_THREADS,OFF_PLATFORM_WHATSAPP,COPY_LINK",
                 Settings.SEEN_SHARE_ITEMS.savedValue());
+    }
+
+    @Test
+    public void theDirectWhatsAppSwitchAndShareSheetPicksAreIndependent() {
+        PatchFamilyForTests.carry(PatchFamily.REEL_DECLUTTER, PatchFamily.SHARE_SHEET_ITEMS);
+        Settings.HIDE_REEL_WHATSAPP_BUTTON.save(true);
+        assertTrue(ReelDeclutter.hideSidebarButton(SidebarIcon.APP_WHATSAPP));
+        assertSame("the direct-button switch changed Share", ITEMS, ShareSheetItems.targets(ITEMS));
+        ShareSheetItems.hide(Collections.singletonList("OFF_PLATFORM_WHATSAPP"));
+        Settings.HIDE_REEL_WHATSAPP_BUTTON.save(false);
+        assertFalse("a share-sheet pick hid the direct button", ReelDeclutter.hideSidebarButton(SidebarIcon.APP_WHATSAPP));
+        assertEquals(Arrays.asList(ShareItem.SHARE_NOW, ShareItem.SHARE_TO_THREADS, ShareItem.COPY_LINK),
+                ShareSheetItems.targets(ITEMS));
     }
 
     @Test

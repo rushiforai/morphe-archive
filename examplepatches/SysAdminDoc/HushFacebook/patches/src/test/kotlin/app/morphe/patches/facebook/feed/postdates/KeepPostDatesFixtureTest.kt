@@ -36,7 +36,10 @@ import java.io.File
 class KeepPostDatesFixtureTest {
     /** Where each declared build keeps the choice, by ABI: the subtitle's class and the choice's register. */
     private val expected = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf("arm64-v8a" to ("LX/2vh;" to 14)),
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
+            "arm64-v8a" to ("LX/2vh;" to 14),
+            "armeabi-v7a" to ("LX/2vh;" to 14),
+        ),
     )
 
     private fun Method.code(): List<Instruction> = implementation!!.instructions.toList()

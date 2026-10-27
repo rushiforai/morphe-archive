@@ -31,23 +31,38 @@ public final class SuggestedVideoPushBlock {
     }
 
     public static void notify(NotificationManager manager, String tag, int id, Notification notification) {
-        if (shouldBlock(notification)) return;
-        manager.notify(tag, id, notification);
+        PushDeliveryReport.Stage blocked = blockReason(notification);
+        if (blocked != null) { PushDeliveryReport.notification(blocked, notification); return; }
+        PushDeliveryReport.beforeNotify(manager, notification);
+        boolean returned = false;
+        try { manager.notify(tag, id, notification); returned = true; }
+        finally { PushDeliveryReport.notification(returned ? PushDeliveryReport.Stage.NOTIFY_RETURNED
+                : PushDeliveryReport.Stage.NOTIFY_DID_NOT_RETURN, notification); }
     }
 
     public static void notify(NotificationManager manager, int id, Notification notification) {
-        if (shouldBlock(notification)) return;
-        manager.notify(id, notification);
+        PushDeliveryReport.Stage blocked = blockReason(notification);
+        if (blocked != null) { PushDeliveryReport.notification(blocked, notification); return; }
+        PushDeliveryReport.beforeNotify(manager, notification);
+        boolean returned = false;
+        try { manager.notify(id, notification); returned = true; }
+        finally { PushDeliveryReport.notification(returned ? PushDeliveryReport.Stage.NOTIFY_RETURNED
+                : PushDeliveryReport.Stage.NOTIFY_DID_NOT_RETURN, notification); }
     }
 
     static boolean shouldBlock(Notification notification) {
-        if (PushShutoff.dropsFromDrawer(notification)) return true;
+        return blockReason(notification) != null;
+    }
+
+    private static PushDeliveryReport.Stage blockReason(Notification notification) {
+        if (PushShutoff.dropsFromDrawer(notification)) return PushDeliveryReport.Stage.NOTIFY_PUSH_OFF;
         // Android only has channels from 8.0, and TikTok posts none of these without one.
-        if (notification == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false;
+        if (notification == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return null;
         // On by default, so a build with only Notification controls must not read it.
         if (!SettingsStatus.suggestedVideoPushBlockEnabled
-                || !Settings.BLOCK_SUGGESTED_VIDEO_NOTIFICATIONS.get()) return false;
+                || !Settings.BLOCK_SUGGESTED_VIDEO_NOTIFICATIONS.get()) return null;
         String channel = notification.getChannelId();
-        return channel != null && channel.startsWith(SUGGESTED_VIDEO_CHANNEL);
+        return channel != null && channel.startsWith(SUGGESTED_VIDEO_CHANNEL)
+                ? PushDeliveryReport.Stage.NOTIFY_SUGGESTED : null;
     }
 }

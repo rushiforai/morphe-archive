@@ -2,12 +2,38 @@
 
 ## Unreleased
 
+### New
+
+- **Custom launcher icon** is a new patch that starts unselected. It turns Messenger's home screen icon white on black, or black on white if you pick that style, using Messenger's own logo. Themed icons on Android 13 and up still work. Patch again without it to get the normal icon back. Refs #107.
+- HushMessenger's settings speak Traditional Chinese when your phone is set to it, in Taiwan, Hong Kong or Macau. Simplified Chinese still shows English for now. Thanks to @JhouHank for the translation. Refs #98.
+- **Hide Your story when sharing** is a new switch under Photos and videos, and it starts off. Share a photo, video or link into Messenger from another app and the Send to list won't offer Your story anymore, so a stray tap on Add can't post it. Your chats and groups stay right where they were, and the story itself works as usual. Refs #102.
+
 ### Changed and fixed
 
+- HushMessenger now targets Messenger 584.1.0.61.98 and takes all 18 builds APKMirror lists for it, arm64 and armv7 alike. 584.0.0.49.98 is no longer supported, so update Messenger before you patch. Each build was checked patch by patch, and Morphe Desktop applied and rebuilt every one of them. Refs #106.
+- Patches are built with Morphe patcher 2.0.1, which uses less memory while patching. You'll need Morphe Manager 2.2.0 or newer, or Morphe Desktop 1.19.1.
+- The HushMessenger settings got a tighter layout, modeled on HushFacebook's. Every section folds up under its own header and starts closed, so the whole list fits on a couple of screens. Open the ones you use and they stay open next time. Searching still finds any control, whether its section is open or not. The banner with "Make Messenger yours" and the Inbox, Chats and More chips are gone. The colors now follow Messenger's own blue in both the light and dark theme, and Restart Messenger sits at the top of the App tab.
+- Every HushMessenger title (the settings name, the sheet titles and the restart screen) now shows Messenger's blue to purple to pink to orange colors. They drift slowly with a light sheen now and then, and they keep moving even with Android's animations turned off.
+- With large text, the little arrow on each settings section shows whole again. At 200% it was cut down to a sliver.
+- **Source and licenses** under About opens the README's Credits section again. It pointed at a heading the README no longer has, so it landed at the top of the page.
+- With **Open your gallery app** on and no default gallery set, the list Android shows you now holds only your gallery apps. It could slip in other pickers, like Contacts. Whichever gallery you tap still opens with your photos and videos together. Refs #94.
+- If Messenger crashed in the last three days, **Report a problem** now adds a line saying where in the code it happened. It's only the names of the failing code, never the error text, so no file names or chat content go in. Refs #103.
 - Gallery selections are checked off the UI thread before returning to the chat. A canceled, revoked or timed-out selection returns no media, and Report a problem includes a fixed gallery result category without file paths. Refs #94.
 - Patching now reports when discovery stages start and finish. The Wi-Fi scan reads method signatures directly instead of formatting every reference in Messenger, which cuts that scan's time and temporary allocations. Refs #93, #99, #100.
+- In **Auto reply**, a picture always lands on the card you picked it for, and it's always the one you picked last. Before, a slow copy of an earlier pick could finish late and replace the newer picture, or put one back after you tapped Clear. Save waits while a picture is still copying.
+- Picking a picture for an auto reply is safer with huge or slow files. HushMessenger reads the file once into its own copy, turns away files over 32 MB or 64 megapixels, and gives up after 30 seconds, then tells you which of those happened. Picking again or tapping Clear stops the earlier copy right away, and the picture you had before stays put.
+- Some APKMirror downloads of Messenger only carry icons for one small screen size, so on a sharper phone the launcher icon and the icons in Messenger's settings look blurry and jagged. HushMessenger's settings now say so under About when your download is one of those, and the README lists which builds have icons for every screen. Patching a `nodpi` build fixes it. Refs #91.
 - **Hide Meta AI** now reaches the search screen too. Tap the search bar and the box at the top used to say "Ask Meta AI or search" even with the switch on. Now it shows the plain search hint, like the bar on the Chats list. Search still finds people and chats the same way.
 - With **Slide chats in and out** on, a chat whose first frames come late no longer jumps partway in. That happened most on the first chat you open after starting Messenger. The chat now waits off screen until Messenger draws on time (a quarter second at most), then slides in from the edge. Going back works the same way.
+
+### Checks
+
+- The install check now names the kind of refusal it finds and what to do about it. A Messenger signed with another key says which Android user it's installed for, so a copy hiding in Secure Folder or a work profile is easy to find. A permission held by another app (`INSTALL_FAILED_DUPLICATE_PERMISSION`) is no longer mixed up with a Messenger signer problem.
+- The README's settings screenshots are new, and they now show the App tab too. They're rendered from the settings code, with a small record of which switches they show and each image's checksum. A release stops when a switch was added, renamed or retired since then, or when an image no longer matches. Any link from the app into the README has to reach a heading that exists.
+- When another app takes the phone's screen in the middle of a walk, the failed step now says which app it was, instead of only saying it left no screen dump.
+- The whole-app walk now has to show every screen it opened. Counting them is no longer enough. Each required step (a chat, both settings tabs, the message log and auto reply sheets when those patches are in, and each native screen) saves a screenshot and a UI dump next to the receipt, with their checksums. Publish reads those files again and refuses the walk when a step is missing or listed twice, a file is missing or changed, a screen shows the Restore or login prompt, two steps landed on the same screen, or a step ended up somewhere it shouldn't. An older receipt that only counted screens doesn't count anymore.
+- Every Messenger screen in the walk now has to be its own page, not just any Messenger screen. Each step checks the page it lands on and a label only that page has, so a link that drops back to the inbox fails. Messenger 584.1 ignores most of its old links when another app sends them (the inbox, Active now, stories, new message, stickers and Marketplace). The walk now opens the inbox from Messenger's own launcher and adds the story and contact settings pages, which still open by link.
+- On Android 12 and older the walk can now pass the message log. Before Android 13 the log blocks screenshots to keep chat text out of Recents, so that one step keeps a record showing its window is locked instead. Every other step still needs its screenshot.
 
 ## 0.26.0 (2026-10-22)
 

@@ -47,6 +47,16 @@ template<size_t N> void run() {
         check(outLayers[i].layerFlags==inLayers[i].layerFlags && outLayers[i].space==inLayers[i].space);
     }
     check(info.layers==input.data() && info.displayTime==1234); // Input remains caller-owned.
+    // Valve attaches XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB to each projection and
+    // may attach frame-level local-dimming info. Both chains must be preserved.
+    XrBaseInStructure layerChain{}; layerChain.type=static_cast<XrStructureType>(1000204000);
+    XrBaseInStructure frameChain{}; frameChain.type=static_cast<XrStructureType>(1000216000);
+    inLayers[0].next=&layerChain; info.next=&frameChain;
+    for(auto& s:sources) s.second.ready=true;
+    check(prepare());
+    check(outLayers[0].next==&layerChain);
+    check(info.next==&frameChain);
+    inLayers[0].next=nullptr; info.next=nullptr;
     auto& v=inViews[N-1][1];v.subImage.imageRect.extent.width=9999;
     for(auto& s:sources) s.second.interested=false;
     check(!prepare());for(auto& s:sources) check(!s.second.interested);

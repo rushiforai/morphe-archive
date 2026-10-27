@@ -3,6 +3,7 @@ package dev.twitchpatches.patches.twitch.shared.hermes
 internal data class MetroExport(val module: Int, val name: String)
 
 internal class MetroExports(private val bundle: HermesBundle) {
+    private val descendantSymbols = mutableMapOf<Int, Set<String>>()
     fun resolveAsync(name: String, properties: Set<String>, strings: Set<String>): MetroExport {
         val target = resolve(name, setOf("apply"))
         val function = bundle.functions.single { bundle.strings[it.name] == name && it.params == 2 }
@@ -17,12 +18,26 @@ internal class MetroExports(private val bundle: HermesBundle) {
 
     fun requireFunctionContract(name: String, params: Int, properties: Set<String>) {
         val function = bundle.functions.single { bundle.strings[it.name] == name && it.params == params }
-        require(descendants(function).containsAll(properties)) { "Modern Twitch: $name parser contract changed." }
+        val symbols = descendants(function)
+        if (symbols.containsAll(properties)) return
+        val delegates = symbols.filter { it != name && it.endsWith(name) }
+        require(name == "BottomSheet" && delegates.toSet() == setOf("NativeBottomSheet", "RNBottomSheet") &&
+            delegates.all { delegate ->
+                val implementation = bundle.functions.singleOrNull { bundle.strings[it.name] == delegate && it.params == params }
+                implementation != null && descendants(implementation).containsAll(properties)
+            }) {
+            "Modern Twitch: $name parser contract changed."
+        }
     }
 
-    private fun descendants(root: HermesBundle.Function): Set<String> {
+    private fun descendants(root: HermesBundle.Function): Set<String> = descendantSymbols.getOrPut(root.id) {
         val visited = mutableSetOf<Int>()
         val symbols = mutableSetOf<String>()
+        val parentCode by lazy {
+            bundle.functions.filter { it.params == 8 }.singleOrNull { factory ->
+                bundle.instructions(factory).any { it.name == "CreateClosure" && it.args[2] == root.id }
+            }?.let(bundle::instructions).orEmpty()
+        }
         var pending = listOf(root)
         repeat(8) {
             val next = mutableListOf<HermesBundle.Function>()
@@ -32,17 +47,14 @@ internal class MetroExports(private val bundle: HermesBundle) {
                         symbols.add(bundle.strings[ins.args.last()])
                     if (ins.name in setOf("NewObjectWithBuffer", "NewObjectWithBufferLong")) {
                         val literal = bundle.objectLiteral(ins.args[1], ins.args[2])
+                        symbols.addAll(literal.keys)
                         symbols.addAll(literal.values.filterIsInstance<String>())
                         if (literal["success"] == false && literal["error"] == "No ad available (204 no-fill)")
                             symbols.add("native-feed-no-fill-object")
                     }
                     if (ins.name in setOf("CreateClosure", "CreateGenerator")) next.add(bundle.functions[ins.args[2]])
                     if (ins.name == "LoadFromEnvironment" && function == root) {
-                        val parent = bundle.functions.filter { it.params == 8 }.single { factory ->
-                            bundle.instructions(factory).any { it.name == "CreateClosure" && it.args[2] == root.id }
-                        }
-                        val code = bundle.instructions(parent)
-                        code.zipWithNext().filter { (create, store) -> create.name == "CreateClosure" &&
+                        parentCode.zipWithNext().filter { (create, store) -> create.name == "CreateClosure" &&
                             store.name == "StoreToEnvironment" && store.args[1] == ins.args[2] &&
                             store.args[2] == create.args[0] }.forEach { (create, _) -> next.add(bundle.functions[create.args[2]]) }
                     }
@@ -50,7 +62,7 @@ internal class MetroExports(private val bundle: HermesBundle) {
             }
             pending = next
         }
-        return symbols
+        symbols
     }
 
     fun reactModule(): Int {

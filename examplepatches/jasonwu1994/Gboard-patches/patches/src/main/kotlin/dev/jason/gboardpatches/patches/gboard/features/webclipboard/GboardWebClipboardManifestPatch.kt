@@ -124,6 +124,7 @@ private fun copyWebClipboardTileDrawable() = with(context) {
 
 private val WEB_CLIPBOARD_PERMISSIONS = listOf(
     "android.permission.INTERNET",
+    "android.permission.ACCESS_LOCAL_NETWORK",
     "android.permission.ACCESS_NETWORK_STATE",
     "android.permission.FOREGROUND_SERVICE",
     "android.permission.FOREGROUND_SERVICE_DATA_SYNC"

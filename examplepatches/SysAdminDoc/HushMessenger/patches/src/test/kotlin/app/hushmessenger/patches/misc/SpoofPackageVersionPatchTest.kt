@@ -53,7 +53,7 @@ class SpoofPackageVersionPatchTest {
         val document = manifest("346611369")
         val failure = assertFailsWith<PatchException> { document.spoofVersionCode("346611351", HIGHEST_VERSION_CODE) }
         assertContains(failure.message.orEmpty(), "not 346611351")
-        assertContains(failure.message.orEmpty(), "Use an unmodified arm64 Messenger")
+        assertContains(failure.message.orEmpty(), "Use an unmodified Messenger")
         assertEquals("346611369", document.code)
 
         val blank = manifest("")

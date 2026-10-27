@@ -249,6 +249,7 @@ public final class ReceivedDmTranslationPreview {
                 work.dialog.setOnDismissListener(dialog -> { if (pending == work) cancel(); });
                 work.dialog.show();
                 SettingsUi.styleFramedDialog(work.dialog);
+                SettingsUi.wearDialogTitle(work.dialog);
                 work.dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
                 work.dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> work.toggle());
                 work.schedule();

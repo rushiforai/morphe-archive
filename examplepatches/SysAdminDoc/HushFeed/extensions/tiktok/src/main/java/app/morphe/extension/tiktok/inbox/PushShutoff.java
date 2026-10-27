@@ -57,7 +57,9 @@ public final class PushShutoff {
 
     /** The guard at the start of InitPushTask.run: true skips TikTok's push setup for this launch. */
     public static boolean skipPushSetup() {
-        return isOn();
+        boolean blocked = isOn();
+        PushDeliveryReport.setupDecision(blocked);
+        return blocked;
     }
 
     /** Whether the notify filter drops this notification rather than posting it. */

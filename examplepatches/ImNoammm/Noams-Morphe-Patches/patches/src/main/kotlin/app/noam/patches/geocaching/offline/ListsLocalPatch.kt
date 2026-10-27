@@ -49,6 +49,14 @@ internal object CreateListFingerprint : Fingerprint(
     parameters = emptyList(),
 )
 
+/** ListHubRepository.deleteList: the server delete behind the hub's Delete list. */
+internal object ListHubDeleteFingerprint : Fingerprint(
+    definingClass = "Lcom/groundspeak/geocaching/intro/listhub/l;",
+    name = "a",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/String;", "Lou1;"),
+)
+
 internal object ListDetailsMenuFingerprint : Fingerprint(
     definingClass = "Lcom/groundspeak/geocaching/intro/activities/GeocacheListDetailsActivity;",
     name = "onCreateOptionsMenu",
@@ -131,6 +139,19 @@ internal val listsLocalPatch = bytecodePatch(
                 invoke-static/range { p0 .. p0 }, ${Constants.GC_LOCAL_LISTS}->createFromActivity(Landroid/app/Activity;)V
                 return-void
             """,
+        )
+
+        // Local lists are deleted on the device; the server would answer 401 for a list it never had.
+        ListHubDeleteFingerprint.method.addInstructionsWithLabels(
+            0,
+            """
+                invoke-static/range { p1 .. p1 }, ${Constants.GC_LOCAL_LISTS}->deleteIfLocal(Ljava/lang/String;)Z
+                move-result v0
+                if-eqz v0, :noam_server_delete
+                sget-object v0, Lszb;->a:Lszb;
+                return-object v0
+            """,
+            ExternalLabel("noam_server_delete", ListHubDeleteFingerprint.method.getInstruction(0)),
         )
 
         ListDetailsMenuFingerprint.method.addInstructionsWithLabels(

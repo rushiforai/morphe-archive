@@ -31,12 +31,21 @@ public final class DailyCheckinWorker extends Worker {
     public Result doWork() {
         Context context = getApplicationContext();
 
-        // If both features are already latched, this is a no-op re-run (e.g. app opened
-        // again after midnight already claimed). Skip silently — no notification, no work.
+        // Both daily claims already done: only milestones can still be due (they have their own
+        // per-level state). Notify only when that check did something, never for a bare no-op.
         boolean checkinLatched = AutoClaim.check(context, "checkin") != null;
         boolean ladderLatched = AutoClaim.check(context, "ladder") != null;
         if (checkinLatched && ladderLatched) {
             Log.i(TAG, "WORKER_NOOP both latched");
+            try {
+                BackgroundCheckin.doCheckIn(context);
+            } catch (Throwable t) {
+                Log.w(TAG, "WORKER_MILESTONE_ERR " + t);
+            }
+            if (MilestoneClaim.hasNews()) {
+                WorkerNotify.notifyStatus(context, "Ladder: latched", "next ~00:05 PKT",
+                    "Simosa daily check-in");
+            }
             scheduleMidnight(context, ExistingWorkPolicy.KEEP);
             return Result.success();
         }
@@ -59,6 +68,10 @@ public final class DailyCheckinWorker extends Worker {
         if ((!settled || !ladderSettled) && getRunAttemptCount() < MAX_RETRIES) {
             Log.i(TAG, "WORKER_RETRY attempt=" + getRunAttemptCount()
                 + " checkin=" + settled + " ladder=" + ladderSettled);
+            if (MilestoneClaim.hasNews()) {
+                WorkerNotify.notifyStatus(context, "Ladder: " + LadderClaim.getResult(), "retrying",
+                    "Simosa daily check-in");
+            }
             return Result.retry();
         }
 

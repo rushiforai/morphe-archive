@@ -7,7 +7,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
-import app.morphe.util.cloneParameters
+import app.morphe.patcher.util.cloneParameters
 import app.morphe.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_WEMUSLIM
 import app.template.patches.wemuslim.misc.encryption.bypassNativeEncryptionPatch
@@ -72,14 +72,16 @@ val disableAdsPatch = bytecodePatch(
             } ?: throw PatchException("Disable ads: no single ${wallet.type} (${parameters.joinToString()})$returnType")
             // This method, or a copy of it with v0 free at entry. R8 may leave a method no local
             // register at all (3.5.4's (AuthorityType)Z reuses p0 as its scratch register); the
-            // library clone then adds registers and moves the parameters back down at entry, so
-            // the stock body is unchanged.
+            // patcher's clone then adds registers and moves the parameters back down at entry, so
+            // the stock body is unchanged. (morphe-patches-library 2.0.0 made its
+            // cloneParameters(MutableClass) internal; the patcher's public cloneParameters() makes
+            // the same clone and swaps it into the class.)
             val implementation = method.implementation ?: throw PatchException("${method.definingClass}->${method.name} has no body")
             val parameterRegisters = method.parameterTypes
                 .sumOf { if (it.toString() in setOf("J", "D")) 2 else 1 } +
                 if (AccessFlags.STATIC.isSet(method.accessFlags)) 0 else 1
             return if (implementation.registerCount > parameterRegisters) method
-            else method.cloneParameters(mutableClassDefBy(wallet))
+            else method.cloneParameters()
         }
 
         // p1 is the AuthorityType; v0 is the first local, written before it is read.

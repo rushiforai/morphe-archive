@@ -94,11 +94,11 @@ public class ExternalGalleryTest {
     }
 
     /**
-     * #64: with two gallery apps and no default Android asks which one to use. The photo pick kept the contacts app off
-     * that list but left Samsung's Gallery showing photos only, so the any-type pick now asks with the photo pick as the
-     * selector, which Android lists the apps and records Always by.
+     * #64 and #94: with two gallery apps and no default Android asks which one to use. The photo pick left Samsung's
+     * Gallery showing photos only, and an any-type pick behind a photo-pick selector still put contact pickers on
+     * Samsung's list, so the chooser now gets one any-type pick per gallery, each by name.
      */
-    @Test public void whenAndroidAsksWhichGalleryThePickedOneStillShowsPhotosAndVideos() {
+    @Test public void whenAndroidAsksWhichGalleryOnlyGalleriesAreListedAndEachShowsPhotosAndVideos() {
         var packages = shadowOf(app.getPackageManager());
         packages.setShouldShowActivityChooser(true);
         ResolveInfo samsung = gallery("com.example.gallery"), photos = gallery("com.example.photos");
@@ -115,15 +115,48 @@ public class ExternalGalleryTest {
         assertEquals("A gallery that can't take an any-type pick keeps the photo pick", "image/*", GalleryPicker.pickIntent(app).getType());
         packages.addResolveInfoForIntent(new Intent(Intent.ACTION_PICK).setType("*/*").setPackage("com.example.photos"), photos);
         Intent pick = GalleryPicker.pickIntent(app);
-        assertEquals("*/*", pick.getType());
-        assertNull(pick.getPackage());
-        assertNull(pick.getComponent());
-        assertEquals(Arrays.asList("image/*", "video/*"), Arrays.asList(pick.getStringArrayExtra(Intent.EXTRA_MIME_TYPES)));
-        Intent selector = pick.getSelector();
-        assertNotNull("Without the selector the contacts app is on the list", selector);
-        assertEquals(Intent.ACTION_PICK, selector.getAction());
-        assertEquals("image/*", selector.getType());
-        assertNull(selector.getPackage());
+        assertEquals(Intent.ACTION_CHOOSER, pick.getAction());
+        assertNull("A selector put contact pickers on Samsung's list", pick.getSelector());
+        java.util.List<Intent> offered = new java.util.ArrayList<>();
+        offered.add((Intent) pick.getParcelableExtra(Intent.EXTRA_INTENT));
+        for (android.os.Parcelable each : pick.getParcelableArrayExtra(Intent.EXTRA_INITIAL_INTENTS)) offered.add((Intent) each);
+        java.util.List<ComponentName> screens = new java.util.ArrayList<>();
+        for (Intent each : offered) {
+            screens.add(each.getComponent());
+            assertEquals(Intent.ACTION_PICK, each.getAction());
+            assertEquals("*/*", each.getType());
+            assertNull(each.getSelector());
+            assertTrue(each.getBooleanExtra(Intent.EXTRA_ALLOW_MULTIPLE, false));
+            assertEquals(Arrays.asList("image/*", "video/*"), Arrays.asList(each.getStringArrayExtra(Intent.EXTRA_MIME_TYPES)));
+        }
+        assertEquals("Only the two galleries are offered", Arrays.asList(
+            new ComponentName("com.example.gallery", "com.example.gallery.Pick"),
+            new ComponentName("com.example.photos", "com.example.photos.Pick")), screens);
+    }
+
+    /** #94: the gallery picked from Android's chooser hands its pick back through the pick screen like any other. */
+    @Test public void aGalleryPickedFromTheChooserStillReachesTheChat() {
+        var packages = shadowOf(app.getPackageManager());
+        packages.setShouldShowActivityChooser(true);
+        Intent photoPick = new Intent(Intent.ACTION_PICK).setType("image/*");
+        for (String name : Arrays.asList("com.example.gallery", "com.example.photos")) {
+            ResolveInfo each = gallery(name);
+            packages.addResolveInfoForIntent(photoPick, each);
+            packages.addResolveInfoForIntent(new Intent(Intent.ACTION_PICK).setType("*/*").setPackage(name), each);
+        }
+        Robolectric.setupContentProvider(PickedProvider.class, "gallery.chooser");
+        try (ActivityController<GalleryActivity> controller = Robolectric.buildActivity(GalleryActivity.class).setup()) {
+            ShadowActivity screen = shadowOf(controller.get());
+            ShadowActivity.IntentForResult started = screen.getNextStartedActivityForResult();
+            assertNotNull(started);
+            assertEquals(Intent.ACTION_CHOOSER, started.intent.getAction());
+            Uri item = Uri.parse("content://gallery.chooser/image/7");
+            screen.receiveResult(started.intent, Activity.RESULT_OK, new Intent().setData(item));
+            shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(Activity.RESULT_OK, screen.getResultCode());
+            assertEquals(item, screen.getResultIntent().getData());
+            assertEquals(GalleryPicker.Outcome.SELECTED, GalleryPicker.lastOutcome);
+        }
     }
 
     /** The chat camera launcher's start: its own extras, then the ones it's handed, on a new intent for its screen. */

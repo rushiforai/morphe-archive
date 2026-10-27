@@ -33,4 +33,10 @@ public final class UiClassicActionsTest {
         assertEquals(List.of("gift_button_chat", "bits_button_chat"),
                 UiClassicActions.filter(actions, id -> id, "classic_support_hide_subscribe"::equals));
     }
+
+    @Test public void metadataActionsKeepFollowAndNotificationWhileHidingGiftAndUpgrade() {
+        var actions = List.of("follow_button", "notification_button", "gift_button", "upgrade_sub_button", "subscribe_button");
+        assertEquals(List.of("follow_button", "notification_button"), UiClassicActions.filter(actions, id -> id, key -> true));
+        assertSame(actions, UiClassicActions.filter(actions, id -> id, key -> false));
+    }
 }

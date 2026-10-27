@@ -107,7 +107,9 @@ fun main(args: Array<String>) {
     }
     // A successful D8 build does not prove that an obfuscated host supplies Kotlin helper ABIs.
     // Check real definitions (including inherited methods), not the compiler's stock stdlib.
-    val extensionClasses = allClasses.values.filter { it.type.startsWith("Lapp/venus/extension/") }
+    val extensionClasses = allClasses.values.filter {
+        it.type.startsWith("Lapp/venus/extension/") || it.type.startsWith("Lapp/venus/chat/")
+    }
     val references = extensionClasses.flatMap { definition -> definition.methods.flatMap { method ->
         method.implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference }?.toList() ?: emptyList()
     } }.distinct()

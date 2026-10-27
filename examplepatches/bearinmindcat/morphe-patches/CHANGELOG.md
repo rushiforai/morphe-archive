@@ -1,3 +1,28 @@
+## [2.6.4](https://github.com/bearinmindcat/morphe-patches/compare/v2.6.3...v2.6.4) (2026-10-26)
+
+### 🐛 Bug Fixes
+
+* sponsored pins on the search map are hidden too; issue [#71](https://github.com/bearinmindcat/morphe-patches/issues/71) ([f025e19](https://github.com/bearinmindcat/morphe-patches/commit/f025e193ddc001559de9b5791545184b1431ad9f))
+
+## [2.6.3](https://github.com/bearinmindcat/morphe-patches/compare/v2.6.2...v2.6.3) (2026-10-26)
+
+### 🐛 Bug Fixes
+
+* microG Maps keeps the on-phone Timeline (microG records none); issue [#73](https://github.com/bearinmindcat/morphe-patches/issues/73) ([8a81fbe](https://github.com/bearinmindcat/morphe-patches/commit/8a81fbec5754a481a82d90617bf5658ed0896b20))
+
+## [2.6.2](https://github.com/bearinmindcat/morphe-patches/compare/v2.6.1...v2.6.2) (2026-10-26)
+
+### 🐛 Bug Fixes
+
+* built for Morphe Patcher 2.0, no more older-patcher warning (needs Morphe Manager 2.x); issue [#74](https://github.com/bearinmindcat/morphe-patches/issues/74) ([c830b58](https://github.com/bearinmindcat/morphe-patches/commit/c830b58ac86d4180cb751876fe3053564667973c))
+
+## [2.6.1](https://github.com/bearinmindcat/morphe-patches/compare/v2.6.0...v2.6.1) (2026-10-26)
+
+### 🐛 Bug Fixes
+
+* microG-RE is named microG-RE, not microG (patch name, location source, notices); issue [#76](https://github.com/bearinmindcat/morphe-patches/issues/76) ([37e23ab](https://github.com/bearinmindcat/morphe-patches/commit/37e23ab29935a5f4f7983b07b1cd1959c140eb1a))
+* original microG sees your accounts and signs in (add original microG support, off by default); issue [#75](https://github.com/bearinmindcat/morphe-patches/issues/75) ([60e809a](https://github.com/bearinmindcat/morphe-patches/commit/60e809aa62ce3c98fae490be5781e87844c26acb))
+
 ## [2.6.0](https://github.com/bearinmindcat/morphe-patches/compare/v2.5.7...v2.6.0) (2026-10-25)
 
 ### ✨ New Features

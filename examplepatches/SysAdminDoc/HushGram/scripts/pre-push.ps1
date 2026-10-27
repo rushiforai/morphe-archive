@@ -608,10 +608,16 @@ if (@($changed | Where-Object {
 }
 if (@($changed | Where-Object {
     $_ -in @('scripts/walk-app.ps1', 'scripts/test-walk-app.ps1', 'scripts/walk-receipt.ps1', 'scripts/patch-for-device.ps1',
+        'scripts/WalkSnapshot.java', 'scripts/walk-capture.ps1', 'scripts/test-walk-capture.ps1',
+        'scripts/walk-plan.ps1', 'scripts/walk-categories.json', 'scripts/test-walk-plan.ps1', 'scripts/test-walk-producer.ps1',
+        'scripts/patch-record.ps1', 'scripts/build-identity.ps1', 'patches-list.json',
         'scripts/device-install.ps1', 'scripts/injected-register-device.ps1', 'scripts/native-runner-device.ps1', 'scripts/common.ps1',
         'scripts/pre-push.ps1', 'scripts/script-wiring.ps1')
 }).Count -gt 0) {
     $suites += , @('scripts/test-walk-app.ps1', 'the whole-app walk tool changed, running its contract tests')
+    $suites += , @('scripts/test-walk-capture.ps1', 'checking active-window capture transport and image validation')
+    $suites += , @('scripts/test-walk-plan.ps1', 'checking settings coverage and visible destination content')
+    $suites += , @('scripts/test-walk-producer.ps1', 'checking candidate reuse and walkthrough navigation')
 }
 if (@($changed | Where-Object {
     $_ -in @('scripts/pre-push.ps1', 'scripts/test-push-gate.ps1', 'scripts/build-jobs.ps1', 'scripts/gate-evidence.ps1',

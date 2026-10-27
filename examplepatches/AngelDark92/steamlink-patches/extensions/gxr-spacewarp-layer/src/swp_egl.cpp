@@ -35,10 +35,9 @@
 #include <time.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
-#include <deque>
 #include <mutex>
-#include <set>
 
 extern "C" {
 void SwpEglSetOriginal(void* originalCreateImageKHR);
@@ -47,6 +46,7 @@ int SwpEglArrivalHistory(uint64_t* outEpochs, uint64_t* outMonoNs, int maxEntrie
 bool SwpEglLearningDisabled();
 uint64_t SwpEglMonotonicNs();
 void SwpEglArrivalObserved(void* image, void* ctx, void* dpy, uint64_t monoNs);
+uint32_t SwpVtsMode();
 }
 
 #define LOG(...) __android_log_print(ANDROID_LOG_INFO, "GXRSwarp", __VA_ARGS__)
@@ -67,6 +67,7 @@ EglCreateImageKHRFn g_original = nullptr;
 // the test build, not on Windows: the suite also builds and runs as an arm64
 // binary on the headset, where clock_gettime would defeat the fixed vectors.
 uint64_t g_testNowNs = 0;
+uint64_t g_testClockReads = 0;
 #endif
 
 // Arrival learning state (process lifetime; the dispatch holds the session view).
@@ -76,12 +77,17 @@ uint64_t g_totalArrivals = 0;
 void* g_lastCtx = nullptr;
 void* g_lastDpy = nullptr;
 bool g_learningDisabled = false;
-std::deque<uint64_t> g_historyEpochs;  // newest at the back
-std::deque<uint64_t> g_historyMono;
-std::set<uintptr_t> g_imageSeen;       // distinct handles observed (pool-anomaly guard)
+// Fixed control storage: no arrival-owned heap allocation, even after On -> Off.
+std::array<uint64_t, kHistoryCap> g_historyEpochs{};
+std::array<uint64_t, kHistoryCap> g_historyMono{};
+size_t g_historyHead = 0;
+size_t g_historyCount = 0;
+std::array<uintptr_t, kPoolAnomalyHandles> g_imageSeen{};
+size_t g_imageSeenCount = 0;
 
 uint64_t NowNs() {
 #ifdef SWP_HOST_TESTS
+    ++g_testClockReads;
     return g_testNowNs;  // test builds control the clock (never a production build)
 #else
     struct timespec ts;
@@ -109,24 +115,24 @@ void SwpEglArrivalObserved(void* image, void* ctx, void* dpy, uint64_t monoNs) {
     if (g_learningDisabled) return;
     g_totalArrivals++;
     if (imageId == g_lastImage) return;  // consecutive duplicate: not a new arrival
-    if (g_imageSeen.size() >= kPoolAnomalyHandles && !g_imageSeen.count(imageId)) {
+    const auto seenEnd = g_imageSeen.begin() + g_imageSeenCount;
+    const bool seen = std::find(g_imageSeen.begin(), seenEnd, imageId) != seenEnd;
+    if (g_imageSeenCount >= kPoolAnomalyHandles && !seen) {
         // Pool wider than any Steam Link AImageReader round-robin (maxImages 20):
         // this is not the decoded-frame path we assume; disable learning outright.
         g_learningDisabled = true;
-        g_historyEpochs.clear();
-        g_historyMono.clear();
+        g_historyHead = 0;
+        g_historyCount = 0;
         LOG("arrival pool exceeded %zu distinct handles; arrival learning disabled",
             kPoolAnomalyHandles);
         return;
     }
-    g_imageSeen.insert(imageId);
+    if (!seen) g_imageSeen[g_imageSeenCount++] = imageId;
     g_epoch++;
-    g_historyEpochs.push_back(g_epoch);
-    g_historyMono.push_back(monoNs);
-    while (g_historyEpochs.size() > kHistoryCap) {
-        g_historyEpochs.pop_front();
-        g_historyMono.pop_front();
-    }
+    g_historyEpochs[g_historyHead] = g_epoch;
+    g_historyMono[g_historyHead] = monoNs;
+    g_historyHead = (g_historyHead + 1) % kHistoryCap;
+    if (g_historyCount < kHistoryCap) ++g_historyCount;
     g_lastImage = imageId;
     g_lastCtx = ctx;
     g_lastDpy = dpy;
@@ -145,16 +151,12 @@ bool SwpEglArrivalSnapshot(uint64_t* epoch, void** arrivalCtx, void** arrivalDpy
 int SwpEglArrivalHistory(uint64_t* outEpochs, uint64_t* outMonoNs, int maxEntries) {
     std::lock_guard<std::recursive_mutex> lock(g_mutex);
     if (!outEpochs || !outMonoNs || maxEntries <= 0) return 0;
-    const int count = static_cast<int>(std::min(g_historyEpochs.size(), g_historyMono.size()));
+    const int count = static_cast<int>(g_historyCount);
     const int out = std::min(count, maxEntries);
     for (int i = 0; i < out; i++) {
-        // Newest first: walk the deque from the back.
-        auto epochIt = g_historyEpochs.rbegin();
-        auto monoIt = g_historyMono.rbegin();
-        std::advance(epochIt, i);
-        std::advance(monoIt, i);
-        outEpochs[i] = *epochIt;
-        outMonoNs[i] = *monoIt;
+        const size_t at = (g_historyHead + kHistoryCap - 1 - static_cast<size_t>(i)) % kHistoryCap;
+        outEpochs[i] = g_historyEpochs[at];
+        outMonoNs[i] = g_historyMono[at];
     }
     return out;
 }
@@ -171,7 +173,9 @@ void* SwpWrapEglCreateImageKHR(void* dpy, void* ctx, unsigned target, void* buff
                                const int* attrs) {
     if (!g_original) return nullptr;  // unarmed: never installed in this state
     void* image = g_original(dpy, ctx, target, buffer, attrs);
-    if (image) {
+    // Settled Off is only the original import plus one atomic mode read: no
+    // clock, mutex, arrival learning, history update or allocation.
+    if (image && SwpVtsMode() != 0) {
         SwpEglArrivalObserved(image, ctx, dpy, NowNs());
     }
     return image;
@@ -188,6 +192,12 @@ extern "C" uint64_t SwpEglTestSetNowNs(uint64_t nowNs) {
     g_testNowNs = nowNs;
     return previous;
 }
+extern "C" uint64_t SwpEglTestClockReads() { return g_testClockReads; }
+extern "C" void SwpEglTestResetClockReads() { g_testClockReads = 0; }
+extern "C" uint64_t SwpEglTestArrivalCount() {
+    std::lock_guard<std::recursive_mutex> lock(g_mutex);
+    return g_totalArrivals;
+}
 #endif
 
 // Arrival-state reset: an internal (hidden-visibility) ABI used by the host test
@@ -200,7 +210,10 @@ extern "C" void SwpEglResetArrivals() {
     g_lastCtx = nullptr;
     g_lastDpy = nullptr;
     g_learningDisabled = false;
-    g_historyEpochs.clear();
-    g_historyMono.clear();
-    g_imageSeen.clear();
+    g_historyHead = 0;
+    g_historyCount = 0;
+    g_imageSeenCount = 0;
+    g_historyEpochs.fill(0);
+    g_historyMono.fill(0);
+    g_imageSeen.fill(0);
 }

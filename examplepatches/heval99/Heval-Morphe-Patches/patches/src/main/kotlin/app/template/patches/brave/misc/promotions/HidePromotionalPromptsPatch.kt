@@ -2,6 +2,8 @@ package app.template.patches.brave.misc.promotions
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.StringFilter
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.methodCall
@@ -25,20 +27,22 @@ private fun forcePrefRead(
     getter: String,
     value: Int,
     definingClass: String? = null,
-    strings: List<String>? = null,
+    strings: List<StringFilter>? = null,
 ) {
-    val fingerprint = Fingerprint(
-        definingClass = definingClass,
-        strings = strings,
-        filters = listOf(
-            string(prefKey),
-            methodCall(
-                definingClass = SHARED_PREFERENCES,
-                name = getter,
-                location = InstructionLocation.MatchAfterWithin(5),
-            ),
+    val filters = listOf(
+        string(prefKey),
+        methodCall(
+            definingClass = SHARED_PREFERENCES,
+            name = getter,
+            location = InstructionLocation.MatchAfterWithin(5),
         ),
     )
+    // Fingerprint's StringFilter strings parameter is not nullable.
+    val fingerprint = if (strings == null) {
+        Fingerprint(definingClass = definingClass, filters = filters)
+    } else {
+        Fingerprint(definingClass = definingClass, strings = strings, filters = filters)
+    }
     val moveResultIndex = fingerprint.instructionMatches[1].index + 1
     val method = fingerprint.method
     val register = method.getInstruction<OneRegisterInstruction>(moveResultIndex).registerA
@@ -62,7 +66,7 @@ val hidePromotionalPromptsPatch = bytecodePatch(
             prefKey = "brave_default_timer_day",
             getter = "getInt",
             value = -1,
-            strings = listOf("brave_default_app_open_counter"),
+            strings = listOf(string("brave_default_app_open_counter", StringComparisonType.CONTAINS)),
         )
 
         // ── 2. "Rate Brave" startup dialog and Brave News feed card ────────────────────────
@@ -74,7 +78,10 @@ val hidePromotionalPromptsPatch = bytecodePatch(
         Fingerprint(
             returnType = "Z",
             parameters = listOf("L"),
-            strings = listOf("qa_force_rate_dialog", "next_rate_date"),
+            strings = listOf(
+                string("qa_force_rate_dialog", StringComparisonType.CONTAINS),
+                string("next_rate_date", StringComparisonType.CONTAINS),
+            ),
         ).method.returnEarly(false)
 
         // ── 3. Retention and Rewards promo notifications ───────────────────────────────────
@@ -83,7 +90,7 @@ val hidePromotionalPromptsPatch = bytecodePatch(
             definingClass = "Lorg/chromium/chrome/browser/notifications/retention/RetentionNotificationPublisher;",
             returnType = "V",
             parameters = listOf("Landroid/content/Context;", "Landroid/content/Intent;"),
-            strings = listOf("notification_type"),
+            strings = listOf(string("notification_type", StringComparisonType.CONTAINS)),
             custom = { method, _ -> method.name != "onReceive" },
         ).method.returnEarly()
 

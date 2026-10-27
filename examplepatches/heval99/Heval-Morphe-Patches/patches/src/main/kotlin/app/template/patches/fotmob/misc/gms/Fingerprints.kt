@@ -25,7 +25,9 @@ internal object NoCredentialExceptionConstructorFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
     returnType = "V",
     parameters = listOf("Ljava/lang/CharSequence;"),
-    strings = listOf("android.credentials.GetCredentialException.TYPE_NO_CREDENTIAL"),
+    strings = listOf(
+        string("android.credentials.GetCredentialException.TYPE_NO_CREDENTIAL", StringComparisonType.CONTAINS),
+    ),
 )
 
 private const val AUTO_SIGN_IN_DISMISSED_LOG = "User seemingly dismissed the automatic Google sign-in prompt"

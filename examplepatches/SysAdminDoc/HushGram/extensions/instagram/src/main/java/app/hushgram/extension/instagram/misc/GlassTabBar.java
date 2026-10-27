@@ -130,6 +130,8 @@ public final class GlassTabBar {
     static final String REEL_FOOTERS = "clips_footer_mask_container";
     /** The Search tab, a child of the bar, which the liquid look puts in a circle of its own (#65). */
     static final String SEARCH_TAB = "search_tab";
+    /** The Reels tab, a child of the bar. With it selected a reel keeps the pill's slot while the bar hides (#347). */
+    static final String REELS_TAB = "clips_tab";
     /**
      * Where Instagram puts a bottom sheet (comments, share, a post's menu) over the screens and the bar.
      * It has a child only while a sheet is up (#209).
@@ -200,6 +202,24 @@ public final class GlassTabBar {
     static int reelsAboveTheBar(View root, View bar, int id, int wanted, java.util.Map<View, Integer> given,
             @Nullable java.util.Collection<View> seen) {
         return liftReels(root, bar, id, wanted, given, seen, 0);
+    }
+
+    /**
+     * Whether the Reels viewers keep the pill's slot under them: while [bar] shows, sliding away or not
+     * (#170), or with the Reels tab ([reelsTab]) selected, where Instagram hides the bar for a paused reel
+     * and the viewer keeps one size (#221). A reel opened from a feed post has Instagram hide the bar
+     * over Home, and the slot kept there was a blank band under the reel (#347).
+     */
+    static boolean reelsKeepTheSlot(View bar, int reelsTab) {
+        if (bar.getVisibility() == View.VISIBLE) return true;
+        if (reelsTab == 0 || !(bar instanceof ViewGroup)) return false;
+        ViewGroup tabs = (ViewGroup) bar;
+        for (int i = 0; i < tabs.getChildCount(); i++) {
+            View tab = tabs.getChildAt(i);
+            // A Reels tab tucked out of the bar (Tab order) is still the tab Instagram shows when selected.
+            if (tab.getId() == reelsTab && tab.isSelected()) return true;
+        }
+        return false;
     }
 
     private static int liftReels(View view, View bar, int id, int wanted, java.util.Map<View, Integer> given,
@@ -1838,11 +1858,14 @@ public final class GlassTabBar {
          * the reel centred that much lower, with a wide black band over it (#280), and had the glass
          * drawing the reel's video into its blur (#222). The views are walked for viewers at most every
          * {@link #REELS_LOOK_MS}, and at once when the margin they want changes, so a viewer is never left
-         * a frame at a size Instagram's own layout just gave it.
+         * a frame at a size Instagram's own layout just gave it. Where Instagram hides the bar outside the
+         * Reels tab, as over a reel opened from a feed post, the viewers get Instagram's 0 back
+         * ({@link #reelsKeepTheSlot}, #347).
          */
         private void keepReelsAboveTheSlot(View holder, long now) {
             if (originalBarHeight <= 0) return;
-            int wanted = reelsMargin(barHeightPx(height, originalBarHeight, density) + lift);
+            int wanted = reelsKeepTheSlot(bar, id(holder.getContext(), REELS_TAB))
+                    ? reelsMargin(barHeightPx(height, originalBarHeight, density) + lift) : 0;
             if (wanted == reelsWanted && now - reelsLookedAt < REELS_LOOK_MS) return;
             reelsLookedAt = now;
             reelsWanted = wanted;

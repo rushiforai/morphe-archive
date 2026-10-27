@@ -631,3 +631,108 @@ ad-tech names (ironsource/applovin_max/appodeal) present in the bundle with no a
 unit IDs (dormant), GMA SDK bundled with AD_MANAGER_APP=true. NOT found: no security
 stack exfiltration (checks are local-only), no contact/SMS upload paths, no clipboard
 snooping, no accessibility/device-admin abuse. sqlcipher bundled (encrypted store).
+
+## 2026-10-26 — v0.5.4: PDB 2.135.1 retarget + simplification + Chat directly; MyDialog FAB/footer
+PDB (2.134.6 → 2.135.1, APKPure Pdb_2.135.1_APKPure.xapk, verified Play-signed:
+signer 1343aefb… + Google SourceStamp; base.apk extracted from the xapk):
+- BaseActivity → obfuscated ez0 (31 pdb.app activities extend it) — HomeBubblePatch
+  re-anchored; all other fingerprints are string-based and survived the R8 shift.
+- ALL 11 PDB patches apply on 2.135.1 (verify: pdbbuild output).
+- Soul rewind/history: gate = faf.W() (reads mockIsProUser pref first) — our Unlock
+  Pro patch + pref write cover it; the "missing undo" was just the stale 2.134.6
+  bundle not matching 2.135.1. No new patch needed. VERIFY on device.
+- Extras page REWRITTEN (PdbExtrasActivity 980→~200 lines): single page, six everyday
+  switches only; always-on list documented on-page; dev-screen row removed from
+  settings injection (FeatureMenuPatch DEV_ID dropped) and from SettingsEntryHook.
+- Bubble menu: "Pause Morphe" → "Chat directly" (PdbBubble.chatDirectly):
+  PdbDatabase.channelForUser() resolves user→channel via the app's IM room DB
+  (channel_members ⋈ channels; schema captured from e30/g30 CREATE TABLE strings),
+  opens pdb://chat/{type}_{id}; no channel yet → pdb://u/{id} profile fallback.
+  (Channel creation needs POST /api/v2/chats/create — deliberately not faked.)
+- Profile-ID toggle now shows PdbTools.restartDialog() ("takes effect after
+  restarting the app" + Restart now/Later) instead of a toast — bubble + Extras.
+  restartApp() = launcher intent CLEAR_TASK + killProcess.
+- decorateName(name, id, profile): badges via reflection on the profile object —
+  ✓ verified (manual/auto/faceVerified), ★ pro (proStatus.isPro), ◆ isMod;
+  wrapper now passes the implementor (IdsEverywherePatch 3-reg → same frame, extra arg).
+  Reflection degrades silently to id-only on obfuscation drift.
+- NOTE: 2.135.1 APKPure base.apk is arm64-only; x86_64 emulators crash in
+  MMKV dlopen (EM_AARCH64 vs EM_X86_64) — device testing only.
+MyDialog (0.5.4, verified live on the emulator):
+- NEW RemoveAiFabPatch (raw resource patch, Hermes same-length byte edits + SHA-1
+  trailer fix): fabItems→fabItem0 kills the server-driven AI FAB (pure JS, zero
+  native consumers); fabImage→fabImag0; footer "Device ID"→"ID ⚡5.4" (bump the
+  label text each release). App-version row untouched (values feed API bodies).
+- Verified on emulator: 0 fab nodes in dump; menu footer shows patch id next to
+  the device id (value redacted).
+Release: v0.5.4 published + GitHub asset verified (dexed, contains both new patches).
+
+## 2026-10-26 — v0.5.5: Soul history (local), honest "Mock Pro", like-hook register lesson
+- User confirmed: most pro features are SERVER gates; renamed "Unlock Pro" →
+  "Mock Pro (client-side)" everywhere (patch name/description, README, docs/pdb.md,
+  patches-bundle.json) with explicit "server-validated entitlements still refuse".
+- Soul rewind/history: gate faf.W() (mockIsProUser pref first) is ALREADY covered
+  by the pro patch — missing rewind on device = stale 2.134.6 bundle; on 2.135.1
+  verify the Rewind button on the Soul header.
+- The "20 soul limit" (likes beyond ~20 don't list) = the server's short feed
+  window; answers it with a LOCAL feature instead of fighting the server:
+  NEW "Soul history" patch: fingerprint = ordered string filters
+  [string("irlTotalLiked"), string("vote")] → the soul-feed like method
+  (lm6.m(Lu4b;Lejd;)V in 2.135.1); injects
+  invoke-static/range {p1 .. p1} → PdbUi.recordSoulLike(card).
+  PdbUi now keeps a capped-200 MMKV history ("morphe_soul_history") of every
+  decorated profile (decorateName → recordSoul("seen")) + like marks
+  (recordSoulLike reflects getId/name off the card's user field);
+  PdbUi.showSoulHistory(Activity) = dialog (tap → pdb://u/{id}, long-press → copy).
+  Bubble menu: Chat directly / Soul history / Copy my ID / Copy last viewed / Extras.
+  Extras page gained a "Power" section with the same entry.
+- REGISTER LESSON (cost 4 builds): the inline smali compiler SILENTLY DROPS the
+  dummy method (→ "Collection is empty") when a plain invoke-static references
+  pN mapped to a register > v15 (this method: .registers 31). Use
+  invoke-static/range {pN .. pN} whenever the target method's register count
+  exceeds ~18. Also: single-literal "vote" fingerprints are ambiguous —
+  w76.i (Compose lambda) also contains it; ordered two-literal filters fix it.
+- Verified: all 12 patches apply on 2.135.1; smali of the patched APK shows the
+  injected invoke-static/range at lm6.m entry; released v0.5.5 + GitHub asset
+  dex-verified.
+
+## 2026-10-26 (later) — 0.5.5 fix: native Soul history screen with per-entry Chat
+- User feedback: bubble "Chat directly" on the CURRENT profile is pointless (the
+  app already shows Chat there) — the value is chatting with PAST souls.
+- NEW SoulHistoryActivity (native screen, registered non-exported in the merged
+  manifest by FeatureMenuPatch alongside PdbExtrasActivity): rows = 🧡-mark +
+  name + #id + relative time; tap row → pdb://u/{id}; Chat button →
+  PdbTools.openChat(id) (channel_members ⋈ channels → pdb://chat/{type}_{id},
+  else profile fallback); long-press → copy id. Bubble "Chat directly" removed;
+  bubble + Extras "Soul history" now open the native screen.
+- Same-version redeploy per user: v0.5.5 release deleted + recreated with the
+  fixed asset (dex-verified on GitHub: SoulHistoryActivity + openChat present).
+- Commit ab73dfa pushed.
+
+## 2026-10-27 — 0.5.5 fix #2: Chat links, timestamps, native styling (device feedback)
+- Chat buttons dead: the app's router (u8c.R, decoded via --single-class jadx)
+  parses the chat deep link as pdb://chat/{channelType}:{channelId} — it splits
+  pathSegments[1] on ":" (the ==1-split branch opens /chat/massaging with an
+  EMPTY channelType → invisible no-op). Underscore was wrong. → colon format.
+- "0 mins ago" everywhere: decorateName fires on EVERY list bind (explore rows,
+  chat headers, recomposition) → same-second bursts of "seen" records. Now an
+  upsert per id: re-see within 30 min only refreshes position, not time; likes
+  always update and never decay back to seen. lastSeen window widened 4s→30s.
+- Bad UI: rebuilt the screen from the app's own resources — content_bg_r8 cards
+  (PdbUi.card), gray_01/03 + main palette text, white bold text on a main-colored
+  20dp pill for Chat, per-row tap/long-press unchanged. Empty state is a card.
+- Same-version redeploy (user's policy): v0.5.5 deleted+recreated; GitHub asset
+  dex-verified (SoulHistoryActivity present). Commit e164fc9.
+
+## 2026-10-27 (post) — release-asset trap recurred and is now understood fully
+- Manual `gh release create` after `tools/pdbbuild` shipped a DEX-LESS asset again:
+  pdbbuild runs generatePatchesList (→ `build` → re-jar) AFTER any buildAndroid,
+  silently stripping classes.dex. The 0.4.1 lesson generalizes: **the ONLY valid
+  final build step before publishing is `:patches:buildAndroid`, and the asset on
+  GitHub must be byte-verified (dex present + extension.mpe contains new classes)
+  before claiming the release.** pdbrelease --publish enforces this; manual
+  `gh release create` does not. Fixed by running buildAndroid last + verifying the
+  downloaded asset (classes.dex present; extension.mpe is a raw DEX — "dex\n035" —
+  not a zip; verify with `strings`, not unzip).
+- v0.5.5 deleted + recreated with the correct 1,108,448-byte asset; verified:
+  classes.dex present, extension.mpe contains SoulHistoryActivity (6 hits).

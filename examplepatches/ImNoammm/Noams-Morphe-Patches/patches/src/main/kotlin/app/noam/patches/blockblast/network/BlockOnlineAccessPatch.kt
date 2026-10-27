@@ -37,8 +37,9 @@ val blockOnlineAccessPatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_BLOCK_BLAST)
+    // The extension dex already rides with the loader (the patch guard); only the provider
+    // registration and the permission removal are this patch's own.
     dependsOn(blockOnlineAccessManifestPatch, modLoaderPatch)
-    extendWith("extensions/blockblast.mpe")
     // Build-time change; the Mod settings screen only reports it.
     execute { Mod.enable("offlineBuild") }
 }

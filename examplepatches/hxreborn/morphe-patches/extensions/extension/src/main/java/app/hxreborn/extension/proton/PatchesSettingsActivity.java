@@ -34,6 +34,7 @@ import app.hxreborn.extension.protonmail.SidebarEntries;
 import app.hxreborn.extension.protonmail.accountswipe.AccountAvatarSwipe;
 import app.hxreborn.extension.protonmail.accountswipe.AvatarSwitchStyleDialog;
 import app.hxreborn.extension.protonpass.LayoutComponents;
+import app.hxreborn.extension.protonpass.NavigationBarAutoHide;
 
 @SuppressLint("SetTextI18n")
 @SuppressWarnings("unused")
@@ -193,6 +194,16 @@ public final class PatchesSettingsActivity extends Activity {
             layoutRows
                 .add(layoutSwitchRow("Hide About", "Privacy policy and Terms of service.", LayoutComponents.ABOUT));
         }
+        if (NavigationBarAutoHide.isPatched()) {
+            layoutRows.add(switchRow(AppliedPatches.HIDE_NAVIGATION_BAR_ON_SCROLL,
+                    "Hides on scroll down and shows on scroll up.", NavigationBarAutoHide.isEnabled(),
+                    new CheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(boolean enabled) {
+                            NavigationBarAutoHide.setEnabled(enabled);
+                        }
+                    }));
+        }
         if (SidebarEntries.isPatched()) {
             layoutRows.add(layoutSwitchRow("Hide Subscription", "Plan and billing entry in the sidebar.",
                     SidebarEntries.SUBSCRIPTION));
@@ -224,9 +235,20 @@ public final class PatchesSettingsActivity extends Activity {
                         @Override
                         public void onCheckedChanged(boolean enabled) {
                             AmoledTheme.setEnabled(enabled);
+                            recreateContent();
                             confirmRestart();
                         }
                     }));
+            if (AmoledTheme.isEnabled()) {
+                appearanceRows.add(switchRow("Dim raised surfaces", "Darker bars, cards, buttons and sheets.",
+                        AmoledTheme.isDimRaisedSurfacesEnabled(), new CheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(boolean enabled) {
+                                AmoledTheme.setDimRaisedSurfacesEnabled(enabled);
+                                confirmRestart();
+                            }
+                        }));
+            }
         }
         if (MaterialSwitches.isPatched()) {
             appearanceRows.add(switchRow(AppliedPatches.MATERIAL_SWITCHES, "Check and close icons in switches.",

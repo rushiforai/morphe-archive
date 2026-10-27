@@ -32,6 +32,12 @@ package. Never infer it from the version name, a neighboring build or another ap
    portable tests.
 2. **Add, never widen.** Preserve every verified adaptation. Add a base or app
    with its own guarded layouts; do not replace or broaden an older one.
+   For every new or changed Steam Link patch, implement and validate exact base
+   `2.0.24/5002395` alongside the existing supported bases unless the user
+   explicitly excludes it. Compatibility metadata alone is not implementation.
+   If exact-base evidence is missing, report the blocker instead of silently
+   omitting this base or borrowing another build's offsets. Retired experiments
+   remain retired under rule 13.
 3. **Compatibility shape.** Use the primary `AppTarget` constructor so the
    `description` is retained. Builds that share a version name but differ by code
    stay in separate `Compatibility` objects and are passed together with

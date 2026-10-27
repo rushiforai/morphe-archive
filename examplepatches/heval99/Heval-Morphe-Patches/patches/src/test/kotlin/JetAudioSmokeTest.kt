@@ -29,12 +29,19 @@ class JetAudioSmokeTest {
             (method.parameterTypes.isEmpty() ||
                 method.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;"))
 
-    private fun callsGetterOf(cls: ClassDef, method: Method, getters: Set<String>): Boolean =
+    // Full identity (owner, name, parameters, return type), as in the patch.
+    private fun MethodReference.identity(): String =
+        "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
+
+    private fun callsAnyOf(method: Method, getters: Set<String>): Boolean =
         method.instructions().any { instruction ->
             val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-            ref != null && ref.definingClass == cls.type &&
-                "${ref.name}(${ref.parameterTypes.joinToString("")})" in getters
+            ref != null && ref.identity() in getters
         }
+
+    private fun List<ClassDef>.purchaseInfo(): ClassDef = singleOrNull { cls ->
+        cls.methods.any { method -> method.instructions().any { it.referencesString(PURCHASE_MARKER) } }
+    } ?: error("expected one purchase info class (marker '$PURCHASE_MARKER')")
 
     @Test
     fun `Enable Pro forces every leaf purchase getter`() {
@@ -54,23 +61,24 @@ class JetAudioSmokeTest {
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
 
-        val purchaseInfo = classes.firstOrNull { cls ->
-            cls.methods.any { method ->
-                method.implementation?.instructions?.any { it.referencesString(PURCHASE_MARKER) } == true
-            }
-        } ?: error("purchase info class (marker '$PURCHASE_MARKER') not found in emitted dexes")
+        // Classify the getters on the stock class, like the patch does before it rewrites them,
+        // so the patched output cannot hide a wrongly dropped or wrongly forced getter.
+        val stockInfo = patchedApkClasses(apk).purchaseInfo()
+        val stockGetters = stockInfo.methods.filter { isPurchaseGetter(it) }
+        val signatures = stockGetters.map { it.identity() }.toSet()
+        val (compound, leaves) = stockGetters.partition { callsAnyOf(it, signatures) }
+        check(leaves.isNotEmpty()) { "no leaf purchase getters found in ${stockInfo.type}" }
 
-        val getters = purchaseInfo.methods.filter { isPurchaseGetter(it) }
-        val signatures = getters.map { "${it.name}(${it.parameterTypes.joinToString("")})" }.toSet()
-        val leaves = getters.filterNot { callsGetterOf(purchaseInfo, it, signatures) }
-
-        check(leaves.isNotEmpty()) { "no leaf purchase getters found" }
+        val purchaseInfo = classes.purchaseInfo()
+        fun patched(stock: Method): Method = purchaseInfo.methods.single { it.identity() == stock.identity() }
         leaves.forEach { leaf ->
-            assertForcedBoolean(
-                leaf,
-                expected = true,
-                label = "${purchaseInfo.type}.${leaf.name}(${leaf.parameterTypes.joinToString("")})",
-            )
+            assertForcedBoolean(patched(leaf), expected = true, label = leaf.identity())
+        }
+        // The compound getters are left alone and still read the (now forced) leaves.
+        compound.forEach { getter ->
+            check(callsAnyOf(patched(getter), signatures)) {
+                "${getter.identity()} no longer calls a purchase getter: compound getters must stay unpatched"
+            }
         }
     }
 }

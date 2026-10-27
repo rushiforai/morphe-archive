@@ -10,7 +10,7 @@ import app.morphe.util.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.tiktok.misc.settings.configurableBytecodePatch as bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -39,6 +39,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val SETTINGS_EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/settings/TikTokActivityHook;"
+private const val SHOW_SETTINGS_ROW_METHOD = "$SETTINGS_EXTENSION_CLASS_DESCRIPTOR->showSettingsRow()Z"
 private const val OPEN_DEBUG_CELL_VM_DESCRIPTOR =
     "Lcom/ss/android/ugc/aweme/setting/ui/rvmpcompose/group/support/cells/OpenDebugCellVM;"
 private const val AD_WEB_MORE_ACTION_SERVICE_DESCRIPTOR =
@@ -58,7 +59,8 @@ private data class OpenDebugTargets(
  * Copies TikTok's sorted settings rows and moves its Open Debug singleton to index zero.
  *
  * TikTok 47.0.3 can already include that singleton in the support group. Removing it first avoids
- * duplicate Compose keys, which otherwise leave the later, natively sorted row on screen.
+ * duplicate Compose keys, which otherwise leave the later, natively sorted row on screen. With
+ * Hide the Hushfeed row on (#264) the row is only removed, so it shows nowhere in the list.
  */
 internal fun settingsRowMoveToFrontInstructions(
     copyRegister: Int,
@@ -73,8 +75,12 @@ internal fun settingsRowMoveToFrontInstructions(
         invoke-direct {v$copyRegister, v$valueRegister}, Ljava/util/ArrayList;-><init>(Ljava/util/Collection;)V
         sget-object v$valueRegister, ${openDebugField.definingClass}->OPEN_DEBUG:${openDebugField.type}
         invoke-virtual {v$copyRegister, v$valueRegister}, Ljava/util/ArrayList;->remove(Ljava/lang/Object;)Z
+        invoke-static {}, $SHOW_SETTINGS_ROW_METHOD
+        move-result v$indexRegister
+        if-eqz v$indexRegister, :hushfeed_row_hidden
         const/4 v$indexRegister, 0x0
         invoke-virtual {v$copyRegister, v$indexRegister, v$valueRegister}, Ljava/util/ArrayList;->add(ILjava/lang/Object;)V
+        :hushfeed_row_hidden
         move-object v$listRegister, v$copyRegister
     """
 
@@ -546,8 +552,13 @@ val settingsPatch = bytecodePatch(
                 addInstructions(
                     sectionHeaderSgetIndex + 2,
                     """
+                        invoke-static {}, $SHOW_SETTINGS_ROW_METHOD
+                        move-result v$itemRegister
+                        if-eqz v$itemRegister, :hushfeed_row_hidden
                         sget-object v$itemRegister, ${sectionHeaderField.definingClass}->OPEN_DEBUG:${sectionHeaderField.type}
                         invoke-virtual { v$listRegister, v$itemRegister }, $addReference
+                        :hushfeed_row_hidden
+                        nop
                     """,
                 )
             }

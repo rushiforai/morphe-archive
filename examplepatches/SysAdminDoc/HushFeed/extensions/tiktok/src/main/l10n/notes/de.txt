@@ -1,8 +1,27 @@
 ## Unreleased
 
+* **Einstellungen:** Ein neuer Schalter nimmt die Hushfeed-Zeile aus TikToks Einstellungen und Datenschutz. Danach öffnest du die Einstellungen, indem du Für dich gedrückt hältst (#264).
+* **Kommentare:** Kommentare in voller Höhe enden jetzt unter der Statusleiste statt Uhr und Akku zu verdecken, und sie öffnen auch beim ersten Video nach dem Start von TikTok in voller Höhe (#261).
+* **Feed:** Die untere Leiste des Haupt-Feeds bekommt eine schwebende Glaskapsel mit einer Linse, die über die Tabs gleitet, einer Wischgeste, optionalem Haptik-Feedback und neuen Einstellungen unter Oberfläche für Unschärfe, Glasdurchsichtigkeit, Kapselhöhe und Ecken (#259).
+* **Patchen:** Patches mit Einstellungen haben jetzt Morphe-Optionen für ihre Startwerte, damit ein Build deine Schalter schon eingeschaltet mitbringt. Danke an @XEGARE (#256).
+* **Einstellungen:** Kategorien klappen direkt unter ihrer Zeile in der Hauptliste auf und zu. Die Suche zeigt Bedienelemente in derselben Liste, und offene Kategorien bleiben nach Drehen oder Neustart offen.
+* **Einstellungen:** Große Karten auf der Startseite weichen einer kompakten Liste über die volle Breite. Die Schnelleinstellungen wurden entfernt.
+* **TikTok:** Hushfeed braucht jetzt Morphe Manager 2.2.0 oder neuer, am Computer morphe-desktop 1.19.1.
+* **Prüfungen:** Ein PineDrama-Kernablauf prüft Start, das Auf- und Zuklappen der Einstellungen an Ort und Stelle und Rückkehr. Die vollständige Prüfung bleibt offen.
+* **Prüfungen:** Jede LIVE-Vorschau- und Drama-Beschriftung, die die durchsichtige untere Leiste nutzt, wird gegen die unterstützte TikTok-APK geprüft.
+* **Feed:** Länderflaggen und Ländercodes bleiben neben Namen, die von rechts nach links geschrieben werden (#258).
+* **Feed:** Mit durchsichtiger unterer Leiste bleiben Name und "Zum Ansehen tippen"-Zeile von LIVE-Vorschauen und Mini-Dramen über den Tabs (#250).
+* **Raster:** Das Sortierfeld hat eine Berührungsfläche von mindestens 48 dp.
+* **Raster:** Das Sortierfeld wird ausgeblendet, solange sein Raster entfernt ist, und erscheint bei dessen Rückkehr wieder.
+* **Raster:** Wenn eine neue Sortierung nicht gespeichert werden kann, bleibt die bisherige Reihenfolge erhalten.
+* **Raster:** Bei Auswahl der ursprünglichen Reihenfolge bleibt das Sortiermenü des aktuellen Rasters erreichbar (#180).
+* **Kommentare:** Kommentare neben dem Video verwenden für Layout und Neuaufbau dieselbe Breite (#253).
+* **Posteingang:** Bei aktivierter Story-Priorität öffnet ein wiederverwendetes Chatbild beim ersten Tippen die Story des aktuell angezeigten Erstellers (#233).
+* **Playback:** Keep the source video paused when a comment link opens another page. Leaving the tap-to-start cover for another tab also keeps its feed paused (#257).
+* **Diagnose:** Benachrichtigungsberichte zählen die Schritte bei Registrierung und Anzeige, ohne Nachrichteninhalte aufzunehmen (#126, #222, #86).
 * **Bildschirmaufnahme:** TikTok bleibt ab Android 14 in der Auswahl der zuletzt verwendeten Apps für die Aufnahme verfügbar.
 * **Prüfungen:** Der Audit für den automatischen Videowechsel verfolgt TikToks Wiedergabe ohne einzelne Videos zu kennzeichnen. Nicht beendete Clips und nicht verfügbare Wiedergabedaten bleiben unentschieden.
-* **TikTok:** Halte einen Schalter in der Einstellungssuche gedrückt, um ihn auf seiner ursprünglichen Seite zu öffnen und hervorzuheben. Zurück behält Suche und Scrollposition bei (#248).
+* **TikTok:** Halte einen Schalter in der Einstellungssuche gedrückt, um sein Bedienelement in der Hauptliste anzuzeigen und hervorzuheben (#248).
 * **Diagnose:** Aufzeichnungen des ersten Bild-Callbacks behalten die Quellzuordnung und monotone Zeitstempel für Startprüfungen (#150).
 * **Build-Prüfungen:** Release-Prüfungen verlangen für jedes angegebene Paket passende APK- und native Prüfnachweise. Rundgänge prüfen den installierten Build und die Patch-Optionen.
 * **TikTok:** Recording recovery exports use bulk writes to avoid long waits when saving large files.

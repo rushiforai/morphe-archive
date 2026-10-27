@@ -1024,9 +1024,10 @@ Require-Match -Text $bugForm -Pattern "(?m)^\s*placeholder:\s*$([regex]::Escape(
 Require-Match -Text $bugForm -Pattern "(?m)^\s*placeholder:\s*Morphe Manager $([regex]::Escape($managerFloor))\s*$" `
     -Description 'bug report form Manager placeholder'
 # The file line: which APKMirror file the patches were checked on. Only when the catalog pins the
-# newest declared build to one version code, which is the one a reporter can compare with theirs.
+# newest declared build to a version code: the arm64 one, first in the list, which is the file a
+# reporter is most likely to compare with theirs. The other ABIs' builds are declared beside it (#346).
 $pinnedCodes = @($target.PackageVersionCodes[$targetVersion] | Where-Object { $_ })
-if ($pinnedCodes.Count -eq 1) {
+if ($pinnedCodes.Count -ge 1) {
     Require-Match -Text $bugForm -Pattern "(?m)^\s*placeholder:.*\bbuild $([regex]::Escape([string]$pinnedCodes[0]))\s*$" `
         -Description 'bug report form build placeholder'
 }

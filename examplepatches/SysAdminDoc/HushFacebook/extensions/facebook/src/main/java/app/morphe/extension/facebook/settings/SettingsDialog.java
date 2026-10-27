@@ -60,11 +60,12 @@ public final class SettingsDialog extends DialogFragment {
      * no id for the window to put its focus back on, so the screen asks for both itself.
      */
     static final String TYPING = "hushfacebook_search_typing";
+    static final String BUILD_DETAILS = "hushfacebook_build_details";
     /** Whether the keyboard is up over a view. Replaced in tests, where no keyboard draws. */
     static java.util.function.Predicate<View> keyboardUp = SettingsDialog::keyboardShowing;
 
     private TextView pageTitle;
-    private TextView pageContext;
+    Button pauseAction;
     private LinearLayout searchBox;
     private EditText search;
     private TextView results;
@@ -169,7 +170,7 @@ public final class SettingsDialog extends DialogFragment {
         bar.setOrientation(LinearLayout.HORIZONTAL);
         bar.setGravity(Gravity.CENTER_VERTICAL);
         // Start and end, not left and right: in a right-to-left language the bar is mirrored.
-        bar.setPaddingRelative(dp(8), dp(4), dp(20), dp(4));
+        bar.setPaddingRelative(dp(4), dp(4), dp(12), dp(4));
 
         android.widget.ImageButton back = new android.widget.ImageButton(getContext());
         android.graphics.drawable.Drawable arrow = SettingsIcons.icon(getContext(), SettingsIcons.BACK, foreground());
@@ -196,37 +197,39 @@ public final class SettingsDialog extends DialogFragment {
             dismissAllowingStateLoss();
         });
         bar.addView(back, new LinearLayout.LayoutParams(dp(48), dp(48)));
-        root.addView(bar);
-
-        LinearLayout heading = new LinearLayout(getContext());
-        heading.setOrientation(LinearLayout.VERTICAL);
-        heading.setPaddingRelative(dp(20), dp(8), dp(20), dp(8));
-        pageContext = new TextView(getContext());
-        pageContext.setText(L10n.t("Settings"));
-        pageContext.setAllCaps(true);
-        pageContext.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
-        pageContext.setTextColor((colors == null ? ScreenColors.black() : colors).heading);
-        pageContext.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        pageContext.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
-        pageContext.setLetterSpacing(0.08f);
-        pageContext.setPaddingRelative(0, 0, 0, dp(4));
-        pageContext.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        heading.addView(pageContext);
+        boolean largeText = getResources().getConfiguration().fontScale >= 1.5f;
+        LinearLayout labels = bar;
+        if (largeText) {
+            labels = new LinearLayout(getContext());
+            labels.setOrientation(LinearLayout.VERTICAL);
+            bar.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        }
 
         TextView title = new TextView(getContext());
         pageTitle = title;
         title.setText("Hushfacebook");
         title.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
-        title.setTextColor(foreground());
-        title.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+        // The bar, every page opened from it and search all show their name here, in Facebook's blues.
+        ShimmerTitle.wear(title, background());
+        title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         title.setIncludeFontPadding(false);
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 32);
-        title.setAutoSizeTextTypeUniformWithConfiguration(16, 32, 1, TypedValue.COMPLEX_UNIT_SP);
+        title.setPaddingRelative(dp(8), dp(8), dp(8), dp(8));
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
+        title.setAutoSizeTextTypeUniformWithConfiguration(12, 22, 1, TypedValue.COMPLEX_UNIT_SP);
         title.setMaxLines(1);
         title.setAccessibilityHeading(true);
-        heading.addView(title, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        root.addView(heading);
+        labels.addView(title, new LinearLayout.LayoutParams(largeText ? ViewGroup.LayoutParams.MATCH_PARENT : 0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, largeText ? 0 : 1));
+        pauseAction = new Button(getContext());
+        pauseAction.setTag("hushfacebook_toolbar_pause");
+        LinearLayout.LayoutParams actionPlace = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        actionPlace.gravity = Gravity.END;
+        labels.addView(pauseAction, actionPlace);
+        root.addView(bar);
+        View divider = new View(getContext());
+        divider.setBackgroundColor((colors == null ? ScreenColors.black() : colors).outline);
+        root.addView(divider, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1)));
 
         buildSearch(root);
 
@@ -252,10 +255,10 @@ public final class SettingsDialog extends DialogFragment {
         android.graphics.drawable.GradientDrawable surface = new android.graphics.drawable.GradientDrawable();
         surface.setColor(palette.card);
         surface.setCornerRadius(dp(8));
-        surface.setStroke(dp(2), ScreenColors.focusStroke(palette.heading, palette.outline));
+        surface.setStroke(dp(1), ScreenColors.focusStroke(palette.heading, palette.outline));
         searchBox.setBackground(surface);
         searchBox.setAddStatesFromChildren(true);
-        searchBox.setPaddingRelative(dp(16), 0, 0, 0);
+        searchBox.setPaddingRelative(dp(12), 0, 0, 0);
         ImageView icon = new ImageView(getContext());
         icon.setImageDrawable(SettingsIcons.icon(getContext(), SettingsIcons.SEARCH, palette.summary));
         icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -264,7 +267,7 @@ public final class SettingsDialog extends DialogFragment {
         search.setHint(L10n.t("Search settings"));
         search.setContentDescription(L10n.t("Search settings"));
         search.setSingleLine(true);
-        search.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        search.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         search.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH
                 | android.view.inputmethod.EditorInfo.IME_FLAG_NO_FULLSCREEN
@@ -272,7 +275,7 @@ public final class SettingsDialog extends DialogFragment {
         search.setBackground(null);
         search.setTextColor(palette.title);
         search.setHintTextColor(palette.summary);
-        search.setPaddingRelative(dp(12), dp(12), 0, dp(12));
+        search.setPaddingRelative(dp(10), dp(8), 0, dp(8));
         search.setMinimumHeight(dp(48));
         searchBox.addView(search, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         android.widget.ImageButton clear = new android.widget.ImageButton(getContext());
@@ -305,7 +308,7 @@ public final class SettingsDialog extends DialogFragment {
         });
         LinearLayout.LayoutParams layout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
-        layout.setMargins(dp(20), 0, dp(20), dp(16));
+        layout.setMargins(dp(12), dp(12), dp(12), dp(8));
         root.addView(searchBox, layout);
         // Typed letters alone tell a screen reader nothing about the list below, so the count is
         // spoken from a polite live region, once the typing has settled.
@@ -328,10 +331,9 @@ public final class SettingsDialog extends DialogFragment {
 
     void showPage(CharSequence title, boolean home, String query) {
         pageTitle.setText(title);
-        pageContext.setText(home ? L10n.t("Settings") : "Hushfacebook");
-        int headingSize = home || L10n.t("More settings").contentEquals(title) ? 32 : 28;
+        int headingSize = 22;
         if (home) {
-            pageTitle.setAutoSizeTextTypeUniformWithConfiguration(16, headingSize, 1, TypedValue.COMPLEX_UNIT_SP);
+            pageTitle.setAutoSizeTextTypeUniformWithConfiguration(12, headingSize, 1, TypedValue.COMPLEX_UNIT_SP);
         } else {
             pageTitle.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE);
             pageTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, headingSize);

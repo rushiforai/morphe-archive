@@ -6,6 +6,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -16,7 +17,7 @@ import java.io.File
 
 private const val PKG = "wsj.reader_sp"
 private const val ADS = "Lcom/dowjones/advertisement/"
-private const val SECTION_STRATEGY = "${ADS}util/SectionAdPlacementStrategy;"
+private const val SECTION_STRATEGY = "${ADS}SectionAdPlacementStrategyContract;"
 private const val VIDEO_ADS_HANDLER = "Lcom/dowjones/video/VideoPlayerAdsHandler;"
 private const val MEDIA_ITEM_BUILDER = "Landroidx/media3/common/MediaItem\$Builder;"
 private const val GMA = "Lcom/google/android/gms/ads/"
@@ -42,7 +43,7 @@ class WsjSmokeTest {
     }
 
     @Test
-    fun `Disable ads removes every ad slot, the SDK start and video pre-rolls`() {
+    fun `Disable ads removes every ad slot, the SDK start, video pre-rolls and Discover interstitials`() {
         val root = repoRoot()
         val apk = File(root, "apks/wsj/base.apk")
 
@@ -54,26 +55,27 @@ class WsjSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "6.43.0.33886",
+            version = "15.11.0.42207",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
         fun cls(type: String) = classes.firstOrNull { it.type == type } ?: error("$type not found in emitted dexes")
 
-        // 1. Every SectionAdPlacementStrategy implementation returns Collections.emptyList().
+        // 1. Every SectionAdPlacementStrategyContract implementation returns Collections.emptyList()
+        // from getAdSlotConfigList(cardCount, isSingleModule, placementModel).
         val sectionStrategies = classes.filter { SECTION_STRATEGY in it.interfaces }
         check(sectionStrategies.isNotEmpty()) { "no $SECTION_STRATEGY implementation" }
         for (strategy in sectionStrategies) {
-            val indices = strategy.methods.filter {
+            val slots = strategy.methods.filter {
                 it.implementation != null && it.returnType == "Ljava/util/List;" &&
-                    it.params() == listOf("I", "${ADS}data/model/SectionAdPlacementType;")
+                    it.params() == listOf("I", "Z", "${ADS}data/model/SectionAdPlacementModel;")
             }
-            check(indices.size == 1) { "${strategy.type}: expected one ad-indices method, found ${indices.size}" }
+            check(slots.size == 1) { "${strategy.type}: expected one ad-slots method, found ${slots.size}" }
             assertReturnsMethodCall(
-                indices.single(),
+                slots.single(),
                 targetClass = "Ljava/util/Collections;",
                 targetName = "emptyList",
-                label = "${strategy.type} ad indices",
+                label = "${strategy.type} ad slots",
             )
         }
 
@@ -215,5 +217,38 @@ class WsjSmokeTest {
                 "MediaItem.Builder.${setter.name}(${setter.params().joinToString()}) does not return this at once"
             )
         }
+
+        // 9. Live coverage: LiveCoveragePlacementStrategy.shouldInsertAdBeforeCard (its only (I)Z)
+        // answers false.
+        val liveCoverageGate = cls("${ADS}util/LiveCoveragePlacementStrategy;").methods.filter {
+            !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "Z" &&
+                it.params() == listOf("I") && it.implementation != null
+        }
+        check(liveCoverageGate.size == 1) { "expected one LiveCoveragePlacementStrategy (I)Z, found ${liveCoverageGate.size}" }
+        assertForcedBoolean(liveCoverageGate.single(), expected = false, label = "LiveCoveragePlacementStrategy.shouldInsertAdBeforeCard")
+
+        // 10. Discover feed: every store to DiscoverScreenViewModel's ad frequency (its only int
+        // field) stores 0 (const/4 vA, 0x0 right before the iput), so onFeedData adds no ad page.
+        val discover = cls("Lcom/dowjones/section/ui/DiscoverScreenViewModel;")
+        val frequency = discover.fields.single { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == "I" }
+        var frequencyStores = 0
+        for (method in discover.methods) {
+            val instructions = method.instructions()
+            instructions.forEachIndexed { index, instruction ->
+                val ref = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+                if (instruction.opcode != Opcode.IPUT || ref?.definingClass != discover.type || ref.name != frequency.name) {
+                    return@forEachIndexed
+                }
+                val register = (instruction as TwoRegisterInstruction).registerA
+                val previous = instructions.getOrNull(index - 1)
+                assertTrue(
+                    previous?.opcode == Opcode.CONST_4 && (previous as OneRegisterInstruction).registerA == register &&
+                        (previous as NarrowLiteralInstruction).narrowLiteral == 0,
+                    "DiscoverScreenViewModel.${method.name}: the ad frequency v$register is not set to 0 first; previous is ${previous?.opcode}"
+                )
+                frequencyStores++
+            }
+        }
+        assertTrue(frequencyStores >= 1, "nothing in DiscoverScreenViewModel stores the ad frequency")
     }
 }

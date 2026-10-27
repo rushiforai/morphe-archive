@@ -16,8 +16,9 @@ import java.util.regex.Pattern;
  *
  * <p>It carries only what a report needs: version names, the Messenger build it was patched from (which Spoof package
  * version hides from Android's version code), the phone's maker and model, Android's version, whether
- * changes are paused or in safe mode, and the English titles of the controls that are on. No account, serial number,
- * package name, file path or log line goes in. The text is for the maintainer, so it stays English whatever the
+ * changes are paused or in safe mode, the English titles of the controls that are on, and for a crash in the last three
+ * days the exception's class names and top code frames (never its message). No account, serial number, package name,
+ * file path or log line goes in. The text is for the maintainer, so it stays English whatever the
  * phone's language. The whole address is held to MAX_LENGTH characters: the list of controls is shortened first,
  * ending with how many were left out, so the questions always fit.
  */
@@ -36,7 +37,7 @@ final class ProblemReport {
     static final Pattern ORIGINAL =Pattern.compile("([0-9][0-9A-Za-z.]{0,31})\\|([1-9][0-9]{0,9})\\|([0-9A-Za-z]{1,16})");
 
     /**
-     * "584.0.0.49.98 (346814894, base mapping)": the build the patch started from, which Android's own version code
+     * "584.1.0.61.98 (346816935, base mapping)": the build the patch started from, which Android's own version code
      * stops saying once Spoof package version is in. "unknown" for a build patched before the patch wrote it down or a
      * value that doesn't parse, never a guess from the installed version.
      */
@@ -55,6 +56,7 @@ final class ProblemReport {
         final boolean paused, safeMode;
         final List<String> controlsOn;
         final String galleryOutcome;
+        final String lastCrash;
 
         Facts(String hushVersion, String messengerVersion, long messengerCode, String patchedFrom, String manufacturer,
                 String model, String androidRelease, int sdk, boolean paused, boolean safeMode, List<String> controlsOn) {
@@ -65,6 +67,13 @@ final class ProblemReport {
         Facts(String hushVersion, String messengerVersion, long messengerCode, String patchedFrom, String manufacturer,
                 String model, String androidRelease, int sdk, boolean paused, boolean safeMode, List<String> controlsOn,
                 String galleryOutcome) {
+            this(hushVersion, messengerVersion, messengerCode, patchedFrom, manufacturer, model, androidRelease, sdk,
+                paused, safeMode, controlsOn, galleryOutcome, "");
+        }
+
+        Facts(String hushVersion, String messengerVersion, long messengerCode, String patchedFrom, String manufacturer,
+                String model, String androidRelease, int sdk, boolean paused, boolean safeMode, List<String> controlsOn,
+                String galleryOutcome, String lastCrash) {
             this.hushVersion = clean(hushVersion);
             this.messengerVersion = clean(messengerVersion);
             this.messengerCode = messengerCode;
@@ -80,6 +89,8 @@ final class ProblemReport {
             this.controlsOn = Collections.unmodifiableList(titles);
             // Only fixed categories are included. Provider URIs and exception text never enter a report.
             this.galleryOutcome = galleryCategory(galleryOutcome);
+            // Class names and code frames only, as LastCrash saved them. Cleaned again so nothing else can ride along.
+            this.lastCrash = LastCrash.clean(lastCrash);
         }
     }
 
@@ -129,6 +140,7 @@ final class ProblemReport {
         if (facts.safeMode) body.append("Safe mode: on\n");
         if (facts.paused) body.append("Pause all changes: on\n");
         if (!"NOT_USED".equals(facts.galleryOutcome)) body.append("Gallery result: ").append(facts.galleryOutcome).append('\n');
+        if (!facts.lastCrash.isEmpty()) body.append("Last crash: ").append(facts.lastCrash).append('\n');
         return body.append(controlsLine(facts.controlsOn, shown)).append("\n\n")
             .append(WHAT_HAPPENED).append("\n\n\n").append(WHAT_EXPECTED).append("\n\n").toString();
     }
@@ -140,7 +152,8 @@ final class ProblemReport {
             if (url.length() <= MAX_LENGTH) return url;
         }
         // Not reached in practice: five free-text facts of 120 characters, nine each once encoded, come to 5,400, and the
-        // patched-from line is a short ASCII line patchedFrom built. Kept so odd facts can't push the questions out.
+        // patched-from line is a short ASCII line patchedFrom built. A crash line adds at most 1,200 more, and only when
+        // every free-text fact is at its longest does this run. Kept so odd facts can't push the questions out.
         return url(WHAT_HAPPENED + "\n\n\n" + WHAT_EXPECTED + "\n\n");
     }
 

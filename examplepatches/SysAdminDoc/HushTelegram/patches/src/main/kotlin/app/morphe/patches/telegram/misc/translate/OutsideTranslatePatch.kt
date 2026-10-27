@@ -63,6 +63,7 @@ private const val TL_TEXT = "Lorg/telegram/tgnet/TLRPC\$TL_textWithEntities;"
 private const val NOTIFICATIONS = "Lorg/telegram/messenger/NotificationCenter;"
 private const val ACCOUNT_CONFIG = "Lorg/telegram/messenger/UserConfig;"
 private const val LOCALES = "Lorg/telegram/messenger/LocaleController;"
+private const val MESSAGES = "Lorg/telegram/messenger/MessagesController;"
 private const val DRAWABLES = "Lorg/telegram/messenger/R\$drawable;"
 private const val LIST = "Ljava/util/ArrayList;"
 private const val OBJECT = "Ljava/lang/Object;"
@@ -182,6 +183,7 @@ internal fun BytecodePatchContext.resolveOutsideTranslate(): OutsideTranslateSit
     controlHook(OUTSIDE_TRANSLATE, "notifyDialog", listOf("J"), "V")
     controlHook(OUTSIDE_TRANSLATE, "translateIcon", listOf(), "I")
     controlHook(OUTSIDE_TRANSLATE, "appLocale", listOf(), "Ljava/util/Locale;")
+    controlHook(OUTSIDE_TRANSLATE, "dialogTarget", listOf(OBJECT), "Ljava/lang/String;")
     controlHook(OUTSIDE_TRANSLATE, "addHeaderItem", listOf(OBJECT, "I", "I", "Ljava/lang/String;"), OBJECT)
     controlHook(OUTSIDE_TRANSLATE, "setHeaderText", listOf(OBJECT, "Ljava/lang/String;"), "V")
     controlHook(OUTSIDE_TRANSLATE, "chatOf", listOf(OBJECT), OBJECT)
@@ -330,7 +332,8 @@ private fun BytecodePatchContext.requireTranslateHostMembers() {
         "getId()I", "getDialogId()J", "applyNewText(Ljava/lang/CharSequence;)V", "generateCaption()V")
     controlMembers(TL_MESSAGE, "message:Ljava/lang/String;", "entities:$LIST", "translatedText:$TL_TEXT", "translatedToLanguage:Ljava/lang/String;")
     controlMembers(TL_TEXT, "text:Ljava/lang/String;", "entities:$LIST")
-    controlMembers(TRANSLATE_CONTROLLER, "static isTranslatable($MESSAGE_OBJECT)Z")
+    controlMembers(TRANSLATE_CONTROLLER, "static isTranslatable($MESSAGE_OBJECT)Z", "getDialogTranslateTo(J)Ljava/lang/String;")
+    controlMembers(MESSAGES, "static getInstance(I)$MESSAGES", "getTranslateController()$TRANSLATE_CONTROLLER")
     controlMembers(NOTIFICATIONS, "static getInstance(I)$NOTIFICATIONS", "postNotificationName(I[Ljava/lang/Object;)V",
         "static messageTranslated:I", "static dialogTranslate:I")
     controlMembers(ACCOUNT_CONFIG, "static selectedAccount:I", "static getInstance(I)$ACCOUNT_CONFIG", "getClientUserId()J")
@@ -442,6 +445,20 @@ internal fun BytecodePatchContext.writeOutsideTranslateStubs(site: OutsideTransl
         invoke-static {}, $LOCALES->getInstance()$LOCALES
         move-result-object v0
         invoke-virtual {v0}, $LOCALES->getCurrentLocale()Ljava/util/Locale;
+        move-result-object v0
+        return-object v0
+    """)
+    // The language Telegram's own translate bar shows for the message's chat: its pick there, else the last one, else the app's.
+    writeStub(OUTSIDE_TRANSLATE, "dialogTarget", 4, """
+        check-cast p0, $MESSAGE_OBJECT
+        iget v0, p0, $MESSAGE_OBJECT->currentAccount:I
+        invoke-static {v0}, $MESSAGES->getInstance(I)$MESSAGES
+        move-result-object v0
+        invoke-virtual {v0}, $MESSAGES->getTranslateController()$TRANSLATE_CONTROLLER
+        move-result-object v0
+        invoke-virtual {p0}, $MESSAGE_OBJECT->getDialogId()J
+        move-result-wide v1
+        invoke-virtual {v0, v1, v2}, $TRANSLATE_CONTROLLER->getDialogTranslateTo(J)Ljava/lang/String;
         move-result-object v0
         return-object v0
     """)

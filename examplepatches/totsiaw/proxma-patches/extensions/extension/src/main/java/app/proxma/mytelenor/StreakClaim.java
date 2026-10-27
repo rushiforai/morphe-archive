@@ -1,18 +1,31 @@
 package app.proxma.mytelenor;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.Build;
 import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 public final class StreakClaim {
 
     private static final String TAG = "PROXMA_MT";
+    private static final String PREFS = "proxma_mytelenor";
     private static final int TIMEOUT_MS = 15000;
+    // Generous: a read timeout after the server already acted is the worst case (reward
+    // processed, response lost), and slow networks hit it at 15 s.
+    private static final int READ_TIMEOUT_MS = 30000;
+    private static final long[] NET_RETRY_DELAYS_MS = {3_000L, 8_000L};
+
+    // Opening the app refreshes the session and queues a run, so these need no retry.
+    static final String NOT_LOGGED_IN = "not logged in, open the app";
+    static final String LOGIN_EXPIRED = "login expired, open the app";
 
     static String sResult = "n/a";
 
@@ -39,43 +52,56 @@ public final class StreakClaim {
             return true;
         }
 
-        String msisdn = AccountScope.msisdn(context);
+        String msisdn = resolveMsisdn(context);
         if (msisdn == null || msisdn.isEmpty()) {
             Log.i(TAG, "STREAK_SKIP no-msisdn");
             sResult = "no msisdn";
             return true;
         }
-        AccountScope.saveMsisdn(context, msisdn);
+        if (!loggedIn(context)) {
+            Log.i(TAG, "STREAK_SKIP no-token");
+            sResult = NOT_LOGGED_IN;
+            return true;
+        }
 
-        // Step 1: Get streak info via native URL getter
-        String streakInfoUrl = resolveUrl("getDailyRewardList",
-            "api/streak/info/" + msisdn + "/v2", msisdn);
+        // Step 1: Get streak info
+        String streakInfoUrl = resolveUrl("getDailyRewardList", "api/streak/info/" + msisdn + "/v2", msisdn);
         Log.i(TAG, "STREAK_INFO_START url=" + truncate(streakInfoUrl));
-        HttpResult infoResult = httpGet(context, streakInfoUrl, msisdn);
+        HttpResult infoResult = withNetRetry("streak-info", () -> httpGet(context, streakInfoUrl, msisdn));
+        if (authFailed(infoResult)) {
+            Log.i(TAG, "STREAK_AUTH " + infoResult.code + " " + truncate(infoResult.body));
+            sResult = LOGIN_EXPIRED;
+            return true;
+        }
+        // A body-level error here doesn't stop us: the claim response is authoritative.
         if (infoResult.code < 200 || infoResult.code >= 300) {
             Log.i(TAG, "STREAK_INFO_FAIL " + infoResult.code + " " + truncate(infoResult.body));
             sResult = "info fail " + infoResult.code;
             return false;
         }
-
         Log.i(TAG, "STREAK_INFO " + truncate(infoResult.body));
 
-        // Step 2: Claim streak via native URL getter
-        String claimUrl = resolveUrl("getActivateStreakOffer", "api/streak/claim");
+        // Step 2: Claim streak — body mirrors PostDailyRewardDTO: {"msisdn":"03xxx"}
+        String claimUrl = resolveUrl("getClaimStreak", "api/streak/claim");
         String body = "{\"msisdn\":\"" + msisdn + "\"}";
         Log.i(TAG, "STREAK_CLAIM_START");
-        HttpResult claimResult = httpPost(context, claimUrl, body, msisdn);
+        HttpResult claimResult = withNetRetry("streak-claim", () -> httpPost(context, claimUrl, body, msisdn));
 
-        if (claimResult.code >= 200 && claimResult.code < 300) {
+        if (succeeded(claimResult)) {
             AutoClaim.latch(context, "streak");
             Log.i(TAG, "STREAK_CLAIMED " + claimResult.code + " " + truncate(claimResult.body));
             sResult = "claimed";
             return true;
         }
+        if (authFailed(claimResult)) {
+            Log.i(TAG, "STREAK_AUTH " + claimResult.code + " " + truncate(claimResult.body));
+            sResult = LOGIN_EXPIRED;
+            return true;
+        }
 
-        // Already claimed or other terminal states
-        if (claimResult.code == 409 || claimResult.code == 400) {
-            String bodyLower = claimResult.body != null ? claimResult.body.toLowerCase() : "";
+        int status = bodyStatus(claimResult);
+        if (status == 409 || status == 400 || claimResult.code == 409 || claimResult.code == 400) {
+            String bodyLower = bodyLower(claimResult);
             if (bodyLower.contains("already") || bodyLower.contains("claimed")
                 || bodyLower.contains("not eligible") || bodyLower.contains("not available")) {
                 AutoClaim.latch(context, "streak");
@@ -90,7 +116,73 @@ public final class StreakClaim {
         return false;
     }
 
-    // --- HTTP with full header pipeline ---
+    // --- MSISDN resolution: mirrors ConnectUserInfo.d().e() with persistence ---
+
+    static String resolveMsisdn(Context context) {
+        // Primary: ConnectUserInfo singleton (warm start)
+        try {
+            Class<?> cuiClass = Class.forName("com.telenor.pakistan.mytelenor.models.ConnectSDKData.ConnectUserInfo");
+            // ConnectUserInfo.d() returns the singleton (field 'l' in smali, f28409l in JADX)
+            Object singleton = cuiClass.getMethod("d").invoke(null);
+            if (singleton != null) {
+                // ConnectUserInfo.e() returns the Msisdn field
+                String ms = (String) cuiClass.getMethod("e").invoke(singleton);
+                if (ms != null && !ms.isEmpty()) {
+                    persistMsisdn(context, ms);
+                    return ms;
+                }
+            }
+        } catch (Throwable t) {
+            Log.i(TAG, "MSISDN_CUI_ERR " + t.getClass().getSimpleName());
+        }
+
+        // Fallback: app's SharedPreferences
+        try {
+            SharedPreferences prefs = context.getSharedPreferences(
+                context.getPackageName(), 0);
+            String ms = prefs.getString("msisdn", null);
+            if (ms != null && !ms.isEmpty()) {
+                persistMsisdn(context, ms);
+                return ms;
+            }
+            ms = prefs.getString("login_msisdn", null);
+            if (ms != null && !ms.isEmpty()) {
+                persistMsisdn(context, ms);
+                return ms;
+            }
+        } catch (Throwable t) {
+            Log.i(TAG, "MSISDN_PREFS_ERR " + t.getClass().getSimpleName());
+        }
+
+        // Last resort: our own persisted value
+        return storedMsisdn(context);
+    }
+
+    private static void persistMsisdn(Context context, String msisdn) {
+        // Persist to both our key AND AccountScope's keyed store so latch checks work
+        AccountScope.saveMsisdn(context, msisdn);
+        try {
+            context.getSharedPreferences(PREFS, 0).edit()
+                .putString("proxma_msisdn", msisdn).apply();
+        } catch (Throwable ignored) {}
+    }
+
+    private static String storedMsisdn(Context context) {
+        // Check AccountScope first (keyed by hash), then our flat key
+        String fromAS = AccountScope.msisdn(context);
+        if (fromAS != null && !fromAS.isEmpty()) return fromAS;
+        try {
+            String ms = context.getSharedPreferences(PREFS, 0)
+                .getString("proxma_msisdn", null);
+            if (ms != null && !ms.isEmpty()) {
+                Log.i(TAG, "MSISDN_COLD_START using stored");
+                return ms;
+            }
+        } catch (Throwable ignored) {}
+        return null;
+    }
+
+    // --- HTTP with full header pipeline mirroring x40.C23362b interceptor ---
 
     static final class HttpResult {
         final int code;
@@ -104,10 +196,30 @@ public final class StreakClaim {
             conn.setRequestMethod("GET");
             addHeaders(conn, context, null, msisdn);
             conn.setConnectTimeout(TIMEOUT_MS);
-            conn.setReadTimeout(TIMEOUT_MS);
+            conn.setReadTimeout(READ_TIMEOUT_MS);
             return readResponse(conn);
         } finally {
             conn.disconnect();
+        }
+    }
+
+    interface Request {
+        HttpResult send() throws Exception;
+    }
+
+    /**
+     * Retries connection-level failures (reset, timeout, DNS) a couple of times within the run.
+     * Callers must tolerate a duplicate: the failed attempt may have reached the server.
+     */
+    static HttpResult withNetRetry(String what, Request request) throws Exception {
+        for (int i = 0; ; i++) {
+            try {
+                return request.send();
+            } catch (java.io.IOException e) {
+                Log.i(TAG, "NET_ERR " + what + " try=" + i + " " + e.getClass().getSimpleName());
+                if (i >= NET_RETRY_DELAYS_MS.length) throw e;
+                Thread.sleep(NET_RETRY_DELAYS_MS[i]);
+            }
         }
     }
 
@@ -117,7 +229,7 @@ public final class StreakClaim {
             conn.setRequestMethod("POST");
             addHeaders(conn, context, body, msisdn);
             conn.setConnectTimeout(TIMEOUT_MS);
-            conn.setReadTimeout(TIMEOUT_MS);
+            conn.setReadTimeout(READ_TIMEOUT_MS);
             conn.setDoOutput(true);
             OutputStream out = conn.getOutputStream();
             out.write(body.getBytes("UTF-8"));
@@ -143,123 +255,210 @@ public final class StreakClaim {
         return new HttpResult(code, text.toString());
     }
 
-    private static void addHeaders(HttpURLConnection conn, Context context, String body, String msisdn) {
-        // Static headers
+    /** {make, model} from the app's own header builder (g50.b.b() → getters c/d), or null. */
+    private static String[] appDevice(Context context) {
+        try {
+            Class<?> cls = Class.forName("g50.b");
+            Object builder = cls.getConstructor(Context.class).newInstance(context);
+            Object holder = cls.getMethod("b").invoke(builder);
+            String make = invoke(holder, "c");
+            String model = invoke(holder, "d");
+            if (make != null && model != null) return new String[] {make, model};
+        } catch (Throwable t) {
+            Log.i(TAG, "HDR_DEVICE_ERR " + t.getClass().getSimpleName());
+        }
+        return null;
+    }
+
+    static void addHeaders(HttpURLConnection conn, Context context, String body, String msisdn) {
+        // 1. Static headers — mirrors m79993f()
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("Accept", "application/json");
         conn.setRequestProperty("X-request-os", "Android");
         conn.setRequestProperty("X-app-version", "4.2.63");
         conn.setRequestProperty("X-app-build-version", "4.2.63");
-        conn.setRequestProperty("X-os-version", android.os.Build.VERSION.RELEASE);
+        conn.setRequestProperty("X-os-version", Build.VERSION.RELEASE);
         conn.setRequestProperty("X-request-channel", "DCE-APP-ANDROID");
         conn.setRequestProperty("X-app-language", "EN");
 
-        // Dynamic headers from app singletons
+        // 2. Dynamic headers from NetworkHeader singleton — mirrors m79994b()
+        SharedPreferences sp = context.getSharedPreferences(PREFS, 0);
+        String pricePlan = "";
+        String segment = "";
+        String segType = "";
+        String pkgPlan = "";
+        String planType = "";
+        String customerCode = "";
+
         try {
-            // NetworkHeader singleton
+            // NetworkHeader.c() returns singleton (never null — creates new if absent)
             Class<?> nhClass = Class.forName("com.telenor.pakistan.mytelenor.BaseApp.NetworkHeader");
             Object nh = nhClass.getMethod("c").invoke(null);
             if (nh != null) {
-                setIfNonEmpty(conn, "X-user-price-plan", invoke(nh, "g"));
-                setIfNonEmpty(conn, "X-user-segment", invoke(nh, "h"));
-                setIfNonEmpty(conn, "x-user-segment-type", invoke(nh, "i"));
-                setIfNonEmpty(conn, "x-user-package-plan", invoke(nh, "f"));
-                setIfNonEmpty(conn, "x-user-plan-type", invoke(nh, "e"));
+                // Verified mapping (smali field → getter → interceptor usage):
+                // g() → field a → pricePlan (X-user-price-plan)
+                // h() → field b → segment (X-user-segment)
+                // i() → field l → segmentType (x-user-segment-type; 4.2.63 has no j(), and the
+                //        quiz endpoints reject an empty value with 412)
+                // e() → field m → packagePlan (x-user-package-plan + signature 3rd arg)
+                // f() → field n → planType (x-user-plan-type)
+                // b() → field o → customerCode (signature 2nd arg)
+                String pp = invoke(nh, "g");
+                String seg = invoke(nh, "h");
+                String st = invoke(nh, "i");
+                String pkp = invoke(nh, "e");
+                String pt = invoke(nh, "f");
+                String cc = invoke(nh, "b");
+
+                SharedPreferences.Editor ed = sp.edit();
+                if (pp != null && !pp.isEmpty()) { ed.putString("nh_pp", pp); pricePlan = pp; }
+                if (seg != null && !seg.isEmpty()) { ed.putString("nh_seg", seg); segment = seg; }
+                if (st != null && !st.isEmpty()) { ed.putString("nh_segt", st); segType = st; }
+                if (pkp != null && !pkp.isEmpty()) { ed.putString("nh_pkgp", pkp); pkgPlan = pkp; }
+                if (pt != null && !pt.isEmpty()) { ed.putString("nh_plt", pt); planType = pt; }
+                if (cc != null && !cc.isEmpty()) { ed.putString("nh_cc", cc); customerCode = cc; }
+                ed.apply();
+
+                // Fill blanks from persisted
+                if (pricePlan.isEmpty()) pricePlan = sp.getString("nh_pp", "");
+                if (segment.isEmpty()) segment = sp.getString("nh_seg", "");
+                if (segType.isEmpty()) segType = sp.getString("nh_segt", "");
+                if (planType.isEmpty()) planType = sp.getString("nh_plt", "");
+                if (pkgPlan.isEmpty()) pkgPlan = sp.getString("nh_pkgp", "");
+                if (customerCode.isEmpty()) customerCode = sp.getString("nh_cc", "");
             }
         } catch (Throwable t) {
             Log.i(TAG, "HDR_NH_ERR " + t.getClass().getSimpleName());
+            // Cold-start fallback
+            pricePlan = sp.getString("nh_pp", "");
+            segment = sp.getString("nh_seg", "");
+            segType = sp.getString("nh_segt", "");
+            planType = sp.getString("nh_plt", "");
+            pkgPlan = sp.getString("nh_pkgp", "");
+            customerCode = sp.getString("nh_cc", "");
         }
 
-        // Device info
-        conn.setRequestProperty("X-device-make", android.os.Build.MANUFACTURER);
-        conn.setRequestProperty("X-device-model", android.os.Build.MODEL);
+        setAlways(conn, "X-user-price-plan", pricePlan);
+        setAlways(conn, "X-user-segment", segment);
+        setAlways(conn, "x-user-segment-type", segType);
+        setAlways(conn, "x-user-package-plan", pkgPlan);
+        setAlways(conn, "x-user-plan-type", planType);
 
-        // Screen resolution — best-effort from the app's own utility
+        // 3. Device info, normalized the way the app's interceptor (g50.b) does it
+        String[] device = appDevice(context);
+        conn.setRequestProperty("X-device-make", device != null ? device[0] : Build.MANUFACTURER);
+        conn.setRequestProperty("X-device-model", device != null ? device[1] : Build.MODEL);
+
         try {
             Class<?> p0Class = Class.forName("com.telenor.pakistan.mytelenor.Utils.p0");
-            String resolution = (String) p0Class.getMethod("P", Context.class).invoke(null, context);
+            String resolution = (String) p0Class.getMethod("P", android.content.Context.class).invoke(null, context);
             if (resolution != null && !resolution.isEmpty()) {
                 conn.setRequestProperty("X-screen-resolution", resolution);
             }
         } catch (Throwable ignored) {}
 
-        // Device ID
+        // Device ID — Utils.v.f() with persistence
+        String deviceId = "";
         try {
             Class<?> vClass = Class.forName("com.telenor.pakistan.mytelenor.Utils.v");
-            String deviceId = (String) vClass.getMethod("f").invoke(null);
-            if (deviceId != null && !deviceId.isEmpty()) {
-                conn.setRequestProperty("X-device-id", deviceId);
-            }
-        } catch (Throwable t) {
-            Log.i(TAG, "HDR_DEVID_ERR " + t.getClass().getSimpleName());
+            deviceId = (String) vClass.getMethod("f").invoke(null);
+        } catch (Throwable ignored) {}
+        if (deviceId != null && !deviceId.isEmpty()) {
+            sp.edit().putString("device_id", deviceId).apply();
+        } else {
+            deviceId = sp.getString("device_id", "");
         }
+        setIfNonEmpty(conn, "X-device-id", deviceId);
 
-        // Xenon tokens — mirror the app's dedupe: when v1 == v2, only send V2
+        // 4. Xenon tokens — Utils.v.h()/i() with persistence; skip v1 when equal to v2
+        String xenon = null;
+        String xenonV2 = null;
         try {
             Class<?> vClass = Class.forName("com.telenor.pakistan.mytelenor.Utils.v");
-            String xenon = (String) vClass.getMethod("h").invoke(null);
-            String xenonV2 = (String) vClass.getMethod("i").invoke(null);
-            boolean same = (xenon != null && xenon.equals(xenonV2));
-            if (!same && xenon != null && !xenon.isEmpty()) {
-                conn.setRequestProperty("X-XENON-TOKEN", xenon);
-            }
-            if (xenonV2 != null && !xenonV2.isEmpty()) {
-                conn.setRequestProperty("X-XENON-TOKEN-V2", xenonV2);
-            }
-        } catch (Throwable t) {
-            Log.i(TAG, "HDR_XENON_ERR " + t.getClass().getSimpleName());
+            xenon = (String) vClass.getMethod("h").invoke(null);
+            xenonV2 = (String) vClass.getMethod("i").invoke(null);
+        } catch (Throwable ignored) {}
+        if (xenon != null && !xenon.isEmpty()) {
+            sp.edit().putString("xenon", xenon)
+                .putString("xenon_v2", xenonV2 != null ? xenonV2 : "").apply();
+        } else {
+            xenon = sp.getString("xenon", null);
+            xenonV2 = sp.getString("xenon_v2", null);
+        }
+        boolean same = (xenon != null && xenon.equals(xenonV2));
+        if (!same && xenon != null && !xenon.isEmpty()) {
+            conn.setRequestProperty("X-XENON-TOKEN", xenon);
+        }
+        if (xenonV2 != null && !xenonV2.isEmpty()) {
+            conn.setRequestProperty("X-XENON-TOKEN-V2", xenonV2);
         }
 
-        // Signature (NdkHeader.d(payload, customerCode, packagePlan))
+        // 5. Signature — NdkHeader.d(body, customerCode, packagePlan)
+        // Real smali: field 'a' on NdkHeader (static final singleton)
+        // d(String, String, String) -> SHA256(payload + customerCode + packagePlan + headerKey)
+        // The interceptor always sends signature (f81246d = true); body is null for GET
         try {
-            String customerCode = "";
-            String packagePlan = "";
-            try {
-                Class<?> nhClass = Class.forName("com.telenor.pakistan.mytelenor.BaseApp.NetworkHeader");
-                Object nh = nhClass.getMethod("c").invoke(null);
-                if (nh != null) {
-                    String cc = invoke(nh, "b");
-                    if (cc != null && !cc.isEmpty()) customerCode = cc;
-                    String pp = invoke(nh, "f");
-                    if (pp != null && !pp.isEmpty()) packagePlan = pp;
-                }
-            } catch (Throwable ignored) {}
-            // Persist for cold-start (WorkManager without live singletons)
-            android.content.SharedPreferences sp = context.getSharedPreferences("proxma_mytelenor", 0);
-            if (!customerCode.isEmpty()) {
-                sp.edit().putString("proxma_cc", customerCode).putString("proxma_pp", packagePlan).apply();
-            } else {
-                customerCode = sp.getString("proxma_cc", "");
-                packagePlan = sp.getString("proxma_pp", "");
-            }
-
-            Class<?> ndkClass = Class.forName("com.telenor.pakistan.mytelenor.newstructure.utils.NdkHeader");
-            // The actual class is obfuscated to 'l' but JADX maps NdkHeader
-            // Try the singleton approach: NdkHeader (aka l) has f28661a static instance
-            Object ndkInstance = null;
-            try {
-                ndkInstance = ndkClass.getField("f28661a").get(null);
-            } catch (Throwable t2) {
-                // Try alternate: class 'l' in newstructure.utils
-                try {
-                    Class<?> lClass = Class.forName("com.telenor.pakistan.mytelenor.newstructure.utils.l");
-                    ndkInstance = lClass.getField("f28661a").get(null);
-                    ndkClass = lClass;
-                } catch (Throwable t3) {
-                    Log.i(TAG, "NDK_SINGLETON_ERR " + t3.getClass().getSimpleName());
-                }
-            }
-
+            Object ndkInstance = getNdkSingleton();
             if (ndkInstance != null) {
-                String sig = (String) ndkClass.getMethod("d", String.class, String.class, String.class)
-                    .invoke(ndkInstance, body != null ? body : "", customerCode, packagePlan);
+                // For GET requests, interceptor passes null body. NdkHeader.d() concatenates
+                // null as the literal string "null" (Kotlin null.toString())
+                String sigBody = body;
+                if (sigBody == null) sigBody = "null";
+                String sig = (String) ndkInstance.getClass()
+                    .getMethod("d", String.class, String.class, String.class)
+                    .invoke(ndkInstance, sigBody, customerCode, pkgPlan);
                 if (sig != null && !sig.isEmpty()) {
                     conn.setRequestProperty("signature", sig);
+                    Log.i(TAG, "SIG_OK len=" + sig.length());
+                } else {
+                    Log.i(TAG, "SIG_SKIP empty");
                 }
+            } else {
+                Log.i(TAG, "SIG_SKIP no-instance");
             }
         } catch (Throwable t) {
-            Log.i(TAG, "HDR_SIG_ERR " + t.getClass().getSimpleName());
+            Log.i(TAG, "SIG_ERR " + t.getClass().getSimpleName() + " " + t.getMessage());
         }
+    }
+
+    // The app's interceptor adds these even when empty; the quiz API rejects a request missing them.
+    private static void setAlways(HttpURLConnection conn, String header, String value) {
+        conn.setRequestProperty(header, value == null ? "" : value);
+    }
+
+    /** The gateway wraps failures in HTTP 200; the real status is the body's statusCode. */
+    static int bodyStatus(HttpResult r) {
+        try {
+            String code = new org.json.JSONObject(r.body).optString("statusCode", "");
+            if (!code.isEmpty()) return Integer.parseInt(code.trim());
+        } catch (Throwable ignored) {}
+        return r.code;
+    }
+
+    static boolean succeeded(HttpResult r) {
+        int body = bodyStatus(r);
+        return r.code >= 200 && r.code < 300 && body >= 200 && body < 300;
+    }
+
+    static boolean authFailed(HttpResult r) {
+        int body = bodyStatus(r);
+        return r.code == 401 || r.code == 403 || body == 401 || body == 403;
+    }
+
+    /** Without a xenon token (live or cached from a warm run) every call fails. */
+    static boolean loggedIn(Context context) {
+        try {
+            Class<?> vClass = Class.forName("com.telenor.pakistan.mytelenor.Utils.v");
+            String live = (String) vClass.getMethod("i").invoke(null);
+            if (live == null || live.isEmpty()) live = (String) vClass.getMethod("h").invoke(null);
+            if (live != null && !live.isEmpty()) return true;
+        } catch (Throwable ignored) {}
+        SharedPreferences sp = context.getSharedPreferences(PREFS, 0);
+        return !sp.getString("xenon_v2", "").isEmpty() || !sp.getString("xenon", "").isEmpty();
+    }
+
+    static String bodyLower(HttpResult r) {
+        return r.body != null ? r.body.toLowerCase() : "";
     }
 
     private static void setIfNonEmpty(HttpURLConnection conn, String header, String value) {
@@ -277,17 +476,45 @@ public final class StreakClaim {
         }
     }
 
-    static String getBaseUrl() {
-        Object endpoints = getEndpointsSingleton();
-        if (endpoints != null) {
+    // --- NdkHeader singleton resolution ---
+    // Real smali field: public static final a:Lcom/.../NdkHeader;
+    // It's set in <clinit>, always present once the class is loaded.
+    // libmytelenor.so is loaded in DaggerApplication.onCreate() so it's available
+    // even in WorkManager cold starts (same process).
+
+    private static Object sNdk;
+    private static boolean sNdkResolved;
+
+    private static Object getNdkSingleton() {
+        if (sNdkResolved) return sNdk;
+        sNdkResolved = true;
+        try {
+            Class<?> ndkClass = Class.forName("com.telenor.pakistan.mytelenor.newstructure.utils.NdkHeader");
+            // Real field name is "a" (confirmed in smali)
+            sNdk = ndkClass.getField("a").get(null);
+        } catch (Throwable t) {
+            Log.i(TAG, "NDK_FIELD_ERR " + t.getClass().getSimpleName());
+            // Fallback: scan static fields
             try {
-                return (String) endpoints.getClass().getMethod("getBaseUrl").invoke(endpoints);
-            } catch (Throwable t) {
-                Log.i(TAG, "BASE_URL_INVOKE_ERR " + t.getClass().getSimpleName());
+                Class<?> ndkClass = Class.forName("com.telenor.pakistan.mytelenor.newstructure.utils.NdkHeader");
+                for (Field f : ndkClass.getDeclaredFields()) {
+                    if (Modifier.isStatic(f.getModifiers())) {
+                        f.setAccessible(true);
+                        Object obj = f.get(null);
+                        if (obj != null && ndkClass.isInstance(obj)) {
+                            sNdk = obj;
+                            break;
+                        }
+                    }
+                }
+            } catch (Throwable t2) {
+                Log.i(TAG, "NDK_SCAN_ERR " + t2.getClass().getSimpleName());
             }
         }
-        return null;
+        return sNdk;
     }
+
+    // --- URL resolution via native APIEndPoints singleton ---
 
     static String resolveUrl(String nativeMethodName, String fallbackPath) {
         Object endpoints = getEndpointsSingleton();
@@ -321,6 +548,16 @@ public final class StreakClaim {
         return base + fallbackPath;
     }
 
+    static String getBaseUrl() {
+        Object endpoints = getEndpointsSingleton();
+        if (endpoints != null) {
+            try {
+                return (String) endpoints.getClass().getMethod("getBaseUrl").invoke(endpoints);
+            } catch (Throwable ignored) {}
+        }
+        return null;
+    }
+
     private static Object sEndpoints;
     private static boolean sEndpointsResolved;
 
@@ -330,12 +567,16 @@ public final class StreakClaim {
         try {
             Class<?> cls = Class.forName(
                 "com.telenor.pakistan.mytelenor.newstructure.utils.Constants$APIEndPoints");
+            // Real field name is "a" (confirmed in smali)
+            sEndpoints = cls.getField("a").get(null);
+        } catch (Throwable t) {
+            Log.i(TAG, "ENDPOINTS_FIELD_ERR " + t.getClass().getSimpleName());
+            // Fallback: scan static fields
             try {
-                sEndpoints = cls.getField("f28660a").get(null);
-            } catch (Throwable t) {
-                java.lang.reflect.Field[] fields = cls.getDeclaredFields();
-                for (java.lang.reflect.Field f : fields) {
-                    if (java.lang.reflect.Modifier.isStatic(f.getModifiers())) {
+                Class<?> cls = Class.forName(
+                    "com.telenor.pakistan.mytelenor.newstructure.utils.Constants$APIEndPoints");
+                for (Field f : cls.getDeclaredFields()) {
+                    if (Modifier.isStatic(f.getModifiers())) {
                         f.setAccessible(true);
                         Object obj = f.get(null);
                         if (obj != null && cls.isInstance(obj)) {
@@ -344,9 +585,9 @@ public final class StreakClaim {
                         }
                     }
                 }
+            } catch (Throwable t2) {
+                Log.i(TAG, "ENDPOINTS_SCAN_ERR " + t2.getClass().getSimpleName());
             }
-        } catch (Throwable t) {
-            Log.i(TAG, "ENDPOINTS_ERR " + t.getClass().getSimpleName());
         }
         return sEndpoints;
     }

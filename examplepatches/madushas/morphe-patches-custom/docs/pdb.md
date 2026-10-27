@@ -9,7 +9,7 @@ Verified target: **2.134.6** (versionCode **2694**).
 
 | Patch | Default | What it does |
 |---|---|---|
-| **Unlock Pro** | ✅ | Forces `isProUser()` true and the `ProStatus` model to Pro → every entitlement (no ads, hide online, unlimited rewinds/extends, super chats, visitors, view requests, virtual travel, extra IRL slots, Power PDB server, Wonder-chat reconnect, AI-friend limits, name colour, chat bubbles). |
+| **Mock Pro (client-side)** | ✅ | Forces `isProUser()` true + local `ProStatus` → client-gated perks open. Server-validated entitlements still refuse (honest limitation). |
 | **Bypass PairIP license check** | ✅ | Pdb uses the *license-check-only* PairIP variant. Replaces `com.pairip.application.Application` with the real `pdb.app.App`, removes `LicenseActivity` + `CHECK_LICENSE`, and no-ops `LicenseClient`. |
 | **Remove ads** | ✅ | Disables the ad SDK init providers (GMS, AppLovin, Vungle, Yandex) and, via the feature menu, sets the app's own `isADLibDisabled`. |
 | **Allow standalone install (split-less APK)** | ✅ | `pdb_original.apk` is the App Bundle's **base** APK (`requiredSplitTypes="base__abi,base__density"`), which cannot install alone. This removes the split requirement so the single patched APK installs. |

@@ -2,31 +2,31 @@
   "shaders_h": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\extensions\\gxr-spacewarp-layer\\src\\swp_shaders.h",
   "cases": [
     {
+      "name": "swp_align_frag",
+      "glslang_exit": 0,
+      "probe_exit": null,
+      "detail": ""
+    },
+    {
+      "name": "swp_dense_fallback_frag",
+      "glslang_exit": 0,
+      "probe_exit": null,
+      "detail": ""
+    },
+    {
+      "name": "swp_dense_frag",
+      "glslang_exit": 0,
+      "probe_exit": 0,
+      "detail": "QCOM extension rejected by host glslang; dialect probe clean"
+    },
+    {
+      "name": "swp_downsample_frag",
+      "glslang_exit": 0,
+      "probe_exit": null,
+      "detail": ""
+    },
+    {
       "name": "swp_extrap_frag",
-      "glslang_exit": 0,
-      "probe_exit": null,
-      "detail": ""
-    },
-    {
-      "name": "swp_gme_direct",
-      "glslang_exit": 0,
-      "probe_exit": 0,
-      "detail": "QCOM extension rejected by host glslang; dialect probe clean"
-    },
-    {
-      "name": "swp_gme_fallback",
-      "glslang_exit": 0,
-      "probe_exit": null,
-      "detail": ""
-    },
-    {
-      "name": "swp_h1_direct",
-      "glslang_exit": 0,
-      "probe_exit": 0,
-      "detail": "QCOM extension rejected by host glslang; dialect probe clean"
-    },
-    {
-      "name": "swp_h1_fallback",
       "glslang_exit": 0,
       "probe_exit": null,
       "detail": ""
@@ -38,13 +38,13 @@
       "detail": ""
     },
     {
-      "name": "swp_sad_fallback_frag",
+      "name": "swp_refine_fallback_frag",
       "glslang_exit": 0,
       "probe_exit": null,
       "detail": ""
     },
     {
-      "name": "swp_sad_frag_direct",
+      "name": "swp_refine_frag",
       "glslang_exit": 0,
       "probe_exit": 0,
       "detail": "QCOM extension rejected by host glslang; dialect probe clean"
@@ -58,6 +58,50 @@
   ],
   "expected": {},
   "uniform_reflection": {
+    "swp_align_frag": {
+      "program": "progAlign",
+      "defs": "alignDefs",
+      "glslang_exit": 0,
+      "reflected": [
+        "uCurrFov",
+        "uRot",
+        "uPrevFov",
+        "uPrev"
+      ],
+      "missing": []
+    },
+    "swp_dense_fallback_frag": {
+      "program": "progDense",
+      "defs": "denseDefs",
+      "glslang_exit": 0,
+      "reflected": [
+        "uInputSize",
+        "uPrev",
+        "uCurr",
+        "uMvSize",
+        "uBlock",
+        "uHasSeed",
+        "uSeedSize",
+        "uSeedTex",
+        "uSeedScale",
+        "uSearchRadius",
+        "uMinImprovementAbs",
+        "uMinImprovementRatio",
+        "uLevelToNative"
+      ],
+      "missing": []
+    },
+    "swp_downsample_frag": {
+      "program": "progDown",
+      "defs": "downDefs",
+      "glslang_exit": 0,
+      "reflected": [
+        "uDstSize",
+        "uSrcSize",
+        "uSrc"
+      ],
+      "missing": []
+    },
     "swp_extrap_frag": {
       "program": "progExtrap",
       "defs": "extrapDefs",
@@ -73,73 +117,9 @@
       ],
       "missing": []
     },
-    "swp_gme_direct": {
-      "program": "progGme",
-      "defs": "gmeDefs",
-      "glslang_exit": 0,
-      "reflected": [
-        "uGlobalMax",
-        "uBlock",
-        "uInputSize",
-        "uPrev",
-        "uCurr",
-        "uGmeOriginStride",
-        "uGmeStep"
-      ],
-      "missing": []
-    },
-    "swp_gme_fallback": {
-      "program": "progGme",
-      "defs": "gmeDefs",
-      "glslang_exit": 0,
-      "reflected": [
-        "uGlobalMax",
-        "uBlock",
-        "uInputSize",
-        "uPrev",
-        "uCurr",
-        "uGmeOriginStride",
-        "uGmeStep"
-      ],
-      "missing": []
-    },
-    "swp_h1_direct": {
-      "program": "progH1",
-      "defs": "h1Defs",
-      "glslang_exit": 0,
-      "reflected": [
-        "uBlock",
-        "uPrev",
-        "uCurr",
-        "uMvSize",
-        "uBlockGrid",
-        "uGlobalMax",
-        "uInputSize",
-        "uMedianTex",
-        "uNoMotionUv"
-      ],
-      "missing": []
-    },
-    "swp_h1_fallback": {
-      "program": "progH1",
-      "defs": "h1Defs",
-      "glslang_exit": 0,
-      "reflected": [
-        "uBlock",
-        "uPrev",
-        "uCurr",
-        "uMvSize",
-        "uBlockGrid",
-        "uGlobalMax",
-        "uInputSize",
-        "uMedianTex",
-        "uNoMotionUv"
-      ],
-      "missing": []
-    },
     "swp_median_frag": {
-      "program": "progMed",
-      "defs": "medDefs",
+      "program": "progMedian",
+      "defs": "medianDefs",
       "glslang_exit": 0,
       "reflected": [
         "uMvSize",
@@ -148,41 +128,21 @@
       ],
       "missing": []
     },
-    "swp_sad_frag_direct": {
-      "program": "progSad",
-      "defs": "sadDefs",
+    "swp_refine_fallback_frag": {
+      "program": "progRefine",
+      "defs": "refineDefs",
       "glslang_exit": 0,
       "reflected": [
         "uBlock",
+        "uInputSize",
         "uPrev",
         "uCurr",
         "uMvSize",
-        "uBlockGrid",
-        "uGlobalMax",
-        "uInputSize",
-        "uGmeTex",
-        "uSearchSpan",
-        "uSadScale",
-        "uNoMotion"
-      ],
-      "missing": []
-    },
-    "swp_sad_fallback_frag": {
-      "program": "progSad",
-      "defs": "sadDefs",
-      "glslang_exit": 0,
-      "reflected": [
-        "uBlock",
-        "uPrev",
-        "uCurr",
-        "uMvSize",
-        "uBlockGrid",
-        "uGlobalMax",
-        "uInputSize",
-        "uGmeTex",
-        "uSearchSpan",
-        "uSadScale",
-        "uNoMotion"
+        "uSeedTex",
+        "uSeedSize",
+        "uSearchRadius",
+        "uMinImprovementAbs",
+        "uMinImprovementRatio"
       ],
       "missing": []
     }

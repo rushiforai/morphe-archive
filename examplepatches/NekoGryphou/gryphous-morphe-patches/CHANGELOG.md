@@ -1,3 +1,15 @@
+## [1.3.0](https://github.com/NekoGryphou/gryphous-morphe-patches/compare/v1.2.0...v1.3.0) (2026-10-26)
+
+### ✨ New Features
+
+* **petkit:** hide Explore section on the home page ([fa8cfe5](https://github.com/NekoGryphou/gryphous-morphe-patches/commit/fa8cfe5ea358b8dd8894e9a3f0a866a02eb8df76))
+
+## [1.3.0-dev.1](https://github.com/NekoGryphou/gryphous-morphe-patches/compare/v1.2.0...v1.3.0-dev.1) (2026-10-20)
+
+### ✨ New Features
+
+* **petkit:** hide Explore section on the home page ([fa8cfe5](https://github.com/NekoGryphou/gryphous-morphe-patches/commit/fa8cfe5ea358b8dd8894e9a3f0a866a02eb8df76))
+
 ## [1.2.0](https://github.com/NekoGryphou/gryphous-morphe-patches/compare/v1.1.0...v1.2.0) (2026-10-16)
 
 ### 🐛 Bug Fixes

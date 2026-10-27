@@ -36,9 +36,15 @@ import com.android.tools.smali.dexlib2.Opcode
 fun MutableMethod.addInstructionsChecked(index: Int, smaliInstructions: String) =
     checkedInsert("addInstructions", smaliInstructions) { addInstructions(index, smaliInstructions) }
 
-/** Checked [addInstructions] appended at the end of the method. */
+/**
+ * Checked [addInstructions] appended at the end of the method. morphe-patcher 2.0.0 hides the
+ * index-less `addInstructions(String)`, so the end index is passed explicitly; checkedInsert runs
+ * the lambda only after it has checked that the method has a body.
+ */
 fun MutableMethod.addInstructionsChecked(smaliInstructions: String) =
-    checkedInsert("addInstructions", smaliInstructions) { addInstructions(smaliInstructions) }
+    checkedInsert("addInstructions", smaliInstructions) {
+        addInstructions(implementation!!.instructions.size, smaliInstructions)
+    }
 
 /** Checked [addInstructionsWithLabels]. */
 fun MutableMethod.addInstructionsWithLabelsChecked(

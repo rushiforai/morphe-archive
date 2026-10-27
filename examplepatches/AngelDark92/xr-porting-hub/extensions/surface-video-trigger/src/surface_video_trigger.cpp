@@ -404,7 +404,9 @@ XrResult XRAPI_PTR createSession(XrInstance instance,const XrSessionCreateInfo* 
         }
     }
     s.failed = !enabled || s.display == EGL_NO_DISPLAY || s.appContext == EGL_NO_CONTEXT;
-    sessions.emplace(*output,s); log(s.failed?"session_passthrough":"session_ready");
+    auto* stored = &sessions.emplace(*output,s).first->second;
+    log(stored->failed?"session_passthrough":"session_ready");
+    if (!stored->failed) queueTriggerBuffer(*stored);
     return result;
 }
 XrResult XRAPI_PTR createSwap(XrSession session,const XrSwapchainCreateInfo* info,XrSwapchain* output) {
@@ -465,7 +467,7 @@ XrResult XRAPI_PTR release(XrSwapchain chain,const XrSwapchainImageReleaseInfo* 
 XrResult XRAPI_PTR endFrame(XrSession session,const XrFrameEndInfo* info) {
     std::lock_guard<std::recursive_mutex> lock(mutex);
     auto si=sessions.find(session);
-    if (si==sessions.end() || si->second.failed || !si->second.visible || !info || info->next ||
+    if (si==sessions.end() || si->second.failed || !si->second.visible || !info ||
         info->layerCount!=projections || !info->layers) return g.endFrame(session,info);
     if (!queueTriggerBuffer(si->second)) return g.endFrame(session,info);
     std::array<XrCompositionLayerProjection,projections> layers{};

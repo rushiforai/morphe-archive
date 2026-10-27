@@ -9,6 +9,10 @@ Read repository-root `AGENTS.md` first. It owns the compatibility, isolation,
 default, description, evidence and release rules. This file is the procedure for
 doing the work.
 
+For Steam Link changes, include the required exact target from `AGENTS.md`
+rule 2 in the implementation and validation checklist; never stop at adding
+compatibility metadata.
+
 ## Patch types
 
 | Need | Use |

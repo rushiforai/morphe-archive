@@ -15,17 +15,22 @@ import android.graphics.PixelFormat;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.preference.Preference;
+import android.os.Build;
+import android.os.Bundle;
+import android.preference.PreferenceGroup;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 @SuppressWarnings("deprecation")
-public final class SettingsMenuPreference extends Preference {
+public final class SettingsMenuPreference extends PreferenceGroup {
     public enum Icon {
         FILTER,
         SEARCH,
@@ -52,6 +57,8 @@ public final class SettingsMenuPreference extends Preference {
     private static final int ACCESSORY_TAG = 0x4D4D454E;
     private final Icon menuIcon;
     private boolean compact;
+    private boolean expandable;
+    private boolean expanded;
 
     public SettingsMenuPreference(
             Context context,
@@ -60,7 +67,7 @@ public final class SettingsMenuPreference extends Preference {
             Icon icon,
             OnPreferenceClickListener listener
     ) {
-        super(context);
+        super(context, null);
         this.menuIcon = icon;
         setTitle(title);
         setSummary(summary);
@@ -81,12 +88,40 @@ public final class SettingsMenuPreference extends Preference {
     public void setCompact(boolean compact) {
         if (this.compact == compact) return;
         this.compact = compact;
-        setIcon(new MenuIconDrawable(getContext(), menuIcon));
+        setIcon(new MenuIconDrawable(getContext(), menuIcon, compact));
         notifyChanged();
     }
 
     public boolean isCompact() {
         return compact;
+    }
+
+    public void setExpandable(boolean expandable) {
+        if (this.expandable == expandable) return;
+        this.expandable = expandable;
+        if (!expandable) expanded = false;
+        notifyHierarchyChanged();
+        notifyChanged();
+    }
+
+    public boolean isExpandable() {
+        return expandable;
+    }
+
+    public boolean isExpanded() {
+        return expanded;
+    }
+
+    public void setExpanded(boolean expanded) {
+        if (!expandable || this.expanded == expanded) return;
+        this.expanded = expanded;
+        notifyHierarchyChanged();
+        notifyChanged();
+    }
+
+    @Override
+    protected boolean isOnSameScreenAsChildren() {
+        return !expandable || expanded;
     }
 
     boolean isAbout() {
@@ -99,12 +134,12 @@ public final class SettingsMenuPreference extends Preference {
         LinearLayout row = new LinearLayout(context);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setMinimumHeight(SettingsUi.dp(context, compact ? 72 : 80));
+        row.setMinimumHeight(SettingsUi.dp(context, compact ? 52 : 80));
         row.setPadding(
-                SettingsUi.dp(context, compact ? 14 : 16),
-                SettingsUi.dp(context, 12),
-                SettingsUi.dp(context, compact ? 14 : 16),
-                SettingsUi.dp(context, 12)
+                SettingsUi.dp(context, 16),
+                SettingsUi.dp(context, compact ? 6 : 12),
+                SettingsUi.dp(context, 16),
+                SettingsUi.dp(context, compact ? 6 : 12)
         );
 
         FrameLayout iconFrame = new FrameLayout(context);
@@ -113,13 +148,13 @@ public final class SettingsMenuPreference extends Preference {
         icon.setId(android.R.id.icon);
         icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         iconFrame.addView(icon, new FrameLayout.LayoutParams(
-                SettingsUi.dp(context, 40),
-                SettingsUi.dp(context, 40),
+                SettingsUi.dp(context, compact ? 24 : 40),
+                SettingsUi.dp(context, compact ? 24 : 40),
                 Gravity.CENTER
         ));
         row.addView(iconFrame, new LinearLayout.LayoutParams(
-                SettingsUi.dp(context, 40),
-                SettingsUi.dp(context, 40)
+                SettingsUi.dp(context, compact ? 24 : 40),
+                SettingsUi.dp(context, compact ? 24 : 40)
         ));
 
         LinearLayout labels = new LinearLayout(context);
@@ -156,10 +191,88 @@ public final class SettingsMenuPreference extends Preference {
     protected void onBindView(View view) {
         super.onBindView(view);
         SettingsUi.styleTitleAndSummary(view);
-        view.setMinimumHeight(SettingsUi.dp(getContext(), compact ? 72 : 80));
+        view.setMinimumHeight(SettingsUi.dp(getContext(), compact ? 52 : 80));
         styleText(view);
         styleIcon(view);
         addAccessory(view);
+        bindExpansionAccessibility(view);
+    }
+
+    private void bindExpansionAccessibility(View view) {
+        if (Build.VERSION.SDK_INT >= 28) view.setAccessibilityHeading(expandable);
+        if (Build.VERSION.SDK_INT >= 30) {
+            view.setStateDescription(expandable ? expansionState() : null);
+        }
+        // The same native view type also draws ordinary links after recycling.
+        view.setContentDescription(null);
+        if (!expandable) {
+            view.setAccessibilityDelegate(null);
+            return;
+        }
+        view.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override
+            public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                if (host.getParent() instanceof ListView) {
+                    ListView list = (ListView) host.getParent();
+                    int position = list.getPositionForView(host);
+                    if (position >= 0 && position < list.getCount()
+                            && list.getItemAtPosition(position) == SettingsMenuPreference.this) {
+                        list.onInitializeAccessibilityNodeInfoForItem(host, position, info);
+                    }
+                }
+                info.setClassName(Button.class.getName());
+                info.setEnabled(isEnabled());
+                info.setClickable(isEnabled() && isSelectable());
+                info.setLongClickable(false);
+                info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_LONG_CLICK);
+                if (Build.VERSION.SDK_INT >= 28) {
+                    info.setHeading(true);
+                } else {
+                    AccessibilityNodeInfo.CollectionItemInfo item = info.getCollectionItemInfo();
+                    info.setCollectionItemInfo(AccessibilityNodeInfo.CollectionItemInfo.obtain(
+                            item == null ? 0 : item.getRowIndex(), item == null ? 1 : item.getRowSpan(),
+                            item == null ? 0 : item.getColumnIndex(), item == null ? 1 : item.getColumnSpan(),
+                            true, item != null && item.isSelected()));
+                }
+                if (Build.VERSION.SDK_INT >= 30) {
+                    info.setStateDescription(expansionState());
+                } else {
+                    CharSequence summary = getSummary();
+                    String description = getTitle() + ". "
+                            + (summary == null || summary.length() == 0 ? "" : summary + ". ")
+                            + expansionState();
+                    info.setContentDescription(description);
+                }
+                info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_EXPAND);
+                info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_COLLAPSE);
+                info.removeAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+                if (isEnabled() && isSelectable()) {
+                    info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK);
+                    info.addAction(expanded ? AccessibilityNodeInfo.AccessibilityAction.ACTION_COLLAPSE
+                            : AccessibilityNodeInfo.AccessibilityAction.ACTION_EXPAND);
+                }
+            }
+
+            @Override
+            public boolean performAccessibilityAction(View host, int action, Bundle arguments) {
+                if (action == AccessibilityNodeInfo.ACTION_LONG_CLICK) return false;
+                if (action == AccessibilityNodeInfo.ACTION_EXPAND
+                        || action == AccessibilityNodeInfo.ACTION_COLLAPSE
+                        || action == AccessibilityNodeInfo.ACTION_CLICK) {
+                    if (!expandable || !isEnabled() || !isSelectable()
+                            || (action == AccessibilityNodeInfo.ACTION_EXPAND && expanded)
+                            || (action == AccessibilityNodeInfo.ACTION_COLLAPSE && !expanded)) return false;
+                    OnPreferenceClickListener listener = getOnPreferenceClickListener();
+                    return listener != null && listener.onPreferenceClick(SettingsMenuPreference.this);
+                }
+                return super.performAccessibilityAction(host, action, arguments);
+            }
+        });
+    }
+
+    private String expansionState() {
+        return L10n.t(getContext(), expanded ? "Expanded" : "Collapsed");
     }
 
     /**
@@ -187,7 +300,7 @@ public final class SettingsMenuPreference extends Preference {
         if (icon == null) {
             return;
         }
-        int size = SettingsUi.dp(getContext(), 40);
+        int size = SettingsUi.dp(getContext(), compact ? 24 : 40);
         View iconFrame = view.findViewById(android.R.id.icon_frame);
         if (iconFrame != null) {
             ViewGroup.LayoutParams frameParams = iconFrame.getLayoutParams();
@@ -224,7 +337,7 @@ public final class SettingsMenuPreference extends Preference {
         accessory.setOrientation(LinearLayout.HORIZONTAL);
 
         ImageView chevron = new ImageView(getContext());
-        chevron.setImageDrawable(new ChevronDrawable(getContext()));
+        chevron.setImageDrawable(new ChevronDrawable(getContext(), expandable ? (expanded ? -1 : 1) : 0));
         // Decorative, like the one the list adapter adds to every other row.
         chevron.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         LinearLayout.LayoutParams chevronParams = new LinearLayout.LayoutParams(
@@ -239,8 +352,14 @@ public final class SettingsMenuPreference extends Preference {
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final int enabledColor;
         private final int disabledColor;
+        private final int verticalDirection;
 
         public ChevronDrawable(Context context) {
+            this(context, 0);
+        }
+
+        private ChevronDrawable(Context context, int verticalDirection) {
+            this.verticalDirection = verticalDirection;
             setLayoutDirection(context.getResources().getConfiguration().getLayoutDirection());
             enabledColor = SettingsUi.textSecondary();
             disabledColor = SettingsUi.textDisabled();
@@ -253,7 +372,7 @@ public final class SettingsMenuPreference extends Preference {
 
         @Override
         public boolean isAutoMirrored() {
-            return true;
+            return verticalDirection == 0;
         }
 
         @Override
@@ -281,6 +400,12 @@ public final class SettingsMenuPreference extends Preference {
             float centerX = getBounds().exactCenterX();
             float centerY = getBounds().exactCenterY();
             float size = Math.min(getBounds().width(), getBounds().height()) * 0.22f;
+            if (verticalDirection != 0) {
+                float offset = size * verticalDirection;
+                canvas.drawLine(centerX - size, centerY - offset, centerX, centerY + offset, paint);
+                canvas.drawLine(centerX, centerY + offset, centerX + size, centerY - offset, paint);
+                return;
+            }
             float offset = getLayoutDirection() == View.LAYOUT_DIRECTION_RTL ? -size : size;
             canvas.drawLine(centerX - offset, centerY - size, centerX + offset, centerY, paint);
             canvas.drawLine(centerX + offset, centerY, centerX - offset, centerY + size, paint);
@@ -325,8 +450,7 @@ public final class SettingsMenuPreference extends Preference {
             border.setColor(SettingsUi.border());
             border.setStyle(Paint.Style.STROKE);
             border.setStrokeWidth(SettingsUi.strokePx(context, 1f));
-            line.setColor(icon == Icon.SEARCH ? SettingsUi.textSecondary()
-                    : compact ? SettingsUi.textPrimary() : SettingsUi.accent());
+            line.setColor(icon == Icon.SEARCH ? SettingsUi.textSecondary() : SettingsUi.accent());
             line.setStyle(Paint.Style.STROKE);
             line.setStrokeWidth(SettingsUi.strokePx(context, 1.8f));
             line.setStrokeCap(Paint.Cap.ROUND);

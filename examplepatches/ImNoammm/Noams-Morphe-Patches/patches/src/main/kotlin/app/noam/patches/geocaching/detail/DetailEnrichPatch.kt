@@ -1,6 +1,7 @@
 package app.noam.patches.geocaching.detail
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.noam.patches.geocaching.misc.extension.extensionHookPatch
@@ -12,6 +13,14 @@ internal object GeocacheGetFingerprint : Fingerprint(
     name = "d",
     returnType = "Ljava/lang/Object;",
     parameters = listOf("Ljava/lang/String;", "Lkotlin/coroutines/jvm/internal/ContinuationImpl;"),
+)
+
+/** LogGeocacheActivity.onCreate: the log and draft screen. */
+internal object LogScreenCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/groundspeak/geocaching/intro/loggeocache/LogGeocacheActivity;",
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;"),
 )
 
 internal val detailEnrichPatch = bytecodePatch(
@@ -33,6 +42,14 @@ internal val detailEnrichPatch = bytecodePatch(
                 move-result-object v0
                 return-object v0
             """,
+        )
+
+        // geocaching.com refuses logs and drafts on Premium-only caches from Basic members; say so as
+        // the log screen opens instead of letting the log fail quietly later. First thing, while p0
+        // is still the activity.
+        LogScreenCreateFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range { p0 .. p0 }, ${Constants.GC_LIVE_DETAIL}->warnIfLogRefused(Landroid/app/Activity;)V",
         )
     }
 }

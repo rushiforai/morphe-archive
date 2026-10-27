@@ -2,6 +2,10 @@ package software.santodan.extension.nuviomerged;
 
 /** Navigation owns the merge gate; stream-search flags must never open it. */
 public final class NuvioMergePolicy {
+    public enum ReadTrigger { STARTUP, USER_SYNC, PLAYBACK, NAVIGATION, PROVIDER_NOTIFICATION }
+    public static boolean readsProviders(ReadTrigger trigger) {
+        return trigger == ReadTrigger.STARTUP || trigger == ReadTrigger.USER_SYNC;
+    }
     private String route;
     private boolean foreground = true;
     private long revision;

@@ -11,7 +11,9 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.parameterRegisterNumber
 import app.morphe.patches.telegram.misc.extension.requireParameterIntact
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
@@ -57,6 +59,9 @@ val hideChannelBarButtonsPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.telegram())
     execute {
         val plan = resolveChannelBarButtons()
+        val mute = resolveChannelMute(plan)
+        // Assembled on copies first, so a refusal leaves the app untouched.
+        mute.rehearse()
         writeStub(CHANNEL_BUTTONS, "sideButtons", 1, "const/16 v0, ${plan.mask}\nreturn v0")
         writeStub(CHANNEL_BUTTONS, "place", 4, """
             check-cast p0, ${plan.bar}
@@ -65,6 +70,12 @@ val hideChannelBarButtonsPatch = bytecodePatch(
         """)
         plan.calls.sortedDescending().forEach { at -> plan.update.replaceInstruction(at, setCall(plan.update.controlBody()[at])) }
         enableStatus("hideChannelButtons")
+        if (mute.missing == null) {
+            mute.apply()
+            enableCapability("hideChannelMute")
+        } else {
+            patchLog.warning("$PATCH: ${mute.missing}. The patch goes on without the Mute switch.")
+        }
     }
 }
 
@@ -163,7 +174,7 @@ private fun constantBefore(body: List<Instruction>, before: Int, register: Int, 
 
 private fun signature(m: Method) = "${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 
-private fun Instruction.writes(register: Int): Boolean {
+internal fun Instruction.writes(register: Int): Boolean {
     if (!opcode.setsRegister()) return false
     val destination = namedRegisters().firstOrNull() ?: return false
     return destination == register || opcode.setsWideRegister() && destination + 1 == register

@@ -1,7 +1,7 @@
 # jagjordi Patches
 
-Patches for use with Morphe. The bundle contains three Flightradar24 patches and one universal
-patch.
+Patches for use with Morphe. The bundle contains three Flightradar24 patches, one CalTopo
+patch and one universal patch.
 
 ## About
 
@@ -51,6 +51,19 @@ no weather credentials. RainViewer's free tier is for personal use. Satellite cl
 wind, icing, turbulence, significant weather and lightning have no free tile source and are
 left unchanged.
 
+### Unlock Desktop features
+
+CalTopo renders its map UI in a WebView served by a request handler embedded in the app, and
+every client enforced gate reads the account tier from one place: the feature group resolved
+for the signed in account. That id normally comes from the server or is derived from the
+subscription plan, and a missing account resolves to the free tier. The patch resolves the
+account to the Desktop tier on the device, which enables offline layer downloads for every
+tier, the 3D view, travel plan statistics, custom icons, parcel measurement and elevation in
+exports. It works with or without a signed in account. Tiles for the restricted layers
+(MapBox Satellite, Sentinel, MODIS, GOES, parcels, weather stations, aircraft) and the
+packaged offline downloads are produced by caltopo.com, which applies its own account check
+to signed requests, so those remain subject to the server.
+
 ### Bypass private DNS
 
 Universal patch. It installs a DNS-over-HTTPS resolver into every OkHttp client the app
@@ -74,6 +87,10 @@ original key is kept.
 
 `radarIndexUrl` (Open weather radar): RainViewer weather maps index.
 
+`featureGroupId` (Unlock Desktop features): CalTopo feature group id to resolve the account
+to. Defaults to `desktop`, the highest personal tier; `pro`, `mobile` and `team-small` are
+offered as alternatives.
+
 `dohServer` (Bypass private DNS): IP address of the DNS-over-HTTPS resolver. Defaults to
 8.8.8.8, with 8.8.4.4, 1.1.1.1 and 1.0.0.1 offered as alternatives.
 
@@ -87,7 +104,7 @@ Automated builds for a non-rooted device are published by
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.26.0](https://github.com/jagjordi/morphe-patches/releases/tag/v1.26.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.27.0](https://github.com/jagjordi/morphe-patches/releases/tag/v1.27.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
 <details open>
 <summary>📦 Flightradar24&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -102,6 +119,21 @@ Automated builds for a non-rooted device are published by
 | [Open data for premium fields](#open-data-for-premium-fields) | Fills the aircraft panel fields that the Flightradar24 server withholds from non-subscribers using open data: extended Mode S values (IAS, TAS, Mach, outside air temperature, GPS altitude and wind) from the adsb.lol and adsb.fi public APIs, serial number and aircraft age from the OpenSky Network aircraft database, and the flight information region from VATSpy boundaries. The aircraft and FIR data are downloaded once a month from a GitHub release. Values the server does send are never replaced. | • Open data bundle URL<br>• ADS-B aggregator URL |
 | [Open weather radar](#open-weather-radar) | Draws the precipitation radar layers (global, North American and Australian) from RainViewer's public radar tiles when Flightradar24 does not issue weather credentials to the account. Layers that have no open source (satellite cloud, forecast wind, icing, turbulence and lightning) are left as they are. | • Radar index URL |
 | [Unlock Business Premium](#unlock-business-premium) | Unlocks Business-tier features in Flightradar24: ad-free experience, weather layers, ATC routes, 3D view, flight history playback, unlimited saved locations and the country of registration. Works with or without a Flightradar24 account. Serial number and aircraft age stay locked because the server never sends them to non-subscribers. | • Google Maps API key |
+
+</details>
+
+<details open>
+<summary>📦 CalTopo&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.30.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Desktop features](#unlock-desktop-features) | Resolves the CalTopo account to the Desktop feature tier on the device, which enables the client gated features: offline layer downloads for every tier, the 3D view, travel plan statistics, custom icons, parcel measurement and elevation in exports. Works with or without a signed in account. Restricted layer tiles and packaged offline downloads are still produced by the CalTopo server, which applies its own account check. | • Feature tier |
 
 </details>
 

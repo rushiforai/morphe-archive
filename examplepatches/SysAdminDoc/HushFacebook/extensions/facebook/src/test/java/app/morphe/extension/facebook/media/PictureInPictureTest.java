@@ -33,8 +33,9 @@ import app.morphe.extension.shared.settings.PauseForTests;
 
 /**
  * Picture-in-picture: with the switch on, the Reels viewer's gate says yes on Android 12 or later,
- * and ReelsPipUtil's check says yes there where the phone has the feature. Both count it. Off,
- * paused, on Android 11, without the feature or with no activity, Facebook's own code decides.
+ * and ReelsPipUtil's check says yes there where the phone has the feature. Both count it. Off, the
+ * check says no, even to the window Facebook turns on by itself. Paused, on Android 11, without the
+ * feature or with no activity, Facebook's own code decides.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -93,6 +94,22 @@ public class PictureInPictureTest {
             assertFalse("a Hushfacebook paused by " + reason + " let the gate say yes", PictureInPictureForTests.surfaceAllows());
             PauseForTests.resume();
         }
+    }
+
+    /** #252, #256: Facebook turns its own window on for some accounts, and the switch off keeps it off. */
+    @Test
+    public void offTheCheckSaysNoToFacebooksOwnWindow() {
+        assertFalse("the switch on refused the window", PictureInPicture.refused());
+        Settings.PICTURE_IN_PICTURE.save(false);
+        assertTrue("the switch off left Facebook's own window on", PictureInPicture.refused());
+        for (HushfacebookPause.Reason reason : new HushfacebookPause.Reason[] {
+                HushfacebookPause.Reason.SWITCH, HushfacebookPause.Reason.CRASH_LOOP}) {
+            PauseForTests.pause(reason);
+            assertFalse("a Hushfacebook paused by " + reason + " refused Facebook's window", PictureInPicture.refused());
+            PauseForTests.resume();
+        }
+        String line = statusLine();
+        assertTrue("the refusal wasn't counted: " + line, line != null && line.contains(PictureInPicture.REFUSED + " 1"));
     }
 
     @Test

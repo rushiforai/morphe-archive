@@ -30,8 +30,8 @@ class SourceIndexTest {
             "585.0.0.1.91" to listOf(348000001),
         )).targets
         assertEquals(listOf("584.0.0.49.98", "585.0.0.1.91"), targets.map { it.version })
-        assertEquals("Arm64 builds 346814894 and 346814880; checked again during patching", targets[0].description)
-        assertEquals("Arm64 build 348000001; checked again during patching", targets[1].description)
+        assertEquals("Stock builds 346814894 and 346814880; checked again during patching", targets[0].description)
+        assertEquals("Stock build 348000001; checked again during patching", targets[1].description)
     }
 
     @Test

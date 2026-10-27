@@ -1,6 +1,8 @@
 package app.template.patches.football433.misc.telemetry
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
 internal const val METHOD_CALL = "Lio/flutter/plugin/common/MethodCall;"
@@ -22,7 +24,11 @@ internal const val AIRSHIP_CONFIG_BUILDER = "Lcom/urbanairship/AirshipConfigOpti
 internal object UxcamStartWithConfigurationFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Ljava/util/Map;", METHOD_RESULT),
-    strings = listOf("userAppKey", "enableMultiSessionRecord", "enableCrashHandling"),
+    strings = listOf(
+        string("userAppKey", StringComparisonType.CONTAINS),
+        string("enableMultiSessionRecord", StringComparisonType.CONTAINS),
+        string("enableCrashHandling", StringComparisonType.CONTAINS),
+    ),
     // An instance method, so the Result is p2 (the patch writes to it by that name).
     custom = { method, _ -> method.implementation != null && !AccessFlags.STATIC.isSet(method.accessFlags) },
 )
@@ -33,7 +39,10 @@ internal object UxcamStartWithConfigurationFingerprint : Fingerprint(
 // BranchAttributionLevel.valueOf and then to Branch's setConsumerProtectionAttributionLevel.
 internal object BranchAttributionLevelFingerprint : Fingerprint(
     returnType = "V",
-    strings = listOf("FlutterBranchSDK", "branchAttributionLevel"),
+    strings = listOf(
+        string("FlutterBranchSDK", StringComparisonType.CONTAINS),
+        string("branchAttributionLevel", StringComparisonType.CONTAINS),
+    ),
     custom = { method, _ ->
         method.implementation != null && method.parameterTypes.firstOrNull()?.toString() == METHOD_CALL
     },

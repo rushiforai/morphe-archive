@@ -692,6 +692,66 @@ def build():
     run("java", "-Xmx384m", "-cp", TOOLS / "r8.jar", "com.android.tools.r8.D8",
         "--release", "--min-api", "26", "--lib", TOOLS / "android.jar",
         "--classpath", stubs, "--output", i18n_dex, i18n_classes)
+    # Material You colors: the same Java-only rules again.
+    monet_classes = BUILD / "monet-classes.jar"
+    run(compiler, "-no-stdlib", "-no-reflect", "-language-version", "2.1", "-api-version", "2.1", "-Xsuppress-version-warnings",
+        "-jvm-target", "11", "-Xlambdas=class", "-cp", f"{TOOLS / 'android.jar'}:{TOOLS / 'morphe.jar'}:{stubs}",
+        *sorted((ROOT / "extensions/monet/src/main/kotlin").rglob("*.kt")), "-d", monet_classes)
+    with zipfile.ZipFile(monet_classes) as native:
+        for name in native.namelist():
+            if not name.endswith(".class"):
+                continue
+            content = native.read(name)
+            for unsafe in (b"kotlin/text/", b"kotlin/collections/", b"kotlin/Result", b"kotlin/Unit", b"kotlin/io/", b"kotlin/ranges/"):
+                if unsafe in content:
+                    raise SystemExit(f"Unsafe host Kotlin helper in {name}: {unsafe.decode()}; use Java APIs")
+    monet_dex = BUILD / "monet-dex"
+    monet_dex.mkdir(exist_ok=True)
+    for stale in monet_dex.glob("classes*.dex"):
+        stale.unlink()
+    run("java", "-Xmx384m", "-cp", TOOLS / "r8.jar", "com.android.tools.r8.D8",
+        "--release", "--min-api", "26", "--lib", TOOLS / "android.jar",
+        "--classpath", stubs, "--output", monet_dex, monet_classes)
+    # Chat row decorations (Bulk delete right-side selection circle): Java-only rules again.
+    chat_classes = BUILD / "chat-classes.jar"
+    run(compiler, "-no-stdlib", "-no-reflect", "-language-version", "2.1", "-api-version", "2.1", "-Xsuppress-version-warnings",
+        "-jvm-target", "11", "-Xlambdas=class", "-cp", f"{TOOLS / 'android.jar'}:{TOOLS / 'morphe.jar'}:{stubs}",
+        *sorted((ROOT / "extensions/chat/src/main/kotlin").rglob("*.kt")), "-d", chat_classes)
+    with zipfile.ZipFile(chat_classes) as native:
+        for name in native.namelist():
+            if not name.endswith(".class"):
+                continue
+            content = native.read(name)
+            for unsafe in (b"kotlin/text/", b"kotlin/collections/", b"kotlin/Result", b"kotlin/Unit", b"kotlin/io/", b"kotlin/ranges/"):
+                if unsafe in content:
+                    raise SystemExit(f"Unsafe host Kotlin helper in {name}: {unsafe.decode()}; use Java APIs")
+    chat_dex = BUILD / "chat-dex"
+    chat_dex.mkdir(exist_ok=True)
+    for stale in chat_dex.glob("classes*.dex"):
+        stale.unlink()
+    run("java", "-Xmx384m", "-cp", TOOLS / "r8.jar", "com.android.tools.r8.D8",
+        "--release", "--min-api", "26", "--lib", TOOLS / "android.jar",
+        "--classpath", stubs, "--output", chat_dex, chat_classes)
+    # Keep Bluetooth audio clear in calls: Java-only rules again.
+    audio_classes = BUILD / "audio-classes.jar"
+    run(compiler, "-no-stdlib", "-no-reflect", "-language-version", "2.1", "-api-version", "2.1", "-Xsuppress-version-warnings",
+        "-jvm-target", "11", "-Xlambdas=class", "-cp", f"{TOOLS / 'android.jar'}:{TOOLS / 'morphe.jar'}:{stubs}",
+        *sorted((ROOT / "extensions/audio/src/main/kotlin").rglob("*.kt")), "-d", audio_classes)
+    with zipfile.ZipFile(audio_classes) as native:
+        for name in native.namelist():
+            if not name.endswith(".class"):
+                continue
+            content = native.read(name)
+            for unsafe in (b"kotlin/text/", b"kotlin/collections/", b"kotlin/Result", b"kotlin/Unit", b"kotlin/io/", b"kotlin/ranges/"):
+                if unsafe in content:
+                    raise SystemExit(f"Unsafe host Kotlin helper in {name}: {unsafe.decode()}; use Java APIs")
+    audio_dex = BUILD / "audio-dex"
+    audio_dex.mkdir(exist_ok=True)
+    for stale in audio_dex.glob("classes*.dex"):
+        stale.unlink()
+    run("java", "-Xmx384m", "-cp", TOOLS / "r8.jar", "com.android.tools.r8.D8",
+        "--release", "--min-api", "26", "--lib", TOOLS / "android.jar",
+        "--classpath", stubs, "--output", audio_dex, audio_classes)
     check_languages()
     classes = BUILD / "classes.jar"
     sources = sorted((ROOT / "patches/src/main/kotlin").rglob("*.kt"))
@@ -744,6 +804,9 @@ def build():
         add("extensions/font.mpe", (font_dex / "classes.dex").read_bytes())
         add("extensions/emoji.mpe", (emoji_dex / "classes.dex").read_bytes())
         add("extensions/i18n.mpe", (i18n_dex / "classes.dex").read_bytes())
+        add("extensions/monet.mpe", (monet_dex / "classes.dex").read_bytes())
+        add("extensions/chat.mpe", (chat_dex / "classes.dex").read_bytes())
+        add("extensions/audio.mpe", (audio_dex / "classes.dex").read_bytes())
         for path in sorted(dex.glob("classes*.dex")):
             add(path.name, path.read_bytes())
     run("java", "-Xmx256m", "-cp", f"{bundle}:{TOOLS / 'morphe.jar'}:{TOOLS / 'gson.jar'}",

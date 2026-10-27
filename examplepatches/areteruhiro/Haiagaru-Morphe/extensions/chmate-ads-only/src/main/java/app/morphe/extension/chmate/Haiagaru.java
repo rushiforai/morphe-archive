@@ -10,7 +10,7 @@ import java.lang.reflect.*;
 import java.util.Map;
 import org.lsposed.hiddenapibypass.HiddenApiBypass;
 
-/** Isolated ads-only runtime. No settings, network workers or lifecycle observers. */
+/** Isolated lightweight runtime. No settings, network workers or lifecycle observers. */
 public final class Haiagaru {
     private static final String LOG_TAG = "HaiagaruAdsOnly";
     private static final String AD_CLASS_191 = "o.qheCC";
@@ -30,6 +30,17 @@ public final class Haiagaru {
             + "AQEFBQADgYEAOfY6cwtJbh2vX95s0Xlhsr6am63Gq78Fh39zP/vO7g2fkas4miT5"
             + "1ITb29uBm1Mggd2pD1mP6SELsexpdaz/6xBtWk5KagFAgS+4yuceXn9HQ5dgCk2v"
             + "9kQy5kSVkF2kCALI9DxTEE3yuzZFKw7f7pKGZzs3wZCyeMCZNCC2MRQ=";
+
+/** The lightweight build always enables the 5ch.net to 5ch.io compatibility route. */
+    public static String rewrite5chUrl(String original) {
+        return original == null ? null : original.replace("5ch.net", "5ch.io");
+    }
+
+    public static String rewriteBbsMenuUrl(String original) {
+        return original == null ? null : original
+                .replace("https://menu.5ch.net", "https://menu.5ch.io")
+                .replace("http://menu.5ch.net", "https://menu.5ch.io");
+    }
 
 public static synchronized void installSignatureSpoof() {
         if (signatureSpoofInstalled) return;

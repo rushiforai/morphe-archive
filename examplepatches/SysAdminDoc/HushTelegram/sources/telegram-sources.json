@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "note": "Every public source found for org.telegram.messenger, org.telegram.messenger.web and org.telegram.messenger.beta, with the branches and commits it was last read at, its licence and what HushTelegram may take from it. scripts/telegram-sources.ps1 holds it to its rules, scripts/audit-telegram-sources.ps1 refreshes it, and a local release needs a census from the last 14 days. docs/sources.md is the readable version.",
+  "note": "Every public source found for org.telegram.messenger, org.telegram.messenger.web and org.telegram.messenger.beta, with the branches and commits it was last read at, its licence and what HushTelegram may take from it. scripts/telegram-sources.ps1 holds it to its rules, scripts/audit-telegram-sources.ps1 refreshes it, and a local release needs a census from the last 14 days. docs/sources.md is the readable version. Since 2026-10-17, Premium unlocks, ways past content protection, content Telegram hides as sensitive and a higher account limit count as open ideas, and one that goes past another person's setting can only ship as a default-off switch. Naming an idea in a reason never means its code is adopted.",
   "census": {
     "checkedAt": "2026-10-11",
     "skipped": [
@@ -113,7 +113,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "The oldest Telegram patch set found: its history starts 2026-04-17, four months before anyone else's, and the ads, content and premium layout and the patch names reappear in rushiranpise's bundle. Pinned to telegram.org's 12.8.3. Half its list unlocks Premium or gets past a channel's restrictions, which HushTelegram won't ship. Disable auto update and Download speed boost are the ideas worth checking against 12.10.6. The indexes also list it for org.telegram.messenger, but its own patch list declares only the web build at 12.8.3, so no version is recorded for the store package.",
+      "reason": "The oldest Telegram patch set found: its history starts 2026-04-17, four months before anyone else's, and the ads, content and premium layout and the patch names reappear in rushiranpise's bundle. Pinned to telegram.org's 12.8.3. Half its list unlocks Premium or gets past a channel's restrictions, open ideas, not adopted code. Disable auto update and Download speed boost are the ideas worth checking against 12.10.6. The indexes also list it for org.telegram.messenger, but its own patch list declares only the web build at 12.8.3, so no version is recorded for the store package.",
       "archived": false,
       "forks": [],
       "contentHashes": [],
@@ -177,7 +177,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "The pinned set has 14 patches for standard and web Telegram 12.10.1, and 15 for Plus Messenger. The features list is their union, not a count for each package. Its signature chain seeds Telegram's DER certificate and answers Telegram's fingerprint check and Firebase's certificate hash. HushTelegram's current source instead uses a fresh implementation scoped to the Firebase Installations X-Android-Cert header, with the certificate digest verified from the official fixture and with existing callback and header bindings checked before insertion. Fixture and runtime tests verify that scope. Genuine push registration still needs a device comparison. No signature-chain code was adopted. Listing a feature does not approve it for HushTelegram. Premium, restriction bypass and anti-screenshot-notification patches remain rejected.",
+      "reason": "The pinned set has 14 patches for standard and web Telegram 12.10.1, and 15 for Plus Messenger. The features list is their union, not a count for each package. Its signature chain seeds Telegram's DER certificate and answers Telegram's fingerprint check and Firebase's certificate hash. HushTelegram's current source instead uses a fresh implementation scoped to the Firebase Installations X-Android-Cert header, with the certificate digest verified from the official fixture and with existing callback and header bindings checked before insertion. Fixture and runtime tests verify that scope. Genuine push registration still needs a device comparison. No signature-chain code was adopted. Listing a feature does not approve it for HushTelegram. Its Premium, restriction bypass and anti-screenshot-notification patches are open ideas, not adopted code.",
       "archived": false,
       "forks": [
         "Beachbtch/morphe-patches",
@@ -491,7 +491,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "An independent set verified against 12.10.1, built on patcher 1.8.0, with fingerprints that fail loudly rather than patch the wrong method. Disable story read marking and Remove promo channels are worth checking. Most of the rest unlocks Premium or gets past content protection, which HushTelegram won't ship. Its README says it leaves out anti-delete and ghost mode on purpose. Its latest change declares Telegram 12.10.1 as a concrete target for the store, web and beta builds alike.",
+      "reason": "An independent set verified against 12.10.1, built on patcher 1.8.0, with fingerprints that fail loudly rather than patch the wrong method. Disable story read marking and Remove promo channels are worth checking. Most of the rest unlocks Premium or gets past content protection, open ideas, not adopted code. Its README says it leaves out anti-delete and ghost mode on purpose. Its latest change declares Telegram 12.10.1 as a concrete target for the store, web and beta builds alike.",
       "archived": false,
       "forks": [],
       "contentHashes": [],
@@ -539,7 +539,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "An Xposed module that hooks Telegram at run time, quiet since 2025-04-21. Hide Stories and Prohibit channel switching are the ideas worth rewriting as patches. Anti anti-forward gets past a channel's forward protection and is rejected. A port means reimplementing the idea, not copying hooks.",
+      "reason": "An Xposed module that hooks Telegram at run time, quiet since 2025-04-21. Hide Stories and Prohibit channel switching are the ideas worth rewriting as patches. Anti anti-forward gets past a channel's forward protection, so it could only come back as a default-off switch. A port means reimplementing the idea, not copying hooks.",
       "archived": false,
       "forks": [
         "hxreborn/Re-Telegram-CherryFork",
@@ -626,7 +626,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "The best-known single-purpose module for Telegram's sponsored messages, which shows how much people want them gone. Its second feature gets past a channel's save restriction and is rejected.",
+      "reason": "The best-known single-purpose module for Telegram's sponsored messages, which shows how much people want them gone. Its second feature gets past a channel's save restriction. HushTelegram's default-off switch for files and songs from those chats is its own code.",
       "archived": false,
       "forks": [
         "rhjdvsgsgks/Killergram",
@@ -722,7 +722,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "A Killergram rewrite with additional camera and UI hooks. Lazy attachment-camera preview construction is a candidate for keeping gallery selection separate from camera initialization. The pinned Xposed hooks are research references, not maintained dependencies or accepted HushTelegram features. Restricted-content saving remains rejected.",
+      "reason": "A Killergram rewrite with additional camera and UI hooks. Lazy attachment-camera preview construction is a candidate for keeping gallery selection separate from camera initialization. The pinned Xposed hooks are research references, not maintained dependencies or accepted HushTelegram features. Its restricted-content saving is an idea only, and HushTelegram's default-off switch for files and songs is its own code.",
       "archived": false,
       "forks": [
         "Jl4cTuk/KillergramNeofork",
@@ -782,7 +782,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "The GitLab home of the Paresh lineage that MoonShadowKeeper, rushiranpise and their copies carry on, with 31 forks. It patches the web build at 12.9.2 and 12.8.3 and Plus Messenger at 12.9.2. The GitLab commit listing needs a token, so no watch path is set and any new commit on a branch counts as a change. Its list shares the lineage's Premium and restriction bypass patches, which HushTelegram won't ship. The ads, auto update, typing indicator and speed ideas are already covered by the other copies.",
+      "reason": "The GitLab home of the Paresh lineage that MoonShadowKeeper, rushiranpise and their copies carry on, with 31 forks. It patches the web build at 12.9.2 and 12.8.3 and Plus Messenger at 12.9.2. The GitLab commit listing needs a token, so no watch path is set and any new commit on a branch counts as a change. Its list shares the lineage's Premium and restriction bypass patches, open ideas, not adopted code. The ads, auto update, typing indicator and speed ideas are already covered by the other copies.",
       "archived": false,
       "forks": [
         "rachel.green.r/ecoscan-82031658-deletion_scheduled-87482117",
@@ -935,7 +935,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "rushiranpise's set retargeted to Telegram 13.0.1 for the store and web builds (Plus Messenger stays on 12.10.6.0). That makes it the first copy of the lineage on 13.x, so its fingerprints are worth comparing with the ones HushTelegram needs for 13.0.1. The features list is the union across packages. Premium, restriction bypass and anti-screenshot-notification patches stay rejected.",
+      "reason": "rushiranpise's set retargeted to Telegram 13.0.1 for the store and web builds (Plus Messenger stays on 12.10.6.0). That makes it the first copy of the lineage on 13.x, so its fingerprints are worth comparing with the ones HushTelegram needs for 13.0.1. The features list is the union across packages. Its Premium, restriction bypass and anti-screenshot-notification patches are open ideas, not adopted code.",
       "archived": false,
       "forks": [],
       "contentHashes": [],
@@ -1072,8 +1072,8 @@
         "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
       },
       "contaminatedBy": null,
-      "disposition": "rejected",
-      "reason": "A general bundle whose only Telegram patch unlocks Premium on 12.10.1, which HushTelegram won't ship.",
+      "disposition": "candidate",
+      "reason": "A general bundle whose only Telegram patch unlocks Premium on 12.10.1, one of the open ideas, not adopted code.",
       "archived": false,
       "forks": [
         "jiuwei-huli/MightyMichs-Patches"
@@ -1117,7 +1117,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "An independent bundle of 457 patches, marked experimental and described by its author as written by AI, with five Telegram patches and no declared Telegram version. Block ads and hide stories, Disable proximity sensor and the pinned chats limit are the ideas to look at. Saving restricted media and Premium are rejected.",
+      "reason": "An independent bundle of 457 patches, marked experimental and described by its author as written by AI, with five Telegram patches and no declared Telegram version. Block ads and hide stories, Disable proximity sensor and the pinned chats limit are the ideas to look at. Saving restricted media and Premium are open ideas, not adopted code.",
       "archived": false,
       "forks": [
         "imsahilansarii/D-moniakPatches",
@@ -1275,7 +1275,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "An Xposed module for third-party Telegram clients. Its hook entry lists the official store, web and beta packages beside Plus Messenger and a long list of forks, which settles the earlier doubt about official Telegram. Show message ID, Prohibit channel switching and Hide sponsored messages are the ideas worth rewriting as patches. Anti anti-forward and Anti anti-copy get past a channel's protection and are rejected. A port means reimplementing an idea, not copying hooks.",
+      "reason": "An Xposed module for third-party Telegram clients. Its hook entry lists the official store, web and beta packages beside Plus Messenger and a long list of forks, which settles the earlier doubt about official Telegram. Show message ID, Prohibit channel switching and Hide sponsored messages are the ideas worth rewriting as patches. Anti anti-forward and Anti anti-copy get past a channel's protection, so they could only come back as default-off switches. A port means reimplementing an idea, not copying hooks.",
       "archived": false,
       "forks": [
         "muchen605/TMoe",
@@ -1599,7 +1599,7 @@
       "license": null,
       "contaminatedBy": null,
       "disposition": "behavior-only",
-      "reason": "An Xposed module for official Telegram with no licence, so none of its code can be read for porting. Its ad blocking and pinned-message hiding show what people ask for. The forwarding and saving switches get past protection and are rejected.",
+      "reason": "An Xposed module for official Telegram with no licence, so none of its code can be read for porting. Its ad blocking and pinned-message hiding show what people ask for. Its forwarding and saving switches get past protection, and with no licence they stay ideas only.",
       "archived": false,
       "forks": [
         "HUMENTH/ai.noads.NoAdsTelegram",
@@ -1912,7 +1912,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "An Xposed module with an anti-delete hook that marks the message with its own deleted flag, a repeat plus-one menu item, and a copy and save unlock. The README warns that updating may lose all chat history. The flag approach is worth studying. The copy and save unlock gets past protection and is rejected.",
+      "reason": "An Xposed module with an anti-delete hook that marks the message with its own deleted flag, a repeat plus-one menu item, and a copy and save unlock. The README warns that updating may lose all chat history. The flag approach is worth studying. The copy and save unlock gets past protection, so it could only come back as a default-off switch.",
       "archived": false,
       "forks": [
         "Familyye/TgPlus",
@@ -2070,7 +2070,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "An MIT-licensed LSPosed module from 2025 aimed at official Telegram. Hiding online, seen and typing status is the ghost mode idea. Its Premium unlock is rejected.",
+      "reason": "An MIT-licensed LSPosed module from 2025 aimed at official Telegram. Hiding online, seen and typing status is the ghost mode idea. Its Premium unlock is one of the open ideas, not adopted code.",
       "archived": false,
       "forks": [],
       "contentHashes": [],
@@ -2189,8 +2189,8 @@
         "sha256": "3dbddb63e1f3e38ebb2238e4336f11ae438cf50232159a0bcfdbec9f2f02790f"
       },
       "contaminatedBy": null,
-      "disposition": "rejected",
-      "reason": "A 2022 MIT-licensed module that removes forwarding restrictions, fakes Premium and clears the secure window flag. Everything in it is something HushTelegram won't ship.",
+      "disposition": "candidate",
+      "reason": "A 2022 MIT-licensed module that removes forwarding restrictions, fakes Premium and clears the secure window flag. All three are open ideas, not adopted code, and the two that go past another person's setting could only come back as default-off switches.",
       "archived": false,
       "forks": [],
       "contentHashes": [],
@@ -2328,7 +2328,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "The Paresh lineage ported to Telegram 12.10.5 on its dev and port branches, while main is still the stock Morphe template, which is why the indexes list it with an empty patch list. The port rebuilds the fingerprints for 12.10.5 (the ChatActivity sponsored-slot methods moved into an obfuscated class) and ships a bytecode audit and a fingerprint matrix. It adds Disable rich HTML paste, Enable translations, High quality stories and Stories features to the lineage's set, and targets Plus Messenger 12.10.1.1 and the web build 12.10.1. The audit documents are the useful part. Premium, restriction bypass and anti-screenshot-notification patches stay rejected.",
+      "reason": "The Paresh lineage ported to Telegram 12.10.5 on its dev and port branches, while main is still the stock Morphe template, which is why the indexes list it with an empty patch list. The port rebuilds the fingerprints for 12.10.5 (the ChatActivity sponsored-slot methods moved into an obfuscated class) and ships a bytecode audit and a fingerprint matrix. It adds Disable rich HTML paste, Enable translations, High quality stories and Stories features to the lineage's set, and targets Plus Messenger 12.10.1.1 and the web build 12.10.1. The audit documents are the useful part. Its Premium, restriction bypass and anti-screenshot-notification patches are open ideas, not adopted code.",
       "archived": false,
       "forks": [],
       "contentHashes": [],

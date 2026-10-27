@@ -83,25 +83,17 @@ object NuvioMergeWork {
         return retained.values.sortedByDescending(updated)
     }
 
-    /** One post-Home sync per active profile/session; interruption can retry on Home. */
+    /** One startup claim per profile/process. Navigation and interruption cannot create another pass. */
     class HomeRequests {
-        private var profile: String? = null
-        private var requested = false
-        private var complete = false
+        private val requested = HashSet<String>()
         @Synchronized fun claim(value: String, presented: Boolean, home: Boolean): Boolean {
             if (!presented || !home) return false
-            if (profile != value) { profile = value; requested = false; complete = false }
-            if (requested || complete) return false
-            requested = true
-            return true
+            return requested.add(value)
         }
         @Synchronized fun finish(value: String, interrupted: Boolean) {
-            if (profile != null && profile != value) return
-            profile = value
-            requested = false
-            complete = !interrupted
+            // Explicit retries use ManualRequests. Returning to Home never retries a startup pass.
         }
-        @Synchronized fun reset() { profile = null; requested = false; complete = false }
+        @Synchronized fun reset() { requested.clear() }
     }
 
     /** Coalesce a manual request while an automatic worker is finishing cancellation. */

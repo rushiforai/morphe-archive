@@ -12,6 +12,8 @@ final class ViewReloadHost implements NativeReloadHost {
         this.owner = new WeakReference<>(owner);
     }
 
+    boolean owns(Object candidate) { return owner.get() == candidate; }
+
     private NativeReloadHost current() {
         View view = root.get();
         NativeReloadOwner controls = owner.get();

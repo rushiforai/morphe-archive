@@ -1,3 +1,9 @@
+## [0.3.0](https://github.com/pigfoot/morphe-patches/compare/v0.2.1...v0.3.0) (2026-10-27)
+
+### ✨ New Features
+
+* **fing:** add guarded premium and telemetry patches for 12.13.5 ([262700e](https://github.com/pigfoot/morphe-patches/commit/262700ec4727293c50205e3fd8c7b3f902c41eb1))
+
 ## [0.2.1](https://github.com/pigfoot/morphe-patches/compare/v0.2.0...v0.2.1) (2026-10-25)
 
 ### 🐛 Bug Fixes

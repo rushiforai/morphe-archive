@@ -38,6 +38,13 @@ public final class GcLiveDetail {
             }
         });
 
+    /** A log was posted or deleted: rebuild caches (found status, logs) instead of reusing them. */
+    public static void forgetRecent() {
+        RECENT.clear();
+        GcLiveSearch.forgetRecent();
+        GcUserStats.forgetFinds();
+    }
+
     /** The app's result wrapper: success with the cache, or "offline" when it can't be built. */
     public static Object fetch(String code) {
         Object[] recent = RECENT.get(code);
@@ -54,6 +61,29 @@ public final class GcLiveDetail {
             Utils.logError("Result wrapper unavailable", t);
             return Utils.offlineFailure();
         }
+    }
+
+    /**
+     * Called as the log screen opens. geocaching.com refuses logs and drafts on Premium-only caches from
+     * Basic members (the app's own API answers 403 for those caches), so say so before anything is typed.
+     */
+    public static void warnIfLogRefused(android.app.Activity activity) {
+        String code = activity.getIntent().getStringExtra("LogGeocacheActivity.CACHE_CODE");
+        if (code == null || !GcOfflineListUi.isOnline()) return;
+        new Thread(() -> {
+            try {
+                if (GcUserStats.apiStatus("/mobile/v1/geocaches/" + code) != 403) return;
+                activity.runOnUiThread(() -> {
+                    if (activity.isFinishing() || activity.isDestroyed()) return;
+                    Utils.showDialog(activity, "Premium-only cache",
+                        "geocaching.com only saves logs and drafts on Premium-only caches for Premium members, "
+                            + "so a log or draft written here won't reach your account.",
+                        null, null, "OK", null, null, null);
+                });
+            } catch (Throwable t) {
+                Utils.logError("Log check for " + code + " failed", t);
+            }
+        }).start();
     }
 
     private static Object build(String code) {
@@ -169,7 +199,7 @@ public final class GcLiveDetail {
             Object callerSpecific = newInstance("qq0",
                 new Class<?>[]{String.class, String.class, String.class, Class.forName(PKG + ".Coordinate"),
                     boolean.class, boolean.class, Class.forName("dd4")},
-                null, null, null, null, false, true, null);
+                GcUserStats.foundDate(code), null, null, null, false, true, null);
             Object status = newInstance(PKG + ".LiteGeocache$GeocacheStatus",
                 new Class<?>[]{boolean.class, boolean.class, boolean.class, boolean.class, boolean.class, boolean.class},
                 false, false, premiumOnly, true, true, false);

@@ -1,6 +1,8 @@
 package app.template.patches.boxbox.premium
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 object EntitlementInfoIsActiveFingerprint : Fingerprint(
     custom = { method, classDef ->
@@ -14,7 +16,7 @@ object EntitlementInfoIsActiveFingerprint : Fingerprint(
 // The plan enum (Free, Pro). Constant names are the Enum.name() strings, so they survive R8.
 object PlanEnumClinitFingerprint : Fingerprint(
     name = "<clinit>",
-    strings = listOf("Free", "Pro"),
+    strings = listOf(string("Free", StringComparisonType.CONTAINS), string("Pro", StringComparisonType.CONTAINS)),
     custom = { _, classDef -> classDef.superclass == "Ljava/lang/Enum;" },
 )
 
@@ -22,5 +24,8 @@ object PlanEnumClinitFingerprint : Fingerprint(
 // every user's stored plan, so both are stable.
 object PlanDataStoreClinitFingerprint : Fingerprint(
     name = "<clinit>",
-    strings = listOf("plans_data_store", "plan_type"),
+    strings = listOf(
+        string("plans_data_store", StringComparisonType.CONTAINS),
+        string("plan_type", StringComparisonType.CONTAINS),
+    ),
 )

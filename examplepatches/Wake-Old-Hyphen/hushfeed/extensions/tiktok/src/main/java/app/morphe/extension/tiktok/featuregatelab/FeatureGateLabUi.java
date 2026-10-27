@@ -31,6 +31,7 @@ import java.lang.reflect.Proxy;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
+import app.morphe.extension.tiktok.settings.preference.ShimmerTitle;
 
 final class FeatureGateLabUi {
     private FeatureGateLabUi() {
@@ -47,7 +48,9 @@ final class FeatureGateLabUi {
     }
 
     static TextView heading(Context context, String text) {
-        return text(context, text, 20, SettingsUi.textPrimary(), Typeface.BOLD);
+        TextView heading = text(context, text, 20, SettingsUi.textPrimary(), Typeface.BOLD);
+        ShimmerTitle.wear(heading);
+        return heading;
     }
 
     static FrameLayout header(Context context, String title, Runnable onBack) {
@@ -56,30 +59,9 @@ final class FeatureGateLabUi {
 
     static FrameLayout header(Context context, String title, Runnable onBack, Runnable onMenu) {
         FrameLayout frame = new FrameLayout(context);
-        frame.setPadding(dp(context, 16), 0, dp(context, 16), dp(context, 24));
+        frame.setPadding(0, 0, 0, dp(context, 8));
         LinearLayout header = app.morphe.extension.tiktok.settings.preference.SettingsHeaderPreference.createHeader(context, title, onBack);
-        ((TextView) header.findViewWithTag("hushfeed_page_title")).setTextSize(
-                app.morphe.extension.tiktok.settings.preference.SettingsHeaderPreference.headingSizeSp(context));
         if (onMenu != null) {
-            // Keep the Lab's brand and title inside one toolbar so the gate list keeps its room.
-            TextView heading = header.findViewWithTag("hushfeed_page_title");
-            LinearLayout toolbar = header.findViewWithTag("hushfeed_toolbar");
-            TextView brand = (TextView) toolbar.getChildAt(1);
-            header.removeView(heading);
-            toolbar.removeView(brand);
-            LinearLayout titles = new LinearLayout(context);
-            titles.setOrientation(LinearLayout.VERTICAL);
-            titles.setGravity(Gravity.CENTER_VERTICAL);
-            if (context.getResources().getConfiguration().fontScale <= 1.3f) {
-                brand.setTextSize(SettingsUi.TEXT_CAPTION);
-                titles.addView(brand, matchWrap());
-            }
-            heading.setTextSize(SettingsUi.TEXT_HEADLINE);
-            titles.addView(heading, matchWrap());
-            LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(0, -2, 1f);
-            titleParams.setMarginStart(dp(context, 12));
-            toolbar.addView(titles, titleParams);
-            frame.setPadding(dp(context, 16), 0, dp(context, 16), dp(context, 8));
             View menu = iconButton(context, "icon_ellipsis_horizontal", android.R.drawable.ic_menu_more,
                     L10n.t(context, "More options"), onMenu);
             menu.setTag("feature_gate_menu");

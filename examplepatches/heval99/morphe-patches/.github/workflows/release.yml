@@ -68,7 +68,8 @@ jobs:
       #   2. the tag v<version> exists on the remote and points at this run's commit or at the
       #      release commit made on top of it (so an older release of the same version never counts),
       #   3. the GitHub release v<version> has a patches-<version>.mpp asset whose sha256 digest
-      #      equals the local file (so we attest exactly the bytes that were published).
+      #      equals the local file (so we attest exactly the bytes that were published). When 1 and 2
+      #      hold but this fails (asset missing or different bytes), the step fails the run.
       - name: Check for a release published by this run
         id: published
         if: ${{ !cancelled() }}
@@ -112,8 +113,12 @@ jobs:
           local_digest="sha256:$(sha256sum "$bundle" | cut -d' ' -f1)"
           remote_digest="$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets \
             --jq ".assets[] | select(.name == \"${name}\") | .digest" || true)"
+          # The tag came from this run, so a missing or different asset is a broken release rather
+          # than "nothing published": fail the run visibly instead of skipping attestation quietly.
           if [ "$remote_digest" != "$local_digest" ]; then
-            skip "::warning::Release ${tag} asset ${name} digest '${remote_digest}' does not match the local build ${local_digest}; not attesting."
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "::error::Release ${tag} asset ${name} digest '${remote_digest}' does not match the local build ${local_digest}; not attesting."
+            exit 1
           fi
 
           echo "Release ${tag} was published by this run (${name}, ${local_digest})."

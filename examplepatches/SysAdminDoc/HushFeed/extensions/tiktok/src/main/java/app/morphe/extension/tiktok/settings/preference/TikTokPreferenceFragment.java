@@ -11,7 +11,6 @@ import app.morphe.extension.tiktok.settings.L10n;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
-import android.app.FragmentManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -102,9 +101,10 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     /** Pinned to the top of this page while a restart is owed; off the page otherwise. */
     private RestartPendingPreference restartPending;
     /** Rows on this page whose sentence was swapped for "Restart pending.", to swap back. */
-    private final java.util.Set<String> pendingSummaries = new java.util.HashSet<>();
+    private final java.util.Set<Preference> pendingSummaries =
+            java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
     /** Summaries a parent's reason was appended to, so it can be taken off again. */
-    private final java.util.Map<String, String> reasonSummaries = new java.util.HashMap<>();
+    private final java.util.Map<Preference, String> reasonSummaries = new java.util.IdentityHashMap<>();
     /**
      * Which folder setting the picker was opened for, by key rather than by the preference
      * itself. The picker is a separate activity, so this one is routinely destroyed behind it
@@ -134,8 +134,25 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private String shownSearch = "";
     private SettingsSearchInputPreference searchInput;
     private SettingsHeaderPreference masterHeader;
-    /** The home page's Quick setups card, which a long press takes off the page. Null off the home page. */
-    private QuickSetupsPreference quickSetupsRow;
+    private SettingsSearchEntryPreference searchEntry;
+    private final java.util.Map<Section, SettingsMenuPreference> sectionMenus =
+            new java.util.EnumMap<>(Section.class);
+    private SettingsMenuPreference aboutMenu;
+    private static final String EXPANDED_STATE = "morphe_expanded_settings";
+    private static final String SEARCH_ACTIVE_STATE = "morphe_inline_search_active";
+    private static final String ARG_EXPANDED = "morphe_initial_expanded_settings";
+    private ArrayList<String> restoredExpanded;
+    private ArrayList<String> searchExpanded;
+    private boolean restoringState, restoredSearch;
+
+    @Override public void onCreate(Bundle state) {
+        restoringState = state != null;
+        if (state != null) {
+            restoredExpanded = state.getStringArrayList(EXPANDED_STATE);
+            restoredSearch = state.getBoolean(SEARCH_ACTIVE_STATE);
+        }
+        super.onCreate(state);
+    }
 
     /**
      * Each section carries one sentence, used both as the subtitle on the home row and as the
@@ -421,7 +438,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             FeedMute.refresh();
             BlockAuthorOverlay.refresh();
         }
-        if (!applySettingToPreference && (setting == Settings.COMMENT_SEARCH || setting == Settings.COMMENT_EXPORT)) {
+        if (!applySettingToPreference && (setting == Settings.COMMENT_SEARCH || setting == Settings.COMMENT_EXPORT
+                || setting == Settings.COMMENT_SEARCH_FOLDED)) {
             CommentSearch.onSettingChanged();
         }
         if (!applySettingToPreference && setting == Settings.KEEP_CAPTIONS_CLEAR_DISPLAY) {
@@ -592,16 +610,28 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         PreferenceScreen preferenceScreen = getPreferenceManager().createPreferenceScreen(context);
         setPreferenceScreen(preferenceScreen);
 
-        Section section = getRequestedSection();
-        Hub hub = getRequestedHub();
-        if (isSearchRequested()) {
+        sectionMenus.clear();
+        aboutMenu = null;
+        searchScreen = null;
+        searchInput = null;
+        searchRows.clear();
+        pendingSummaries.clear();
+        reasonSummaries.clear();
+        createMasterMenu(context, preferenceScreen);
+        Bundle arguments = getArguments();
+        ArrayList<String> expanded = restoringState ? restoredExpanded
+                : arguments == null ? null : arguments.getStringArrayList(ARG_EXPANDED);
+        restoreExpanded(expanded);
+        if (!restoringState) {
+            expandSection(getRequestedSection());
+            if (getRequestedHub() == Hub.ABOUT) expandAbout();
+            String row = getTargetKey();
+            if (row == null && arguments != null) row = arguments.getString(ARG_RETURN_ROW);
+            if (row != null) expandOwner(row);
+        }
+        if (restoringState ? restoredSearch
+                : arguments != null && arguments.getBoolean(ARG_SEARCH, false)) {
             createSearchMenu(context, preferenceScreen);
-        } else if (hub == Hub.ABOUT) {
-            createAboutMenu(context, preferenceScreen);
-        } else if (section == null) {
-            createMasterMenu(context, preferenceScreen);
-        } else {
-            createSectionMenu(context, preferenceScreen, section);
         }
         restartPending = new RestartPendingPreference(context);
         refreshRestartPending();
@@ -647,8 +677,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         super.updatePreferenceAvailability(pref, setting);
         Context context = getActivity();
         if (context == null || pref.getKey() == null) return;
-        String key = pref.getKey();
-        String appended = reasonSummaries.remove(key);
+        String appended = reasonSummaries.remove(pref);
         if (appended != null) {
             CharSequence current = pref.getSummary();
             if (current != null && current.toString().endsWith(appended)) {
@@ -683,7 +712,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         String reason = body.isEmpty() ? note : (ownLine ? "\n" : " ") + note;
         if (body.endsWith(reason)) return;
         pref.setSummary(body + reason);
-        reasonSummaries.put(key, reason);
+        reasonSummaries.put(pref, reason);
     }
 
     private void refreshRestartPending() {
@@ -705,22 +734,46 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         // pending. If the old layout is still there, unfold again."), so this keeps one.
         String pending = L10n.t(context, "Restart pending") + ".";
         java.util.List<String> owedKeys = restartPendingKeys();
-        for (String key : owedKeys) {
-            Preference row = findPreference(key);
+        for (Preference row : allRows(screen)) {
+            if (!owedKeys.contains(row.getKey())) continue;
             CharSequence summary = row == null ? null : row.getSummary();
             if (summary == null || !summary.toString().contains(generic)) continue;
             row.setSummary(summary.toString().replace(generic, pending));
-            pendingSummaries.add(key);
+            pendingSummaries.add(row);
         }
         // A switch flipped back owes nothing, so its row says what it said before.
-        for (String key : new java.util.ArrayList<>(pendingSummaries)) {
-            if (owedKeys.contains(key)) continue;
-            pendingSummaries.remove(key);
-            Preference row = findPreference(key);
+        for (Preference row : new java.util.ArrayList<>(pendingSummaries)) {
+            if (owedKeys.contains(row.getKey())) continue;
+            pendingSummaries.remove(row);
             CharSequence summary = row == null ? null : row.getSummary();
             if (summary == null || !summary.toString().contains(pending)) continue;
             row.setSummary(summary.toString().replace(pending, generic));
         }
+    }
+
+    private static List<Preference> allRows(PreferenceGroup group) {
+        List<Preference> rows = new ArrayList<>();
+        for (int index = 0; index < group.getPreferenceCount(); index++) {
+            Preference row = group.getPreference(index);
+            rows.add(row);
+            if (row instanceof PreferenceGroup) rows.addAll(allRows((PreferenceGroup) row));
+        }
+        return rows;
+    }
+
+    private void removeSearchRows() {
+        for (Preference row : searchRows) {
+            searchScreen.removePreference(row);
+            reasonSummaries.remove(row);
+            pendingSummaries.remove(row);
+        }
+        searchRows.clear();
+    }
+
+    private void updateSearchLongClicks() {
+        View view = getView();
+        ListView list = view == null ? null : view.findViewById(android.R.id.list);
+        if (list != null) list.setLongClickable(searchScreen != null);
     }
 
     private static java.util.List<String> restartPendingKeys() {
@@ -736,11 +789,13 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         ListView list = view.findViewById(android.R.id.list);
         if (list != null) {
             SettingsUi.styleScrollableList(list);
+            // Keep the inline editor focused when the list rebuilds its search results.
+            list.setItemsCanFocus(true);
             list.setBackgroundColor(SettingsUi.background());
             list.setCacheColorHint(SettingsUi.background());
             list.setDivider(null);
             list.setDividerHeight(0);
-            int side = 16;
+            int side = 0;
             list.setPadding(SettingsUi.dp(getActivity(), side), 0,
                     SettingsUi.dp(getActivity(), side), SettingsUi.dp(getActivity(), 24));
             list.setClipToPadding(false);
@@ -805,6 +860,9 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     }
 
     @Override public void onSaveInstanceState(Bundle outState) {
+        outState.putStringArrayList(EXPANDED_STATE,
+                searchExpanded == null ? expandedGroups() : new ArrayList<>(searchExpanded));
+        outState.putBoolean(SEARCH_ACTIVE_STATE, searchScreen != null);
         super.onSaveInstanceState(outState);
         rememberSearchPosition();
         outState.putInt(SEARCH_POSITION_STATE, searchPosition);
@@ -840,7 +898,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         if (list != null && list.getAdapter() != null) {
             styledAdapter = new SettingsListAdapter(list.getAdapter());
             list.setAdapter(styledAdapter);
-            if (searchInput != null) {
+            {
                 list.setOnItemLongClickListener((parent, row, position, id) -> {
                     if (row == null || row.getParent() != parent
                             || parent.getPositionForView(row) != position) return false;
@@ -856,6 +914,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                         info.removeAction(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_LONG_CLICK);
                     }
                 });
+                updateSearchLongClicks();
                 restoreSearchPosition(list);
             }
             String targetKey = getTargetKey();
@@ -867,13 +926,13 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 scrollToPreference(list, returnRow, false);
                 list.post(() -> scrollToPreference(list, returnRow, false));
             }
-            if (!returning && targetKey != null) {
+            if (!returning && targetKey != null && state == null) {
                 scrollToPreference(list, targetKey, false);
                 list.post(() -> {
                     if (!isAdded() || getView() == null) return;
                     if (findPreference(targetKey) == null) {
                         SettingsActionBanner.showNotice(getActivity(), L10n.t(getActivity(),
-                                "This setting isn't available on this page. Go back and search again."));
+                                "This setting isn't available. Search for another setting."));
                     } else scrollToPreference(list, targetKey);
                 });
                 // Only on arrival. A recreated page brings back the dialog it had open, with the
@@ -941,8 +1000,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     }
 
     private boolean isSearchRequested() {
-        Bundle arguments = getArguments();
-        return arguments != null && arguments.getBoolean(ARG_SEARCH, false);
+        return searchScreen != null;
     }
 
     private Hub getRequestedHub() {
@@ -956,22 +1014,17 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
     }
 
-    /** This page, as the restart's return marker names it, so the next start can open it again. */
+    /** Sections stay on this screen; home() accepts old section-page markers too. */
     String pageKey() {
-        if (isSearchRequested()) return PAGE_SEARCH;
-        Hub hub = getRequestedHub();
-        if (hub != null) return PAGE_HUB + hub.name();
-        Section section = getRequestedSection();
-        return section != null ? PAGE_SECTION + section.name() : PAGE_HOME;
+        return isSearchRequested() ? PAGE_SEARCH : PAGE_HOME;
     }
 
-    /**
-     * What a restart's return marker records: this page, and the row at the top of the screen
-     * when the page was scrolled, so a restart from far down the home page comes back there.
-     */
     String returnMarker() {
+        ArrayList<String> expanded = searchExpanded == null ? expandedGroups() : searchExpanded;
+        String page = pageKey();
+        if (!expanded.isEmpty()) page += ":" + android.text.TextUtils.join(",", expanded);
         String row = rowInView();
-        return row == null ? pageKey() : pageKey() + ROW_MARK + row;
+        return row == null ? page : page + ROW_MARK + row;
     }
 
     /** The first row whole on screen, or null while the page is at its top. */
@@ -989,50 +1042,47 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         return null;
     }
 
-    /**
-     * The settings screen's first page for a restart's return marker: the home page, scrolled to
-     * the marker's row when the restart came from home.
-     */
+    /** Restores current inline markers and older section-page links on the main screen. */
     public static TikTokPreferenceFragment home(String marker) {
         TikTokPreferenceFragment home = new TikTokPreferenceFragment();
-        int mark = marker == null ? -1 : marker.indexOf(ROW_MARK);
-        if (mark > 0 && PAGE_HOME.equals(marker.substring(0, mark)) && mark < marker.length() - 1) {
-            Bundle arguments = new Bundle();
-            arguments.putString(ARG_RETURN_ROW, marker.substring(mark + 1));
-            home.setArguments(arguments);
+        Bundle arguments = new Bundle();
+        if (marker != null) {
+            int mark = marker.indexOf(ROW_MARK);
+            String page = mark < 0 ? marker : marker.substring(0, mark);
+            if (mark >= 0 && mark < marker.length() - 1)
+                arguments.putString(ARG_RETURN_ROW, marker.substring(mark + 1));
+            if (page.equals(PAGE_SEARCH) || page.startsWith(PAGE_SEARCH + ":"))
+                arguments.putBoolean(ARG_SEARCH, true);
+            if (page.startsWith(PAGE_SECTION)) {
+                arguments.putString(ARG_SECTION, page.substring(PAGE_SECTION.length()));
+            } else if (page.equals(PAGE_HUB + Hub.ABOUT.name())) {
+                arguments.putString(ARG_HUB, Hub.ABOUT.name());
+            } else if (page.startsWith(PAGE_HOME + ":") || page.startsWith(PAGE_SEARCH + ":")) {
+                arguments.putStringArrayList(ARG_EXPANDED,
+                        new ArrayList<>(java.util.Arrays.asList(
+                                page.substring(page.indexOf(':') + 1).split(","))));
+            }
         }
+        if (!arguments.isEmpty()) home.setArguments(arguments);
         return home;
     }
 
-    /**
-     * The page a return marker names, built to open over the home page, or null for the home page
-     * itself and for a page this build doesn't have. A marker from an older build has no row.
-     */
+    /** Legacy callers resolve a page marker to a configured main screen. */
     public static TikTokPreferenceFragment forPage(String page) {
-        if (page == null) return null;
-        Bundle arguments = new Bundle();
-        int mark = page.indexOf(ROW_MARK);
-        if (mark >= 0) {
-            if (mark < page.length() - 1) arguments.putString(ARG_RETURN_ROW, page.substring(mark + 1));
-            page = page.substring(0, mark);
-        }
-        try {
-            if (PAGE_SEARCH.equals(page)) {
-                arguments.putBoolean(ARG_SEARCH, true);
-            } else if (page.startsWith(PAGE_HUB)) {
-                arguments.putString(ARG_HUB, Hub.valueOf(page.substring(PAGE_HUB.length())).name());
-            } else if (page.startsWith(PAGE_SECTION)) {
-                arguments.putString(ARG_SECTION,
-                        Section.valueOf(page.substring(PAGE_SECTION.length())).name());
-            } else {
+        if (page == null || page.equals(PAGE_HOME) || page.startsWith(PAGE_HOME + "#")) return null;
+        String name = page.split("#", 2)[0];
+        if (name.equals(PAGE_SEARCH) || name.startsWith(PAGE_SEARCH + ":")
+                || name.startsWith(PAGE_HOME + ":") || name.equals(PAGE_HUB + Hub.ABOUT.name()))
+            return home(page);
+        if (name.startsWith(PAGE_SECTION)) {
+            try {
+                Section.valueOf(name.substring(PAGE_SECTION.length()));
+                return home(page);
+            } catch (IllegalArgumentException gone) {
                 return null;
             }
-        } catch (IllegalArgumentException gone) {
-            return null;
         }
-        TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
-        fragment.setArguments(arguments);
-        return fragment;
+        return null;
     }
 
     private String getTargetKey() {
@@ -1045,24 +1095,26 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     }
 
     private void createSearchMenu(Context context, PreferenceScreen screen) {
+        if (searchScreen != null) return;
+        searchExpanded = expandedGroups();
+        for (SettingsMenuPreference menu : sectionMenus.values()) menu.setExpanded(false);
+        if (aboutMenu != null) aboutMenu.setExpanded(false);
         searchScreen = screen;
-        screen.addPreference(SettingsHeaderPreference.section(context, "Search settings", this::navigateBack));
-        screen.addPreference(SettingsHeaderPreference.caption(context,
-                "Tap a switch to change it. Press and hold to open its page."));
+        screen.removePreference(searchEntry);
         searchInput = new SettingsSearchInputPreference(context, this::updateSearchResults);
+        searchInput.setKey("action_search_settings");
+        searchInput.setOrder(-900);
         screen.addPreference(searchInput);
         searchIndex = buildSearchIndex(context, FeatureGateLabRuntime.isInstalled());
         updateSearchResults("");
+        updateSearchLongClicks();
     }
 
     private void updateSearchResults(String query) {
         if (searchScreen == null) {
             return;
         }
-        for (Preference row : searchRows) {
-            searchScreen.removePreference(row);
-        }
-        searchRows.clear();
+        removeSearchRows();
 
         // Folding happens before the empty check: a query of nothing but accent marks is not
         // empty as typed but folds away to nothing, and every setting contains "".
@@ -1092,7 +1144,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             return;
         }
 
-        int order = 0;
+        int order = -700;
         java.util.Set<String> flipped = new java.util.HashSet<>();
         for (SearchResult result : matches) {
             // A plain switch is flipped right here, the way it is on its page, and the page's
@@ -1151,7 +1203,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         List<String> recent = app.morphe.extension.tiktok.settings.SettingsSearchHistory.recent();
         if (recent.isEmpty()) return false;
         Context context = getActivity();
-        int order = 0;
+        int order = -700;
         Preference heading = new SectionHeadingPreference(context, "Recent searches");
         heading.setOrder(order++);
         searchRows.add(heading);
@@ -1189,81 +1241,9 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         state.setTitle(L10n.t(getActivity(), title));
         state.setSummary(L10n.t(getActivity(), summary));
         state.setSelectable(false);
-        state.setOrder(0);
+        state.setOrder(-700);
         searchRows.add(state);
         searchScreen.addPreference(state);
-    }
-
-    /**
-     * The settings one section binds, worked out once and remembered.
-     *
-     * <p>Building the page is how this knows what is on it, and building every page each time
-     * Quick setups runs is about 184 preferences of work. The pages do not gain or lose rows
-     * while the screen is open: what changes is the values, and those are read again every time.
-     */
-    private List<Setting<?>> settingsOn(Context context, Section section) {
-        List<Setting<?>> known = sectionSettings.get(section);
-        if (known != null) {
-            return known;
-        }
-        List<Setting<?>> found = new ArrayList<>();
-        PreferenceScreen scratch = getPreferenceManager().createPreferenceScreen(context);
-        PreferenceCategory category = createCategory(context, scratch, section);
-        if (category != null) {
-            collectSettings(category, found, new java.util.HashSet<>());
-            scratch.removePreference(category);
-        }
-        sectionSettings.put(section, found);
-        return found;
-    }
-
-    /**
-     * Every setting on Hushfeed's pages that this build can reach, for Quick setups, which
-     * changes only what a reader could find and change back by hand.
-     */
-    private java.util.Collection<Setting<?>> settingsOnPages() {
-        java.util.Set<Setting<?>> all = new java.util.LinkedHashSet<>();
-        Context context = getActivity();
-        if (context == null) return all;
-        for (Section section : Section.values()) {
-            try {
-                for (Setting<?> setting : settingsOn(context, section)) {
-                    if (setting.isAvailable()) all.add(setting);
-                }
-            } catch (RuntimeException unreadable) {
-                app.morphe.extension.shared.Logger.printException(
-                        () -> "Couldn't read the settings on " + section + " for Quick setups", unreadable);
-            }
-        }
-        return all;
-    }
-
-    private static void collectSettings(PreferenceGroup group, List<Setting<?>> found,
-            java.util.Set<String> seen) {
-        for (int index = 0; index < group.getPreferenceCount(); index++) {
-            Preference preference = group.getPreference(index);
-            if (preference instanceof PreferenceGroup) {
-                collectSettings((PreferenceGroup) preference, found, seen);
-                continue;
-            }
-            // A checklist row stands for several switches and has no setting of its own.
-            if (preference instanceof SwitchListPreference) {
-                for (Setting<?> setting : ((SwitchListPreference) preference).settings()) {
-                    if (seen.add(setting.key)) found.add(setting);
-                }
-                continue;
-            }
-            if (!preference.hasKey()) {
-                continue;
-            }
-            Setting<?> setting = Setting.getSettingFromPath(preference.getKey());
-            // A row with no setting behind it is an action. Two rows can share one setting, and
-            // a page can bind the same row twice.
-            if (setting == null || !seen.add(setting.key)) {
-                continue;
-            }
-            found.add(setting);
-        }
     }
 
     /** Set by tests, which see Utils' empty release version and so never a pending What's new. */
@@ -1303,7 +1283,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         // categories walked above, so each is indexed by hand. Their category line names where
         // a reader finds them, the home heading or the page; it said "Settings" for all of
         // them, which is no page.
-        String privacyAndApp = L10n.t(context, "Privacy and app");
+        String homeTitle = "Hushfeed";
         String hushfeed = L10n.t(context, "Hushfeed");
         String about = L10n.t(context, Hub.ABOUT.title);
         // Without an explicit entry, the Lab's title and summary returned zero results on a
@@ -1315,7 +1295,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                     L10n.t(context, "Feature Gate Lab"),
                     L10n.t(context, "Advanced. Find and force the hidden switches TikTok uses "
                             + "to test features."),
-                    privacyAndApp,
+                    homeTitle,
                     "override gates"
             ));
         }
@@ -1453,7 +1433,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             case SCREEN_TIME:
                 return new ScreenTimePreferenceCategory(context, screen);
             case BACKUP:
-                // Its four rows need the fragment, so createSectionMenu adds them itself.
+                // Its four actions are added by expandSection.
                 return null;
             case INBOX:
                 return new InboxPreferenceCategory(context, screen);
@@ -1490,7 +1470,13 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         for (int position = 0; position < list.getAdapter().getCount(); position++) {
             Object item = list.getAdapter().getItem(position);
             if (item instanceof Preference && key.equals(((Preference) item).getKey())) {
+                // Selection skips nonselectable rows outside touch mode, including search
+                // and headings. Scrolling still reveals those rows for accessibility callers.
                 list.setSelectionFromTop(position, top);
+                if (!list.isInTouchMode() && !list.getAdapter().isEnabled(position)) {
+                    int target = position;
+                    list.post(() -> list.smoothScrollToPositionFromTop(target, top, 0));
+                }
                 if (highlight) highlightRow(list, position);
                 return;
             }
@@ -1501,17 +1487,22 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         if (list.getAdapter() == null || position < 0 || position >= list.getCount()) return;
         Object expected = list.getItemAtPosition(position), token = new Object();
         list.setTag(HIGHLIGHT_OWNER, token);
+        long deadline = android.os.SystemClock.uptimeMillis() + 1000;
         android.view.ViewTreeObserver observer = list.getViewTreeObserver();
         observer.addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener() {
             @Override public boolean onPreDraw() {
                 android.view.ViewTreeObserver current = list.getViewTreeObserver();
+                boolean ownsTarget = list.getTag(HIGHLIGHT_OWNER) == token
+                        && list.isAttachedToWindow() && list.getAdapter() != null
+                        && position < list.getCount() && list.getItemAtPosition(position) == expected;
+                int index = position - list.getFirstVisiblePosition();
+                // A nonselectable destination can still be scrolling into view on this frame.
+                if (ownsTarget && (index < 0 || index >= list.getChildCount())
+                        && android.os.SystemClock.uptimeMillis() < deadline) return true;
                 if (current.isAlive()) current.removeOnPreDrawListener(this);
                 if (list.getTag(HIGHLIGHT_OWNER) != token) return true;
                 list.setTag(HIGHLIGHT_OWNER, null);
-                if (!list.isAttachedToWindow() || list.getAdapter() == null
-                        || position >= list.getCount() || list.getItemAtPosition(position) != expected)
-                    return true;
-                int index = position - list.getFirstVisiblePosition();
+                if (!ownsTarget) return true;
                 if (index < 0 || index >= list.getChildCount()) return true;
                 View row = list.getChildAt(index);
                 if (row == null) return true;
@@ -1573,40 +1564,25 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
     }
 
-    /**
-     * The home page: search and Quick setups, then every page as a row of its own under five
-     * headings, Hushfeed's own rows last with the Ko-fi row at the very end. Nothing sits behind
-     * a second menu (Matt, 2026-10-12). The status card and Pause are in the Hushfeed group
-     * rather than up top, so the first page still shows without scrolling; the header's status
-     * line takes the reader down to them.
-     */
+    /** Each category reveals its controls directly below its compact header. */
     private void createMasterMenu(Context context, PreferenceScreen screen) {
-        // A home page aimed at a row was opened over the search results, so its Back goes back
-        // to them. Only the home page settings opened on closes settings.
-        Bundle arguments = getArguments();
-        boolean overResults = arguments != null && arguments.getString(ARG_TARGET_KEY) != null;
-        masterHeader = SettingsHeaderPreference.master(context,
-                overResults ? this::navigateBack : this::closeSettings,
+        masterHeader = SettingsHeaderPreference.master(context, this::navigateBack,
                 () -> showRow(SettingsStatusPreference.KEY));
         screen.addPreference(masterHeader);
-        SettingsSearchEntryPreference search = new SettingsSearchEntryPreference(context,
-                preference -> {
-                    openSearch();
-                    return true;
-                });
-        search.setKey("action_search_settings");
-        search.setOrder(-900);
-        screen.addPreference(search);
-        quickSetupsRow = new QuickSetupsPreference(context, this::settingsOnPages, this::hideQuickSetups);
-        quickSetupsRow.setOrder(-850);
-        if (!BaseSettings.HIDE_QUICK_SETUPS.get()) screen.addPreference(quickSetupsRow);
+        searchEntry = new SettingsSearchEntryPreference(context, preference -> {
+            openSearch();
+            return true;
+        });
+        searchEntry.setKey("action_search_settings");
+        searchEntry.setOrder(-900);
+        screen.addPreference(searchEntry);
 
-        addGroup(context, screen, "Your feed", Section.FEED_FILTER, Section.FEED_NAVIGATION,
-                Section.INTERFACE, Section.PLAYBACK, Section.SCREEN_TIME);
-        addGroup(context, screen, "Conversations", Section.COMMENTS, Section.INBOX);
-        addGroup(context, screen, "Saving and sharing", Section.DOWNLOADS, Section.SHARE);
-        addGroup(context, screen, "Privacy and app", Section.PRIVACY, Section.BEHAVIOR,
-                Section.REGION, Section.BACKUP);
+        for (Section section : new Section[]{Section.FEED_FILTER, Section.FEED_NAVIGATION,
+                Section.INTERFACE, Section.PLAYBACK, Section.SCREEN_TIME, Section.COMMENTS,
+                Section.INBOX, Section.DOWNLOADS, Section.SHARE, Section.PRIVACY, Section.BEHAVIOR,
+                Section.REGION, Section.BACKUP}) {
+            if (section.isAvailable()) addMenu(screen, section);
+        }
         if (FeatureGateLabRuntime.isInstalled()) addFeatureGateLab(screen);
 
         screen.addPreference(SectionHeadingPreference.compact(context, "Hushfeed"));
@@ -1620,39 +1596,10 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         addAbout(screen);
         addReportProblem(screen);
         addSupport(screen);
-    }
-
-    /** The long press on the Quick setups card: it leaves the home page now, and the banner says where it comes back. */
-    private void hideQuickSetups() {
-        BaseSettings.HIDE_QUICK_SETUPS.save(true);
-        syncQuickSetupsRow();
-        Context context = getActivity();
-        if (context == null) return;
-        SettingsActionBanner.showNotice(context, L10n.f(context,
-                "Quick setups hidden. Bring it back from %1$s.", L10n.t(context, Section.BACKUP.title)));
-    }
-
-    /** Puts the home page's Quick setups card on the page or takes it off to match the saved choice. */
-    private void syncQuickSetupsRow() {
-        PreferenceScreen screen = getPreferenceScreen();
-        if (quickSetupsRow == null || screen == null) return;
-        boolean onPage = screen.findPreference(QuickSetupsPreference.KEY) != null;
-        boolean hidden = BaseSettings.HIDE_QUICK_SETUPS.get();
-        if (hidden && onPage) screen.removePreference(quickSetupsRow);
-        else if (!hidden && !onPage) screen.addPreference(quickSetupsRow);
-    }
-
-    /** A home heading and its pages, or nothing when the bundle left out every one of them. */
-    private void addGroup(Context context, PreferenceScreen screen, String heading,
-            Section... sections) {
-        boolean headed = false;
-        for (Section section : sections) {
-            if (!section.isAvailable()) continue;
-            if (!headed) {
-                screen.addPreference(SectionHeadingPreference.compact(context, heading));
-                headed = true;
-            }
-            addMenu(screen, section);
+        // Search results occupy the space between the field and these category rows.
+        for (int index = 0; index < screen.getPreferenceCount(); index++) {
+            Preference row = screen.getPreference(index);
+            if (row != masterHeader && row != searchEntry) row.setOrder(10000 + index);
         }
     }
 
@@ -1820,18 +1767,20 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private void addAbout(PreferenceScreen screen) {
         SettingsMenuPreference row = new SettingsMenuPreference(getActivity(), Hub.ABOUT.title,
                 "", SettingsMenuPreference.Icon.ABOUT, preference -> {
-                    openHub(Hub.ABOUT);
+                    boolean wasExpanded = aboutMenu.isExpanded();
+                    closeSearch();
+                    if (wasExpanded) aboutMenu.setExpanded(false);
+                    else expandAbout();
                     return true;
                 });
         row.setKey("hub_" + Hub.ABOUT.name().toLowerCase(java.util.Locale.ROOT));
         row.setCompact(true);
+        row.setExpandable(true);
+        aboutMenu = row;
         screen.addPreference(row);
     }
 
-    private void createAboutMenu(Context context, PreferenceScreen screen) {
-        screen.addPreference(SettingsHeaderPreference.section(context, Hub.ABOUT.title, this::navigateBack));
-        screen.addPreference(SettingsHeaderPreference.caption(context, Hub.ABOUT.description));
-        screen.addPreference(new SectionHeadingPreference(context, "About"));
+    private void createAboutMenu(Context context, PreferenceGroup screen) {
         screen.addPreference(new BuildDetailsPreference(context));
         addReleaseNotes(context, screen);
         screen.addPreference(new MorpheTikTokAboutPreference(context));
@@ -1850,7 +1799,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         screen.addPreference(lab);
     }
 
-    private void addReleaseNotes(Context context, PreferenceScreen screen) {
+    private void addReleaseNotes(Context context, PreferenceGroup screen) {
         String releaseVersion = releaseVersion();
         if (!ReleaseNotes.pending(context, releaseVersion)) return;
         SettingsMenuPreference notes = new SettingsMenuPreference(context, "What's new",
@@ -1929,10 +1878,6 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         if (masterHeader != null) masterHeader.refreshStatus();
     }
 
-    /** What each section binds, so Quick setups does not build the pages again. */
-    private final java.util.Map<Section, List<Setting<?>>> sectionSettings =
-            new java.util.EnumMap<>(Section.class);
-
     /** A page's row on the home page, in the compact layout. */
     private void addMenu(PreferenceScreen screen, Section section) {
         String description = L10n.t(getActivity(), section == Section.SCREEN_TIME
@@ -1946,24 +1891,87 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 description,
                 section.icon,
                 preference -> {
-                    openSection(section);
+                    SettingsMenuPreference menu = sectionMenus.get(section);
+                    boolean wasExpanded = menu.isExpanded();
+                    closeSearch();
+                    if (wasExpanded) menu.setExpanded(false);
+                    else {
+                        expandSection(section);
+                        updateUIToSettingValues();
+                        refreshRestartPending();
+                    }
                     return true;
                 }
         );
         row.setKey("section_" + section.name().toLowerCase(java.util.Locale.ROOT));
         row.setCompact(true);
+        row.setExpandable(true);
+        sectionMenus.put(section, row);
         screen.addPreference(row);
     }
 
-    private void createSectionMenu(Context context, PreferenceScreen screen, Section section) {
-        screen.addPreference(SettingsHeaderPreference.section(context, section.title, this::navigateBack));
-        screen.addPreference(SettingsHeaderPreference.caption(context, section.description));
+    private void expandSection(Section section) {
+        SettingsMenuPreference menu = sectionMenus.get(section);
+        if (menu == null) return;
+        if (menu.getPreferenceCount() == 0) {
+            PreferenceScreen scratch = getPreferenceManager().createPreferenceScreen(getActivity());
+            PreferenceCategory category = createCategory(getActivity(), scratch, section);
+            if (category != null) {
+                while (category.getPreferenceCount() > 0) {
+                    Preference child = category.getPreference(0);
+                    category.removePreference(child);
+                    child.setOrder(menu.getPreferenceCount());
+                    menu.addPreference(child);
+                }
+                scratch.removePreference(category);
+            }
+            if (section == Section.BACKUP) {
+                menu.addPreference(new SectionHeadingPreference(getActivity(), "Your settings"));
+                SettingsBackupPreference.addTo(this, menu);
+            }
+        }
+        menu.setExpanded(true);
+    }
 
-        PreferenceCategory category = createCategory(context, screen, section);
-        flattenCategory(screen, category);
-        if (section == Section.BACKUP) {
-            screen.addPreference(new SectionHeadingPreference(context, "Your settings"));
-            SettingsBackupPreference.addTo(this, screen);
+    private void expandAbout() {
+        if (aboutMenu == null) return;
+        if (aboutMenu.getPreferenceCount() == 0) createAboutMenu(getActivity(), aboutMenu);
+        aboutMenu.setExpanded(true);
+    }
+
+    private ArrayList<String> expandedGroups() {
+        ArrayList<String> result = new ArrayList<>();
+        for (Section section : Section.values()) {
+            SettingsMenuPreference menu = sectionMenus.get(section);
+            if (menu != null && menu.isExpanded()) result.add(section.name());
+        }
+        if (aboutMenu != null && aboutMenu.isExpanded()) result.add(Hub.ABOUT.name());
+        return result;
+    }
+
+    private void restoreExpanded(List<String> groups) {
+        if (groups == null) return;
+        for (String name : groups) {
+            if (Hub.ABOUT.name().equals(name)) expandAbout();
+            else {
+                try { expandSection(Section.valueOf(name)); }
+                catch (IllegalArgumentException gone) { /* Removed sections stay absent. */ }
+            }
+        }
+    }
+
+    private void expandOwner(String key) {
+        if (BuildDetailsPreference.KEY.equals(key) || ReleaseNotes.KEY.equals(key)
+                || MorpheTikTokAboutPreference.KEY.equals(key) || LicensesPreference.KEY.equals(key)) {
+            expandAbout();
+            return;
+        }
+        if (findPreference(key) != null) return;
+        for (SearchResult result : buildSearchIndex(getActivity(), FeatureGateLabRuntime.isInstalled())) {
+            if (key.equals(result.key) || key.equals(result.member)) {
+                expandSection(result.section);
+                return;
+            }
         }
     }
 
@@ -1989,7 +1997,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         return activity != null ? activity : fallback;
     }
 
-    /** Reconciles a preset's batch write with the rows and the restart debt on this page. */
+    /** Reconciles a preset's batch write with the controls and restart debt on this screen. */
     static void onSettingsBatchChanged(java.util.Map<Setting<?>, Object> previousValues) {
         app.morphe.extension.tiktok.feed.FeedTextSize.onSettingChanged();
         app.morphe.extension.tiktok.comment.CommenterDetails.onSettingChanged();
@@ -2005,105 +2013,73 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         current.refreshRestartPending();
     }
 
-    private static void flattenCategory(PreferenceScreen screen, PreferenceCategory category) {
-        if (category == null) {
-            return;
-        }
-        int count = category.getPreferenceCount();
-        Preference[] children = new Preference[count];
-        for (int index = 0; index < count; index++) {
-            children[index] = category.getPreference(index);
-        }
-        for (Preference child : children) {
-            category.removePreference(child);
-        }
-        screen.removePreference(category);
-        for (int index = 0; index < children.length; index++) {
-            Preference child = children[index];
-            child.setOrder(index);
-            screen.addPreference(child);
-        }
-    }
-
     private void openSearch() {
-        FragmentManager manager = getFragmentManager();
-        if (manager == null || getId() == 0) {
-            Utils.showToastShort(L10n.t("Couldn't open settings search. Reopen settings and try again."));
-            return;
-        }
-
-        TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
-        Bundle arguments = new Bundle();
-        arguments.putBoolean(ARG_SEARCH, true);
-        fragment.setArguments(arguments);
-        manager.beginTransaction()
-                .setTransition(android.app.FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .replace(getId(), fragment)
-                .addToBackStack("search")
-                .commit();
+        if (searchScreen != null) return;
+        createSearchMenu(getActivity(), getPreferenceScreen());
+        View view = getView();
+        ListView list = view == null ? null : view.findViewById(android.R.id.list);
+        if (list != null) list.post(() -> scrollToPreference(list, "action_search_settings", false));
     }
 
-    private void openSection(Section section) {
-        openSection(section, null, null);
+    private boolean closeSearch() {
+        if (searchScreen == null) return false;
+        hideKeyboard();
+        removeSearchRows();
+        searchScreen.removePreference(searchInput);
+        searchScreen.addPreference(searchEntry);
+        searchScreen = null;
+        updateSearchLongClicks();
+        searchInput = null;
+        searchIndex = null;
+        shownSearch = "";
+        restoreExpanded(searchExpanded);
+        searchExpanded = null;
+        updateUIToSettingValues();
+        refreshRestartPending();
+        return true;
     }
 
-    private void openHub(Hub hub) {
-        openHub(hub, null);
-    }
+    private void openSection(Section section) { openSection(section, null, null); }
 
     private void openHub(Hub hub, String targetKey) {
-        FragmentManager manager = getFragmentManager();
-        if (manager == null || getId() == 0) {
-            Utils.showToastShort(L10n.t("Couldn't open that settings section. Reopen settings and try again."));
-            return;
-        }
-        TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
-        Bundle arguments = new Bundle();
-        arguments.putString(ARG_HUB, hub.name());
-        if (targetKey != null) arguments.putString(ARG_TARGET_KEY, targetKey);
-        fragment.setArguments(arguments);
-        manager.beginTransaction()
-                .setTransition(android.app.FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .replace(getId(), fragment)
-                .addToBackStack("hub_" + hub.name())
-                .commit();
+        closeSearch();
+        expandAbout();
+        revealInline(targetKey == null ? aboutMenu.getKey() : targetKey, null);
     }
 
     private void openSection(Section section, String targetKey, String targetMember) {
-        FragmentManager manager = getFragmentManager();
-        if (manager == null || getId() == 0) {
-            Utils.showToastShort(L10n.t("Couldn't open that settings section. Reopen settings and try again."));
-            return;
-        }
-
-        TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
-        Bundle arguments = new Bundle();
-        // Null is the home page, which Pause's search result opens scrolled to its row.
-        if (section != null) {
-            arguments.putString(ARG_SECTION, section.name());
-        }
-        if (targetKey != null) {
-            arguments.putString(ARG_TARGET_KEY, targetKey);
-            if (targetMember != null) arguments.putString(ARG_TARGET_MEMBER, targetMember);
-        }
-        fragment.setArguments(arguments);
-
-        manager.beginTransaction()
-                .setTransition(android.app.FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                .replace(getId(), fragment)
-                .addToBackStack(section == null ? null : section.name())
-                .commit();
+        closeSearch();
+        expandSection(section);
+        updateUIToSettingValues();
+        refreshRestartPending();
+        SettingsMenuPreference menu = sectionMenus.get(section);
+        revealInline(targetKey == null && menu != null ? menu.getKey() : targetKey, targetMember);
     }
 
+    private void revealInline(String key, String member) {
+        if (key == null) return;
+        View view = getView();
+        ListView list = view == null ? null : view.findViewById(android.R.id.list);
+        if (list == null) return;
+        list.post(() -> {
+            if (!isAdded() || getView() == null) return;
+            scrollToPreference(list, key);
+            Preference row = findPreference(key);
+            if (row == null) {
+                SettingsActionBanner.showNotice(getActivity(), L10n.t(getActivity(),
+                        "This setting isn't available. Search for another setting."));
+                return;
+            }
+            if (member != null && row instanceof SwitchListPreference)
+                ((SwitchListPreference) row).showChoicesAt(member);
+        });
+    }
+
+    /** Search consumes Back; expanded categories never create a navigation history. */
+    public boolean closeInlineSearch() { return closeSearch(); }
+
     private void navigateBack() {
-        FragmentManager manager = getFragmentManager();
-        if (manager != null && manager.getBackStackEntryCount() > 0) {
-            manager.popBackStack();
-        } else {
-            // A page TikTok opened settings straight onto, as filter feedback does, has nothing
-            // under it to go back to, so its arrow leaves settings like the phone's Back does.
-            closeSettings();
-        }
+        if (!closeSearch()) closeSettings();
     }
 
     private void hideKeyboard() {
@@ -2133,8 +2109,6 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     public void onResume() {
         super.onResume();
         activeFragment = this;
-        // Back from Backup and restore, where the card is shown or hidden again.
-        syncQuickSetupsRow();
         refreshStatusCard();
         // Back from a section onto the master menu: whatever was changed there is owed here.
         refreshRestartPending();

@@ -38,6 +38,7 @@ import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.shared.settings.Setting;
 
 /**
  * Picture-in-picture for reels, through the picture-in-picture Facebook already ships for its
@@ -98,12 +99,16 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * Facebook opens no window: auto-enter goes off once Facebook has armed, Facebook's own changes of
  * it are set aside, and nothing here turns it back on, so the row is the only way in.
  *
- * <p>Off, paused, before the settings are ready, or when anything here fails, the answer is
- * Facebook's own.
+ * <p>Off, ReelsPipUtil's check says no, so the window Facebook turns on for some accounts by itself
+ * stays off as well (#252, #256). Paused, before the settings are ready, or when anything here
+ * fails, the answer is Facebook's own.
  */
 public final class PictureInPicture {
     /** Counted under the patch's name each time the check says yes where Facebook would decide. */
     static final String ALLOWED = "picture-in-picture allowed";
+
+    /** Counted each time the check says no with the switch off, where Facebook would decide. */
+    static final String REFUSED = "picture-in-picture refused";
 
     /** Counted each time the Reels viewer's gate says yes where Facebook would decide. */
     static final String SURFACE = "reels viewer allowed";
@@ -320,6 +325,24 @@ public final class PictureInPicture {
             HookStatus.bound(FAMILY, "picture-in-picture check");
             HookStatus.counted(FAMILY, ALLOWED);
             Logger.printDebug(() -> "Picture-in-picture: allowed for " + activity.getClass().getSimpleName());
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "picture-in-picture check", failure);
+            return false;
+        }
+    }
+
+    /**
+     * The hook, in ReelsPipUtil's check after {@link #allowed} left it to Facebook. True answers no.
+     * Facebook turns its own window on for some accounts, from a server flag or its Media settings,
+     * and every Facebook arming asks this check first, so the switch off keeps that window off too
+     * (#252, #256). Paused, Facebook decides.
+     */
+    public static boolean refused() {
+        try {
+            if (!Utils.settingsReady() || Setting.isPaused() || Settings.PICTURE_IN_PICTURE.get()) return false;
+            HookStatus.bound(FAMILY, "picture-in-picture check");
+            HookStatus.counted(FAMILY, REFUSED);
             return true;
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "picture-in-picture check", failure);

@@ -15,14 +15,15 @@ import org.junit.Assume.assumeTrue
 class GxrSpacewarpLayerPatchTest {
     private val zeroSha = "0".repeat(64)
 
-    // Both supported bases (brief 13): the layer payload + manifest are
-    // base-agnostic; the gate evidence pairs and scene windows are per base.
+    // Every supported exact base: the layer payload + manifest are base-agnostic;
+    // the gate evidence pairs and scene windows are per base.
     private val supportedBases = listOf(
         Pair("2.0.20", "5001712"),
         Pair("2.0.20", "5001812"),
         Pair("2.0.21", "5001968"),
         Pair("2.0.22", "5002244"),
         Pair("2.0.23", "5002363"),
+        Pair("2.0.24", "5002395"),
     )
 
     @Test
@@ -32,25 +33,18 @@ class GxrSpacewarpLayerPatchTest {
         assertTrue(gxrSpacewarpLayerPatch.compatibility.orEmpty()
             .all { it.name == EXPERIMENTAL_COMPATIBILITY_NAME })
         val nativeTargets = gxrSpacewarpLayerPatch.compatibility.orEmpty().flatMap { it.targets }
-        assertEquals(setOf("2.0.20", "2.0.21", "2.0.22", "2.0.23"), nativeTargets.map { it.version }.toSet())
-        assertEquals(setOf(5001712, 5001812, 5001968, 5002244, 5002363),
+        assertEquals(setOf("2.0.20", "2.0.21", "2.0.22", "2.0.23", "2.0.24"), nativeTargets.map { it.version }.toSet())
+        assertEquals(setOf(5001712, 5001812, 5001968, 5002244, 5002363, 5002395),
             nativeTargets.flatMap { it.versionCodes.orEmpty().values }.toSet())
         supportedBases.forEach { (version, code) ->
             assertTrue(isGxrSpacewarpSteamLinkBuild(version, code), "$version/$code")
         }
         listOf("2.0.20" to "5002363", "2.0.23" to "5001712",
             "2.0.23" to "5002322", "2.0.20" to "5001740",
-            "2.0.24" to "5002395").forEach { (version, code) ->
+            "2.0.24" to "5002363", "2.0.23" to "5002395",
+            "2.0.24" to "5002394").forEach { (version, code) ->
             assertFalse(isGxrSpacewarpSteamLinkBuild(version, code))
         }
-        assertFalse(
-            gxrSpacewarpLayerPatch.compatibility.orEmpty().any { compatibility ->
-                compatibility.targets.any { target ->
-                    target.versionCodes.orEmpty().values.contains(5002395)
-                }
-            },
-            "2.0.24 has no spacewarp profile yet",
-        )
         // Repo voice: the description states the fail-safe stand-down and the
         // experimental status; assert with contains-checks (credits may appended).
         val description = gxrSpacewarpLayerPatch.description.orEmpty()
@@ -62,7 +56,8 @@ class GxrSpacewarpLayerPatchTest {
     fun `excluded exact pairs return unchanged before file or payload access`() = withTemporaryRoot { root ->
         val missing = File(root, "must-stay-absent")
         listOf("2.0.20" to "5002363", "2.0.23" to "5001712",
-            "2.0.23" to "5002322")
+            "2.0.23" to "5002322", "2.0.24" to "5002363",
+            "2.0.23" to "5002395", "2.0.24" to "5002394")
             .forEach { (version, code) ->
                 assertFalse(
                     installGxrSpacewarpResources(missing, version, code, byteArrayOf(1),
@@ -103,6 +98,23 @@ class GxrSpacewarpLayerPatchTest {
             tampered[offset] = (tampered[offset].toInt() xor 1).toByte()
             assertFailsWith<PatchException> {
                 validateGxrSpacewarpScene(tampered, "2.0.20", "5001712")
+            }
+        }
+    }
+
+    @Test
+    fun `required latest base accepts its exact scene and rejects altered windows`() {
+        val scene = originalScene("5002395")
+        validateGxrSpacewarpScene(scene, "2.0.24", "5002395")
+        val pins = gxrSpacewarpScenePreconditions.getValue("2.0.24/5002395")
+        assertFailsWith<PatchException> {
+            validateGxrSpacewarpScene(scene.copyOf(pins.maxOf { it.first } + 0x20),
+                "2.0.24", "5002395")
+        }
+        pins.forEach { (offset, _, _) ->
+            val altered = scene.copyOf().apply { this[offset] = (this[offset].toInt() xor 1).toByte() }
+            assertFailsWith<PatchException> {
+                validateGxrSpacewarpScene(altered, "2.0.24", "5002395")
             }
         }
     }
@@ -187,10 +199,11 @@ class GxrSpacewarpLayerPatchTest {
             val pinnedSlot = perBaseSlotPins.getValue(code)
             assertEquals(pinnedSlot, slotOffset, "slot pin matches the layer's swp_hooks profile")
         }
-        // Decoded-tree window cross-checks (both trees present locally; fresh
+        // Decoded-tree window cross-checks (all six trees present locally; fresh
         // checkouts skip per base).
         supportedBases.forEach { (version, code) ->
             val decodedScene = originalSceneUnchecked(code) ?: return@forEach
+            validateGxrSpacewarpScene(decodedScene, version, code)
             val preconditions = gxrSpacewarpScenePreconditions["$version/$code"].orEmpty()
             val highest = preconditions.maxOf { it.first }
             if (decodedScene.size > highest + 0x80) {
@@ -206,7 +219,7 @@ class GxrSpacewarpLayerPatchTest {
 
     @Test
     fun `production install and reapplication preserve manifest and neighbours`() =
-        withTemporaryRootFor(*supportedBases.map { it.second }.toTypedArray()) { root, version, code ->
+        withTemporaryRootFor(*supportedBases.map { it.second }.toTypedArray(), requireRealScene = true) { root, version, code ->
             assumeTrue(
                 "Real payload audit BLOCKED: libgxr_spacewarp.so not staged yet; fill the pin",
                 GXR_SPACEWARP_LIBRARY_SHA256 != zeroSha)
@@ -238,7 +251,7 @@ class GxrSpacewarpLayerPatchTest {
 
     @Test
     fun `tampered payload fails atomically before any installation`() =
-        withTemporaryRootFor(*supportedBases.map { it.second }.toTypedArray()) { root, version, code ->
+        withTemporaryRootFor(*supportedBases.map { it.second }.toTypedArray(), requireRealScene = true) { root, version, code ->
             assumeTrue(
                 "Real payload audit BLOCKED: libgxr_spacewarp.so not staged yet; fill the pin",
                 GXR_SPACEWARP_LIBRARY_SHA256 != zeroSha)
@@ -264,7 +277,7 @@ class GxrSpacewarpLayerPatchTest {
 
     @Test
     fun `stale installed resource fails before installing its missing counterpart`() =
-        withTemporaryRootFor(*supportedBases.map { it.second }.toTypedArray()) { root, version, code ->
+        withTemporaryRootFor(*supportedBases.map { it.second }.toTypedArray(), requireRealScene = true) { root, version, code ->
             assumeTrue(
                 "Real payload audit BLOCKED: libgxr_spacewarp.so not staged yet; fill the pin",
                 GXR_SPACEWARP_LIBRARY_SHA256 != zeroSha)
@@ -307,6 +320,7 @@ class GxrSpacewarpLayerPatchTest {
         "5001968" to 0x221bc8,
         "5002244" to 0x226150,
         "5002363" to 0x22fcc8,
+        "5002395" to 0x232170,
     )
 
     private fun originalScene(versionCode: String): ByteArray {
@@ -334,6 +348,7 @@ class GxrSpacewarpLayerPatchTest {
         "5001968" to "android-steamlinkvr-release-base-2.0.21-5001968",
         "5002244" to "android-steamlinkvr-release-base-2.0.22-5002244",
         "5002363" to "android-steamlinkvr-release-base-2.0.23-5002363",
+        "5002395" to "android-steamlinkvr-release-base-2.0.24-5002395",
     )
     private val baseVersionNames = mapOf(
         "5001712" to "2.0.20",
@@ -341,6 +356,7 @@ class GxrSpacewarpLayerPatchTest {
         "5001968" to "2.0.21",
         "5002244" to "2.0.22",
         "5002363" to "2.0.23",
+        "5002395" to "2.0.24",
     )
 
     private fun sceneFile(root: File) = File(root, "lib/arm64-v8a/libvrlink_scene.so")
@@ -351,6 +367,7 @@ class GxrSpacewarpLayerPatchTest {
 
     private fun withTemporaryRootFor(
         vararg versionCodes: String,
+        requireRealScene: Boolean = false,
         block: (File, String, String) -> Unit,
     ) {
         versionCodes.forEach { versionCode ->
@@ -358,6 +375,10 @@ class GxrSpacewarpLayerPatchTest {
             try {
                 val relative = "${baseTrees.getValue(versionCode)}/lib/arm64-v8a/libvrlink_scene.so"
                 val scene = originalSceneUnchecked(versionCode)
+                if (requireRealScene) {
+                    assumeTrue("Real install audit BLOCKED: missing exact $versionCode scene; no synthetic replacement",
+                        scene != null)
+                }
                 if (scene != null) {
                     sceneFile(root).apply { parentFile.mkdirs(); writeBytes(scene) }
                 } else {

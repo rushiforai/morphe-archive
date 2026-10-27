@@ -50,6 +50,7 @@ import androidx.annotation.RequiresApi;
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.ScreenColors;
 import app.hushgram.extension.instagram.settings.Settings;
+import app.hushgram.extension.instagram.settings.ShimmerTitle;
 import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.Logger;
 import app.hushgram.extension.shared.Utils;
@@ -927,7 +928,7 @@ public final class MessagesLock {
         TextView title = new TextView(activity);
         title.setText(SETTINGS.equals(screen) ? L10n.t("HushGram settings are locked")
                 : wholeApp ? L10n.t("Instagram is locked") : L10n.t("Your messages are locked"));
-        title.setTextColor(colors.title);
+        ShimmerTitle.wear(title);
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         title.setGravity(Gravity.CENTER);

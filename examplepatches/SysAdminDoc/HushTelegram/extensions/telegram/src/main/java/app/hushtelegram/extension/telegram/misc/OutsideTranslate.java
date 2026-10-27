@@ -117,6 +117,9 @@ public final class OutsideTranslate {
 
         boolean translated();
 
+        /** The language Telegram's translate bar shows for the message's chat, in Telegram's code, or null. */
+        String telegramTarget();
+
         void apply(String text, String language);
 
         void refresh();
@@ -168,6 +171,7 @@ public final class OutsideTranslate {
             @Override public boolean eligible() { return OutsideTranslate.eligible(message); }
             @Override public String original() { return OutsideTranslate.original(message); }
             @Override public boolean translated() { return isTranslated(message); }
+            @Override public String telegramTarget() { return dialogTarget(message); }
             @Override public void apply(String text, String language) { applyTranslated(message, text, language); }
             @Override public void refresh() { notifyTranslated(message); }
         };
@@ -256,14 +260,16 @@ public final class OutsideTranslate {
             if (message.translated() && !APPLIED.containsKey(key)) return false;
             if (!message.eligible()) return false;
             String original = message.original();
-            String target = target();
+            // A Translate into pick wins, then the language picked in Telegram's own translate bar, then Telegram's language.
+            String picked = TranslateTarget.chosen() == null ? telegramPick(message) : null;
+            String target = picked != null ? picked : target();
             GoogleTranslate.Result result = cached(owner, target, original);
             if (result == null) {
                 request(new Waiter(message, owner, dialog, id), target, original);
                 APPLIED.remove(key);
                 return false;
             }
-            if (result.sameLanguageAs(target)) {
+            if (result.sameLanguageAs(target, picked != null || target.equals(TranslateTarget.chosen()))) {
                 APPLIED.remove(key);
                 return false;
             }
@@ -696,6 +702,8 @@ public final class OutsideTranslate {
     // The language the translation is written in.
 
     static String target() {
+        String chosen = TranslateTarget.chosen();
+        if (chosen != null) return chosen;
         Locale locale = null;
         try {
             locale = appLocale();
@@ -703,6 +711,53 @@ public final class OutsideTranslate {
             // Telegram's own language isn't readable, so the phone's is used.
         }
         return tagOf(locale != null ? locale : Locale.getDefault());
+    }
+
+    /** Google's code for the language picked in the message's chat in Telegram's translate bar, or null for none. */
+    private static String telegramPick(Message message) {
+        String raw;
+        Locale app = null;
+        try {
+            raw = message.telegramTarget();
+            app = appLocale();
+        } catch (Throwable unreadable) {
+            return null;
+        }
+        return telegramPick(raw, app != null ? app : Locale.getDefault());
+    }
+
+    /**
+     * Google's code for Telegram's [raw] code, or null when it's unknown or only Telegram's fallback: with nothing
+     * picked, Telegram answers its own language as a bare code, which [target] already writes, Chinese script included.
+     */
+    static String telegramPick(String raw, Locale app) {
+        if (raw == null) return null;
+        String code = raw.trim().toLowerCase(Locale.ROOT).replace('_', '-');
+        if (code.isEmpty()) return null;
+        if (code.indexOf('-') < 0 && app != null && googleAlias(code).equals(googleAlias(app.getLanguage().toLowerCase(Locale.ROOT)))) {
+            return null;
+        }
+        String alias = googleAlias(code);
+        for (String known : TranslateTarget.LANGUAGES.keySet()) {
+            if (known.equalsIgnoreCase(alias)) return known;
+        }
+        return null;
+    }
+
+    /** Telegram's and Java's names for the codes Google's list spells another way. */
+    private static String googleAlias(String code) {
+        switch (code) {
+            case "he": return "iw";
+            case "in": return "id";
+            case "jv": return "jw";
+            case "nb": return "no";
+            case "fil": return "tl";
+            case "zh":
+            case "zh-hans": return "zh-cn";
+            case "zh-hant": return "zh-tw";
+            case "pt-br": return "pt";
+            default: return code;
+        }
     }
 
     /** Google's code for a locale: Java still says "in" and "iw", and Chinese needs its script. */
@@ -1004,6 +1059,9 @@ public final class OutsideTranslate {
 
     /** The app's language. */
     public static Locale appLocale() { return null; }
+
+    /** The language Telegram's translate bar shows for the message's chat. */
+    public static String dialogTarget(Object message) { return null; }
 
     /** Whether the chat built its own Translate item. */
     public static boolean hasTranslateItem(Object chat) { return false; }

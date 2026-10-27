@@ -1,3 +1,47 @@
+## [1.19.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.18.0...v1.19.0) (2026-10-26)
+
+### ✨ New Features
+
+* **Discord:** Add `Material You colors` patch: Discord takes your wallpaper's colors in light and dark, or a color you pick, native chat included ([#90](https://github.com/VenusIsJaded/Venus-Patches/issues/90))
+* **Discord:** Add `Hide blocked or ignored messages` patch: removes the blocked and ignored messages rows from chat, and optionally replies to them ([#91](https://github.com/VenusIsJaded/Venus-Patches/issues/91))
+* **Discord:** Add `Bulk delete messages` patch: select multiple messages in chat and delete them all at once ([#94](https://github.com/VenusIsJaded/Venus-Patches/issues/94))
+* **Discord:** Add `Clean channel names` patch: removes emoji, symbols and fancy fonts from channel and category names ([#95](https://github.com/VenusIsJaded/Venus-Patches/issues/95))
+* **Discord:** Add `Unlock Discord experiments` patch: adds Dev Tools to Settings, to try features Discord is still testing ([#96](https://github.com/VenusIsJaded/Venus-Patches/issues/96))
+* **Discord:** Add `Keep Bluetooth audio clear in calls` patch: headphones stay in music quality in calls while your phone's mic picks up your voice ([#98](https://github.com/VenusIsJaded/Venus-Patches/issues/98))
+* **Discord - Use your phone's font:** Import your own font file (TTF, OTF or TTC) and use it everywhere instead of your phone's
+* **Discord - Use your phone's emojis:** Import an emoji font, like Twemoji or Noto Color Emoji, and use its emojis everywhere
+* **Discord - Fix link previews:** Tumblr links show the whole post, drawn dark to match Discord ([#87](https://github.com/VenusIsJaded/Venus-Patches/issues/87))
+* **Discord - Fix link previews:** Fix Twitch clips, DeviantArt, Fur Affinity and PTT links, and optionally YouTube, Spotify, Mastodon and Pinterest ([#87](https://github.com/VenusIsJaded/Venus-Patches/issues/87))
+* **Discord - Fix link previews:** More services to pick from, like FixEmbed, vxInstagram, FixBluesky and FixThreads, plus nitter and b23.tv links
+
+### 🐛 Bug Fixes
+
+* **Discord - Disable telemetry and touch logging:** Fixed forum posts not sending and the screen turning black after tapping Post ([#93](https://github.com/VenusIsJaded/Venus-Patches/issues/93))
+* **Discord - Disable analytics:** Fixed removing a poll vote and joining a stage from a notification doing nothing
+* **Discord - Custom themes:** Fixed theme background images never showing behind chat, and Discord attachment wallpaper links failing to load ([#97](https://github.com/VenusIsJaded/Venus-Patches/issues/97))
+* **Discord - Custom themes:** Fixed older themes like Pyontheme drawing chat and panels in the wrong, much darker colors
+* **Discord - Custom themes:** Fixed cards and sheets blending into the page in themes that recolor Discord's old palette
+* **Discord - Send long messages:** Fixed a long `@silent` message notifying everyone from its second part on
+* **Discord - Send long messages:** Fixed the rest of a long message being posted from another account after switching accounts mid-send
+* **Discord - Send long messages:** Fixed the end of a long message being dropped silently when one part failed to send; you can now copy what wasn't sent
+* **Discord - Send long messages:** Fixed edits longer than Discord's limit failing and losing the new text; Venus now explains and lets you copy it
+* **Discord - Send long messages:** Fixed Nitro emojis in long messages sometimes staying as :name: text instead of links
+* **Discord - Send long messages:** Fixed parts ending in an empty code box or a stray line-break character
+* **Discord - Double-tap to reply:** Fixed the screen reader's Add quick reaction replying, editing or deleting your message instead of reacting
+* **Discord - Double-tap to reply:** Fixed the editor opening in a chat you'd just left after double-tapping your message
+* **Discord - Double-tap to reply:** Fixed triple-tap trying to delete messages Discord doesn't allow deleting, like calls and group DM changes
+* **Discord - Double-tap to reply:** Fixed double-tapping a kept deleted message replying to or editing a message that no longer exists
+* **Discord - Double-tap to reply:** Fixed double-tap doing nothing where you can't reply; it adds your double-tap reaction instead
+* **Discord - Read all button:** Fixed the hold menu showing no icons and long translated labels spilling out of the server bar
+* **Discord - Read all button:** Fixed a failure on the servers side also leaving your DMs unread when marking both
+
+### 🔧 Improvements
+
+* **Discord - Venus settings:** Tons of UI changes across every settings page, including turned-off pages introducing the feature, custom values as a pill and a cleaner Server info sheet
+* **Discord - Custom themes:** Messages, embeds and code blocks drawn by Discord's native views now follow the theme too
+* **Discord - Custom themes:** More colors from themes made for newer Discord versions now apply
+* **Discord - Fix link previews:** Also remove share tracking from Tumblr, YouTube, Spotify, Twitch, Pinterest and DeviantArt links
+
 ## [1.18.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.17.0...v1.18.0) (2026-10-24)
 
 ### 🚀 Updated App Support

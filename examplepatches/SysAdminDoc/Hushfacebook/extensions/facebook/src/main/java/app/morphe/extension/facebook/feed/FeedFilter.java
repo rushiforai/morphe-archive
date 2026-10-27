@@ -540,7 +540,7 @@ public final class FeedFilter {
                 reason = flagReason(GenAiLabel.SELF_LABEL, AI_LABEL_ROUTE, feedUnit, aiLabelAccessor);
             }
             if (reason == null && wordsPatched && Settings.HIDE_POSTS_WITH_WORDS.get()) {
-                reason = wordsReason(feedUnit, messageAccessor, attachedAccessor);
+                reason = wordsReason(feedUnit, messageAccessor, attachedAccessor, PostSources.ATTACHMENTS);
             }
             if (reason == null && wordsPatched) {
                 reason = sourcesReason(feedUnit, PostSources.ACTORS, PostSources.ATTACHMENTS, attachedAccessor);
@@ -764,12 +764,14 @@ public final class FeedFilter {
 
     /**
      * The word filter: {@link #WORDS_REASON} when the post's own words, or those of the post it
-     * shares, hold a phrase from the hide list and none from the keep list, otherwise null. Every
-     * story it's asked about is counted on its route under which list matched or why nothing was
-     * read, so a kept post always has a reason in the report. With the hide list empty nothing of
-     * the post is read, and a post whose words can't be read is kept.
+     * shares, hold a phrase from the hide list and none from the keep list, otherwise null. A post's
+     * words include its link cards' headlines and descriptions, read through [links]. Every story
+     * it's asked about is counted on its route under which list matched or why nothing was read, so
+     * a kept post always has a reason in the report. With the hide list empty nothing of the post is
+     * read, and a post whose words can't be read is kept.
      */
-    private static String wordsReason(Object feedUnit, StoryFlag.Accessor message, StoryFlag.Accessor attached) {
+    static String wordsReason(Object feedUnit, StoryFlag.Accessor message, StoryFlag.Accessor attached,
+            StoryFlag.Accessor links) {
         FeedFilterCounters.sawList(WORDS_ROUTE, 1);
         PostWords.Rules rules = PostWords.rules(Settings.HIDDEN_WORDS.get(), Settings.KEPT_WORDS.get(),
                 Settings.POST_WORDS_WHOLE_WORDS.get());
@@ -777,7 +779,7 @@ public final class FeedFilter {
             FeedFilterCounters.sawKind(WORDS_ROUTE, NO_WORDS);
             return null;
         }
-        PostText.Read read = PostText.read(feedUnit, message, attached);
+        PostText.Read read = PostText.read(feedUnit, message, attached, links);
         if (read.outcome != PostText.Outcome.TEXT) {
             FeedFilterCounters.sawKind(WORDS_ROUTE, read.outcome.reason);
             return null;

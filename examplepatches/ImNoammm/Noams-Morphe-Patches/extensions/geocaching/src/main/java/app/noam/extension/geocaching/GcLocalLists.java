@@ -72,6 +72,17 @@ public final class GcLocalLists {
         return code;
     }
 
+    /** Called before the Lists hub deletes a list on the server: true when it was one of ours. */
+    public static boolean deleteIfLocal(String code) {
+        if (!isLocal(code)) return false;
+        if (ALL.equals(code)) {
+            Utils.toast("Offline caches holds every saved cache; remove caches from inside it");
+        } else {
+            delete(code);
+        }
+        return true;
+    }
+
     public static synchronized void delete(String code) {
         JSONArray lists = all(), kept = new JSONArray();
         for (int i = 0; i < lists.length(); i++) {

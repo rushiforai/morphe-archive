@@ -20,10 +20,16 @@ val hidePromotedPostsPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_NINEGAG)
 
     execute {
+        val latest = packageMetadata.versionName == "8.26.1"
+        val queryClass = if (latest) "Ld44;" else "Lhx3;"
+        val builderType = if (latest) "Lqy7;" else "Lwm7;"
+        val builderParameters = if (latest)
+            listOf("Ljava/lang/String;", "I", "I", "I", "Z")
+        else listOf("I", "Ljava/lang/String;", "I", "I", "Z")
         val candidates = mutableListOf<Pair<ClassDef, Method>>()
         classDefForEach { classDef ->
             classDef.methods.filter { method ->
-                classDef.type == "Lhx3;" && method.name == "j" &&
+                classDef.type == queryClass && method.name == "j" &&
                     method.returnType == "Ljava/util/List;" &&
                     method.parameterTypes.map { it.toString() } ==
                         listOf("I", "Ljava/lang/String;", "Z") &&
@@ -31,7 +37,7 @@ val hidePromotedPostsPatch = bytecodePatch(
             }.forEach { candidates += classDef to it }
         }
         check(candidates.size == 1) {
-            "Expected exactly one 9GAG 8.23.0 promoted-post display query; found ${candidates.size}."
+            "Expected exactly one 9GAG ${packageMetadata.versionName} promoted-post display query; found ${candidates.size}."
         }
         val (classDef, method) = candidates.single()
         val implementation = checkNotNull(method.implementation)
@@ -49,11 +55,10 @@ val hidePromotedPostsPatch = bytecodePatch(
                 references.filterIsInstance<StringReference>().any { it.string == " ASC" } &&
                 instructions.filterIsInstance<NarrowLiteralInstruction>().any { it.narrowLiteral == 1000 } &&
                 references.filterIsInstance<MethodReference>().count {
-                    it.definingClass == "Lhx3;" && it.name == "d" && it.returnType == "Lwm7;" &&
-                        it.parameterTypes.map { type -> type.toString() } ==
-                            listOf("I", "Ljava/lang/String;", "I", "I", "Z")
+                    it.definingClass == queryClass && it.name == "d" && it.returnType == builderType &&
+                        it.parameterTypes.map { type -> type.toString() } == builderParameters
                 } == 1
-        ) { "9GAG's promoted-post display query no longer has the validated 8.23.0 structure." }
+        ) { "9GAG's promoted-post display query no longer has the validated ${packageMetadata.versionName} structure." }
 
         // The Boolean p3 is the display query's hide-promoted option. The existing
         // code maps true to Promoted <> TRUE before applying its original order,

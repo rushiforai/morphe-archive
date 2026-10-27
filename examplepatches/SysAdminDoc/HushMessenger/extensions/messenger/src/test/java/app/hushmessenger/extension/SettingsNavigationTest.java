@@ -24,39 +24,95 @@ public class SettingsNavigationTest {
     @Before public void reset() {
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().commit();
+        OpenSections.all();
     }
 
-    @Test public void categoriesCombineWithSearchAndClearFiltersRecovers() {
+    /** HushFacebook's accordion: closed on a fresh install, one tap opens a section, and it stays open next time. */
+    @Test public void sectionsStartClosedOpenOnTapAndStayOpen() {
+        OpenSections.only();
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            assertFalse(root.findViewWithTag("people").isShown());
+            View header = root.findViewWithTag("section_inbox");
+            assertTrue(header.isShown());
+            android.view.accessibility.AccessibilityNodeInfo info = header.createAccessibilityNodeInfo();
+            assertTrue(info.isHeading());
+            assertEquals(android.widget.Button.class.getName(), info.getClassName().toString());
+            assertTrue(info.getActionList().contains(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_EXPAND));
+            assertEquals("Collapsed", header.getStateDescription().toString());
+            header.performClick();
+            assertTrue(root.findViewWithTag("people").isShown());
+            assertEquals("Expanded", header.getStateDescription().toString());
+            assertTrue(header.createAccessibilityNodeInfo().getActionList()
+                .contains(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_COLLAPSE));
+            // Opening a section is a view choice, not a setting: nothing reaches the saved choices.
+            assertEquals(java.util.Map.of(), Settings.preferences.getAll());
+            // A screen reader's collapse action closes it again.
+            assertTrue(header.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_COLLAPSE, null));
+            assertFalse(root.findViewWithTag("people").isShown());
+            header.performClick();
+        }
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            assertTrue(root.findViewWithTag("people").isShown());
+            assertFalse(root.findViewWithTag("typing").isShown());
+            root.findViewWithTag("tab_app").performClick();
+            assertFalse(root.findViewWithTag("light").isShown());
+            root.findViewWithTag("section_appearance").performClick();
+            assertTrue(root.findViewWithTag("light").isShown());
+            // Restart stays outside the sections, one tap away.
+            assertTrue(root.findViewWithTag("restart_messenger").isShown());
+        }
+    }
+
+    /** A search shows every match whatever is closed, and clearing it puts the closed sections back. */
+    @Test public void searchOpensMatchingSectionsAndClearFiltersRecovers() {
+        OpenSections.only();
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
             View root = screen.get().getWindow().getDecorView();
             TextView count = root.findViewWithTag("search_status");
-            root.findViewWithTag("category_chats").performClick();
-            assertEquals(ExpectedTotals.shown(21), count.getText().toString());
-            assertEquals(View.GONE, ((View) root.findViewWithTag("people").getParent()).getVisibility());
-            ((EditText) root.findViewWithTag("find_control")).setText("People You");
+            EditText search = root.findViewWithTag("find_control");
+            search.setText("People You May");
+            assertTrue(root.findViewWithTag("people").isShown());
+            assertEquals(ExpectedTotals.shown(1), count.getText().toString());
+            // A section closed during the search stays closed until the search changes.
+            root.findViewWithTag("section_inbox").performClick();
+            assertFalse(root.findViewWithTag("people").isShown());
+            search.setText("People You May Know");
+            assertTrue(root.findViewWithTag("people").isShown());
+            search.setText("no matching control");
             assertEquals(View.VISIBLE, root.findViewWithTag("empty_state").getVisibility());
             root.findViewWithTag("clear_filters").performClick();
             assertEquals(ExpectedTotals.shown(ExpectedTotals.CONTROLS), count.getText().toString());
             assertEquals(View.GONE, root.findViewWithTag("empty_state").getVisibility());
-            assertTrue(root.findViewWithTag("category_all").isSelected());
-            root.findViewWithTag("category_more").performClick();
-            assertEquals(ExpectedTotals.shown(27), count.getText().toString());
-            assertEquals(View.VISIBLE, ((View) root.findViewWithTag("facebook").getParent()).getVisibility());
+            assertFalse(root.findViewWithTag("people").isShown());
+            assertTrue(root.findViewWithTag("section_inbox").isShown());
         }
     }
 
-    @Test public void photoAndVideoControlsHaveTheirOwnSectionUnderChats() {
+    /** A link or a release walk can ask for a section, so a row inside it is one tap away. */
+    @Test public void theOpenExtraOpensItsSection() {
+        OpenSections.only();
+        android.content.Intent intent = new android.content.Intent(RuntimeEnvironment.getApplication(), SettingsActivity.class)
+            .putExtra(SettingsActivity.OPEN_EXTRA, "inbox");
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class, intent).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            assertTrue(root.findViewWithTag("people").isShown());
+            assertFalse(root.findViewWithTag("typing").isShown());
+        }
+    }
+
+    @Test public void photoAndVideoControlsHaveTheirOwnSection() {
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
             View root = screen.get().getWindow().getDecorView();
             android.widget.LinearLayout group = root.findViewWithTag("photos_videos");
             android.widget.LinearLayout heading = (android.widget.LinearLayout) group.getChildAt(0);
             assertEquals("PHOTOS AND VIDEOS", ((TextView) heading.getChildAt(0)).getText().toString());
-            for (String key : new String[] {"original_photo", "original_video", "xhe_audio", "recent_media", "system_camera", "external_gallery"})
+            for (String key : new String[] {"original_photo", "original_video", "xhe_audio", "recent_media", "share_story", "system_camera", "external_gallery"})
                 assertTrue(key + " should sit in Photos and videos", inside(root.findViewWithTag(key), group));
             assertFalse(inside(root.findViewWithTag("typing"), group));
-            root.findViewWithTag("category_chats").performClick();
             assertEquals(View.VISIBLE, group.getVisibility());
-            assertEquals("6", ((TextView) heading.getChildAt(1)).getText().toString());
+            assertEquals("7",((TextView) heading.getChildAt(1)).getText().toString());
         }
     }
 
@@ -75,15 +131,19 @@ public class SettingsNavigationTest {
         return false;
     }
 
-    @Test public void selectedChipIsFilledInBothThemesAndTheWordmarkStaysOnOneLine() {
+    @Test public void selectedTabIsMessengerBlueInBothThemesAndTheWordmarkStaysOnOneLine() {
         for (boolean light : new boolean[] {false, true}) {
             Settings.preferences.edit().putBoolean("light", light).commit();
             try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
                 View root = screen.get().getWindow().getDecorView();
                 SettingsUi ui = new SettingsUi(screen.get(), light);
-                assertEquals(ui.accent, ui.selected);
-                assertEquals(light ? 0xffffffff : ui.background, ((TextView) root.findViewWithTag("category_all")).getCurrentTextColor());
-                assertEquals(ui.muted, ((TextView) root.findViewWithTag("category_inbox")).getCurrentTextColor());
+                // Messenger's own button blue, with white text, in both themes.
+                assertEquals(0xff0866ff, ui.accentFill);
+                assertEquals(ui.accentFill, ui.selected);
+                assertEquals(0xffffffff, ((TextView) root.findViewWithTag("tab_controls")).getCurrentTextColor());
+                assertEquals(ui.muted, ((TextView) root.findViewWithTag("tab_app")).getCurrentTextColor());
+                // The banner and its "Make Messenger yours" line are gone: the toolbar is the name and the tabs.
+                assertFalse(SettingsText.ENGLISH.containsKey("tagline"));
                 TextView wordmark = root.findViewWithTag("wordmark");
                 assertEquals(1, wordmark.getMaxLines());
                 assertEquals(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM, wordmark.getAutoSizeTextType());
@@ -91,19 +151,17 @@ public class SettingsNavigationTest {
         }
     }
 
-    @Test public void clearingTheQueryKeepsTheSelectedCategoryAndReturnsFocusToSearch() {
+    @Test public void clearingTheQueryReturnsFocusToSearch() {
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
             View root = screen.get().getWindow().getDecorView();
             EditText search = root.findViewWithTag("find_control");
             View clear = root.findViewWithTag("clear_query");
             assertEquals(View.GONE, clear.getVisibility());
-            root.findViewWithTag("category_chats").performClick();
             search.setText("no matching control");
             assertEquals(View.VISIBLE, clear.getVisibility());
             clear.performClick();
             assertEquals("", search.getText().toString());
-            assertTrue(root.findViewWithTag("category_chats").isSelected());
-            assertEquals(ExpectedTotals.shown(21), ((TextView) root.findViewWithTag("search_status")).getText().toString());
+            assertEquals(ExpectedTotals.shown(ExpectedTotals.CONTROLS), ((TextView) root.findViewWithTag("search_status")).getText().toString());
             assertTrue(search.hasFocus());
             assertEquals(View.GONE, clear.getVisibility());
         }
@@ -126,7 +184,6 @@ public class SettingsNavigationTest {
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
             View root = screen.get().getWindow().getDecorView();
             ((Switch) root.findViewWithTag("people")).performClick();
-            root.findViewWithTag("category_inbox").performClick();
             // Each word on its own: "People You" alone also finds Hide growth prompts ("people", "your").
             ((EditText) root.findViewWithTag("find_control")).setText("People You May");
             root.findViewWithTag("tab_app").performClick();
@@ -143,7 +200,6 @@ public class SettingsNavigationTest {
             assertEquals(View.VISIBLE, root.findViewWithTag("app_page").getVisibility());
             root.findViewWithTag("tab_controls").performClick();
             assertEquals("People You May", ((EditText) root.findViewWithTag("find_control")).getText().toString());
-            assertTrue(root.findViewWithTag("category_inbox").isSelected());
             assertEquals(ExpectedTotals.shown(1), ((TextView) root.findViewWithTag("search_status")).getText().toString());
             assertTrue(((Switch) root.findViewWithTag("people")).isChecked());
             assertTrue(Settings.enabled("people"));

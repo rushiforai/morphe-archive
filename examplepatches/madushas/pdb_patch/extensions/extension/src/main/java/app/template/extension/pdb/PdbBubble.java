@@ -175,7 +175,7 @@ public final class PdbBubble {
             PopupMenu menu = new PopupMenu(activity, anchor);
             menu.getMenu().add(0, 1, 0, idsLabel(sp));
             menu.getMenu().add(0, 2, 1, receiptsLabel(sp));
-            menu.getMenu().add(0, 3, 2, pauseLabel(sp));
+            menu.getMenu().add(0, 3, 2, "Soul history");
             menu.getMenu().add(0, 4, 3, "Copy my profile ID");
             menu.getMenu().add(0, 5, 4, lastProfileLabel());
             menu.getMenu().add(0, 6, 5, "Open Pdb Extras");
@@ -189,7 +189,7 @@ public final class PdbBubble {
                             e.putBoolean(PdbSettings.IDS_EVERYWHERE, on);
                             e.apply();
                             PdbUi.IDS_EVERYWHERE = on; // hot
-                            toast(activity, "Profile IDs " + (on ? "ON (next refresh)" : "OFF"));
+                            PdbTools.restartDialog(activity); // decoration rebinds on restart
                             break;
                         }
                         case 2: {
@@ -201,11 +201,7 @@ public final class PdbBubble {
                             break;
                         }
                         case 3: {
-                            boolean on = !PdbSettings.getBool(sp, PdbSettings.GLOBAL_PAUSE, false);
-                            e.putBoolean(PdbSettings.GLOBAL_PAUSE, on);
-                            e.apply();
-                            toast(activity, on ? "Morphe paused (next launch)"
-                                : "Morphe resumed (next launch)");
+                            openHistory(activity);
                             break;
                         }
                         case 4: {
@@ -245,6 +241,17 @@ public final class PdbBubble {
         }
     }
 
+    /** Opens the native Soul history screen (per-entry chat buttons). */
+    private static void openHistory(Activity activity) {
+        try {
+            android.content.Intent i = new android.content.Intent();
+            i.setClassName(activity, "app.template.extension.pdb.SoulHistoryActivity");
+            activity.startActivity(i);
+        } catch (Throwable t) {
+            toast(activity, "Soul history: " + t);
+        }
+    }
+
     private static String idsLabel(SharedPreferences sp) {
         boolean on = PdbSettings.getBool(sp, PdbSettings.IDS_EVERYWHERE, true);
         return (on ? "\u2713 " : "") + "Show profile IDs";
@@ -255,10 +262,6 @@ public final class PdbBubble {
         return (on ? "\u2713 " : "") + "Disable read receipts";
     }
 
-    private static String pauseLabel(SharedPreferences sp) {
-        boolean on = PdbSettings.getBool(sp, PdbSettings.GLOBAL_PAUSE, false);
-        return (on ? "\u2713 " : "") + "Pause Morphe";
-    }
 
     /** The signed-in user id from the MMKV auth session (kept shape: JSON). */
     private static String myId() {

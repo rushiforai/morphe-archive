@@ -1,5 +1,7 @@
 # 翻译结果与源字幕缓存故障、恢复合同
 
+> 版本口径（2026-10-26）：当前公开产品为1.5.8 / release-1.5.8，继承本合同已接受的行为和保留限制。正文中的M5/M6等版本、计数及“待复核”属于各段形成时的历史时点；当前状态及新的远端CI/发布覆盖以[PROJECT-STATE](../PROJECT-STATE.md)和[发布结果](../maintenance/results/RELEASE-1.5.8-RESULT.md)为准，不改写原失败/原测试事实。
+
 2026-10-25，M5i v1经[统筹复核](../maintenance/reviews/M5i-REVIEW.md)接受本轮损坏读取/故障恢复、三项替换修复、put后epoch及Publication规定范围和披露限制。当前接受本地1.5.8 / local-1.5.8-m5i / candidate-01，公开1.5.7；原[结果](../maintenance/results/M5i-RESULT.md)与证据保留。以下进程内成对提交、源checkActive→put窗口、跨文件崩溃/双IO等界限不被扩大为全部事务认证。
 
 ## 当前边界与身份

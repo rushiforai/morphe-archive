@@ -175,6 +175,24 @@ function Get-VendorFixtureName {
     return "$prefix-$VersionName-$VersionCode.apk"
 }
 
+function Find-DefaultVendorApk {
+    <#
+    .SYNOPSIS
+        The declared build of -Target's newest version in -FixtureDirectory, $null when there's
+        none or no folder. More than one is refused: which one a run patched has to be exact.
+    #>
+    param([Parameter(Mandatory = $true)]$Target, [string]$FixtureDirectory)
+    if (-not $FixtureDirectory -or -not (Test-Path -LiteralPath $FixtureDirectory -PathType Container)) { return $null }
+    $fixtureNames = @(foreach ($code in @($Target.PackageVersionCodes[$Target.PackageVersion])) {
+        Get-VendorFixtureName -Target $Target -VersionName $Target.PackageVersion -VersionCode $code
+    })
+    $matching = @(Get-ChildItem -LiteralPath $FixtureDirectory -File |
+        Where-Object { $fixtureNames -ccontains $_.Name })
+    if ($matching.Count -gt 1) { throw 'More than one declared default fixture is present. Pass an exact -Apk.' }
+    if ($matching.Count -eq 1) { return $matching[0].FullName }
+    return $null
+}
+
 function Test-DeclaredBuild {
     <#
     .SYNOPSIS

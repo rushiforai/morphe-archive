@@ -12,6 +12,10 @@ Java.perform(function(){
   const popup=Java.registerClass({name:'app.morphe.extension.chmate.AdsOnlyPopupFixture',superClass:F,fields:{mActivePopup:'java.lang.Object'},methods:{$init:[{argumentTypes:['android.content.Context'],implementation(c){this.$super.$init(c);}}]}}).$new(app);
   popup.setLayoutParams(LP.$new(300,200));H.hideAdView(popup);check(popup.getVisibility()===0&&popup.getLayoutParams().height.value===200,'empty response popup host protected');
   const row=T.$new(app);row.setText.overload('java.lang.CharSequence').call(row,Java.use('java.lang.String').$new('ordinary response'));row.setLayoutParams(LP.$new(300,100));H.hideHomeBanner(row);check(row.getVisibility()===0&&String(row.getText())==='ordinary response','ordinary response not classified as home banner');
+  check(String(H.rewriteBbsMenuUrl('http://menu.5ch.net/bbsmenu.html'))==='https://menu.5ch.io/bbsmenu.html','stored NET menu migrates to HTTPS IO');
+  check(String(H.rewriteBbsMenuUrl('https://menu.2ch.sc/bbsmenu.html'))==='https://menu.2ch.sc/bbsmenu.html','other menu preserved');
+  check(String(H.rewrite5chUrl('https://egg.5ch.net/test/read.cgi/android/123/'))==='https://egg.5ch.io/test/read.cgi/android/123/','legacy thread URL uses IO');
+  check(H.rewrite5chUrl(null)===null,'null URL preserved');
   check(H.retargetSelfIntent(null)===null,'null native intent preserved');
   console.log('ADS_ONLY_RUNTIME_COMPLETE '+n+' checks');
  }catch(e){console.log('FAIL '+e.stack);}});

@@ -1,3 +1,29 @@
+## [1.2.2](https://github.com/BlueDragon4251/tiktok-patches-for-morphe/compare/v1.2.1...v1.2.2) (2026-10-26)
+
+
+### Bug Fixes
+
+* **tiktok:** adapt CAPTCHA fingerprints for Morphe Patcher 2.x ([0790a3f](https://github.com/BlueDragon4251/tiktok-patches-for-morphe/commit/0790a3f04ef66880973dbadf3b6f012fb93c33ed))
+
+
+
+
+
+## 1.2.2
+
+## [1.2.1](https://github.com/BlueDragon4251/tiktok-patches-for-morphe/compare/v1.2.0...v1.2.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* **tiktok:** restore feed filter matching with Morphe Patcher 2.x ([19ca8fe](https://github.com/BlueDragon4251/tiktok-patches-for-morphe/commit/19ca8fe1d328aceada4f565bac4ff6d3f9406d16))
+
+
+
+
+
+## 1.2.1
+
 # [1.2.0](https://github.com/BlueDragon4251/tiktok-patches-for-morphe/compare/v1.1.1...v1.2.0) (2026-09-24)
 
 

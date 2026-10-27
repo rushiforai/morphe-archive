@@ -13,6 +13,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val INTERSTITIAL = "Lcom/applovin/mediation/ads/MaxInterstitialAd;"
+private const val MOBILE_ADS = "Lcom/google/android/gms/ads/MobileAds;"
 
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
@@ -76,9 +77,20 @@ val disableAdsPatch = bytecodePatch(
         // interstitial, rewarded and banner loads do nothing. Optional, since 5.4.16 has no GMA.
         // MobileAds keeps its name but R8 inlines initialize into a static a(...); every static
         // void on it (that, setPlugin, stop) returns at once, since they throw without init
-        // (AGENTS.md rule 9).
-        neutraliseMobileAdsStatics()
-        FullScreenAdLoadFingerprint.matchAllOrNull()?.forEach { it.method.returnEarly() }
+        // (AGENTS.md rule 9). 5.4.18 moved the inlined initialize out of MobileAds into the
+        // app's ad init helper, so every static void that carries the SDK init log returns at
+        // once too; the helper's "can request ads" flow then keeps its initial false.
+        val gmaBundled = neutraliseMobileAdsStatics()
+        InlinedMobileAdsInitFingerprint.matchAllOrNull()
+            ?.filter { it.classDef.type != MOBILE_ADS }
+            ?.forEach { it.method.returnEarly() }
+        // Every full-screen load (interstitial, rewarded, rewarded interstitial, app open); with
+        // GMA bundled at least one must match.
+        val fullScreenLoads = FullScreenAdLoadFingerprint.matchAllOrNull().orEmpty()
+        if (gmaBundled && fullScreenLoads.isEmpty()) {
+            throw PatchException("Google Mobile Ads is bundled but no full-screen ad load was found")
+        }
+        fullScreenLoads.forEach { it.method.returnEarly() }
         BaseAdViewLoadAdFingerprint.methodOrNull?.returnEarly()
     }
 }

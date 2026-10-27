@@ -65,7 +65,10 @@ internal object FeatureAvailableFingerprint : Fingerprint(
 internal object PremiumStatusWriterFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
     parameters = listOf("L", "L"),
-    strings = listOf("premiumHadPremiumBefore", "entitledCatalogItemIds"),
+    strings = listOf(
+        string("premiumHadPremiumBefore", StringComparisonType.CONTAINS),
+        string("entitledCatalogItemIds", StringComparisonType.CONTAINS),
+    ),
 )
 
 // PremiumState(isPremium, tier, productKind, scope, insuranceState), the state object the premium

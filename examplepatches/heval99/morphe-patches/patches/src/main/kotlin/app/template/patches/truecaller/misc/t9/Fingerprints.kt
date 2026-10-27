@@ -1,6 +1,8 @@
 package app.template.patches.truecaller.misc.t9
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
 internal const val REBUILD_ALL_KEY = "RefreshT9MappingWorker.RebuildAll"
@@ -12,6 +14,9 @@ internal const val REBUILD_ALL_KEY = "RefreshT9MappingWorker.RebuildAll"
 internal object RefreshT9MappingFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/content/Context;"),
-    strings = listOf(REBUILD_ALL_KEY, "RefreshT9MappingWorker"),
+    strings = listOf(
+        string(REBUILD_ALL_KEY, StringComparisonType.CONTAINS),
+        string("RefreshT9MappingWorker", StringComparisonType.CONTAINS),
+    ),
     custom = { method, _ -> AccessFlags.STATIC.isSet(method.accessFlags) },
 )

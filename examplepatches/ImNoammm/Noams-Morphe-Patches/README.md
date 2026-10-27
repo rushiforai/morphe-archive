@@ -49,10 +49,12 @@ Right now it has patches for these apps:
 - Geocaching 10.21.0: Premium-only features work on a Basic account, each as its own switch: map filters,
   statistics from your own finds, log templates, lists, experimental features and sorting your finds and hides,
   and the upgrade badges are gone. Caches the app locks behind Premium open too: they load from geocaching.com the
-  way c:geo does, so they show what the website shows your account. Map search comes from geocaching.com as well,
-  and the caches you see on the map or open stay on the phone for offline use. There's a map that needs no Google
-  key, with free street, satellite, terrain and hybrid layers, it comes back faster when you switch tabs, and you
-  get a native description viewer, photo downloads and one sign-in for the app and the website.
+  way c:geo does, so they show what the website shows your account. You can't log those, though: geocaching.com
+  only takes logs on Premium caches from Premium accounts, and the app tells you so. Map search comes from
+  geocaching.com as well, and the caches you see on the map or open stay on the phone for offline use. There's a
+  map that needs no Google key, with free street, satellite, terrain and hybrid layers, it comes back faster when
+  you switch tabs, and you get a native description viewer, photo downloads and one sign-in for the app and the
+  website. If map search stops finding caches, sign in to geocaching.com again from the map's menu.
 
 ## Getting it
 

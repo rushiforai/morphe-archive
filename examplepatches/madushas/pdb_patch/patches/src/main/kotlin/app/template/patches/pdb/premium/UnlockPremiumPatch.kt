@@ -32,11 +32,13 @@ import app.template.patches.shared.returnEarly
  */
 @Suppress("unused")
 val pdbUnlockPremiumPatch = bytecodePatch(
-    name = "Unlock Pro",
-    description = "Unlocks Pdb Pro: premium badge plus every entitlement " +
-        "(no ads, hide online, unlimited rewinds/extends, super chats, visitors, " +
-        "view requests, virtual travel, extra IRL slots, Power PDB server, " +
-        "Wonder-chat reconnect, AI-friend limits, name colour, chat bubbles).",
+    name = "Mock Pro (client-side)",
+    description = "Forces the app's client-side pro flag (isProUser → true) and " +
+        "the local ProStatus model: premium-badge UI, client-gated perks " +
+        "(unlimited rewinds, hide online, extra IRL slots) and pro-only screens " +
+        "open. Honestly: features the SERVER re-validates (premium Soul filters, " +
+        "coins, boosts, some AI limits) still refuse — that is a backend check " +
+        "no client patch can lift.",
     default = true,
 ) {
     compatibleWith(PDB_COMPATIBILITY)

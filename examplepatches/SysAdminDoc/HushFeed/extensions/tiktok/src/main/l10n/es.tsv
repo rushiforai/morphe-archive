@@ -366,8 +366,6 @@ Copy the sound link	Copiar el enlace del sonido
 Copy the video link	Copiar el enlace del vídeo
 Couldn't change the Lab settings. Try again.	No se pudieron cambiar los ajustes del Lab. Inténtalo de nuevo.
 Couldn't clear the suggested accounts. Reopen the Inbox and try again.	No se pudieron borrar las cuentas sugeridas. Vuelve a abrir la bandeja de entrada e inténtalo de nuevo.
-Couldn't open settings search. Reopen settings and try again.	No se pudo abrir la búsqueda de ajustes. Vuelve a abrir los ajustes e inténtalo de nuevo.
-Couldn't open that settings section. Reopen settings and try again.	No se pudo abrir esa sección de ajustes. Vuelve a abrir los ajustes e inténtalo de nuevo.
 Couldn't open the file picker to export. Try again.	No se pudo abrir el selector de archivos para exportar. Inténtalo de nuevo.
 Couldn't open the file picker to import. Try again.	No se pudo abrir el selector de archivos para importar. Inténtalo de nuevo.
 Couldn't put back the diagnostic data. Try again.	No se pudieron recuperar los datos de diagnóstico. Inténtalo de nuevo.
@@ -1332,28 +1330,6 @@ Zero switches this off. Counts every video that comes up in the feed and tells y
 Zero switches this off. Count the minutes the player spends running in the feed. Time on messages, a profile or search doesn't count.	Cero lo desactiva. Cuenta los minutos que el reproductor pasa funcionando en el feed. El tiempo en mensajes, un perfil o la búsqueda no cuenta.
 collapsed	Contraído
 expanded	Expandido
-Already active	Ya está activo
-Applying Calm feed	Aplicando Feed tranquilo
-Calm feed	Feed tranquilo
-Calm feed couldn't be applied. Nothing was changed.	No se pudo aplicar Feed tranquilo. No se cambió nada.
-Calm feed couldn't start. Try again in a moment.	No se pudo iniciar Feed tranquilo. Vuelve a intentarlo en breve.
-Calm feed is on. Restart TikTok to apply all changes.	Feed tranquilo está activado. Reinicia TikTok para aplicar todos los cambios.
-Calm feed is on.	Feed tranquilo está activado.
-Changed	Cambiado
-Hide ads, Shop posts, LIVE videos and replays, promotional music, and paid partnerships.	Oculta anuncios, publicaciones de Tienda, vídeos LIVE y repeticiones, música promocional y colaboraciones pagadas.
-On	Activado
-On. Restore puts back the feed setup you had before.	Activado. Restaurar recupera la configuración del feed que tenías antes.
-Preset	Preajuste
-Quick setup	Configuración rápida
-Restore setup	Restaurar configuración
-Restoring setup	Restaurando configuración
-Some Calm feed settings changed. Restore still puts back your earlier setup.	Algunos ajustes de Feed tranquilo han cambiado. Restaurar seguirá recuperando tu configuración anterior.
-Use Calm feed	Usar Feed tranquilo
-Working	En curso
-Your current settings already match Calm feed.	Tus ajustes actuales ya coinciden con Feed tranquilo.
-Your previous feed setup couldn't be restored. Nothing was changed.	No se pudo restaurar tu configuración anterior del feed. No se cambió nada.
-Your previous feed setup is back. Restart TikTok to apply all changes.	Se ha recuperado tu configuración anterior del feed. Reinicia TikTok para aplicar todos los cambios.
-Your previous feed setup is back.	Se ha recuperado tu configuración anterior del feed.
 Hide search suggestions above comments	Ocultar sugerencias de búsqueda sobre los comentarios
 Compact comment header	Cabecera de comentarios compacta
 Easier comment likes	Dar me gusta con más facilidad
@@ -2122,22 +2098,8 @@ Report a problem	Informar de un problema
 Opens a GitHub report with your versions and settings filled in. Add what happened.	Abre un informe en GitHub con tus versiones y ajustes ya rellenados. Añade lo que pasó.
 Support Hushfeed	Apoya Hushfeed
 No app on this phone opens web links	Ninguna app de este teléfono abre enlaces web
-Quick setups	Ajustes rápidos
-Quiet hides ads, Shop and LIVE. Privacy hides your views and typing and stops tracking. Back to defaults resets every switch. Press and hold to hide this row.	Tranquilo oculta anuncios, Tienda y LIVE. Privacidad oculta tus visualizaciones y lo que escribes y detiene el rastreo. Restablecer devuelve cada interruptor a su valor original. Mantén pulsado para ocultar esta fila.
 # context: toast after a long press hides the Quick setups card from the settings home page; the page name is the one holding the row that brings it back
-Quick setups hidden. Bring it back from %1$s.	Ajustes rápidos ocultos. Puedes recuperarlos en %1$s.
 # context: row on the Backup and restore page; shows or hides the Quick setups card on the settings home page
-Quick setups on the home page	Ajustes rápidos en la página de inicio
-Shown. Tap to hide it.	Se muestran. Toca para ocultarlos.
-Hidden. Tap to show it again.	Ocultos. Toca para mostrarlos de nuevo.
-Quiet	Tranquilo
-Back to defaults	Restablecer
-Changed 1 setting	Se cambió 1 ajuste
-Changed %1$d settings	Se cambiaron %1$d ajustes
-Your settings already match	Tus ajustes ya coinciden
-That setup couldn't be applied. Nothing was changed.	No se pudo aplicar esa configuración. No se cambió nada.
-Quick setups couldn't start. Try again in a moment.	Los ajustes rápidos no pudieron iniciarse. Vuelve a intentarlo en un momento.
-Your earlier settings are back	Tus ajustes anteriores han vuelto
 # context: a heading on the settings home page, over Feed filter, Feed tabs, Feed screen, Playback and Screen time
 Your feed	Tu feed
 # context: a heading on the settings home page, over Downloads and Share sheet
@@ -2230,7 +2192,34 @@ Show the main feed's tabs on a rounded, see-through dark pill that floats over t
 Liquid glass look	Aspecto de cristal líquido
 Draw the main feed's floating pill as glass, lighter and more see-through, with a bright rim along its top edge. Needs Floating bottom bar.	Dibuja la píldora flotante del feed principal como cristal, más clara y más transparente, con un borde brillante en su parte superior. Necesita Barra inferior flotante.
 Glass lens on the current tab	Lente de cristal en la pestaña actual
-On the main feed, a smaller piece of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.	En el feed principal, un trozo de cristal más pequeño queda detrás de la pestaña en la que estás y se desliza a la siguiente pestaña que elijas. Necesita Aspecto de cristal líquido.
+Pill height	Altura de la píldora
+Compact	Compacta
+Standard	Estándar
+How tall the main feed's floating pill is inside the bar. Compact leaves more of the video showing around it. The tabs keep their size and their taps.	Lo alta que es la píldora flotante del feed principal dentro de la barra. Compacta deja ver más vídeo a su alrededor. Las pestañas conservan su tamaño y sus toques.
+Pill corners	Esquinas de la píldora
+Rounder	Más redondeadas
+Fully round	Totalmente redondas
+How round the main feed's floating pill and its glass lens are. Fully round gives them half circle ends.	Lo redondeadas que son la píldora flotante del feed principal y su lente de cristal. Totalmente redondas les da extremos en semicírculo.
+Glass opacity	Opacidad del cristal
+Most see-through	Lo más transparente
+More see-through	Más transparente
+Frosted	Esmerilado
+How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least.	Cuánto vídeo se ve a través de la píldora de cristal en el feed principal. Lo más transparente deja ver más y Esmerilado menos.
+On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.	En el feed principal, una burbuja de cristal en relieve queda detrás de la pestaña en la que estás y se desliza a la siguiente pestaña que elijas. Necesita Aspecto de cristal líquido.
+Slide across the tabs	Deslizar por las pestañas
+On the main feed, slide a finger along the glass pill and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	En el feed principal, desliza un dedo por la píldora de cristal y la lente lo sigue. Suelta y se abre esa pestaña. Los toques y las pulsaciones largas funcionan como antes. Necesita Lente de cristal en la pestaña actual.
+Haptics on the tabs	Vibración en las pestañas
+On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	En el feed principal, un toque suave cada vez que la lente de cristal pasa por una pestaña, al deslizarse tras un toque o bajo tu dedo. Necesita Lente de cristal en la pestaña actual.
+Haptic style	Estilo de vibración
+Short pulse	Pulso corto
+Phone's click	Clic del teléfono
+Soft tick	Toque suave
+Full tick	Toque completo
+The tick on the main feed's tabs. Short pulse is one quick tap of the motor. Phone's click is the click your phone makes elsewhere. Soft tick rings a little longer. Full tick is the phone's strongest tick.	El toque en las pestañas del feed principal. Pulso corto es un golpe rápido del motor. Clic del teléfono es el clic que tu teléfono hace en otros sitios. Toque suave dura un poco más. Toque completo es el toque más fuerte del teléfono.
+Blur strength	Intensidad del desenfoque
+Soft blur	Desenfoque suave
+Strong blur	Desenfoque fuerte
+How much the video behind the glass pill on the main feed is blurred.	Cuánto se desenfoca el vídeo detrás de la píldora de cristal en el feed principal.
 # context: a switch on the Comments page. Language, Settings and privacy and App language are TikTok's own labels: its language page, the menu that page sits in, and the page's first row
 Bring back TikTok's translation	Recuperar la traducción de TikTok
 Brings back the translation rows on TikTok's Language page, under Settings and privacy, for accounts that only see App language there.	Recupera las filas de traducción en la página Idioma de TikTok, en Ajustes y privacidad, para las cuentas que allí solo ven Idioma de la app.
@@ -2309,5 +2298,15 @@ Recovered recording saved to %1$s	Grabación recuperada guardada en %1$s
 
 # context: Settings search switch location action, gesture hint, and missing original row.
 Open setting location	Ir a la ubicación del ajuste
-Tap a switch to change it. Press and hold to open its page.	Toca un interruptor para cambiarlo. Mantenlo pulsado para abrir su página.
-This setting isn't available on this page. Go back and search again.	Este ajuste no está disponible en esta página. Vuelve atrás y busca de nuevo.
+Expanded	Expandido
+Collapsed	Contraído
+This setting isn't available. Search for another setting.	Este ajuste no está disponible. Busca otro ajuste.
+Hide the Hushfeed row	Ocultar la fila de Hushfeed
+Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.	Quita Hushfeed de Ajustes y privacidad de TikTok. Para abrir estos ajustes, mantén pulsado Para ti arriba del feed, o Inicio si Mantener pulsado Inicio para abrir los ajustes de Hushfeed está activado.
+Open the search page	Abrir la página de búsqueda
+TikTok's search page couldn't be opened. Restart TikTok and try again.	No se pudo abrir la página de búsqueda de TikTok. Reinicia TikTok y vuelve a intentarlo.
+Fold the search into a button	Plegar la búsqueda en un botón
+Shows a search button at the top left of the comments instead of the box, so the comments get that room back. Tap it to search, and tap it again to put the box away. Search within comments must be on.	Muestra un botón de búsqueda arriba a la izquierda de los comentarios en lugar del cuadro, así los comentarios recuperan ese espacio. Tócalo para buscar y vuelve a tocarlo para guardar el cuadro. Buscar en los comentarios debe estar activado.
+Put the comment search away	Guardar la búsqueda de comentarios
+Tap @names in bios	Tocar @nombres en las biografías
+An @username in a profile's bio opens that profile when you tap it. The rest of the bio still translates on a tap.	Un @usuario en la biografía de un perfil abre ese perfil al tocarlo. El resto de la biografía se sigue traduciendo al tocarla.

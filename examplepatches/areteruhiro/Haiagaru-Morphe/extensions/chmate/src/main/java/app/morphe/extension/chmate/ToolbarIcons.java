@@ -13,9 +13,9 @@ public final class ToolbarIcons {
     static final String PREFS = "haiagaru_toolbar_icons";
     static final int FLOATING_FILTER = 0x7e000008;
     // Append only: existing files are addressed by their numeric index.
-    static final String[] NAMES = {"エッヂ過去ログ", "フィルタ", "すべて既読", "長押しコピー", "ﾜｯﾁｮｲ下4桁で検索", "ﾜｯﾁｮｲ上4桁で検索", "★スレのみ巡回", "フローティングのフィルター"};
-    static final String[] RESOURCES = {"haiagaru_edge_archive", "haiagaru_quick_filter", "haiagaru_mark_all_read", "haiagaru_direct_copy", "haiagaru_wacchoi_lower", "haiagaru_wacchoi_upper", "haiagaru_favorite_threads", "haiagaru_quick_filter"};
-    private static final int[] ACTION_IDS = {0x7e000001, 0x7e000002, 0x7e000003, 0x7e000004, 0x7e000005, 0x7e000006, FavoriteThreads.TAB, FLOATING_FILTER};
+    static final String[] NAMES = {"エッヂ過去ログ", "フィルタ", "すべて既読", "長押しコピー", "ﾜｯﾁｮｲ下4桁で検索", "ﾜｯﾁｮｲ上4桁で検索", "★スレのみ巡回", "フローティングのフィルター", "必死チェッカーDroid＋で開く"};
+    static final String[] RESOURCES = {"haiagaru_edge_archive", "haiagaru_quick_filter", "haiagaru_mark_all_read", "haiagaru_direct_copy", "haiagaru_wacchoi_lower", "haiagaru_wacchoi_upper", "haiagaru_favorite_threads", "haiagaru_quick_filter", "haiagaru_hissi_droid_plus"};
+    private static final int[] ACTION_IDS = {0x7e000001, 0x7e000002, 0x7e000003, 0x7e000004, 0x7e000005, 0x7e000006, FavoriteThreads.TAB, FLOATING_FILTER, 0x7e000009};
     private static final Bitmap[] CACHE = new Bitmap[NAMES.length];
     private ToolbarIcons() {}
     static int index(int action) {

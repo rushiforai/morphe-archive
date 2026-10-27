@@ -1,15 +1,13 @@
 package dev.twitchpatches.extension.settings;
 
 import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
 import android.content.res.Configuration;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 import dev.twitchpatches.extension.ui.UiSettings;
-import dev.twitchpatches.extension.ui.UiSystemBars;
+import dev.twitchpatches.extension.ui.UiWindowBars;
 
 public final class SettingsWindow {
     private SettingsWindow() { }
@@ -27,20 +25,24 @@ public final class SettingsWindow {
         return new Session(window);
     }
 
-    private static final class Session implements AutoCloseable, ViewTreeObserver.OnGlobalLayoutListener {
+    private static final class Session implements AutoCloseable, ViewTreeObserver.OnGlobalLayoutListener,
+            ViewTreeObserver.OnWindowFocusChangeListener {
         private final Window window;
-        private final UiSystemBars bars = new UiSystemBars();
-        private final int originalCutout;
+        private final UiWindowBars bars = new UiWindowBars();
         private final AutoCloseable subscription;
         private boolean active = true;
 
         Session(Window window) {
             this.window = window;
-            originalCutout = Build.VERSION.SDK_INT >= 28 ? window.getAttributes().layoutInDisplayCutoutMode : 0;
             window.getDecorView().getViewTreeObserver().addOnGlobalLayoutListener(this);
+            window.getDecorView().getViewTreeObserver().addOnWindowFocusChangeListener(this);
             subscription = PatchSettings.group(UiSettings.KEY) == null ? null : UiSettings.observe(() ->
                     window.getDecorView().post(this::onGlobalLayout));
             onGlobalLayout();
+        }
+
+        @Override public void onWindowFocusChanged(boolean focused) {
+            if (focused) { bars.invalidate(); onGlobalLayout(); }
         }
 
         @Override public void onGlobalLayout() {
@@ -51,22 +53,7 @@ public final class SettingsWindow {
         }
 
         private void apply(boolean status, boolean navigation) {
-            View decor = window.getDecorView();
-            int requested = (status ? View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN : 0) |
-                    (navigation ? View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY : 0);
-            int flags = bars.apply(decor.getSystemUiVisibility(), requested);
-            boolean changed = decor.getSystemUiVisibility() != flags;
-            if (changed) decor.setSystemUiVisibility(flags);
-            if (Build.VERSION.SDK_INT >= 28) {
-                WindowManager.LayoutParams attributes = window.getAttributes();
-                int cutout = status ? WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES : originalCutout;
-                if (attributes.layoutInDisplayCutoutMode != cutout) {
-                    attributes.layoutInDisplayCutoutMode = cutout;
-                    window.setAttributes(attributes);
-                    changed = true;
-                }
-            }
-            if (changed) { decor.requestApplyInsets(); decor.requestLayout(); }
+            if (bars.apply(window, status, navigation)) window.getDecorView().requestLayout();
         }
 
         @Override public void close() throws Exception {
@@ -74,7 +61,10 @@ public final class SettingsWindow {
             apply(false, false);
             if (subscription != null) subscription.close();
             ViewTreeObserver observer = window.getDecorView().getViewTreeObserver();
-            if (observer.isAlive()) observer.removeOnGlobalLayoutListener(this);
+            if (observer.isAlive()) {
+                observer.removeOnGlobalLayoutListener(this);
+                observer.removeOnWindowFocusChangeListener(this);
+            }
         }
     }
 }

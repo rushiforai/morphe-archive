@@ -27,7 +27,6 @@ G = {
         ('ImpressionStore.tsx', 24200, 'cleanupImpression', False),
         ('ImpressionStore.tsx', 24201, 'setDebugTrackedData', False),
         ('ImpressionStore.tsx', 24202, 'getLocation', False),
-        ('SessionHeartbeatScheduler.tsx', 41733, 'trackHeartbeat', False),
         ('SessionHeartbeatScheduler.tsx', 41734, '_trackHeartbeat', False),
         ('Clickstream.tsx', 41754, 'isClickstreamEnabled', False),
         ('Clickstream.tsx', 41757, 'clickstreamExperimentEnabled', False),
@@ -63,15 +62,13 @@ G = {
         ('websocketTelemetryHook.android.tsx', 81287, 'installWebsocketTelemetryHook', False),
         ('BaseTelemetryChannel.tsx', 26164, 'append', False),
         ('TelemetryRingNative.android.tsx', 26167, 'append', False),
-        (None, 18815, 'fileFinishedImporting', False),
         ('AppStartPerformance.tsx', 18895, 'isTracing', False),
-        (None, 18775, '', False),
         ('TelemetryRingLifecycle.tsx', 24069, '_initialize', False),
         ('ZoomedInTelemetry.tsx', 26142, 'shouldRun', False),
         ('ZoomedInAnalyticsExperiment.tsx', 26147, 'isZoomedExperimentEnabled', False),
         ('BaseTelemetryExportChannel.tsx', 26153, 'start', False),
         ('BaseTelemetryExportChannel.tsx', 26159, '_kick', True),
-        ('TTIAnalyticsUtils.tsx', 41772, 'trackAppUIViewed2', False),
+        ('TTIAnalyticsUtils.tsx', 41773, '_trackAppUIViewed', False),
         ('TTIAnalyticsUtils.tsx', 41777, 'trackAppOpened', False),
         ('TTIAnalyticsUtils.tsx', 41778, 'trackAppUIViewed', False),
         ('TTIAnalyticsUtils.tsx', 41780, 'trackAppLaunchCompleted', False),
@@ -131,6 +128,11 @@ def main():
         path_to_mid[p] = mid
         path_to_mid[os.path.basename(p)] = mid
 
+    # Hermes deduplicates identical bytecode; a stub on a shared body also replaces the other functions (#93).
+    owners = {}
+    for fid in range(h.h['functionCount']):
+        owners[h.func(fid)['offset']] = owners.get(h.func(fid)['offset'], 0) + 1
+
     for g, ts in G.items():
         print(f"    val {g} = listOf(")
         for mod, i, n, p in ts:
@@ -143,6 +145,7 @@ def main():
             f = h.func(i)
             assert h.fname(i) == n and f['expanded'], (i, n, h.fname(i))
             assert f['flags'] & 0xc8 == 0, f"#{i} ({n}) has exception handler or non-normal flags: 0x{f['flags']:02x}"
+            assert owners[f['offset']] == 1, f"#{i} ({n}) shares its body with {owners[f['offset']] - 1} other function(s)"
             body = hashlib.sha256(b[f['offset']:f['offset'] + f['size']]).hexdigest()
             exp = hashlib.sha256(b[f['header']:f['header'] + 40]).hexdigest()
             print(f'        Target({i}, "{n}", {f["offset"]}, {f["size"]}, "{b[128+i*12:140+i*12].hex()}", "{body}", {"true" if p else "false"}, "{exp}"),')

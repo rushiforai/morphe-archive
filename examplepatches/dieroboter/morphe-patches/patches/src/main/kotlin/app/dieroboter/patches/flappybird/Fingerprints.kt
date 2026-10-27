@@ -27,7 +27,9 @@ internal object GameActivityLayoutFingerprint : Fingerprint(
     parameters = listOf(),
 )
 
-// GameActivity.onCreate: the port prepends its display-cutout window handling here.
+// GameActivity.onCreate: the port inserts its display-cutout window handling
+// right after the super call here (Android 17 crashes if the insets call
+// runs before the DecorView exists).
 internal object GameActivityOnCreateFingerprint : Fingerprint(
     definingClass = GAME_ACTIVITY,
     name = "onCreate",

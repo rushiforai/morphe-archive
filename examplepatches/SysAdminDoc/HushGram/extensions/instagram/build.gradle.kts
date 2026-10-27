@@ -498,6 +498,17 @@ tasks.register("verifyAndroidBoundaries") {
                 "onItSkipsTheUnmuteOnlyForVolumeUp[28]", "onItSkipsTheUnmuteOnlyForVolumeUp[37]",
                 "pausedHushGramLeavesTheUnmuteAlone[28]", "pausedHushGramLeavesTheUnmuteAlone[37]",
                 "beforeTheSettingsAreReadyTheUnmuteHappens[28]", "beforeTheSettingsAreReadyTheUnmuteHappens[37]"),
+            "app.hushgram.extension.instagram.reels.TabBarLayoutTest" to listOf(
+                "theChoiceStartsAtInstagramsBar[28]", "theChoiceStartsAtInstagramsBar[37]",
+                "swipeKeepsTheNewerBarAndCountsTheTurnedAnswers[28]", "swipeKeepsTheNewerBarAndCountsTheTurnedAnswers[37]",
+                "classicKeepsTheOlderBarAndCountsTheTurnedAnswers[28]", "classicKeepsTheOlderBarAndCountsTheTurnedAnswers[37]",
+                "pausedHushGramIsInstagramsOwnBar[28]", "pausedHushGramIsInstagramsOwnBar[37]",
+                "beforeTheSettingsAreReadyItIsInstagramsOwnBar[28]", "beforeTheSettingsAreReadyItIsInstagramsOwnBar[37]"),
+            "app.hushgram.extension.instagram.settings.TabBarLayoutSettingsTest" to listOf(
+                "missingPatchHasNoLayoutChoice[28]", "missingPatchHasNoLayoutChoice[37]",
+                "theChoiceAloneStillGetsTabBar[28]", "theChoiceAloneStillGetsTabBar[37]",
+                "choiceStartsAtInstagramsFirstUnderTabBar[28]", "choiceStartsAtInstagramsFirstUnderTabBar[37]",
+                "choosingSwipeChangesTheSummary[28]", "choosingSwipeChangesTheSummary[37]"),
             "app.hushgram.extension.instagram.settings.ReelTapAndVolumeSettingsTest" to listOf(
                 "missingPatchHasNoTapChoice[28]", "missingPatchHasNoTapChoice[37]",
                 "theChoiceAloneStillGetsPlayback[28]", "theChoiceAloneStillGetsPlayback[37]",
@@ -511,7 +522,12 @@ tasks.register("verifyAndroidBoundaries") {
                 "aSilentPhoneOrNoVolumeIsInstagramsOwnChoice[28]", "aSilentPhoneOrNoVolumeIsInstagramsOwnChoice[37]",
                 "pausedHushGramLeavesTheSoundAlone[28]", "pausedHushGramLeavesTheSoundAlone[37]",
                 "beforeTheSettingsAreReadyItIsInstagramsOwnSound[28]", "beforeTheSettingsAreReadyItIsInstagramsOwnSound[37]",
-                "withoutAViewerItSaysNo[28]", "withoutAViewerItSaysNo[37]"),
+                "withoutAViewerItSaysNo[28]", "withoutAViewerItSaysNo[37]",
+                "aViewerThatTurnedTheSoundOnPutsItBackAsItIsLeft[28]", "aViewerThatTurnedTheSoundOnPutsItBackAsItIsLeft[37]",
+                "aSoundAlreadyOnIsLeftOn[28]", "aSoundAlreadyOnIsLeftOn[37]",
+                "aStoryMutedByHandStaysMuted[28]", "aStoryMutedByHandStaysMuted[37]",
+                "aResumeWithoutTheSwitchOrTheRingerKeepsTheSoundOff[28]", "aResumeWithoutTheSwitchOrTheRingerKeepsTheSoundOff[37]",
+                "viewersAreTrackedOneByOne[28]", "viewersAreTrackedOneByOne[37]"),
             "app.hushgram.extension.instagram.stories.StorySwipeReplyTest" to listOf(
                 "offToStartKeepsTheSwipe[28]", "offToStartKeepsTheSwipe[37]",
                 "onStopsTheSwipe[28]", "onStopsTheSwipe[37]",
@@ -532,6 +548,29 @@ tasks.register("verifyAndroidBoundaries") {
                 "missingPatchHasNoSwitch[28]", "missingPatchHasNoSwitch[37]"),
             "app.hushgram.extension.instagram.settings.AddYoursCardsSettingsTest" to listOf(
                 "theSwitchIsUnderStoriesAfterTheSuggestionsAndStartsOff[28]", "theSwitchIsUnderStoriesAfterTheSuggestionsAndStartsOff[37]",
+                "aSavedSwitchAnswersOffWhilePaused[28]", "aSavedSwitchAnswersOffWhilePaused[37]",
+                "missingPatchHasNoSwitch[28]", "missingPatchHasNoSwitch[37]"),
+            "app.hushgram.extension.instagram.settings.DoubleTapHiddenChatsSettingsTest" to listOf(
+                "theSwitchFollowsHiddenChatsUnderMessagesAndStartsOff[28]", "theSwitchFollowsHiddenChatsUnderMessagesAndStartsOff[37]",
+                "aSavedSwitchAnswersOffWhilePaused[28]", "aSavedSwitchAnswersOffWhilePaused[37]",
+                "missingPatchHasNoSwitch[28]", "missingPatchHasNoSwitch[37]"),
+            "app.hushgram.extension.instagram.settings.PureBlackHintSettingsTest" to listOf(
+                "aBuildWithoutPureBlackShowsTheHintUnderLayout[28]", "aBuildWithoutPureBlackShowsTheHintUnderLayout[37]",
+                "aBuildWithPureBlackShowsItsRowAndNoHint[28]", "aBuildWithPureBlackShowsItsRowAndNoHint[37]",
+                "searchFindsEitherRowByAmoled[28]", "searchFindsEitherRowByAmoled[37]"),
+            "app.hushgram.extension.instagram.direct.HiddenChatsTapTest" to listOf(
+                "oneTapOnMessagesGoesToInstagram[28]", "oneTapOnMessagesGoesToInstagram[37]",
+                "aQuickSecondTapIsKeptFromInstagramAndOpensTheList[28]", "aQuickSecondTapIsKeptFromInstagramAndOpensTheList[37]",
+                "aSlowSecondTapGoesToInstagram[28]", "aSlowSecondTapGoesToInstagram[37]",
+                "tapsAwayFromMessagesDontPair[28]", "tapsAwayFromMessagesDontPair[37]",
+                "aSecondTapFarFromTheFirstGoesToInstagram[28]", "aSecondTapFarFromTheFirstGoesToInstagram[37]",
+                "aScrollOrAHoldIsNoFirstTap[28]", "aScrollOrAHoldIsNoFirstTap[37]",
+                "aSecondFingerIsNoFirstTap[28]", "aSecondFingerIsNoFirstTap[37]",
+                "aCancelledSecondTapOpensNothing[28]", "aCancelledSecondTapOpensNothing[37]",
+                "offOrPausedEveryTapGoesToInstagram[28]", "offOrPausedEveryTapGoesToInstagram[37]",
+                "aScreenWithoutMessagesButtonsHasNone[28]", "aScreenWithoutMessagesButtonsHasNone[37]"),
+            "app.hushgram.extension.instagram.settings.KeepTrayInFeedSettingsTest" to listOf(
+                "theSwitchIsUnderStoriesAfterTheTrayAndStartsOff[28]", "theSwitchIsUnderStoriesAfterTheTrayAndStartsOff[37]",
                 "aSavedSwitchAnswersOffWhilePaused[28]", "aSavedSwitchAnswersOffWhilePaused[37]",
                 "missingPatchHasNoSwitch[28]", "missingPatchHasNoSwitch[37]"),
             "app.hushgram.extension.instagram.settings.MusicCardSettingsTest" to listOf(

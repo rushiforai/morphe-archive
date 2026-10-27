@@ -22,6 +22,7 @@ public class ExpandedControlsTest {
     @Before public void reset() {
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().commit();
+        OpenSections.all();
     }
 
     @Test public void everyControlIsIndependentAndPauseKeepsItsChoice() {
@@ -86,7 +87,8 @@ public class ExpandedControlsTest {
             assertNotNull(root.findViewWithTag("open_messenger"));
             // Nothing to search, and no "try another search" panel contradicting the status line.
             assertEquals(View.GONE, root.findViewWithTag("find_control").getVisibility());
-            assertEquals(View.GONE, ((View) root.findViewWithTag("category_all").getParent()).getVisibility());
+            // No empty section headers either.
+            assertNull(root.findViewWithTag("section_inbox"));
             assertEquals(View.GONE, root.findViewWithTag("empty_state").getVisibility());
         }
     }

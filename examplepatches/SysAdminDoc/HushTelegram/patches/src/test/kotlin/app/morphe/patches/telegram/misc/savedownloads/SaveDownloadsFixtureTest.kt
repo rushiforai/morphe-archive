@@ -34,7 +34,7 @@ import org.junit.Test
 /** ImageLoader's finished-download callback on both declared builds, and the checks the stubs borrow. */
 class SaveDownloadsFixtureTest {
     private val hosts = setOf(IMAGE_LOADER, FILE_LOADER, MESSAGE_OBJECT, TL_MESSAGE, DOCUMENT, DIALOG_OBJECT, MESSAGES_CONTROLLER,
-        MESSAGES_STORAGE)
+        MESSAGES_STORAGE, GALLERY_MEDIA_CONTROLLER, ANDROID_UTILITIES)
 
     private fun context(build: File): BytecodePatchContext {
         // The callback is an anonymous class; ImageLoader names it where it hands FileLoader its delegate.
@@ -83,10 +83,14 @@ class SaveDownloadsFixtureTest {
                 CONTROLLER_INSTANCE, PEER_NO_FORWARDS), context.stub("savingForbidden").refs())
             // The switch for chats that don't allow saving never reaches a secret chat.
             assertEquals(listOf(MESSAGE_OBJECT, MESSAGE_OWNER, GET_DIALOG_ID, IS_ENCRYPTED), context.stub("secretChat").refs())
-            assertEquals(listOf(DOCUMENT, ATTACH_NAME), context.stub("attachName").refs())
+            // A photo's size goes through attachName too, so it takes any TLObject (#29).
+            assertEquals(listOf(TL_OBJECT, ATTACH_NAME), context.stub("attachName").refs())
             assertEquals(listOf(DOCUMENT, DOCUMENT_NAME), context.stub("documentName").refs())
+            assertEquals(listOf(MESSAGE_OBJECT, IS_SECRET_MEDIA, IS_GIF, IS_ROUND_VIDEO, IS_PHOTO, IS_VIDEO),
+                context.stub("photoOrVideo").refs())
+            assertEquals(listOf(MESSAGE_OBJECT, PHOTO_THUMBS, PHOTO_SIZE, CLOSEST_PHOTO_SIZE), context.stub("photo").refs())
             for (stub in listOf("messageDocument", "fileOrSong", "savingForbidden", "secretChat", "attachName", "documentName",
-                "storedMessage")) {
+                "storedMessage", "photoOrVideo", "photo")) {
                 val method = context.mutableClassDefBy(SAVE_DOWNLOADS).method(stub)
                 assertTrue("$name: $stub", AccessFlags.PUBLIC.isSet(method.accessFlags) && AccessFlags.STATIC.isSet(method.accessFlags))
             }

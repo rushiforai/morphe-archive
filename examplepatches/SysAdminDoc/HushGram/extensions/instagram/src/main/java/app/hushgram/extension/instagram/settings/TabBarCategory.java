@@ -15,6 +15,7 @@ import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragme
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.glassReelsHideRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.hapticStyleRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.startTabRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.tabBarLayoutRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.toggle;
 
 import android.content.Context;
@@ -30,13 +31,23 @@ final class TabBarCategory {
     private TabBarCategory() { }
 
     static void add(HushgramPreferenceFragment page, PreferenceScreen screen, Context context, Set<PatchFamily> build) {
-        if (build.contains(PatchFamily.GLASS_TAB_BAR) || build.contains(PatchFamily.REELS_TAB)) {
+        if (build.contains(PatchFamily.GLASS_TAB_BAR) || build.contains(PatchFamily.REELS_TAB)
+                || build.contains(PatchFamily.TAB_BAR_LAYOUT)) {
             PreferenceCategory glass = category(screen, L10n.t("Tab bar"), SettingsIcons.TAB_BAR,
                     L10n.t("Pick your tabs, their order and how the bar looks."));
+            // First, since it picks which bar the rows below work on (#356).
+            if (build.contains(PatchFamily.TAB_BAR_LAYOUT)) glass.addPreference(tabBarLayoutRow(context));
             if (build.contains(PatchFamily.REELS_TAB)) {
                 glass.addPreference(toggle(context, Settings.HIDE_HOME_TAB, L10n.t("Hide the Home tab"),
                         L10n.t("Takes Home off the tab bar. Your Start tab opens wherever Home would, so pick one other than Home "
                                 + "that's on the bar, or Home stays. Restart Instagram to see the change.")));
+                // Under Reels until 2026-10-26, and a search for Reels still finds them.
+                glass.addPreference(toggle(context, Settings.HIDE_REELS_TAB, L10n.t("Hide the Reels tab"),
+                        L10n.t("Takes Reels off the tab bar. Reels in your feed and reels people send you still open. "
+                                + "Restart Instagram to see the change.")));
+                glass.addPreference(toggle(context, Settings.SHOW_REELS_TAB, L10n.t("Show the Reels tab"),
+                        L10n.t("Puts Reels back on the tab bar if Instagram left it off yours. Hide the Reels tab wins if "
+                                + "both are on. Restart Instagram to see the change.")));
                 glass.addPreference(toggle(context, Settings.HIDE_SEARCH_TAB, L10n.t("Hide the Search tab"),
                         L10n.t("Takes Search off the tab bar and closes up the gap. Restart Instagram to see the change.")));
                 glass.addPreference(toggle(context, Settings.HIDE_CREATE_TAB, L10n.t("Hide the Create tab"),

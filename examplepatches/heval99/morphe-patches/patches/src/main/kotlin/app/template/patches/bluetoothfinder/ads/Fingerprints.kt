@@ -1,6 +1,8 @@
 package app.template.patches.bluetoothfinder.ads
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
@@ -15,7 +17,7 @@ private const val ADVIEW = "Lcom/google/android/gms/ads/AdView;"
 // after a dismissed ad, which never touches AdView.
 internal object MobileAdsInitCompleteFingerprint : Fingerprint(
     returnType = "V",
-    strings = listOf("ca-app-pub-9043738977093939/5919566899"),
+    strings = listOf(string("ca-app-pub-9043738977093939/5919566899", StringComparisonType.CONTAINS)),
     custom = { method, _ ->
         method.parameterTypes.size == 1 &&
             method.implementation?.instructions?.any {

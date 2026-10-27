@@ -5,7 +5,8 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
 internal object Constants {
-    val YOUTUBE_21_04_223 = Compatibility(
+    /** The official Morphe patches' stable and newest YouTube targets, plus the newest store build. */
+    val YOUTUBE = Compatibility(
         name = "YouTube",
         packageName = "com.google.android.youtube",
         description = "Official YouTube Android app verified for API-free danmaku comments and ambient light.",
@@ -17,49 +18,14 @@ internal object Constants {
         ),
         targets = listOf(
             AppTarget(
-                version = "21.04.223",
+                version = "21.20.405",
                 minSdk = 28,
-                description = "Patched, rebuilt, installed, launched, and visually verified on API 36.",
+                description = "Official Morphe patches' stable target; danmaku fetched and drawn in sync with playback and the see-through watch page shown on the dedicated Android API 36 emulator.",
             ),
             AppTarget(
-                version = "21.34.248",
+                version = "21.42.241",
                 minSdk = 29,
-                description = "Automatically verified on the dedicated Android API 36 emulator.",
-            ),
-            AppTarget(
-                version = "21.35.443",
-                minSdk = 29,
-                description = "Automatically verified on the dedicated Android API 36 emulator.",
-            ),
-            AppTarget(
-                version = "21.35.448",
-                minSdk = 29,
-                description = "Automatically verified on the dedicated Android API 36 emulator.",
-            ),
-            AppTarget(
-                version = "21.40.161",
-                minSdk = 29,
-                description = "Danmaku and ambient light verified on the dedicated Android API 36 emulator.",
-            ),
-            AppTarget(
-                version = "21.40.165",
-                minSdk = 29,
-                description = "Danmaku fetched and drawn over a public replay on the dedicated Android API 36 emulator.",
-            ),
-            AppTarget(
-                version = "21.40.166",
-                minSdk = 29,
-                description = "Danmaku fetched and drawn over a public video and the see-through watch page shown on the dedicated Android API 36 emulator.",
-            ),
-            AppTarget(
-                version = "21.41.526",
-                minSdk = 29,
-                description = "Danmaku fetched and drawn over a public replay and the see-through watch page shown on the dedicated Android API 36 emulator.",
-            ),
-            AppTarget(
-                version = "21.41.529",
-                minSdk = 29,
-                description = "Danmaku fetched and drawn over a public replay and the see-through watch page shown on the dedicated Android API 36 emulator.",
+                description = "Official Morphe patches' newest target; danmaku fetched and drawn in sync with playback and the see-through watch page shown on the dedicated Android API 36 emulator.",
             ),
             AppTarget(
                 version = "21.42.243",

@@ -192,6 +192,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_video_either_landscape", FALSE);
 
     /**
+     * The video viewer stays upright when the phone is turned and goes landscape only from its full
+     * screen button (#27).
+     */
+    public static final BooleanSetting VIDEO_ONLY_FROM_BUTTON =
+            new BooleanSetting("hushtelegram_video_only_from_button", FALSE);
+
+    /**
      * A swipe to the right on a profile's photos or media tabs goes back instead of to the previous
      * photo or tab.
      */
@@ -262,6 +269,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting LAUNCH_FOLDER =
             new BooleanSetting("hushtelegram_launch_folder", FALSE);
+
+    /**
+     * The chats picked for each account leave the chat list, its folders and the archive
+     * ({@link app.hushtelegram.extension.telegram.misc.HiddenChats}). The picks themselves stay on
+     * this phone, outside the settings.
+     */
+    public static final BooleanSetting HIDDEN_CHATS =
+            new BooleanSetting("hushtelegram_hidden_chats", FALSE);
 
     /**
      * Forwards start with Telegram's Hide sender's name option turned on.
@@ -369,6 +384,12 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_red_deleted_label", FALSE);
 
     /**
+     * When someone else edits a message, this phone keeps the text it had before, shown in Message details.
+     */
+    public static final BooleanSetting KEEP_EDIT_HISTORY =
+            new BooleanSetting("hushtelegram_keep_edit_history", FALSE);
+
+    /**
      * A sticker you tap asks Send or Cancel before it goes into the chat.
      */
     public static final BooleanSetting ASK_BEFORE_STICKER =
@@ -381,9 +402,21 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting OUTSIDE_TRANSLATE =
             new BooleanSetting("hushtelegram_external_translate", FALSE);
 
+    /**
+     * The language the outside translate writes in, one of
+     * {@link app.hushtelegram.extension.telegram.misc.TranslateTarget#LANGUAGES}. Empty keeps
+     * Telegram's language (#35).
+     */
+    public static final StringSetting TRANSLATE_TARGET =
+            new StringSetting("hushtelegram_translate_target", "");
+
     /** Search, Direct messages and Info leave the bar at the bottom of a channel. Mute and Join stay. */
     public static final BooleanSetting HIDE_CHANNEL_BUTTONS =
             new BooleanSetting("hushtelegram_hide_channel_buttons", FALSE);
+
+    /** The bar at the bottom of a joined channel is left off the screen while it would show Mute or Unmute (#26). */
+    public static final BooleanSetting HIDE_CHANNEL_MUTE =
+            new BooleanSetting("hushtelegram_hide_channel_mute", FALSE);
 
     /** The Send as picture next to the message box is left out while you'd post as yourself. */
     public static final BooleanSetting HIDE_SEND_AS =
@@ -438,6 +471,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SAVE_RESTRICTED_DOWNLOADS =
             new BooleanSetting("hushtelegram_save_restricted_downloads", FALSE);
+
+    /**
+     * Which folders Telegram's Save to gallery puts photos and videos in, one of
+     * {@link app.hushtelegram.extension.telegram.misc.GalleryFolder#CHOICES}. Empty keeps Telegram's
+     * Pictures/Telegram and Movies/Telegram (#30).
+     */
+    public static final StringSetting GALLERY_FOLDER =
+            new StringSetting("hushtelegram_gallery_folder", "");
 
     /** Turned on, makes Private, Groups, Channels and Bots folders; turned off, removes the untouched ones it made. */
     public static final BooleanSetting CHAT_TYPE_FOLDERS =

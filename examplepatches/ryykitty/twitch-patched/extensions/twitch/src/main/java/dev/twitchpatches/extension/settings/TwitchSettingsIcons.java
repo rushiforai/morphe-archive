@@ -22,8 +22,10 @@ final class TwitchSettingsIcons {
     }
 
     static void decorate(View row, SettingEntry option, boolean navigation) {
-        ViewGroup root = TwitchSettingsResources.view(row, "menu_item_root_view", ViewGroup.class);
         Context context = row.getContext();
+        row.setMinimumHeight(Math.round(56 * context.getResources().getDisplayMetrics().density));
+        if (!navigation) return;
+        ViewGroup root = TwitchSettingsResources.view(row, "menu_item_root_view", ViewGroup.class);
         int size = Math.round(24 * context.getResources().getDisplayMetrics().density);
         int gap = TwitchSettingsResources.spacing(context, "space_16");
         ImageView leading = icon(context, option.icon());
@@ -31,14 +33,11 @@ final class TwitchSettingsIcons {
         params.gravity = android.view.Gravity.CENTER_VERTICAL;
         params.setMarginEnd(gap);
         root.addView(leading, 0, params);
-        row.setMinimumHeight(Math.round(56 * context.getResources().getDisplayMetrics().density));
-        if (navigation) {
-            ImageView arrow = icon(context, "ic_arrow_right");
-            LinearLayout.LayoutParams arrowParams = new LinearLayout.LayoutParams(size, size);
-            arrowParams.gravity = android.view.Gravity.CENTER_VERTICAL;
-            arrowParams.setMarginStart(gap);
-            root.addView(arrow, arrowParams);
-        }
+        ImageView arrow = icon(context, "ic_arrow_right");
+        LinearLayout.LayoutParams arrowParams = new LinearLayout.LayoutParams(size, size);
+        arrowParams.gravity = android.view.Gravity.CENTER_VERTICAL;
+        arrowParams.setMarginStart(gap);
+        root.addView(arrow, arrowParams);
     }
 
     private static ImageView icon(Context context, String name) {

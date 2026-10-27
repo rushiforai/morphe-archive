@@ -63,12 +63,24 @@ public final class SettingsActivity extends Activity {
         refreshChoices();
         if (key == null || "check_updates".equals(key)) syncUpdateChoice(true);
     };
-    private String category = "all", page = "controls";
+    private String page = "controls";
     private final List<View> controlRows = new ArrayList<>();
     private final List<String[]> installedControls = new ArrayList<>();
     private final List<LinearLayout> groups = new ArrayList<>();
-    private final List<Button> categories = new ArrayList<>();
     private final List<Button> tabs = new ArrayList<>();
+    /**
+     * HushFacebook's accordion: every section starts closed, and the ones a person opens stay open, a restart included.
+     * Kept in a store of its own, so opening one isn't a settings change and never reaches a backup.
+     */
+    static final String SECTIONS_STORE = "hushmessenger_sections", OPEN_SECTIONS = "open";
+    /** A section to open on arrival, for a link or a check that has to reach a row inside it. */
+    static final String OPEN_EXTRA = "app.hushmessenger.open";
+    private final Set<String> openSections = new java.util.LinkedHashSet<>();
+    /** Each section's header row and body, by id. */
+    private final Map<String, LinearLayout[]> sections = new java.util.LinkedHashMap<>();
+    /** True while a search is typed: a Controls section with a match shows it, open or not. */
+    private boolean searching;
+    private final Set<String> searchClosed = new java.util.HashSet<>();
     private TextView searchStatus, enabledCount, setupNote;
     private Button safeModeAction, clearQuery;
     private Button drawerSearchLink;
@@ -122,8 +134,9 @@ public final class SettingsActivity extends Activity {
     private final Map<String, LinearLayout> wayControls = new java.util.LinkedHashMap<>();
     private final Map<String, String> wayBuilt = new java.util.HashMap<>();
     /** The Quick setups heading and panel, hidden by a long press on either, and the line that says which way the choice is. */
-    private TextView quickHeading, quickHomeStatus;
-    private LinearLayout quickPanel;
+    private TextView quickHomeStatus;
+    /** The Quick setups card, and the section around it that a long press hides. */
+    private LinearLayout quickPanel, quickSection;
     /** The App tab's line on how to get back here, which names the Menu row only while it shows. */
     private TextView accessHelp;
     private String accessHelpId;
@@ -184,6 +197,7 @@ public final class SettingsActivity extends Activity {
         {"original_video", "Send videos without re-encoding", "Sends a video as the original file when Messenger allows it, instead of a recompressed copy. Videos over 25 MB and edited videos are still compressed.", "photos_videos"},
         {"xhe_audio", "Fix videos that won't send", "Some videos fail with \"Unable to send\", even in stock Messenger, because of a newer sound format (xHE-AAC) or a tag Samsung's screen recorder adds. This fixes the sound or drops the tag before the video goes out, whether you share it into Messenger or pick it in a chat. The picture isn't touched.", "photos_videos"},
         {"recent_media", "Hide the recent photo card", "Opening a chat right after you take a screenshot, photo or video no longer shows a card above the message box offering to send it. You can still pick it from the gallery.", "photos_videos"},
+        {"share_story", "Hide Your story when sharing", "When you share a photo, video or link into Messenger from another app, the Send to list no longer offers Your story, so a tap on Add can't post it by mistake. Your chats and groups are still there.", "photos_videos"},
         {"system_camera", "Use the phone's camera app", "The camera button in a chat opens your phone's camera app. The photo opens in Messenger's editor, ready to send. Photos only.", "photos_videos"},
         {"external_gallery", "Open your gallery app", "The gallery button in a chat opens your phone's own gallery app. One photo or video opens in Messenger's editor for that chat, ready to send. Pick several and Messenger's Send to sheet opens with all of them and that chat at the top.", "photos_videos"},
         {"external_browser", "Open web links externally", "Opens web links (http and https) in your default browser. Other link types work as before.", "links_bubbles"},
@@ -250,14 +264,16 @@ public final class SettingsActivity extends Activity {
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         if (state != null) {
             page = "app".equalsIgnoreCase(state.getString("page", "controls")) ? "app" : "controls";
-            category = state.getString("category", "all").toLowerCase(Locale.ROOT);
-            if (!java.util.Arrays.asList("all", "inbox", "chats", "more").contains(category)) category = "all";
             restoreControlsScroll = state.getInt("controls_scroll");
             restoreAppScroll = state.getInt("app_scroll");
         } else {
             // Reopened after a restart asked for here: back on the page it was asked from.
             page = SettingsReopen.page(getIntent().getStringExtra(SettingsReopen.EXTRA));
         }
+        String saved = sectionStore().getString(OPEN_SECTIONS, "");
+        for (String id : saved.split(",")) if (!id.isEmpty()) openSections.add(id);
+        String asked = getIntent().getStringExtra(OPEN_EXTRA);
+        if (state == null && asked != null && !asked.isEmpty() && openSections.add(asked)) saveSections();
         // What Messenger read as it started, as near as settings can tell, so the restart row knows what changed since.
         RestartWaiting.baseline(Settings.preferences, readAtStart());
         LinearLayout root = new LinearLayout(this) {
@@ -315,7 +331,7 @@ public final class SettingsActivity extends Activity {
         controlsContent = pageContent(controlsScroll);
         buildControls(controlsContent);
         reminder = ui.text(text.get("reopen"), 12, ui.muted, false);
-        reminder.setPadding(ui.dp(20), ui.dp(12), ui.dp(20), ui.dp(40));
+        reminder.setPadding(ui.dp(16), ui.dp(12), ui.dp(16), ui.dp(32));
         ui.add(controlsPage, reminder, 0);
         appPage = ui.column();
         appPage.setTag("app_page");
@@ -341,7 +357,10 @@ public final class SettingsActivity extends Activity {
             });
             Bundle draft = state.getBundle("auto_reply_draft");
             // The picker's answer arrives before the posted sheet is back, so the card it's for is known now.
-            if (draft != null) autoReplyPictureFor = draft.getInt("picture_for", -1);
+            if (draft != null) {
+                autoReplyPictureFor = draft.getInt("picture_for", -1);
+                autoReplyPictureId = draft.getString("picture_for_id");
+            }
             messageLogClearFailed = state.getBoolean("message_log_clear_failed");
             if (draft != null) root.post(() -> showAutoReplies(draft));
             else if (state.getBoolean("message_log_open")) root.post(this::showMessageLog);
@@ -381,6 +400,7 @@ public final class SettingsActivity extends Activity {
     }
 
     @Override protected void onDestroy() {
+        invalidateAutoReplyImports();
         if (autoReplyDialog != null) autoReplyDialog.dismiss();
         if (messageLogDialog != null) messageLogDialog.dismiss();
         if (messageLogClearJob != null && messageLogClearJob.owner.get() == this) messageLogClearJob.owner.clear();
@@ -404,8 +424,7 @@ public final class SettingsActivity extends Activity {
     /** Shows or hides the Quick setups section to match the saved choice, and words the restore button's line. */
     private void showQuickSetups() {
         int shown = quickSetupsHidden() ? View.GONE : View.VISIBLE;
-        if (quickHeading != null) quickHeading.setVisibility(shown);
-        if (quickPanel != null) quickPanel.setVisibility(shown);
+        if (quickSection != null) quickSection.setVisibility(shown);
         if (quickHomeStatus != null) quickHomeStatus.setText(text.get(quickSetupsHidden() ? "quick_setups_home_hidden" : "quick_setups_home_shown"));
     }
 
@@ -510,12 +529,12 @@ public final class SettingsActivity extends Activity {
         if (compact == next && scrollHeader == nextScrollHeader) return;
         compact = next;
         scrollHeader = nextScrollHeader;
-        // Content pages already pad 20dp, so a header or reminder moved inside them adds none.
-        header.setPadding(ui.dp(scrollHeader ? 0 : 20), ui.dp(compact ? 8 : 24), ui.dp(scrollHeader ? 0 : 20), 0);
+        // Content pages already pad 16dp, so a header or reminder moved inside them adds none.
+        header.setPadding(ui.dp(scrollHeader ? 0 : 16), ui.dp(compact ? 4 : 8), ui.dp(scrollHeader ? 0 : 16), 0);
         placeBrand();
         placeHeader();
         ((ViewGroup) reminder.getParent()).removeView(reminder);
-        reminder.setPadding(ui.dp(compact ? 0 : 20), ui.dp(12), ui.dp(compact ? 0 : 20), ui.dp(compact ? 16 : 40));
+        reminder.setPadding(ui.dp(compact ? 0 : 16), ui.dp(12), ui.dp(compact ? 0 : 16), ui.dp(compact ? 16 : 32));
         ui.add(compact ? controlsContent : controlsPage, reminder, 0);
     }
 
@@ -525,7 +544,7 @@ public final class SettingsActivity extends Activity {
         if (brand.getParent() == parent) return;
         ((ViewGroup) brand.getParent()).removeView(brand);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.bottomMargin = ui.dp(compact ? 24 : 0);
+        params.bottomMargin = ui.dp(compact ? 12 : 0);
         parent.addView(brand, 0, params);
     }
 
@@ -537,33 +556,36 @@ public final class SettingsActivity extends Activity {
     }
 
     private void buildHeader(LinearLayout root) {
+        // A toolbar, like HushFacebook's: the name, Open and the two tabs, with no banner above the settings.
         header = ui.column();
-        header.setPadding(ui.dp(20), ui.dp(24), ui.dp(20), 0);
+        header.setPadding(ui.dp(16), ui.dp(8), ui.dp(16), 0);
         ui.add(root, header, 0);
         brand = ui.row();
         if (ui.largeText) brand.setOrientation(LinearLayout.VERTICAL);
         LinearLayout wordmark = ui.column();
-        TextView title = ui.text("HushMessenger", 26, ui.text, true);
+        TextView title = ui.title("HushMessenger", 20);
         title.setTag("wordmark");
         title.setAccessibilityHeading(true);
         // Linear font scaling on Android 13 and older could otherwise split the wordmark mid-word.
         title.setMaxLines(1);
-        title.setAutoSizeTextTypeUniformWithConfiguration(18, 26, 1, TypedValue.COMPLEX_UNIT_SP);
+        title.setAutoSizeTextTypeUniformWithConfiguration(14, 20, 1, TypedValue.COMPLEX_UNIT_SP);
         ui.add(wordmark, title, 0);
-        TextView subtitle = ui.text(text.get(Settings.preview ? "preview_notice" : "tagline"), 14,
-            Settings.preview ? ui.warning : ui.muted, false);
-        if (Settings.preview) subtitle.setTag("preview_notice");
-        ui.add(wordmark, subtitle, 5);
+        // Only a preview build says anything under the name, since that's a warning.
+        if (Settings.preview) {
+            TextView notice = ui.text(text.get("preview_notice"), 13, ui.warning, false);
+            notice.setTag("preview_notice");
+            ui.add(wordmark, notice, 4);
+        }
         brand.addView(wordmark, new LinearLayout.LayoutParams(ui.largeText ? -1 : 0, -2, ui.largeText ? 0 : 1));
         Button open = ui.button(text.get("open"));
         open.setTag("open_messenger");
         open.setContentDescription(text.get("open_messenger"));
-        open.setBackground(new android.graphics.drawable.InsetDrawable(ui.interactive(ui.background, ui.accent, 12), 0, ui.dp(8), 0, ui.dp(8)));
-        open.setPadding(ui.dp(12), ui.dp(8), ui.dp(12), ui.dp(8));
+        open.setBackground(new android.graphics.drawable.InsetDrawable(ui.interactive(ui.background, ui.accent, 12), 0, ui.dp(6), 0, ui.dp(6)));
+        open.setPadding(ui.dp(12), ui.dp(6), ui.dp(12), ui.dp(6));
         open.setOnClickListener(view -> openMessenger());
         LinearLayout.LayoutParams openParams = new LinearLayout.LayoutParams(ui.largeText ? -2 : ui.dp(68), -2);
         openParams.setMarginStart(ui.dp(ui.largeText ? 0 : 12));
-        openParams.topMargin = ui.dp(ui.largeText ? 12 : 0);
+        openParams.topMargin = ui.dp(ui.largeText ? 8 : 0);
         brand.addView(open, openParams);
         ui.add(header, brand, 0);
         LinearLayout navigation = ui.row();
@@ -572,12 +594,12 @@ public final class SettingsActivity extends Activity {
         for (String name : new String[] {"controls", "app"}) {
             Button button = ui.button(text.get(name));
             button.setTag("tab_" + name);
-            button.setTextSize(16);
+            button.setTextSize(15);
             button.setOnClickListener(view -> showPage(name));
             tabs.add(button);
             navigation.addView(button, new LinearLayout.LayoutParams(0, -2, 1));
         }
-        ui.add(header, navigation, 16);
+        ui.add(header, navigation, 8);
         // In the header, so it shows on both pages the moment a restart-gated change is made, with the button right there.
         restartRow = ui.row();
         restartRow.setTag("restart_row");
@@ -597,13 +619,13 @@ public final class SettingsActivity extends Activity {
         restartParams.topMargin = ui.dp(ui.largeText ? 8 : 0);
         restartRow.addView(restartNow, restartParams);
         restartRow.setVisibility(View.GONE);
-        ui.add(header, restartRow, 12);
+        ui.add(header, restartRow, 8);
         undoButton = ui.button("");
         undoButton.setTag("undo");
         undoButton.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         undoButton.setOnClickListener(view -> undo());
         undoButton.setVisibility(View.GONE);
-        ui.add(header, undoButton, 12);
+        ui.add(header, undoButton, 8);
     }
 
     /** Shows Undo for [what] until it's tapped, its time runs out, something else takes its place or settings close. */
@@ -693,20 +715,20 @@ public final class SettingsActivity extends Activity {
 
     private LinearLayout pageContent(ScrollView scroll) {
         LinearLayout content = ui.column();
-        content.setPadding(ui.dp(20), ui.dp(16), ui.dp(20), ui.dp(24));
+        content.setPadding(ui.dp(16), ui.dp(12), ui.dp(16), ui.dp(24));
         scroll.addView(content);
         return content;
     }
 
     private void buildControls(LinearLayout content) {
+        // One small card: how many controls are on, and Pause.
         LinearLayout setup = ui.panel();
-        setup.setPadding(ui.dp(16), ui.dp(16), ui.dp(16), ui.dp(8));
-        ui.add(setup, ui.heading(text.get("setup")), 0);
-        enabledCount = ui.text("", 24, ui.text, true);
+        setup.setPadding(ui.dp(14), ui.dp(10), ui.dp(14), ui.dp(2));
+        enabledCount = ui.text("", 15, ui.text, true);
         enabledCount.setTag("enabled_count");
-        ui.add(setup, enabledCount, 12);
-        setupNote = ui.text("", 14, ui.muted, false);
-        ui.add(setup, setupNote, 10);
+        ui.add(setup, enabledCount, 0);
+        setupNote = ui.text("", 12, ui.muted, false);
+        ui.add(setup, setupNote, 4);
         safeModeAction = ui.button("");
         safeModeAction.setTag("resume_safe_mode");
         safeModeAction.setOnClickListener(view -> {
@@ -720,13 +742,12 @@ public final class SettingsActivity extends Activity {
             feedback(text.get(paused ? "safe_mode_cleared" : "changes_resumed"), Toast.LENGTH_SHORT);
         });
         ui.add(setup, safeModeAction, 8);
-        ui.rule(setup, 12);
+        ui.rule(setup, 8);
         ui.add(setup, controlRow("paused", text.format("paused"), "", false), 0);
         ui.add(content, setup, 0);
         search = ui.field(text.get("search"), 100, true);
         search.setTag("find_control");
-        search.setTextSize(16);
-        search.setMinHeight(ui.dp(52));
+        search.setBackground(ui.interactive(ui.surface, ui.outline, 8));
         search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);
         search.setOnEditorActionListener((view, action, event) -> {
             if (action != android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) return false;
@@ -742,29 +763,21 @@ public final class SettingsActivity extends Activity {
         LinearLayout.LayoutParams clearQueryParams = new LinearLayout.LayoutParams(-2, -2);
         clearQueryParams.setMarginStart(ui.dp(8));
         searchRow.addView(clearQuery, clearQueryParams);
-        ui.add(content, searchRow, 16);
-        LinearLayout filters = ui.row();
-        for (String name : new String[] {"all", "inbox", "chats", "more"}) {
-            Button button = ui.button(text.get(name));
-            button.setTag("category_" + name);
-            button.setPadding(ui.dp(4), ui.dp(8), ui.dp(4), ui.dp(8));
-            button.setOnClickListener(view -> {
-                category = name;
-                filterControls(search.getText().toString());
-            });
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -2, 1);
-            if (!categories.isEmpty()) params.setMarginStart(ui.dp(8));
-            filters.addView(button, params);
-            categories.add(button);
-        }
-        ui.add(content, filters, 12);
-        searchStatus = ui.text("", 13, ui.muted, false);
+        ui.add(content, searchRow, 10);
+        searchStatus = ui.text("", 12, ui.muted, false);
         searchStatus.setTag("search_status");
         searchStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
-        ui.add(content, searchStatus, 8);
+        ui.add(content, searchStatus, 6);
         drawerSearchLink = ui.button(text.get("drawer_search"));
         drawerSearchLink.setTag("find_drawer_icon");
-        drawerSearchLink.setOnClickListener(view -> showPage("app"));
+        drawerSearchLink.setOnClickListener(view -> {
+            // The drawer switches live in Quick access, so the link opens it on the way.
+            if (openSections.add("quick_access")) {
+                saveSections();
+                bindSection("quick_access");
+            }
+            showPage("app");
+        });
         ui.add(content, drawerSearchLink, 8);
         LinearLayout group = null;
         LinearLayout groupBody = null;
@@ -773,22 +786,15 @@ public final class SettingsActivity extends Activity {
             if (!Settings.installed.contains(spec[0])) continue;
             if (!last.equals(spec[3])) {
                 last = spec[3];
-                group = ui.column();
-                group.setTag(last);
-                LinearLayout heading = ui.row();
-                heading.addView(ui.heading(text.get(last)), new LinearLayout.LayoutParams(0, -2, 1));
-                heading.addView(ui.text("", 13, ui.muted, true));
-                ui.add(group, heading, 0);
                 groupBody = ui.column();
-                groupBody.setPadding(ui.dp(16), ui.dp(4), ui.dp(16), ui.dp(4));
+                groupBody.setPadding(ui.dp(14), ui.dp(2), ui.dp(14), ui.dp(2));
                 groupBody.setBackground(ui.shape(ui.surface, ui.line, 12));
                 // Lines only between shown controls: none above the first, none over the card's own border under the last.
                 android.graphics.drawable.GradientDrawable divider = ui.shape(ui.line, 0, 0);
                 divider.setSize(1, ui.dp(1));
                 groupBody.setDividerDrawable(divider);
                 groupBody.setShowDividers(LinearLayout.SHOW_DIVIDER_MIDDLE);
-                ui.add(group, groupBody, 10);
-                ui.add(content, group, 24);
+                group = section(content, last, groupBody, groups.isEmpty() ? 12 : 8);
                 groups.add(group);
             }
             LinearLayout row = controlRow(spec[0], text.control(spec, 1), text.control(spec, 2), true);
@@ -817,16 +823,16 @@ public final class SettingsActivity extends Activity {
         if (installedControls.isEmpty()) {
             // Nothing to search; the status line explains how to add controls.
             search.setVisibility(View.GONE);
-            filters.setVisibility(View.GONE);
         }
         emptyState = ui.panel();
         emptyState.setTag("empty_state");
-        ui.add(emptyState, ui.text(text.get("empty_title"), 18, ui.text, true), 0);
+        TextView emptyTitle = ui.title(text.get("empty_title"), 18);
+        emptyTitle.setTag("empty_title");
+        ui.add(emptyState, emptyTitle, 0);
         ui.add(emptyState, ui.text(text.get("empty_help"), 14, ui.muted, false), 10);
         Button clearSearch = ui.button(text.get("clear"));
         clearSearch.setTag("clear_filters");
         clearSearch.setOnClickListener(view -> {
-            category = "all";
             search.setText("");
             filterControls("");
         });
@@ -1356,7 +1362,7 @@ public final class SettingsActivity extends Activity {
         // A margin, since relative padding set before the row is attached stays on the right in a mirrored layout.
         if (overlay) titleSpace.setMarginEnd(ui.dp(60));
         if (ui.largeText) titleLine.setOrientation(LinearLayout.VERTICAL);
-        titleLine.addView(ui.text(text.display(title), appRow ? 14 : 16, ui.text, false), new LinearLayout.LayoutParams(-2, -2));
+        titleLine.addView(ui.text(text.display(title), appRow ? 14 : 15, ui.text, false), new LinearLayout.LayoutParams(-2, -2));
         if (EXPERIMENTAL.contains(key)) {
             TextView badge = ui.text(text.get("experimental"), 11, ui.warning, false);
             badge.setBackground(ui.shape(ui.warningSurface, 0, 4));
@@ -1366,7 +1372,7 @@ public final class SettingsActivity extends Activity {
             titleLine.addView(badge, params);
         }
         labels.addView(titleLine, titleSpace);
-        if (!description.isEmpty()) ui.add(labels, ui.text(text.display(description), appRow ? 13 : 14, ui.muted, false), appRow ? 4 : 6);
+        if (!description.isEmpty()) ui.add(labels, ui.text(text.display(description), appRow ? 12 : 13, ui.muted, false), 4);
         // A switch records a use only when Messenger reaches its screen or event, so an off switch shows nothing.
         // A failure newer than the last use means the switch isn't doing its job, so that shows instead.
         TextView activeLabel = null;
@@ -1446,7 +1452,7 @@ public final class SettingsActivity extends Activity {
         });
         // A group draws the lines between its controls, so a control's own buttons sit above the line, not below it.
         row.setBackground(ui.interactive(ui.surface, 0, 0));
-        row.setPadding(0, ui.dp(divided ? 16 : 0), 0, ui.dp(divided ? 16 : 0));
+        row.setPadding(0, ui.dp(divided ? 11 : 0), 0, ui.dp(divided ? 11 : 0));
         return row;
     }
 
@@ -1473,7 +1479,11 @@ public final class SettingsActivity extends Activity {
     }
 
     private void buildApp(LinearLayout content) {
-        ui.add(content, ui.heading(text.get("quick_access")), 0);
+        // Restart sits above the sections, so it's one tap however many are closed.
+        Button restart = ui.primaryButton(text.get("restart"));
+        restart.setTag("restart_messenger");
+        restart.setOnClickListener(view -> HostScreens.restartInto(this, page));
+        ui.add(content, restart, 0);
         LinearLayout access = ui.panel();
         access.setPadding(ui.dp(14), ui.dp(14), ui.dp(14), ui.dp(14));
         // The Menu tab row is its own patch, recorded as menu_row only when it applied.
@@ -1492,10 +1502,6 @@ public final class SettingsActivity extends Activity {
         accessHelp = ui.text(accessHelpText(), 13, ui.muted, false);
         accessHelp.setTag("access_help");
         ui.add(access, accessHelp, 0);
-        Button restart = ui.primaryButton(text.get("restart"));
-        restart.setTag("restart_messenger");
-        restart.setOnClickListener(view -> HostScreens.restartInto(this, page));
-        ui.add(access, restart, 12);
         // Without the Menu row, a launcher that has no app shortcuts would leave no way back in.
         if (menuRow && drawerAlias && !hosted) {
             ui.rule(access, 12);
@@ -1526,12 +1532,10 @@ public final class SettingsActivity extends Activity {
             sharedInstall.setBackground(ui.shape(ui.infoSurface, ui.infoBorder, 8));
             ui.add(access, sharedInstall, 12);
         }
-        ui.add(content, access, 8);
+        section(content, "quick_access", access, 12);
         if (!installedControls.isEmpty()) {
-            quickHeading = ui.heading(text.get("quick_setups"));
-            ui.add(content, quickHeading, 22);
+            // The section around it carries the "quick_setups" tag.
             LinearLayout quick = quickPanel = ui.panel();
-            quick.setTag("quick_setups");
             ui.add(quick, ui.text(text.get("quick_setups_help"), 13, ui.muted, false), 0);
             for (String name : QuickSetups.CHOICES) {
                 ui.rule(quick, 12);
@@ -1541,14 +1545,13 @@ public final class SettingsActivity extends Activity {
                 ui.add(quick, choice, 8);
                 ui.add(quick, ui.text(text.get("quick_" + name + "_help"), 13, ui.muted, false), 8);
             }
-            ui.add(content, quick, 12);
-            // A long press anywhere on the section hides it, buttons and help lines included.
-            holdToHide(quickHeading);
+            quickSection = section(content, "quick_setups", quick, 8);
+            // A long press anywhere on the section hides it, header, buttons and help lines included.
+            holdToHide(quickSection.getChildAt(0));
             holdToHide(quick);
             for (int i = 0; i < quick.getChildCount(); i++) holdToHide(quick.getChildAt(i));
             showQuickSetups();
         }
-        ui.add(content, ui.heading(text.get("appearance")), 22);
         LinearLayout appearance = ui.panel();
         appearance.setPadding(ui.dp(14), ui.dp(14), ui.dp(14), ui.dp(14));
         ui.add(appearance, controlRow("light", text.format("light"), text.format("light_help"), false), 0);
@@ -1558,15 +1561,32 @@ public final class SettingsActivity extends Activity {
         }
         ui.rule(appearance, 10);
         ui.add(appearance, ui.text(text.get("theme_help"), 13, ui.muted, false), 12);
-        ui.add(content, appearance, 12);
-        ui.add(content, ui.heading(text.get("about")), 18);
+        section(content, "appearance", appearance, 8);
         LinearLayout about = ui.panel();
         about.setPadding(ui.dp(14), ui.dp(14), ui.dp(14), ui.dp(14));
         infoRow(about, text.get("version"), BuildConfig.VERSION_NAME);
+        int art = ScreenArt.artDpi.applyAsInt(this), screen = getResources().getDisplayMetrics().densityDpi;
+        if (ScreenArt.blurry(art, screen)) {
+            TextView blurry = ui.text(text.get("screen_art_blurry", text.number(art), text.number(screen)), 13, ui.warning, false);
+            blurry.setTag("screen_art_blurry");
+            ui.add(about, blurry, 8);
+        }
         ui.rule(about, 10);
         infoRow(about, text.get("installed"), text.number(installedControls.size()));
-        ui.add(content, about, 12);
-        ui.add(content, ui.heading(text.get("choices")), 22);
+        // Update checks sit with the version they compare against.
+        ui.rule(about, 10);
+        ui.add(about, controlRow("check_updates", text.format("check_updates"), text.format("check_updates_help"), false), 4);
+        updateStatus = ui.text("", 13, ui.muted, false);
+        updateStatus.setTag("update_status");
+        updateStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        updateStatus.setVisibility(View.GONE);
+        ui.add(about, updateStatus, 8);
+        updateCheckNow = ui.button(text.get("check_now"));
+        updateCheckNow.setTag("check_now");
+        updateCheckNow.setOnClickListener(view -> checkForUpdates());
+        ui.add(about, updateCheckNow, 8);
+        section(content, "about", about, 8);
+        syncUpdateChoice(true);
         LinearLayout choices = ui.panel();
         Button copy = ui.button(text.get("copy"));
         copy.setTag("copy_setup");
@@ -1649,32 +1669,22 @@ public final class SettingsActivity extends Activity {
             ui.add(choices, quickHomeStatus, 8);
             showQuickSetups();
         }
-        ui.add(content, choices, 12);
-        LinearLayout updates = ui.panel();
-        ui.add(updates, controlRow("check_updates", text.format("check_updates"), text.format("check_updates_help"), false), 0);
-        updateStatus = ui.text("", 13, ui.muted, false);
-        updateStatus.setTag("update_status");
-        updateStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
-        updateStatus.setVisibility(View.GONE);
-        ui.add(updates, updateStatus, 8);
-        updateCheckNow = ui.button(text.get("check_now"));
-        updateCheckNow.setTag("check_now");
-        updateCheckNow.setOnClickListener(view -> checkForUpdates());
-        ui.add(updates, updateCheckNow, 8);
-        ui.add(content, updates, 12);
-        syncUpdateChoice(true);
-        ui.add(content, ui.heading(text.get("usage")), 22);
-        ui.add(content, ui.text(text.get("save_help"), 14, ui.muted, false), 16);
-        ui.add(content, ui.text(text.get("pause_help"), 14, ui.muted, false), 14);
-        ui.add(content, ui.text(text.get("account_help"), 14, ui.muted, false), 14);
-        LinearLayout help = ui.panel();
-        help.setBackground(ui.shape(ui.infoSurface, ui.infoBorder, 12));
-        ui.add(help, ui.text(text.get("missing"), 16, ui.accent, true), 0);
-        ui.add(help, ui.text(text.get("missing_help"), 14, ui.muted, false), 8);
-        ui.add(content, help, 18);
+        section(content, "choices", choices, 8);
+        LinearLayout usage = ui.panel();
+        usage.setPadding(ui.dp(14), ui.dp(14), ui.dp(14), ui.dp(14));
+        ui.add(usage, ui.text(text.get("save_help"), 13, ui.muted, false), 0);
+        ui.add(usage, ui.text(text.get("pause_help"), 13, ui.muted, false), 10);
+        ui.add(usage, ui.text(text.get("account_help"), 13, ui.muted, false), 10);
+        LinearLayout help = ui.column();
+        help.setPadding(ui.dp(12), ui.dp(12), ui.dp(12), ui.dp(12));
+        help.setBackground(ui.shape(ui.infoSurface, ui.infoBorder, 8));
+        ui.add(help, ui.text(text.get("missing"), 15, ui.accent, true), 0);
+        ui.add(help, ui.text(text.get("missing_help"), 13, ui.muted, false), 6);
+        ui.add(usage, help, 12);
+        section(content, "usage", usage, 8);
         Button source = ui.button(text.get("source"));
         source.setTag("source_licenses");
-        source.setOnClickListener(view -> openPage("https://github.com/SysAdminDoc/HushMessenger#research-and-credits"));
+        source.setOnClickListener(view -> openPage("https://github.com/SysAdminDoc/HushMessenger#credits"));
         ui.add(content, source, 16);
         // Built when tapped, so the controls listed are the ones on right then.
         ui.add(content, linkPanel("report_problem", "report", () -> openPage(ProblemReport.issueUrl(reportFacts()))), 12);
@@ -1722,7 +1732,7 @@ public final class SettingsActivity extends Activity {
         return new ProblemReport.Facts(BuildConfig.VERSION_NAME, messenger, code,
             ProblemReport.patchedFrom(HostScreens.originalBuild(), Settings.preview), Build.MANUFACTURER, Build.MODEL,
             Build.VERSION.RELEASE, Build.VERSION.SDK_INT, Settings.preferences.getBoolean("paused", false), CrashGuard.isSafeMode(), on,
-            GalleryPicker.lastOutcome.name());
+            GalleryPicker.lastOutcome.name(), LastCrash.read(getFilesDir(), System.currentTimeMillis()));
     }
 
     /**
@@ -2039,11 +2049,18 @@ public final class SettingsActivity extends Activity {
     private ScrollView autoReplyScroll;
     /** The picture each reply card holds, by card, until Save. */
     private final java.util.WeakHashMap<View, String> autoReplyPictures = new java.util.WeakHashMap<>();
+    private final java.util.WeakHashMap<View, String> autoReplyCardIds = new java.util.WeakHashMap<>();
+    private final java.util.Map<View, AutoReplyPicture.Import> autoReplyPictureOps = new java.util.HashMap<>();
+    /** Each copy's deadline, posted with its Import as the token. */
+    private final android.os.Handler autoReplyDeadlines = new android.os.Handler(android.os.Looper.getMainLooper());
+    private Button autoReplySave;
     /** The card whose picture is being picked, by position, or -1. */
     private int autoReplyPictureFor = -1;
+    private String autoReplyPictureId;
     /** A picked picture that came back while the sheet was being rebuilt, and the card it's for. */
     private android.net.Uri pendingAutoReplyPicture;
     private int pendingAutoReplyPictureFor = -1;
+    private String pendingAutoReplyPictureId;
 
     /** Two actions under the message-log switch: open the log or wipe it, no confirmation, just a toast. */
     private void addMessageLogActions(LinearLayout content) {
@@ -2153,7 +2170,7 @@ public final class SettingsActivity extends Activity {
                     if (result.setAside) {
                         LinearLayout notice = ui.panel();
                         notice.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
-                        notice.addView(ui.text(text.get("message_log_set_aside"), 18, ui.text, true));
+                        notice.addView(ui.title(text.get("message_log_set_aside"), 18));
                         ui.add(notice, ui.text(text.get("message_log_set_aside_help"), 14, ui.muted, false), 8);
                         Button remove = ui.button(text.get("message_log_set_aside_remove"));
                         remove.setTag("message_log_set_aside_remove");
@@ -2168,7 +2185,9 @@ public final class SettingsActivity extends Activity {
                         View accent = new View(this);
                         accent.setBackground(ui.shape(ui.accent, 0, 2));
                         empty.addView(accent, new LinearLayout.LayoutParams(ui.dp(36), ui.dp(4)));
-                        ui.add(empty, ui.text(text.get("message_log_empty"), 18, ui.text, true), 16);
+                        TextView emptyLog = ui.title(text.get("message_log_empty"), 18);
+                        emptyLog.setTag("message_log_empty_title");
+                        ui.add(empty, emptyLog, 16);
                         ui.add(empty, ui.text(text.get(Settings.wouldUse(MessageLog.KEY) ? "message_log_empty_on" : "message_log_empty_off"), 14, ui.muted, false), 8);
                         // The settings page's Undo sits behind this sheet.
                         if (messageLogUndo) {
@@ -2266,12 +2285,14 @@ public final class SettingsActivity extends Activity {
         autoReplyScroll = sheet.scroll;
         dialog.setOnDismissListener(dismissed -> {
             if (autoReplyDialog != dismissed) return;
+            invalidateAutoReplyImports();
             autoReplyDialog = null;
             autoReplyList = null;
             autoReplyGroups = null;
             autoReplyCount = null;
             autoReplyAdd = null;
             autoReplyScroll = null;
+            autoReplySave = null;
         });
         if (!Settings.wouldUse(AutoReply.KEY)) {
             TextView status = ui.text(text.get("auto_reply_off"), 14, ui.muted, false);
@@ -2296,9 +2317,11 @@ public final class SettingsActivity extends Activity {
         ArrayList<String> replies = draft == null ? null : draft.getStringArrayList("replies");
         if (words != null && replies != null) {
             ArrayList<String> pictures = draft.getStringArrayList("pictures");
+            ArrayList<String> ids = draft.getStringArrayList("card_ids");
             for (int i = 0; i < Math.min(AutoReply.MAX_RULES, Math.min(words.size(), replies.size())); i++) {
                 String picture = pictures != null && i < pictures.size() ? pictures.get(i) : null;
                 View card = autoReplyCard(list, new AutoReply.Rule("", "", picture));
+                if (ids != null && i < ids.size() && ids.get(i) != null) autoReplyCardIds.put(card, ids.get(i));
                 ((EditText) card.findViewWithTag("auto_reply_when")).setText(words.get(i));
                 ((EditText) card.findViewWithTag("auto_reply_reply")).setText(replies.get(i));
                 list.addView(card);
@@ -2331,16 +2354,25 @@ public final class SettingsActivity extends Activity {
         Button cancel = ui.button(text.get("auto_reply_cancel"));
         cancel.setTag("auto_reply_cancel");
         cancel.setOnClickListener(clicked -> {
+            invalidateAutoReplyImports();
             pruneAutoReplyPictures(prefs);
             dialog.dismiss();
         });
         // Back or a tap outside throws the edits away like Cancel. The dismiss listener can't do this: it also runs
         // when the screen is rebuilt with the edits kept as a draft.
-        dialog.setOnCancelListener(canceled -> pruneAutoReplyPictures(prefs));
+        dialog.setOnCancelListener(canceled -> {
+            invalidateAutoReplyImports();
+            pruneAutoReplyPictures(prefs);
+        });
         sheet.action(cancel);
         Button save = ui.primaryButton(text.get("auto_reply_save"));
+        autoReplySave = save;
         save.setTag("auto_reply_save");
         save.setOnClickListener(clicked -> {
+            if (!autoReplyPictureOps.isEmpty()) {
+                feedback(text.get("auto_reply_picture_copying"), Toast.LENGTH_SHORT);
+                return;
+            }
             List<AutoReply.Rule> rules = new ArrayList<>();
             EditText firstInvalid = null;
             for (int i = 0; i < list.getChildCount(); i++) {
@@ -2364,6 +2396,7 @@ public final class SettingsActivity extends Activity {
                 firstInvalid.announceForAccessibility(text.get("auto_reply_required"));
                 return;
             }
+            invalidateAutoReplyImports();
             int kept = AutoReply.save(prefs, rules, groups.isChecked());
             pruneAutoReplyPictures(prefs);
             feedback(kept == 0 ? text.get("auto_reply_saved_none") : text.get("auto_reply_saved", kept), Toast.LENGTH_SHORT);
@@ -2389,7 +2422,8 @@ public final class SettingsActivity extends Activity {
         if (pendingAutoReplyPicture != null) {
             android.net.Uri picked = pendingAutoReplyPicture;
             pendingAutoReplyPicture = null;
-            copyAutoReplyPicture(picked, pendingAutoReplyPictureFor);
+            copyAutoReplyPicture(picked, pendingAutoReplyPictureFor, pendingAutoReplyPictureId);
+            pendingAutoReplyPictureId = null;
         }
     }
 
@@ -2431,6 +2465,7 @@ public final class SettingsActivity extends Activity {
         Button clear = ui.button(text.get("auto_reply_picture_clear"));
         clear.setTag("auto_reply_picture_clear");
         clear.setOnClickListener(clicked -> {
+            invalidateAutoReplyImport(card);
             setAutoReplyPicture(card, null);
             pick.requestFocus();
         });
@@ -2459,50 +2494,120 @@ public final class SettingsActivity extends Activity {
 
     private void pickAutoReplyPicture(View card) {
         if (autoReplyList == null) return;
+        invalidateAutoReplyImport(card);
+        setAutoReplyPicture(card, autoReplyPictures.get(card));
         autoReplyPictureFor = autoReplyList.indexOfChild(card);
+        autoReplyPictureId = autoReplyCardIds.get(card);
         Intent picker = new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*");
         try { startActivityForResult(picker, PICK_AUTO_REPLY_PICTURE); }
         catch (android.content.ActivityNotFoundException missing) {
             autoReplyPictureFor = -1;
+            autoReplyPictureId = null;
             feedback(text.get("auto_reply_picture_no_picker"), Toast.LENGTH_LONG);
         }
         catch (RuntimeException error) {
             autoReplyPictureFor = -1;
+            autoReplyPictureId = null;
             feedback(text.get("auto_reply_picture_failed"), Toast.LENGTH_LONG);
         }
     }
 
-    /** Copies the picked picture in on a worker and puts it on its card if the card is still there. */
-    private void copyAutoReplyPicture(android.net.Uri uri, int index) {
+    /** Copies a selection only for its original card and current operation. */
+    private void copyAutoReplyPicture(android.net.Uri uri, int index, String cardId) {
+        if (cardId != null && autoReplyList != null) {
+            index = -1;
+            for (int i = 0; i < autoReplyList.getChildCount(); i++)
+                if (cardId.equals(autoReplyCardIds.get(autoReplyList.getChildAt(i)))) { index = i; break; }
+        }
         if (autoReplyList == null || index < 0 || index >= autoReplyList.getChildCount()) return;
         View card = autoReplyList.getChildAt(index);
+        AutoReplyPicture.Import operation = new AutoReplyPicture.Import();
+        cancelAutoReplyImport(autoReplyPictureOps.put(card, operation));
+        updateAutoReplySave();
         TextView status = card.findViewWithTag("auto_reply_picture_status");
         if (status != null) status.setText(text.get("auto_reply_picture_copying"));
+        View clear = card.findViewWithTag("auto_reply_picture_clear");
+        if (clear != null) clear.setVisibility(View.VISIBLE);
         Context app = getApplicationContext();
-        Thread worker = new Thread(() -> {
-            String name;
+        Runnable worker = () -> {
+            String name = null;
+            AutoReplyPicture.Failure.Kind why = null;
             try {
-                name = AutoReplyPicture.copy(app, uri);
+                name = AutoReplyPicture.copy(app, uri, operation);
+            } catch (AutoReplyPicture.Failure failed) {
+                android.util.Log.w("HushMessenger", "auto_reply: the picked picture wasn't copied, " + failed.getMessage());
+                why = failed.kind;
             } catch (java.io.IOException | RuntimeException | OutOfMemoryError failed) {
                 android.util.Log.w("HushMessenger", "auto_reply: the picked picture couldn't be copied, " + failed.getClass().getName());
-                name = null;
+                why = AutoReplyPicture.Failure.Kind.UNREADABLE;
             }
             String copied = name;
-            runOnUiThread(() -> placeAutoReplyPicture(card, copied));
-        }, "HushAutoReplyPicture");
-        worker.setDaemon(true);
-        worker.start();
+            AutoReplyPicture.Failure.Kind reason = why;
+            runOnUiThread(() -> placeAutoReplyPicture(card, operation, copied, reason));
+        };
+        // The worker checks the same deadline, but a picker stuck in open() only stops when this gives up on it.
+        autoReplyDeadlines.postAtTime(() -> {
+            if (autoReplyPictureOps.get(card) != operation) return;
+            operation.cancel();
+            placeAutoReplyPicture(card, operation, null, AutoReplyPicture.Failure.Kind.TOO_SLOW);
+        }, operation, android.os.SystemClock.uptimeMillis() + AutoReplyPicture.DEADLINE_MS);
+        try { AutoReplyPicture.submit(operation, worker); }
+        catch (java.util.concurrent.RejectedExecutionException busy) {
+            placeAutoReplyPicture(card, operation, null, AutoReplyPicture.Failure.Kind.TOO_SLOW);
+        }
     }
 
-    private void placeAutoReplyPicture(View card, String name) {
-        if (isDestroyed() || autoReplyList == null || autoReplyList.indexOfChild(card) < 0) {
-            // The card went while the copy ran, so nothing can hold this file.
-            java.io.File orphan = name == null ? null : AutoReplyPicture.fileFor(getApplicationContext(), name);
-            if (orphan != null && !orphan.delete()) android.util.Log.w("HushMessenger", "auto_reply: an unused picture couldn't be deleted");
+    private void placeAutoReplyPicture(View card, AutoReplyPicture.Import operation, String name, AutoReplyPicture.Failure.Kind why) {
+        autoReplyDeadlines.removeCallbacksAndMessages(operation);
+        if (isFinishing() || isDestroyed() || autoReplyList == null || autoReplyList.indexOfChild(card) < 0 ||
+                autoReplyPictureOps.get(card) != operation) {
+            discardAutoReplyPicture(name);
             return;
         }
-        if (name == null) feedback(text.get("auto_reply_picture_failed"), Toast.LENGTH_LONG);
+        autoReplyPictureOps.remove(card);
+        updateAutoReplySave();
+        if (name == null) feedback(text.get(why == AutoReplyPicture.Failure.Kind.TOO_BIG ? "auto_reply_picture_too_big"
+            : why == AutoReplyPicture.Failure.Kind.TOO_SLOW ? "auto_reply_picture_too_slow" : "auto_reply_picture_failed"), Toast.LENGTH_LONG);
         setAutoReplyPicture(card, name == null ? autoReplyPictures.get(card) : name);
+    }
+
+    /** Stops a replaced or abandoned copy, so it drops its queue slot, its picker stream and the card it holds. */
+    private void cancelAutoReplyImport(AutoReplyPicture.Import operation) {
+        if (operation == null) return;
+        autoReplyDeadlines.removeCallbacksAndMessages(operation);
+        operation.cancel();
+    }
+
+    private void updateAutoReplySave() {
+        if (autoReplySave != null) autoReplySave.setEnabled(autoReplyPictureOps.isEmpty());
+    }
+
+    private void invalidateAutoReplyImport(View card) {
+        cancelAutoReplyImport(autoReplyPictureOps.remove(card));
+        if (autoReplyPictureId != null && autoReplyPictureId.equals(autoReplyCardIds.get(card))) {
+            autoReplyPictureId = null;
+            autoReplyPictureFor = -1;
+        }
+        updateAutoReplySave();
+    }
+
+    private void invalidateAutoReplyImports() {
+        for (AutoReplyPicture.Import operation : autoReplyPictureOps.values()) cancelAutoReplyImport(operation);
+        autoReplyPictureOps.clear();
+        autoReplyPictureFor = -1;
+        autoReplyPictureId = null;
+        pendingAutoReplyPicture = null;
+        pendingAutoReplyPictureId = null;
+        updateAutoReplySave();
+    }
+
+    private void discardAutoReplyPicture(String name) {
+        if (name == null || autoReplyPictures.containsValue(name)) return;
+        if (Settings.preferences != null) for (AutoReply.Rule rule : AutoReply.rules(Settings.preferences))
+            if (name.equals(rule.picture)) return;
+        java.io.File orphan = AutoReplyPicture.fileFor(getApplicationContext(), name);
+        if (orphan != null && orphan.exists() && !orphan.delete())
+            android.util.Log.w("HushMessenger", "auto_reply: an unused picture couldn't be deleted");
     }
 
     private void refreshReplyCount() {
@@ -2519,6 +2624,7 @@ public final class SettingsActivity extends Activity {
 
     private View autoReplyCard(LinearLayout list, AutoReply.Rule rule) {
         LinearLayout card = ui.column();
+        autoReplyCardIds.put(card, java.util.UUID.randomUUID().toString());
         card.setBackground(ui.shape(ui.surface, ui.line, 12));
         card.setPadding(ui.dp(16), ui.dp(16), ui.dp(16), ui.dp(12));
         TextView number = ui.text("", 13, ui.accent, true);
@@ -2554,6 +2660,9 @@ public final class SettingsActivity extends Activity {
         remove.setTag("auto_reply_remove");
         remove.setOnClickListener(clicked -> {
             int index = list.indexOfChild(card);
+            invalidateAutoReplyImport(card);
+            autoReplyPictures.remove(card);
+            autoReplyCardIds.remove(card);
             list.removeView(card);
             refreshReplyCount();
             if (list.getChildCount() == 0) autoReplyAdd.requestFocus();
@@ -2588,7 +2697,7 @@ public final class SettingsActivity extends Activity {
     private Bundle autoReplyDraft() {
         if (autoReplyDialog == null || autoReplyList == null) return null;
         Bundle draft = new Bundle();
-        ArrayList<String> words = new ArrayList<>(), replies = new ArrayList<>(), pictures = new ArrayList<>();
+        ArrayList<String> words = new ArrayList<>(), replies = new ArrayList<>(), pictures = new ArrayList<>(), ids = new ArrayList<>();
         for (int i = 0; i < autoReplyList.getChildCount(); i++) {
             View card = autoReplyList.getChildAt(i);
             EditText when = card.findViewWithTag("auto_reply_when"), reply = card.findViewWithTag("auto_reply_reply");
@@ -2596,6 +2705,7 @@ public final class SettingsActivity extends Activity {
             replies.add(reply.getText().toString());
             String picture = autoReplyPictures.get(card);
             pictures.add(picture == null ? "" : picture);
+            ids.add(autoReplyCardIds.get(card));
             EditText focused = when.hasFocus() ? when : reply.hasFocus() ? reply : null;
             if (focused != null) {
                 draft.putInt("focus_index", i);
@@ -2607,7 +2717,9 @@ public final class SettingsActivity extends Activity {
         draft.putStringArrayList("words", words);
         draft.putStringArrayList("replies", replies);
         draft.putStringArrayList("pictures", pictures);
+        draft.putStringArrayList("card_ids", ids);
         draft.putInt("picture_for", autoReplyPictureFor);
+        draft.putString("picture_for_id", autoReplyPictureId);
         draft.putBoolean("groups", autoReplyGroups.isChecked());
         draft.putInt("scroll", autoReplyScroll.getScrollY());
         return draft;
@@ -2797,7 +2909,10 @@ public final class SettingsActivity extends Activity {
         super.onActivityResult(request, result, data);
         if (request == PICK_AUTO_REPLY_PICTURE) {
             int index = autoReplyPictureFor;
+            String cardId = autoReplyPictureId;
             autoReplyPictureFor = -1;
+            autoReplyPictureId = null;
+            if (index < 0 && cardId == null) return;
             if (result != RESULT_OK || data == null || data.getData() == null) return;
             android.net.Uri picked = data.getData();
             // Only a provider grant, never a path read with Messenger's own access.
@@ -2808,8 +2923,9 @@ public final class SettingsActivity extends Activity {
             if (autoReplyList == null) {
                 pendingAutoReplyPicture = picked;
                 pendingAutoReplyPictureFor = index;
+                pendingAutoReplyPictureId = cardId;
             } else {
-                copyAutoReplyPicture(picked, index);
+                copyAutoReplyPicture(picked, index, cardId);
             }
             return;
         }
@@ -3195,6 +3311,95 @@ public final class SettingsActivity extends Activity {
         ui.add(parent, row, 0);
     }
 
+    private android.content.SharedPreferences sectionStore() { return getSharedPreferences(SECTIONS_STORE, MODE_PRIVATE); }
+
+    private void saveSections() { sectionStore().edit().putString(OPEN_SECTIONS, String.join(",", openSections)).apply(); }
+
+    /**
+     * One accordion section, HushFacebook's way: a header that opens and closes the card under it.
+     * The header holds the title, a count the Controls tab fills in and the chevron, in that order.
+     */
+    private LinearLayout section(LinearLayout parent, String id, View body, int top) {
+        LinearLayout group = ui.column();
+        group.setTag(id);
+        LinearLayout header = ui.row();
+        header.setTag("section_" + id);
+        header.setMinimumHeight(ui.dp(48));
+        header.setPadding(ui.dp(14), ui.dp(10), ui.dp(10), ui.dp(10));
+        header.setBackground(ui.interactive(ui.surface, ui.line, 12));
+        header.setClickable(true);
+        header.setFocusable(true);
+        TextView title = ui.heading(text.get(id));
+        header.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
+        TextView count = ui.text("", 12, ui.muted, false);
+        LinearLayout.LayoutParams countParams = new LinearLayout.LayoutParams(-2, -2);
+        countParams.setMarginEnd(ui.dp(8));
+        header.addView(count, countParams);
+        TextView chevron = ui.text(String.valueOf((char) 0x203a), 20, ui.muted, true);
+        chevron.setGravity(android.view.Gravity.CENTER);
+        chevron.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        // Square and as big as the glyph, which grows with the text size: it turns a quarter round as the section opens.
+        int side = Math.max(ui.dp(24), (int) Math.ceil(Math.max(chevron.getPaint().getFontSpacing(),
+            chevron.getPaint().measureText(chevron.getText().toString()))));
+        header.addView(chevron, new LinearLayout.LayoutParams(side, side));
+        header.setOnClickListener(view -> toggleSection(id));
+        header.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public void onInitializeAccessibilityNodeInfo(View host, android.view.accessibility.AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setClassName(Button.class.getName());
+                info.setHeading(true);
+                info.addAction(sectionShown(id) ? android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_COLLAPSE
+                    : android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_EXPAND);
+            }
+            @Override public boolean performAccessibilityAction(View host, int action, Bundle args) {
+                boolean shown = sectionShown(id);
+                if ((action == android.view.accessibility.AccessibilityNodeInfo.ACTION_EXPAND && !shown)
+                        || (action == android.view.accessibility.AccessibilityNodeInfo.ACTION_COLLAPSE && shown)) {
+                    toggleSection(id);
+                    return true;
+                }
+                return super.performAccessibilityAction(host, action, args);
+            }
+        });
+        ui.add(group, header, 0);
+        ui.add(group, body, 6);
+        ui.add(parent, group, top);
+        sections.put(id, new LinearLayout[] {group, header});
+        bindSection(id);
+        return group;
+    }
+
+    /** Open, or shown by a search that found something in it. A section closed during a search stays closed until the search changes. */
+    private boolean sectionShown(String id) {
+        LinearLayout[] parts = sections.get(id);
+        boolean found = searching && parts != null && groups.contains(parts[0]);
+        return found ? !searchClosed.contains(id) : openSections.contains(id);
+    }
+
+    private void toggleSection(String id) {
+        LinearLayout[] parts = sections.get(id);
+        if (searching && parts != null && groups.contains(parts[0])) {
+            if (!searchClosed.remove(id)) searchClosed.add(id);
+        } else {
+            if (!openSections.remove(id)) openSections.add(id);
+            saveSections();
+        }
+        bindSection(id);
+        if (parts != null) parts[1].sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_SELECTED);
+    }
+
+    private void bindSection(String id) {
+        LinearLayout[] parts = sections.get(id);
+        if (parts == null) return;
+        boolean shown = sectionShown(id);
+        LinearLayout header = parts[1];
+        parts[0].getChildAt(1).setVisibility(shown ? View.VISIBLE : View.GONE);
+        ((TextView) header.getChildAt(0)).setTextColor(shown ? ui.accent : ui.muted);
+        header.getChildAt(2).setRotation(shown ? -90 : 90);
+        header.setActivated(shown);
+        if (Build.VERSION.SDK_INT >= 30) header.setStateDescription(text.get(shown ? "section_expanded" : "section_collapsed"));
+    }
+
     private void showPage(String name) {
         if ("app".equals(name) && search.hasFocus()) {
             search.clearFocus();
@@ -3211,7 +3416,7 @@ public final class SettingsActivity extends Activity {
             boolean selected = tab.getTag().equals("tab_" + page);
             tab.setSelected(selected);
             tab.setTextColor(selected ? ui.selectedText : ui.muted);
-            tab.setBackground(ui.interactive(selected ? ui.accent : ui.surface, 0, 10));
+            tab.setBackground(ui.interactive(selected ? ui.accentFill : ui.surface, 0, 10));
         }
     }
 
@@ -3250,12 +3455,10 @@ public final class SettingsActivity extends Activity {
         int visible = 0;
         for (int i = 0; i < controlRows.size(); i++) {
             String[] spec = installedControls.get(i);
-            String bucket = "inbox".equals(spec[3]) ? "inbox" :
-                ("conversations".equals(spec[3]) || "photos_videos".equals(spec[3]) || "stickers".equals(spec[3])) ? "chats" : "more";
             // A switch inside a control's block is found by its own words too.
             String inside = "facebook".equals(spec[0]) ? text.get("facebook_keep_profile") + " " + text.get("facebook_keep_profile_help") : "";
             if (Settings.TAB_BADGES.equals(spec[0])) for (String keep : Settings.KEEP_BADGES.values()) inside += " " + text.get(keep);
-            boolean match = ("all".equals(category) || category.equals(bucket)) && SettingsSearch.matches(terms, spec[1], spec[2],
+            boolean match = SettingsSearch.matches(terms, spec[1], spec[2],
                 SettingsText.english(spec[3]), text.display(text.control(spec, 1)), text.display(text.control(spec, 2)), text.get(spec[3]), inside);
             controlRows.get(i).setVisibility(match ? View.VISIBLE : View.GONE);
             if (match) visible++;
@@ -3268,13 +3471,10 @@ public final class SettingsActivity extends Activity {
             tally.setText(text.number(count));
             tally.setContentDescription(text.count("group_count", count));
         }
-        for (Button button : categories) {
-            boolean selected = button.getTag().equals("category_" + category);
-            button.setSelected(selected);
-            button.setTextColor(selected ? ui.selectedText : ui.muted);
-            button.setBackground(ui.interactive(selected ? ui.selected : ui.background, selected ? 0 : ui.outline, 12));
-            button.setPadding(ui.dp(4), ui.dp(8), ui.dp(4), ui.dp(8));
-        }
+        // A search shows every match, so the sections it found open for as long as it's typed.
+        searching = !terms.isEmpty();
+        searchClosed.clear();
+        for (String id : sections.keySet()) bindSection(id);
         searchStatus.setText(controlRows.isEmpty() ? text.get("none_installed") :
             visible == 0 ? text.get("no_matches") : text.get(controlRows.size() == 1 ? "results_one" : "results_many", visible, controlRows.size()));
         // With nothing installed, the status line already explains what to do.
@@ -3287,7 +3487,6 @@ public final class SettingsActivity extends Activity {
         state.putBoolean("message_log_open", messageLogDialog != null && messageLogDialog.isShowing());
         state.putBoolean("message_log_clear_failed", messageLogClearFailed);
         state.putString("page", page);
-        state.putString("category", category);
         state.putString("query", search.getText().toString());
         state.putInt("selection_start", search.getSelectionStart());
         state.putInt("selection_end", search.getSelectionEnd());

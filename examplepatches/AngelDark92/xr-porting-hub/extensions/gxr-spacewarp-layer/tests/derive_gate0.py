@@ -108,6 +108,37 @@ BASES = {
                                 "0x21bb88"],
         "kotlinKey": "2.0.20/5001712",
     },
+    # 2.0.24/5002395 (sixth base, 2026-10-26): fresh per-base derivation from the
+    # retained 2.0.24 decoded tree. The identity anchor is this base's
+    # codecs-support audit window (0xfe954); the extra gates are this base's own
+    # dynsym entry VAs for FlipFrame, Render and AppTick, each a unique 0x80-byte
+    # window. Emits straight to the staged resource so the frozen copy and the
+    # shipped copy cannot drift.
+    "5002395": {
+        "tree": "android-steamlinkvr-release-base-2.0.24-5002395",
+        "versionName": "2.0.24",
+        "versionCode": 5002395,
+        "knownAnchorOffset": 0xFE954,
+        "expectedKnownAnchorSha":
+            "ef7f310bbd65499404aa89a18f873c42a87282a16799b84119c75377654003a3",
+        "extraGates": {
+            "XrSceneStream::Render": 0x11C9A0,
+            "QSVLClientXR::FlipFrame": 0xFCC60,
+            "AppTick": 0x146E5C,
+        },
+        "out": REPO_ROOT + "/patches/src/main/resources/steamlink/androidxr/"
+               "gxr_spacewarp_gate0_5002395.json",
+        "checkProfileNeedles": ["0xfe954",
+                                "ef7f310bbd65499404aa89a18f873c42a87282a16799b84119c75377654003a3",
+                                "0x232170"],
+        "kotlinKey": "2.0.24/5002395",
+        # --check re-derives every window from this exact scene; a missing or
+        # different tree fails closed instead of falling back to source literals.
+        "checkRequiresTree": True,
+        "expectedSize": 2301432,
+        "expectedSha256":
+            "5fab23a7eac1429c93520bdd4d7c579b75a6d55525a755379d15388272571a4b",
+    },
 }
 
 RELOC_NAMES = {R_AARCH64_GLOB_DAT: "GLOB_DAT", R_AARCH64_JUMP_SLOT: "JUMP_SLOT"}
@@ -292,11 +323,44 @@ def relocation_hits(data, loads, dyn_off, dyn_size, sym_index):
 
 # ---------------------------------------------------------------------------
 # --check support: compiled-pin cross-verification (C++ profile table + the
-# Kotlin per-base precondition list). No scene lib needed.
+# Kotlin per-base precondition list). Bases flagged checkRequiresTree also
+# re-derive every window from their exact decoded scene, so the check cannot
+# pass from hand-copied literals alone.
 # ---------------------------------------------------------------------------
 HOOKS_SRC = REPO_ROOT + "/extensions/gxr-spacewarp-layer/src/swp_hooks.cpp"
 KOTLIN_SRC = (REPO_ROOT + "/patches/src/main/kotlin/app/template/patches/steamlink/"
               "androidxr/GxrSpacewarpLayerPatch.kt")
+C_BLOCK_COMMENT = re.compile(r"/\*.*?\*/", re.S)
+
+
+def code_without_comments(text):
+    """Drop C block and line comments so a pinned literal must be real code."""
+    return "\n".join(line.split("//")[0]
+                     for line in C_BLOCK_COMMENT.sub("", text).splitlines())
+
+
+def compiled_got_profile(hooks_src, version_code):
+    """The comments-stripped GOTProfile initializer for one exact base."""
+    marker = "const GOTProfile kProfile%s = {" % version_code
+    start = hooks_src.find(marker)
+    if start == -1:
+        die("no %r profile in src/swp_hooks.cpp" % marker)
+    end = hooks_src.find("};", start)
+    if end == -1:
+        die("%r has no '};' terminator" % marker)
+    return marker, code_without_comments(hooks_src[start:end])
+
+
+def derive_anchor(data, offset, label):
+    if offset < 0 or offset + ANCHOR_SIZE > len(data):
+        die("%s window at 0x%x runs past the scene" % (label, offset))
+    window = bytes(data[offset:offset + ANCHOR_SIZE])
+    digest = hashlib.sha256(window).hexdigest()
+    occurrences = data.count(window)
+    if occurrences != 1:
+        die("%s window (0x%x) occurs %d times; exactly one required"
+            % (label, offset, occurrences))
+    return digest
 
 
 def kotlin_precondition_block(kotlin_src, base_key):
@@ -317,25 +381,59 @@ def run_gate0_check(spec):
     with open(KOTLIN_SRC, "r", encoding="utf-8") as fh:
         kotlin_src = fh.read()
 
-    def require(text, needle, label):
-        if needle not in text:
-            die("compiled pin drift: %s not found in %s" % (needle, label))
-
+    marker, code_only = compiled_got_profile(hooks_src, spec["versionCode"])
     for needle in spec["checkProfileNeedles"]:
-        require(hooks_src, needle, "swp_hooks.cpp profile for %s" % spec["kotlinKey"])
+        if needle not in code_only:
+            die("compiled pin drift: %s not found in the %s initializer"
+                % (needle, marker))
 
     block = kotlin_precondition_block(kotlin_src, spec["kotlinKey"])
     if not block:
         die("no %r precondition list in the Kotlin patch" % spec["kotlinKey"])
-    triples = re.findall(r'Triple\((0x[0-9a-fA-F]+), 0x80, "([0-9a-f]{64})"\)', block)
-    offsets_seen = set()
-    for off_hex, _sha in triples:
-        offsets_seen.add(int(off_hex, 16))
-    want_offsets = set([spec["knownAnchorOffset"]] + list(spec["extraGates"].values()))
-    if offsets_seen != want_offsets:
-        die("Kotlin %s preconditions list %r; expected exactly %r"
-            % (spec["kotlinKey"], sorted(hex(v) for v in offsets_seen),
-               sorted(hex(v) for v in want_offsets)))
+    triples = [(int(off_hex, 16), sha)
+               for off_hex, sha in
+               re.findall(r'Triple\((0x[0-9a-fA-F]+), 0x80, "([0-9a-f]{64})"\)', block)]
+
+    if spec.get("checkRequiresTree"):
+        scene_path = ("%s/%s/lib/arm64-v8a/libvrlink_scene.so"
+                      % (REPO_ROOT, spec["tree"]))
+        try:
+            with open(scene_path, "rb") as fh:
+                data = fh.read()
+        except OSError as failure:
+            die("cannot read the exact %s scene for --check (%s); no substitution"
+                % (spec["tree"], failure))
+        if len(data) != spec["expectedSize"]:
+            die("scene size %d, expected %d" % (len(data), spec["expectedSize"]))
+        digest = hashlib.sha256(data).hexdigest()
+        if digest != spec["expectedSha256"]:
+            die("scene sha256 %s, expected %s" % (digest, spec["expectedSha256"]))
+        derived = [(spec["knownAnchorOffset"],
+                    derive_anchor(data, spec["knownAnchorOffset"], "codecs-audit-anchor"))]
+        if derived[0][1] != spec["expectedKnownAnchorSha"]:
+            die("known anchor re-derived %s, expected %s"
+                % (derived[0][1], spec["expectedKnownAnchorSha"]))
+        for label, offset in sorted(spec["extraGates"].items(), key=lambda kv: kv[1]):
+            derived.append((offset, derive_anchor(data, offset, label)))
+        ordered = sorted(derived, key=lambda pair: pair[0])
+        for left, right in zip(ordered, ordered[1:]):
+            if left[0] + ANCHOR_SIZE > right[0]:
+                die("anchor windows overlap at 0x%x and 0x%x" % (left[0], right[0]))
+        # The Kotlin list is emitted identity-first, then the other gates in
+        # file order; compare both order and SHA so a transplanted window fails.
+        if triples != derived:
+            die("Kotlin %s preconditions %r; tree-derived %r"
+                % (spec["kotlinKey"], triples, derived))
+        print("  tree-derived anchors verified (%s: %d windows from the exact scene)"
+              % (spec["kotlinKey"], len(derived)))
+    else:
+        offsets_seen = {offset for offset, _sha in triples}
+        want_offsets = set([spec["knownAnchorOffset"]] + list(spec["extraGates"].values()))
+        if offsets_seen != want_offsets:
+            die("Kotlin %s preconditions list %r; expected exactly %r"
+                % (spec["kotlinKey"], sorted(hex(v) for v in offsets_seen),
+                   sorted(hex(v) for v in want_offsets)))
+
     # The base anchor sha must occur exactly once across the whole patch file
     # (an anchor shared between two bases cannot disambiguate them, and a
     # transplanted 5002363 value must not appear inside the 5001712 list).
@@ -434,10 +532,16 @@ def main():
     extra = [anchor_window(off, label) for label, off in sorted(spec["extraGates"].items(),
                                                                 key=lambda kv: kv[1])]
     gates = [known] + extra
-    for j in range(len(gates) - 1):
-        if gates[j]["offset"] + gates[j]["size"] > gates[j + 1]["offset"]:
+    # Overlap is a property of the offsets, not of the identity-first emission
+    # order: 2.0.24/5002395's identity window (0xfe954) sits above its
+    # FlipFrame gate (0xfcc60). Sort a copy for the check; keep the emitted
+    # order (identity first, then the other gates) because the Kotlin
+    # precondition list and the packaging test consume it in that order.
+    ordered = sorted(gates, key=lambda gate: gate["offset"])
+    for j in range(len(ordered) - 1):
+        if ordered[j]["offset"] + ordered[j]["size"] > ordered[j + 1]["offset"]:
             die("anchor windows overlap: %s and %s"
-                % (gates[j]["name"], gates[j + 1]["name"]))
+                % (ordered[j]["name"], ordered[j + 1]["name"]))
 
     gate0 = {
         "version": 1,

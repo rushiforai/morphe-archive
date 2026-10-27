@@ -127,7 +127,7 @@ public class NeutralDefaultsSettingsTest {
                 PatchFamily.ASK_BEFORE_LIKE, PatchFamily.ASK_BEFORE_REFRESH,
                 PatchFamily.PROFILE_HIGHLIGHTS, PatchFamily.THREADS_BUTTON, PatchFamily.PROFILE_NOTES, PatchFamily.PROFILE_POSTS_LIST, PatchFamily.NOTES_ROW, PatchFamily.INBOX_SEARCH, PatchFamily.INBOX_SUGGESTIONS, PatchFamily.INSTANTS, PatchFamily.SWIPE_TO_CREATE,
                 PatchFamily.REEL_SCROLLING, PatchFamily.SWIPE_TO_PROFILE, PatchFamily.REEL_ORIGIN, PatchFamily.STORY_RING, PatchFamily.FULL_RESOLUTION, PatchFamily.HOME_FEED, PatchFamily.FEED_SUGGESTIONS,
-                PatchFamily.TAB_SWIPE, PatchFamily.HDR_BOOST, PatchFamily.RECENT_SEARCHES, PatchFamily.DATA_SAVER, PatchFamily.MEDIA_CACHE, PatchFamily.NOTIFICATION_GROUPS, PatchFamily.MESSAGES_LOCK, PatchFamily.SCREENSHOT_REPORTS, PatchFamily.SCREENSHOT_BLOCK, PatchFamily.KEEP_IN_CHAT, PatchFamily.LIVE_SEEN,
+                PatchFamily.TAB_SWIPE, PatchFamily.TAB_BAR_LAYOUT, PatchFamily.HDR_BOOST, PatchFamily.RECENT_SEARCHES, PatchFamily.DATA_SAVER, PatchFamily.MEDIA_CACHE, PatchFamily.NOTIFICATION_GROUPS, PatchFamily.MESSAGES_LOCK, PatchFamily.SCREENSHOT_REPORTS, PatchFamily.SCREENSHOT_BLOCK, PatchFamily.KEEP_IN_CHAT, PatchFamily.LIVE_SEEN,
                 PatchFamily.EMOJI_STYLE, PatchFamily.ACCENT_COLOR, PatchFamily.LAUNCH_SCREEN, PatchFamily.FONT, PatchFamily.APP_ICON,
                 PatchFamily.REEL_WATCH_HISTORY, PatchFamily.STORY_AUTO_ADVANCE, PatchFamily.STORY_SOUND, PatchFamily.STORY_SWIPE_REPLY, PatchFamily.STORY_UPLOAD_QUALITY, PatchFamily.STORY_FONTS, PatchFamily.FEED_SOUND, PatchFamily.FEED_TAP_PAUSE, PatchFamily.LONG_PRESS_ZOOM, PatchFamily.ROUNDED_POST_CORNERS, PatchFamily.FULL_SCREEN_BARS, PatchFamily.STORY_TIME, PatchFamily.STORY_MENTIONS, PatchFamily.STORY_FOLLOW,
                 PatchFamily.POST_TIME, PatchFamily.HIDDEN_LIKE_COUNTS, PatchFamily.BACK_LEAVES_HOME, PatchFamily.STORY_LOOP, PatchFamily.STORY_SEEN, PatchFamily.SPOOF_LOCATION,
@@ -153,6 +153,7 @@ public class NeutralDefaultsSettingsTest {
         Settings.STORY_RING_COLOR.resetToDefault();
         Settings.FONT.resetToDefault();
         Settings.APP_ICON.resetToDefault();
+        Settings.TAB_BAR_LAYOUT.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
     }
@@ -201,6 +202,8 @@ public class NeutralDefaultsSettingsTest {
             Settings.STORY_RING.save(chosen);
             Settings.STORY_RING_SCALE.save(chosen ? StoryRingSize.SMALLER : StoryRingSize.LARGER);
             Settings.STORY_RING_COLOR.save(chosen ? StoryRingColor.BLUE : StoryRingColor.GOLD);
+            Settings.TAB_BAR_LAYOUT.save(chosen ? app.hushgram.extension.instagram.reels.TabBarLayoutChoice.CLASSIC
+                    : app.hushgram.extension.instagram.reels.TabBarLayoutChoice.SWIPE);
             Map<String, Object> before = savedChoices();
             for (int opening = 0; opening < 2; opening++) {
                 try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
@@ -233,6 +236,7 @@ public class NeutralDefaultsSettingsTest {
         selected.put(Settings.STORY_RING.key, all.get(Settings.STORY_RING.key));
         selected.put(Settings.STORY_RING_SCALE.key, all.get(Settings.STORY_RING_SCALE.key));
         selected.put(Settings.STORY_RING_COLOR.key, all.get(Settings.STORY_RING_COLOR.key));
+        selected.put(Settings.TAB_BAR_LAYOUT.key, all.get(Settings.TAB_BAR_LAYOUT.key));
         return selected;
     }
 
@@ -266,6 +270,8 @@ public class NeutralDefaultsSettingsTest {
                 app.hushgram.extension.instagram.reels.ReelClearMode.current(pagerReel));
         assertFalse(Instants.hide());
         assertFalse("a swipe on a reel keeps Instagram's answer", app.hushgram.extension.instagram.reels.SwipeToProfile.allow(0));
+        assertTrue("the tab bar Instagram picked stays", app.hushgram.extension.instagram.reels.TabBarLayout.newTabBar(1));
+        assertFalse("the classic bar Instagram picked stays", app.hushgram.extension.instagram.reels.TabBarLayout.newTabBar(0));
         assertTrue(app.hushgram.extension.instagram.feed.CommentsButton.feedState(1));
         assertTrue(app.hushgram.extension.instagram.share.ShareButton.feedState(1));
         assertFalse(app.hushgram.extension.instagram.direct.CallConfirm.hold(new Object(), null, null, null, 0));

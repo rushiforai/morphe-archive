@@ -9,6 +9,8 @@ package app.hushgram.extension.instagram.settings;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.accentHueRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.appIconRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.category;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.info;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.mark;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.toggle;
 
 import android.content.Context;
@@ -21,6 +23,9 @@ import app.hushgram.extension.shared.L10n;
 
 /** Builds the Layout category of HushGram settings. */
 final class LayoutCategory {
+    /** The row a build without Pure black dark mode shows under Layout, saying where to get it. */
+    static final String PURE_BLACK_HINT_ROW = "hushgram_pure_black_hint_row";
+
     private LayoutCategory() { }
 
     static void add(HushgramPreferenceFragment page, PreferenceScreen screen, Context context, Set<PatchFamily> build) {
@@ -50,6 +55,16 @@ final class LayoutCategory {
                 layout.addPreference(toggle(context, Settings.ACCENT_BADGES, L10n.t("Badges in the accent color"),
                         L10n.t("The red dots and counts for new messages and notifications take the color you "
                                 + "picked. Restart Instagram to see the change.")));
+            }
+            // Pure black is set when you patch and stays out of the default selection, so a build
+            // without it says where to get it (#267, #359).
+            if (!build.contains(PatchFamily.PURE_BLACK)) {
+                android.preference.Preference hint = info(context, L10n.t("Pure black dark mode isn't in this build"),
+                        L10n.t("To make dark mode pure black instead of dark gray, which can save battery on an "
+                                + "OLED screen, pick Pure black dark mode in Morphe Manager the next time you patch "
+                                + "Instagram."));
+                hint.setKey(PURE_BLACK_HINT_ROW);
+                layout.addPreference(mark(hint, SettingsIcons.MOON));
             }
             if (build.contains(PatchFamily.LAUNCH_SCREEN)) {
                 layout.addPreference(toggle(context, Settings.LAUNCH_SCREEN, L10n.t("HushGram launch screen"),

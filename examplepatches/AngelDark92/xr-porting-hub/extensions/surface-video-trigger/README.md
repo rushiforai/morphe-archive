@@ -32,6 +32,9 @@ Surface-backed projection 1
 2x2 transparent trigger quad
 ```
 
+Valve's per-layer `XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB` chains and the
+frame-level `next` chain are preserved on the replacement layers, not dropped.
+
 The layer only converts a frame with exactly two projection layers. Any other
 shape passes through unchanged. A transfer or runtime rejection disables the
 layer for the rest of the session and leaves later frames untouched.

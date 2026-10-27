@@ -1,6 +1,8 @@
 package app.template.patches.yahoosports.ads
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 // Yahoo Sports keeps its view, controller and Verizon Media player class names; members and the
 // helper/config classes are R8-renamed. Every anchor below is a kept class name, a stable remote
@@ -30,7 +32,10 @@ internal object SportsAdCardViewSetDataFingerprint : Fingerprint(
 // (c(): the GAM pencil prefetch queue and the extra scores-list ad slots).
 internal object AdConfigManagerClinitFingerprint : Fingerprint(
     name = "<clinit>",
-    strings = listOf("stream_taboola_ad_enabled", "sponsored_moments_use_gam_ads"),
+    strings = listOf(
+        string("stream_taboola_ad_enabled", StringComparisonType.CONTAINS),
+        string("sponsored_moments_use_gam_ads", StringComparisonType.CONTAINS),
+    ),
 )
 
 // SapiMediaItem.getAdTagUri(): the IMA VAST tag of a Yahoo video. MediaItem is an interface with a

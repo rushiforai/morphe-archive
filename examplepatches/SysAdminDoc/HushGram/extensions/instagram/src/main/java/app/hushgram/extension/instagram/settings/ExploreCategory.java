@@ -25,7 +25,7 @@ final class ExploreCategory {
         if (build.contains(PatchFamily.EXPLORE_GRID) || build.contains(PatchFamily.RECENT_SEARCHES)
                 || build.contains(PatchFamily.ALL_RECENT_SEARCHES)) {
             PreferenceCategory explore = category(screen, L10n.t("Explore"), SettingsIcons.EXPLORE,
-                    L10n.t("Tidy up the Search tab and what it remembers."));
+                    L10n.t("Search, suggestions and the Explore grid."));
             if (build.contains(PatchFamily.EXPLORE_GRID)) {
                 explore.addPreference(toggle(context, Settings.HIDE_EXPLORE_GRID, L10n.t("Hide the Explore grid"),
                         L10n.t("Hides the grid of posts and reels under the Search tab's bar. Search, recent "

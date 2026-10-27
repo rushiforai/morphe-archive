@@ -79,18 +79,11 @@ public class BaseSettings {
     /** Set by {@link HushfeedPause} after three starts in a row crashed within a minute. */
     public static final BooleanSetting SAFE_MODE = new BooleanSetting("hushfeed_safe_mode", FALSE, true, false, null, null);
 
-    /**
-     * Whether the Quick setups card is off the settings home page, after a long press on it. No
-     * restart, and left out of backups and of every Quick setups choice.
-     */
-    public static final BooleanSetting HIDE_QUICK_SETUPS =
-            new BooleanSetting("hushfeed_hide_quick_setups", FALSE, false, false, null, null);
-
     static {
         // Hushfeed's own state and its diagnostics, which keep working while it is paused.
         Setting.keepWhenPaused(DEBUG, DEBUG_CAPTURE, DEBUG_LOG_FILTERS, CAPTURE_JAVA_CRASHES, DEBUG_STACKTRACE,
                 DEBUG_TOAST_ON_ERROR, CHECK_ENVIRONMENT_WARNINGS_ISSUED, MORPHE_LANGUAGE, SHOW_MENU_ICONS,
-                FIRST_TIME_APP_LAUNCHED, EXPERIMENTAL_APP_CONFIRMED, PAUSED, SAFE_MODE, HIDE_QUICK_SETUPS);
+                FIRST_TIME_APP_LAUNCHED, EXPERIMENTAL_APP_CONFIRMED, PAUSED, SAFE_MODE);
 
         final long now = System.currentTimeMillis();
 

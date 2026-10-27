@@ -14,7 +14,9 @@ import app.template.patches.shared.Constants.COMPATIBILITY_MAILCOM
 // IapUpsellingFeature (IAP_UPSELLING) is deliberately not touched: it is the master switch for
 // every in-app purchase entry point, including the Settings "Upgrade" row
 // (AccountSettingsFragment.onUpgradeClicked returns early without it) and the drawer's Premium
-// item, so turning it off would break the user's own way to buy.
+// item, so turning it off would break the user's own way to buy. 9.19.0 replaced that toggle with
+// the per-account suspend check UpsellFeatureImpl.isIapUpsellEnabled(Account, Continuation), which
+// stays untouched as well.
 internal object Swipe2UpsellEnabledByConfigFingerprint : Fingerprint(
     name = "isEnabledByConfig",
     returnType = "Z",

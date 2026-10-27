@@ -57,6 +57,8 @@ import app.hushtelegram.extension.shared.settings.preference.ImmediateAction;
 import app.hushtelegram.extension.shared.settings.preference.LogBufferManager;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloads;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloadsForTests;
+import app.hushtelegram.extension.telegram.misc.HiddenChats;
+import app.hushtelegram.extension.telegram.misc.HiddenChatsForTests;
 import app.hushtelegram.extension.telegram.misc.LaunchFolder;
 import app.hushtelegram.extension.telegram.misc.LaunchFolderForTests;
 import app.hushtelegram.extension.telegram.misc.MessageFilters;
@@ -85,6 +87,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -535,6 +538,13 @@ public class HushTelegramPreferenceFragmentTest {
             // Full screen keeps Telegram's one side until the switch is turned on.
             assertFalse(Settings.VIDEO_EITHER_LANDSCAPE.key,
                     ((SwitchPreference) page.findPreference(Settings.VIDEO_EITHER_LANDSCAPE.key)).isChecked());
+            assertEquals("Turn videos only from the full screen button",
+                    String.valueOf(page.findPreference(Settings.VIDEO_ONLY_FROM_BUTTON.key).getTitle()));
+            assertEquals("An open video stays upright when you turn your phone. It goes landscape only when you tap "
+                    + "full screen.", String.valueOf(page.findPreference(Settings.VIDEO_ONLY_FROM_BUTTON.key).getSummary()));
+            // Videos follow the phone as Telegram has it until the switch is turned on.
+            assertFalse(Settings.VIDEO_ONLY_FROM_BUTTON.key,
+                    ((SwitchPreference) page.findPreference(Settings.VIDEO_ONLY_FROM_BUTTON.key)).isChecked());
             assertEquals("Swipe back on profiles", String.valueOf(page.findPreference(Settings.SWIPE_BACK_ON_PROFILES.key).getTitle()));
             assertEquals("Swiping right on a profile's photos or media tabs goes back, like the rest of the profile, "
                     + "instead of showing the previous photo or tab.",
@@ -613,6 +623,15 @@ public class HushTelegramPreferenceFragmentTest {
             assertFalse(Settings.LAUNCH_FOLDER.key,
                     ((SwitchPreference) page.findPreference(Settings.LAUNCH_FOLDER.key)).isChecked());
             assertEquals("Folder to open", String.valueOf(page.findPreference(HushTelegramPreferenceFragment.LAUNCH_FOLDER_ROW).getTitle()));
+            assertEquals("Hide picked chats", String.valueOf(page.findPreference(Settings.HIDDEN_CHATS.key).getTitle()));
+            assertEquals("The chats you pick below leave All Chats, your folders and archived chats. They keep their messages "
+                    + "and notifications, search still finds them, and nothing changes on your other devices. Each account "
+                    + "keeps its own list. Folder tab counts and the app badge still count their unread messages.",
+                    String.valueOf(page.findPreference(Settings.HIDDEN_CHATS.key).getSummary()));
+            // Every chat shows until the switch is turned on.
+            assertFalse(Settings.HIDDEN_CHATS.key,
+                    ((SwitchPreference) page.findPreference(Settings.HIDDEN_CHATS.key)).isChecked());
+            assertEquals("Chats to hide", String.valueOf(page.findPreference(HushTelegramPreferenceFragment.HIDDEN_CHATS_ROW).getTitle()));
             assertEquals("Folders by chat type", String.valueOf(page.findPreference(Settings.CHAT_TYPE_FOLDERS.key).getTitle()));
             assertEquals("Turning this on makes Private, Groups, Channels and Bots folders, as tabs above the chat list "
                     + "and on your other devices. Turning it off removes the ones it made, unless you renamed or changed them. "
@@ -782,6 +801,12 @@ public class HushTelegramPreferenceFragmentTest {
                             + "and tapping the channel's name at the top still opens its info. A channel picks this up the "
                             + "next time you open it.",
                     String.valueOf(page.findPreference(Settings.HIDE_CHANNEL_BUTTONS.key).getSummary()));
+            assertEquals("Hide channel Mute button", String.valueOf(page.findPreference(Settings.HIDE_CHANNEL_MUTE.key).getTitle()));
+            assertEquals("The bar at the bottom of a channel you've joined goes away, along with its Mute button and the "
+                            + "Search and Info buttons beside it. Channels you haven't joined still show Join. To mute a "
+                            + "channel, open its info. A channel picks this up the next time you open it.",
+                    String.valueOf(page.findPreference(Settings.HIDE_CHANNEL_MUTE.key).getSummary()));
+            assertFalse(((SwitchPreference) page.findPreference(Settings.HIDE_CHANNEL_MUTE.key)).isChecked());
             assertEquals("Your picture next to the message box goes away in groups and channels where you could post as "
                             + "a channel, while you're posting as yourself. Once you pick a channel it shows again, so you "
                             + "can always see who you're posting as. To pick one, turn this off first. A chat picks this up "
@@ -1184,6 +1209,139 @@ public class HushTelegramPreferenceFragmentTest {
     }
 
     /**
+     * Save downloaded files brings the gallery folder row under its two switches when its target
+     * went in (#30). A tap lists the three choices with the saved one checked, and a pick saves it
+     * at once and closes the list.
+     */
+    @Test
+    public void theGalleryFolderRowListsTheFoldersAndSavesThePick() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SAVE_DOWNLOADS);
+        PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            assertNotNull(page.findPreference(Settings.SAVE_DOWNLOADS.key));
+            assertNull("a build without the target has no row", page.findPreference(HushTelegramPreferenceFragment.GALLERY_FOLDER_ROW));
+        }
+        PatchFamily.capabilitiesForTests = null;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = new ArrayList<>();
+            collect(pageOf(controller).getPreferenceScreen(), rows);
+            Preference folder = rows.get(indexOfKey(rows, Settings.SAVE_RESTRICTED_DOWNLOADS.key) + 1);
+            assertEquals(HushTelegramPreferenceFragment.GALLERY_FOLDER_ROW, folder.getKey());
+            assertEquals("Playback", String.valueOf(folder.getParent().getTitle()));
+            assertFalse("it stores nothing itself", folder.isPersistent());
+            assertEquals("Gallery folder", String.valueOf(folder.getTitle()));
+            assertEquals("Photos and videos you save to the gallery go to Pictures/Telegram and Movies/Telegram (Telegram's own)."
+                    + " Camera photos and automatic saving keep Telegram's folders.", String.valueOf(folder.getSummary()));
+
+            assertTrue(folder.getOnPreferenceClickListener().onPreferenceClick(folder));
+            ShadowLooper.idleMainLooper();
+            AlertDialog list = (AlertDialog) ShadowAlertDialog.getLatestDialog();
+            assertTrue(list.isShowing());
+            assertEquals("Gallery folder", String.valueOf(shadowOf(list).getTitle()));
+            ListView choices = list.getListView();
+            List<String> labels = new ArrayList<>();
+            for (int i = 0; i < choices.getCount(); i++) labels.add(String.valueOf(choices.getAdapter().getItem(i)));
+            assertEquals(Arrays.asList("Pictures/Telegram and Movies/Telegram (Telegram's own)", "DCIM/Telegram",
+                    "DCIM/Telegram/Photos and DCIM/Telegram/Videos"), labels);
+            assertEquals("Telegram's folders are checked", 0, choices.getCheckedItemPosition());
+
+            shadowOf(list).clickOnItem(1);
+            settle();
+            assertFalse(list.isShowing());
+            assertEquals(app.hushtelegram.extension.telegram.misc.GalleryFolder.DCIM, Settings.GALLERY_FOLDER.savedValue());
+            assertTrue(String.valueOf(folder.getSummary()).startsWith("Photos and videos you save to the gallery go to DCIM/Telegram."));
+            assertFalse("picking a folder leaves the switch alone", Settings.SAVE_DOWNLOADS.savedValue());
+            assertTrue("and owes no restart", AbstractPreferenceFragment.restartPending.isEmpty());
+        } finally {
+            Settings.GALLERY_FOLDER.resetToDefault();
+        }
+    }
+
+    /**
+     * Translate with an outside service brings a Translate into row under the service (#35). A tap
+     * lists Telegram's language and then every language Google's web translate knows, the search
+     * finds one by any of its names, and a pick saves it at once and closes the list.
+     */
+    @Test
+    public void theTranslateIntoRowListsEveryLanguageAndSavesThePick() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.OUTSIDE_TRANSLATE);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = new ArrayList<>();
+            collect(pageOf(controller).getPreferenceScreen(), rows);
+            Preference row = rows.get(indexOfKey(rows, TranslateServiceEditor.KEY) + 1);
+            assertEquals(TranslateTargetPicker.KEY, row.getKey());
+            assertEquals("Translate into", String.valueOf(row.getTitle()));
+            assertFalse("it stores nothing itself", row.isPersistent());
+            assertEquals("Language for outside translations: Telegram's language. Tap to pick another.",
+                    String.valueOf(row.getSummary()));
+
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            ShadowLooper.idleMainLooper();
+            AlertDialog list = (AlertDialog) ShadowAlertDialog.getLatestDialog();
+            assertTrue(list.isShowing());
+            assertEquals("Translate into", String.valueOf(shadowOf(list).getTitle()));
+            assertEquals("the keyboard makes room rather than covering Cancel",
+                    android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
+                    list.getWindow().getAttributes().softInputMode & android.view.WindowManager.LayoutParams.SOFT_INPUT_MASK_ADJUST);
+            View decor = list.getWindow().getDecorView();
+            EditText search = decor.findViewWithTag(TranslateTargetPicker.SEARCH);
+            ListView choices = decor.findViewWithTag(TranslateTargetPicker.LIST);
+            assertEquals(app.hushtelegram.extension.telegram.misc.TranslateTarget.LANGUAGES.size() + 1, choices.getCount());
+            assertEquals("Telegram's language", String.valueOf(choices.getAdapter().getItem(0)));
+            assertEquals("Telegram's language is checked", 0, choices.getCheckedItemPosition());
+
+            // By its name in the app's language, its own name or its code. Persian comes with
+            // Afghanistan's, which Google lists as Dari.
+            for (String typed : new String[]{"persian", "فارسی"}) {
+                search.setText(typed);
+                assertEquals(typed, 2, choices.getCount());
+                assertTrue(typed, String.valueOf(choices.getAdapter().getItem(persianIn(choices))).endsWith("(Persian)"));
+                assertEquals("nothing shown is the saved one", ListView.INVALID_POSITION, choices.getCheckedItemPosition());
+            }
+            search.setText("Deutsch");
+            assertEquals(1, choices.getCount());
+            search.setText("zh-TW");
+            assertEquals(1, choices.getCount());
+            // The phone calls Twi Akan, so the row carries Google's name as well.
+            search.setText("Twi");
+            assertEquals(1, choices.getCount());
+            String twi = String.valueOf(choices.getAdapter().getItem(0));
+            assertTrue(twi, twi.contains("Akan") && twi.endsWith("(Twi)"));
+            search.setText("");
+            assertEquals(app.hushtelegram.extension.telegram.misc.TranslateTarget.LANGUAGES.size() + 1, choices.getCount());
+            assertEquals(0, choices.getCheckedItemPosition());
+
+            search.setText("persian");
+            choices.performItemClick(null, persianIn(choices), 0);
+            assertFalse("a second tap can't land while the pick saves", choices.isEnabled());
+            settle();
+            assertFalse(list.isShowing());
+            assertEquals("fa", Settings.TRANSLATE_TARGET.savedValue());
+            assertTrue(String.valueOf(row.getSummary()), String.valueOf(row.getSummary()).contains("(Persian)"));
+            assertTrue("and owes no restart", AbstractPreferenceFragment.restartPending.isEmpty());
+
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            ShadowLooper.idleMainLooper();
+            ListView again = ShadowAlertDialog.getLatestDialog().getWindow().getDecorView().findViewWithTag(TranslateTargetPicker.LIST);
+            int saved = again.getCheckedItemPosition();
+            assertTrue("Persian is checked", String.valueOf(again.getAdapter().getItem(saved)).endsWith("(Persian)"));
+            assertEquals("and opens in view", saved, again.getSelectedItemPosition());
+            ShadowAlertDialog.getLatestDialog().dismiss();
+        } finally {
+            Settings.TRANSLATE_TARGET.resetToDefault();
+        }
+    }
+
+    /** Where Persian itself is among the rows shown. */
+    private static int persianIn(ListView choices) {
+        for (int i = 0; i < choices.getCount(); i++) {
+            if (String.valueOf(choices.getAdapter().getItem(i)).endsWith("(Persian)")) return i;
+        }
+        throw new AssertionError("no Persian row");
+    }
+
+    /**
      * Hide folder tab counters brings the folder at launch switch and, under it, a row that lists
      * All Chats and the account's folders and saves the pick for the account shown.
      */
@@ -1249,6 +1407,92 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("All Chats", HushTelegramPreferenceFragment.launchFolderSummary());
         } finally {
             LaunchFolderForTests.restore();
+        }
+    }
+
+    /**
+     * Hide folder tab counters also brings the hidden chats switch and, under it, a row that lists
+     * the account's chats, archived ones included, and saves the ticked ones for that account.
+     */
+    @Test
+    public void theChatsToHideRowListsTheChatsAndSavesTheTicks() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_FOLDER_COUNTERS);
+        PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            assertNull("a build without the hook has no switch", page.findPreference(Settings.HIDDEN_CHATS.key));
+            assertNull("or row", page.findPreference(HushTelegramPreferenceFragment.HIDDEN_CHATS_ROW));
+        }
+        PatchFamily.capabilitiesForTests = null;
+        HiddenChatsForTests.Fake telegram = HiddenChatsForTests.use(new HiddenChatsForTests.Fake().chats(0, 0, 11, 12).chats(0, 1, 13));
+        telegram.users.put(0, 1000L);
+        telegram.names.put(11L, "Alice");
+        telegram.names.put(12L, "Book club");
+        telegram.names.put(13L, "Old news");
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = new ArrayList<>();
+            collect(pageOf(controller).getPreferenceScreen(), rows);
+            int toggle = indexOfKey(rows, Settings.HIDDEN_CHATS.key);
+            Preference chats = rows.get(toggle + 1);
+            assertEquals(HushTelegramPreferenceFragment.HIDDEN_CHATS_ROW, chats.getKey());
+            assertSame(rows.get(toggle).getParent(), chats.getParent());
+            assertFalse("it stores nothing itself", chats.isPersistent());
+            assertEquals("No chats hidden yet.", String.valueOf(chats.getSummary()));
+
+            AlertDialog list = dialogOf(chats);
+            assertTrue(list.isShowing());
+            assertEquals("Chats to hide", String.valueOf(shadowOf(list).getTitle()));
+            ListView choices = list.getListView();
+            List<String> labels = new ArrayList<>();
+            for (int i = 0; i < choices.getCount(); i++) labels.add(String.valueOf(choices.getAdapter().getItem(i)));
+            assertEquals("the chat list, then the archive", Arrays.asList("Alice", "Book club", "Old news"), labels);
+            shadowOf(list).clickOnItem(1);
+            shadowOf(list).clickOnItem(2);
+            assertTrue("a tick alone doesn't close the list", list.isShowing());
+            assertEquals("or save", Collections.emptySet(), HiddenChats.hidden(1000));
+            list.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertFalse(list.isShowing());
+            assertEquals(new LinkedHashSet<>(Arrays.asList(12L, 13L)), HiddenChats.hidden(1000));
+            assertEquals("the chat list sorts again at once", Collections.singletonList(0), telegram.resorted);
+            assertEquals("Book club, Old news", String.valueOf(chats.getSummary()));
+            assertFalse("ticking chats leaves the switch alone", Settings.HIDDEN_CHATS.savedValue());
+
+            // A hidden chat Telegram no longer lists still shows, so it can be unticked.
+            telegram.chats(0, 1);
+            list = dialogOf(chats);
+            assertEquals(3, list.getListView().getCount());
+            assertTrue("the saved ones are ticked", list.getListView().isItemChecked(1) && list.getListView().isItemChecked(2));
+            assertFalse(list.getListView().isItemChecked(0));
+            shadowOf(list).clickOnItem(1);
+            shadowOf(list).clickOnItem(2);
+            list.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals(Collections.emptySet(), HiddenChats.hidden(1000));
+            assertEquals("No chats hidden yet.", String.valueOf(chats.getSummary()));
+
+            // Flipping the switch sorts the chat list again too.
+            telegram.resorted.clear();
+            assertTrue(rows.get(toggle).getOnPreferenceChangeListener().onPreferenceChange(rows.get(toggle), Boolean.TRUE));
+            ShadowLooper.idleMainLooper();
+            assertEquals(Collections.singletonList(0), telegram.resorted);
+
+            // Signed out, no chats yet, or chats that can't be read: a note instead of a list.
+            for (Object[] state : new Object[][]{{0L, "Sign in to Telegram first."}, {1000L, "You don't have any chats yet."},
+                    {-1L, "Couldn't read your chats."}}) {
+                HiddenChatsForTests.Fake other = HiddenChatsForTests.use(new HiddenChatsForTests.Fake());
+                if ((Long) state[0] < 0) other.broken = true;
+                else other.users.put(0, (Long) state[0]);
+                ShadowToast.reset();
+                ShadowAlertDialog.reset();
+                assertTrue(chats.getOnPreferenceClickListener().onPreferenceClick(chats));
+                ShadowLooper.idleMainLooper();
+                assertNull(ShadowAlertDialog.getLatestAlertDialog());
+                assertEquals(state[1], ShadowToast.getTextOfLatestToast());
+            }
+            assertEquals("No chats hidden yet.", HushTelegramPreferenceFragment.hiddenChatsSummary(null));
+        } finally {
+            HiddenChatsForTests.restore();
         }
     }
 
@@ -1573,15 +1817,22 @@ public class HushTelegramPreferenceFragmentTest {
             Set<PatchFamily.Capability> installed = EnumSet.allOf(PatchFamily.Capability.class);
             installed.remove(missing);
             PatchFamily.capabilitiesForTests = installed;
+            List<PatchFamily.Capability> switchTargets = new ArrayList<>();
+            for (PatchFamily.Capability target : missing.family.expectedCapabilities()) {
+                if (!target.rowOnly) switchTargets.add(target);
+            }
             try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
                 HushTelegramPreferenceFragment page = pageOf(controller);
                 String summary = String.valueOf(page.findPreference(missing.family.switches.get(0).key).getSummary());
-                if (missing.family.expectedCapabilities().size() == 1) {
+                if (missing.rowOnly) {
+                    // Only that target's own row is gone; the switch still does what its description says.
+                    assertFalse(missing + ": " + summary, summary.startsWith("This patched app"));
+                } else if (switchTargets.size() == 1) {
                     assertEquals("This patched app doesn't change " + missing.label + ".", summary);
                 } else {
                     assertTrue(summary, summary.startsWith("This patched app changes "));
                     assertTrue(summary, summary.endsWith(" but not " + missing.label + "."));
-                    for (PatchFamily.Capability covered : missing.family.expectedCapabilities()) {
+                    for (PatchFamily.Capability covered : switchTargets) {
                         if (covered != missing) assertTrue(summary, summary.contains(covered.label));
                     }
                 }

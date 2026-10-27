@@ -22,7 +22,7 @@ fun main(args: Array<String>) {
     val groups = listOf(HbcPrivacy.analytics, HbcPrivacy.telemetry, HbcPrivacy.crash)
     val natives = NativePrivacy.crash + NativePrivacy.telemetry + NativePrivacy.attribution + NativePrivacy.advertising
     check(natives.size == 137 && natives.distinct().size == natives.size)
-    check(groups.flatten().size == 105 && groups.flatten().map { it.offset }.distinct().size == 105)
+    check(groups.flatten().size == 102 && groups.flatten().map { it.offset }.distinct().size == 102)
     check(HbcPrivacy.resolvedPromise.last() == 6.toByte())
     // Cross-check every opcode constant against scripts/hbc/ops.txt (Hermes 250829098 BytecodeList.def)
     // so an opcode number typo like LoadParam=52 (DivN) instead of 137 can never pass build validation.
@@ -234,7 +234,7 @@ fun main(args: Array<String>) {
     for (field in replyGuard.mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference })
         check(dexClasses.any { c -> c.type == field.definingClass && c.fields.any { it.name == field.name && it.type == field.type } }) { "Unresolved reply guard field $field" }
     checkBranches(reply, "Reply guard")
-    // Message highlights (#60): assembled on Discord's real HighlightedMessageDrawer.drawHighlight (a detached fixture).
+    // Message highlights (#60) and Bulk delete (#94): assembled on Discord's real HighlightedMessageDrawer.drawHighlight (a detached fixture).
     val gutterMethod = methods.single { it.definingClass == HIGHLIGHT_DRAWER && it.name == "drawHighlight" && it.parameterTypes.size == 4 }
     val gutterOriginal = gutterMethod.implementation!!.instructions.map { it.opcode }
     val gutter = MutableMethod(gutterMethod)
@@ -356,6 +356,119 @@ fun main(args: Array<String>) {
             listOf(ins.registerC, ins.registerD, ins.registerE).take(ins.registerCount).all { it == 0 || it >= parameters } }) { "readAsset bridge reads a clobbered local" }
         checkBranches(bridge, "readAsset bridge")
         check(try { languageBridge(bridge); false } catch (_: app.morphe.patcher.patch.PatchException) { true }) { "A second guard in readAsset was accepted" }
+    }
+    // The Material You bridge owns getFileHash(uri, algorithm, double, promise): URI p1, Promise p5. Discord's JS never calls it.
+    run {
+        val original = methods.single { it.definingClass == FILE_MODULE && it.name == "getFileHash" && it.returnType == "V" &&
+            it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/String;", "Ljava/lang/String;", "D", PROMISE) }
+        val bridge = MutableMethod(original)
+        materialYouBridge(bridge)
+        val code = bridge.implementation!!.instructions.toList()
+        check(bridge.implementation!!.registerCount == original.implementation!!.registerCount) { "getFileHash bridge changed the register count" }
+        check(code.size == original.implementation!!.instructions.count() + MATERIAL_YOU_BRIDGE_SIZE) { "getFileHash bridge is ${code.size - original.implementation!!.instructions.count()} instructions" }
+        check(code.drop(MATERIAL_YOU_BRIDGE_SIZE).map { it.opcode } == original.implementation!!.instructions.map { it.opcode }) { "Discord's own getFileHash changed" }
+        check(code[MATERIAL_YOU_BRIDGE_SIZE - 2].opcode == Opcode.RETURN_VOID && code[MATERIAL_YOU_BRIDGE_SIZE - 1].opcode == Opcode.NOP)
+        check(((code[0] as ReferenceInstruction).reference as StringReference).string == "venus-monet-v1:")
+        val parameters = bridge.implementation!!.registerCount - 6
+        for (instruction in code.take(MATERIAL_YOU_BRIDGE_SIZE)) if (instruction is OneRegisterInstruction) check(instruction.registerA in 0..1) { "getFileHash bridge writes outside v0-v1" }
+        check(code.take(MATERIAL_YOU_BRIDGE_SIZE).filterIsInstance<FiveRegisterInstruction>().all { ins ->
+            listOf(ins.registerC, ins.registerD, ins.registerE).take(ins.registerCount).all { it == 0 || it >= parameters } }) { "getFileHash bridge reads a clobbered local" }
+        val dispatch = code.take(MATERIAL_YOU_BRIDGE_SIZE).filterIsInstance<FiveRegisterInstruction>().single { ins ->
+            ((ins as ReferenceInstruction).reference as MethodReference).definingClass == SYSTEM_COLORS }
+        check(dispatch.registerC == parameters + 1 && dispatch.registerE == parameters + 5) { "getFileHash bridge passes the wrong URI or Promise" }
+        checkBranches(bridge, "getFileHash bridge")
+        check(try { materialYouBridge(bridge); false } catch (_: app.morphe.patcher.patch.PatchException) { true }) { "A second guard in getFileHash was accepted" }
+    }
+    // Material You's native colors: one swap at the top of applySaturationFactor(I)I, the choke point of every theme
+    // color Discord's native views draw with. Only v0 is written besides the color parameter itself.
+    run {
+        val original = methods.single { it.definingClass == COLOR_UTILS && it.name == "applySaturationFactor" &&
+            it.parameterTypes.map { p -> p.toString() } == listOf("I") && it.returnType == "I" }
+        check(original.accessFlags and 8 != 0) { "applySaturationFactor is no longer static" }
+        val guarded = MutableMethod(original)
+        materialYouNativeColors(guarded)
+        val code = guarded.implementation!!.instructions.toList()
+        val regs = guarded.implementation!!.registerCount
+        check(regs == original.implementation!!.registerCount) { "Native color guard changed the register count" }
+        check(code.size == original.implementation!!.instructions.count() + MATERIAL_YOU_NATIVE_SIZE) { "Native color guard is ${code.size - original.implementation!!.instructions.count()} instructions" }
+        check(code.drop(MATERIAL_YOU_NATIVE_SIZE).map { it.opcode } == original.implementation!!.instructions.map { it.opcode }) { "Discord's own saturation code changed" }
+        check(code.take(MATERIAL_YOU_NATIVE_SIZE).map { it.opcode } == listOf(Opcode.SGET_BOOLEAN, Opcode.IF_EQZ, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.NOP)) { "Native color guard opcodes" }
+        check(((code[0] as ReferenceInstruction).reference as FieldReference).let { it.definingClass == SYSTEM_COLORS && it.name == "enabled" && it.type == "Z" })
+        check((code[0] as OneRegisterInstruction).registerA == 0 && (code[3] as OneRegisterInstruction).registerA == regs - 1) { "Native color guard writes the wrong registers" }
+        check((code[2] as FiveRegisterInstruction).let { it.registerCount == 1 && it.registerC == regs - 1 }) { "Native color guard must pass the color parameter" }
+        check(((code[2] as ReferenceInstruction).reference as MethodReference).let { it.definingClass == SYSTEM_COLORS && it.name == "remap" && it.returnType == "I" })
+        val units = code.take(MATERIAL_YOU_NATIVE_SIZE - 1).sumOf { it.codeUnits }
+        check(code[0].codeUnits + (code[1] as OffsetInstruction).codeOffset == units) { "Native color guard branch lands at the wrong place" }
+        checkBranches(guarded, "applySaturationFactor")
+        check(try { materialYouNativeColors(guarded); false } catch (_: app.morphe.patcher.patch.PatchException) { true }) { "A second guard in applySaturationFactor was accepted" }
+        // The only callers are Discord's getColorCompat variants, so the swap covers exactly the theme colors.
+        val callers = methods.filter { m -> m.implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { r ->
+            r.definingClass == COLOR_UTILS && r.name == "applySaturationFactor" } == true } == true }.map { it.name }.toSet()
+        check(callers == setOf("getColorCompat")) { "applySaturationFactor callers changed: $callers" }
+        // Direct brand color reads: each gets the swap right after its result, on the same register, nothing else moved.
+        for ((owner, name, parameters) in MATERIAL_YOU_DIRECT_READS) {
+            val source = methods.single { it.definingClass == owner && it.name == name && it.parameterTypes.map { p -> p.toString() } == parameters }
+            val method = MutableMethod(source)
+            val count = materialYouDirectColors(method)
+            val before = source.implementation!!.instructions.toList()
+            val after = method.implementation!!.instructions.toList()
+            check(count == 1 && after.size == before.size + 2) { "$owner->$name: $count direct color reads" }
+            val at = before.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { r -> r.name == "getColor" && r.definingClass == "Landroid/content/Context;" } == true }
+            val register = (before[at + 1] as OneRegisterInstruction).registerA
+            check(after.subList(0, at + 2).map { it.opcode } == before.subList(0, at + 2).map { it.opcode } &&
+                after.drop(at + 4).map { it.opcode } == before.drop(at + 2).map { it.opcode }) { "$owner->$name: Discord's code moved" }
+            check((after[at + 2] as FiveRegisterInstruction).let { it.registerCount == 1 && it.registerC == register } &&
+                ((after[at + 2] as ReferenceInstruction).reference as MethodReference).name == "remap" &&
+                (after[at + 3] as OneRegisterInstruction).registerA == register) { "$owner->$name: swap on the wrong register" }
+            checkBranches(method, "$owner->$name")
+        }
+        // Font, emoji and Material You all load right after super.onCreate(), with nothing else moved.
+        val all = MutableMethod(appCreate)
+        readSystemFontSetting(all); readSystemEmojiSetting(all); readMaterialYouColors(all)
+        val allCode = all.implementation!!.instructions.toList()
+        check(allCode.size == appCreate.implementation!!.instructions.count() + 3 && allCode[0].opcode == Opcode.INVOKE_SUPER &&
+            allCode.drop(4).map { it.opcode } == appCreate.implementation!!.instructions.drop(1).map { it.opcode } &&
+            allCode.subList(1, 4).map { ((it as ReferenceInstruction).reference as MethodReference).definingClass }.toSet() == setOf(SYSTEM_FONT, SYSTEM_EMOJI, SYSTEM_COLORS)) { "Setting reads must sit right after super.onCreate()" }
+        checkBranches(all, "MainApplication.onCreate with Material You")
+    }
+    // Keep Bluetooth audio clear in calls: each hands-free AudioManager call in com.discord.audio becomes a static call to
+    // Handsfree with the same registers. Nothing else in the method moves, and no hands-free call is left behind.
+    run {
+        val handsfreeNames = HANDSFREE_CALLS.keys.map { it.substringBefore('(') }.toSet()
+        for (site in HANDSFREE_SITES) {
+            val source = methods.single { it.definingClass == site.owner && it.name == site.name && it.parameterTypes.map { p -> p.toString() } == site.parameters }
+            val method = MutableMethod(source)
+            val count = keepBluetoothA2dp(method)
+            check(count == site.calls) { "${site.owner}->${site.name}: $count hands-free calls, expected ${site.calls}" }
+            val before = source.implementation!!.instructions.toList()
+            val after = method.implementation!!.instructions.toList()
+            check(method.implementation!!.registerCount == source.implementation!!.registerCount && after.size == before.size) { "${site.name}: code size or registers changed" }
+            var swapped = 0
+            for (i in before.indices) {
+                val old = (before[i] as? ReferenceInstruction)?.reference as? MethodReference
+                if (old != null && old.definingClass == AUDIO_MANAGER && old.name in handsfreeNames && before[i].opcode == Opcode.INVOKE_VIRTUAL) {
+                    val new = after[i]
+                    val ref = (new as ReferenceInstruction).reference as MethodReference
+                    check(new.opcode == Opcode.INVOKE_STATIC && ref.definingClass == HANDSFREE && ref.name == old.name &&
+                        ref.parameterTypes.map { it.toString() } == listOf(AUDIO_MANAGER) + old.parameterTypes.map { it.toString() } && ref.returnType == old.returnType) { "${site.name}: bad swap $ref" }
+                    val a = before[i] as FiveRegisterInstruction; val b = new as FiveRegisterInstruction
+                    check(listOf(a.registerCount, a.registerC, a.registerD, a.registerE) == listOf(b.registerCount, b.registerC, b.registerD, b.registerE)) { "${site.name}: swap changed registers" }
+                    swapped++
+                } else check(after[i].opcode == before[i].opcode && after[i].codeUnits == before[i].codeUnits) { "${site.name}: Discord's code moved at $i" }
+            }
+            check(swapped == site.calls)
+            checkBranches(method, "${site.owner}->${site.name}")
+        }
+        // Every hands-free call Discord's audio code makes is covered, so none still reaches Android directly.
+        val all = methods.filter { it.definingClass.startsWith("Lcom/discord/audio/") }.flatMap { m -> (m.implementation?.instructions ?: emptyList()).mapNotNull {
+            ((it as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf { r -> r.definingClass == AUDIO_MANAGER && r.name in handsfreeNames }?.let { m } } }
+        check(all.size == HANDSFREE_SITES.sumOf { it.calls }) { "Discord makes ${all.size} hands-free calls; Venus covers ${HANDSFREE_SITES.sumOf { it.calls }}" }
+        val created = MutableMethod(appCreate)
+        readHandsfreeContext(created)
+        val code = created.implementation!!.instructions.toList()
+        check(code.size == appCreate.implementation!!.instructions.count() + 1 && code[0].opcode == Opcode.INVOKE_SUPER &&
+            ((code[1] as ReferenceInstruction).reference as MethodReference).definingClass == HANDSFREE) { "Handsfree.init must sit right after super.onCreate()" }
+        checkBranches(created, "MainApplication.onCreate with Handsfree")
     }
     fun resolveHost(ref: MethodReference): Boolean = methods.any {
         it.definingClass == ref.definingClass && it.name == ref.name && it.returnType == ref.returnType &&
@@ -498,7 +611,7 @@ fun main(args: Array<String>) {
             check(calls.single().definingClass == "Ljava/lang/Throwable;" && calls.single().name == "toString")
         } else check(calls.isEmpty())
     }
-    println("PASS: 104 pinned HBC targets, all 7 HBC selection combinations, valid footers, unchanged unrelated bytes, rejection of changed inputs, 137 exact native ABIs and assembled register-safe early-return/Promise/callback guards, native result shapes, 64 dependency selections, cached-bundle pinning, corrupt-header/footer rejection combined prelude compatibility the Quest Completer desktop User-Agent guard, the Force system font guards, the passkey error hint and one branch-safe guard per FileModule bridge (getSize, fileExists, readAsset); no APK patched")
+    println("PASS: 102 pinned HBC targets (none sharing a body with another function), all 7 HBC selection combinations, valid footers, unchanged unrelated bytes, rejection of changed inputs, 137 exact native ABIs and assembled register-safe early-return/Promise/callback guards, native result shapes, 64 dependency selections, cached-bundle pinning, corrupt-header/footer rejection combined prelude compatibility the Quest Completer desktop User-Agent guard, the Force system font guards, the passkey error hint and one branch-safe guard per FileModule bridge (getSize, fileExists, readAsset); no APK patched")
 }
 
 
@@ -522,6 +635,17 @@ private fun checkHermesSelections(original: ByteArray, groups: List<List<HbcPriv
         check(header.getInt(large + 28) >= if (target.name == "send") 10 else if (target.promise) 9 else if (target.name == "timeRequire") 8 else lowestUsedRegister + 1)
         if (target.promise) check(original[large + 32].toInt() and 255 >= 2)
     }
+    // Hermes deduplicates identical bytecode, so one body can belong to several functions. A stub on a shared
+    // body also replaces the others: trackAppUIViewed2 shared createThread_'s and forum posts stopped (#93).
+    val owners = HashMap<Int, Int>()
+    for (id in 0 until header.getInt(40)) {
+        val small = 128 + id * 12
+        val offset = if (original[small + 11].toInt() and 32 != 0)
+            header.getInt((((header.getInt(small + 4) ushr 14) and 255) shl 24) or (header.getInt(small) and 0x1ffffff))
+        else header.getInt(small) and 0x1ffffff
+        owners.merge(offset, 1, Int::plus)
+    }
+    for (target in groups.flatten()) check(owners[target.offset] == 1) { "Shared HBC body: ${target.name} #${target.id}" }
     for (selection in 1..7) {
         var changed = original
         val targets = groups.filterIndexed { i, _ -> selection and (1 shl i) != 0 }.flatten()

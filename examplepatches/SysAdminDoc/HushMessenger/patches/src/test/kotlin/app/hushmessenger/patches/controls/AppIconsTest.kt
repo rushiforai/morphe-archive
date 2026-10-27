@@ -139,7 +139,7 @@ class AppIconsTest {
                 assertEquals(before, after.drop(5), code)
             }
         }
-        // 584's one icon manager.
-        assertEquals(1, families.size)
+        // One icon manager per 584.1 bytecode family.
+        assertEquals(4, families.size)
     }
 }

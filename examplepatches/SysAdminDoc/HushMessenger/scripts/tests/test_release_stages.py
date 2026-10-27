@@ -210,13 +210,13 @@ class ReleaseStages(unittest.TestCase):
         def receipt(**change):
             return json.dumps(
                 {
-                    "schema": 1,
+                    "schema": 2,
                     "result": "PASS",
                     "full": True,
                     "serial": "TESTPHONE01",
                     "device": "SM-S908U1",
                     "emulator": False,
-                    "appVersion": "583.0.0.29.95",
+                    "appVersion": "584.1.0.61.98",
                     "bundleSha256": bundle_hash,
                     "installedApkSha256": "4" * 64,
                     "started": "2026-10-21T16:00:00Z",
@@ -231,6 +231,7 @@ class ReleaseStages(unittest.TestCase):
         for name, written, expected in (
             ("no walk", None, "-Walk names the walk-receipt.json"),
             ("missing receipt", "", "there's no walk receipt at"),
+            ("count-only receipt", receipt(schema=1), "isn't schema 2"),
             ("partial walk", receipt(result="PARTIAL", full=False), "the walk ended PARTIAL, not PASS"),
             ("crash", receipt(crashes=1), "recorded a Messenger crash"),
             ("another bundle", receipt(bundleSha256="5" * 64), "patched with bundle"),

@@ -1130,13 +1130,12 @@
      {
       "probe": "startwatch",
       "extras": {
-       "holder": "X.037e",
-       "getter": "LJIILL",
        "seconds": "45"
       },
-      "expect": "video 2 current@",
+      "expect": "\\badvanceObserved=true\\b",
       "until": "^ok startwatch done",
-      "waitMs": 50000
+      "waitMs": 50000,
+      "preconditionExpect": "\\bconclusive=true\\b"
      }
     ],
     "auto": true
@@ -1160,20 +1159,18 @@
      {
       "probe": "startwatch",
       "extras": {
-       "holder": "X.037e",
-       "getter": "LJIILL",
        "seconds": "45"
       },
-      "expect": "video 1 current@",
-      "expectNot": "video 2 current@",
+      "expect": "\\binitialCurrentUnchanged=true\\b.*\\bloopObserved=true\\b.*\\badvanceObserved=false\\b",
       "until": "^ok startwatch done",
-      "waitMs": 50000
+      "waitMs": 50000,
+      "preconditionExpect": "\\bconclusive=true\\b"
      }
     ],
     "auto": true
    }
   ],
-  "notes": "Both runtime checks depend on the first feed video ending inside the 45 second watch window; a longer video makes the on-check fail without the patch being at fault (rerun, or lengthen \"seconds\"). The probe answers \"ok startwatch until +45000ms\" at once and the real answer after \"ok startwatch done\", so the steps carry \"until\" (run-audit.ps1 reads step.until) or the runner would stop on the first line. \"Auto-advance in search results\" (auto_advance_search, restart) and the hide-panel switch are not exercised: the first needs a search feed whose video ends in time, the second needs TikTok's Auto scroll panel entry (opened from the video panel). The component logs \"Auto scroll component built in <activity>\" at debug level, but only at start-up before the runner's marker."
+  "notes": "The watcher reads the visible native feed pager and its existing player. It never creates a global player or emits video labels. A loop, stopped-at-end heuristic, or source-bound advance must follow stable native progress before the check is conclusive. A longer clip, unavailable owner or unfocused window stays inconclusive. Use a public video that can finish inside the 45-second window. Search results and the native Auto scroll panel are separate checks."
  },
  {
   "name": "Block P2P video relay",
@@ -10215,7 +10212,7 @@
     "auto": true
    }
   ],
-  "notes": "The effect (TikTok stops loading upcoming videos ahead of time, \"videos may take a moment longer to start\") has no stable on-screen sign; a data counter or the startwatch probe's first-frame delay on a cold cache would show it. The decision hook is PerformanceSwitches.limitBackgroundTraffic()."
+  "notes": "The decision hook is PerformanceSwitches.limitBackgroundTraffic(). Prefetching has no stable on-screen sign. The startwatch probe observes native ownership and player state, not rendered first-frame latency. Network counters or separate source-bound rendering instrumentation are needed to measure the effect on a cold cache."
  },
  {
   "name": "Load all saved stickers",
@@ -15548,7 +15545,7 @@
    },
    {
     "id": "video-stops-at-end",
-    "what": "A short video that ends stays at its end: the position watcher sees no restart in 25 seconds.",
+    "what": "Native playback reaches the end window, then stays nonplaying and not paused at the same position for at least 500 ms. This is an observed-state heuristic.",
     "steps": [
      {
       "set": {
@@ -15572,21 +15569,20 @@
      {
       "probe": "startwatch",
       "extras": {
-       "holder": "X.037e",
-       "getter": "LJIILL",
        "seconds": "25"
       },
-      "expect": "video 1 current@",
-      "expectNot": "restart@",
+      "expect": "\\bstoppedAtEndObserved=true\\b",
+      "expectNot": "\\b(?:loopObserved|advanceObserved)=true\\b",
       "until": "^ok startwatch done",
-      "waitMs": 30000
+      "waitMs": 30000,
+      "preconditionExpect": "\\bconclusive=true\\b"
      }
     ],
     "auto": true
    },
    {
     "id": "video-loops-when-off",
-    "what": "With the switch off the same short video starts over.",
+    "what": "With the switch off, the same source-stable native video progresses through its end window and starts over.",
     "steps": [
      {
       "set": {
@@ -15610,19 +15606,18 @@
      {
       "probe": "startwatch",
       "extras": {
-       "holder": "X.037e",
-       "getter": "LJIILL",
        "seconds": "25"
       },
-      "expect": "restart@",
+      "expect": "\\binitialCurrentUnchanged=true\\b.*\\bloopObserved=true\\b.*\\badvanceObserved=false\\b",
       "until": "^ok startwatch done",
-      "waitMs": 30000
+      "waitMs": 30000,
+      "preconditionExpect": "\\bconclusive=true\\b"
      }
     ],
     "auto": true
    }
   ],
-  "notes": "Both checks need the first feed video to be under 20 seconds, so the videoinfo step guards the duration (durationMs between 1000 and 19999) and fails first if the feed started on a longer one: that failure means \"no short video this run\", not a bad patch, and the pair can be rerun. stop_video_looping is restart-gated (hence the restarts). With Automatic video advance off the video neither loops nor moves on, so the position stops at the end; startwatch reports \"restart@\" when the position drops under 500 ms after a higher reading."
+  "notes": "Both checks need a public video between 1 and 20 seconds and wait up to 25 seconds. The stopped-at-end heuristic requires prior source-stable progress, a position within the final 1000 ms, then an unchanged nonplaying and nonpaused position for at least 500 ms, sampled no more than 250 ms apart. A pause, missing sample, owner or source change, or resumed playback cannot qualify that state. A native completion callback and rendered first-frame timing are not observed. Long clips and unavailable owners stay inconclusive. Stop video looping is restart-gated; Automatic video advance stays off for both checks."
  },
  {
   "name": "Story controls",

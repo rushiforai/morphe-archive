@@ -20,6 +20,12 @@ object Constants {
     /** SHA-256 of the official signing certificate used by CricZ TV 7.3 (10). */
     private const val CRICZ_SIGNER_SHA256 = "9ff349c0c047abd68e169980484b43926b6ff2d251a430fe44e3ae3e2930e1d2"
 
+    /** SHA-256 of the official signing certificate used by PlayZ TV 2.3.1 (8). */
+    private const val PLAYZ_TV_SIGNER_SHA256 = "05ecca660d7656ce2c65a878c9e49a169558c2a44976f26c369393eccf9dc44b"
+
+    /** SHA-256 of the official signing certificate used by MX Player (com.mxtech.videoplayer.ad). */
+    private const val MXPLAYER_SIGNER_SHA256 = "0d9b4c778672e753d45aba4f10df31e1d10bf75b1245469131ef01b82f0f91b6"
+
     val COMPATIBILITY_ONEDM = Compatibility(
         name = "1DM",
         packageName = "idm.internet.download.manager",
@@ -65,6 +71,50 @@ object Constants {
                 minSdk = 23,
                 description = "Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 6.0+), build 10"
             )
+        )
+    )
+
+    val COMPATIBILITY_PLAYZ_TV = Compatibility(
+        name = "PlayZ TV",
+        packageName = "com.playz.tv",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x00A6A6,
+        signatures = setOf(PLAYZ_TV_SIGNER_SHA256),
+        targets = listOf(
+            AppTarget(
+                version = "2.3.1",
+                versionCode = 8,
+                minSdk = 23,
+                description = "Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 6.0+), build 8"
+            )
+        )
+    )
+
+    val COMPATIBILITY_MX_PLAYER_AD = Compatibility(
+        name = "MX Player",
+        packageName = "com.mxtech.videoplayer.ad",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x0080FF,
+        signatures = setOf(MXPLAYER_SIGNER_SHA256),
+        targets = listOf(
+            AppTarget(
+                version = "3.3.1",
+                versionCode = 2001003541,
+                minSdk = 24,
+                description = "Standalone APK (arm64-v8a / armeabi-v7a, nodpi, Android 7.0+), build 2001003541"
+            ),
+            AppTarget(
+                version = "3.4.0",
+                versionCode = 2001003550,
+                minSdk = 24,
+                description = "Standalone APK (arm64-v8a / armeabi-v7a, Android 7.0+), build 2001003550"
+            ),
+            AppTarget(
+                version = "3.4.1",
+                versionCode = 2001003551,
+                minSdk = 24,
+                description = "Standalone APK (arm64-v8a / armeabi-v7a, Android 7.0+), build 2001003551"
+            ),
         )
     )
 }

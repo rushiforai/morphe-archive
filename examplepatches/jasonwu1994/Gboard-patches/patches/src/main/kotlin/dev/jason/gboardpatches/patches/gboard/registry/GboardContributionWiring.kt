@@ -2,6 +2,12 @@ package dev.jason.gboardpatches.patches.gboard.registry
 
 import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.ResourcePatchBuilder
+import dev.jason.gboardpatches.patches.gboard.features.accesspointsmenu.gboardAccessPointsMenu1853Patch
+import dev.jason.gboardpatches.patches.gboard.features.accesspointsmenu.gboardAccessPointsMenuFlagValuePatch
+import dev.jason.gboardpatches.patches.gboard.features.cursortrackpad.gboardCursorTrackpadFlagValuePatch
+import dev.jason.gboardpatches.patches.gboard.features.cursortrackpad.gboardCursorTrackpadPreferencePatch
+import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsFlagValuePatch
+import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1853PreferenceObserverPatch
 import dev.jason.gboardpatches.patches.gboard.features.addsymbols.gboardZhuyinCustomSymbolsCorpusPatch
 import dev.jason.gboardpatches.patches.gboard.features.addsymbols.gboardZhuyinCustomSymbolsEmoticonStatePatch
 import dev.jason.gboardpatches.patches.gboard.features.addsymbols.gboardZhuyinCustomSymbolsEntryPatch
@@ -12,8 +18,6 @@ import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvan
 import dev.jason.gboardpatches.patches.gboard.features.advancedvoice.gboardAdvancedVoiceFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.englishqwerty.gboardEnglishQwertyPointerPatch
 import dev.jason.gboardpatches.patches.gboard.features.englishqwerty.gboardEnglishQwertySoftKeyPatch
-import dev.jason.gboardpatches.patches.gboard.features.flowmode.gboardFlowModeFlagValuePatch
-import dev.jason.gboardpatches.patches.gboard.features.flowmode.gboardFlowModeKeyEventPatch
 import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsInputEventPatch
 import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsGesturePatch
 import dev.jason.gboardpatches.patches.gboard.features.longpressquickactions.gboardLongPressQuickActionsPointerOwnerPatch
@@ -41,6 +45,18 @@ internal class GboardContributionWiringUnit(
 
 internal object GboardContributionWiring {
     private val unitsByFeature = mapOf(
+        "ai_writing_tools" to listOf(
+            unit("ai_writing_tools.flag") { arrayOf(gboardAiWritingToolsFlagValuePatch) },
+            unit("ai_writing_tools.preference_observer") { arrayOf(gboardAiWritingTools1853PreferenceObserverPatch) },
+        ),
+        "access_points_menu_style" to listOf(
+            unit("access_points_menu_style.flag") { arrayOf(gboardAccessPointsMenuFlagValuePatch) },
+            unit("access_points_menu_style.bytecode") { arrayOf(gboardAccessPointsMenu1853Patch) },
+        ),
+        "enable_cursor_trackpad_mode" to listOf(
+            unit("enable_cursor_trackpad_mode.flag") { arrayOf(gboardCursorTrackpadFlagValuePatch) },
+            unit("enable_cursor_trackpad_mode.preferences") { arrayOf(gboardCursorTrackpadPreferencePatch) },
+        ),
         "advanced_voice_typing" to listOf(
             unit("advanced_voice_typing.flag") {
                 arrayOf(gboardAdvancedVoiceFlagValuePatch)
@@ -80,14 +96,6 @@ internal object GboardContributionWiring {
             },
             unit("english_qwerty_up_flick_uppercase.pointer") {
                 arrayOf(gboardEnglishQwertyPointerPatch)
-            },
-        ),
-        "flow_mode_animation" to listOf(
-            unit("flow_mode_animation.flag") {
-                arrayOf(gboardFlowModeFlagValuePatch)
-            },
-            unit("flow_mode_animation.key_event") {
-                arrayOf(gboardFlowModeKeyEventPatch)
             },
         ),
         "g_logo_on_spacebar" to listOf(

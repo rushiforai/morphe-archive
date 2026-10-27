@@ -407,6 +407,7 @@ val documentationClasses = listOf("app/morphe/ReadmePatchNamesTest.class", "app/
 // the extensions out, so that edit reuses the long fixture fingerprint scans. nativeTest refuses
 // to run a test outside this list that reads extensions.
 val extensionClasses = listOf(
+    "app/morphe/patches/tiktok/interaction/videooverlays/StoryOverLiveBindingFixturesTest.class",
     "app/morphe/ExtensionBridgeLookupTest.class",
     "app/morphe/ExtensionHostsTest.class",
     "app/morphe/ObfuscatedIdentityTest.class",

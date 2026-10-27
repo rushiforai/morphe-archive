@@ -20,11 +20,13 @@ from pathlib import Path
 
 if __package__:
     from .build_queue import gradle, time_limit
+    from .readme_captures import check as check_captures
 else:
     # Run as a script, or loaded by file path from the tests.
     if str(Path(__file__).resolve().parent) not in sys.path:
         sys.path.insert(0, str(Path(__file__).resolve().parent))
     from build_queue import gradle, time_limit
+    from readme_captures import check as check_captures
 
 RELEASE_SIGNERS = Path("scripts/release_signers")
 RELEASE_SIGNER = "SysAdminDoc"
@@ -214,6 +216,8 @@ def verify(root, bundle=None, evidence=None, release_tag=None, checksums=None):
     for link in release_links.finditer(readme):
         advertised = link.group(1) or link.group(2)
         require(advertised == version, "README download link differs from source")
+    # Its settings screenshots show this catalog, and the app's help links reach real headings.
+    check_captures(root)
     headings = re.findall(
         r"^## (.+)$", (root / "CHANGELOG.md").read_text(encoding="utf-8"), re.MULTILINE
     )

@@ -29,6 +29,7 @@ final class MessagesCategory {
         if (build.contains(PatchFamily.NOTES_ROW) || build.contains(PatchFamily.INBOX_SEARCH)
                 || build.contains(PatchFamily.INBOX_SUGGESTIONS) || build.contains(PatchFamily.INSTANTS)
                 || build.contains(PatchFamily.THREAD_SEEN) || build.contains(PatchFamily.TYPING)
+                || build.contains(PatchFamily.DM_MEDIA_SEEN)
                 || build.contains(PatchFamily.ACTIVE_STATUS)
                 || build.contains(PatchFamily.LAST_ACTIVE)
                 || build.contains(PatchFamily.MESSAGES_LOCK)
@@ -39,7 +40,7 @@ final class MessagesCategory {
                 || build.contains(PatchFamily.MESSAGE_BOX)
                 || build.contains(PatchFamily.FULL_SCREEN_BARS)) {
             PreferenceCategory messages = category(screen, L10n.t("Messages"), SettingsIcons.CHATS,
-                    L10n.t("Keep your chats private and your inbox clear of extras."));
+                    L10n.t("Privacy and controls for your chats."));
             if (build.contains(PatchFamily.NOTES_ROW)) {
                 messages.addPreference(toggle(context, Settings.HIDE_NOTES_ROW, L10n.t("Hide the notes row"),
                         L10n.t("Takes the row of notes off the top of your messages, the Map bubble in it too. "
@@ -78,6 +79,13 @@ final class MessagesCategory {
                 messages.addPreference(toggle(context, Settings.HIDE_TYPING, L10n.t("Hide that you're typing"),
                         L10n.t("People you're chatting with don't see the typing dots while you write, and you "
                                 + "still see theirs.")));
+            }
+            // Under Ads and privacy until 2026-10-26, and a search for that still finds it.
+            if (build.contains(PatchFamily.DM_MEDIA_SEEN)) {
+                messages.addPreference(toggle(context, Settings.VIEW_DM_MEDIA_ANONYMOUSLY,
+                        L10n.t("View DM photos and videos anonymously"),
+                        L10n.t("Stops people seeing that you opened their view once photos and videos. They still "
+                                + "disappear after you view them. This is a test feature and starts off.")));
             }
             if (build.contains(PatchFamily.ACTIVE_STATUS)) {
                 messages.addPreference(toggle(context, Settings.HIDE_ACTIVE_STATUS, L10n.t("Hide your active status"),
@@ -131,6 +139,11 @@ final class MessagesCategory {
                 messages.addPreference(changePinRow(context));
                 messages.addPreference(page.lockedChatsRow(context));
                 messages.addPreference(page.hiddenChatsRow(context));
+                messages.addPreference(toggle(context, Settings.DOUBLE_TAP_HIDDEN_CHATS,
+                        L10n.t("Double-tap Messages for hidden chats"),
+                        L10n.t("Two quick taps on the Messages button, on the tab bar or at the top of Home, open "
+                                + "your hidden chats. While a lock is on, it asks for it first. One tap opens Messages "
+                                + "as usual.")));
             }
         }
     }

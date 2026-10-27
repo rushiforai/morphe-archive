@@ -1,7 +1,9 @@
 package app.template.patches.yahoosports.betting
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.string
 
 // The betting image banner controller's CardCtrl data override (12.26.1:
 // ui/card/bettingimagebanner/control/a.M2(Object), was BettingImageBannerCtrl.m2(Object) in
@@ -14,7 +16,7 @@ import app.morphe.patcher.methodCall
 internal object BettingImageBannerBindFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Ljava/lang/Object;"),
-    strings = listOf("placement"),
+    strings = listOf(string("placement", StringComparisonType.CONTAINS)),
     filters = listOf(
         methodCall(definingClass = "Lcom/yahoo/mobile/ysports/common/ui/card/control/CardCtrl;"),
     ),

@@ -17,6 +17,7 @@ import android.widget.TextView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
+import app.morphe.extension.tiktok.settings.preference.ShimmerTitle;
 
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
@@ -410,7 +411,7 @@ public class RetainedStopReasonTest {
         assertEquals(
                 SettingsUi.liftedSurface(),
                 ((GradientDrawable) decor.getBackground()).getColor().getDefaultColor());
-        assertEquals(SettingsUi.textPrimary(), find(decor, title).getCurrentTextColor());
+        assertTrue("the title wears the moving gradient", ShimmerTitle.wears(find(decor, title)));
         assertEquals(
                 SettingsUi.textSecondary(),
                 dialog.getButton(DialogInterface.BUTTON_NEGATIVE).getCurrentTextColor());

@@ -1,3 +1,16 @@
+## [0.15.0](https://github.com/Santodan/santodan-patches/compare/v0.14.0...v0.15.0) (2026-10-26)
+
+### 🐛 Bug Fixes
+
+* **build:** require verified Android DEX in release bundles ([2340ff8](https://github.com/Santodan/santodan-patches/commit/2340ff884f3251b7c2395fac55eeeb87473edf07))
+* **nuviotv:** apply local playback changes immediately to merged progress [skip ci] ([7d1b912](https://github.com/Santodan/santodan-patches/commit/7d1b912b224713ee1172e4ca49b5b640bfb6eb26))
+* **nuviotv:** show download and system install progress [skip ci] ([7247475](https://github.com/Santodan/santodan-patches/commit/724747529dff97dc1fce460d04b8c7bf9fc4438f))
+
+### ✨ New Features
+
+* **monet:** add individual Nuvio catalog rows [skip ci] ([a8cc3b2](https://github.com/Santodan/santodan-patches/commit/a8cc3b2abe6156a577b3e8d4b1d27e1b194e72b0))
+* **monet:** extend native displayed cards controls [skip ci] ([1c5e8e1](https://github.com/Santodan/santodan-patches/commit/1c5e8e17462c6fb91d57d50ac68427bf0006d1f9))
+
 ## [0.14.0](https://github.com/Santodan/santodan-patches/compare/v0.13.0...v0.14.0) (2026-10-24)
 
 ### 🐛 Bug Fixes

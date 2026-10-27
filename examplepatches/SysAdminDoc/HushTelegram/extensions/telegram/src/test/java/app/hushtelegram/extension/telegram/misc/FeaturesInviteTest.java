@@ -32,7 +32,35 @@ public class FeaturesInviteTest {
         PauseForTests.resume();
         SettingReadsForTests.mend(Settings.HIDE_FEATURES_AND_INVITE);
         Settings.HIDE_FEATURES_AND_INVITE.resetToDefault();
+        FeaturesInvite.shown().clear();
+        org.robolectric.shadows.ShadowLooper.idleMainLooper();
         HookStatus.clear();
+    }
+
+    @Test public void aFlipBuildsShownSettingsListsAgain() {
+        Object settings = new Object();
+        FeaturesInvite.listShown(settings);
+        FeaturesInvite.listShown(settings);
+        assertEquals(1, FeaturesInvite.shown().size());
+        HookStatus.clear();
+
+        Settings.HIDE_FEATURES_AND_INVITE.save(true);
+        org.robolectric.shadows.ShadowLooper.idleMainLooper();
+        assertTrue(String.join("\n", HookStatus.report()).contains("Settings list rebuilt"));
+
+        // Another switch's write leaves Settings' list alone.
+        HookStatus.clear();
+        Settings.HIDE_ADS.save(!Settings.HIDE_ADS.get());
+        org.robolectric.shadows.ShadowLooper.idleMainLooper();
+        Settings.HIDE_ADS.resetToDefault();
+        org.robolectric.shadows.ShadowLooper.idleMainLooper();
+        assertFalse(String.join("\n", HookStatus.report()).contains("Settings list rebuilt"));
+
+        // With no Settings screen shown, a flip has nothing to rebuild.
+        FeaturesInvite.shown().clear();
+        Settings.HIDE_FEATURES_AND_INVITE.save(false);
+        org.robolectric.shadows.ShadowLooper.idleMainLooper();
+        assertFalse(String.join("\n", HookStatus.report()).contains("Settings list rebuilt"));
     }
 
     @Test public void offByDefaultBothListsKeepTheirRows() {

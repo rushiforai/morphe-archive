@@ -46,6 +46,9 @@ final class StoriesCategory {
             stories.add(toggle(context, Settings.HIDE_STORIES_TRAY, L10n.t("Hide the Stories tray"),
                     L10n.t("Takes the whole row of stories off the top of Home, Your story included. Stories still "
                             + "open from a profile or a message.")));
+            stories.add(toggle(context, Settings.KEEP_TRAY_IN_FEED, L10n.t("Keep the Stories tray in the feed"),
+                    L10n.t("Stops Instagram from floating the row of stories over Home when you come back to it "
+                            + "mid-feed or scroll up fast. The row stays at the top of the feed and scrolls away with it.")));
             stories.add(toggle(context, Settings.HIDE_MUSIC_CARD, L10n.t("Hide the Music for you card"),
                     L10n.t("Keeps Instagram's Music for you card from turning up between the stories you watch. "
                             + "The stories themselves stay.")));
@@ -134,7 +137,7 @@ final class StoriesCategory {
         }
         if (!stories.isEmpty()) {
             PreferenceCategory section = category(screen, L10n.t("Stories"), SettingsIcons.STORIES,
-                    L10n.t("Choose which stories you see and what people see you do."));
+                    L10n.t("Viewing, sound and the stories tray."));
             for (Preference row : stories) section.addPreference(row);
         }
     }

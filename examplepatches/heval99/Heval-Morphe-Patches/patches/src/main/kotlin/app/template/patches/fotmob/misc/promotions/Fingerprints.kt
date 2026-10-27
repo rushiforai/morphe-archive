@@ -1,6 +1,8 @@
 package app.template.patches.fotmob.misc.promotions
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
 // The FotMob+ promo config model keeps its name.
@@ -13,5 +15,5 @@ internal object PlusPromoConfigFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = PLUS_PROMO_CONFIG,
     parameters = listOf(),
-    strings = listOf("fotmobplus_promo"),
+    strings = listOf(string("fotmobplus_promo", StringComparisonType.CONTAINS)),
 )

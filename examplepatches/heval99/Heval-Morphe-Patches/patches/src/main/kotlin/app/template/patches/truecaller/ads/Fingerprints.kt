@@ -1,6 +1,7 @@
 package app.template.patches.truecaller.ads
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.string
 
 // The three ad views every banner and native placement binds through. Their class names are kept
@@ -58,5 +59,8 @@ internal object AdsV2PlacementEnabledFingerprint : Fingerprint(
 internal object AdsAllowedFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf(),
-    strings = listOf("qaForceAds", "adsDisabledUntil"),
+    strings = listOf(
+        string("qaForceAds", StringComparisonType.CONTAINS),
+        string("adsDisabledUntil", StringComparisonType.CONTAINS),
+    ),
 )

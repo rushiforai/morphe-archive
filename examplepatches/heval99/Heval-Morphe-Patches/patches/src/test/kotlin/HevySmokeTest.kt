@@ -5,9 +5,12 @@ import app.template.patches.hevy.pro.findIsProGetter
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -57,7 +60,7 @@ class HevySmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "3.2.0",
+            version = "3.2.2",
             patchNames = HEVY_PATCHES,
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -67,6 +70,17 @@ class HevySmokeTest {
         fun klass(type: String) = byType[type] ?: error("$type not found in emitted dexes\n$diagnostics")
         fun method(type: String, name: String, params: List<String>? = null) =
             klass(type).methods.single { it.name == name && (params == null || it.params() == params) }
+        // The renamed SDK methods, found the way the patch's fingerprints find them: by return type,
+        // parameter count and the strings they reference (the patch only prepends instructions).
+        fun byStrings(returnType: String, paramCount: Int, vararg strings: String): Method {
+            val found = classes.flatMap { it.methods }.filter { m ->
+                m.returnType == returnType && m.parameterTypes.size == paramCount &&
+                    m.instructions().mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
+                        .toSet().containsAll(strings.toList())
+            }
+            return found.singleOrNull()
+                ?: error("expected one $returnType method with $paramCount params referencing ${strings.toList()}, found ${found.size}\n$diagnostics")
+        }
 
         // Unlock Pro: the patched bundle has the same length and differs from the stock one only
         // in the getter's first 4 bytes, which are now LoadConstTrue r0; Ret r0.
@@ -91,28 +105,40 @@ class HevySmokeTest {
         check(patched.copyOfRange(footer, patched.size).contentEquals(expectedFooter)) { "bundle footer SHA-1 not recomputed" }
         check(HermesBytecode(patched).functions.size == stockHbc.functions.size) { "patched bundle no longer parses" }
 
-        // 1. Sentry: initNativeSdk resolves Boolean.TRUE and returns.
+        // 1. Sentry: the initNativeSdk bridge method resolves Boolean.TRUE and returns.
         val sentryInit = method(
-            "Lio/sentry/react/RNSentryModuleImpl;", "initNativeSdk",
+            "Lio/sentry/react/RNSentryModule;", "initNativeSdk",
             listOf("Lcom/facebook/react/bridge/ReadableMap;", PROMISE),
         ).instructions()
         val trueField = (sentryInit.getOrNull(0) as? ReferenceInstruction)?.reference as? FieldReference
         assertTrue(
             sentryInit.getOrNull(0)?.opcode == Opcode.SGET_OBJECT &&
                 trueField?.definingClass == "Ljava/lang/Boolean;" && trueField.name == "TRUE",
-            "RNSentryModuleImpl.initNativeSdk does not load Boolean.TRUE first; got ${sentryInit.getOrNull(0)?.opcode}\n$diagnostics"
+            "RNSentryModule.initNativeSdk does not load Boolean.TRUE first; got ${sentryInit.getOrNull(0)?.opcode}\n$diagnostics"
         )
-        assertResolvesThenReturns(sentryInit, 1, "RNSentryModuleImpl.initNativeSdk", diagnostics)
+        assertResolvesThenReturns(sentryInit, 1, "RNSentryModule.initNativeSdk", diagnostics)
 
-        // 2-3. Adjust queueing/sending and the Facebook app event flush return at once.
+        // 2-3. Adjust queueing/sending and the Facebook app event flushAndWait return at once.
         assertReturnsEarlyVoid(method("Lcom/adjust/sdk/PackageHandler;", "addPackage"), "PackageHandler.addPackage", diagnostics)
         assertReturnsEarlyVoid(method("Lcom/adjust/sdk/PackageHandler;", "sendFirstPackage"), "PackageHandler.sendFirstPackage", diagnostics)
-        assertReturnsEarlyVoid(method("Lcom/facebook/appevents/AppEventQueue;", "flush"), "AppEventQueue.flush", diagnostics)
+        val flushAndWait = byStrings(
+            "V", 1, "com.facebook.sdk.APP_EVENTS_FLUSHED", "com.facebook.sdk.APP_EVENTS_NUM_EVENTS_FLUSHED",
+        )
+        assertReturnsEarlyVoid(flushAndWait, "AppEventQueue.flushAndWait", diagnostics)
 
-        // 4. Amplitude: limit ad tracking on, no prefetch, no legacy events.
-        val amplitudeContext = "Lcom/amplitude/reactnative/AndroidContextProvider;"
-        assertForcedBoolean(method(amplitudeContext, "isLimitAdTrackingEnabled"), true, "AndroidContextProvider.isLimitAdTrackingEnabled", diagnostics)
-        assertReturnsEarlyVoid(method(amplitudeContext, "prefetch"), "AndroidContextProvider.prefetch", diagnostics)
+        // 4. Amplitude: both ad-ID readers return null at once, no legacy events.
+        for ((label, adId) in listOf(
+            "CachedInfo.fetchAdvertisingId" to byStrings("Ljava/lang/String;", 0, "getAdvertisingIdInfo", "isLimitAdTrackingEnabled"),
+            "CachedInfo.fetchAndCacheAmazonAdvertisingId" to byStrings("Ljava/lang/String;", 0, "limit_ad_tracking", "advertising_id"),
+        )) {
+            val insns = adId.instructions()
+            assertTrue(
+                insns.getOrNull(0)?.opcode == Opcode.CONST_4 && (insns[0] as NarrowLiteralInstruction).narrowLiteral == 0 &&
+                    insns.getOrNull(1)?.opcode == Opcode.RETURN_OBJECT &&
+                    (insns[1] as OneRegisterInstruction).registerA == (insns[0] as OneRegisterInstruction).registerA,
+                "$label does not return null first; got ${insns.take(2).map { it.opcode }}\n$diagnostics"
+            )
+        }
         val legacy = method(
             "Lcom/amplitude/reactnative/AmplitudeReactNativeModule;", "getLegacyEvents",
             listOf("Ljava/lang/String;", "Ljava/lang/String;", PROMISE),
@@ -126,8 +152,18 @@ class HevySmokeTest {
         )
         assertResolvesThenReturns(legacy, 2, "AmplitudeReactNativeModule.getLegacyEvents", diagnostics)
 
-        // 5. Branch: tracking reads as disabled.
-        assertForcedBoolean(method("Lio/branch/referral/Branch;", "isTrackingDisabled"), true, "Branch.isTrackingDisabled", diagnostics)
+        // 5. Branch: tracking reads as disabled. Branch is renamed; take the ()Z method the
+        // RNBranchModule.isTrackingDisabled bridge method calls, as the patch does.
+        val branchCall = method("Lio/branch/rnbranch/RNBranchModule;", "isTrackingDisabled", listOf(PROMISE)).instructions()
+            .filter { it.opcode == Opcode.INVOKE_VIRTUAL }
+            .mapNotNull { (it as ReferenceInstruction).reference as? MethodReference }
+            .single { it.returnType == "Z" && it.parameterTypes.isEmpty() }
+        assertForcedBoolean(
+            method(branchCall.definingClass, branchCall.name, emptyList()),
+            true,
+            "Branch.isTrackingDisabled (${branchCall.definingClass}->${branchCall.name})",
+            diagnostics,
+        )
 
         // Sentry's content providers are disabled in the manifest.
         val manifestFile = workDir.walkTopDown()

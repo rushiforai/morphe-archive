@@ -49,6 +49,18 @@ internal fun BytecodePatchContext.injectUiComposition() {
     """, static = true))
     injectNativeUiMenus(all, contract)
     restoreVerticalLayoutControls(all, contract)
+    val train = all.filter { it.returnType == "V" && it.parameterTypes.size == 3 &&
+        it.parameterTypes[1] == contract.composer &&
+        it.hasStrings("VerticalTheatreHypeTrainHighlightsFragment/arguments")
+    }.uniqueHook("native vertical Hype Train container")
+    val trainWrapper = uiWrapper(train, "verticalHypeTrain", contract, """
+        const-string v1, "hide_hype_trains"
+        invoke-static {v1, v0}, $BRIDGE->hidden(Ljava/lang/String;${contract.composer})Z
+        move-result v1
+        if-nez v1, :done
+    """)
+    owner.methods.add(trainWrapper)
+    replaceUiCalls(all.filter { it.references().any { ref -> ref.toString() == train.reference } }, train.reference, trainWrapper)
     for ((layout, renderer) in listOf("classic" to contract.classic, "vertical" to contract.vertical)) {
         for ((part, original) in contract.controls) {
             if (renderer.references().none { it.toString() == original.reference }) continue
@@ -108,6 +120,7 @@ internal fun BytecodePatchContext.injectUiComposition() {
     owner.methods.add(row)
     replaceNativeUiCalls(contract.actionCallers.getValue(contract.classicRow.renderer.reference), contract.classicRow.renderer.reference, row)
     injectClassicHeader(all, owner, contract.classicRow)
+    injectMetadataActions(all, owner, contract)
 }
 
 internal fun uiWrapper(original: Method, name: String, contract: UiCompositionContract, condition: String): app.morphe.patcher.util.proxy.mutableTypes.MutableMethod {

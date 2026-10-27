@@ -116,8 +116,8 @@ public final class SettingsUi {
     public static final int RADIUS_CARD = 10;
 
     /** Settings geometry stays independent of the controls drawn over a playing video. */
-    public static final int RADIUS_SETTINGS_CARD = 18;
-    public static final int RADIUS_SETTINGS_FIELD = 16;
+    public static final int RADIUS_SETTINGS_CARD = 12;
+    public static final int RADIUS_SETTINGS_FIELD = 12;
     public static final int RADIUS_PILL = 24;
     /** Taller than any bar TikTok draws, so a pill's ends stay round at whatever height it's given. */
     public static final int RADIUS_ROUND_ENDS = 100;
@@ -323,6 +323,7 @@ public final class SettingsUi {
             title.setMaxLines(Integer.MAX_VALUE);
             title.setEllipsize(null);
             markHeading(title);
+            ShimmerTitle.wear(title);
         }
         TextView summary = row.findViewById(android.R.id.summary);
         if (summary != null) {
@@ -345,8 +346,8 @@ public final class SettingsUi {
 
     public static void stylePreferenceRow(View view) {
         Context context = view.getContext();
-        view.setPaddingRelative(dp(context, 16), dp(context, 16), dp(context, 16), dp(context, 16));
-        view.setMinimumHeight(dp(context, 76));
+        view.setPaddingRelative(dp(context, 16), dp(context, 12), dp(context, 16), dp(context, 12));
+        view.setMinimumHeight(dp(context, 64));
         TextView title = view.findViewById(android.R.id.title);
         if (title != null) {
             if (title.getParent() instanceof View && title.getParent() != view) {
@@ -366,8 +367,8 @@ public final class SettingsUi {
             summary.setSingleLine(false);
             summary.setMaxLines(Integer.MAX_VALUE);
             summary.setEllipsize(null);
-            summary.setLineSpacing(dp(context, 2), 1f);
-            summary.setPadding(0, dp(context, 4), 0, 0);
+            summary.setLineSpacing(dp(context, 1), 1f);
+            summary.setPadding(0, dp(context, 3), 0, 0);
         }
         styleSwitches(view);
     }
@@ -379,8 +380,8 @@ public final class SettingsUi {
 
     static void styleCompactMenuRow(View row, boolean last, boolean footer) {
         Context context = row.getContext();
-        row.setPaddingRelative(dp(context, 14), dp(context, 12), dp(context, 14), dp(context, 12));
-        row.setMinimumHeight(dp(context, 72));
+        row.setPaddingRelative(dp(context, 16), dp(context, 6), dp(context, 16), dp(context, 6));
+        row.setMinimumHeight(dp(context, 52));
         TextView title = row.findViewById(android.R.id.title);
         if (title != null) {
             title.setTextSize(TEXT_TITLE);
@@ -557,7 +558,7 @@ public final class SettingsUi {
      * the others, where the row meets its neighbour.
      */
     public static Drawable groupRowMask(Context context, boolean first, boolean last) {
-        float radius = dp(context, RADIUS_SETTINGS_CARD);
+        float radius = 0f;
         float top = first ? radius : 0f;
         float bottom = last ? radius : 0f;
         GradientDrawable mask = new GradientDrawable();
@@ -675,8 +676,8 @@ public final class SettingsUi {
             this.context = context;
             this.first = first;
             this.last = last;
-            radius = dp(context, RADIUS_SETTINGS_CARD);
-            inset = dp(context, 16);
+            radius = 0f;
+            inset = 0f;
         }
         @Override public void draw(Canvas canvas) {
             Rect bounds = getBounds();
@@ -696,12 +697,8 @@ public final class SettingsUi {
             }
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(1);
-            paint.setColor(activated ? accent() : border());
-            canvas.drawRoundRect(frame, radius, radius, paint);
-            if (!last) {
-                paint.setColor(divider());
-                canvas.drawLine(bounds.left + inset, bottom - 0.5f, bounds.right - inset, bottom - 0.5f, paint);
-            }
+            paint.setColor(divider());
+            canvas.drawLine(bounds.left + inset, bottom - 0.5f, bounds.right - inset, bottom - 0.5f, paint);
             if (focused) {
                 // Last, and with its own stroke width: this Paint is shared, and a ring drawn
                 // before the divider left the divider at the ring's width, which on a 3x screen
@@ -870,12 +867,14 @@ public final class SettingsUi {
     }
 
     public static void styleCategory(View view) {
+        Context context = view.getContext();
+        view.setPaddingRelative(dp(context, 16), dp(context, 14), dp(context, 16), dp(context, 6));
         TextView title = view.findViewById(android.R.id.title);
         if (title != null) {
             title.setTextColor(textSecondary());
             title.setTextSize(TEXT_CAPTION);
-            title.setAllCaps(true);
-            title.setLetterSpacing(0.08f);
+            title.setAllCaps(false);
+            title.setLetterSpacing(0f);
             title.setTypeface(title.getTypeface(), Typeface.BOLD);
         }
     }
@@ -908,9 +907,13 @@ public final class SettingsUi {
         return title;
     }
 
-    /** Marks a title in a hand-built dialog as a heading for accessibility services. */
+    /**
+     * Marks a title in a hand-built dialog as a heading for accessibility services, and puts it
+     * in the moving cyan and red every Hushfeed title wears.
+     */
     public static void markDialogHeading(TextView title) {
         markHeading(title);
+        ShimmerTitle.wear(title);
     }
 
     /**
@@ -1211,6 +1214,7 @@ public final class SettingsUi {
         boolean radio = list != null && list.getChoiceMode() == ListView.CHOICE_MODE_SINGLE;
         makeDialogPanelsTransparent(window.getDecorView(), dialog.getContext());
         styleDialogText(window.getDecorView(), radio);
+        wearDialogTitle(dialog);
 
         if (list != null) {
             list.setBackgroundColor(Color.TRANSPARENT);
@@ -1240,6 +1244,21 @@ public final class SettingsUi {
         styleActionButton(dialog.getButton(DialogInterface.BUTTON_POSITIVE), true);
         styleActionButton(dialog.getButton(DialogInterface.BUTTON_NEGATIVE), false);
         styleActionButton(dialog.getButton(DialogInterface.BUTTON_NEUTRAL), false);
+    }
+
+    /**
+     * Puts a shown AlertDialog's own title in the moving cyan and red. The title takes this
+     * theme's text colour first, so the gradient is picked for the surface the frame painted
+     * rather than for TikTok's dialog theme.
+     */
+    public static void wearDialogTitle(Dialog dialog) {
+        Window window = dialog.getWindow();
+        if (window == null) return;
+        int id = dialog.getContext().getResources().getIdentifier("alertTitle", "id", "android");
+        View title = id == 0 ? null : window.getDecorView().findViewById(id);
+        if (!(title instanceof TextView) || ShimmerTitle.wears((TextView) title)) return;
+        ((TextView) title).setTextColor(textPrimary());
+        ShimmerTitle.wear((TextView) title);
     }
 
     public static int dialogListHeight(Context context, int preferredDp) {
@@ -1315,7 +1334,7 @@ public final class SettingsUi {
             }
         } else if (view instanceof Button) {
             ((Button) view).setTextColor(accent());
-        } else if (view instanceof TextView) {
+        } else if (view instanceof TextView && !ShimmerTitle.wears((TextView) view)) {
             ((TextView) view).setTextColor(textPrimary());
         }
 

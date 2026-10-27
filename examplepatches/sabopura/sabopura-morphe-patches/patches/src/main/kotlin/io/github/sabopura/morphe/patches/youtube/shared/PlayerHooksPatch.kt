@@ -9,7 +9,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import io.github.sabopura.morphe.patches.youtube.Constants.YOUTUBE_21_04_223
+import io.github.sabopura.morphe.patches.youtube.Constants.YOUTUBE
 import java.util.logging.Logger
 
 internal const val PLAYER_HOOKS_CLASS =
@@ -54,7 +54,7 @@ internal val playerHooksPatch = bytecodePatch(
     default = false,
 ) {
     dependsOn(sharedSettingsResourcePatch)
-    compatibleWith(YOUTUBE_21_04_223)
+    compatibleWith(YOUTUBE)
     extendWith("extensions/youtube.mpe")
 
     execute {

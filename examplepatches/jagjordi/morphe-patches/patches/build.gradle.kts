@@ -3,7 +3,7 @@ group = "app.jagjordi"
 patches {
     about {
         name = "jagjordi Patches"
-        description = "Flightradar24 Business unlock that also works without a Flightradar24 account"
+        description = "Flightradar24 Business unlock with open data for the server withheld fields, a CalTopo Desktop tier unlock and a DNS over HTTPS bypass"
         source = "https://github.com/jagjordi/morphe-patches"
         author = "jagjordi"
         contact = "https://github.com/jagjordi"

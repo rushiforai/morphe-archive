@@ -56,6 +56,7 @@ internal fun BytecodePatchContext.patchPosterHighlight(version: String) {
             $call {p0}, $delegate
             move-result-object v0
             invoke-static {p0, v0}, Lapp/morphe/extension/chmate/ResponseArchive;->appendDialog242(Ljava/lang/Object;Ljava/lang/Object;)V
+            invoke-static {v0}, Lapp/morphe/extension/chmate/ResponseMenuSettings;->finishResponseMenu(Ljava/lang/Object;)V
             return-object v0
         """.trimIndent())
         dialog.methods.remove(builder)

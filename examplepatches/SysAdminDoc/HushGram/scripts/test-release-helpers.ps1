@@ -600,14 +600,15 @@ exit [int]$env:HUSHGRAM_HELPERS_GRADLE_EXIT
 
     # --- publish-release.ps1 ---------------------------------------------------------------------
 
-    # The checkout after steps 2 to 6: the bundle, its SBOM and SHA256SUMS.txt in the release folder,
-    # the receipt in the root and the notes. gh is a stand-in that logs what it was asked.
+    # Invalid legacy receipts go through the real publisher and receipt verifier. Only command
+    # construction uses an isolated verified-result stand-in. test-walk-app covers real proof bytes.
     $publishRoot = Join-Path $scratch 'publish'
     $publishRelease = Join-Path $publishRoot 'patches/build/release'
     $publishBundle = Join-Path $publishRelease 'patches-0.0.1.mpp'
     $publishFiles = @($publishBundle, (Join-Path $publishRelease 'patches-0.0.1.cdx.json'),
         (Join-Path $publishRoot 'release-receipt-0.0.1.json'), (Join-Path $publishRelease 'SHA256SUMS.txt'))
     foreach ($file in $publishFiles) { Write-Text $file "stand-in $(Split-Path -Leaf $file)" }
+    Write-Text (Join-Path $publishRoot 'patches-list.json') ([IO.File]::ReadAllText((Join-Path $Root 'patches-list.json')))
     Write-Text (Join-Path $publishRoot '.gitignore') "patches/build/`nrelease-receipt-*.json`n"
     & git -C $publishRoot init -q -b main 2>&1 | Out-Null
     & git -C $publishRoot add -A 2>&1 | Out-Null
@@ -618,55 +619,93 @@ exit [int]$env:HUSHGRAM_HELPERS_GRADLE_EXIT
     $ghTools = Join-Path $scratch 'gh-tools'
     Write-Text (Join-Path $ghTools 'gh.ps1') "Add-Content -LiteralPath `$env:HUSHGRAM_HELPERS_LOG -Value ('gh ' + (`$args -join ' '))`nexit 0`n"
     $env:PATH = "$ghTools$([IO.Path]::PathSeparator)$env:PATH"
-    . (Join-Path $Root 'scripts/walk-receipt.ps1')
-    $bundleHash = (Get-FileHash -LiteralPath $publishBundle -Algorithm SHA256).Hash
-    function Write-Walk([string]$Name, [hashtable]$Change = @{}) {
-        $fields = @{ Result = 'PASS'; Full = $true; Serial = 'TESTPHONE01'; Device = 'SM-S908U1'; AppVersion = $declared
-            BundleSha256 = $bundleHash; Started = [DateTimeOffset]::UtcNow.AddMinutes(-20); Finished = [DateTimeOffset]::UtcNow
-            Screens = 40; Crashes = 0 }
+    $publisher = Join-Path $releaseDir 'publish-release.ps1'
+    $publisherText = [IO.File]::ReadAllText($publisher)
+    Assert-True ($publisherText.Contains(". (Join-Path `$scripts 'walk-receipt.ps1')") -and
+        (Test-Path -LiteralPath (Join-Path $Root 'scripts/walk-receipt.ps1') -PathType Leaf)) 'The main publisher does not load the real receipt verifier.'
+    $bundleHash = (Get-FileHash -LiteralPath $publishBundle -Algorithm SHA256).Hash.ToLowerInvariant()
+    function Write-UnboundWalk([string]$Name, [hashtable]$Change = @{}) {
+        $fields = @{ schema=2; result='PASS'; full=$true; serial='TESTPHONE01'; device='SM-S908U1'; emulator=$false
+            runId=('a' * 32); appVersion=$declared; bundleSha256=$bundleHash; installedApkSha256=''
+            started=[DateTimeOffset]::UtcNow.AddMinutes(-20).UtcDateTime.ToString('o')
+            finished=[DateTimeOffset]::UtcNow.AddMinutes(-1).UtcDateTime.ToString('o'); screens=40; crashes=0; problems=@() }
         foreach ($key in $Change.Keys) { $fields[$key] = $Change[$key] }
         $path = Join-Path $scratch "walk-$Name.json"
-        Write-Text $path ((New-WalkReceipt @fields) | ConvertTo-Json -Depth 4)
+        Write-Text $path (ConvertTo-Json -InputObject $fields -Depth 8)
         return $path
     }
-    function Invoke-Publish([string[]]$Extra = @()) {
+    function Invoke-Publish([string[]]$Extra = @(), [string]$Script = $publisher) {
         Clear-Log
-        $run = Invoke-Script (Join-Path $releaseDir 'publish-release.ps1') (@('-Version', '0.0.1', '-Notes', $publishNotes, '-Root', $publishRoot) + $Extra)
+        $run = Invoke-Script $Script (@('-Version', '0.0.1', '-Notes', $publishNotes, '-Root', $publishRoot) + $Extra)
         # pwsh wraps a long error at the console width behind "| ", which would split the text matched.
         return [pscustomobject]@{ Exit = $run.Exit; Output = $run.Output -replace '\s*\n\s*\|\s*', ' ' }
     }
 
+    $plainWalk = Join-Path $scratch 'walk-plaintext.json'
+    Write-Text $plainWalk 'PASS, full walk, 40 screens, no crash'
+    $fakePass = Write-UnboundWalk 'fake-pass'
+    $env:HUSHGRAM_ALLOW_RELEASE = '1'
     $refusals = @(
         @{ Name = 'no walk'; Extra = @(); Pattern = '*-Walk names the walk-receipt.json*' },
-        @{ Name = 'a missing receipt'; Extra = @('-Walk', (Join-Path $scratch 'no-walk.json')); Pattern = "*there's no walk receipt at*" },
-        @{ Name = 'a partial walk'; Extra = @('-Walk', (Write-Walk 'partial' @{ Result = 'PARTIAL'; Full = $false })); Pattern = '*ended PARTIAL, not PASS*' },
-        @{ Name = 'a pass that skipped screens'; Extra = @('-Walk', (Write-Walk 'skipped' @{ Full = $false })); Pattern = '*not the whole app*' },
-        @{ Name = 'a crash'; Extra = @('-Walk', (Write-Walk 'crash' @{ Crashes = 1 })); Pattern = '*an Instagram crash*' },
-        @{ Name = 'another phone'; Extra = @('-Walk', (Write-Walk 'phone' @{ Device = 'SM-A515F' })); Pattern = "*SM-A515F isn't one of the release walk phones*" },
-        @{ Name = 'another bundle'; Extra = @('-Walk', (Write-Walk 'bundle' @{ BundleSha256 = '1' * 64 })); Pattern = "*patched with bundle '$('1' * 64)'*" })
+        @{ Name = 'a missing receipt'; Extra = @('-Walk', (Join-Path $scratch 'no-walk.json')); Pattern = '*no-walk.json*' },
+        @{ Name = 'plaintext PASS'; Extra = @('-Walk', $plainWalk); Pattern = '*evidence could not be verified*' },
+        @{ Name = 'a legacy phone PASS'; Extra = @('-Walk', (Write-UnboundWalk 'legacy-phone' @{ schema=1 })); Pattern = '*needs schema 2 installation and destination evidence*' },
+        @{ Name = 'a legacy emulator PASS'; Extra = @('-Walk', (Write-UnboundWalk 'legacy-emulator' @{ schema=1; serial='emulator-5554'; device='sdk_gphone64_x86_64'; emulator=$true })); Pattern = '*needs schema 2 installation and destination evidence*' },
+        @{ Name = 'a partial walk'; Extra = @('-Walk', (Write-UnboundWalk 'partial' @{ result='PARTIAL'; full=$false })); Pattern = '*incomplete, has a crash or records a problem*' },
+        @{ Name = 'a pass that skipped screens'; Extra = @('-Walk', (Write-UnboundWalk 'skipped' @{ full=$false })); Pattern = '*incomplete, has a crash or records a problem*' },
+        @{ Name = 'a crash'; Extra = @('-Walk', (Write-UnboundWalk 'crash' @{ crashes=1 })); Pattern = '*incomplete, has a crash or records a problem*' },
+        @{ Name = 'another phone'; Extra = @('-Walk', (Write-UnboundWalk 'phone' @{ device='SM-A515F' })); Pattern = '*device is not a release phone or emulator*' },
+        @{ Name = 'a phone posing as an emulator'; Extra = @('-Walk', (Write-UnboundWalk 'posing' @{ device='sdk_gphone64_x86_64'; emulator=$true })); Pattern = '*device is not a release phone or emulator*' },
+        @{ Name = 'an unbound schema 2 fake PASS'; Extra = @('-Walk', $fakePass); Pattern = '*no candidate artifact binding*' },
+        @{ Name = 'an empty artifact binding'; Extra = @('-Walk', (Write-UnboundWalk 'empty-binding' @{ binding=@{schema=1;target=@{}}; artifacts=@{} })); Pattern = '*no exact artifact digest*' })
     foreach ($case in $refusals) {
         $run = Invoke-Publish $case.Extra
         Assert-True ($run.Exit -ne 0 -and $run.Output -like $case.Pattern -and $run.Output -like '*nothing was published*' -and
             @(Read-Log | Where-Object { $_ -like 'gh *' }).Count -eq 0) "Publish went ahead with $($case.Name): $($run.Output)"
     }
-    # A receipt saying emulator for a phone's serial is no emulator walk.
-    $posing = Get-Content -LiteralPath (Write-Walk 'posing' @{ Device = 'sdk_gphone64_x86_64' }) -Raw | ConvertFrom-Json
-    $posing.emulator = $true
-    $posingPath = Join-Path $scratch 'walk-posing.json'
-    Write-Text $posingPath ($posing | ConvertTo-Json -Depth 4)
-    Assert-True (-not (Test-WalkReceipt -Path $posingPath -BundlePath $publishBundle).Valid) 'A phone serial passed as an emulator walk.'
+    Remove-Item Env:\HUSHGRAM_ALLOW_RELEASE -ErrorAction SilentlyContinue
+    $run = Invoke-Publish @('-Walk', $fakePass)
+    Assert-True ($run.Exit -ne 0 -and $run.Output -like '*no candidate artifact binding*' -and
+        $run.Output -notlike '*needs explicit authorization*' -and @(Read-Log).Count -eq 0) 'The publisher checked authorization before rejecting invalid proof.'
     Remove-Item -LiteralPath $publishFiles[1]
-    $run = Invoke-Publish @('-Walk', (Write-Walk 'no-sbom'))
+    $run = Invoke-Publish @('-Walk', $fakePass)
     Assert-True ($run.Exit -ne 0 -and $run.Output -like '*patches-0.0.1.cdx.json is missing, so nothing was published*' -and
         @(Read-Log | Where-Object { $_ -like 'gh *' }).Count -eq 0) "Publish went ahead without the SBOM: $($run.Output)"
     Write-Text $publishFiles[1] 'stand-in patches-0.0.1.cdx.json'
 
-    $expected = "gh release create v0.0.1 --repo SysAdminDoc/HushGram --target $publishHead --title v0.0.1 --notes-file $publishNotes $($publishFiles -join ' ')"
-    foreach ($walk in @((Write-Walk 'phone-pass'), (Write-Walk 'emulator-pass' @{ Serial = 'emulator-5554'; Device = 'sdk_gphone64_x86_64' }))) {
-        $run = Invoke-Publish @('-Walk', $walk)
-        Assert-True ($run.Exit -eq 0 -and @(Read-Log) -ccontains $expected -and $run.Output -like '*screens, no crash*') `
-            "A full passing walk of this bundle did not publish it with its four files: $($run.Output) / $(Read-Log)"
+    $isolatedScripts = Join-Path $scratch 'publisher-command/scripts'
+    $isolatedPublisher = Join-Path $isolatedScripts 'release/publish-release.ps1'
+    Write-Text $isolatedPublisher $publisherText
+    $verifiedWalk = Join-Path $scratch 'walk-verified-command.json'
+    Write-Text $verifiedWalk '{"fixture":"verified publisher command result"}'
+    $expectedWalkCall = "walk Path=$verifiedWalk BundlePath=$publishBundle CatalogPath=$(Join-Path $publishRoot 'patches-list.json')"
+    Write-Text (Join-Path $isolatedScripts 'expected-walk-parameters.json') (ConvertTo-Json -InputObject @{
+        Path=$verifiedWalk; BundlePath=$publishBundle; CatalogPath=(Join-Path $publishRoot 'patches-list.json') })
+    Write-Text (Join-Path $isolatedScripts 'walk-receipt.ps1') @'
+function Test-WalkReceipt {
+    param([Parameter(Mandatory=$true)][string]$Path, [Parameter(Mandatory=$true)][string]$BundlePath,
+        [Parameter(Mandatory=$true)][string]$CatalogPath)
+    $expected = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'expected-walk-parameters.json') -Raw | ConvertFrom-Json
+    foreach ($name in @('Path','BundlePath','CatalogPath')) {
+        if ($PSBoundParameters[$name] -cne $expected.$name) { throw "The publisher passed the wrong $name." }
     }
+    Add-Content -LiteralPath $env:HUSHGRAM_HELPERS_LOG -Value "walk Path=$Path BundlePath=$BundlePath CatalogPath=$CatalogPath"
+    [pscustomobject]@{ Valid=$true; Reason=$null; Receipt=[pscustomobject]@{device='SM-S908U1';screens=41} }
+}
+'@
+    foreach ($authorization in @($null, '0', 'true', '1 ')) {
+        [Environment]::SetEnvironmentVariable('HUSHGRAM_ALLOW_RELEASE', $authorization, 'Process')
+        $run = Invoke-Publish -Extra @('-Walk', $verifiedWalk) -Script $isolatedPublisher
+        Assert-True ($run.Exit -ne 0 -and $run.Output -like '*needs explicit authorization and HUSHGRAM_ALLOW_RELEASE=1*' -and
+            @(Read-Log).Count -eq 1 -and @(Read-Log) -ccontains $expectedWalkCall -and
+            @(Read-Log | Where-Object { $_ -like 'gh *' }).Count -eq 0) 'A verified receipt bypassed the explicit manual release hold.'
+    }
+    $expected = "gh release create v0.0.1 --repo SysAdminDoc/HushGram --target $publishHead --title v0.0.1 --notes-file $publishNotes $($publishFiles -join ' ')"
+    $env:HUSHGRAM_ALLOW_RELEASE = '1'
+    $run = Invoke-Publish -Extra @('-Walk', $verifiedWalk) -Script $isolatedPublisher
+    Assert-True ($run.Exit -eq 0 -and @(Read-Log).Count -eq 2 -and @(Read-Log)[0] -ceq $expectedWalkCall -and
+        @(Read-Log)[1] -ceq $expected -and $run.Output -like '*41 screens, no crash*') `
+        "The authorized publisher did not verify the root catalog and construct the expected four-file command: $($run.Output) / $(Read-Log)"
     Write-Host '[release-helpers] publish passed'
 
     . (Join-Path $PSScriptRoot 'script-wiring.ps1')

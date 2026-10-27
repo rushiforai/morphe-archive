@@ -471,13 +471,14 @@ public class PatchFamilyTest {
                         + "color, Restore screens on re-signed builds, Start on x86 devices, Install beside Meta's "
                         + "apps, Hushfacebook in the Menu"),
                 running);
-        // Clean up Reels has fifteen switches, all off to start, and the report names each one.
+        // Clean up Reels' switches all start off, and the report names each one.
         Settings.HIDE_REEL_FOLLOW_BUTTON.save(true);
         assertEquals("Clean up Reels: on (hushfacebook_hide_reel_chips=off, hushfacebook_hide_reel_follow_button=on, "
                         + "hushfacebook_hide_reel_social_footer=off, hushfacebook_hide_reel_threads_cards=off, "
                         + "hushfacebook_reel_clean_mode=off, hushfacebook_play_reels_once=off, "
                         + "hushfacebook_original_audio=off, hushfacebook_hide_reel_search_pill=off, "
                         + "hushfacebook_hide_reel_counts=off, hushfacebook_hide_reel_save_button=off, "
+                        + "hushfacebook_hide_reel_whatsapp_button=off, "
                         + "hushfacebook_hide_reel_sound_button=off, hushfacebook_hide_reel_audio_line=off, "
                         + "hushfacebook_hide_slow_connection_message=off, hushfacebook_feed_videos_alone=off, "
                         + "hushfacebook_play_feed_reels_whole=off)",

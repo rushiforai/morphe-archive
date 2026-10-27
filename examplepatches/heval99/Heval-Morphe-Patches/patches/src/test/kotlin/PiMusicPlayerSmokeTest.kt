@@ -42,7 +42,7 @@ class PiMusicPlayerSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "3.2.0.0_release_2",
+            version = "3.2.1.0_release_1",
             patchNames = patchNames,
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

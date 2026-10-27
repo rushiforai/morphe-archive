@@ -32,9 +32,9 @@ import app.morphe.extension.shared.settings.HushfacebookPause;
 import app.morphe.extension.shared.settings.PauseForTests;
 
 /**
- * The top bar's Messenger button, count and logo hides (#181): each switch starts off, does its
- * one job when on, and leaves Facebook's own button, count and logo alone when off, paused or
- * before the settings are ready.
+ * The top bar's Messenger button, count and logo hides (#181) and Create button hide (#257): each
+ * switch starts off, does its one job when on, and leaves Facebook's own buttons, count and logo
+ * alone when off, paused or before the settings are ready.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -47,6 +47,7 @@ public class TopBarButtonsTest {
         Settings.HIDE_MESSENGER_BUTTON.resetToDefault();
         Settings.HIDE_MESSENGER_COUNT.resetToDefault();
         Settings.HIDE_FACEBOOK_LOGO.resetToDefault();
+        Settings.HIDE_CREATE_BUTTON.resetToDefault();
         HookStatus.clear();
     }
 
@@ -216,5 +217,56 @@ public class TopBarButtonsTest {
 
         PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
         assertEquals("paused, Facebook's own count", 6, TopBarButtons.barButtonCount(messenger, 6));
+    }
+
+    @Test
+    public void theCreateSwitchStartsOffWaitsForARestartAndBelongsToTheTabBarFamily() {
+        assertFalse(Settings.HIDE_CREATE_BUTTON.defaultValue);
+        assertTrue("the button is built as the screen starts", Settings.HIDE_CREATE_BUTTON.rebootApp);
+        assertTrue(PatchFamily.BOTTOM_TAB_BAR.switches.contains(Settings.HIDE_CREATE_BUTTON));
+    }
+
+    @Test
+    public void createOnHidesTheCreateButtonOnBothBarsAndNothingElse() {
+        Settings.HIDE_CREATE_BUTTON.save(true);
+        View create = button();
+        TopBarButtons.createButton(create);
+        assertEquals("the button leaves the bar's layout", View.GONE, create.getVisibility());
+        View messenger = button();
+        TopBarButtons.messengerButton(messenger);
+        assertEquals("the Messenger button is a separate switch", View.VISIBLE, messenger.getVisibility());
+
+        View glyph = button();
+        View newerMessenger = button();
+        View search = button();
+        TopBarButtons.barButton(glyph, TopBarButtons.CREATE_SPEC);
+        TopBarButtons.barButton(newerMessenger, TopBarButtons.MESSENGER_SPEC);
+        TopBarButtons.barButton(search, "search");
+        assertEquals(View.GONE, glyph.getVisibility());
+        assertEquals(View.VISIBLE, newerMessenger.getVisibility());
+        assertEquals(View.VISIBLE, search.getVisibility());
+        assertEquals("the Create glyph's count is Facebook's", 4, TopBarButtons.barButtonCount(glyph, 4));
+        assertTrue(reported(TopBarButtons.CREATE_HIDDEN));
+        assertFalse(reported(TopBarButtons.BUTTON_HIDDEN));
+    }
+
+    @Test
+    public void createOffPausedOrMissingLeavesFacebooksOwn() {
+        View create = button();
+        TopBarButtons.createButton(create);
+        TopBarButtons.barButton(create, TopBarButtons.CREATE_SPEC);
+        assertEquals(View.VISIBLE, create.getVisibility());
+
+        Settings.HIDE_CREATE_BUTTON.save(true);
+        Settings.HIDE_MESSENGER_BUTTON.save(true);
+        TopBarButtons.barButton(create, TopBarButtons.CREATE_SPEC);
+        assertFalse("the Create glyph isn't taken for Messenger", reported(TopBarButtons.BUTTON_HIDDEN));
+        create.setVisibility(View.VISIBLE);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        TopBarButtons.createButton(create);
+        assertEquals("paused, Facebook's own button", View.VISIBLE, create.getVisibility());
+        PauseForTests.resume();
+        TopBarButtons.createButton(null);
+        TopBarButtons.barButton(null, TopBarButtons.CREATE_SPEC);
     }
 }

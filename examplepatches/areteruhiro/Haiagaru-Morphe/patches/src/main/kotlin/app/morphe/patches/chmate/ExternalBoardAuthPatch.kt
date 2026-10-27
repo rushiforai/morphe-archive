@@ -117,6 +117,21 @@ internal fun BytecodePatchContext.patchExternalBoardAuth(version: String) {
             }
         }
     }
+    val editor = mutableClassDefBy(if(version=="0.8.10.191 dev")
+        "Lo/p9ExternalSyntheticLambda6;" else "Ljp/syoboi/a2chMate/feature/resedit/ResEditFragment;")
+    val pause = editor.methods.single { it.name=="onPause" && it.parameterTypes.isEmpty() }
+    val saveDraft = pause.implementation!!.instructions.mapNotNull {
+        (it as? ReferenceInstruction)?.reference as? MethodReference
+    }.single { it.definingClass==editor.type && it.returnType=="V"
+        && it.parameterTypes.map(CharSequence::toString)==listOf("Z") }
+    editor.methods.add(MutableMethod(ImmutableMethod(editor.type,"haiagaruSaveExternalDraft",emptyList(),"V",
+        0x1,emptySet(),emptySet(),ImmutableMethodImplementation(2,emptyList(),emptyList(),emptyList()))).apply {
+        addInstructions(0,"""
+            const/4 v0, 0x1
+            invoke-direct {p0, v0}, $saveDraft
+            return-void
+        """.trimIndent())
+    })
     patchPostingOverflowMenu(version,"ExternalBoardAuth","board_auth")
     check(observed>0){"External board authentication error UI not found"}
     println("External board auth: native cookie bridge + $observed error UI observers ($version)")

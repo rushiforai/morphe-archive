@@ -1,5 +1,7 @@
 # 网络失败、等待、取消和配置作用域合同
 
+> 版本口径（2026-10-26）：当前公开产品为1.5.8 / release-1.5.8，继承本合同已接受的行为和保留限制。正文中的M5/M6等版本、计数及“待复核”属于各段形成时的历史时点；当前状态及新的远端CI/发布覆盖以[PROJECT-STATE](../PROJECT-STATE.md)和[发布结果](../maintenance/results/RELEASE-1.5.8-RESULT.md)为准，不改写原失败/原测试事实。
+
 M5a调查 / M5b F1与M5c F4已接受 / M5d-R1补正01已统筹接受，2026-10-25；当前本地候选 **1.5.8 / local-1.5.8-m6a**（M6a完成待复核、统筹待复核；最后接受M5i candidate-01），公开仍1.5.7。普通与子修复失败、相关取消/语义修复收尾统一保留同一有效Session/父块已建立的较晚等待；实现及真实HTTP红绿见第10节和 [M5d-R1-RESULT](../maintenance/results/M5d-R1-RESULT.md)。F2在原卡及补正规定范围已接受，见[M5d-R1复核](../maintenance/reviews/M5d-R1-REVIEW.md)；原M5d复核/770项/候选和证据保留。状态归属沿用 [CAPTION-STATE-CONTRACT](CAPTION-STATE-CONTRACT.md)，M5a/M5b/M5c历史调查与结果入口见后文。
 
 ## 1. 六个层级不能合并为一个 failure 开关

@@ -1,6 +1,8 @@
 package app.template.patches.shazam.misc.spotify
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 internal const val SPOTIFY_AUTH_PACKAGE = "Lcom/spotify/sdk/android/auth"
 internal const val AUTHORIZATION_REQUEST = "$SPOTIFY_AUTH_PACKAGE/AuthorizationRequest;"
@@ -16,7 +18,10 @@ object SpotifyNativeStartAuthActivityFingerprint : Fingerprint(
     name = "startAuthActivity",
     returnType = "Z",
     parameters = listOf(),
-    strings = listOf("CLIENT_ID", "REDIRECT_URI"),
+    strings = listOf(
+        string("CLIENT_ID", StringComparisonType.CONTAINS),
+        string("REDIRECT_URI", StringComparisonType.CONTAINS),
+    ),
 )
 
 // The SDK's fallback handler: shows LoginDialog (the WebView login) and returns true.

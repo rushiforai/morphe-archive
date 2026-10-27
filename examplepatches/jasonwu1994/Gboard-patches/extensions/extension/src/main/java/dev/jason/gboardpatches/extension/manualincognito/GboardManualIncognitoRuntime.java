@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public final class GboardManualIncognitoRuntime {
     private static final String TAG = "GboardPatches";
-    private static final String LOG_PREFIX = "[gboard-manual-incognito-18.0.3] ";
+    private static final String LOG_PREFIX = "[gboard-manual-incognito-18.5.4] ";
     private static final AtomicLong GENERATION = new AtomicLong(0L);
     private static final AtomicBoolean STOCK_SESSION_RESTART_PENDING =
             new AtomicBoolean(false);

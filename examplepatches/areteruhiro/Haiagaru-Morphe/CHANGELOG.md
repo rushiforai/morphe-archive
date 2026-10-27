@@ -1,3 +1,454 @@
+# Haiagaru 1.13.0
+
+正式版1.12.2からの更新です。メディアの表示・移動、板別Cookie、認証画面、追加画面のタブ操作を改善しました。
+
+## 画像・動画
+
+- 同じレスの画像・GIF・動画を、種類をまたいで左右に移動できるようにしました。
+- 「サムネイルからスレ全体の画像・GIF・動画へ左右移動」を追加しました。読み込み済みレスのメディアを順にたどれます。開いたサムネイルの位置を保ち、同じURLの重複やNG対象を除き、別のスレの一覧が混ざらないようにしています。同じレス内の移動とは別に切り替えられます。
+- 「GIFをHaiagaru専用ビューアで開かない」「動画をHaiagaru専用ビューアで開かない」をそれぞれ追加しました。オンにすると、その種類だけChMate標準の動作に戻ります。YouTubeも動画側の設定に従います。
+- ビューアの左右スワイプ、長押し2倍速、タップでの再生バー表示、ChMateジェスチャー、GIF自動再生を個別に切り替えられるようにしました。長押しで2倍速になっている間は、再生バーを隠していても表示で分かるようにしました。
+- GIFの読み込み待ち、不要な通信のキャンセル、キャッシュの再利用を見直しました。画像ビューアの先読みとGIFの重複取得を減らし、大きな一覧での繰り返し処理も抑えました。
+
+ビューア操作の追加機能は「動画専用ビューア」パッチの導入時に利用できます。「Haiagaru設定 → 画像・動画 → 画像・GIF・動画ビューアの操作設定」から変更できます。標準動作へ戻す2項目とスレ全体への移動は初期オフです。設定の共有・バックアップにも含まれ、次にメディアを開いたときから反映します。
+
+## Cookie・認証
+
+- Cookieを板ごとに分けて管理できるようにしました。板別管理を有効にした場合、書き込みメニューからのCookie削除はその板だけが対象になります。既存の共通Cookieは、設定から使いたい板を検索して割り当てられます。板別Cookieのバックアップ・復元にも対応しました。
+- 板を特定できない通信は従来のCookieを使うようにし、板判定に失敗して書き込めなくなる問題を修正しました。保存済みCookieを自動削除することはありません。
+- 認証・投稿確認画面の表示と再表示を見直し、元のフォームを保つようにしました。CAPTCHA画面の背景や表示領域、投稿成功後の画面終了と下書きの扱いも調整しました。
+
+## 閲覧・タブ・設定
+
+- Xの埋め込みやサイトのリンクカードを更新した際、カードの高さや表示位置が変わってスレが上にずれる問題を修正しました。
+- 追加画面のタブで、ChMateの設定に沿ったタブ切り替えや「戻る／進む」「新しいタブ」の操作に対応しました。
+- レスの共有先の並び順を、メニューを開いたときから反映するようにしました。
+- 191／226／242のツールバーに「必死チェッカーDroid＋で開く」を追加しました。
+- NGWordで投稿者IDに広がったNGへの返信も非表示にするオプションを追加しました。初期オフです。
+- エキスパート設定が詳細項目の表示切り替えであることを、設定画面で分かるようにしました。
+- 広告だけの超軽量構成で、旧5ch URLと板一覧の5ch.io対応を補いました。
+- 191の板・スレ取得後に接続を閉じる対策を追加し、初期オンにしました。古い接続の再利用で待つ場合の対策です。詳細設定からオフに戻せます。接続時間や電池消費が増える場合があり、報告された巡回停止すべての解消を確認したものではありません。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* add Hissi Droid Plus launcher to ChMate 191 toolbar ([84db386](https://github.com/areteruhiro/Haiagaru-Morphe/commit/84db3863c9c6fed9302fa932e1c195dfc679f8e8))
+* apply remembered share order before showing response menus ([56e6bdc](https://github.com/areteruhiro/Haiagaru-Morphe/commit/56e6bdcd09146aa41987e9f26987b6027922e183))
+* **chmate:** retain original challenge forms when reloading auth pages ([fe32c2d](https://github.com/areteruhiro/Haiagaru-Morphe/commit/fe32c2d940e333d6875a0a9d933e19bfba12acbf))
+* expose Hissi Droid Plus toolbar action on ChMate 226 and 242 ([5bb9494](https://github.com/areteruhiro/Haiagaru-Morphe/commit/5bb9494c61dc1f6eed5ca8e75c49e4ffb5448f74))
+* preserve preview layout and integrate viewer and authentication improvements ([e400882](https://github.com/areteruhiro/Haiagaru-Morphe/commit/e400882a632f43b4316e142be97b401703e125f6))
+* reduce 191 patrol stalls and improve mixed media viewers ([73cb2e6](https://github.com/areteruhiro/Haiagaru-Morphe/commit/73cb2e65cbd9de252a8a405219461f09f52c4430))
+* reject stylesheet URLs as external board authentication pages ([0457ada](https://github.com/areteruhiro/Haiagaru-Morphe/commit/0457adae976d60d0292889c8c79df1c1a21b1c73))
+* restore compatible conventional changelog preset ([d827954](https://github.com/areteruhiro/Haiagaru-Morphe/commit/d8279544c82ea3fc5dfa71b19fed091f2c4e3aa5))
+* retain legacy cookies when the posting board cannot be identified ([2e7952f](https://github.com/areteruhiro/Haiagaru-Morphe/commit/2e7952fa6c6de089b17faaee8959247a5c92b5ea))
+
+### ✨ New Features
+
+* add standard media routing and whole-thread galleries ([5a83cce](https://github.com/areteruhiro/Haiagaru-Morphe/commit/5a83cceea7ef990e452c4e81f975260d50d2c4c2))
+* **chmate-lite:** migrate 5ch menus and legacy URLs to io ([e707aa8](https://github.com/areteruhiro/Haiagaru-Morphe/commit/e707aa826f5bc511ef11cea8a939c6d6c3467526))
+* optionally hide replies chained from NGWord poster IDs ([ff3cf94](https://github.com/areteruhiro/Haiagaru-Morphe/commit/ff3cf94b77e3ac2506e43f237c74d7c5ed78c91d))
+* **video:** show 2x indicator only during hold-speed playback ([abf1cbd](https://github.com/areteruhiro/Haiagaru-Morphe/commit/abf1cbd9b9627fc482c14bd96c611ccacfba6a3c))
+
+# Haiagaru 1.13.0-dev.5
+
+191 devの通信の待ち時間対策を追加しました。あわせて、同じレスの画像・GIF・動画を左右スワイプで移動できるようにし、専用ビューアの操作設定とGIFの読み込みを改善しました。
+
+## 変更内容
+
+- 191 devの板・スレ取得で、古い接続の再利用による待ちを避ける設定を追加し、初期オンにしました。Haiagaru設定の詳細設定からオフに戻せます。接続し直す分の時間や電池消費が増える場合があります。報告された巡回停止全体の原因は引き続き調査しています。
+- 画像・GIF・動画の種類をまたいで、同じレスの前後のメディアへ移動できるようにしました。読み込み中のGIFからも移動できます。
+- ビューアの操作設定に、メディア間の左右スワイプ、長押し2倍速、タップによる再生バー表示、動画内のChMateジェスチャー、GIFの自動再生のオン・オフを追加しました。
+- GIFの読み込みで、無関係な別ファイルの通信待ちに巻き込まれる場合がある処理を見直しました。同じファイルの重複取得は引き続きまとめます。
+- 画面を閉じた後や再読み込みした際の不要なGIF通信を早く止めるようにし、デコードに失敗したキャッシュが残る問題も修正しました。
+- 操作を無効にしているときの不要な明るさ・音量の読み出しを減らしました。
+
+「Haiagaru設定 → 画像・動画 → 画像・GIF・動画ビューアの操作設定」から変更できます。GIFビューアの︙メニューからも開けます。
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、Assetsの `haiagaru-image-ng.zip`／`haiagaru-image-vpn-v2.zip` を、それぞれ展開せずに指定してください。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO)：送付先 `areteruhiro@gmail.com`
+- [PayPay](https://qr.paypay.ne.jp/p2p01_lf6ELD8pvzLJGHxr)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* reduce 191 patrol stalls and improve mixed media viewers ([73cb2e6](https://github.com/areteruhiro/Haiagaru-Morphe/commit/73cb2e65cbd9de252a8a405219461f09f52c4430))
+
+# Haiagaru 1.13.0-dev.4
+
+板別Cookieを有効にした際、「Cookie分離の対象板を特定できません」と表示され、書き込めなくなる問題を修正しました。
+
+## 変更内容
+
+- 板を特定できない通信は、従来のCookieをそのまま使って処理を続けるようにしました。
+- 191 devを含む投稿データの読み取りを修正し、実際に送信する板名からCookieの保存先を判定するようにしました。
+- 本文に「bbs」「board」と書いた際の誤判定と、送信データの一部分だけを使う形式の判定を修正しました。
+- 板を特定できる場合は板別の管理を続けます。書き込みメニューのCookie削除は、選択した板だけが対象です。
+
+エッヂで使っているCookieを板別管理へ引き継ぐ場合は、設定の「Cookieに合う板を探して割り当て」から対象の板を選べます。今回の修正で、保存済みCookieを自動削除することはありません。
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、Assetsの `haiagaru-image-ng.zip`／`haiagaru-image-vpn-v2.zip` を、それぞれ展開せずに指定してください。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO)：送付先 `areteruhiro@gmail.com`
+- [PayPay](https://qr.paypay.ne.jp/p2p01_lf6ELD8pvzLJGHxr)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* retain legacy cookies when the posting board cannot be identified ([2e7952f](https://github.com/areteruhiro/Haiagaru-Morphe/commit/2e7952fa6c6de089b17faaee8959247a5c92b5ea))
+
+# Haiagaru 1.13.0-dev.3
+
+X・URLカードの位置ずれ修正と、追加画面・認証まわりの改善をまとめたプレリリースです。
+
+## 変更内容
+
+- XやURLカードがあるスレで、更新・開き直しの際に表示位置がずれる問題を修正しました。再取得中は取得済みの表示を保ち、展開したXカードも位置復元用の行と同じ高さで測定するようにしました。
+- エキスパート設定の一番上のスイッチを「エキスパート設定の項目を表示」に変更しました。詳細項目の表示切替と、各機能のON／OFFを区別しやすくしています。
+- 追加画面のタブでも、ChMateで設定したジェスチャーを使える設定を追加しました（初期OFF）。タブの移動・終了に加え、画面内の戻る／進むと新しいタブに対応しています。
+- GIF専用ビューアの読み込みと再生を改善しました。取得済みファイルを容量・保持期間に上限のあるキャッシュで再利用し、Android 9以降ではOSのアニメーション描画を使います。
+- リンクカードとGIFリンクで、省略されたプロトコルなどのURL表記を扱えるようにしました。スレの本文データは書き換えません。
+- 板ごとのCookie管理を追加しました（初期OFF）。既存Cookieに合う板を探し、板名・URLで絞り込んで割り当てられます。書き込みメニューからの削除も、その板だけを対象にできます。
+- 認証情報を含むHaiagaruバックアップでは、板別Cookieも保存・復元できるようにしました。
+- 計算式やCAPTCHAの確認画面を小さな認証画面にまとめ、元の書き込み画面へ戻れるようにしました。投稿完了の判定を追加し、新しく入力した本文を誤って消さないようにしています。サイトの認証操作は利用者が行います。
+- 設定画面の項目配置と説明を整理しました。
+
+## 追加ライブラリについて
+
+パッチ時に次の機能を選ぶ場合は、対応するZIPをこのリリースのAssetsから追加でダウンロードしてください。ZIPは展開せずに指定します。
+
+- Image NGの修正：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`（Image NG用とは別のファイルです）
+
+## 確認範囲と残っている確認
+
+位置ずれは、更新・開き直しで使う行の測定をAndroid上で比較し、キャッシュ期限切れと展開状態による高さの不一致を再現して修正を確認しました。再取得失敗時の表示保持、キャッシュ削除、表示状態の切替も確認しています。
+
+191 devで巡回・スレ取得が一時的に詰まるとの報告は、226との差を調査中です。今回の版で解消したとは確認できていません。
+
+報告と同じ端末での長時間利用、すべてのサイトでの認証、実アカウントを使ったバックアップの復元は未確認です。気になる動作があれば、操作手順と設定の組み合わせを添えてお知らせください。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO)：送付先 `areteruhiro@gmail.com`
+- [PayPay](https://qr.paypay.ne.jp/p2p01_lf6ELD8pvzLJGHxr)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* preserve preview layout and integrate viewer and authentication improvements ([e400882](https://github.com/areteruhiro/Haiagaru-Morphe/commit/e400882a632f43b4316e142be97b401703e125f6))
+
+# Haiagaru 1.13.0-dev.2
+
+net→io対応と投稿確認フォームの修正を含むプレリリースです。
+
+## 変更内容
+
+- 軽量版「広告だけの超軽量構成（検証用）」で5ch.net→5ch.io変換を常時有効にしました。保存済みmenu.5ch.netをmenu.5ch.ioへ変換し、板一覧URL1が未設定の場合は `https://menu.5ch.io/bbsmenu.html` を初期値にします。別の板一覧URLや通常版のnet→io設定は保持します。
+- 外部板の認証URLとしてCSS・JavaScript・画像や投稿先URLを誤って選ぶ問題を修正しました。
+- krsw等から返された計算認証・CAPTCHAの元フォームを、ChMate内の投稿確認画面で開く導線を追加しました。サイトの計算開始・認証操作は画面上で行います。CAPTCHAの自動解答や投稿の自動再送は行いません。
+- CAPTCHA用Cookieを許可した際、フォームのない投稿先へGETで再読込して「ブラウザ変ですよん／フォーム情報が正しく読めないです。」となる経路を修正しました。元の確認フォームを再表示します。上部の操作欄も整理し、説明・Cookie設定を開閉式にしました。
+- 「NGWord-IDへの返信も非表示」オプションを追加しました（初期OFF）。NGWord側の「連鎖」「非表示」「投稿者のIDもNG」が有効な場合に使えます。
+- レス長押しメニューで「共有（記憶）」の並び替えが反映されない問題を修正しました。
+
+## 確認範囲・残課題
+
+Androidビルド、投稿確認のURL・HTML・有効期限・文字コードの109項目、実機オフラインでのWorker実行・元フォーム再表示・未許可送信停止・終了時破棄など12項目を確認しました。軽量版の191／226／242への適用と軽量runtimeの検査、実機で各10項目（計30項目）のView・URL変換、起動、新規クラッシュログを確認しました。今回候補での実スレ本文・画像表示の通し再確認は、公開指示に基づき省略しています。
+
+**krsw／ridの実サイトでの認証完了・投稿成功は未確認です。認証機能は検証中で、CAPTCHAサービス側がWebViewを受け付けない場合もあります。** 投稿確認画面の送信許可は初期OFFです。許可してサイトの認証・送信ボタンを操作すると今回の投稿が送信される場合があるため、元の書き込み画面からの二重送信に注意してください。
+
+NGWord-IDオプションは本番フック・モデル検査を実施していますが、実データでの全条件の通し確認は未完了です。共有（記憶）の242での実メニュー操作、241／243の今回候補の端末操作も未確認です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO)：送付先 `areteruhiro@gmail.com`
+- [PayPay](https://qr.paypay.ne.jp/p2p01_lf6ELD8pvzLJGHxr)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### ✨ New Features
+
+* **video:** show 2x indicator only during hold-speed playback ([abf1cbd](https://github.com/areteruhiro/Haiagaru-Morphe/commit/abf1cbd9b9627fc482c14bd96c611ccacfba6a3c))
+
+# Haiagaru 1.13.0-dev.1
+
+net→io対応と投稿確認フォームの修正を含むプレリリースです。
+
+## 変更内容
+
+- 軽量版「広告だけの超軽量構成（検証用）」で5ch.net→5ch.io変換を常時有効にしました。保存済みmenu.5ch.netをmenu.5ch.ioへ変換し、板一覧URL1が未設定の場合は `https://menu.5ch.io/bbsmenu.html` を初期値にします。別の板一覧URLや通常版のnet→io設定は保持します。
+- 外部板の認証URLとしてCSS・JavaScript・画像や投稿先URLを誤って選ぶ問題を修正しました。
+- krsw等から返された計算認証・CAPTCHAの元フォームを、ChMate内の投稿確認画面で開く導線を追加しました。サイトの計算開始・認証操作は画面上で行います。CAPTCHAの自動解答や投稿の自動再送は行いません。
+- CAPTCHA用Cookieを許可した際、フォームのない投稿先へGETで再読込して「ブラウザ変ですよん／フォーム情報が正しく読めないです。」となる経路を修正しました。元の確認フォームを再表示します。上部の操作欄も整理し、説明・Cookie設定を開閉式にしました。
+- 「NGWord-IDへの返信も非表示」オプションを追加しました（初期OFF）。NGWord側の「連鎖」「非表示」「投稿者のIDもNG」が有効な場合に使えます。
+- レス長押しメニューで「共有（記憶）」の並び替えが反映されない問題を修正しました。
+
+## 確認範囲・残課題
+
+Androidビルド、投稿確認のURL・HTML・有効期限・文字コードの109項目、実機オフラインでのWorker実行・元フォーム再表示・未許可送信停止・終了時破棄など12項目を確認しました。軽量版の191／226／242への適用と軽量runtimeの検査、実機で各10項目（計30項目）のView・URL変換、起動、新規クラッシュログを確認しました。今回候補での実スレ本文・画像表示の通し再確認は、公開指示に基づき省略しています。
+
+**krsw／ridの実サイトでの認証完了・投稿成功は未確認です。認証機能は検証中で、CAPTCHAサービス側がWebViewを受け付けない場合もあります。** 投稿確認画面の送信許可は初期OFFです。許可してサイトの認証・送信ボタンを操作すると今回の投稿が送信される場合があるため、元の書き込み画面からの二重送信に注意してください。
+
+NGWord-IDオプションは本番フック・モデル検査を実施していますが、実データでの全条件の通し確認は未完了です。共有（記憶）の242での実メニュー操作、241／243の今回候補の端末操作も未確認です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO)：送付先 `areteruhiro@gmail.com`
+- [PayPay](https://qr.paypay.ne.jp/p2p01_lf6ELD8pvzLJGHxr)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* apply remembered share order before showing response menus ([56e6bdc](https://github.com/areteruhiro/Haiagaru-Morphe/commit/56e6bdcd09146aa41987e9f26987b6027922e183))
+* **chmate:** retain original challenge forms when reloading auth pages ([fe32c2d](https://github.com/areteruhiro/Haiagaru-Morphe/commit/fe32c2d940e333d6875a0a9d933e19bfba12acbf))
+* reject stylesheet URLs as external board authentication pages ([0457ada](https://github.com/areteruhiro/Haiagaru-Morphe/commit/0457adae976d60d0292889c8c79df1c1a21b1c73))
+
+### ✨ New Features
+
+* **chmate-lite:** migrate 5ch menus and legacy URLs to io ([e707aa8](https://github.com/areteruhiro/Haiagaru-Morphe/commit/e707aa826f5bc511ef11cea8a939c6d6c3467526))
+* optionally hide replies chained from NGWord poster IDs ([ff3cf94](https://github.com/areteruhiro/Haiagaru-Morphe/commit/ff3cf94b77e3ac2506e43f237c74d7c5ed78c91d))
+
+# Haiagaru 1.12.3-dev.2
+
+1.12.2を基にしたプレリリースです。
+
+## 変更内容
+
+- ChMate 0.8.10.191 devのスレ内ツールバー編集に「必死チェッカーDroid＋で開く」を追加しました。初期状態は未選択です。ツールバー編集で追加・並べ替えできます。
+- ボタンを押すとインストール済みの必死チェッカーDroid＋のホーム画面を開きます。ツールバーには投稿者IDの選択情報がないため、IDやスレ本文は送信しません。
+- アプリが未導入の場合や起動できない場合はメッセージを表示します。ボタンの画像も既存のアイコン設定から変更できます。
+- この追加項目は191版が対象です。226／242の既存ツールバーは引き続き利用できます。
+
+## 確認範囲
+
+Android向けビルドは既存のCIで実施します。端末のDroid＋パッケージとホームActivityは調査済みですが、最終候補の端末導入・ツールバー編集からの通し操作は接続が切れたため未確認です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO)：送付先 `areteruhiro@gmail.com`
+- [PayPay](https://qr.paypay.ne.jp/p2p01_lf6ELD8pvzLJGHxr)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* expose Hissi Droid Plus toolbar action on ChMate 226 and 242 ([5bb9494](https://github.com/areteruhiro/Haiagaru-Morphe/commit/5bb9494c61dc1f6eed5ca8e75c49e4ffb5448f74))
+
+# Haiagaru 1.12.3-dev.1
+
+1.12.2を基にしたプレリリースです。
+
+## 変更内容
+
+- ChMate 0.8.10.191 devのスレ内ツールバー編集に「必死チェッカーDroid＋で開く」を追加しました。初期状態は未選択です。ツールバー編集で追加・並べ替えできます。
+- ボタンを押すとインストール済みの必死チェッカーDroid＋のホーム画面を開きます。ツールバーには投稿者IDの選択情報がないため、IDやスレ本文は送信しません。
+- アプリが未導入の場合や起動できない場合はメッセージを表示します。ボタンの画像も既存のアイコン設定から変更できます。
+- この追加項目は191版が対象です。226／242の既存ツールバーは引き続き利用できます。
+
+## 確認範囲
+
+Android向けビルドは既存のCIで実施します。端末のDroid＋パッケージとホームActivityは調査済みですが、最終候補の端末導入・ツールバー編集からの通し操作は接続が切れたため未確認です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO)：送付先 `areteruhiro@gmail.com`
+- [PayPay](https://qr.paypay.ne.jp/p2p01_lf6ELD8pvzLJGHxr)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* add Hissi Droid Plus launcher to ChMate 191 toolbar ([84db386](https://github.com/areteruhiro/Haiagaru-Morphe/commit/84db3863c9c6fed9302fa932e1c195dfc679f8e8))
+
 # Haiagaru 1.12.2
 
 1.12.1からの更新です。検索画面・動画操作・復帰時の表示・バックアップを改善し、任意の軽量構成を追加しました。

@@ -244,15 +244,16 @@ fun main() = runBlocking {
         check(!homeRequests.claim("p1", true, true)) { "Repeated Home callback duplicated sync" }
         homeRequests.finish("p1", true)
         check(!homeRequests.claim("p1", true, false))
-        check(homeRequests.claim("p1", true, true)) { "Interrupted sync did not retry on Home" }
+        check(!homeRequests.claim("p1", true, true)) { "Playback exit retried an interrupted startup sync" }
         homeRequests.finish("p1", false)
         check(!homeRequests.claim("p1", true, true)) { "Completed/failed sync restarted on every Home entry" }
         check(homeRequests.claim("p2", true, true)) { "New profile did not get its own sync" }
         homeRequests.finish("p1", false)
         check(!homeRequests.claim("p2", true, true)) { "Old-profile completion changed the new request" }
         homeRequests.finish("p2", false)
+        check(!homeRequests.claim("p1", true, true)) { "Returning to a previous profile repeated all-provider reads" }
         homeRequests.reset()
-        check(homeRequests.claim("p2", true, true)) { "Settings changes could not request a new sync" }
+        check(homeRequests.claim("p2", true, true)) { "A new process could not request its startup sync" }
         val fullSyncGate = NuvioMergePolicy().apply { navigate("home") }
         val fullSyncRevision = fullSyncGate.revision()
         fullSyncGate.navigate("detail/test")

@@ -19,7 +19,7 @@ internal object OddsEnabledFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Z",
     parameters = listOf(CONTEXT, "Landroid/content/SharedPreferences;"),
-    strings = listOf("PREF_PROVIDER_ODDS_ENABLE"),
+    strings = listOf(string("PREF_PROVIDER_ODDS_ENABLE", StringComparisonType.CONTAINS)),
 )
 
 // static boolean(Context): true when the odds-providers response said odds are off for this
@@ -30,7 +30,7 @@ internal object OddsProvidersDisabledFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Z",
     parameters = listOf(CONTEXT),
-    strings = listOf("ODDS_PROVIDERS_DISABLED"),
+    strings = listOf(string("ODDS_PROVIDERS_DISABLED", StringComparisonType.CONTAINS)),
 )
 
 // static boolean(Context): the "Promotions" setting (streaming, tickets and betting offers).
@@ -39,7 +39,7 @@ internal object PromotionsEnabledFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Z",
     parameters = listOf(CONTEXT),
-    strings = listOf("PREF_PROMOTIONS_ENABLE"),
+    strings = listOf(string("PREF_PROMOTIONS_ENABLE", StringComparisonType.CONTAINS)),
 )
 
 // static String(Context): the Bet365 open-account (sign-up) link for the user's country, or

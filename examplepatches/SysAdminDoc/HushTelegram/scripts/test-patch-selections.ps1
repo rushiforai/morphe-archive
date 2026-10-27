@@ -161,6 +161,14 @@ Assert-Selection (-not (Test-SelectionRefusal -Selection $malformed -PrivateLog 
     -Report ([pscustomobject]@{ appliedPatches = @(); failedPatches = @(); stepResults = @() }))) 'A 1.19.0 parser refusal passed with a result file.'
 Assert-Selection (-not (Test-SelectionRefusal -Selection $malformed -Report $null -PrivateLog ($currentParseLog.Replace('PatchBundle', 'UnrelatedDocument')) -Stock $stock)) 'An unrelated 1.19.0 JSON parser failure passed.'
 Assert-Selection (-not (Test-SelectionRefusal -Selection $malformed -Report $null -PrivateLog ($currentParseLog.Replace('readPatchBundles', 'readSomethingElse')) -Stock $stock)) 'A 1.19.0 JSON failure outside the options file reader passed.'
+# 1.19.1 wraps each stack line in italic style codes, as its real refusal log does.
+$styleOn = [string][char]27 + '[3m'
+$styleOff = [string][char]27 + '[23m' + [char]27 + '[0m'
+$styledParseLog = (($currentParseLog -split "`n") | ForEach-Object { if ($_.StartsWith("`tat ")) { $styleOn + $_ + $styleOff } else { $_ } }) -join "`n"
+Assert-Selection ($styledParseLog -ne $currentParseLog) 'The styled 1.19.1 parser log carries no style codes.'
+Assert-Selection (Test-SelectionRefusal -Selection $malformed -Report $null -PrivateLog $styledParseLog -Stock $stock) 'A 1.19.1 parser refusal with styled stack lines was rejected.'
+Assert-Selection (-not (Test-SelectionRefusal -Selection $malformed -Report $null -PrivateLog ($styledParseLog.Replace('readPatchBundles', 'readSomethingElse')) -Stock $stock)) 'A styled JSON failure outside the options file reader passed.'
+Assert-Selection (-not (Test-SelectionRefusal -Selection $invalidId -Report $null -PrivateLog $styledParseLog -Stock $stock)) 'Styled parser evidence satisfied an unrelated API validation case.'
 foreach ($toolFailure in @('java.lang.OutOfMemoryError: exhausted', 'Exception in thread "main" java.lang.OutOfMemoryError: exhausted',
     "`tCaused by: java.io.IOException: unavailable")) {
     Assert-Selection (-not (Test-SelectionRefusal -Selection $invalidId -Report $current -PrivateLog ($currentLog + "`n" + $toolFailure) -Stock $stock)) 'A tool crash satisfied a 1.19.0 option-validation case.'
@@ -260,4 +268,19 @@ Assert-Selection (-not (Test-SelectionRewrittenValues -Report ($rewrites -replac
 Assert-Selection (-not (Test-SelectionRewrittenValues -Report ($rewrites -replace 'night-v29', 'v31') -Closure $logoOnly)) 'A rewrite of the light launch theme passed.'
 Assert-Selection (-not (Test-SelectionRewrittenValues -Report ($rewrites -replace 'rewritten values: 2', 'rewritten values: 3') -Closure $logoOnly)) 'A third rewrite passed with the logo''s two.'
 Assert-Selection (-not (Test-SelectionRewrittenValues -Report 'no table report' -Closure $default)) 'A report without its rewritten values line passed.'
+# No contract runs this matrix through the CLI, so its patch command is read from the source: every
+# argument list that runs the CLI's patch command also passes --validate.
+$selectionSource = [System.Management.Automation.Language.Parser]::ParseFile(
+    (Join-Path $Root 'scripts/verify-patch-selections.ps1'), [ref]$null, [ref]$null)
+$patchCommands = @($selectionSource.FindAll({ param($Node)
+            $Node -is [System.Management.Automation.Language.AssignmentStatementAst] -and
+            @($Node.Right.FindAll({ param($Inner)
+                        $Inner -is [System.Management.Automation.Language.StringConstantExpressionAst] -and
+                        $Inner.Value -ceq 'patch' }, $true)).Count -gt 0 }, $true))
+$unvalidated = @($patchCommands | Where-Object {
+        @($_.Right.FindAll({ param($Inner)
+                    $Inner -is [System.Management.Automation.Language.StringConstantExpressionAst] -and
+                    $Inner.Value -ceq '--validate' }, $true)).Count -eq 0 })
+Assert-Selection ($patchCommands.Count -ge 1 -and $unvalidated.Count -eq 0) `
+    "verify-patch-selections.ps1 runs the CLI's patch command without --validate: $(@($unvalidated | ForEach-Object { $_.Extent.Text }) -join '; ')"
 Write-Host "[selections] contracts passed ($assertions assertions)"

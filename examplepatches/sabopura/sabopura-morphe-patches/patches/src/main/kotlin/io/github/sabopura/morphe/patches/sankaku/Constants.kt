@@ -25,11 +25,6 @@ internal object Constants {
                 minSdk = 24,
                 description = "rc98; welcome.sankaku.app/apk/sankaku-app-4.27-rc98.apk",
             ),
-            AppTarget(
-                version = "4.26",
-                minSdk = 24,
-                description = "rc96; last version supported by HellveticaPatches 1.1.3.",
-            ),
         ),
     )
 }

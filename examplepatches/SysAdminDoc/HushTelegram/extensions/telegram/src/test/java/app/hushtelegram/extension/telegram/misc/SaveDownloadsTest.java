@@ -238,9 +238,77 @@ public class SaveDownloadsTest {
         @Override public boolean secretChat(Object message) { return inner.secretChat(message); }
         @Override public String attachName(Object document) { return inner.attachName(document); }
         @Override public String documentName(Object document) { return inner.documentName(document); }
+        @Override public boolean photoOrVideo(Object message) { return inner.photoOrVideo(message); }
+        @Override public Object photo(Object message) { return inner.photo(message); }
         @Override public Object storedMessage(int account, long dialogId, int messageId) {
             throw new IllegalStateException("database closed");
         }
+    }
+
+    // #29: Save to Gallery is gone in a chat that doesn't allow saving, so the second switch takes its photos and videos.
+
+    private static Message restrictedPhoto() {
+        return Message.photo(new Document("-5012_33.jpg", null), true, false);
+    }
+
+    @Test public void theSecondSwitchCopiesAPhotoFromAChatThatDoesntAllowSaving() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        File file = downloaded("-5012_33.jpg", "the photo");
+        SaveDownloads.fileLoaded(0, "-5012_33.jpg", file, restrictedPhoto());
+        assertTrue(downloads.rows.isEmpty());
+
+        Settings.SAVE_RESTRICTED_DOWNLOADS.save(true);
+        ByteArrayOutputStream body = bodyOf(1);
+        // Its smaller sizes load with the same message, and stay put.
+        SaveDownloads.fileLoaded(0, "-5012_31.jpg", downloaded("-5012_31.jpg", "thumb"), restrictedPhoto());
+        SaveDownloads.fileLoaded(0, "-5012_33.jpg", file, restrictedPhoto());
+        assertEquals(1, downloads.rows.size());
+        assertEquals("-5012_33.jpg", downloads.row(1).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
+        assertEquals("Download/Telegram/", downloads.row(1).getAsString(MediaStore.MediaColumns.RELATIVE_PATH));
+        assertEquals("the photo", body.toString(StandardCharsets.UTF_8.name()));
+        assertTrue(String.join("\n", HookStatus.report()).contains(SaveDownloads.RESTRICTED_MEDIA));
+    }
+
+    @Test public void theSecondSwitchCopiesAVideoUnderItsOwnName() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        Settings.SAVE_RESTRICTED_DOWNLOADS.save(true);
+        Message video = Message.video(new Document("4_88.mp4", "lesson.mp4"), true);
+        ByteArrayOutputStream body = bodyOf(1);
+        // The video's cover first, then the video.
+        SaveDownloads.fileLoaded(0, "-5012_40.jpg", downloaded("-5012_40.jpg", "cover"), video);
+        SaveDownloads.fileLoaded(0, "4_88.mp4", downloaded("4_88.mp4", "moving pictures"), video);
+        assertEquals(1, downloads.rows.size());
+        assertEquals("lesson.mp4", downloads.row(1).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
+        assertEquals("moving pictures", body.toString(StandardCharsets.UTF_8.name()));
+    }
+
+    @Test public void photosAndVideosFromOrdinaryOrSecretChatsStayInTelegram() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        Settings.SAVE_RESTRICTED_DOWNLOADS.save(true);
+        // An ordinary chat has Save to Gallery for these.
+        SaveDownloads.fileLoaded(0, "-5012_33.jpg", downloaded("-5012_33.jpg", "p"),
+                Message.photo(new Document("-5012_33.jpg", null), false, false));
+        SaveDownloads.fileLoaded(0, "4_88.mp4", downloaded("4_88.mp4", "v"),
+                Message.video(new Document("4_88.mp4", "lesson.mp4"), false));
+        // A secret chat never lets anything out.
+        SaveDownloads.fileLoaded(0, "-5012_33.jpg", downloaded("-5012_33.jpg", "p"),
+                Message.photo(new Document("-5012_33.jpg", null), true, true));
+        assertTrue(downloads.rows.isEmpty());
+        assertTrue(String.join("\n", HookStatus.report()).contains(SaveDownloads.KEPT));
+    }
+
+    @Test public void aQueuedPhotoIsLookedUpOnlyWithTheSecondSwitchOn() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        SaveDownloadsForTests.STORED.put("0:-1002233445566:51", restrictedPhoto());
+        String key = queuedKey(51, -1002233445566L, SaveDownloads.PHOTO_TYPE);
+        SaveDownloads.fileLoaded(0, "-5012_33.jpg", downloaded("-5012_33.jpg", "overnight"), key);
+        assertTrue(SaveDownloadsForTests.LOOKUPS.isEmpty());
+
+        Settings.SAVE_RESTRICTED_DOWNLOADS.save(true);
+        bodyOf(1);
+        SaveDownloads.fileLoaded(0, "-5012_33.jpg", downloaded("-5012_33.jpg", "overnight"), key);
+        assertEquals(java.util.Collections.singletonList("0:-1002233445566:51"), SaveDownloadsForTests.LOOKUPS);
+        assertEquals("-5012_33.jpg", downloads.row(1).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
     }
 
     @Test public void theSecondSwitchLetsAChatThatDoesntAllowSavingThrough() throws IOException {

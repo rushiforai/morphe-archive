@@ -85,3 +85,8 @@ commit a35ca594e26570607fe0c17c67651a44519e9ae2, GPL-3.0:
 https://github.com/bakwudo/uyu
 Changes: internal dependency, Firebase endpoint matching, strict header-call
 and register-liveness checks, label-preserving insertion and synthetic tests.
+
+Show deleted messages adapted from patches/twitch/chat/ShowDeletedMessagesPatch.kt
+and ChatFingerprints.kt in arandomhooman/hoomans-morphe-patches (commit above),
+GPL-3.0. Changes: structural span and formatter discovery, register derivation
+from the formatter code, a settings toggle and strict instruction-count checks.

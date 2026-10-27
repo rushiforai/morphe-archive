@@ -1,7 +1,7 @@
 package io.github.sabopura.morphe.patches.youtube.ambient
 
 import app.morphe.patcher.patch.resourcePatch
-import io.github.sabopura.morphe.patches.youtube.Constants.YOUTUBE_21_04_223
+import io.github.sabopura.morphe.patches.youtube.Constants.YOUTUBE
 import io.github.sabopura.morphe.patches.youtube.shared.addSettingsEntry
 import io.github.sabopura.morphe.patches.youtube.shared.addStringArray
 import io.github.sabopura.morphe.patches.youtube.shared.addStrings
@@ -190,7 +190,7 @@ internal val ambientLightResourcePatch = resourcePatch(
     default = false,
 ) {
     dependsOn(sharedSettingsResourcePatch)
-    compatibleWith(YOUTUBE_21_04_223)
+    compatibleWith(YOUTUBE)
 
     execute {
         registerSettingsActivity(SETTINGS_ACTIVITY, SETTINGS_ACTION, "ambient_light_settings_title")

@@ -34,14 +34,20 @@
 extern "C" {
 bool SwpDispatchSetNext(PFN_xrGetInstanceProcAddr gipa, PFN_xrCreateSession createSession,
                         PFN_xrDestroySession destroySession, PFN_xrBeginFrame beginFrame,
-                        PFN_xrLocateViews locateViews, PFN_xrEndFrame endFrame,
+                        PFN_xrWaitFrame waitFrame, PFN_xrLocateViews locateViews,
+                        PFN_xrEndFrame endFrame, PFN_xrCreateSwapchain createSwapchain,
+                        PFN_xrDestroySwapchain destroySwapchain,
                         PFN_xrEnumerateSwapchainImages enumerateSwapchainImages,
-                        PFN_xrAcquireSwapchainImage acquireSwapchainImage);
+                        PFN_xrAcquireSwapchainImage acquireSwapchainImage,
+                        PFN_xrWaitSwapchainImage waitSwapchainImage,
+                        PFN_xrReleaseSwapchainImage releaseSwapchainImage);
 void SwpDispatchTryArm();
 XrResult SwpDispatchCreateSession(XrInstance instance, const XrSessionCreateInfo* createInfo,
                                   XrSession* session);
 XrResult SwpDispatchDestroySession(XrSession session);
 XrResult SwpDispatchBeginFrame(XrSession session, const XrFrameBeginInfo* frameBeginInfo);
+XrResult SwpDispatchWaitFrame(XrSession session, const XrFrameWaitInfo* frameWaitInfo,
+                              XrFrameState* frameState);
 XrResult SwpDispatchLocateViews(XrSession session, const XrViewLocateInfo* viewLocateInfo,
                                 XrViewState* viewState, uint32_t viewCapacityInput,
                                 uint32_t* viewCountOutput, XrView* views);
@@ -52,6 +58,13 @@ XrResult SwpDispatchEnumerateSwapchainImages(XrSwapchain swapchain, uint32_t cou
 XrResult SwpDispatchAcquireSwapchainImage(XrSwapchain swapchain,
                                           const XrSwapchainImageAcquireInfo* acquireInfo,
                                           uint32_t* index);
+XrResult SwpDispatchCreateSwapchain(XrSession session, const XrSwapchainCreateInfo* createInfo,
+                                    XrSwapchain* swapchain);
+XrResult SwpDispatchDestroySwapchain(XrSwapchain swapchain);
+XrResult SwpDispatchWaitSwapchainImage(XrSwapchain swapchain,
+                                       const XrSwapchainImageWaitInfo* waitInfo);
+XrResult SwpDispatchReleaseSwapchainImage(XrSwapchain swapchain,
+                                          const XrSwapchainImageReleaseInfo* releaseInfo);
 void SwpSetEnabled(bool enabled);
 bool SwpGetEnabled();
 }
@@ -62,7 +75,7 @@ bool SwpGetEnabled();
 namespace {
 
 constexpr const char* kLayerName = "XR_APILAYER_local_GalaxyXR_gxr_spacewarp";
-constexpr const char* kBuild = "gxr-spacewarp-w2a-20261017"; // brief-10 wiring wave
+constexpr const char* kBuild = "gxr-spacewarp-halfrate-20261026";
 
 // ---------------------------------------------------------------------------
 // The next-chain GIPA (name forwarding only) and the wrapper functions routed
@@ -74,10 +87,15 @@ struct Route {
     PFN_xrCreateSession createSession;
     PFN_xrDestroySession destroySession;
     PFN_xrBeginFrame beginFrame;
+    PFN_xrWaitFrame waitFrame;
     PFN_xrLocateViews locateViews;
     PFN_xrEndFrame endFrame;
     PFN_xrEnumerateSwapchainImages enumerateSwapchainImages;
     PFN_xrAcquireSwapchainImage acquireSwapchainImage;
+    PFN_xrCreateSwapchain createSwapchain;
+    PFN_xrDestroySwapchain destroySwapchain;
+    PFN_xrWaitSwapchainImage waitSwapchainImage;
+    PFN_xrReleaseSwapchainImage releaseSwapchainImage;
 } g{};
 
 XrResult XRAPI_PTR WrapCreateSession(XrInstance instance, const XrSessionCreateInfo* createInfo,
@@ -91,6 +109,11 @@ XrResult XRAPI_PTR WrapDestroySession(XrSession session) {
 
 XrResult XRAPI_PTR WrapBeginFrame(XrSession session, const XrFrameBeginInfo* frameBeginInfo) {
     return SwpDispatchBeginFrame(session, frameBeginInfo);
+}
+
+XrResult XRAPI_PTR WrapWaitFrame(XrSession session, const XrFrameWaitInfo* frameWaitInfo,
+                                XrFrameState* frameState) {
+    return SwpDispatchWaitFrame(session, frameWaitInfo, frameState);
 }
 
 XrResult XRAPI_PTR WrapLocateViews(XrSession session, const XrViewLocateInfo* viewLocateInfo,
@@ -116,6 +139,25 @@ XrResult XRAPI_PTR WrapAcquireSwapchainImage(XrSwapchain swapchain,
     return SwpDispatchAcquireSwapchainImage(swapchain, acquireInfo, index);
 }
 
+XrResult XRAPI_PTR WrapCreateSwapchain(XrSession session, const XrSwapchainCreateInfo* createInfo,
+                                       XrSwapchain* swapchain) {
+    return SwpDispatchCreateSwapchain(session, createInfo, swapchain);
+}
+
+XrResult XRAPI_PTR WrapDestroySwapchain(XrSwapchain swapchain) {
+    return SwpDispatchDestroySwapchain(swapchain);
+}
+
+XrResult XRAPI_PTR WrapWaitSwapchainImage(XrSwapchain swapchain,
+                                          const XrSwapchainImageWaitInfo* waitInfo) {
+    return SwpDispatchWaitSwapchainImage(swapchain, waitInfo);
+}
+
+XrResult XRAPI_PTR WrapReleaseSwapchainImage(XrSwapchain swapchain,
+                                             const XrSwapchainImageReleaseInfo* releaseInfo) {
+    return SwpDispatchReleaseSwapchainImage(swapchain, releaseInfo);
+}
+
 }  // namespace
 
 // ---------------------------------------------------------------------------
@@ -137,10 +179,15 @@ extern "C" XrResult XRAPI_PTR LayerGetInstanceProcAddr(XrInstance instance, cons
     ROUTE("xrCreateSession", WrapCreateSession);
     ROUTE("xrDestroySession", WrapDestroySession);
     ROUTE("xrBeginFrame", WrapBeginFrame);
+    ROUTE("xrWaitFrame", WrapWaitFrame);
     ROUTE("xrLocateViews", WrapLocateViews);
     ROUTE("xrEndFrame", WrapEndFrame);
     ROUTE("xrEnumerateSwapchainImages", WrapEnumerateSwapchainImages);
     ROUTE("xrAcquireSwapchainImage", WrapAcquireSwapchainImage);
+    ROUTE("xrCreateSwapchain", WrapCreateSwapchain);
+    ROUTE("xrDestroySwapchain", WrapDestroySwapchain);
+    ROUTE("xrWaitSwapchainImage", WrapWaitSwapchainImage);
+    ROUTE("xrReleaseSwapchainImage", WrapReleaseSwapchainImage);
 #undef ROUTE
     // Unknown name: forward through the next chain only when it is assigned; the
     // mandatory guard applies exactly as for our own routes' fallbacks.
@@ -169,22 +216,34 @@ XrResult LayerCreateInstance(const XrInstanceCreateInfo* info, const XrApiLayerC
     }
     PFN_xrDestroySession nextDestroySession = nullptr;
     PFN_xrBeginFrame nextBeginFrame = nullptr;
+    PFN_xrWaitFrame nextWaitFrame = nullptr;
     PFN_xrLocateViews nextLocateViews = nullptr;
     PFN_xrEndFrame nextEndFrame = nullptr;
     PFN_xrEnumerateSwapchainImages nextEnumerateSwapchainImages = nullptr;
     PFN_xrAcquireSwapchainImage nextAcquireSwapchainImage = nullptr;
+    PFN_xrCreateSwapchain nextCreateSwapchain = nullptr;
+    PFN_xrDestroySwapchain nextDestroySwapchain = nullptr;
+    PFN_xrWaitSwapchainImage nextWaitSwapchainImage = nullptr;
+    PFN_xrReleaseSwapchainImage nextReleaseSwapchainImage = nullptr;
     // Resolve through the NEXT chain's GIPA (never our own function pointers).
     LOAD("xrCreateSession", g.createSession);
     LOAD("xrDestroySession", nextDestroySession);
     LOAD("xrBeginFrame", nextBeginFrame);
+    LOAD("xrWaitFrame", nextWaitFrame);
     LOAD("xrLocateViews", nextLocateViews);
     LOAD("xrEndFrame", nextEndFrame);
     LOAD("xrEnumerateSwapchainImages", nextEnumerateSwapchainImages);
     LOAD("xrAcquireSwapchainImage", nextAcquireSwapchainImage);
+    LOAD("xrCreateSwapchain", nextCreateSwapchain);
+    LOAD("xrDestroySwapchain", nextDestroySwapchain);
+    LOAD("xrWaitSwapchainImage", nextWaitSwapchainImage);
+    LOAD("xrReleaseSwapchainImage", nextReleaseSwapchainImage);
 #undef LOAD
     if (!SwpDispatchSetNext(g.gipa, g.createSession, nextDestroySession, nextBeginFrame,
-                            nextLocateViews, nextEndFrame, nextEnumerateSwapchainImages,
-                            nextAcquireSwapchainImage)) {
+                            nextWaitFrame, nextLocateViews, nextEndFrame, nextCreateSwapchain,
+                            nextDestroySwapchain, nextEnumerateSwapchainImages,
+                            nextAcquireSwapchainImage, nextWaitSwapchainImage,
+                            nextReleaseSwapchainImage)) {
         LOG("next-chain incomplete; layer inactive");
         g = Route{};
         return XR_ERROR_INITIALIZATION_FAILED;

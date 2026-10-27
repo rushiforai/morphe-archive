@@ -35,6 +35,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:buildAndroid --no-daemon
 
+      - name: Test Yandex player event compatibility
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :extensions:youtube:testDebugUnitTest --tests '*YandexPlayerEventsTest' --no-daemon
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:

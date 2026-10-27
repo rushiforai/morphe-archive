@@ -105,7 +105,7 @@ val cleanUpReelsPatch = bytecodePatch(
         hideSearchBar()
         // #180: the numbers under the sidebar's Like, Comment and Share icons.
         hideReelCounts()
-        // #190: the sidebar's Save button, skipped as its icon type comes up.
+        // #190, #243: Save and the direct WhatsApp button, skipped as their icon types come up.
         hideReelSaveButton()
         // #190: the speaker button under the sidebar, from whichever place a server flag picks:
         // the video controls, through Facebook's own check for it, or the footer, through its null check.

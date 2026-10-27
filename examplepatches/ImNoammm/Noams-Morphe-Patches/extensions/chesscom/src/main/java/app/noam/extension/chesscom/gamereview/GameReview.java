@@ -39,9 +39,6 @@ public final class GameReview {
         "com.chess.features.more.watch.WatchActivity"
     ));
 
-    /** True for the short window a local review is actually in flight (set by LocalAnalysisFlow). */
-    static volatile boolean reviewing = false;
-
     private GameReview() {}
 
     /** Who reviews the next game, picked in the review chooser. */
@@ -120,7 +117,7 @@ public final class GameReview {
         return fields.length >= 3 ? fields[0] + " " + fields[1] + " " + fields[2] : fen.trim();
     }
 
-    /** A review on the phone, Stockfish's or Lichess's: both are scored and marked the Lichess way. */
+    /** A review on the phone, Stockfish's or Lichess's: both are scored and judged the Lichess way. */
     public static boolean lichessStyle() {
         return enabled() && mode() != Mode.CHESSCOM;
     }
@@ -128,13 +125,16 @@ public final class GameReview {
     /**
      * Whether chess.com's review shows a move type: in a Lichess-style review only Lichess's own,
      * inaccuracies, mistakes and blunders, and chess.com's Book (Lichess's opening), Miss (a lost
-     * forced mate) and, from Local Stockfish only, Best (Lichess never says which unmarked move was best).
+     * forced mate) and, from Local Stockfish only, Best, Excellent and Good (Lichess leaves the
+     * moves it doesn't judge unmarked, and never says which of them was best).
      */
     public static boolean shows(Object classification) {
         if (!lichessStyle() || !(classification instanceof Enum)) return true;
         String name = ((Enum<?>) classification).name();
-        return name.equals("BOOK") || (name.equals("BEST") && mode() != Mode.LICHESS) || name.equals("MISS")
-            || name.equals("INACCURACY") || name.equals("MISTAKE") || name.equals("BLUNDER");
+        boolean phone = mode() == Mode.STOCKFISH;
+        return name.equals("BOOK") || name.equals("MISS")
+            || name.equals("INACCURACY") || name.equals("MISTAKE") || name.equals("BLUNDER")
+            || (phone && (name.equals("BEST") || name.equals("EXCELLENT") || name.equals("GOOD")));
     }
 
     // Lichess's own marks in chess.com's review screen: its colors, its ?! ? ?? badges and words.
@@ -157,16 +157,18 @@ public final class GameReview {
 
     /**
      * In a Lichess-style review: "inaccuracy", "mistake" or "blunder", or "" for a move Lichess does not
-     * mark. Null for Book, Best, Miss and Good, which keep chess.com's marks, and anywhere else.
+     * mark. Null for Book, Best, Miss, Good and (from Local Stockfish) Excellent, which keep chess.com's
+     * marks, and anywhere else.
      */
     private static String lichessType(Object classification) {
         if (!lichessStyle() || !(classification instanceof Enum)) return null;
         Activity activity = Utils.topActivity();
         if (activity == null || !activity.getClass().getName().equals(REVIEW_SCREEN)) return null;
         String name = ((Enum<?>) classification).name();
-        // Book, Best and Miss keep chess.com's marks; so does Good, which only shows on a game phase
-        // Lichess colors as good (85% or more), as no move is marked Good here.
+        // Book, Best and Miss keep chess.com's marks; so does Good, also the mark of a game phase
+        // Lichess colors as good (85% or more), and Excellent where it shows (Local Stockfish).
         if (name.equals("BOOK") || name.equals("BEST") || name.equals("MISS") || name.equals("GOOD")) return null;
+        if (name.equals("EXCELLENT") && shows(classification)) return null;
         return shows(classification) ? name.toLowerCase(Locale.ROOT) : "";
     }
 

@@ -48,53 +48,39 @@ jobs:
           import subprocess
           import sys
 
-          repo = os.environ.get("GITHUB_REPOSITORY", "")
-          if not os.path.isfile("updates.json"):
-              print("[WARN] updates.json not found, skipping issue creation.")
-              sys.exit(0)
+          # Ensure repository root is in sys.path to import scheme-aware helpers
+          sys.path.insert(0, os.path.abspath("."))
+          from scripts.check_app_updates import compare_versions, parse_version
 
-          with open("updates.json", "r", encoding="utf-8") as f:
-              report = json.load(f)
+          def parse_issue_remote_version(title, app_name):
+              if app_name not in title:
+                  return None
+              if "->" not in title:
+                  return None
+              parts = title.split("->")
+              if len(parts) != 2:
+                  return None
+              candidate = parts[1].strip()
+              if not candidate:
+                  return None
+              core, _ = parse_version(candidate)
+              if not core:
+                  return None
+              return candidate
 
-          apps = report.get("apps", [])
-          for app in apps:
-              if app.get("status") != "update-available":
-                  continue
+          def compare_app_versions(v_issue, v_check):
+              fwd = compare_versions(v_issue, v_check)
+              bwd = compare_versions(v_check, v_issue)
+              if fwd == "unknown" or bwd == "unknown":
+                  return "inconclusive"
+              if fwd == "update-available":
+                  return "newer"
+              if bwd == "update-available":
+                  return "older"
+              return "equal"
 
-              app_name = app.get("name", "")
-              local_ver = app.get("local_version", "")
-              remote_ver = app.get("remote_version", "")
-              source_url = app.get("source_url", "")
-              patch_test_id = app.get("run_patch_test_id", app.get("id", ""))
-
-              print(f"[INFO] Checking existing issues for {app_name}...")
-              list_cmd = [
-                  "gh", "issue", "list",
-                  "--repo", repo,
-                  "--label", "app-update",
-                  "--search", f"{app_name} in:title",
-                  "--state", "open",
-                  "--json", "number,title",
-              ]
-              res = subprocess.run(list_cmd, capture_output=True, text=True)
-              if res.returncode != 0:
-                  print(f"[WARN] gh issue list failed for {app_name}: {res.stderr.strip()}", file=sys.stderr)
-                  continue
-
-              try:
-                  open_issues = json.loads(res.stdout) if res.stdout.strip() else []
-              except Exception as exc:
-                  print(f"[WARN] Failed to parse gh issue list output for {app_name}: {exc}", file=sys.stderr)
-                  open_issues = []
-
-              if open_issues:
-                  num = open_issues[0].get("number", "unknown")
-                  title = open_issues[0].get("title", "")
-                  print(f"[INFO] Open issue already exists for {app_name} (#{num}: {title}), skipping.")
-                  continue
-
+          def create_issue(repo, app_name, local_ver, remote_ver, source_url, download_url):
               title = f"Update: {app_name} {local_ver} -> {remote_ver}"
-              download_url = app.get("download_url", "")
               body_lines = [
                   f"Current supported version: {local_ver}",
                   f"Latest upstream version: {remote_ver}",
@@ -115,6 +101,113 @@ jobs:
               create_res = subprocess.run(create_cmd, capture_output=True, text=True)
               if create_res.returncode == 0:
                   print(f"[INFO] Issue created successfully: {create_res.stdout.strip()}")
+                  return True
               else:
                   print(f"[WARN] Failed to create issue for {app_name}: {create_res.stderr.strip()}", file=sys.stderr)
+                  return False
+
+          repo = os.environ.get("GITHUB_REPOSITORY", "")
+          if not os.path.isfile("updates.json"):
+              print("[WARN] updates.json not found, skipping issue creation.")
+              sys.exit(0)
+
+          with open("updates.json", "r", encoding="utf-8") as f:
+              report = json.load(f)
+
+          apps = report.get("apps", [])
+          for app in apps:
+              if app.get("status") != "update-available":
+                  continue
+
+              app_name = app.get("name", "")
+              local_ver = app.get("local_version", "")
+              remote_ver = app.get("remote_version", "")
+              source_url = app.get("source_url", "")
+              download_url = app.get("download_url", "")
+
+              print(f"[INFO] Checking existing issues for {app_name}...")
+              list_cmd = [
+                  "gh", "issue", "list",
+                  "--repo", repo,
+                  "--label", "app-update",
+                  "--search", f"{app_name} in:title",
+                  "--state", "open",
+                  "--json", "number,title,url",
+              ]
+              res = subprocess.run(list_cmd, capture_output=True, text=True)
+              if res.returncode != 0:
+                  print(f"[WARN] gh issue list failed for {app_name}: {res.stderr.strip()}", file=sys.stderr)
+                  continue
+
+              try:
+                  open_issues = json.loads(res.stdout) if res.stdout.strip() else []
+              except Exception as exc:
+                  print(f"[WARN] Failed to parse gh issue list output for {app_name}: {exc}", file=sys.stderr)
+                  open_issues = []
+
+              matching_issues = [
+                  issue for issue in open_issues
+                  if app_name in issue.get("title", "")
+              ]
+
+              if not matching_issues:
+                  create_issue(repo, app_name, local_ver, remote_ver, source_url, download_url)
+                  continue
+
+              if len(matching_issues) > 1:
+                  all_nums = [i.get("number") for i in matching_issues]
+                  print(f"[INFO] Multiple open issues found for {app_name} (#{all_nums}), inspecting and updating all.")
+
+              already_reported = False
+              has_newer_reported = False
+
+              for issue in matching_issues:
+                  num = issue.get("number", "unknown")
+                  target_title = issue.get("title", "")
+                  issue_url = issue.get("url") or f"https://github.com/{repo}/issues/{num}"
+
+                  issue_remote = parse_issue_remote_version(target_title, app_name)
+                  if not issue_remote:
+                      print(f"[WARN] Failed to parse remote version from open issue title for {app_name} (#{num}: {target_title}), skipping.")
+                      continue
+
+                  cmp_result = compare_app_versions(issue_remote, remote_ver)
+                  if cmp_result == "inconclusive":
+                      print(f"[WARN] Version comparison inconclusive between issue remote '{issue_remote}' and current remote '{remote_ver}' for {app_name} (#{num}), skipping.")
+                      continue
+
+                  if cmp_result == "equal":
+                      print(f"[INFO] Open issue already exists for {app_name} (#{num}: {target_title}), already reported.")
+                      already_reported = True
+                      continue
+
+                  if cmp_result == "older":
+                      print(f"[INFO] Open issue #{num} has remote {issue_remote} which is newer than current remote {remote_ver} for {app_name}.")
+                      has_newer_reported = True
+                      continue
+
+                  # cmp_result == "newer": roll forward / close stale
+                  print(f"[INFO] Closing stale issue #{num} for {app_name} (remote {issue_remote} superseded by {remote_ver})...")
+                  close_comment = (
+                      f"Tracked remote was superseded by {remote_ver}.\n\n"
+                      f"Closing as completed [{num}]({issue_url})."
+                  )
+                  close_cmd = [
+                      "gh", "issue", "close", str(num),
+                      "--repo", repo,
+                      "--reason", "completed",
+                      "--comment", close_comment,
+                  ]
+                  close_res = subprocess.run(close_cmd, capture_output=True, text=True)
+                  if close_res.returncode != 0:
+                      print(f"[WARN] Failed to close stale issue #{num} for {app_name}: {close_res.stderr.strip()}", file=sys.stderr)
+                  else:
+                      print(f"[INFO] Closed stale issue #{num} successfully.")
+
+              if already_reported:
+                  print(f"[INFO] Skipping issue creation for {app_name}: already reported.")
+              elif has_newer_reported:
+                  print(f"[INFO] Skipping issue creation for {app_name}: newer version already reported in an open issue.")
+              else:
+                  create_issue(repo, app_name, local_ver, remote_ver, source_url, download_url)
           EOF

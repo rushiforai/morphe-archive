@@ -539,6 +539,16 @@ public final class Settings {
     public static boolean blockDisappearingSwipe() { return enabled("disappearing_swipe"); }
     /** Asked each time a chat looks for a photo or video taken just before it opened; true shows no card for it. */
     public static boolean hideRecentMedia() { return enabled("recent_media"); }
+    static final String SHARE_STORY = "share_story";
+    /** The Send to list's more-ways-to-share loader asks whether to add Your story; false leaves it out. */
+    public static boolean keepShareStory(boolean shown) { return shown && !enabled(SHARE_STORY); }
+    /**
+     * The Send to list's story-only section compares its run state with its skip marker. Handing the marker back skips
+     * the section, the same path Messenger takes when it turns the section off. Off, Pause and safe mode keep the state.
+     */
+    public static Object shareStorySection(Object state, Object skip) {
+        return state != skip && enabled(SHARE_STORY) ? skip : state;
+    }
     /** Messenger's own original-upload check allows 25 MB, so a bigger video keeps its re-encode. */
     static final long ORIGINAL_VIDEO_MAX_BYTES = 25L * 1024 * 1024;
     /**

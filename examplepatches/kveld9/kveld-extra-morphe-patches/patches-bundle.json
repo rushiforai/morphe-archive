@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-10-25T00:56:12",
-  "description": "## [1.27.1](https://github.com/kveld9/kveld-extra-morphe-patches/compare/v1.27.0...v1.27.1) (2026-10-25)\n\n### Bug Fixes\n\n* **moovit:** scope lint suppressions on signing-info reflection ([7e6a399](https://github.com/kveld9/kveld-extra-morphe-patches/commit/7e6a399ee2aab2fd91dffc8ed72847a94fac7f53))\n* **moovit:** trim whitespace from mapsApiKey before injection ([0f10a0a](https://github.com/kveld9/kveld-extra-morphe-patches/commit/0f10a0a044507585a8ef573eca707ef407853e10))\n\n### Code Refactoring\n\n* **moovit:** derive package name from Application in extension helper ([090e557](https://github.com/kveld9/kveld-extra-morphe-patches/commit/090e557a9449408514d508e47a8a43fd51129204))",
-  "download_url": "https://github.com/kveld9/kveld-extra-morphe-patches/releases/download/v1.27.1/patches-1.27.1.mpp",
+  "created_at": "2026-10-27T02:30:07",
+  "description": "## [1.30.0](https://github.com/kveld9/kveld-extra-morphe-patches/compare/v1.29.0...v1.30.0) (2026-10-27)\n\n### New Features\n\n* **moovit:** add Places API (New) search patch ([72d57fb](https://github.com/kveld9/kveld-extra-morphe-patches/commit/72d57fb96d1afdc70b8fe18353f47553582b4a87))",
+  "download_url": "https://github.com/kveld9/kveld-extra-morphe-patches/releases/download/v1.30.0/patches-1.30.0.mpp",
   "signature_download_url": "",
-  "version": "1.27.1"
+  "version": "1.30.0"
 }

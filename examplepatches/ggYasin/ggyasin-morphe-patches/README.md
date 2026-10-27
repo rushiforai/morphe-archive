@@ -16,7 +16,7 @@ turning on **Pre-release patches** in the source's options follows `dev`.
 
 - App: ZenSMS
 - Package: `com.zensms.app`
-- Version: `1.2.04` (`141`)
+- Versions: `1.2.16` (`153`), `1.2.04` (`141`)
 - Input format: XAPK
 
 - App: Offline Games
@@ -26,26 +26,26 @@ turning on **Pre-release patches** in the source's options follows `dev`.
 
 - App: 9GAG
 - Package: `com.ninegag.android.app`
-- Version: `8.23.0` (`80230000`)
+- Versions: `8.26.1` (`80260100`), `8.23.0` (`80230000`)
 - Input format: APK
 
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/ggYasin/ggyasin-morphe-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.8.0](https://github.com/ggYasin/ggyasin-morphe-patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
 <details open>
 <summary>📦 9GAG&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 8.23.0 |
-| :---: |
+| 8.26.1 | 8.23.0 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Deactivate Firebase Analytics (9GAG 8.23.0)](#deactivate-firebase-analytics-9gag-8-23-0) | Optional: disables Firebase Analytics collection using its documented manifest setting. Does not remove Firebase services. |  |
-| [Remove 9GAG ads, promoted posts and trackers (8.23.0)](#remove-9gag-ads-promoted-posts-and-trackers-8-23-0) | Disables ad gates and bottom-banner initialization, filters promoted feed posts, and blocks listed ad/tracking hosts. |  |
+| [Deactivate Firebase Analytics (9GAG)](#deactivate-firebase-analytics-9gag) | Optional: disables Firebase Analytics collection using its documented manifest setting. Does not remove Firebase services. |  |
+| [Remove 9GAG ads, promoted posts and trackers](#remove-9gag-ads-promoted-posts-and-trackers) | Disables ad gates and bottom-banner initialization, filters promoted feed posts, and blocks listed ad/tracking hosts. |  |
 
 </details>
 
@@ -55,8 +55,8 @@ turning on **Pre-release patches** in the source's options follows `dev`.
 
 **🎯 Supported versions:**
 
-| 1.2.04 |
-| :---: |
+| 1.2.16 | 1.2.04 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -159,15 +159,19 @@ Unity there. First launch requires roughly 88 MB extra storage for ARMv7 or
 replace the mount after updating the source; a source update alone cannot change
 the running game. See [native-loading investigation and device checks](docs/offlinegames-native-loading.md).
 
-A startup toast now reports whether the expected `libil2cpp.so` is actually mapped
-after Unity loads. Please include that message and the exported patched APK when
-reporting unchanged behavior. File preparation alone does not prove that the
-game loaded those files. The prior ad behavior failure remains under investigation.
+Native loading is now strict: the loader cannot silently retry by library name
+and pick the installed stock copy. All three Unity libraries must map from the
+verified directory before Unity is marked ready; canonical filesystem aliases
+are accepted. A failure uses Unity's error dialog and saves
+`patchlab-native-load-error.txt` in the app's external-files directory. See the
+[strict-loading change and reporting steps](docs/offlinegames-strict-loader.md).
+This reports native loading failures rather than claiming an Android linker
+restriction is fixed without a device test.
 
 The three ZenSMS patches are selected by default. The Offline Games patches are
 opt-in.
 
-### Remove 9GAG ads, promoted posts and trackers (8.23.0)
+### Remove 9GAG ads, promoted posts and trackers
 
 The main 9GAG patch, selected by default. Derived from the Adobo patch project
 under the same GPLv3 licence; see [NOTICE](NOTICE) for attribution and the
@@ -175,25 +179,31 @@ upstream baseline commit.
 
 It does four things:
 
-- **Disables the ad gate.** The boolean state-flow gate and its
-  `invokeSuspend` continuation both return `false`.
+- **Disables the ad gate.** Each supported version uses its own validated
+  ad-control methods; the old Boolean gate is not injected into 8.26.1's
+  new block-reason flow. Entitlement and billing state are not changed.
 - **Filters promoted feed posts.** It forces the existing hide-promoted argument
-  of the display query `Lhx3;->j(ILjava/lang/String;Z)Ljava/util/List;` to true,
+  of the display query (`Ld44;->j` in 8.26.1, `Lhx3;->j` in 8.23.0) to true,
   reusing 9GAG's own filter rather than editing the underlying `d()` query
   builder, whose other callers perform database maintenance.
 - **Stops the bottom banner.** The dedicated bottom-adhesion initializer
-  `Lo02;->i(Landroid/widget/FrameLayout;Lmc;)V` is made to set its supplied
+  (`Lg3b;->f` in 8.26.1, `Lo02;->i` in 8.23.0) is made to set its supplied
   frame to `GONE`, clear its children and return, after which four compiled
   layouts also set the banner container to zero height and `gone`.
 - **Blocks ad and tracking hosts.** A fixed list of ad, analytics and attribution
   hosts is rewritten to `0.0.0.0` in both string constants and bytecode string
   references. This is a finite list, not proof that every tracker is blocked.
 
-Every fingerprint is validated against the exact instruction shape before it is
-edited, and each edit is required to match exactly one method, so a changed
-build is rejected rather than patched blindly.
+Version-specific targets are checked against validated signatures, instruction
+counts, and semantic references before editing. Candidates must be unique, so a
+changed build is rejected rather than patched blindly. These guards are not a
+whole-method instruction hash.
 
-### Deactivate Firebase Analytics (9GAG 8.23.0)
+Both 8.26.1 configurations (main-only and optional Analytics) pass 39 static
+checks against rebuilt signed APKs. Device behavior is not yet verified. See
+[8.26.1 analysis and validation](docs/ninegag-8.26.1.md).
+
+### Deactivate Firebase Analytics (9GAG)
 
 Optional and disabled by default. Sets the SDK's documented
 `firebase_analytics_collection_deactivated` manifest flag. Firebase

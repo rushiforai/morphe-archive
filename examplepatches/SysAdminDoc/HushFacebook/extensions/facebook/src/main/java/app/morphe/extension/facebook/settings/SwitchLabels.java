@@ -89,6 +89,7 @@ final class SwitchLabels {
         if (setting == Settings.OPEN_REPLY_THREADS) return L10n.t("Open every reply thread");
         if (setting == Settings.LOAD_WHOLE_REPLY_THREADS) return L10n.t("Load whole reply threads");
         if (setting == Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES) return L10n.t("Tap anywhere on View more replies");
+        if (setting == Settings.HIDE_POST_COMMENT_PREVIEWS) return L10n.t("Hide comments under posts");
         if (setting == Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS) return L10n.t("Hide related groups");
         if (setting == Settings.HIDE_SHOP_LINK_COMMENTS) return L10n.t("Hide comments with shop links");
         if (setting == Settings.HIDE_COMMENTS_WITH_WORDS) return L10n.t("Hide comments with your words");
@@ -132,6 +133,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_REEL_SEARCH_PILL) return L10n.t("Hide the search pill on reels");
         if (setting == Settings.HIDE_REEL_COUNTS) return L10n.t("Hide counts on reels");
         if (setting == Settings.HIDE_REEL_SAVE_BUTTON) return L10n.t("Hide Save on reels");
+        if (setting == Settings.HIDE_REEL_WHATSAPP_BUTTON) return L10n.t("Hide WhatsApp on reels");
         if (setting == Settings.HIDE_REEL_SOUND_BUTTON) return L10n.t("Hide the speaker button on reels");
         if (setting == Settings.HIDE_REEL_AUDIO_LINE) return L10n.t("Hide the audio line on reels");
         if (setting == Settings.HIDE_SLOW_CONNECTION_MESSAGE) return L10n.t("Hide the slow connection message");
@@ -168,6 +170,7 @@ final class SwitchLabels {
         if (setting == Settings.SHOW_REEL_DOWNLOAD_BUTTON) return L10n.t("Download button on reels");
         if (setting == Settings.TAP_TO_PLAY) return L10n.t("Tap to play");
         if (setting == Settings.TAP_TO_PLAY_REELS_AFTER_FIRST) return L10n.t("Only the first reel waits");
+        if (setting == Settings.INLINE_FEED_VIDEO_CONTROLS) return L10n.t("Inline feed video controls");
         if (setting == Settings.RESUME_LONG_VIDEOS) return L10n.t("Resume long videos");
         if (setting == Settings.RECENTLY_WATCHED) return L10n.t("Remember what you watch");
         if (setting == Settings.FRAME_STEP) return L10n.t("Frame step");
@@ -260,6 +263,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_MESSENGER_BUTTON) return L10n.t("Hide the Messenger button");
         if (setting == Settings.HIDE_MESSENGER_COUNT) return L10n.t("Hide the Messenger count");
         if (setting == Settings.HIDE_FACEBOOK_LOGO) return L10n.t("Hide the Facebook logo");
+        if (setting == Settings.HIDE_CREATE_BUTTON) return L10n.t("Hide the Create button");
         if (setting == Settings.FORCE_DARK_MODE) return L10n.t("Force dark mode");
         if (setting == Settings.AMOLED_FLAT_CARDS) return L10n.t("Black cards");
         if (setting == Settings.AMOLED_FEED_GAPS) return L10n.t("Lines between posts");

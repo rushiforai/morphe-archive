@@ -79,9 +79,11 @@ function Invoke-AndroidVerifierTally {
                 -Result $mark)
         }
 
+        # 512 MB is plenty for the verify filter. A 1 GB heap aborts dex2oat ("No region space mem map",
+        # exit 134) on a 3 GB API 33 emulator before it reads a byte.
         $dexCommand = "dex2oat64 --dex-file=$remote --oat-file=$directory/out.oat " +
             "--output-vdex=$directory/out.vdex --instruction-set=arm64 " +
-            '--compiler-filter=verify --runtime-arg -Xmx1024m -j4; echo exit=$?; ' +
+            '--compiler-filter=verify --runtime-arg -Xmx512m -j4; echo exit=$?; ' +
             'echo size=$(stat -c %s ' + $remote + ' 2>/dev/null || echo 0)'
         $dex = Invoke-HushTelegramAdbCommand -Adb $Adb -Invoker $AdbInvoker `
             -Arguments @('-s', $Serial, 'shell', $dexCommand)

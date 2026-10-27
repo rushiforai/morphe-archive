@@ -198,7 +198,6 @@ Allow screenshots and Circle to Search	Ekran görüntüsüne ve Circle to Search
 Allow storage for TikTok in Android settings to save profile pictures	Profil fotoğraflarını kaydetmek için Android ayarlarında TikTok'a depolama izni ver
 Allow storage for TikTok in Android settings to save sounds	Sesleri kaydetmek için Android ayarlarında TikTok'a depolama izni ver
 Allow storage for TikTok in Android settings to save stories	Hikayeleri kaydetmek için Android ayarlarında TikTok'a depolama izni ver
-Already active	Zaten etkin
 Already marked as not interested	Zaten İlgilenmiyorum olarak işaretlendi
 Also apply these filters to downloaded videos TikTok uses when the feed can't load enough new items.	Bu filtreleri, akış yeterince yeni öğe yükleyemediğinde TikTok'un kullandığı indirilmiş videolara da uygula.
 Also change the region TikTok reports internally and set TikTok to the country's time zone. Keeps your interface language. Your IP address and your account's own rules still apply.	TikTok'un dahili olarak bildirdiği bölgeyi de değiştir ve TikTok'u ülkenin saat dilimine ayarla. Arayüz dilin aynı kalır. IP adresin ve hesabının kendi kuralları geçerli olmaya devam eder.
@@ -217,7 +216,6 @@ App AB	Uygulama AB
 Appearance	Görünüm
 Applies to both video and photo downloads.	Hem video hem fotoğraf indirmeleri için geçerlidir.
 Apply	Uygula
-Applying Calm feed	Sakin akış uygulanıyor
 Around the video	Videonun çevresi
 Arrange your feed and bottom tabs	Akışını ve alt sekmeleri düzenle
 Ask TikTok for search results that aren't personalized to your account. This changes results, not search buttons or suggestions.	TikTok'tan hesabına göre kişiselleştirilmemiş arama sonuçları iste. Bu, sonuçları değiştirir, arama düğmelerini veya önerilerini değil.
@@ -265,11 +263,6 @@ Blocking	Engelleniyor
 On or off	Açık veya kapalı
 Bottom tabs to keep	Tutulacak alt sekmeler
 Browse	Göz at
-Calm feed	Sakin akış
-Calm feed couldn't be applied. Nothing was changed.	Sakin akış uygulanamadı. Hiçbir şey değiştirilmedi.
-Calm feed couldn't start. Try again in a moment.	Sakin akış başlatılamadı. Birazdan tekrar dene.
-Calm feed is on.	Sakin akış açık.
-Calm feed is on. Restart TikTok to apply all changes.	Sakin akış açık. Tüm değişiklikleri uygulamak için TikTok'u yeniden başlat.
 Camera and microphone in use	Kamera ve mikrofon kullanımda
 Camera in use	Kamera kullanımda
 Cancel	İptal
@@ -282,7 +275,6 @@ Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and the post d
 Captions	Altyazılar
 Captions, gestures and on-screen controls	Altyazılar, hareketler ve ekran kontrolleri
 Capture crash reports locally	Çökme raporlarını yerel olarak kaydet
-Changed	Değişti
 Choose %1$d to %2$d videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.	%1$d ile %2$d arasında bir video sayısı seç. Bu aralığın dışındaki değerler en yakın geçerli sınırı kullanır. Bunu uygulamak için TikTok'u yeniden başlat.
 Choose a backup file. Your current settings are kept for Undo.	Bir yedek dosyası seç. Mevcut ayarların Geri al için saklanır.
 Choose a folder on internal storage. SD cards aren't supported.	Dahili depolamada bir klasör seç. SD kartlar desteklenmez.
@@ -372,8 +364,6 @@ Copy the sound link	Ses bağlantısını kopyala
 Copy the video link	Video bağlantısını kopyala
 Couldn't change the Lab settings. Try again.	Lab ayarları değiştirilemedi. Tekrar dene.
 Couldn't clear the suggested accounts. Reopen the Inbox and try again.	Önerilen hesaplar temizlenemedi. Gelen Kutusu'nu yeniden açıp tekrar dene.
-Couldn't open settings search. Reopen settings and try again.	Ayarlar araması açılamadı. Ayarları yeniden açıp tekrar dene.
-Couldn't open that settings section. Reopen settings and try again.	O ayarlar bölümü açılamadı. Ayarları yeniden açıp tekrar dene.
 Couldn't open the file picker to export. Try again.	Dışa aktarma dosya seçicisi açılamadı. Tekrar dene.
 Couldn't open the file picker to import. Try again.	İçe aktarma dosya seçicisi açılamadı. Tekrar dene.
 Couldn't put back the diagnostic data. Try again.	Tanılama verileri geri konamadı. Tekrar dene.
@@ -555,7 +545,6 @@ Hide TikTok's "Search: ..." banner above the comment count. This doesn't hide th
 Hide the quick emoji row and automatic sticker suggestions that appear while you type. The emoji and sticker buttons still work.	Yazarken görünen hızlı emoji satırını ve otomatik çıkartma önerilerini gizle. Emoji ve çıkartma düğmeleri çalışmaya devam eder.
 Hide activity	Etkinliği gizle
 Hide activity status	Etkinlik durumunu gizle
-Hide ads, Shop posts, LIVE videos and replays, promotional music, and paid partnerships.	Reklamları, Mağaza gönderilerini, CANLI videolarını ve tekrarlarını, tanıtım amaçlı müzikleri ve ücretli ortaklıkları gizle.
 Hide archive	Arşivi gizle
 Hide bottom tabs TikTok adds later unless you allow them.	TikTok'un sonradan eklediği alt sekmeleri, sen izin vermedikçe gizle.
 Skip the puzzle TikTok shows while you're just browsing. A puzzle right after you like, follow, comment or repost still shows, and so do sign-in, SMS and two-step checks. If something stops working, turn this off.	TikTok'un sen sadece gezinirken gösterdiği bulmacayı atlar. Beğeni, takip, yorum ya da yeniden paylaşımdan hemen sonra gelen bulmaca yine gösterilir; giriş, SMS ve iki adımlı doğrulamalar da öyle. Bir şey çalışmayı bırakırsa bunu kapat.
@@ -846,9 +835,7 @@ Off	Kapalı
 Off forces the value to false, on forces it to true. Reset lets TikTok decide again.	Kapalı değeri false'a, açık true'ya zorlar. Sıfırla, kararı yine TikTok'a bırakır.
 Offline videos	Çevrimdışı videolar
 Offline videos limit	Çevrimdışı video sınırı
-On	Açık
 On mobile data	Mobil veride
-On. Restore puts back the feed setup you had before.	Açık. Geri yükle, daha önceki akış düzenini geri getirir.
 Once today's budget runs out, the hold stays and can't be dismissed. The budget settings are locked until the day starts over. Turn this off any time before the budget runs out.	Bugünün bütçesi bitince bekletme ekranı kalır ve kapatılamaz. Bütçe ayarları gün yeniden başlayana kadar kilitlenir. Bütçe bitmeden önce bunu istediğin zaman kapatabilirsin.
 One area was checked and everything it needs is here.	Bir alan denetlendi ve ihtiyaç duyduğu her şey burada.
 One minute left	Bir dakika kaldı
@@ -904,7 +891,6 @@ Playlist posts	Oynatma listesi gönderileri
 Subscriber-only posts	Abonelere özel gönderiler
 Popular	Popüler
 Popups	Açılır pencereler
-Preset	Hazır ayar
 Press and hold a profile picture to save the full size original to your photo destination.	Tam boyutlu orijinali fotoğraf kayıt konumuna kaydetmek için bir profil fotoğrafına basılı tut.
 Press and hold a story to save it. Stories have no save button of their own, and holding one is how TikTok pauses it, so this takes that gesture over.	Bir hikayeyi kaydetmek için ona basılı tut. Hikayelerin kendi kaydet düğmesi yoktur ve TikTok hikayeyi basılı tutunca duraklatır, bu yüzden bu ayar o hareketi devralır.
 Press and hold the left or right third of the screen to jump back or forward. The middle third keeps the Long press action.	Geri veya ileri atlamak için ekranın sol ya da sağ üçte birine basılı tut. Ortadaki üçte birlik bölüm Uzun basma eylemini korur.
@@ -920,7 +906,6 @@ Putting the settings back to their defaults	Ayarlar varsayılanlarına döndür�
 Quality	Kalite
 Quality, files, subtitles and hand-off	Kalite, dosyalar, altyazılar ve başka uygulamaya aktarma
 Quality, speed and auto-advance	Kalite, hız ve otomatik geçiş
-Quick setup	Hızlı kurulum
 Reading	Okuma
 Recorded gate reads (%1$d)	Kaydedilen özellik kapısı okumaları (%1$d)
 Recording gate reads. Use a feature, then return here to stop.	Özellik kapısı okumaları kaydediliyor. Bir özellik kullan, sonra durdurmak için buraya dön.
@@ -970,9 +955,7 @@ Undo didn't finish. Some settings may still be changed. Try Undo again.	Geri alm
 Undo didn't finish. Some settings may still be changed.	Geri alma tamamlanmadı. Bazı ayarlar yine de değişmiş olabilir.
 Restore failed. Some settings may still be changed. Use Undo to put them back.	Geri yükleme başarısız oldu. Bazı ayarlar yine de değişmiş olabilir. Geri koymak için Geri al'ı kullan.
 Restore settings	Ayarları geri yükle
-Restore setup	Düzeni geri yükle
 Lab settings put back. Restart TikTok to apply this.	Lab ayarları geri kondu. Bunu uygulamak için TikTok'u yeniden başlat.
-Restoring setup	Düzen geri yükleniyor
 Restoring your settings	Ayarların geri yükleniyor
 Resume videos after scrolling	Kaydırdıktan sonra videoları sürdür
 Retry	Yeniden dene
@@ -1112,7 +1095,6 @@ Hide recorded LIVE broadcasts from the feed.	Kaydedilmiş CANLI yayınları akı
 Hide videos marked as using promotional music.	Tanıtım müziği kullandığı belirtilen videoları gizle.
 Hide videos that use a sound blocked with the player's sound button, or named below.	Oynatıcının ses düğmesiyle engellenen veya aşağıda adı yazılan bir sesi kullanan videoları gizle.
 Skipping videos with %1$s	%1$s içeren videolar atlanıyor
-Some Calm feed settings changed. Restore still puts back your earlier setup.	Bazı Sakin akış ayarları değişti. Geri yükle yine de önceki düzenini geri getirir.
 Something is missing from %1$s. Tap for the whole report.	%1$s içinde eksik bir şey var. Raporun tamamı için dokun.
 Sound link copied	Ses bağlantısı kopyalandı
 Sound saved to %1$s	Ses şuraya kaydedildi: %1$s
@@ -1319,7 +1301,6 @@ Undoing the last change	Son değişiklik geri alınıyor
 Until you choose here, this sheet follows your choices under Hide share actions.	Burada bir seçim yapana kadar bu menü, Paylaşım işlemlerini gizle altındaki seçimlerine uyar.
 Up to %1$d speeds from %2$s to %3$s, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this.	%2$s ile %3$s arasında, virgülle ayrılmış en fazla %1$d hız. Örnek: 0.5, 1, 1.5, 2, 2.5, 3. TikTok'un listesi için boş bırak. Bunu uygulamak için TikTok'u yeniden başlat.
 Use 0 for TikTok's size, or %1$d to %2$d. Applies to the next caption.	TikTok'un boyutu için 0, ya da %1$d ile %2$d arasında bir değer kullan. Bir sonraki altyazıya uygulanır.
-Use Calm feed	Sakin akışı kullan
 Use TikTok's own hold, pull down and release gesture to keep playing at the hold speed, 2x unless Playback sets another.	Basılı tutma hızında kalmak için TikTok'un kendi basılı tut, aşağı çek ve bırak hareketini kullan. Oynatma altında başka bir hız seçilmedikçe 2x'tir.
 Use a default playback speed	Varsayılan bir oynatma hızı kullan
 Use non-personalized search	Kişiselleştirilmemiş aramayı kullan
@@ -1354,19 +1335,14 @@ When a video ends in full screen, stay on it instead of moving to the next one. 
 While diagnostic logging is on, a message names the part of Hushfeed that failed. Off keeps failures in the report only.	Tanılama günlüğü açıkken bir mesaj, Hushfeed'in hata veren bölümünün adını söyler. Kapalıyken hatalar yalnızca raporda kalır.
 Window width needed to enable the layout. Restart TikTok to apply this.	Düzeni etkinleştirmek için gereken pencere genişliği. Bunu uygulamak için TikTok'u yeniden başlat.
 Words, countries and languages	Kelimeler, ülkeler ve diller
-Working	Çalışıyor
 Write the video's sound beside it, in the format picked under Sound format. Android 10 and later file audio separately, so it lands in Music under the same folder name as your videos.	Videonun sesini, Ses biçimi altında seçilen biçimde videonun yanına yaz. Android 10 ve sonrası ses dosyalarını ayrı tutar, bu yüzden dosya Music altında, videolarınla aynı adlı klasöre gider.
 YTDLnis background mode	YTDLnis arka plan modu
 YTDLnis download type	YTDLnis indirme türü
 Yes	Evet
-Your current settings already match Calm feed.	Mevcut ayarların zaten Sakin akışla aynı.
 Your filters hid everything TikTok just sent. Most were %1$s.	Filtrelerin TikTok'un az önce gönderdiği her şeyi gizledi. En çok gizlenen: %1$s.
 Your filters hid everything TikTok sent, %1$d times in a row. Most were %2$s.	Filtrelerin TikTok'un gönderdiği her şeyi art arda %1$d kez gizledi. En çok gizlenen: %2$s.
 Your operator's name, like T-Mobile.	Operatörünün adı, örneğin T-Mobile.
 Your operator's numeric code, like 310260.	Operatörünün sayısal kodu, örneğin 310260.
-Your previous feed setup couldn't be restored. Nothing was changed.	Önceki akış düzenin geri yüklenemedi. Hiçbir şey değiştirilmedi.
-Your previous feed setup is back.	Önceki akış düzenin geri geldi.
-Your previous feed setup is back. Restart TikTok to apply all changes.	Önceki akış düzenin geri geldi. Tüm değişiklikleri uygulamak için TikTok'u yeniden başlat.
 Zero means the way out of the hold is always there. Any other number is how many times a day it works. Once they're used up, the hold stays until the day starts over. Ignored while the budget is locked, which removes the way out.	Sıfır, bekletmeden çıkış yolunun her zaman olduğu anlamına gelir. Başka bir sayı, bunun günde kaç kez işe yaradığıdır. Bittiğinde bekletme, gün yeniden başlayana kadar kalır. Bütçe kilitliyken yok sayılır, çünkü kilit çıkış yolunu kaldırır.
 Zero means no limit. Counts the videos Hushfeed advanced past for you, not the ones you swiped yourself, and starts again when the feed is rebuilt or you change this number.	Sıfır, sınır yok demektir. Kendi kaydırdıklarını değil, Hushfeed'in senin için geçtiği videoları sayar ve akış yeniden oluşturulduğunda ya da bu sayıyı değiştirdiğinde baştan başlar.
 Zero shows the notice and leaves the feed alone. Anything else covers the feed for that many minutes once a budget is reached. Messages, profiles and search keep working, and nothing in the feed is thrown away.	Sıfır, bildirimi gösterir ve akışa dokunmaz. Başka bir değer, bir bütçeye ulaşıldığında akışın üstünü o kadar dakika boyunca örter. Mesajlar, profiller ve arama çalışmaya devam eder ve akıştaki hiçbir şey atılmaz.
@@ -2122,22 +2098,8 @@ Report a problem	Sorun bildir
 Opens a GitHub report with your versions and settings filled in. Add what happened.	Sürümlerin ve ayarların önceden doldurulmuş bir GitHub raporu açar. Ne olduğunu ekle.
 Support Hushfeed	Hushfeed'i destekle
 No app on this phone opens web links	Bu telefonda web bağlantılarını açan uygulama yok
-Quick setups	Hızlı kurulumlar
-Quiet hides ads, Shop and LIVE. Privacy hides your views and typing and stops tracking. Back to defaults resets every switch. Press and hold to hide this row.	Sakin; reklamları, Mağaza'yı ve LIVE'ı gizler. Gizlilik; görüntülemelerini ve yazdığını gizler, izlemeyi durdurur. Varsayılana dön her anahtarı sıfırlar. Bu satırı gizlemek için basılı tut.
 # context: toast after a long press hides the Quick setups card from the settings home page; the page name is the one holding the row that brings it back
-Quick setups hidden. Bring it back from %1$s.	Hızlı kurulumlar gizlendi. %1$s bölümünden geri getirebilirsin.
 # context: row on the Backup and restore page; shows or hides the Quick setups card on the settings home page
-Quick setups on the home page	Ana sayfada hızlı kurulumlar
-Shown. Tap to hide it.	Gösteriliyor. Gizlemek için dokun.
-Hidden. Tap to show it again.	Gizli. Tekrar göstermek için dokun.
-Quiet	Sakin
-Back to defaults	Varsayılana dön
-Changed 1 setting	1 ayar değişti
-Changed %1$d settings	%1$d ayar değişti
-Your settings already match	Ayarların zaten böyle
-That setup couldn't be applied. Nothing was changed.	Bu kurulum uygulanamadı. Hiçbir şey değişmedi.
-Quick setups couldn't start. Try again in a moment.	Hızlı kurulumlar başlatılamadı. Birazdan tekrar dene.
-Your earlier settings are back	Önceki ayarların geri geldi
 # context: a heading on the settings home page, over Feed filter, Feed tabs, Feed screen, Playback and Screen time
 Your feed	Akışın
 # context: a heading on the settings home page, over Downloads and Share sheet
@@ -2230,7 +2192,34 @@ Show the main feed's tabs on a rounded, see-through dark pill that floats over t
 Liquid glass look	Sıvı cam görünümü
 Draw the main feed's floating pill as glass, lighter and more see-through, with a bright rim along its top edge. Needs Floating bottom bar.	Ana akıştaki yüzen kapsülü daha açık ve daha şeffaf bir cam gibi, üst kenarında parlak bir çerçeveyle çizer. Yüzen alt çubuk açık olmalıdır.
 Glass lens on the current tab	Geçerli sekmede cam mercek
-On the main feed, a smaller piece of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.	Ana akışta, bulunduğun sekmenin arkasında daha küçük bir cam parçası durur ve seçtiğin sonraki sekmeye kayar. Sıvı cam görünümü açık olmalıdır.
+Pill height	Kapsül yüksekliği
+Compact	Kompakt
+Standard	Standart
+How tall the main feed's floating pill is inside the bar. Compact leaves more of the video showing around it. The tabs keep their size and their taps.	Ana akıştaki yüzen kapsülün çubuğun içinde ne kadar yüksek olduğu. Kompakt, çevresinde videonun daha fazlasını gösterir. Sekmeler boyutlarını ve dokunuşlarını korur.
+Pill corners	Kapsül köşeleri
+Rounder	Daha yuvarlak
+Fully round	Tam yuvarlak
+How round the main feed's floating pill and its glass lens are. Fully round gives them half circle ends.	Ana akıştaki yüzen kapsülün ve cam merceğinin ne kadar yuvarlak olduğu. Tam yuvarlak, onlara yarım daire uçlar verir.
+Glass opacity	Cam opaklığı
+Most see-through	En şeffaf
+More see-through	Daha şeffaf
+Frosted	Buzlu
+How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least.	Ana akışta cam kapsülün arkasından videonun ne kadarının göründüğü. En şeffaf en çoğunu, Buzlu en azını gösterir.
+On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.	Ana akışta, bulunduğun sekmenin arkasında kabarık bir cam kabarcığı durur ve seçtiğin sonraki sekmeye kayar. Sıvı cam görünümü açık olmalıdır.
+Slide across the tabs	Sekmeler boyunca kaydır
+On the main feed, slide a finger along the glass pill and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	Ana akışta parmağını cam kapsül boyunca kaydır, mercek onu takip eder. Bırakınca o sekme açılır. Dokunmalar ve uzun basmalar eskisi gibi çalışır. Geçerli sekmede cam mercek açık olmalıdır.
+Haptics on the tabs	Sekmelerde titreşim
+On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	Ana akışta cam mercek her sekmenin üzerinden geçtiğinde, bir dokunuştan sonra ya da parmağının altında kayarken hafif bir tık. Geçerli sekmede cam mercek açık olmalıdır.
+Haptic style	Titreşim stili
+Short pulse	Kısa darbe
+Phone's click	Telefonun tıklaması
+Soft tick	Yumuşak tık
+Full tick	Tam tık
+The tick on the main feed's tabs. Short pulse is one quick tap of the motor. Phone's click is the click your phone makes elsewhere. Soft tick rings a little longer. Full tick is the phone's strongest tick.	Ana akıştaki sekmelerde çalan tık. Kısa darbe, motorun tek bir hızlı vuruşudur. Telefonun tıklaması, telefonunun başka yerlerde yaptığı tıklamadır. Yumuşak tık biraz daha uzun sürer. Tam tık, telefonun en güçlü tıkıdır.
+Blur strength	Bulanıklık gücü
+Soft blur	Yumuşak bulanıklık
+Strong blur	Güçlü bulanıklık
+How much the video behind the glass pill on the main feed is blurred.	Ana akışta cam kapsülün arkasındaki videonun ne kadar bulanıklaştığı.
 # context: a switch on the Comments page. Language, Settings and privacy and App language are TikTok's own labels: its language page, the menu that page sits in, and the page's first row
 Bring back TikTok's translation	TikTok'un çevirisini geri getir
 Brings back the translation rows on TikTok's Language page, under Settings and privacy, for accounts that only see App language there.	TikTok'un Ayarlar ve gizlilik altındaki Dil sayfasında yalnızca Uygulama dilini gören hesaplar için çeviri satırlarını geri getirir.
@@ -2309,5 +2298,15 @@ Recovered recording saved to %1$s	Kurtarılan kayıt %1$s konumuna kaydedildi
 
 # context: Settings search switch location action, gesture hint, and missing original row.
 Open setting location	Ayarın konumunu aç
-Tap a switch to change it. Press and hold to open its page.	Bir anahtarı değiştirmek için dokunun. Sayfasını açmak için basılı tutun.
-This setting isn't available on this page. Go back and search again.	Bu ayar bu sayfada kullanılamıyor. Geri dönüp yeniden arayın.
+Expanded	Genişletilmiş
+Collapsed	Daraltılmış
+This setting isn't available. Search for another setting.	Bu ayar kullanılamıyor. Başka bir ayar arayın.
+Hide the Hushfeed row	Hushfeed satırını gizle
+Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.	Hushfeed'i TikTok'un Ayarlar ve gizlilik listesinden çıkarır. Bu ayarları açmak için akışın üstündeki Senin İçin'e basılı tut, ya da Hushfeed ayarları için Ana Sayfa'ya basılı tut açıksa Ana Sayfa'ya.
+Open the search page	Arama sayfasını aç
+TikTok's search page couldn't be opened. Restart TikTok and try again.	TikTok'un arama sayfası açılamadı. TikTok'u yeniden başlatıp tekrar dene.
+Fold the search into a button	Aramayı bir düğmeye katla
+Shows a search button at the top left of the comments instead of the box, so the comments get that room back. Tap it to search, and tap it again to put the box away. Search within comments must be on.	Kutu yerine yorumların sol üstünde bir arama düğmesi gösterir, böylece o alan yorumlara geri döner. Aramak için ona dokun, kutuyu kaldırmak için yeniden dokun. “Yorumların içinde ara” açık olmalı.
+Put the comment search away	Yorum aramasını kaldır
+Tap @names in bios	Biyografilerdeki @adlara dokun
+An @username in a profile's bio opens that profile when you tap it. The rest of the bio still translates on a tap.	Bir profilin biyografisindeki @kullanıcıadı, dokunduğunda o profili açar. Biyografinin geri kalanı dokununca yine çevrilir.

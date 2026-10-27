@@ -403,7 +403,8 @@ public class ScreenColorsTest {
                 int drawn = title.getCurrentTextColor();
                 int enabledColor = drawn | 0xFF000000;
                 assertTrue("\"" + title.getText() + "\" is " + Integer.toHexString(drawn),
-                        enabledColor == colors.title || enabledColor == colors.heading);
+                        enabledColor == colors.title || enabledColor == colors.heading
+                                || (row.isAccessibilityHeading() && enabledColor == colors.summary));
                 // Disabled Marketplace options use the existing 38% Material tint. The old
                 // assertion assumed every row on a newly opened page could be tapped.
                 assertEquals(title.getText().toString(),
@@ -478,6 +479,7 @@ public class ScreenColorsTest {
         row.addView(summary, new android.widget.RelativeLayout.LayoutParams(
                 android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
         ScreenColors.recoveryMessage(row);
+        assertTrue("the recovery title wears Facebook's gradient", ShimmerTitle.wears(title));
         for (TextView text : new TextView[]{title, summary}) {
             assertEquals(android.view.ViewGroup.LayoutParams.MATCH_PARENT, text.getLayoutParams().width);
             assertEquals(android.view.Gravity.CENTER, text.getGravity() & android.view.Gravity.CENTER);
@@ -552,7 +554,7 @@ public class ScreenColorsTest {
                 TextView title = list.findViewById(titleId);
                 assertNotNull("the list has no title", title);
                 assertEquals("Download quality", String.valueOf(title.getText()));
-                assertEquals(colors.title, title.getCurrentTextColor());
+                assertTrue("the dialog title wears Facebook's gradient", ShimmerTitle.wears(title));
                 assertEquals(colors.accent, list.getButton(android.app.AlertDialog.BUTTON_NEGATIVE).getCurrentTextColor());
                 assertEquals(DownloadQuality.values().length, list.getListView().getAdapter().getCount());
             } finally {

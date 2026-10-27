@@ -1,5 +1,6 @@
 package app.hushmessenger.patches.controls
 
+import app.hushmessenger.patches.CompatMirror
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
@@ -23,7 +24,9 @@ import kotlin.test.*
 private const val EMOJI_DRAWER_READS = 4
 
 /** [resumeTail] pads onResume after the guarded part: 22 instructions in 584. An older release's two more are refused. */
-internal fun screenshotViewerFixture(id: String, quickSize: Int = 451, resumeTail: Int = 22): MutableMethod {
+internal fun screenshotViewerFixture(
+    id: String, quickSize: Int = 446, resumeTail: Int = 22, quickSite: Int = 32,
+): MutableMethod {
     val body: String
     val registers: Int
     when {
@@ -53,7 +56,7 @@ internal fun screenshotViewerFixture(id: String, quickSize: Int = 451, resumeTai
         }
         id.contains("->onCreateView(") -> {
             registers = 23
-            body = List(25) { "nop" }.joinToString("\n") + "\n" + """
+            body = List(quickSite - 7) { "nop" }.joinToString("\n") + "\n" + """
                 invoke-virtual {v8}, LX/Fragment;->getDialog()Landroid/app/Dialog;
                 move-result-object v0
                 if-eqz v0, :inflate
@@ -65,7 +68,7 @@ internal fun screenshotViewerFixture(id: String, quickSize: Int = 451, resumeTai
                 :inflate
                 invoke-static {}, LX/Lifecycle;->inflate()V
                 const/4 v0, 0x0
-            """.trimIndent() + "\n" + List(quickSize - 36) { "nop" }.joinToString("\n") + "\nreturn-object v0"
+            """.trimIndent() + "\n" + List(quickSize - quickSite - 4) { "nop" }.joinToString("\n") + "\nreturn-object v0"
         }
         else -> {
             registers = 5
@@ -295,11 +298,21 @@ class NativeMediaControlsTest {
             screenshotViewerFixture("$EPHEMERAL_VIEWER->A1D(Landroid/os/Bundle;)Landroid/app/Dialog;").screenshotViewerSites()
         }
         val quick = "$QUICKSNAP_VIEWER->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;"
-        // Messenger 584 runs it to 451, with the same guarded prefix.
-        assertEquals(listOf(32), screenshotViewerFixture(quick, 451).screenshotViewerSites())
-        assertFailsWith<PatchException> { screenshotViewerFixture(quick, 444).screenshotViewerSites() }
-        // 583's 449 and 450 and 582's 438 and 441 instruction bodies are refused.
-        for (size in listOf(438, 441, 449, 450)) assertFailsWith<PatchException> { screenshotViewerFixture(quick, size).screenshotViewerSites() }
+        // 584.1 armv7 runs it to 446 with the flag at 32, the 584.1 arm64 builds to 444 or 445 with it at 29 or 32. The one
+        // addFlags call is the site, with the same guarded prefix ahead of it.
+        assertEquals(listOf(32), screenshotViewerFixture(quick, 446).screenshotViewerSites())
+        assertEquals(listOf(29), screenshotViewerFixture(quick, 444, quickSite = 29).screenshotViewerSites())
+        assertEquals(listOf(32), screenshotViewerFixture(quick, 445).screenshotViewerSites())
+        assertEquals(listOf(29), CompatMirror.screenshotViewerSites(screenshotViewerFixture(quick, 444, quickSite = 29)))
+        assertEquals(listOf(32), CompatMirror.screenshotViewerSites(screenshotViewerFixture(quick, 445)))
+        val twice = screenshotViewerFixture(quick, 445).apply { replaceInstruction(40, "invoke-virtual {v1, v0}, Landroid/view/Window;->addFlags(I)V") }
+        assertFailsWith<PatchException> { twice.screenshotViewerSites() }
+        assertEquals(emptyList(), CompatMirror.screenshotViewerSites(twice))
+        val bare = screenshotViewerFixture(quick, 445).apply { replaceInstruction(28, "nop") }
+        assertFailsWith<PatchException> { bare.screenshotViewerSites() }
+        assertEquals(emptyList(), CompatMirror.screenshotViewerSites(bare))
+        assertEquals(listOf(9), screenshotViewerFixture("$EPHEMERAL_VIEWER->A1I(Landroid/os/Bundle;)Landroid/app/Dialog;").screenshotViewerSites())
+        assertEquals(listOf(9), screenshotViewerFixture("$EPHEMERAL_VIEWER->A1J(Landroid/os/Bundle;)Landroid/app/Dialog;").screenshotViewerSites())
     }
 
     @Test fun eachAiCellNeedsItsOwnLabelAndAllItsSources() {
@@ -315,9 +328,13 @@ class NativeMediaControlsTest {
             // "Generate custom stickers" in the menu label's place: the custom sticker cell isn't the AI menu.
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, menu = 0x7f14128f)).isEmpty())
         }
-        // 584's cell offers its AI label from four renders and its Generate menu label from one.
-        assertEquals(listOf(listOf(GENERATE_AI_LABEL, 4, 107, GENERATE_MENU_LABEL, 1)),
-            aiCells.map { listOf(it.label, it.sources, it.size, it.menu, it.menuSources) })
+        // Every 584.1 cell offers its AI label from four renders and its Generate menu label from one.
+        assertEquals(listOf(
+            listOf(GENERATE_AI_LABEL, 4, 107, GENERATE_MENU_LABEL, 1),
+            listOf(GENERATE_AI_LABEL, 4, 107, GENERATE_MENU_LABEL, 1),
+            listOf(GENERATE_AI_LABEL, 4, 109, GENERATE_MENU_LABEL_5841, 1),
+            listOf(GENERATE_AI_LABEL, 4, 109, GENERATE_MENU_LABEL, 1),
+        ), aiCells.map { listOf(it.label, it.sources, it.size, it.menu, it.menuSources) })
     }
 
     @Test fun aMenuLabelThatBranchesBeforeTheCellIsNotASource() {
@@ -390,9 +407,8 @@ class NativeMediaControlsTest {
         }
     }
 
-    /** 584's cell under its own name, to check the injection compares 584's label. */
-    @Test fun eachCellCompares584sLabel() {
-        assertEquals(1, aiCells.size)
+    /** Each cell under its own name, to check the injection compares that cell's labels. */
+    @Test fun eachCellComparesItsOwnLabels() {
         for (cell in aiCells) {
             val base = SYNTHETIC_PROFILE
             activeProfile = ControlProfile(base.hooks + ("ai_sticker_cell" to setOf(cell.render)), base.pluginSentinel, base.preferenceGetter,
@@ -404,8 +420,8 @@ class NativeMediaControlsTest {
             method.injectAiStickerCell()
             val after = method.implementation!!.instructions.toList()
             assertEquals(before, after.drop(12), cell.type)
-            assertEquals(GENERATE_AI_LABEL, (after[2] as NarrowLiteralInstruction).narrowLiteral)
-            assertEquals(GENERATE_MENU_LABEL, (after[4] as NarrowLiteralInstruction).narrowLiteral)
+            assertEquals(cell.label, (after[2] as NarrowLiteralInstruction).narrowLiteral)
+            assertEquals(cell.menu, (after[4] as NarrowLiteralInstruction).narrowLiteral)
             assertEquals(6, after.branchTarget(3))
             assertEquals(12, after.branchTarget(5))
             assertEquals(12, after.branchTarget(9))
@@ -486,7 +502,8 @@ class NativeMediaControlsTest {
             val grid = method.validateAiStickerGrid()
             assertEquals(4, grid.flag)
             assertEquals(Opcode.MOVE, code[grid.skip].opcode)
-            assertEquals(listOf(GENERATE_MENU_LABEL, GENERATE_AI_LABEL), grid.sites.map { (code[it] as NarrowLiteralInstruction).narrowLiteral })
+            val menu = aiCells.single { it.render == activeProfile.hooks.getValue("ai_sticker_cell").single() }.menu
+            assertEquals(listOf(menu, GENERATE_AI_LABEL), grid.sites.map { (code[it] as NarrowLiteralInstruction).narrowLiteral })
             assertGridInjected(method, "fixture")
         }
         // A bare render that builds the menu cell with no loop around it is no grid.

@@ -1,3 +1,11 @@
+## 1.48.0-dualvot.8.5.4 (2026-10-26)
+
+### Fixes
+
+* Fix the Yandex player event crash on Java-only Morphe bases without a Kotlin runtime.
+* Preserve compatibility with legacy Kotlin events and remove PiP observers by their original identity.
+* Add runtime regression tests with Kotlin classes unavailable.
+
 ## 1.48.0-dualvot.8.5.3 (2026-10-22)
 
 ### Automated Morphe update

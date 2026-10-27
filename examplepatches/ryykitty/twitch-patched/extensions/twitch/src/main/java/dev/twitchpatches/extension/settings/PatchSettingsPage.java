@@ -104,7 +104,6 @@ public final class PatchSettingsPage extends DialogFragment {
             return;
         }
         java.util.List<? extends SettingEntry> options = group == null ? PatchSettings.options() : group.children();
-        if (group != null && !group.summary().isEmpty()) TwitchSettingsRows.empty(contents, group.summary());
         boolean headers = group == null || options.stream().map(SettingEntry::section).distinct().count() > 1;
         TwitchSettingsRows.populate(contents, options, this::open, headers);
         if (group != null && group.children().isEmpty() && !group.emptyMessage().isEmpty())

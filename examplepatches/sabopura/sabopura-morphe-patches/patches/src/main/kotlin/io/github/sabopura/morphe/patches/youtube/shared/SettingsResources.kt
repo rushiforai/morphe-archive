@@ -2,7 +2,7 @@ package io.github.sabopura.morphe.patches.youtube.shared
 
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.resourcePatch
-import io.github.sabopura.morphe.patches.youtube.Constants.YOUTUBE_21_04_223
+import io.github.sabopura.morphe.patches.youtube.Constants.YOUTUBE
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
@@ -180,7 +180,7 @@ internal val sharedSettingsResourcePatch = resourcePatch(
     description = "Shared YouTube-styled settings screen resources.",
     default = false,
 ) {
-    compatibleWith(YOUTUBE_21_04_223)
+    compatibleWith(YOUTUBE)
 
     execute {
         document("res/values/strings.xml").use {

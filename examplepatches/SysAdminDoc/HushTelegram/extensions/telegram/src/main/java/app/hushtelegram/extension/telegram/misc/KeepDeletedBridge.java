@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * in the builds the patch accepts, and the patch refuses a build where one of them has changed.
  * Any failure here ends in Telegram's own deletion, so a lookup that goes wrong costs nothing.
  */
-final class KeepDeletedBridge implements KeepDeleted.Source {
+final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
     private static final ConcurrentHashMap<String, Method> METHODS = new ConcurrentHashMap<>();
 
     private final Object controller;
@@ -73,6 +73,50 @@ final class KeepDeletedBridge implements KeepDeleted.Source {
             ((Number) call(message, "getDialogId")).longValue(),
             ((Number) call(message, "getId")).longValue(),
         };
+    }
+
+    /** An edit update's message: its chat, by Telegram's own reckoning, its ID, its new text and its edit time. */
+    static Object[] editOf(Object message) throws Exception {
+        if (message == null) return null;
+        Class<?> type = message.getClass();
+        ClassLoader loader = type.getClassLoader();
+        Class<?> messages = Class.forName("org.telegram.tgnet.TLRPC$Message", true, loader);
+        Class<?> objects = Class.forName("org.telegram.messenger.MessageObject", true, loader);
+        // getDialogId fills in dialog_id, and the update loop still reads it as the server sent it.
+        Field dialogId = type.getField("dialog_id");
+        long sent = dialogId.getLong(message);
+        long dialog;
+        try {
+            dialog = ((Number) method(objects, "getDialogId", messages).invoke(null, message)).longValue();
+        } finally {
+            dialogId.setLong(message, sent);
+        }
+        return new Object[] {
+            dialog,
+            type.getField("id").getInt(message),
+            (String) type.getField("message").get(message),
+            type.getField("edit_date").getInt(message),
+        };
+    }
+
+    @Override public KeepEdits.Stored stored(long dialogId, int id) throws Exception {
+        String sql = "SELECT out, ttl, data FROM messages_v2 WHERE mid = " + id + " AND uid = " + dialogId;
+        Object database = call(storage, "getDatabase");
+        Object cursor = method(database.getClass(), "queryFinalized", String.class, Object[].class).invoke(database, sql, new Object[0]);
+        try {
+            Class<?> type = cursor.getClass();
+            if (!Boolean.TRUE.equals(method(type, "next").invoke(cursor))) return null;
+            Method intValue = method(type, "intValue", int.class);
+            boolean mine = (Integer) intValue.invoke(cursor, 0) != 0;
+            boolean timed = (Integer) intValue.invoke(cursor, 1) != 0;
+            Object message = readMessage(cursor, 2);
+            if (message == null) return null;
+            boolean[] flags = flags(message);
+            String text = (String) message.getClass().getField("message").get(message);
+            return new KeepEdits.Stored(text, mine || flags[0], timed || flags[1], flags[2] || chatIsProtected(dialogId));
+        } finally {
+            method(cursor.getClass(), "dispose").invoke(cursor);
+        }
     }
 
     @Override public long self() throws Exception {
@@ -210,6 +254,12 @@ final class KeepDeletedBridge implements KeepDeleted.Source {
 
     /** Whether the message is sent by me, disappears on a timer, or can't be saved. Null when it can't be read. */
     private boolean[] readData(Object cursor, int column) throws Exception {
+        Object message = readMessage(cursor, column);
+        return message == null ? null : flags(message);
+    }
+
+    /** The stored message in [column], or null when there's none. */
+    private static Object readMessage(Object cursor, int column) throws Exception {
         Object buffer = method(cursor.getClass(), "byteBufferValue", int.class).invoke(cursor, column);
         if (buffer == null) return null;
         try {
@@ -217,18 +267,21 @@ final class KeepDeletedBridge implements KeepDeleted.Source {
             int constructor = (Integer) method(buffer.getClass(), "readInt32", boolean.class).invoke(buffer, false);
             Class<?> input = Class.forName("org.telegram.tgnet.InputSerializedData", true, loader);
             Class<?> messages = Class.forName("org.telegram.tgnet.TLRPC$Message", true, loader);
-            Object message = method(messages, "TLdeserialize", input, int.class, boolean.class).invoke(null, buffer, constructor, false);
-            if (message == null) return null;
-            Class<?> type = message.getClass();
-            boolean mine = type.getField("out").getBoolean(message);
-            boolean timed = type.getField("ttl_period").getInt(message) != 0;
-            Object media = type.getField("media").get(message);
-            if (media != null && media.getClass().getField("ttl_seconds").getInt(media) != 0) timed = true;
-            boolean noForwards = type.getField("noforwards").getBoolean(message);
-            return new boolean[] {mine, timed, noForwards};
+            return method(messages, "TLdeserialize", input, int.class, boolean.class).invoke(null, buffer, constructor, false);
         } finally {
             method(buffer.getClass(), "reuse").invoke(buffer);
         }
+    }
+
+    /** Whether [message] is sent by me, disappears on a timer, or can't be saved. */
+    private static boolean[] flags(Object message) throws Exception {
+        Class<?> type = message.getClass();
+        boolean mine = type.getField("out").getBoolean(message);
+        boolean timed = type.getField("ttl_period").getInt(message) != 0;
+        Object media = type.getField("media").get(message);
+        if (media != null && media.getClass().getField("ttl_seconds").getInt(media) != 0) timed = true;
+        boolean noForwards = type.getField("noforwards").getBoolean(message);
+        return new boolean[] {mine, timed, noForwards};
     }
 
     /** A group or channel that doesn't allow saving or forwarding its content. */

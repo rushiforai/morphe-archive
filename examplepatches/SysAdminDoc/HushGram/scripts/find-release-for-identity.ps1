@@ -49,6 +49,7 @@ param(
     [switch]$All
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'build-identity.ps1')
 
 function Resolve-WantedIdentity {
     <# The hg1 value to look for: the argument itself, or the first one in a report file. #>
@@ -62,26 +63,6 @@ function Resolve-WantedIdentity {
         throw "No build identity (hg1:<64 hex>) found in the report: $Value"
     }
     throw "Not a build identity or a readable report: $Value. Pass an hg1:<64 hex> value or a diagnostics report path."
-}
-
-function Get-MppBuildIdentity {
-    <# The hg1 identity in a bundle's manifest, or $null when the bundle has none. #>
-    param([Parameter(Mandatory = $true)][string]$Path)
-    Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction SilentlyContinue
-    $zip = [System.IO.Compression.ZipFile]::OpenRead($Path)
-    try {
-        $entry = $zip.GetEntry('META-INF/MANIFEST.MF')
-        if (-not $entry) { return $null }
-        $reader = New-Object System.IO.StreamReader($entry.Open(), [System.Text.UTF8Encoding]::new($false))
-        try { $text = $reader.ReadToEnd() } finally { $reader.Dispose() }
-    } finally {
-        $zip.Dispose()
-    }
-    # Unfold the manifest's continuation lines (a CRLF and one leading space), then read the entry.
-    $unfolded = $text -replace "\r\n ", ''
-    $match = [regex]::Match($unfolded, '(?m)^HushGram-Build-Identity:\s*(hg1:[0-9a-f]{64})\s*$')
-    if ($match.Success) { return $match.Groups[1].Value }
-    return $null
 }
 
 function Get-ReleaseMpp {

@@ -427,6 +427,14 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     Settings.HIDE_LAUNCHER_SHORTCUTS
             ));
         }
+        addPreference(new TogglePreference(
+                context,
+                "Hide the Hushfeed row",
+                "Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press "
+                        + "and hold For You at the top of the feed, or Home if Long-press Home for "
+                        + "Hushfeed settings is on.",
+                Settings.HIDE_SETTINGS_ROW
+        ));
         if (SettingsStatus.firstLaunchSetupEnabled) {
             addPreference(new TogglePreference(
                     context,

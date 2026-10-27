@@ -97,29 +97,36 @@ public class SettingsNavigationTest {
     @Test @Config(sdk = {28, 30, 33, 36})
     public void homeAndEveryCategoryAreReachableWithoutRemovingTheModel() {
         assertNotNull(page.navigation);
-        // The status card, Browse settings, the seven switch pages, Changed switches, More settings,
-        // Report a problem and Support HushTelegram.
-        assertEquals(13, list().getCount());
+        // Nothing is paused, so there is no status card: the thirteen section headings, Changed
+        // switches, Report a problem and Support HushTelegram.
+        assertEquals(16, list().getCount());
         assertEquals(13, page.sections().size());
         int total = page.getPreferenceScreen().getRootAdapter().getCount();
         for (Preference section : page.sections()) {
+            String id = section.getTitle().toString();
+            assertFalse(id + " starts open", page.navigation.isExpanded(id));
+            assertEquals(id + " lists rows while closed", 0, sectionRows(id).size());
             assertTrue(page.navigation.open(section));
+            assertTrue(page.navigation.isExpanded(id));
             PreferenceCategory category = (PreferenceCategory) section;
-            // Every row once, plus a heading per group on the two split pages.
+            // Every row once, plus a heading per group on the two split sections.
             int groups = 0;
             for (PatchFamily.Group group : PatchFamily.Group.values()) {
                 if (group.page.title.contentEquals(section.getTitle())) groups++;
             }
-            assertEquals(category.getPreferenceCount() + groups, list().getCount());
+            assertEquals(category.getPreferenceCount() + groups, sectionRows(id).size());
             for (int i = 0; i < category.getPreferenceCount(); i++) {
                 assertEquals(1, occurrences(category.getPreference(i)));
             }
             assertEquals(total, page.getPreferenceScreen().getRootAdapter().getCount());
             assertNotNull(page.findPreference(Settings.HIDE_ADS.key));
-            assertTrue(page.navigation.back());
-            while (page.navigation.back()) { }
+            // The heading closes its section in place, and the home list has no page to go back from.
+            tap("section_" + id);
+            assertFalse(page.navigation.isExpanded(id));
+            assertEquals(0, sectionRows(id).size());
+            assertFalse(page.navigation.back());
         }
-        assertEquals(13, list().getCount());
+        assertEquals(16, list().getCount());
     }
 
     @Test public void categoryClickChangesOnlyTheSettingWhoseRowWasTapped() {
@@ -131,9 +138,9 @@ public class SettingsNavigationTest {
         assertTrue(Settings.HIDE_ADS.savedValue());
     }
 
-    /** Each task has its own page, while search still reaches every original control. */
-    @Test public void pauseBackupAndDiagnosticsHaveSeparatePagesInEveryShippedLanguage() {
-        String[][] languages = {{"en", null}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
+    /** Each task has its own section that opens in place, while search still reaches every original control. */
+    @Test public void pauseBackupAndDiagnosticsSectionsOpenInPlaceInEveryShippedLanguage() {
+        String[][] languages = {{"en", null}, {"bg", "bg"}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
         for (String[] language : languages) {
             controller.close();
             org.robolectric.RuntimeEnvironment.setQualifiers("+" + language[0]);
@@ -144,12 +151,14 @@ public class SettingsNavigationTest {
             for (String[] group : controlGroups()) {
                 String title = table.getOrDefault(group[0], group[0]);
                 if (language[1] != null) assertTrue(group[0] + " has no " + language[0] + " translation", table.containsKey(group[0]));
-                page.navigation.navigate("more");
-                assertTrue("missing page " + group[0], contains("section_" + group[0]));
+                // Leave the last search for the home list, where the section headings are.
+                while (page.navigation.back()) { }
+                assertTrue("missing section " + group[0], contains("section_" + group[0]));
                 assertEquals(title, ((Preference) list().getItemAtPosition(position("section_" + group[0]))).getTitle());
+                assertFalse(page.navigation.isExpanded(group[0]));
                 tap("section_" + group[0]);
-                assertEquals(title, pageTitle().getText().toString());
-                assertEquals("unexpected controls on " + title, group.length - 1, list().getCount());
+                assertTrue(page.navigation.isExpanded(group[0]));
+                assertEquals("unexpected controls on " + title, group.length - 1, sectionRows(group[0]).size());
                 for (int i = 1; i < group.length; i++) {
                     Preference control = page.findPreference(group[i]);
                     assertEquals(title, control.getParent().getTitle());
@@ -158,7 +167,7 @@ public class SettingsNavigationTest {
                     assertSame("search lost " + group[i], control, list().getItemAtPosition(position(group[i])));
                     assertEquals("search repeated " + group[i], 1, occurrences(group[i]));
                     assertTrue(page.navigation.open(control));
-                    assertEquals(title, pageTitle().getText().toString());
+                    assertTrue("opening " + group[i] + " left " + title + " closed", page.navigation.isExpanded(group[0]));
                 }
                 page.navigation.search(title);
                 for (int i = 1; i < group.length; i++) assertEquals("group search lost " + group[i], 1, occurrences(group[i]));
@@ -166,10 +175,10 @@ public class SettingsNavigationTest {
         }
     }
 
-    /** A page title is spoken once as a localized heading, and every control wraps at either text size. */
+    /** The screen title is spoken once as a heading, each section keeps its localized name, and every control wraps at either text size. */
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void groupedPagesKeepTheirHeadingsAndAllControlsAtNormalAndDoubleText() {
-        String[] languages = {"en", "de", "es", "in-rID", "pt-rBR", "tr"};
+        String[] languages = {"en", "bg", "de", "es", "in-rID", "pt-rBR", "tr"};
         try {
             for (String language : languages) for (float scale : new float[]{1f, 2f}) {
                 controller.close();
@@ -182,10 +191,12 @@ public class SettingsNavigationTest {
                     page.navigation.navigate(group[0]);
                     layout(dialog.getView());
                     TextView heading = pageTitle();
-                    assertEquals(L10n.t(group[0]), heading.getText().toString());
+                    assertEquals("HushTelegram", heading.getText().toString());
                     assertTrue(heading.createAccessibilityNodeInfo().isHeading());
                     assertCompleteText(heading);
-                    assertEquals(group.length - 1, list().getCount());
+                    assertEquals(L10n.t(group[0]), String.valueOf(
+                            ((Preference) list().getItemAtPosition(position("section_" + group[0]))).getTitle()));
+                    assertEquals(group.length - 1, sectionRows(group[0]).size());
                     for (int i = 1; i < group.length; i++) {
                         int position = position(group[i]);
                         list().setSelection(position);
@@ -236,6 +247,7 @@ public class SettingsNavigationTest {
      * Conversations and Look and feel open split under their headings, in the order the groups are
      * listed, each heading spoken as one and never tappable. A row with no switch of its own stays
      * under the switch it belongs to, and a link to a row brings its heading into view with it.
+     * The groups sit inside the section, under its own heading on the home list.
      */
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void theLongPagesAreSplitUnderHeadingsInGroupOrder() {
@@ -246,7 +258,9 @@ public class SettingsNavigationTest {
             List<String> expected = new ArrayList<>();
             for (PatchFamily.Group group : PatchFamily.Group.values()) if (group.page == split) expected.add(group.title);
             PatchFamily.Group current = null;
-            for (int i = 0; i < list().getCount(); i++) {
+            int first = position("section_" + split.title) + 1;
+            int last = first + sectionRows(split.title).size();
+            for (int i = first; i < last; i++) {
                 Preference item = (Preference) list().getItemAtPosition(i);
                 if (item instanceof PreferenceCategory) {
                     headings.add(String.valueOf(item.getTitle()));
@@ -261,13 +275,12 @@ public class SettingsNavigationTest {
                     continue;
                 }
                 // Settings look is about the settings screen, not a patch, so it heads Look and feel on its own.
-                if (i == 0 && split == PatchFamily.Page.LOOK && SettingsNavigation.SETTINGS_LOOK.equals(item.getKey())) continue;
+                if (i == first && split == PatchFamily.Page.LOOK && SettingsNavigation.SETTINGS_LOOK.equals(item.getKey())) continue;
                 assertNotNull(item.getTitle() + " comes before any heading", current);
                 PatchFamily owner = item.hasKey() ? PatchFamily.Group.owner(item.getKey()) : null;
                 if (owner != null) assertSame(item.getTitle() + " is under " + current, current, PatchFamily.Group.of(owner));
             }
             assertEquals(expected, headings);
-            while (page.navigation.back()) { }
         }
         page.navigation.navigate(PatchFamily.Page.CONVERSATIONS.title);
         assertEquals(position(Settings.HIDE_TRANSLATE_BAR.key) + 1, position(Settings.OUTSIDE_TRANSLATE.key));
@@ -275,16 +288,15 @@ public class SettingsNavigationTest {
         assertEquals(position(FilterEditor.GROUPS) + 1, position(FilterEditor.CHANNELS));
         assertEquals(position(Settings.KEEP_DELETED_MESSAGES.key) + 1, position(Settings.RED_DELETED_LABEL.key));
         assertEquals(position(Settings.RED_DELETED_LABEL.key) + 1, position(HushTelegramPreferenceFragment.CLEAR_KEPT));
-        page.navigation.back();
+        assertEquals(position(HushTelegramPreferenceFragment.CLEAR_KEPT) + 1, position(Settings.KEEP_EDIT_HISTORY.key));
+        assertEquals(position(Settings.KEEP_EDIT_HISTORY.key) + 1, position(HushTelegramPreferenceFragment.CLEAR_EDITS));
         page.navigation.navigate(PatchFamily.Page.LOOK.title);
         assertEquals(position(Settings.CHANGE_STICKER_SIZE.key) + 1, position(HushTelegramPreferenceFragment.STICKER_SIZE_ROW));
         assertEquals(position(Settings.HOLIDAY_LOOK.key) + 1, position(TitleEmojiEditor.KEY));
         assertEquals(position(Settings.AMOLED_BLACK.key) - 1, titles().indexOf("Theme"));
-        page.navigation.back();
         assertTrue(page.navigation.open(page.findPreference(Settings.HIDE_TRANSLATE_BAR.key)));
         layout(dialog.getView());
         assertEquals("Translation", String.valueOf(((Preference) list().getItemAtPosition(list().getFirstVisiblePosition())).getTitle()));
-        while (page.navigation.back()) { }
         // Further down a group, the row itself is what comes to the top.
         assertTrue(page.navigation.open(page.findPreference(Settings.OUTSIDE_TRANSLATE.key)));
         layout(dialog.getView());
@@ -308,7 +320,11 @@ public class SettingsNavigationTest {
 
     @Test public void overviewPauseAndUndoUpdateTheSavedSwitchAndRestartNotice() {
         layout(dialog.getView());
+        // Nothing is paused, so no status card is drawn and Pause sits in the toolbar.
+        assertNotSame(page.getPreferenceScreen().getPreference(0), list().getItemAtPosition(0));
+        assertEquals(View.VISIBLE, dialog.pauseAction.getVisibility());
         android.widget.Button action = statusAction();
+        assertSame(dialog.pauseAction, action);
         assertEquals("Pause", action.getText().toString());
         assertTrue(action.getMinimumWidth() <= Math.round(48 * action.getResources().getDisplayMetrics().density));
         assertTrue("a keyboard on the button wouldn't show",
@@ -317,14 +333,21 @@ public class SettingsNavigationTest {
         ShadowLooper.idleMainLooper();
         layout(dialog.getView());
         assertTrue(BaseSettings.PAUSED.savedValue());
+        // A pause waiting for a restart brings the card up, and the card carries the button.
+        assertSame(page.getPreferenceScreen().getPreference(0), list().getItemAtPosition(0));
         assertTrue(((Preference) list().getItemAtPosition(0)).getSummary().toString()
                 .contains("pauses when Telegram restarts"));
+        assertEquals(View.GONE, dialog.pauseAction.getVisibility());
+        list().setSelection(0);
+        layout(dialog.getView());
         action = statusAction();
+        assertNotSame(dialog.pauseAction, action);
         assertEquals("Undo", action.getText().toString());
         action.performClick();
         ShadowLooper.idleMainLooper();
         layout(dialog.getView());
         assertFalse(BaseSettings.PAUSED.savedValue());
+        assertEquals(View.VISIBLE, dialog.pauseAction.getVisibility());
         assertEquals("Pause", statusAction().getText().toString());
         assertTrue(Settings.HIDE_ADS.savedValue());
     }
@@ -338,12 +361,14 @@ public class SettingsNavigationTest {
         row.getBackground().setBounds(0, 0, 780, 96);
         Bitmap idle = Bitmap.createBitmap(780, 96, Bitmap.Config.ARGB_8888);
         row.getBackground().draw(new Canvas(idle));
-        assertEquals("the link should be borderless until selected", 0, idle.getPixel(41, 48));
+        // The ring runs along the card's inset from the row's edge.
+        int ringX = Math.round(ScreenColors.CARD_INSET * list().getResources().getDisplayMetrics().density) + 1;
+        assertEquals("the link should be borderless until selected", 0, idle.getPixel(ringX, 48));
         row.setSelected(true);
         Bitmap selected = Bitmap.createBitmap(780, 96, Bitmap.Config.ARGB_8888);
         row.getBackground().draw(new Canvas(selected));
         assertEquals("keyboard selection must be visible", ScreenColors.DEFAULT.accent,
-                selected.getPixel(41, 48));
+                selected.getPixel(ringX, 48));
         idle.recycle();
         selected.recycle();
     }
@@ -403,9 +428,9 @@ public class SettingsNavigationTest {
             + "saved. Edits made when you patched stay in.";
 
     /**
-     * Paused, a category page opens with a short line that says so, and the saved switches keep
-     * showing what was chosen. Resume and Undo act from that line, the page stays where it was, and
-     * Back returns to the overview where it was.
+     * Paused, the status card at the top of the home list says so while a section is open under it,
+     * and the saved switches keep showing what was chosen. Resume and Undo act from the card, the
+     * list stays where it was, and the headings keep their place when the card's wording changes.
      */
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     @Config(qualifiers = "w390dp-h600dp-night-xhdpi")
@@ -415,23 +440,24 @@ public class SettingsNavigationTest {
         PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
         recreate();
         layout(dialog.getView(), 1200);
-        list().scrollListBy(120);
-        int homePosition = list().getFirstVisiblePosition();
-        int homeOffset = list().getChildAt(0).getTop();
-
-        page.navigation.navigate("Conversations");
+        Preference card = (Preference) list().getItemAtPosition(0);
+        assertSame(page.getPreferenceScreen().getPreference(0), card);
+        assertEquals("HushTelegram is paused", String.valueOf(card.getTitle()));
+        // Opening a section under the card leaves the card where it is, at the top.
+        tap("section_Conversations");
         layout(dialog.getView(), 1200);
-        Preference line = (Preference) list().getItemAtPosition(0);
-        assertEquals("HushTelegram is paused", String.valueOf(line.getTitle()));
-        assertEquals(PAUSED_LINE, String.valueOf(line.getSummary()));
-        // The line is a keyboard's stop now, where Enter presses its Resume, so what's checked is
-        // what a screen reader gets from it.
+        assertSame(card, list().getItemAtPosition(0));
         assertEquals(0, list().getFirstVisiblePosition());
+        assertEquals("a section added its own paused line", 1, occurrences(card));
+        assertEquals("Your choices are saved. Tap Resume, then restart Telegram.",
+                String.valueOf(((TextView) list().getChildAt(0).findViewById(android.R.id.summary)).getText()));
+        // A paused card acts at once on a tap (it takes the pause off the next start), so a screen
+        // reader hears it as a button that can be clicked.
         android.view.accessibility.AccessibilityNodeInfo lineNode = list().getChildAt(0).createAccessibilityNodeInfo();
-        assertFalse("the line reads as a button of its own", lineNode.isClickable());
-        assertFalse("the line reads as a button of its own", lineNode.getActionList()
+        assertTrue("the paused card can't be pressed", lineNode.isClickable());
+        assertTrue("the paused card has no click action", lineNode.getActionList()
                 .contains(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK));
-        assertNotEquals(android.widget.Button.class.getName(), String.valueOf(lineNode.getClassName()));
+        assertEquals(android.widget.Button.class.getName(), String.valueOf(lineNode.getClassName()));
         assertTrue("a saved choice was changed to look paused",
                 ((SwitchPreference) page.findPreference(Settings.REVEAL_SPOILERS.key)).isChecked());
         assertTrue(Settings.REVEAL_SPOILERS.savedValue());
@@ -449,7 +475,7 @@ public class SettingsNavigationTest {
         assertFalse(BaseSettings.PAUSED.savedValue());
         assertEquals("HushTelegram turns back on when Telegram restarts.",
                 String.valueOf(((Preference) list().getItemAtPosition(0)).getSummary()));
-        assertTrue("Resume left the page", contains(Settings.REVEAL_SPOILERS.key));
+        assertTrue("Resume closed the section", contains(Settings.REVEAL_SPOILERS.key));
         assertEquals(position, list().getFirstVisiblePosition());
         assertEquals(offset, list().getChildAt(0).getTop());
 
@@ -459,18 +485,15 @@ public class SettingsNavigationTest {
         ShadowLooper.idleMainLooper();
         layout(dialog.getView(), 1200);
         assertTrue(BaseSettings.PAUSED.savedValue());
-        assertEquals(PAUSED_LINE, String.valueOf(((Preference) list().getItemAtPosition(0)).getSummary()));
+        assertEquals("Your choices are saved. Tap Resume, then restart Telegram.",
+                String.valueOf(((TextView) list().getChildAt(0).findViewById(android.R.id.summary)).getText()));
         assertEquals("Resume", pageAction().getText().toString());
         assertEquals(position, list().getFirstVisiblePosition());
         assertEquals(offset, list().getChildAt(0).getTop());
-
-        assertTrue(page.navigation.back());
-        layout(dialog.getView(), 1200);
-        assertEquals(homePosition, list().getFirstVisiblePosition());
-        assertEquals(homeOffset, list().getChildAt(0).getTop());
+        assertTrue("Undo closed the section", page.navigation.isExpanded("Conversations"));
     }
 
-    /** Cancelling a pending Pause must not clamp a page after its status line disappears. */
+    /** Cancelling a pending Pause must not clamp the list after its status card or line disappears. */
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     @Config(qualifiers = "w390dp-h600dp-night-xhdpi")
     public void undoPendingPauseKeepsTheCategoryOffset() throws Exception {
@@ -494,8 +517,14 @@ public class SettingsNavigationTest {
         if (restart) app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.add(
                 Settings.REVEAL_SPOILERS.key);
         BaseSettings.PAUSED.save(true);
-        if (search == null) page.navigation.navigate(route);
-        else findSearch(dialog.getView()).setText(search);
+        page.navigation.restartChanged();
+        if (search == null) {
+            // The section opens in place under the status card, which carries Undo and stays in reach.
+            layout(dialog.getView(), 1200);
+            tap("section_" + route);
+        } else {
+            findSearch(dialog.getView()).setText(search);
+        }
         layout(dialog.getView(), 1200);
         list().scrollListBy(40);
         layout(dialog.getView(), 1200);
@@ -510,23 +539,32 @@ public class SettingsNavigationTest {
         assertFalse(HushTelegramPause.isPaused());
         assertEquals(position, list().getFirstVisiblePosition());
         assertEquals(offset, list().getChildAt(0).getTop());
-        if (restart) assertEquals("Restart Telegram to apply this change",
-                String.valueOf(((Preference) list().getItemAtPosition(0)).getTitle()));
-        else assertFalse(titles().contains("HushTelegram is on"));
+        if (restart) {
+            assertEquals(position(Settings.REVEAL_SPOILERS.key) + 1, position(SettingsNavigation.RESTART));
+            assertEquals("Restart Telegram to apply this change",
+                    String.valueOf(((Preference) list().getItemAtPosition(position(SettingsNavigation.RESTART))).getTitle()));
+        } else {
+            assertFalse(titles().contains("HushTelegram is on"));
+        }
         capture("undo-pending-" + (restart ? "restart" : search == null ? "category" : "search"), 1200);
 
         page.navigation.navigate("About");
         layout(dialog.getView(), 1200);
         assertEquals(normalBottomPadding, list().getPaddingBottom());
-        assertEquals(0, list().getFirstVisiblePosition());
+        assertTrue("About's heading isn't in view", position("section_About") >= list().getFirstVisiblePosition()
+                && position("section_About") <= list().getLastVisiblePosition());
         findSearch(dialog.getView()).setText("Hide");
         layout(dialog.getView(), 1200);
         assertEquals(normalBottomPadding, list().getPaddingBottom());
         assertFalse(titles().contains("HushTelegram is on"));
     }
 
-    /** Search results say it too, and a page with nothing Pause turns off, like About, doesn't. */
-    @Test public void pausedSearchSaysSoAndPagesPauseDoesNotReachStayAsTheyAre() {
+    /**
+     * Search results say it too. An open section adds no line of its own, since the status card
+     * says it once for the whole home list, and a search that finds nothing Pause turns off, like
+     * About's licenses, doesn't carry one.
+     */
+    @Test public void pausedSearchSaysSoAndSectionsLeaveTheLineToTheStatusCard() {
         BaseSettings.PAUSED.save(true);
         PauseForTests.pause(HushTelegramPause.Reason.CRASH_LOOP);
         recreate();
@@ -535,23 +573,35 @@ public class SettingsNavigationTest {
         assertEquals(PAUSED_LINE, String.valueOf(((Preference) list().getItemAtPosition(0)).getSummary()));
         assertTrue(contains(Settings.HIDE_ADS.key));
         page.navigation.back();
-        page.navigation.navigate("Links");
-        assertEquals("Links has Pause-controlled switches", categoryCount("Links") + 1, list().getCount());
+        assertSame(page.getPreferenceScreen().getPreference(0), list().getItemAtPosition(0));
         assertEquals("HushTelegram is paused", String.valueOf(((Preference) list().getItemAtPosition(0)).getTitle()));
-        assertEquals(PAUSED_LINE, String.valueOf(((Preference) list().getItemAtPosition(0)).getSummary()));
+        page.navigation.navigate("Links");
+        assertEquals("Links has Pause-controlled switches", categoryCount("Links"), sectionRows("Links").size());
+        assertEquals("the section drew a paused line of its own", 1, paused());
         assertTrue(contains(Settings.OPEN_EXTERNAL_LINKS.key));
         assertTrue(contains(Settings.STRIP_LINK_TRACKING.key));
-        while (page.navigation.back()) { }
         page.navigation.navigate("About");
-        assertEquals("About", categoryCount("About"), list().getCount());
-        while (page.navigation.back()) { }
-        // Without either link family the same Links page still has no Pause-controlled setting.
+        assertEquals("About", categoryCount("About"), sectionRows("About").size());
+        assertEquals(1, paused());
+        // A search that only reaches rows Pause doesn't turn off has no line.
+        page.navigation.search("licenses");
+        assertTrue(titles().contains("Licenses"));
+        assertEquals("a search of About drew a paused line", 0, paused());
+        page.navigation.search("");
+        // Without either link family the same Links section still has no Pause-controlled setting.
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_ADS);
         recreate();
         page.navigation.navigate("Links");
-        assertEquals("Links without the link patches", categoryCount("Links"), list().getCount());
+        assertEquals("Links without the link patches", categoryCount("Links"), sectionRows("Links").size());
         assertFalse(contains(Settings.OPEN_EXTERNAL_LINKS.key));
         assertFalse(contains(Settings.STRIP_LINK_TRACKING.key));
+    }
+
+    /** How many rows are titled as the paused status. */
+    private int paused() {
+        int found = 0;
+        for (String title : titles()) if (title.equals("HushTelegram is paused")) found++;
+        return found;
     }
 
     /** A home row names only what its page holds in this build, down to the ad hooks inserted. */
@@ -627,48 +677,70 @@ public class SettingsNavigationTest {
     }
 
     /**
-     * Pause switched on from its own page is owed a restart: the page says so, the restart row
-     * sits under that line, and Undo takes both back. A change owed a restart brings the row up
-     * on every page, first on a page without a pause line and under the home page's status card.
+     * Pause switched on from its own section is owed a restart: the status card says so, the restart
+     * row sits with it, and Undo takes both back. A change owed a restart brings the row up under
+     * the switch that asked for it, and first in the list, or under the status card, when that
+     * switch is out of view.
      */
     @Test public void aPauseOrAChangeWaitingOnARestartBringsUpTheRestartRow() {
         page.navigation.navigate("Pause");
         tap(BaseSettings.PAUSED.key);
         layout(dialog.getView());
+        assertSame(page.getPreferenceScreen().getPreference(0), list().getItemAtPosition(0));
         Preference line = (Preference) list().getItemAtPosition(0);
         assertEquals("HushTelegram is on", String.valueOf(line.getTitle()));
         assertEquals("HushTelegram pauses when Telegram restarts.", String.valueOf(line.getSummary()));
-        Preference restart = (Preference) list().getItemAtPosition(1);
-        assertEquals(SettingsNavigation.RESTART, restart.getKey());
+        int at = position(SettingsNavigation.RESTART);
+        assertTrue("the restart row isn't with the card or the Pause switch",
+                at == 1 || at == position(BaseSettings.PAUSED.key) + 1);
+        Preference restart = (Preference) list().getItemAtPosition(at);
         assertEquals("Restart Telegram to apply this change", String.valueOf(restart.getTitle()));
         assertEquals("Telegram closes and reopens on this page.", String.valueOf(restart.getSummary()));
-        assertTrue("the restart row can't be tapped", list().getAdapter().isEnabled(1));
+        assertTrue("the restart row can't be tapped", list().getAdapter().isEnabled(at));
         assertNull("a restart saved message went to a toast instead of the row", ShadowToast.getLatestToast());
+        list().setSelection(0);
+        layout(dialog.getView());
+        assertEquals("Undo", pageAction().getText().toString());
         pageAction().performClick();
         ShadowLooper.idleMainLooper();
         layout(dialog.getView());
         assertFalse(BaseSettings.PAUSED.savedValue());
-        assertEquals(BaseSettings.PAUSED.key, ((Preference) list().getItemAtPosition(0)).getKey());
+        assertEquals("section_Ads", ((Preference) list().getItemAtPosition(0)).getKey());
         assertFalse(contains(SettingsNavigation.RESTART));
+        assertEquals(View.VISIBLE, dialog.pauseAction.getVisibility());
+        // Close Pause again so the counts below are the bare home list.
+        tap("section_Pause");
+        assertFalse(page.navigation.isExpanded("Pause"));
 
-        page.navigation.back();
         app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.add(
                 Settings.HIDE_ADS.key);
         page.navigation.navigate("Ads");
         layout(dialog.getView());
-        line = (Preference) list().getItemAtPosition(0);
-        assertEquals(SettingsNavigation.RESTART, line.getKey());
+        // The switch is in view, so the row sits right under it.
+        at = position(SettingsNavigation.RESTART);
+        assertEquals(position(Settings.HIDE_ADS.key) + 1, at);
+        line = (Preference) list().getItemAtPosition(at);
         assertEquals(String.valueOf(line.getTitle()),
-                String.valueOf(((android.widget.TextView) list().getChildAt(0)
+                String.valueOf(((android.widget.TextView) list().getAdapter().getView(at, null, list())
                         .findViewById(android.R.id.title)).getText()));
-        assertEquals(categoryCount("Ads") + 1, list().getCount());
-        page.navigation.back();
+        assertEquals(categoryCount("Ads"), sectionRows("Ads").size());
+        // Closed, the switch is out of view and no card is drawn, so the row leads the list.
+        tap("section_Ads");
+        assertEquals(SettingsNavigation.RESTART, ((Preference) list().getItemAtPosition(0)).getKey());
         page.navigation.navigate("Privacy");
         assertEquals(SettingsNavigation.RESTART, ((Preference) list().getItemAtPosition(0)).getKey());
-        assertEquals(categoryCount("Privacy") + 1, list().getCount());
-        while (page.navigation.back()) { }
+        assertEquals(categoryCount("Privacy"), sectionRows("Privacy").size());
+        tap("section_Privacy");
+        assertEquals(SettingsNavigation.RESTART, ((Preference) list().getItemAtPosition(0)).getKey());
+        assertEquals(17, list().getCount());
+
+        // With the status card drawn the row goes under it.
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
+        recreate();
+        assertSame(page.getPreferenceScreen().getPreference(0), list().getItemAtPosition(0));
         assertEquals(SettingsNavigation.RESTART, ((Preference) list().getItemAtPosition(1)).getKey());
-        assertEquals(14, list().getCount());
+        assertEquals(18, list().getCount());
 
         // Two changes are counted, and the row goes once neither is owed.
         app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.add(
@@ -679,7 +751,7 @@ public class SettingsNavigationTest {
         app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.clear();
         page.navigation.restartChanged();
         assertFalse(contains(SettingsNavigation.RESTART));
-        assertEquals(13, list().getCount());
+        assertEquals(17, list().getCount());
     }
 
     /** A switch that needs a restart brings the row up the moment it's flipped, and flipping it back takes it away. */
@@ -689,9 +761,10 @@ public class SettingsNavigationTest {
             assertFalse(contains(SettingsNavigation.RESTART));
             tap(Settings.USE_SYSTEM_FONT.key);
             assertTrue(Settings.USE_SYSTEM_FONT.savedValue());
-            assertEquals(SettingsNavigation.RESTART, ((Preference) list().getItemAtPosition(0)).getKey());
+            int at = position(Settings.USE_SYSTEM_FONT.key) + 1;
+            assertEquals(SettingsNavigation.RESTART, ((Preference) list().getItemAtPosition(at)).getKey());
             assertEquals("Restart Telegram to apply this change",
-                    String.valueOf(((Preference) list().getItemAtPosition(0)).getTitle()));
+                    String.valueOf(((Preference) list().getItemAtPosition(at)).getTitle()));
             assertNull("the restart was said in a toast with nothing to tap", ShadowToast.getLatestToast());
             tap(Settings.USE_SYSTEM_FONT.key);
             assertFalse(Settings.USE_SYSTEM_FONT.savedValue());
@@ -701,7 +774,7 @@ public class SettingsNavigationTest {
         }
     }
 
-    /** The row restarts Telegram and leaves a marker that opens the screen again on this page. */
+    /** The row restarts Telegram and leaves a marker that opens the screen again with this section open. */
     @Test public void theRestartRowRestartsIntoThePageItWasTappedOn() {
         List<android.content.Context> restarted = new ArrayList<>();
         app.hushtelegram.extension.shared.settings.preference.ReopenSettingsAfterRestart.setRestarterForTests(restarted::add);
@@ -712,11 +785,29 @@ public class SettingsNavigationTest {
         tap(SettingsNavigation.RESTART);
         assertEquals(1, restarted.size());
         assertEquals(before, savedValues());
-        assertEquals("Look and feel", app.hushtelegram.extension.shared.settings.preference.ReopenSettingsAfterRestart
-                .takeFresh(Setting.preferences.preferences, android.os.SystemClock.elapsedRealtime()));
+        String marker = app.hushtelegram.extension.shared.settings.preference.ReopenSettingsAfterRestart
+                .takeFresh(Setting.preferences.preferences, android.os.SystemClock.elapsedRealtime());
+        assertNotNull(marker);
+        assertTrue(marker, marker.startsWith(SettingsNavigation.RESTART_STATE + "?"));
+        android.os.Bundle state = SettingsNavigation.restartState(marker);
+        assertNotNull(state);
+        assertEquals(Collections.singletonList("Look and feel"), state.getStringArrayList("expanded"));
+        assertEquals("", state.getString("query"));
+
+        // A screen started with the marker comes back with that section open.
+        dialog.dismissAllowingStateLoss();
+        ShadowLooper.idleMainLooper();
+        dialog = SettingsDialog.onPage(marker);
+        dialog.show(controller.get().getFragmentManager(), "hushtelegram_settings");
+        controller.get().getFragmentManager().executePendingTransactions();
+        ShadowLooper.idleMainLooper();
+        page = page(dialog);
+        assertTrue(page.navigation.isExpanded("Look and feel"));
+        assertTrue(contains(Settings.USE_SYSTEM_FONT.key));
+        assertFalse(page.navigation.isExpanded("Ads"));
     }
 
-    /** Asked to open on a page, as after that restart, the screen starts there with its title. */
+    /** Asked to open on a page, as after that restart, the screen starts with that section open. */
     @Test public void aScreenAskedToStartOnAPageOpensThere() {
         dialog.dismissAllowingStateLoss();
         ShadowLooper.idleMainLooper();
@@ -726,13 +817,14 @@ public class SettingsNavigationTest {
         ShadowLooper.idleMainLooper();
         page = page(dialog);
         assertEquals("Links", dialog.startPage());
+        assertTrue(page.navigation.isExpanded("Links"));
         assertTrue(contains(Settings.OPEN_EXTERNAL_LINKS.key));
-        assertEquals(categoryCount("Links"), list().getCount());
-        assertEquals("Links", pageTitle().getText().toString());
-        assertTrue(page.navigation.back());
-        assertTrue("Back from a More settings page goes to More settings", contains("section_Links"));
+        assertEquals(categoryCount("Links"), sectionRows("Links").size());
+        assertEquals("HushTelegram", pageTitle().getText().toString());
+        assertFalse("Back from the home list closes the dialog", page.navigation.back());
+        assertTrue(contains("section_Links"));
 
-        // A page this build doesn't have opens the first page.
+        // A page this build doesn't have opens the home list with every section closed.
         dialog.dismissAllowingStateLoss();
         ShadowLooper.idleMainLooper();
         dialog = SettingsDialog.onPage("No such page");
@@ -740,22 +832,26 @@ public class SettingsNavigationTest {
         controller.get().getFragmentManager().executePendingTransactions();
         ShadowLooper.idleMainLooper();
         page = page(dialog);
-        assertEquals(13, list().getCount());
+        assertEquals(16, list().getCount());
+        for (Preference section : page.sections()) assertFalse(page.navigation.isExpanded(section.getTitle().toString()));
     }
 
-    /** The paused line on real pages, dark and light, for a look before the phone does. */
+    /** The paused card on the home list and over an open section, dark and light, for a look before the phone does. */
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void renderPausedPages() throws Exception {
         BaseSettings.PAUSED.save(true);
         PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
         recreate();
+        capture("paused-home");
+        assertUncutText(dialog.getView());
         page.navigation.navigate("Conversations");
         capture("paused-feed");
         assertUncutText(dialog.getView());
+        list().setSelection(0);
+        layout(dialog.getView());
         pageAction().performClick();
         ShadowLooper.idleMainLooper();
         capture("paused-feed-resume-pending");
-        page.navigation.back();
         findSearch(dialog.getView()).setText("links");
         capture("paused-search");
     }
@@ -771,16 +867,35 @@ public class SettingsNavigationTest {
             page.navigation.navigate("Privacy");
             layout(dialog.getView());
             assertUncutText(dialog.getView());
+            // The card keeps its whole line at the top of the list too.
+            list().setSelection(0);
+            layout(dialog.getView());
+            assertSame(page.getPreferenceScreen().getPreference(0), list().getItemAtPosition(0));
+            assertUncutText(dialog.getView());
             capture("large-rtl-paused-privacy");
         } finally {
             org.robolectric.RuntimeEnvironment.setFontScale(1f);
         }
     }
 
+    /** The button Pause, Resume or Undo is on: the status card's or search line's when one is drawn first, else the toolbar's. */
     private android.widget.Button pageAction() {
-        android.view.ViewGroup frame = list().getChildAt(0).findViewById(android.R.id.widget_frame);
-        assertEquals(1, frame.getChildCount());
-        return (android.widget.Button) frame.getChildAt(0);
+        return statusAction();
+    }
+
+    /** The rows an open section draws under its heading, in order. Empty while it is closed. */
+    private List<Preference> sectionRows(String id) {
+        List<Preference> rows = new ArrayList<>();
+        int heading = position("section_" + id);
+        assertTrue("no heading for " + id, heading >= 0);
+        for (int i = heading + 1; i < list().getCount(); i++) {
+            Preference item = (Preference) list().getItemAtPosition(i);
+            String key = item.getKey();
+            if (key != null && (key.startsWith("section_") || key.equals(SettingsNavigation.CHANGED))) break;
+            if (SettingsNavigation.RESTART.equals(key)) continue;
+            rows.add(item);
+        }
+        return rows;
     }
 
     private int categoryCount(String title) {
@@ -806,11 +921,14 @@ public class SettingsNavigationTest {
      */
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void atLargeTextTheStatusActionSitsUnderItsText() {
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
         org.robolectric.RuntimeEnvironment.setFontScale(2f);
         try {
             recreate();
             layout(dialog.getView());
             View row = list().getChildAt(0);
+            assertSame(page.getPreferenceScreen().getPreference(0), list().getItemAtPosition(0));
             TextView title = row.findViewById(android.R.id.title);
             TextView summary = row.findViewById(android.R.id.summary);
             android.text.Layout lines = title.getLayout();
@@ -820,10 +938,20 @@ public class SettingsNavigationTest {
             }
             assertEquals(View.GONE, row.findViewById(android.R.id.widget_frame).getVisibility());
             android.widget.Button action = firstButton(row);
-            assertNotNull("no Pause button in the status row", action);
+            assertNotNull("no Resume button in the status row", action);
             assertEquals(summary.getParent(), action.getParent());
             assertTrue("the button isn't under the text", action.getTop() >= summary.getBottom());
-            assertEquals("Pause", action.getText().toString());
+            assertEquals("Resume", action.getText().toString());
+
+            // Unpaused there is no card, and the toolbar's Pause goes under the screen title the same way.
+            PauseForTests.resume();
+            BaseSettings.PAUSED.resetToDefault();
+            recreate();
+            layout(dialog.getView());
+            assertEquals(View.VISIBLE, dialog.pauseAction.getVisibility());
+            assertEquals("Pause", dialog.pauseAction.getText().toString());
+            assertSame(pageTitle().getParent(), dialog.pauseAction.getParent());
+            assertTrue("the toolbar's button isn't under the title", dialog.pauseAction.getTop() >= pageTitle().getBottom());
         } finally {
             org.robolectric.RuntimeEnvironment.setFontScale(1f);
         }
@@ -841,10 +969,16 @@ public class SettingsNavigationTest {
         return null;
     }
 
+    /**
+     * The button on the first row when that row is the status card or a page's pause line, else
+     * the toolbar's Pause, Resume or Undo, which is what shows when no card is drawn.
+     */
     private android.widget.Button statusAction() {
-        android.view.ViewGroup frame = list().getChildAt(0).findViewById(android.R.id.widget_frame);
-        assertEquals(1, frame.getChildCount());
-        return (android.widget.Button) frame.getChildAt(0);
+        View first = list().getChildAt(0);
+        View card = first == null ? null : first.findViewWithTag("hushtelegram_status_action");
+        if (card != null) return (android.widget.Button) card;
+        assertEquals("no card is drawn, so the toolbar has to carry the button", View.VISIBLE, dialog.pauseAction.getVisibility());
+        return dialog.pauseAction;
     }
 
     @Test public void searchUsesRealControlsAndClearReturnsHome() {
@@ -861,7 +995,7 @@ public class SettingsNavigationTest {
         assertEquals("No matching settings", ((Preference) list().getItemAtPosition(0)).getTitle());
         assertTrue(page.navigation.back());
         assertEquals("", search.getText().toString());
-        assertEquals(13, list().getCount());
+        assertEquals(16, list().getCount());
     }
 
     /** A row with no summary used to carry the word "null" into its search text. */
@@ -920,25 +1054,28 @@ public class SettingsNavigationTest {
         org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
         org.robolectric.Shadows.shadowOf(a11y).setTouchExplorationEnabled(true);
         layout(dialog.getView());
+        // A section opened or closed in place hands focus to its own heading, so the place isn't lost.
         page.navigation.navigate("Privacy");
         layout(dialog.getView());
-        page.navigation.back();
+        tap("section_Privacy");
         layout(dialog.getView());
+        assertFalse(page.navigation.isExpanded("Privacy"));
         assertEquals("Privacy", focusedTitle(a11y));
-        // Someone taps More settings, so it's on screen when they leave home. With the lock row the
-        // home page runs past this window, and a row that's never drawn can't take the focus back.
-        list().setSelection(titles().indexOf("More settings"));
+        tap("section_About");
         layout(dialog.getView());
-        page.navigation.navigate("more");
-        layout(dialog.getView());
-        page.navigation.navigate("About");
-        layout(dialog.getView());
-        page.navigation.back();
+        assertTrue(page.navigation.isExpanded("About"));
+        assertEquals("About", focusedTitle(a11y));
+        tap("section_About");
         layout(dialog.getView());
         assertEquals("About", focusedTitle(a11y));
-        page.navigation.back();
+        // Back from Changed switches returns to the row that opened it.
+        list().setSelection(titles().indexOf("Changed switches"));
         layout(dialog.getView());
-        assertEquals("More settings", focusedTitle(a11y));
+        tap(SettingsNavigation.CHANGED);
+        layout(dialog.getView());
+        assertTrue(page.navigation.back());
+        layout(dialog.getView());
+        assertEquals("Changed switches", focusedTitle(a11y));
     }
 
     /** The first text of the last row that took accessibility focus. */
@@ -965,32 +1102,47 @@ public class SettingsNavigationTest {
     }
 
     @Test @Config(sdk = {28, 30, 33, 36})
-    public void recreationKeepsTheCategoryAndSearchQuery() {
+    public void recreationKeepsTheOpenSectionAndSearchQuery() {
         page.navigation.open(page.findPreference(Settings.DISABLE_UPDATE_CHECKS.key));
         recreate();
         assertTrue(contains(Settings.DISABLE_UPDATE_CHECKS.key));
+        assertTrue(page.navigation.isExpanded("Updates"));
+        assertFalse(page.navigation.isExpanded("Ads"));
         // Updates: Turn off Telegram's update checks, Check for new HushTelegram releases and Check now.
-        assertEquals(3, list().getCount());
-        page.navigation.back();
+        assertEquals(3, sectionRows("Updates").size());
         findSearch(dialog.getView()).setText("update checks");
         recreate();
         assertEquals("update checks", findSearch(dialog.getView()).getText().toString());
         assertTrue(contains(Settings.DISABLE_UPDATE_CHECKS.key));
     }
 
-    @Test public void bothBackPathsReturnToTheIndexBeforeClosingTheDialog() {
-        page.navigation.open(page.findPreference(Settings.HIDE_ADS.key));
+    @Test public void bothBackPathsReturnHomeFromChangedSwitchesBeforeClosingTheDialog() {
+        tap(SettingsNavigation.CHANGED);
+        assertEquals("Changed switches", pageTitle().getText().toString());
         SettingsL10nTest.backOf(dialog).performClick();
         assertTrue(dialog.getDialog().isShowing());
-        assertEquals(13, list().getCount());
+        assertEquals(16, list().getCount());
+        assertEquals("HushTelegram", pageTitle().getText().toString());
+        tap(SettingsNavigation.CHANGED);
+        dialog.getDialog().onBackPressed();
+        assertTrue(dialog.getDialog().isShowing());
+        assertEquals(16, list().getCount());
+        // Sections open in place on the home list, so there is nothing between it and leaving.
         page.navigation.navigate("About");
-        dialog.getDialog().onBackPressed();
-        // More settings: Links, Updates, Pause, Settings backup, Diagnostics and About.
-        assertEquals(6, list().getCount());
-        dialog.getDialog().onBackPressed();
-        assertEquals(13, list().getCount());
-        dialog.getDialog().onBackPressed();
+        android.app.Dialog shown = dialog.getDialog();
+        shown.onBackPressed();
         ShadowLooper.idleMainLooper();
+        assertFalse("system Back left the dialog up", shown.isShowing());
+        assertFalse(controller.get().isFinishing());
+
+        // The toolbar's arrow on the home list closes it as well.
+        dialog = SettingsL10nTest.show(controller.get());
+        page = page(dialog);
+        shown = dialog.getDialog();
+        assertTrue(shown.isShowing());
+        SettingsL10nTest.backOf(dialog).performClick();
+        ShadowLooper.idleMainLooper();
+        assertFalse("the toolbar's arrow left the dialog up", shown.isShowing());
         assertFalse(controller.get().isFinishing());
     }
 
@@ -1006,7 +1158,7 @@ public class SettingsNavigationTest {
         assertEquals("Support HushTelegram", String.valueOf(row.getTitle()));
         assertNull("the support row is its title alone", row.getSummary());
         assertEquals("Report a problem", String.valueOf(((Preference) list().getItemAtPosition(last - 1)).getTitle()));
-        assertEquals("More settings", String.valueOf(((Preference) list().getItemAtPosition(last - 2)).getTitle()));
+        assertEquals("Changed switches", String.valueOf(((Preference) list().getItemAtPosition(last - 2)).getTitle()));
         assertTrue(list().getAdapter().isEnabled(last));
 
         tap(HushTelegramPreferenceFragment.SUPPORT);
@@ -1032,20 +1184,19 @@ public class SettingsNavigationTest {
             application.checkActivities(false);
         }
         assertEquals(before, savedValues());
-        assertEquals(13, list().getCount());
+        assertEquals(16, list().getCount());
     }
 
     /**
-     * The home page leads with the switch pages: Browse settings comes straight after the status
-     * card, and neither Quick setups nor the lock is on it (Matt, 2026-10-16).
+     * The home page leads with the switch sections: the first heading is the first row while
+     * nothing is paused, and neither Quick setups nor the lock is on it (Matt, 2026-10-16).
      */
-    @Test public void theHomePageLeadsWithTheSwitchPages() {
-        assertTrue("Browse settings isn't right under the status card",
-                list().getItemAtPosition(1) instanceof HushTelegramPreferenceFragment.Heading);
-        assertEquals("Browse settings", String.valueOf(((Preference) list().getItemAtPosition(1)).getTitle()));
+    @Test public void theHomePageLeadsWithTheSwitchSections() {
+        assertEquals("section_Ads", ((Preference) list().getItemAtPosition(0)).getKey());
+        assertFalse("a heading above the sections", titles().contains("Browse settings"));
         assertFalse(contains(SettingsNavigation.QUICK_SETUPS));
         assertFalse(contains(SettingsNavigation.LOCK));
-        assertEquals(13, list().getCount());
+        assertEquals(16, list().getCount());
     }
 
     /** Quick setups opens from Settings backup, and search still finds it. */
@@ -1106,14 +1257,16 @@ public class SettingsNavigationTest {
         Preference look = (Preference) list().getItemAtPosition(at);
         assertEquals("Settings look", String.valueOf(look.getTitle()));
         assertEquals("Cards. Tap for plain rows.", String.valueOf(look.getSummary()));
-        assertEquals(36 * dp, list().getAdapter().getView(position(Settings.AMOLED_BLACK.key), null, list()).getPaddingStart());
+        // Cards keep the text clear of the card's edge and its inset.
+        assertEquals((ScreenColors.CARD_INSET + 14) * dp,
+                list().getAdapter().getView(position(Settings.AMOLED_BLACK.key), null, list()).getPaddingStart());
 
         tap(SettingsNavigation.SETTINGS_LOOK);
         assertTrue(SettingsNavigation.PLAIN_ROWS.savedValue());
         assertEquals("Plain rows. Tap for cards.", String.valueOf(look.getSummary()));
         assertTrue("the page left Look and feel", contains(Settings.AMOLED_BLACK.key));
         View plain = list().getAdapter().getView(position(Settings.AMOLED_BLACK.key), null, list());
-        assertEquals(20 * dp, plain.getPaddingStart());
+        assertEquals(16 * dp, plain.getPaddingStart());
         assertTrue(plain.getBackground() instanceof android.graphics.drawable.RippleDrawable);
 
         page.navigation.search("plain rows");
@@ -1131,7 +1284,8 @@ public class SettingsNavigationTest {
         tap(SettingsNavigation.SETTINGS_LOOK);
         assertFalse(SettingsNavigation.PLAIN_ROWS.savedValue());
         assertEquals("Cards. Tap for plain rows.", String.valueOf(look.getSummary()));
-        assertEquals(36 * dp, list().getAdapter().getView(position(Settings.AMOLED_BLACK.key), null, list()).getPaddingStart());
+        assertEquals((ScreenColors.CARD_INSET + 14) * dp,
+                list().getAdapter().getView(position(Settings.AMOLED_BLACK.key), null, list()).getPaddingStart());
     }
 
     /** Each Quick setups choice changes its switches through their rows and says how many changed. */
@@ -1506,8 +1660,9 @@ public class SettingsNavigationTest {
             assertEquals(0, page.applyQuickSetup(QuickSetupKeys.defaults()));
             while (page.navigation.back()) { }
 
-            // The status card's Pause, and the Pause switch turned on.
+            // The toolbar's Pause, and the Pause switch turned on.
             layout(dialog.getView());
+            assertSame(dialog.pauseAction, statusAction());
             assertEquals("Pause", statusAction().getText().toString());
             ShadowToast.reset();
             statusAction().performClick();
@@ -1528,7 +1683,9 @@ public class SettingsNavigationTest {
             page.refreshSwitches();
             while (page.navigation.back()) { }
             page.navigation.restartChanged();
+            list().setSelection(0);
             layout(dialog.getView());
+            assertNotSame(dialog.pauseAction, statusAction());
             assertEquals("Undo", statusAction().getText().toString());
             statusAction().performClick();
             ShadowLooper.idleMainLooper();
@@ -1556,9 +1713,9 @@ public class SettingsNavigationTest {
             assertEquals(android.content.Intent.ACTION_CREATE_DOCUMENT, export.intent.getAction());
             while (page.navigation.back()) { }
 
-            // Every chooser: sticker size, both filter lists, the translation service and the push app.
+            // Every chooser: sticker size, both filter lists, the translation service and language, and the push app.
             for (String key : Arrays.asList(HushTelegramPreferenceFragment.STICKER_SIZE_ROW, FilterEditor.GROUPS,
-                    FilterEditor.CHANNELS, TranslateServiceEditor.KEY, UnifiedPushPicker.KEY)) {
+                    FilterEditor.CHANNELS, TranslateServiceEditor.KEY, TranslateTargetPicker.KEY, UnifiedPushPicker.KEY)) {
                 Preference row = page.findPreference(key);
                 assertNotNull(key, row);
                 shown = org.robolectric.shadows.ShadowDialog.getLatestDialog();
@@ -1674,7 +1831,7 @@ public class SettingsNavigationTest {
      */
     @Test public void changedSwitchesShowsWhatDiffersAndFlipsItBack() {
         List<String> home = titles();
-        assertEquals("it sits just above More settings", home.indexOf("More settings") - 1, home.indexOf("Changed switches"));
+        assertEquals("it sits just above Report a problem", home.indexOf("Report a problem") - 1, home.indexOf("Changed switches"));
         assertEquals("Every switch is the way it started.", changedLine());
         tap(SettingsNavigation.CHANGED);
         assertEquals("Changed switches", pageTitle().getText().toString());
@@ -1764,7 +1921,7 @@ public class SettingsNavigationTest {
         String switches = decoded.substring(decoded.indexOf("&additional_context=Switches on: "));
         assertTrue(switches, switches.contains("Hide ads"));
         assertFalse(switches, switches.contains("Hide contacts on Telegram"));
-        assertEquals("the tap left the home page", 13, list().getCount());
+        assertEquals("the tap left the home page", 16, list().getCount());
 
         org.robolectric.shadows.ShadowApplication application =
                 org.robolectric.Shadows.shadowOf(org.robolectric.RuntimeEnvironment.getApplication());
@@ -1796,8 +1953,8 @@ public class SettingsNavigationTest {
                 : "Changed " + count + " settings. Undo them from Quick setups.";
     }
 
-    // A window as short as the layouts below, 400 px, so the window's own layout leaves both the
-    // overview and More settings taller than the list and neither snaps back to the top.
+    // A window as short as the layouts below, 400 px, so the window's own layout leaves the home
+    // list taller than the list and it doesn't snap back to the top.
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     @Config(qualifiers = "w390dp-h200dp-night-xhdpi")
     public void aNewPageStartsAtTheTopAfterThePreviousPageWasScrolled() {
@@ -1812,28 +1969,38 @@ public class SettingsNavigationTest {
             int homePosition = list().getFirstVisiblePosition();
             int homeOffset = list().getChildAt(0).getTop();
             assertTrue(homePosition > 0 || homeOffset < 0);
-            page.navigation.navigate("more");
+            // A section sent to from the scrolled home list comes to the top.
+            page.navigation.navigate("Pause");
             layout(dialog.getView(), 400);
-            assertEquals(0, list().getFirstVisiblePosition());
+            assertEquals(position("section_Pause"), list().getFirstVisiblePosition());
             assertEquals(list().getPaddingTop(), list().getChildAt(0).getTop());
             list().scrollListBy(100);
-            int morePosition = list().getFirstVisiblePosition();
-            int moreOffset = list().getChildAt(0).getTop();
-            assertTrue(morePosition > 0 || moreOffset < 0);
-            page.navigation.navigate("Pause");
             // Preference updates can arrive after navigation but before the next layout.
+            page.navigation.navigate("Diagnostics");
             ((android.widget.BaseAdapter) page.getPreferenceScreen().getRootAdapter()).notifyDataSetChanged();
+            layout(dialog.getView(), 400);
+            assertEquals(position("section_Diagnostics"), list().getFirstVisiblePosition());
+            assertEquals(list().getPaddingTop(), list().getChildAt(0).getTop());
+            // Closing the heading in place leaves it where it was.
+            int headingTop = list().getChildAt(0).getTop();
+            tap("section_Diagnostics");
+            layout(dialog.getView(), 400);
+            assertFalse(page.navigation.isExpanded("Diagnostics"));
+            assertEquals(position("section_Diagnostics"), list().getFirstVisiblePosition());
+            assertEquals(headingTop, list().getChildAt(0).getTop());
+            list().scrollListBy(60);
+            layout(dialog.getView(), 400);
+            int placePosition = list().getFirstVisiblePosition();
+            int placeOffset = list().getChildAt(0).getTop();
+            // A search takes the list to its top, and clearing it returns to the place it left.
+            page.navigation.search("hide");
             layout(dialog.getView(), 400);
             assertEquals(0, list().getFirstVisiblePosition());
             assertEquals(list().getPaddingTop(), list().getChildAt(0).getTop());
             assertTrue(page.navigation.back());
             layout(dialog.getView(), 400);
-            assertEquals(morePosition, list().getFirstVisiblePosition());
-            assertEquals(moreOffset, list().getChildAt(0).getTop());
-            assertTrue(page.navigation.back());
-            layout(dialog.getView(), 400);
-            assertEquals(homePosition, list().getFirstVisiblePosition());
-            assertEquals(homeOffset, list().getChildAt(0).getTop());
+            assertEquals(placePosition, list().getFirstVisiblePosition());
+            assertEquals(placeOffset, list().getChildAt(0).getTop());
         } finally {
             org.robolectric.util.ReflectionHelpers.callInstanceMethod(root, "ensureTouchMode",
                     org.robolectric.util.ReflectionHelpers.ClassParameter.from(boolean.class, false));
@@ -1842,13 +2009,24 @@ public class SettingsNavigationTest {
 
     @Test public void visibleNavigationAndSearchKeepTheirAccessibilityRoles() {
         layout(dialog.getView());
-        View heading = list().getChildAt(titles().indexOf("Browse settings") - list().getFirstVisiblePosition());
-        assertTrue(heading.createAccessibilityNodeInfo().isHeading());
         View feed = list().getChildAt(position("section_Ads") - list().getFirstVisiblePosition());
-        assertEquals(android.widget.Button.class.getName(), feed.createAccessibilityNodeInfo().getClassName());
+        android.view.accessibility.AccessibilityNodeInfo info = feed.createAccessibilityNodeInfo();
+        assertTrue("a section heading isn't spoken as a heading", info.isHeading());
+        assertEquals(android.widget.Button.class.getName(), info.getClassName());
+        assertEquals("Collapsed", String.valueOf(info.getStateDescription()));
+        assertTrue(info.getActionList().contains(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_EXPAND));
+        assertFalse(info.getActionList().contains(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_COLLAPSE));
         assertTrue(feed.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK, null));
-        assertEquals("Hide ads", ((Preference) list().getItemAtPosition(0)).getTitle());
-        page.navigation.back();
+        assertTrue(page.navigation.isExpanded("Ads"));
+        assertEquals("Hide ads", ((Preference) list().getItemAtPosition(position("section_Ads") + 1)).getTitle());
+        layout(dialog.getView());
+        feed = list().getChildAt(position("section_Ads") - list().getFirstVisiblePosition());
+        info = feed.createAccessibilityNodeInfo();
+        assertTrue(info.isHeading());
+        assertEquals("Expanded", String.valueOf(info.getStateDescription()));
+        assertTrue(info.getActionList().contains(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_COLLAPSE));
+        assertTrue(feed.performAccessibilityAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_COLLAPSE, null));
+        assertFalse(page.navigation.isExpanded("Ads"));
         findSearch(dialog.getView()).setText("Hide ads");
         layout(dialog.getView());
         View toggle = list().getChildAt(position(Settings.HIDE_ADS.key) - list().getFirstVisiblePosition());
@@ -1863,7 +2041,7 @@ public class SettingsNavigationTest {
      * all three in search.
      */
     @Test public void theAccountScopeIsSearchableInEveryShippedLanguage() {
-        String[][] languages = {{"en", null}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
+        String[][] languages = {{"en", null}, {"bg", "bg"}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
         for (String[] language : languages) {
             controller.close();
             org.robolectric.RuntimeEnvironment.setQualifiers("+" + language[0]);
@@ -1891,14 +2069,17 @@ public class SettingsNavigationTest {
     public void switchDescriptionsUseTheRowWidthAndTheRowStillChangesTheSavedChoice() {
         page.navigation.navigate("Ads");
         layout(dialog.getView());
-        View row = list().getChildAt(0);
+        // The first switch under the Ads heading.
+        int at = position(Settings.HIDE_ADS.key);
+        assertEquals(position("section_Ads") + 1, at);
+        View row = list().getChildAt(at - list().getFirstVisiblePosition());
         TextView summary = row.findViewById(android.R.id.summary);
         TextView title = row.findViewById(android.R.id.title);
         assertTrue("the switch must not narrow its explanation", summary.getWidth() > title.getWidth());
         assertEquals(row.getWidth() - row.getPaddingLeft() - row.getPaddingRight(), summary.getWidth());
-        SwitchPreference preference = (SwitchPreference) list().getItemAtPosition(0);
+        SwitchPreference preference = (SwitchPreference) list().getItemAtPosition(at);
         boolean previous = preference.isChecked();
-        list().performItemClick(row, 0, list().getItemIdAtPosition(0));
+        list().performItemClick(row, at, list().getItemIdAtPosition(at));
         ShadowLooper.idleMainLooper();
         assertEquals(!previous, preference.isChecked());
         assertEquals(!previous, Settings.HIDE_ADS.get());
@@ -1909,9 +2090,18 @@ public class SettingsNavigationTest {
     public void overviewActionKeepsItsFullTouchHeight() {
         layout(dialog.getView());
         View action = statusAction();
-        assertNotNull(action);
+        assertSame("the toolbar carries Pause while no card is drawn", dialog.pauseAction, action);
         int minimum = Math.round(48 * action.getResources().getDisplayMetrics().density);
-        assertTrue("Pause touch target was clipped to the text column", action.getHeight() >= minimum);
+        assertTrue("Pause touch target was clipped in the toolbar", action.getHeight() >= minimum);
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
+        recreate();
+        layout(dialog.getView());
+        action = statusAction();
+        assertNotSame(dialog.pauseAction, action);
+        assertNotNull(action);
+        assertTrue("Resume touch target was clipped to the text column", action.getHeight() >= minimum);
     }
 
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -1923,9 +2113,11 @@ public class SettingsNavigationTest {
             page.navigation.navigate(section.getTitle().toString());
             capture(section.getTitle().toString().toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z]+", "-"));
         }
-        page.navigation.navigate("more");
-        capture("more-settings");
-        page.navigation.back();
+        recreate();
+        for (String tool : new String[]{"Links", "Updates", "Pause", "Settings backup", "Diagnostics", "About"}) {
+            page.navigation.navigate(tool);
+        }
+        capture("tool-sections");
         findSearch(dialog.getView()).setText("links");
         ShadowLooper.idleMainLooper(1, java.util.concurrent.TimeUnit.SECONDS);
         capture("search-results");

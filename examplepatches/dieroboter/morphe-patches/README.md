@@ -15,7 +15,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## Patches list
 
 <!-- PATCHES_START -->
-> **[v1.5.2](https://github.com/dieroboter/morphe-patches/releases/tag/v1.5.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;41 patches total
+> **[v1.5.3](https://github.com/dieroboter/morphe-patches/releases/tag/v1.5.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;41 patches total
 <details>
 <summary>File Manager&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>

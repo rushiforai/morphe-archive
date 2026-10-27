@@ -4,20 +4,32 @@
  */
 package app.hushtelegram.extension.telegram.misc;
 
+import android.content.SharedPreferences;
 import app.hushtelegram.extension.shared.Utils;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
+import app.hushtelegram.extension.shared.settings.Setting;
 import app.hushtelegram.extension.telegram.settings.FamilyNames;
 import app.hushtelegram.extension.telegram.settings.Settings;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 /**
  * Settings has a Telegram Features row under Help, and the Contacts list starts with Invite
  * Friends, or lists your phone's contacts to invite when none of them use Telegram. With the
  * switch on, Settings leaves the Features row out and Contacts leaves out the invite rows, with
- * Recent Calls and your contacts moving up. Nothing else in either list changes.
+ * Recent Calls and your contacts moving up. Nothing else in either list changes. Settings keeps
+ * the rows it built while it stays open, so a flip of the switch asks each Settings screen to
+ * build its list again.
  */
 public final class FeaturesInvite {
     private FeaturesInvite() {}
+
+    /** Settings screens that built their list, held weakly. Telegram builds lists on the main thread. */
+    private static final Set<Object> SHOWN = Collections.newSetFromMap(new WeakHashMap<>());
+    /** Held here because SharedPreferences keeps its listeners weakly. */
+    private static SharedPreferences.OnSharedPreferenceChangeListener watch;
 
     /** A list that isn't the Contacts list, or one without invite rows. */
     static final int NO_INVITES = 0;
@@ -34,6 +46,38 @@ public final class FeaturesInvite {
         }
         return rows.add(row);
     }
+
+    /** Asked as a Settings screen starts building its list, so a later flip of the switch builds it again. */
+    public static void listShown(Object settings) {
+        if (settings == null) return;
+        SHOWN.add(settings);
+        if (watch != null) return;
+        try {
+            String key = Settings.HIDE_FEATURES_AND_INVITE.key;
+            SharedPreferences.OnSharedPreferenceChangeListener listener = (store, changed) -> {
+                if (key.equals(changed)) Utils.runOnMainThread(FeaturesInvite::rebuildShown);
+            };
+            Setting.preferences.preferences.registerOnSharedPreferenceChangeListener(listener);
+            watch = listener;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_FEATURES_AND_INVITE, "switch watch", failure);
+        }
+    }
+
+    /** Builds every shown Settings list again, which asks {@link #addFeaturesRow} anew. */
+    static void rebuildShown() {
+        for (Object settings : new ArrayList<>(SHOWN)) {
+            try {
+                rebuildList(settings);
+                HookStatus.counted(FamilyNames.HIDE_FEATURES_AND_INVITE, "Settings list rebuilt");
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.HIDE_FEATURES_AND_INVITE, "settings rebuild", failure);
+            }
+        }
+    }
+
+    /** Asks one Settings screen's list to build its rows again. Replaced when patching. */
+    public static void rebuildList(Object settings) {}
 
     /**
      * Asked whenever a sectioned list counts the rows of one section.
@@ -93,6 +137,9 @@ public final class FeaturesInvite {
             return false;
         }
     }
+
+    /** Lets tests see which Settings screens a flip would rebuild. */
+    static Set<Object> shown() { return SHOWN; }
 
     /** Which invite rows the adapter shows: one of the constants above. Replaced when patching. */
     public static int inviteLayout(Object adapter) { return NO_INVITES; }

@@ -54,12 +54,15 @@ if (-not $Walk) {
     throw ('Nothing was published. -Walk names the walk-receipt.json a whole-app walk of this bundle left on a release phone ' +
         'or an emulator.')
 }
-$walked = Test-WalkReceipt -Path $Walk -BundlePath $bundle
+$walked = Test-WalkReceipt -Path $Walk -BundlePath $bundle -CatalogPath (Join-Path $Root 'patches-list.json')
 if (-not $walked.Valid) {
     throw ("The whole-app walk doesn't back patches-$Version.mpp, so nothing was published: $($walked.Reason). " +
         'Patch an APK from this bundle, walk the whole app on a release phone or an emulator, and pass its walk-receipt.json as -Walk.')
 }
 Write-Step "walked on $($walked.Receipt.device): $($walked.Receipt.screens) screens, no crash"
+if ($env:HUSHGRAM_ALLOW_RELEASE -cne '1') {
+    throw 'Nothing was published. A release needs explicit authorization and HUSHGRAM_ALLOW_RELEASE=1.'
+}
 
 $head = "$(& git -C $Root rev-parse HEAD)".Trim()
 if ($LASTEXITCODE -ne 0 -or $head -notmatch '^[0-9a-f]{40}$') { throw "Could not read the commit checked out in $Root." }

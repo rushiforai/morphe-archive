@@ -57,7 +57,6 @@ import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardInline
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardInlineSuggestionsFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardKeyShapeSelectionFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardKeyShapeSelectionFlagValuePatch
-import dev.jason.gboardpatches.patches.gboard.features.flowmode.gboardFlowModeFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.lanftp.gboardLanFtpFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.lanftp.gboardLanFtpManifestPatch
 import dev.jason.gboardpatches.patches.gboard.features.latinglobe.gboardLatinGlobeKeyIgnoreIntervalBytecodePatch
@@ -88,11 +87,6 @@ import dev.jason.gboardpatches.patches.gboard.features.swipedismiss.gboardSwipeD
 import dev.jason.gboardpatches.patches.gboard.features.swipedismiss.gboardSwipeDismissFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.toprowswipe.gboardTopRowSwipeFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsFeatureMarkerPatch
-import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1803AutoFixAcceptancePatch
-import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1803AutoFixRoutePatch
-import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1803GenAiInitPatch
-import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1803GenAiRefreshPatch
-import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1803SmartEditInitPatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesSettingsPatch
@@ -457,22 +451,6 @@ val gboardCloseProactiveSuggestionsPatch = gboardPublicResourcePatch(
 }
 
 @Suppress("unused")
-val gboardFlowModeAnimationPatch = gboardPublicResourcePatch(
-    featureId = "flow_mode_animation",
-    name = "Hyperspeed Typing Animation",
-    description = "持續快速輸入時顯示動畫，並支援所有鍵盤\n" +
-        "Show the animation during sustained fast typing with support for all keyboards.",
-    default = true,
-) {
-    compatibleWith(COMPATIBILITY_GBOARD)
-
-    dependsOn(
-        gboardPatchesSettingsPatch,
-        gboardFlowModeFeatureMarkerPatch,
-    )
-}
-
-@Suppress("unused")
 val gboardCustomThemePatch = gboardPublicResourcePatch(
     featureId = "custom_theme",
     name = "Custom Theme",
@@ -748,11 +726,6 @@ val gboardAiWritingToolsPatch = gboardPublicResourcePatch(
         gboardPatchesSettingsPatch,
         gboardAiWritingToolsFeatureMarkerPatch,
         gboardAiWritingToolsFlagValuePatch,
-        gboardAiWritingTools1803AutoFixRoutePatch,
-        gboardAiWritingTools1803AutoFixAcceptancePatch,
-        gboardAiWritingTools1803GenAiInitPatch,
-        gboardAiWritingTools1803GenAiRefreshPatch,
-        gboardAiWritingTools1803SmartEditInitPatch,
     )
 }
 
@@ -853,12 +826,7 @@ val gboardPackageRenamePatch = gboardPublicResourcePatch(
     )
 
     finalize {
-        document("AndroidManifest.xml").use { manifestDocument ->
-            applyGboardApplicationDisplayName(
-                manifestDocument = manifestDocument,
-                displayName = checkNotNull(appDisplayName.value),
-            )
-        }
+        applyGboardApplicationDisplayName(displayName = checkNotNull(appDisplayName.value))
     }
 }
 
@@ -898,7 +866,6 @@ object GboardPublishedPatchCatalog {
         gboardFrostedGlassPatch,
         gboardAccessPointCountPatch,
         gboardCloseProactiveSuggestionsPatch,
-        gboardFlowModeAnimationPatch,
         gboardCustomThemePatch,
         gboardQuickInsertPatch,
         gboardZhuyinQuickTraditionalSimplifiedTogglePatch,

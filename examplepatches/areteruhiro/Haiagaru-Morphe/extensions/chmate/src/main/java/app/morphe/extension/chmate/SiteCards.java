@@ -22,12 +22,11 @@ final class SiteCards {
     };
     private static final java.util.WeakHashMap<TextView,Boolean> VIEWS=new java.util.WeakHashMap<>();
     private static final ThreadLocal<TextView> WRITING=new ThreadLocal<>();
-    private static final Pattern URL=Pattern.compile("https?://[^\\s<>\"'()（）]+",Pattern.CASE_INSENSITIVE);
     private static int revision;
     private static volatile int generation;
     private static final Object DISK = new Object();
     private static final class Entry {
-        SiteCardMetadata.Data data; boolean pending,imageTried,imageLoaded; long expiry;
+        SiteCardMetadata.Data data; boolean pending,imageTried,imageLoaded; long expiry,retry;
         final ArrayList<WeakReference<TextView>> waiting=new ArrayList<>();
     }
     private static final class Marker {
@@ -50,16 +49,17 @@ final class SiteCards {
         return source;
     }
     private static List<String> urls(CharSequence source){
-        LinkedHashSet<String> result=new LinkedHashSet<>();Matcher m=URL.matcher(XPostPreview.originalText(strip(source)));
+        LinkedHashSet<String> result=new LinkedHashSet<>();
         int maximum=Haiagaru.siteCardMaxPerResponse();
-        while(m.find()&&result.size()<maximum){
-            String url=m.group().replace("&amp;","&").replaceAll("[.,、。]+$","");url=SiteCardMetadata.safeUrl(url);
+        for(String candidate:PreviewUrls.extract(XPostPreview.originalText(strip(source)),32)){
+            String url=SiteCardMetadata.safeUrl(candidate);
             if(url==null)continue;
             android.net.Uri uri=android.net.Uri.parse(url);String host=uri.getHost().toLowerCase(Locale.ROOT),path=uri.getPath();
             if(host.equals("x.com")||host.endsWith(".x.com")||host.equals("twitter.com")||host.endsWith(".twitter.com")
                     ||host.equals("youtu.be")||host.endsWith("youtube.com")||host.endsWith("5ch.io")||host.endsWith("5ch.net")
                     ||path!=null&&path.matches("(?i).+\\.(gif|jpe?g|png|webp|mp4|webm|mp3|pdf|zip|apk)(/.*)?"))continue;
             result.add(url);
+            if(result.size()>=maximum)break;
         }return new ArrayList<>(result);
     }
     static void onBound(Object object){
@@ -88,7 +88,8 @@ final class SiteCards {
         source=strip(source);if(!Haiagaru.siteCardsEnabled())return source;
         SpannableStringBuilder result=null;
         for(String url:urls(source)) {
-            Entry entry=CACHE.get(url);if(entry==null||entry.data==null||entry.expiry<System.currentTimeMillis())continue;
+            Entry entry=CACHE.get(url);
+            if(entry==null||entry.data==null||System.currentTimeMillis()>entry.data.savedAt+Haiagaru.siteCardCacheDurationMillis()+600_000)continue;
             if(result==null)result=new SpannableStringBuilder(source);
             SiteCardMetadata.Data data=entry.data;
             result.append("\n\n");int start=result.length();
@@ -119,6 +120,7 @@ final class SiteCards {
             entry=new Entry();CACHE.put(url,entry);
         }
         long now=System.currentTimeMillis();
+        if(!entry.pending&&now<entry.retry)return;
         boolean image=Haiagaru.siteCardImages();
         if(!entry.pending&&entry.expiry>now&&(entry.data==null||!image
                 ||entry.imageTried&&(!entry.imageLoaded||IMAGES.get(url)!=null)))return;
@@ -129,7 +131,7 @@ final class SiteCards {
         entry.pending=true;Entry target=entry;int token=generation;
         try{WORKER.execute(()->{
             if(token!=generation)return;
-            SiteCardMetadata.Data data=target.data;Bitmap bitmap=null;
+            SiteCardMetadata.Data data=target.data,previous=data;Bitmap bitmap=null;
             try{
                 if(data==null||target.expiry<=System.currentTimeMillis()){
                     data=SiteCardMetadata.cached(url);
@@ -138,15 +140,19 @@ final class SiteCards {
                         if(data!=null)synchronized(DISK){if(token==generation)SiteCardMetadata.store(data);}
                     }
                 }
+                if(data==null&&previous!=null&&System.currentTimeMillis()<=previous.savedAt+Haiagaru.siteCardCacheDurationMillis()+600_000)data=previous;
                 if(data!=null&&image&&Haiagaru.siteCardsEnabled()&&Haiagaru.siteCardImages()&&!data.image.isEmpty())
                     bitmap=SiteCardMetadata.image(data.image,data.tunnel||ImageVpnController.protectedPreview(url));
-            }catch(Exception|OutOfMemoryError ignored){}
+            }catch(Exception|OutOfMemoryError ignored){
+                if(data==null&&previous!=null&&System.currentTimeMillis()<=previous.savedAt+Haiagaru.siteCardCacheDurationMillis()+600_000)data=previous;
+            }
             SiteCardMetadata.Data resolved=data;Bitmap thumbnail=bitmap;
             MAIN.post(()->{
                 if(token!=generation||CACHE.get(url)!=target)return;
                 target.pending=false;target.data=resolved;target.imageTried=image;
                 target.imageLoaded=thumbnail!=null;
                 target.expiry=resolved==null?System.currentTimeMillis()+300000:resolved.savedAt+Haiagaru.siteCardCacheDurationMillis();
+                target.retry=target.expiry<=System.currentTimeMillis()?System.currentTimeMillis()+10_000:0;
                 if(thumbnail!=null)IMAGES.put(url,thumbnail);
                 revision++;ArrayList<WeakReference<TextView>> waiting=new ArrayList<>(target.waiting);target.waiting.clear();
                 for(WeakReference<TextView> v:waiting){TextView current=v.get();if(current!=null)onBound(current);}

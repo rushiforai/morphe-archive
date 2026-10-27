@@ -12,6 +12,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.noam.patches.geocaching.misc.extension.extensionHookPatch
 import app.noam.patches.geocaching.shared.Constants
 import app.noam.patches.geocaching.shared.enableFeature
+import app.noam.patches.geocaching.shared.forcePremiumIn
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -58,6 +59,9 @@ internal val nativeMapPatch = bytecodePatch(
             replaceInstruction(index, "invoke-static { }, ${Constants.GC_MAP_STYLES}->styleUri()Ljava/lang/String;")
             addInstructions(index + 1, "move-result-object v$register")
         }
+
+        // The map type picker gets "is Premium" to lock Trails; Trails is this map, so it stays open.
+        forcePremiumIn("Ljy6;", "invoke")
 
         // Map type picker result: reload with the new layer instead of opening the Google map.
         mutableClassDefBy("Lhy6;").methods.first { it.name == "invoke" }.apply {

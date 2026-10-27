@@ -181,6 +181,16 @@ function Get-AuditDefinitionHash($Entry, $Check) {
     })
 }
 
+function Get-AuditProbePreconditionProblem($Step, [string]$Answer) {
+    $required = $Step.PSObject.Properties['preconditionExpect']
+    if ($null -eq $required) { return $null }
+    if ($required.Value -isnot [string] -or [string]::IsNullOrWhiteSpace($required.Value)) { throw 'Invalid probe precondition pattern.' }
+    if (-not [regex]::IsMatch($Answer, $required.Value, [Text.RegularExpressions.RegexOptions]::Multiline)) {
+        return "probe $($Step.probe) did not establish its required observation"
+    }
+    return $null
+}
+
 function Get-AuditCatalogProblems($Entries) {
     $names = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
     foreach ($entry in $Entries) {
@@ -189,6 +199,15 @@ function Get-AuditCatalogProblems($Entries) {
         } elseif (-not $names.Add([string]$entry.name)) { "duplicate patch '$($entry.name)'" }
         $ids = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
         foreach ($check in @($entry.checks)) {
+            foreach ($step in @($check.steps)) {
+                $required = $step.PSObject.Properties['preconditionExpect']
+                if ($null -eq $required) { continue }
+                if (@($step.PSObject.Properties.Name)[0] -cne 'probe' -or $required.Value -isnot [string] -or [string]::IsNullOrWhiteSpace($required.Value)) {
+                    "invalid probe precondition '$($entry.name)/$($check.id)'"
+                } else {
+                    try { [void][regex]::new($required.Value) } catch { "invalid probe precondition regex '$($entry.name)/$($check.id)'" }
+                }
+            }
             $selection = $check.PSObject.Properties['patchSelection']
             if ($null -ne $selection -and ($selection.Value -isnot [string] -or $selection.Value -cnotin @('selected','absent'))) {
                 "invalid patch selection policy '$($entry.name)/$($check.id)'"

@@ -1,6 +1,8 @@
 package app.template.patches.fotmob.plus
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 /**
  * FotMob's subscription manager is R8-obfuscated and its class/method names rotate on every
@@ -16,7 +18,7 @@ import app.morphe.patcher.Fingerprint
  * through a settings holder, so the shape-based search survives those swaps too.
  */
 object StaffAccountFingerprint : Fingerprint(
-    strings = listOf("norapps.as@"),
+    strings = listOf(string("norapps.as@", StringComparisonType.CONTAINS)),
 )
 
 /**
@@ -27,7 +29,7 @@ object StaffAccountFingerprint : Fingerprint(
  * without this screen just skip the app-icon step.
  */
 object MembershipScreenFingerprint : Fingerprint(
-    strings = listOf(NO_SUBSCRIPTION_TEXT),
+    strings = listOf(string(NO_SUBSCRIPTION_TEXT, StringComparisonType.CONTAINS)),
 )
 
 internal const val NO_SUBSCRIPTION_TEXT = "No active subscriptions found"

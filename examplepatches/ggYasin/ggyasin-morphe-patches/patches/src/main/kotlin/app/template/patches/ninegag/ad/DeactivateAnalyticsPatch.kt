@@ -11,7 +11,7 @@ import org.w3c.dom.Element
  */
 @Suppress("unused")
 val deactivateAnalyticsPatch = resourcePatch(
-    name = "Deactivate Firebase Analytics (9GAG 8.23.0)",
+    name = "Deactivate Firebase Analytics (9GAG)",
     description = "Optional: disables Firebase Analytics collection using its documented manifest setting. Does not remove Firebase services.",
     default = false
 ) {

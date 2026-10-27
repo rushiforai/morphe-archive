@@ -81,11 +81,12 @@ public class SettingsReturnTest {
         assertFalse(preferences.contains(SettingsReturn.PAGE_KEY));
     }
 
-    @Test public void everyPageNameTheMarkerCarriesOpensAPageAndHomeOpensNothingExtra() {
+    @Test public void legacyCategoryMarkersRemainAcceptedByTheMainListFactory() {
         assertNotNull(TikTokPreferenceFragment.forPage("section:PRIVACY"));
         assertNotNull(TikTokPreferenceFragment.forPage("hub:ABOUT"));
         assertNotNull(TikTokPreferenceFragment.forPage("search"));
-        assertNull("home is already under every returned page",
+        assertNotNull(TikTokPreferenceFragment.home(TikTokPreferenceFragment.PAGE_HOME));
+        assertNull("the legacy factory duplicated the main page",
                 TikTokPreferenceFragment.forPage(TikTokPreferenceFragment.PAGE_HOME));
         assertNull("a page this build doesn't have opened something",
                 TikTokPreferenceFragment.forPage("section:NO_SUCH_PAGE"));
@@ -93,8 +94,8 @@ public class SettingsReturnTest {
 
     /**
      * The marker carries the row that was at the top of the screen after a #, and the page it
-     * opens comes back scrolled there. For the home page that's the first page itself, which a
-     * section's marker never touches. A marker with nothing after the # is just its page.
+     * opens comes back scrolled there. Legacy section markers configure that same main list.
+     * A marker with nothing after the # has no saved row.
      */
     @Test public void aMarkerCarriesTheRowItWasScrolledTo() {
         TikTokPreferenceFragment privacy = TikTokPreferenceFragment.forPage("section:PRIVACY#hide_root");
@@ -102,19 +103,38 @@ public class SettingsReturnTest {
         assertEquals("hide_root", privacy.getArguments().getString("morphe_settings_return_row"));
         assertNull(TikTokPreferenceFragment.forPage("section:PRIVACY#").getArguments()
                 .getString("morphe_settings_return_row"));
-        assertNull("home is already under every returned page", TikTokPreferenceFragment.forPage("home#paused"));
-
+        assertNull("the legacy factory duplicated a scrolled main page",
+                TikTokPreferenceFragment.forPage("home#paused"));
         assertEquals("paused", TikTokPreferenceFragment.home("home#paused").getArguments()
                 .getString("morphe_settings_return_row"));
-        for (String marker : new String[]{null, "home", "home#", "section:PRIVACY#hide_root", "search"}) {
-            assertNull(marker + " scrolled the home page", TikTokPreferenceFragment.home(marker).getArguments());
+        TikTokPreferenceFragment main = TikTokPreferenceFragment.home("section:PRIVACY#hide_root");
+        assertEquals("PRIVACY", main.getArguments().getString("morphe_settings_section"));
+        assertEquals("hide_root", main.getArguments().getString("morphe_settings_return_row"));
+        assertEquals("ABOUT", TikTokPreferenceFragment.home("hub:ABOUT").getArguments()
+                .getString("morphe_settings_hub"));
+        assertTrue(TikTokPreferenceFragment.home("search").getArguments()
+                .getBoolean("morphe_settings_search"));
+        for (String marker : new String[]{null, "home", "home#"}) {
+            android.os.Bundle arguments = TikTokPreferenceFragment.home(marker).getArguments();
+            assertTrue(marker + " invented a saved row", arguments == null
+                    || arguments.getString("morphe_settings_return_row") == null);
+        }
+    }
+
+    @Test public void inlineMarkersCarryExpandedCategoriesAlongsideTheSavedRow() {
+        for (String prefix : new String[]{"home", "search"}) {
+            TikTokPreferenceFragment main = TikTokPreferenceFragment.home(prefix + ":PLAYBACK,COMMENTS#auto_advance");
+            assertEquals(java.util.Arrays.asList("PLAYBACK", "COMMENTS"),
+                    main.getArguments().getStringArrayList("morphe_initial_expanded_settings"));
+            assertEquals("auto_advance", main.getArguments().getString("morphe_settings_return_row"));
+            assertEquals("search".equals(prefix), main.getArguments().getBoolean("morphe_settings_search"));
+            assertNotNull(TikTokPreferenceFragment.forPage(prefix + ":PLAYBACK,COMMENTS#auto_advance"));
         }
     }
 
     /**
      * A marker written by the build before the home page listed every page names one of the four
-     * groups that sat in between. Those are gone, so the start opens the home page, where every
-     * page they held is now a row.
+     * groups that sat in between. Those are gone, so the start keeps the main list.
      */
     @Test public void aMarkerNamingARemovedGroupOpensTheHomePage() {
         for (String group : new String[]{"hub:FEED_LAYOUT", "hub:COMMENTS_INBOX",

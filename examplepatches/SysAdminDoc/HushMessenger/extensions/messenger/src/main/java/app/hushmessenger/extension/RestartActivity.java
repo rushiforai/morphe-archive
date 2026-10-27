@@ -121,6 +121,8 @@ public class RestartActivity extends Activity {
         brand.setGravity(Gravity.CENTER);
         brand.setTextSize(11);
         brand.setLetterSpacing(0.12f);
+        brand.setTag("restart_brand");
+        ShimmerTitle.wear(brand, ui.light);
         message.addView(brand);
         View accent = new View(ui.context);
         accent.setBackground(ui.shape(ui.accent, 0, 2));
@@ -128,7 +130,7 @@ public class RestartActivity extends Activity {
         LinearLayout.LayoutParams accentParams = new LinearLayout.LayoutParams(ui.dp(56), ui.dp(4));
         accentParams.topMargin = ui.dp(20);
         message.addView(accent, accentParams);
-        TextView status = ui.text(text.get("restarting"), 24, ui.text, true);
+        TextView status = ui.title(text.get("restarting"), 24);
         status.setTag("restart_status");
         status.setGravity(Gravity.CENTER);
         status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);

@@ -1,3 +1,215 @@
+## [1.63.0](https://github.com/hxreborn/morphe-patches/compare/v1.62.0...v1.63.0) (2026-10-26)
+
+### Bug Fixes
+
+* **Coddy - Unlock premium:** support armeabi-v7a devices ([cf2600a](https://github.com/hxreborn/morphe-patches/commit/cf2600a362a55fdc6f68efbed361740525c51fbc)), closes [#406](https://github.com/hxreborn/morphe-patches/issues/406)
+
+### New Features
+
+* **Arc Player - Disable tracking:** stop Firebase usage collection ([e95861a](https://github.com/hxreborn/morphe-patches/commit/e95861a4ab2856bdeb8239619b8d937ad18988ee))
+* **Arc Player - Remove rating prompts:** skip the feedback sheet ([14338e4](https://github.com/hxreborn/morphe-patches/commit/14338e43aed6db7ff85f177e4ace9444542cc706))
+* **Arc Player - Unlock premium:** unlock pure black and subtitle fonts ([78a3496](https://github.com/hxreborn/morphe-patches/commit/78a349608016ceef8c2392cb8818c266c80be8c9))
+* **Athan - Dark theme:** follow the system dark mode ([fb3960f](https://github.com/hxreborn/morphe-patches/commit/fb3960f157988cadf0f5bf2ae4312c2acdd726de))
+* **Athan - Disable tracking:** stop Firebase and Facebook analytics ([9154833](https://github.com/hxreborn/morphe-patches/commit/9154833413305d249eac1ab09996faa017eb2125))
+* **Athan - GmsCore support:** sign in with Google through GmsCore ([0c718e8](https://github.com/hxreborn/morphe-patches/commit/0c718e815240efafd2eb3b70108079619657a037))
+* **Athan - Remove ads:** remove banner and interstitial ads ([88f4203](https://github.com/hxreborn/morphe-patches/commit/88f4203146cd2ad8ecf02899f283ccf01afb6fcb))
+* **Athan - Save images to gallery:** save shared cards to the gallery ([55923cb](https://github.com/hxreborn/morphe-patches/commit/55923cb84a72d09cc5d6b08dd6a14db7155a5b2c))
+* **Athan - Unlock premium:** unlock premium themes and athans ([cf274fe](https://github.com/hxreborn/morphe-patches/commit/cf274fe91089e437016c735a31b850cea90d8ce7))
+* **Audiobook Unlimited - Unlock premium:** unlock unlimited books ([1794024](https://github.com/hxreborn/morphe-patches/commit/1794024aa4a56df1d89f9cc0873c0193a88b65ff))
+* **AutomaTag - Unlock premium:** unlock fingerprinting and batch modes ([71324b0](https://github.com/hxreborn/morphe-patches/commit/71324b0794077dd6e95a2f22a0e0e823be473662))
+* **Desh Telugu Keyboard - Disable tracking:** stop typing analytics ([70d9abf](https://github.com/hxreborn/morphe-patches/commit/70d9abf95aa10b5453928386aea5a2754b95dad1))
+* **Desh Telugu Keyboard - Unlock premium:** remove promoted tiles ([6fa3c71](https://github.com/hxreborn/morphe-patches/commit/6fa3c71b16761a136a451c394deb1287a8264023))
+* **IoToToy - Disable tracking:** stop AppBrain and ML Kit logging ([ceb45fd](https://github.com/hxreborn/morphe-patches/commit/ceb45fd306fc88d53644a1df3924f5ecfa4ba476))
+* **IoToToy - Unlock premium:** unlock premium blocks and remove ads ([729a702](https://github.com/hxreborn/morphe-patches/commit/729a70218e0b560633ed8f81a5ce928bc4fdc1a3))
+* **Proton - AMOLED dark theme:** add switch to dim raised surfaces ([c35190b](https://github.com/hxreborn/morphe-patches/commit/c35190bac0aa43230db2cb274c56bf6dd77d1424))
+* **VPN India - Unlock premium:** unlock PRO servers and remove ads ([4de2d3f](https://github.com/hxreborn/morphe-patches/commit/4de2d3fc5d971d57417a5f39a1665263ca29557c))
+
+### Updated App Support
+
+* **Fast STL Viewer:** add support for `2.93` ([42b5a85](https://github.com/hxreborn/morphe-patches/commit/42b5a859fa3dfeb3b7f2a1541d88bc258f043891))
+* **Notein:** add support for `v2.1.37.0` ([d7cee0b](https://github.com/hxreborn/morphe-patches/commit/d7cee0b180ad733f31832d7141f6147031563fee))
+* **One4Home Launcher:** add support for `0.5.104` ([e0fe519](https://github.com/hxreborn/morphe-patches/commit/e0fe51950443d0e5674d68eef3d491ad572502a3))
+* **Ringtone Maker:** add support for `1.02.01.1023` ([8d61a1a](https://github.com/hxreborn/morphe-patches/commit/8d61a1aec93490186eb12397fa71c96458cf4ef3))
+* **Viber:** add support for `29.2.0.0` ([8dfaaaa](https://github.com/hxreborn/morphe-patches/commit/8dfaaaa9d22a1a2e8a63b80b01ab2588bae26df3))
+
+## [1.63.0-dev.3](https://github.com/hxreborn/morphe-patches/compare/v1.63.0-dev.2...v1.63.0-dev.3) (2026-10-26)
+
+### Updated App Support
+
+* **Fast STL Viewer:** add support for `2.93` ([42b5a85](https://github.com/hxreborn/morphe-patches/commit/42b5a859fa3dfeb3b7f2a1541d88bc258f043891))
+* **Notein:** add support for `v2.1.37.0` ([d7cee0b](https://github.com/hxreborn/morphe-patches/commit/d7cee0b180ad733f31832d7141f6147031563fee))
+* **One4Home Launcher:** add support for `0.5.104` ([e0fe519](https://github.com/hxreborn/morphe-patches/commit/e0fe51950443d0e5674d68eef3d491ad572502a3))
+* **Ringtone Maker:** add support for `1.02.01.1023` ([8d61a1a](https://github.com/hxreborn/morphe-patches/commit/8d61a1aec93490186eb12397fa71c96458cf4ef3))
+* **Viber:** add support for `29.2.0.0` ([8dfaaaa](https://github.com/hxreborn/morphe-patches/commit/8dfaaaa9d22a1a2e8a63b80b01ab2588bae26df3))
+
+## [1.63.0-dev.2](https://github.com/hxreborn/morphe-patches/compare/v1.63.0-dev.1...v1.63.0-dev.2) (2026-10-26)
+
+### New Features
+
+* **Proton - AMOLED dark theme:** add switch to dim raised surfaces ([c35190b](https://github.com/hxreborn/morphe-patches/commit/c35190bac0aa43230db2cb274c56bf6dd77d1424))
+
+## [1.63.0-dev.1](https://github.com/hxreborn/morphe-patches/compare/v1.62.0...v1.63.0-dev.1) (2026-10-26)
+
+### Bug Fixes
+
+* **Coddy - Unlock premium:** support armeabi-v7a devices ([cf2600a](https://github.com/hxreborn/morphe-patches/commit/cf2600a362a55fdc6f68efbed361740525c51fbc)), closes [#406](https://github.com/hxreborn/morphe-patches/issues/406)
+
+### New Features
+
+* **Arc Player - Disable tracking:** stop Firebase usage collection ([e95861a](https://github.com/hxreborn/morphe-patches/commit/e95861a4ab2856bdeb8239619b8d937ad18988ee))
+* **Arc Player - Remove rating prompts:** skip the feedback sheet ([14338e4](https://github.com/hxreborn/morphe-patches/commit/14338e43aed6db7ff85f177e4ace9444542cc706))
+* **Arc Player - Unlock premium:** unlock pure black and subtitle fonts ([78a3496](https://github.com/hxreborn/morphe-patches/commit/78a349608016ceef8c2392cb8818c266c80be8c9))
+* **Athan - Dark theme:** follow the system dark mode ([fb3960f](https://github.com/hxreborn/morphe-patches/commit/fb3960f157988cadf0f5bf2ae4312c2acdd726de))
+* **Athan - Disable tracking:** stop Firebase and Facebook analytics ([9154833](https://github.com/hxreborn/morphe-patches/commit/9154833413305d249eac1ab09996faa017eb2125))
+* **Athan - GmsCore support:** sign in with Google through GmsCore ([0c718e8](https://github.com/hxreborn/morphe-patches/commit/0c718e815240efafd2eb3b70108079619657a037))
+* **Athan - Remove ads:** remove banner and interstitial ads ([88f4203](https://github.com/hxreborn/morphe-patches/commit/88f4203146cd2ad8ecf02899f283ccf01afb6fcb))
+* **Athan - Save images to gallery:** save shared cards to the gallery ([55923cb](https://github.com/hxreborn/morphe-patches/commit/55923cb84a72d09cc5d6b08dd6a14db7155a5b2c))
+* **Athan - Unlock premium:** unlock premium themes and athans ([cf274fe](https://github.com/hxreborn/morphe-patches/commit/cf274fe91089e437016c735a31b850cea90d8ce7))
+* **Audiobook Unlimited - Unlock premium:** unlock unlimited books ([1794024](https://github.com/hxreborn/morphe-patches/commit/1794024aa4a56df1d89f9cc0873c0193a88b65ff))
+* **AutomaTag - Unlock premium:** unlock fingerprinting and batch modes ([71324b0](https://github.com/hxreborn/morphe-patches/commit/71324b0794077dd6e95a2f22a0e0e823be473662))
+* **Desh Telugu Keyboard - Disable tracking:** stop typing analytics ([70d9abf](https://github.com/hxreborn/morphe-patches/commit/70d9abf95aa10b5453928386aea5a2754b95dad1))
+* **Desh Telugu Keyboard - Unlock premium:** remove promoted tiles ([6fa3c71](https://github.com/hxreborn/morphe-patches/commit/6fa3c71b16761a136a451c394deb1287a8264023))
+* **IoToToy - Disable tracking:** stop AppBrain and ML Kit logging ([ceb45fd](https://github.com/hxreborn/morphe-patches/commit/ceb45fd306fc88d53644a1df3924f5ecfa4ba476))
+* **IoToToy - Unlock premium:** unlock premium blocks and remove ads ([729a702](https://github.com/hxreborn/morphe-patches/commit/729a70218e0b560633ed8f81a5ce928bc4fdc1a3))
+* **VPN India - Unlock premium:** unlock PRO servers and remove ads ([4de2d3f](https://github.com/hxreborn/morphe-patches/commit/4de2d3fc5d971d57417a5f39a1665263ca29557c))
+
+## [1.62.0](https://github.com/hxreborn/morphe-patches/compare/v1.61.0...v1.62.0) (2026-10-26)
+
+### Bug Fixes
+
+* **botim - Fix sign-in:** send the phone verification code ([b452c0a](https://github.com/hxreborn/morphe-patches/commit/b452c0a94b89b3737802946bdecdafd29813aa11)), closes [#383](https://github.com/hxreborn/morphe-patches/issues/383)
+* **DWG FastView:** restore patching on every supported version ([e5b8024](https://github.com/hxreborn/morphe-patches/commit/e5b8024ea6361703e5ef840fca023b804e97cf3d))
+* move to Patcher 2.0.1 ([e42e276](https://github.com/hxreborn/morphe-patches/commit/e42e27691c0b4d515db705cc1507c1c1f120dd3e))
+* **Musicolet - Unlock premium:** stop the crash after restoring a backup ([53ed34b](https://github.com/hxreborn/morphe-patches/commit/53ed34bc36757af94b0e4220487b8bd19b5f7750)), closes [#284](https://github.com/hxreborn/morphe-patches/issues/284)
+
+### New Features
+
+* **Albo - Remove bulk import limit:** import without spending credits ([45c8e1c](https://github.com/hxreborn/morphe-patches/commit/45c8e1cdbc90e067b6e312a637a96b6fe5ed53c5)), closes [#375](https://github.com/hxreborn/morphe-patches/issues/375)
+* **blockit - Free parachutes:** add parachute packs without a purchase ([5c8f09d](https://github.com/hxreborn/morphe-patches/commit/5c8f09d0fad692bd200fc1396f21fc0611308a11))
+* **blockit - Unlock premium:** unlock Premium, the suitcase and sounds ([f05f596](https://github.com/hxreborn/morphe-patches/commit/f05f5965f2aada4adebedfa6aa5cf745b3e7d1b5))
+* **Castle for TV - Spoof signature:** remove the modified app warning ([7d87a63](https://github.com/hxreborn/morphe-patches/commit/7d87a63236c09ca18b3cbe97fca3d6744e6f03da)), closes [#379](https://github.com/hxreborn/morphe-patches/issues/379)
+* **Clink - Unlock Pro:** unlock calculator, Text FX and other Pro tools ([b498be4](https://github.com/hxreborn/morphe-patches/commit/b498be4c034ba61cc26bf975a40753a5d1144c7b))
+* **Clone App - Disable tracking:** stop usage and history uploads ([5e0d0ef](https://github.com/hxreborn/morphe-patches/commit/5e0d0ef44de7490fd1545acbfc6d3094f19a4fae))
+* **Clone App - Fix Manage Google account:** open account settings ([b5cb895](https://github.com/hxreborn/morphe-patches/commit/b5cb8956e1651daf7b30a93db5cbaa99053aa715))
+* **Clone App - Remove ads:** remove splash, interstitial and native ads ([ce6eb2e](https://github.com/hxreborn/morphe-patches/commit/ce6eb2e21ce5ecc926a5330126e77583eede6874))
+* **Clone App - Unlock premium:** unlock multiple copies and bubble mode ([d827c13](https://github.com/hxreborn/morphe-patches/commit/d827c13cba908cf6869ce07aca248d76600632e3))
+* **Coddy - Unlock premium:** unlock Plus and remove the AI tutor limit ([7868681](https://github.com/hxreborn/morphe-patches/commit/7868681e45c6b98ffa11bd4e6ce5abe568f6765a))
+* **Monet Launcher - Unlock premium:** unlock wallpapers and designs ([0c69b64](https://github.com/hxreborn/morphe-patches/commit/0c69b64b9ae21fcc65171c3b74d2f291971125e9))
+* **Pleco - Disable tracking:** stop sending device identifiers ([09d2edb](https://github.com/hxreborn/morphe-patches/commit/09d2edb2471c90c2758324657f769c0cdad14198))
+* **Pleco - Unlock add-ons:** unlock flashcards, document reader and OCR ([1577d90](https://github.com/hxreborn/morphe-patches/commit/1577d9037ebb18c0a5430565f53f789f69572f99))
+* **Proton - AMOLED dark theme:** dim raised bars and cards ([935eb84](https://github.com/hxreborn/morphe-patches/commit/935eb84cb6a09a305eb7be2753dec3fae489b5c3))
+* **Proton Mail - AMOLED dark theme:** dim buttons, chips and action bar ([d3e31fa](https://github.com/hxreborn/morphe-patches/commit/d3e31fa59e264f2f26ffec196c257dd579c88557))
+* **Proton Pass - AMOLED dark theme:** dim the vault drawer and sheets ([5406418](https://github.com/hxreborn/morphe-patches/commit/54064187a5f91033f4d6cba8fdc0d715cc407c85)), closes [#389](https://github.com/hxreborn/morphe-patches/issues/389)
+* **Proton Pass - Hide navigation bar on scroll:** list fills bar space ([39fff13](https://github.com/hxreborn/morphe-patches/commit/39fff1328d5d4016bc95a4314ce2bf8ff5c1f6bc)), closes [#382](https://github.com/hxreborn/morphe-patches/issues/382)
+* update to Patcher 2.0.2-dev.1 ([ecc9db1](https://github.com/hxreborn/morphe-patches/commit/ecc9db182485daa6d25ea38f194443e9468e574e))
+
+### Updated App Support
+
+* **Castle:** add support for `2.1.3` build 158 ([cf26a3e](https://github.com/hxreborn/morphe-patches/commit/cf26a3e4ab02b7792376fc3225274686a9ed329e)), closes [#319](https://github.com/hxreborn/morphe-patches/issues/319) [#357](https://github.com/hxreborn/morphe-patches/issues/357)
+* **MovieBox:** add support for `4.0.03.1022.03` ([bb76d0e](https://github.com/hxreborn/morphe-patches/commit/bb76d0ef8b5e30f37457bbe106770f819a38b506)), closes [#365](https://github.com/hxreborn/morphe-patches/issues/365)
+
+## [1.62.0-dev.15](https://github.com/hxreborn/morphe-patches/compare/v1.62.0-dev.14...v1.62.0-dev.15) (2026-10-26)
+
+### New Features
+
+* **Monet Launcher - Unlock premium:** unlock wallpapers and designs ([0c69b64](https://github.com/hxreborn/morphe-patches/commit/0c69b64b9ae21fcc65171c3b74d2f291971125e9))
+
+## [1.62.0-dev.14](https://github.com/hxreborn/morphe-patches/compare/v1.62.0-dev.13...v1.62.0-dev.14) (2026-10-26)
+
+### New Features
+
+* **blockit - Free parachutes:** add parachute packs without a purchase ([5c8f09d](https://github.com/hxreborn/morphe-patches/commit/5c8f09d0fad692bd200fc1396f21fc0611308a11))
+* **blockit - Unlock premium:** unlock Premium, the suitcase and sounds ([f05f596](https://github.com/hxreborn/morphe-patches/commit/f05f5965f2aada4adebedfa6aa5cf745b3e7d1b5))
+
+## [1.62.0-dev.13](https://github.com/hxreborn/morphe-patches/compare/v1.62.0-dev.12...v1.62.0-dev.13) (2026-10-26)
+
+### New Features
+
+* **Clink - Unlock Pro:** unlock calculator, Text FX and other Pro tools ([b498be4](https://github.com/hxreborn/morphe-patches/commit/b498be4c034ba61cc26bf975a40753a5d1144c7b))
+
+## [1.62.0-dev.12](https://github.com/hxreborn/morphe-patches/compare/v1.62.0-dev.11...v1.62.0-dev.12) (2026-10-26)
+
+### Bug Fixes
+
+* **Musicolet - Unlock premium:** stop the crash after restoring a backup ([53ed34b](https://github.com/hxreborn/morphe-patches/commit/53ed34bc36757af94b0e4220487b8bd19b5f7750)), closes [#284](https://github.com/hxreborn/morphe-patches/issues/284)
+
+## [1.62.0-dev.11](https://github.com/hxreborn/morphe-patches/compare/v1.62.0-dev.10...v1.62.0-dev.11) (2026-10-26)
+
+### New Features
+
+* **Proton - AMOLED dark theme:** dim raised bars and cards ([935eb84](https://github.com/hxreborn/morphe-patches/commit/935eb84cb6a09a305eb7be2753dec3fae489b5c3))
+* **Proton Mail - AMOLED dark theme:** dim buttons, chips and action bar ([d3e31fa](https://github.com/hxreborn/morphe-patches/commit/d3e31fa59e264f2f26ffec196c257dd579c88557))
+* **Proton Pass - AMOLED dark theme:** dim the vault drawer and sheets ([5406418](https://github.com/hxreborn/morphe-patches/commit/54064187a5f91033f4d6cba8fdc0d715cc407c85)), closes [#389](https://github.com/hxreborn/morphe-patches/issues/389)
+
+## [1.62.0-dev.10](https://github.com/hxreborn/morphe-patches/compare/v1.62.0-dev.9...v1.62.0-dev.10) (2026-10-26)
+
+### Updated App Support
+
+* **Castle:** add support for `2.1.3` build 158 ([cf26a3e](https://github.com/hxreborn/morphe-patches/commit/cf26a3e4ab02b7792376fc3225274686a9ed329e)), closes [#319](https://github.com/hxreborn/morphe-patches/issues/319) [#357](https://github.com/hxreborn/morphe-patches/issues/357)
+
+## [1.62.0-dev.9](https://github.com/hxreborn/morphe-patches/compare/v1.62.0-dev.8...v1.62.0-dev.9) (2026-10-26)
+
+### Updated App Support
+
+* **MovieBox:** add support for `4.0.03.1022.03` ([bb76d0e](https://github.com/hxreborn/morphe-patches/commit/bb76d0ef8b5e30f37457bbe106770f819a38b506)), closes [#365](https://github.com/hxreborn/morphe-patches/issues/365)
+
+## [1.62.0-dev.8](https://github.com/hxreborn/morphe-patches/compare/v1.62.0-dev.7...v1.62.0-dev.8) (2026-10-25)
+
+### New Features
+
+* **Proton Pass - Hide navigation bar on scroll:** list fills bar space ([39fff13](https://github.com/hxreborn/morphe-patches/commit/39fff1328d5d4016bc95a4314ce2bf8ff5c1f6bc)), closes [#382](https://github.com/hxreborn/morphe-patches/issues/382)
+
+## [1.62.0-dev.7](https://github.com/hxreborn/morphe-patches/compare/v1.62.0-dev.6...v1.62.0-dev.7) (2026-10-25)
+
+### New Features
+
+* **Coddy - Unlock premium:** unlock Plus and remove the AI tutor limit ([7868681](https://github.com/hxreborn/morphe-patches/commit/7868681e45c6b98ffa11bd4e6ce5abe568f6765a))
+
+## [1.62.0-dev.6](https://github.com/hxreborn/morphe-patches/compare/v1.62.0-dev.5...v1.62.0-dev.6) (2026-10-25)
+
+### Bug Fixes
+
+* **botim - Fix sign-in:** send the phone verification code ([b452c0a](https://github.com/hxreborn/morphe-patches/commit/b452c0a94b89b3737802946bdecdafd29813aa11)), closes [#383](https://github.com/hxreborn/morphe-patches/issues/383)
+
+## [1.62.0-dev.5](https://github.com/hxreborn/morphe-patches/compare/v1.62.0-dev.4...v1.62.0-dev.5) (2026-10-25)
+
+### New Features
+
+* **Clone App - Disable tracking:** stop usage and history uploads ([5e0d0ef](https://github.com/hxreborn/morphe-patches/commit/5e0d0ef44de7490fd1545acbfc6d3094f19a4fae))
+* **Clone App - Fix Manage Google account:** open account settings ([b5cb895](https://github.com/hxreborn/morphe-patches/commit/b5cb8956e1651daf7b30a93db5cbaa99053aa715))
+* **Clone App - Remove ads:** remove splash, interstitial and native ads ([ce6eb2e](https://github.com/hxreborn/morphe-patches/commit/ce6eb2e21ce5ecc926a5330126e77583eede6874))
+* **Clone App - Unlock premium:** unlock multiple copies and bubble mode ([d827c13](https://github.com/hxreborn/morphe-patches/commit/d827c13cba908cf6869ce07aca248d76600632e3))
+
+## [1.62.0-dev.4](https://github.com/hxreborn/morphe-patches/compare/v1.62.0-dev.3...v1.62.0-dev.4) (2026-10-25)
+
+### New Features
+
+* **Pleco - Disable tracking:** stop sending device identifiers ([09d2edb](https://github.com/hxreborn/morphe-patches/commit/09d2edb2471c90c2758324657f769c0cdad14198))
+* **Pleco - Unlock add-ons:** unlock flashcards, document reader and OCR ([1577d90](https://github.com/hxreborn/morphe-patches/commit/1577d9037ebb18c0a5430565f53f789f69572f99))
+
+## [1.62.0-dev.3](https://github.com/hxreborn/morphe-patches/compare/v1.62.0-dev.2...v1.62.0-dev.3) (2026-10-25)
+
+### Bug Fixes
+
+* move to Patcher 2.0.1 ([e42e276](https://github.com/hxreborn/morphe-patches/commit/e42e27691c0b4d515db705cc1507c1c1f120dd3e))
+
+## [1.62.0-dev.2](https://github.com/hxreborn/morphe-patches/compare/v1.62.0-dev.1...v1.62.0-dev.2) (2026-10-25)
+
+### Bug Fixes
+
+* **DWG FastView:** restore patching on every supported version ([e5b8024](https://github.com/hxreborn/morphe-patches/commit/e5b8024ea6361703e5ef840fca023b804e97cf3d))
+
+### New Features
+
+* **Albo - Remove bulk import limit:** import without spending credits ([45c8e1c](https://github.com/hxreborn/morphe-patches/commit/45c8e1cdbc90e067b6e312a637a96b6fe5ed53c5)), closes [#375](https://github.com/hxreborn/morphe-patches/issues/375)
+* update to Patcher 2.0.2-dev.1 ([ecc9db1](https://github.com/hxreborn/morphe-patches/commit/ecc9db182485daa6d25ea38f194443e9468e574e))
+
+## [1.62.0-dev.1](https://github.com/hxreborn/morphe-patches/compare/v1.61.0...v1.62.0-dev.1) (2026-10-25)
+
+### New Features
+
+* **Castle for TV - Spoof signature:** remove the modified app warning ([7d87a63](https://github.com/hxreborn/morphe-patches/commit/7d87a63236c09ca18b3cbe97fca3d6744e6f03da)), closes [#379](https://github.com/hxreborn/morphe-patches/issues/379)
+
 ## [1.61.0](https://github.com/hxreborn/morphe-patches/compare/v1.60.0...v1.61.0) (2026-10-25)
 
 ### Bug Fixes

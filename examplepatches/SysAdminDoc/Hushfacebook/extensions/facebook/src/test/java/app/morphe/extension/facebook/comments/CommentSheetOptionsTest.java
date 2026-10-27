@@ -53,6 +53,10 @@ public class CommentSheetOptionsTest {
     private static final String RELATED_CONTENT =
             "com.facebook.feedback.comments.plugins.bottomcontent.impl.relatedcontent.RelatedContentPlugin";
 
+    /** The comment box under a feed post, which the socket under its buttons also asks about and which always stays. */
+    private static final String INLINE_COMPOSER =
+            "com.facebook.feed.plugins.belowufifooter.impl.inlinecommentcomposer.InlineCommentComposerPlugin";
+
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
     @Before
@@ -70,6 +74,7 @@ public class CommentSheetOptionsTest {
         Settings.LOAD_WHOLE_REPLY_THREADS.resetToDefault();
         Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES.resetToDefault();
         Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS.resetToDefault();
+        Settings.HIDE_POST_COMMENT_PREVIEWS.resetToDefault();
         HookStatus.clear();
     }
 
@@ -246,6 +251,53 @@ public class CommentSheetOptionsTest {
     }
 
     @Test
+    public void onAPostsInlineCommentsAreHeldUnderItsButtonsAndCounted() {
+        Settings.HIDE_POST_COMMENT_PREVIEWS.save(true);
+        assertFalse("the comment box under a post was held", CommentSheetOptions.holdsPostComments(INLINE_COMPOSER));
+        assertFalse("Meta AI's summary was held by the comments switch", CommentSheetOptions.holdsPostComments(
+                MetaAiSummaries.POST_SUMMARY));
+        assertFalse("a plugin with no name was held", CommentSheetOptions.holdsPostComments(null));
+        assertFalse("Related groups were held under a post's buttons",
+                CommentSheetOptions.holdsPostComments(CommentSheetOptions.RELATED_GROUPS));
+        assertTrue("the inline comments stayed", CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS));
+        assertTrue("the dwell time comments stayed",
+                CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS_DWELL_TIME));
+        assertTrue("the client ranked comments stayed",
+                CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS_CLIENT_RANKING));
+        assertFalse("the comments switch held Related groups under the comments",
+                CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS));
+        assertEquals(FamilyNames.COMMENT_SHEET_OPTIONS + ": invoked 8, 2 found, 0 missing. Counted: "
+                + CommentSheetOptions.POST_COMMENTS_HIDDEN + " 3", statusLine());
+    }
+
+    @Test
+    public void offPausedOrColdAPostsInlineCommentsAreFacebooks() {
+        assertFalse("Hide comments under posts doesn't start off", Settings.HIDE_POST_COMMENT_PREVIEWS.get());
+        assertFalse("off, the inline comments were held",
+                CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS));
+        Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS.save(true);
+        assertFalse("Hide related groups held the inline comments",
+                CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS));
+
+        Settings.HIDE_POST_COMMENT_PREVIEWS.save(true);
+        for (HushfacebookPause.Reason reason : new HushfacebookPause.Reason[] {
+                HushfacebookPause.Reason.SWITCH, HushfacebookPause.Reason.CRASH_LOOP,
+                HushfacebookPause.Reason.MARKER_FILE}) {
+            PauseForTests.pause(reason);
+            assertFalse("a Hushfacebook paused by " + reason + " held the inline comments",
+                    CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS_DWELL_TIME));
+            PauseForTests.resume();
+        }
+        SettingsContextRule.withoutContext(() -> assertFalse("the inline comments were held before the settings were ready",
+                CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS)));
+
+        String line = statusLine();
+        assertFalse("a plugin left to Facebook was counted: " + line, line != null && line.contains("Counted"));
+        assertTrue("on again after the pause, the inline comments stayed",
+                CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS));
+    }
+
+    @Test
     public void offPausedOrColdTheReplyThreadIsFacebooks() {
         assertFalse("Open every reply thread doesn't start off", Settings.OPEN_REPLY_THREADS.get());
         assertFalse("off, a comment started with its replies open", CommentSheetOptions.openReplyThreads(false));
@@ -339,7 +391,7 @@ public class CommentSheetOptionsTest {
                 Settings.LIKE_ONLY, Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS, Settings.OPEN_REPLY_THREADS,
                 Settings.LOAD_WHOLE_REPLY_THREADS, Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS, Settings.HIDE_SHOP_LINK_COMMENTS,
                 Settings.HIDE_COMMENTS_WITH_WORDS, Settings.HIDE_INCOMING_COMMENT_TYPING, Settings.HIDE_NEW_COMMENTS_PILL,
-                Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES}) {
+                Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES, Settings.HIDE_POST_COMMENT_PREVIEWS}) {
             assertFalse(setting.key + " asks for a restart, but each hook reads it again", setting.rebootApp);
             assertNull(setting.key + " asks before it changes", setting.userDialogMessage);
             assertTrue("Pause and the report don't know " + setting.key,

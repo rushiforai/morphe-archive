@@ -31,6 +31,13 @@ is not intended for the old Patcher 1.12.0 runtime.
 
 ## Verification
 
+For Android source bundles, use `:patches:verifyAndroidBundle`. It generates the
+patch list, runs `buildAndroid`, and checks the final `.mpp` for root-level
+`classes.dex` and valid DEX headers. Both `publish` and semantic-release require
+this check. A regular JVM `build` alone produces an archive without DEX; it can
+also replace an archive previously modified by `buildAndroid`. Always finish
+release preparation with the Android bundle verification task.
+
 ```powershell
 .\build-local.ps1 :patches:buildAndroid :patches:generatePatchesList
 .\build-local.ps1 :patches:verifyMorpheDesktopImport

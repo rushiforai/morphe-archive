@@ -1,9 +1,9 @@
 # <img src="assets/icon.png" width="36" alt=""> GinArena Patch
 
 **GinArena Patch** is a [Morphe](https://morphe.software/) patch bundle for free **1DM**
-(`idm.internet.download.manager`), **CRICFy TV** (`com.cricfytv.sports`), and **CricZ TV**
-(`com.pro.cricztv`). Morphe Manager automatically filters patches per app, so selecting an app
-shows only the patches compatible with that app.
+(`idm.internet.download.manager`), **CRICFy TV** (`com.cricfytv.sports`), **CricZ TV**
+(`com.pro.cricztv`), **PlayZ TV** (`com.playz.tv`), and **MX Player** (`com.mxtech.videoplayer.ad`). Morphe Manager automatically
+filters patches per app, so selecting an app shows only the patches compatible with that app.
 
 ### How to use these patches
 
@@ -18,7 +18,7 @@ github.com/ginDoki19/GinArena-patch
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.3.0](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v2.4.1](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
 <summary>📦 1DM&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -34,6 +34,41 @@ github.com/ginDoki19/GinArena-patch
 | [Browser setup prompts only once](#browser-setup-prompts-only-once) | Shows the browser accessibility and shortcut-menu-strip setup prompts once, then records each as shown as soon as it appears so closing the browser before dismissing it cannot make it repeat. |  |
 | [Preset browser settings](#preset-browser-settings) | Sets fresh-install browser fallbacks for normal and incognito modes: Brave search, matching suggestions, and Google search by image by default. Saved or imported choices are preserved and can be changed later in 1DM. | • Search engine<br>• Search suggestions<br>• Search by image |
 | [Remove ads and promotions](#remove-ads-and-promotions) | Removes visible banner/full-screen ads and 1DM+ promotions from free 1DM 20.0 (30257), including the downloads-home VPN promo bar and sponsored browser start-page tiles. User shortcuts remain available. |  |
+
+</details>
+
+<details open>
+<summary>📦 MX Player&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 3.3.1 | 3.4.0 | 3.4.1 |
+| :---: | :---: | :---: |
+| Standalone APK (arm64-v8a / armeabi-v7a, nodpi, Android 7.0+), build 2001003541 | Standalone APK (arm64-v8a / armeabi-v7a, Android 7.0+), build 2001003550 | Standalone APK (arm64-v8a / armeabi-v7a, Android 7.0+), build 2001003551 |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Clean Me page](#clean-me-page) | Removes the Status Saver, Legal, and Help sections from the Me page while keeping the 8-item local tools grid, App Theme, Settings, and Custom Pop-up Play. |  |
+| [Custom codec](#custom-codec) | Bundles an MX Player v3.1.0 custom codec (aio-v3.1.0_r1.zip, architecture ZIP, or libffmpeg.mx.so*) directly into the app for out-of-the-box E-AC-3, TrueHD, MLP, DTS, and AC-3 software audio decoding. | • Custom codec file |
+| [Remove ads & bloat](#remove-ads-bloat) | Removes banner, folder, player, interstitial, rewarded, app-open, exit, and Me-page ads, removes the Home horizontal shortcut strip and online Zodiac App Themes, and disables Live TV, mxplay OTT streaming, MX Tube, Shorts, and Games while keeping Local Music, All-Files-Access setup, and 1-tap Classic Themes working offline and online. |  |
+| [Remove bottom navigation bar](#remove-bottom-navigation-bar) | Removes the bottom navigation bar from the UI and moves Me to the upper-right corner of the Home toolbar. Leave unchecked to keep the bottom navigation bar. |  |
+
+</details>
+
+<details open>
+<summary>📦 PlayZ TV&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.3.1 |
+| :---: |
+| Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 6.0+), build 8 |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Remove ads, popups & restrictions](#remove-ads-popups-restrictions) | Replaces the native signature-locked decryption in pure Java so encrypted channel and event feeds keep loading after Morphe re-signs the APK, and removes start/player/support/external ads plus the automatic Telegram promo dialog. |  |
 
 </details>
 
@@ -74,6 +109,9 @@ github.com/ginDoki19/GinArena-patch
 ---
 
 ## 📦 1DM (20.0, build 30257)
+
+<details>
+<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
 
 ### What it does
 
@@ -143,9 +181,14 @@ Do **not** use the separate **20257** variant for this patch.
 
 > **Uptodown note:** If Morphe’s “help me find an APK” flow opens Uptodown and downloads the 1DM 20.0 XAPK, that file has also been tested successfully. Select it in Morphe Manager instead of installing it. For x86/x86_64 devices, or if the Uptodown result is not exactly 20.0, use the APKMirror universal APKM above.
 
+</details>
+
 ---
 
 ## 📦 CRICFy TV (7.3, build 53)
+
+<details>
+<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
 
 ### What it does
 
@@ -202,9 +245,14 @@ privacy-respecting experience on **CRICFy TV 7.3** across phones, tablets, and A
 > producing a broken APK** if the app internals have changed. Future CRICFy versions are refused
 > by design until they receive a fresh audit — do not force-patch other versions in Expert Mode.
 
+</details>
+
 ---
 
 ## 📦 CricZ TV (7.3, build 10)
+
+<details>
+<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
 
 ### What it does
 
@@ -264,6 +312,129 @@ server-compatible experience on **CricZ TV 7.3** across phones, tablets, and And
 > anything, and future CricZ TV versions are refused by design until they receive a fresh audit —
 > do not force-patch other versions in Expert Mode.
 
+</details>
+
+---
+
+## 📦 PlayZ TV (2.3.1, build 8)
+
+<details>
+<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
+
+### What it does
+
+The **Remove ads, popups & restrictions** patch (enabled by default) provides a clean, fast,
+server-compatible experience on **PlayZ TV 2.3.1** across phones, tablets, and Android TV:
+
+- **Pure-Java signature-independent decryption (`Px.app`):** Replaces native `libnative-lib.so`
+  decryption in pure Java (`Base64` → byte-pair swap → reverse → `Base64` → AES-128-CBC with the
+  stock certificate-derived key), so encrypted channel/event feeds keep working after Morphe
+  re-signs the APK. The native signer-certificate self-test (`Px.check`, which aborts a
+  re-signed build on startup) is neutralized, and any decode failure returns an empty result
+  so the app's own Java AES fallbacks (`q4.a0.j`) still apply — the app never crashes on a
+  bad payload.
+- **Complete ad & popunder removal:** Sanitizes the parsed `app.txt` config at the single
+  choke point (`wc.d.u`): banner/start/support ad flags off and external-ad preferences
+  cleared, and disables the timed Support / Custom Browser popunder (`wc.d.y`).
+- **No automatic Telegram popup:** Suppresses the automatic `dialog_telegram` promo
+  (`lc.n.a`), while manual Telegram links elsewhere remain untouched.
+- **Stability first:** TLS setup (`rc.b.a`), streaming, and update behavior are untouched; no
+  permissions are changed and no native libraries are stripped (the stock library stays in
+  the APK but is never loaded by the patched `Px` bridge).
+
+### Target app (PlayZ TV)
+
+| Field | Value |
+| --- | --- |
+| Package | `com.playz.tv` |
+| Version | **2.3.1** (versionCode 8), universal APK (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`) |
+| Stock download | Use the exact stock **2.3.1** APK and verify the APK SHA-256 below before patching |
+| Signing certificate SHA-256 | `05ecca660d7656ce2c65a878c9e49a169558c2a44976f26c369393eccf9dc44b` |
+| APK SHA-256 | `003c8b6e9afe4a3f17ab45112a99ad8d2bf715f1981a521c61dab5f453a1d827` |
+
+> **Version safety:** only **2.3.1 (8)** is supported. Every fingerprint is validated before writing
+> anything, and future PlayZ TV versions are refused by design until they receive a fresh audit —
+> do not force-patch other versions in Expert Mode.
+
+</details>
+
+---
+
+## 📦 MX Player (3.4.1 / 3.4.0 / 3.3.1)
+
+<details>
+<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
+
+### What it does
+
+Keeping it simple here: these patches turn free **MX Player** (`com.mxtech.videoplayer.ad`)
+into what it should've been in the first place — a clean, fast local video and music player.
+No ads, no online junk, no weird surprises. Patch it, open it, it just works. Signature
+stuff is handled quietly under the hood, so there's nothing extra for you to configure.
+
+Choices are **minimal on purpose**: two patches are **on by default** (that's the actual
+debloat), and two small extras are **optional**. No endless toggle maze — pick the optional
+stuff only if you want it.
+
+> **Want heavy customization instead?** Totally fair — this probably isn't your patch then.
+> Go with the OG MX Player patches by **BlazeFTL** 👉
+> [FTL-Patches](https://github.com/BlazeFTL/FTL-Patches). They go much deeper with options
+> and tweaks. GinArena's version is deliberately the opposite: few choices, debloated,
+> stable, done. Use whichever style suits you — no hard feelings. 🤝
+
+<a id="remove-ads-bloat"></a>
+#### Remove ads & bloat
+
+*On by default — the main one.* Kills ads everywhere (home banners, folder ads, player and
+pause ads, pop-ups, Me-page promos, exit ads), removes the shortcut strip at the top of
+Home and the online ad-locked *Other Themes* (Zodiac etc.), and switches off the online
+clutter: **Live TV**, **OTT shows**, **MX Tube**, **Shorts**, and **Games**. The stuff you
+actually use stays right where it was — **Local Music**, **Continue Watching**, the
+**All-Files-Access** screen, **Adaptive / Light / Dark** modes, and all **32 Classic Themes**
+(applying in 1 tap, offline and online).
+
+#### Clean Me page
+
+*On by default.* Just tidies up the **Me** tab: WhatsApp Status Saver, promo banners,
+**Legal**, **Help**, and **Data Privacy** clutter are gone, while your 8 local tool
+shortcuts (*Video Playlist*, *Private Folder*, *FolderCleaner*, *Bookmarks*, *File
+Transfer*, *Equalizer*, *Smooth Play*, *Decoder*), **App Theme**, **Settings**, and
+**Custom Pop-up Play** all stay.
+
+#### Remove bottom navigation bar
+
+*Optional — off by default.* Like the normal bottom bar (**Folders**, **Music**,
+**Transfer**, **Me**)? Leave this off. Want a cleaner, full-height folder list instead?
+Turn it on — the bottom bar hides and **Me** moves to the top-right of the Home toolbar
+(*Music* and *File Transfer* are still easy to reach inside *Me*). Entirely your call.
+
+#### Custom codec
+
+*Optional — off by default.* Only if you care about Dolby/DTS audio: pick
+`aio-v3.1.0_r1.zip` in the patch option while patching, and **E-AC-3 (Dolby Digital Plus)**,
+**TrueHD**, **MLP**, **DTS**, and **AC-3** videos just play out of the box
+(`Settings → Decoder → Custom codec` will show `Bundled custom codec (v3.1.0)`). Don't need
+it? Skip it — nothing else changes.
+
+### Target app & downloads (MX Player)
+
+> **Important:** Download the **standalone `.apk` file** (~104–106 MB), **not** a `.xapk` or
+> `.apkm` split bundle. APKPure, Uptodown, and APKMirror all distribute the exact same official
+> Amazon Mobile LLC signed standalone APK for each version below.
+
+| Field | Value |
+| --- | --- |
+| Package | `com.mxtech.videoplayer.ad` |
+| Supported versions | **3.4.1** (`2001003551`), **3.4.0** (`2001003550`), **3.3.1** (`2001003541`) — standalone universal APK (`arm64-v8a` + `armeabi-v7a`, Android 7.0+) |
+| Stock APK — **APKPure** | [Latest 3.4.1 APK](https://apkpure.com/mx-player-app/com.mxtech.videoplayer.ad) · [All versions (`3.4.1` / `3.4.0` / `3.3.1`)](https://apkpure.com/mx-player-app/com.mxtech.videoplayer.ad/versions) *(choose the **APK** download, not `XAPK`)* |
+| Stock APK — **Uptodown** | [MX Player versions (`apk 3.4.1` / `3.4.0` / `3.3.1`)](https://mx-player.en.uptodown.com/android/versions) *(choose the **`apk`** variant)* |
+| Stock APK — **APKMirror** | [MX Player 3.3.1 standalone `nodpi` APK](https://www.apkmirror.com/apk/amazon-mobile-llc/mx-player/mx-player-3-3-1-release/) · [All APKMirror releases](https://www.apkmirror.com/apk/amazon-mobile-llc/mx-player/) *(choose the **`APK`** variant, not `BUNDLE`)* |
+| Signing certificate SHA-256 | `0d9b4c778672e753d45aba4f10df31e1d10bf75b1245469131ef01b82f0f91b6` |
+| `3.4.1` APK SHA-256 | `db775bd81460e31bd21602cf0b842bc3e2fd769b0bd23250e70036cc4cf95bf4` |
+| `3.4.0` APK SHA-256 | `944a106935bc9772d593d217b1aab566e21e484bf4c50cbf1ff40bf996266414` |
+| `3.3.1` APK SHA-256 | `2f08db23038af69115d79280cb56362080866c2cf169734ab02ea076404e6fdb` |
+| Optional **Custom Codec v3.1.0** | [GitHub — `iDNA420/MX-FFmpeg` `v3.1.0_r1` (`aio-v3.1.0_r1.zip` recommended)](https://github.com/iDNA420/MX-FFmpeg/releases/tag/v3.1.0_r1) (`SHA-256: ebb0bd5db0f855caca6167747987a229836d7cc0062a2d5c23dbf91d057c617b`) — keep it as a `.zip` and select it inside the **Custom codec** patch option in Morphe Manager |
+
 ---
 
 ### Stock download note
@@ -274,16 +445,20 @@ therefore stay in this README, where they are clickable, while the in-Manager ve
 short readable build labels and validate the package name, file type, version, `versionCode`,
 `minSdk`, and official signing-certificate SHA-256.
 
+</details>
+
 ## Usage (Morphe Manager)
 
 1. Add this repository as a remote patch source using the link at the top of this README.
-2. Download the official stock **1DM 20.0 APKM**, **CRICFy TV 7.3 APK**, or **CricZ TV 7.3 APK**
-   above onto your device.
+2. Download the official stock **1DM 20.0 APKM**, **CRICFy TV 7.3 APK**, **CricZ TV 7.3 APK**,
+   **PlayZ TV 2.3.1 APK**, or
+   **MX Player 3.4.1 / 3.4.0 / 3.3.1 standalone APK** above onto your device.
 3. Uninstall the stock app first if it is already installed (re-signing changes the APK signature).
 4. In Morphe Manager, choose **Select from storage**, pick the downloaded stock `.apkm` / `.apk`
-   file (rather than an already-patched installed app), configure options if desired, then patch
-   and install. If a third-party source or patch is not visible, enable Expert Mode in Morphe
-   settings.
+   file (rather than an already-patched installed app), configure options if desired (for MX
+   Player's optional **Custom codec** patch, tap its gear icon and pick `aio-v3.1.0_r1.zip`
+   directly without unzipping it), then patch and install. If a third-party source or patch is not
+   visible, enable Expert Mode in Morphe settings.
 5. Repeat with the fresh stock file when new versions are audited and supported.
 
 > [!IMPORTANT]
@@ -292,13 +467,15 @@ short readable build labels and validate the package name, file type, version, `
 > patch your saved/patched APK again. Re-download the exact stock file from the links above and
 > patch it from the beginning.
 >
-> **New in v2.3.0:** adds **CricZ TV 7.3** support — ads, popunder redirects, the 10-second
-> sponsor gate, the startup Telegram popup, player watermarks, and push notifications are
-> removed, while live config decryption keeps working on the re-signed build. As with CRICFy TV
-> since v2.2.1, the environment-check bypass (root / cloner / sniffer) and native-library
-> stripping options are **off by default** — turn them on only if you actually use root, app
-> cloners, work profiles, or HTTPS-filtering tools. If your current patched 1DM or CRICFy TV
-> works fine, you don't need to do anything.
+> **New in v2.4.0:** adds **MX Player (`3.4.1` / `3.4.0` / `3.3.1`)** support — turns MX Player
+> into a clean, ad-free local video and music player with 1-tap offline & online **Classic Themes**
+> (16 Light + 16 Dark Slate swatches) and a tidier **Me** tab, plus optional patches to hide the
+> bottom navigation bar and bundle the **v3.1.0 Custom Codec** (`aio-v3.1.0_r1.zip`) directly into
+> the APK for Dolby / DTS audio. It also adds **PlayZ TV (`2.3.1`)** support — ad-free with
+> working encrypted channel/event feeds (pure-Java replacement of the signature-locked native
+> decryption, like CricZ TV). On CRICFy TV and CricZ TV, environment-check bypass and
+> native-library stripping remain **off by default** — if your current patched 1DM, CRICFy TV, or
+> CricZ TV works fine, you don't need to re-patch it.
 
 ## Building from source
 
@@ -322,6 +499,7 @@ bash gradlew :patches:buildAndroid
 
 ## Credits
 
+- [BlazeFTL/FTL-Patches](https://github.com/BlazeFTL/FTL-Patches) — inspiration for MX Player patch ideas.
 - [callMeBeyonder/morphe-patches](https://github.com/callMeBeyonder/morphe-patches) — inspiration and initial CRICFy TV patch idea.
 - [Morphe](https://morphe.software/) — Morphe Patcher and Morphe Manager.
 

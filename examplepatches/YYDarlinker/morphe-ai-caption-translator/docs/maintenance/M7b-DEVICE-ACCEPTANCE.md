@@ -1,5 +1,7 @@
 # M7b candidate-02：设备交接与有限验收记录
 
+> 本页保留已完成的m7b candidate-02设备观察与当时交接身份。当前公开已为1.5.8 / release-1.5.8，正式包/CI/组合见[发布结果](results/RELEASE-1.5.8-RESULT.md)；未把旧设备反馈倒填为新release重新安装认证，也不要求为结束本卡重复安装。
+
 2026-10-26（Asia/Shanghai）。**本地工程和用户当前单设备短使用验收已接受；M7及首轮工程成熟化按规定范围完成。** 当前本地产品 **1.5.8 / local-1.5.8-m7b / candidate-02**，公开1.5.7。见[最终验收](reviews/M7-FINAL-ACCEPTANCE.md)；原[M7b本地复核](reviews/M7b-REVIEW.md)及执行结果保留其当时事实，不倒填成已做设备工作。
 
 ## 当前设备依据与限制

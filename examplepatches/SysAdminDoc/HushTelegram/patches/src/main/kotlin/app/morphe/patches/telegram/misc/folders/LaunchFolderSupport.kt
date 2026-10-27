@@ -143,12 +143,17 @@ internal fun BytecodePatchContext.resolveLaunchFolder(): LaunchFolderPlan = try 
     LaunchFolderPlan(null, 0, 0, null, "the folder tabs' build can't be read (${failed.javaClass.simpleName}: ${failed.message})")
 }
 
-private fun BytecodePatchContext.firstTabs(): LaunchFolderPlan {
+/** DialogsActivity.updateFilterTabs, each one this build has: the chat list is the class that holds it. */
+internal fun BytecodePatchContext.folderTabBuilds(): List<MutableMethod> {
     val owners = mutableListOf<String>()
     forEachClassMentioning(Mention.allReferences(listOf(FILTER_ALL_CHATS, DIALOG_FILTERS))) { cls ->
         if (!cls.type.startsWith("Lapp/hushtelegram/") && cls.methods.any { it.isTabBuild() }) owners += cls.type
     }
-    val builds = owners.flatMap { owner -> mutableClassDefBy(owner).methods.filter { it.isTabBuild() } }
+    return owners.flatMap { owner -> mutableClassDefBy(owner).methods.filter { it.isTabBuild() } }
+}
+
+private fun BytecodePatchContext.firstTabs(): LaunchFolderPlan {
+    val builds = folderTabBuilds()
     fits(builds.size == 1, "the folder tabs' build is missing or ambiguous")
     val method = builds.single()
     val list = method.definingClass

@@ -27,15 +27,19 @@ val disableZenSmsPremiumStatePatch = bytecodePatch(
             )
         }
 
-        // Equivalent to: fun isPremium(): StateFlow<Boolean> = MutableStateFlow(false)
-        // These descriptors are the R8-obfuscated types in ZenSMS 1.2.04.
+        // Both factories and return interfaces are independently audited in the stock APKs.
+        val factory = when (packageMetadata.versionName) {
+            "1.2.04" -> "Lz/Md;->b(Ljava/lang/Object;)Lkotlinx/coroutines/flow/m;"
+            "1.2.16" -> "Lz/Uf;->b(Ljava/lang/Object;)Lkotlinx/coroutines/flow/m;"
+            else -> error("Unsupported ZenSMS premium ABI")
+        }
         IsPremiumFingerprint.method.apply {
             removeInstructions(0, instructions.count())
             addInstructions(
                 0,
                 """
                 sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
-                invoke-static {v0}, Lz/Md;->b(Ljava/lang/Object;)Lkotlinx/coroutines/flow/m;
+                invoke-static {v0}, $factory
                 move-result-object v0
                 return-object v0
                 """.trimIndent(),

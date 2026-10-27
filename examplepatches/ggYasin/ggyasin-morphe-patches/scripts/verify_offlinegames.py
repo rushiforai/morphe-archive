@@ -184,6 +184,10 @@ def main():
         for name in ('libmain.so', 'libunity.so', 'libil2cpp.so'):
             check(hashlib.sha256(apk.read('lib/armeabi-v7a/' + name)).hexdigest() == manifest[name],
                   f"Final APK {name} matches loader manifest")
+        strict_loader = manifest.get('loader') == 'strict-v2'
+        if strict_loader:
+            from verify_strict_loader import verify as verify_loader
+            verify_loader(apk.read('lib/armeabi-v7a/libmain.so'), 'armeabi-v7a')
 
         expected = bytearray(original)
         for offset, replacement in {
@@ -214,11 +218,16 @@ def main():
               "Actual output DEX replaces Unity's nativeLibraryDir lookup")
         check('NativeLibraries;->directory' in instructions[0].get_output(), "Resolver calls mounted-APK helper")
         for name in ('NativeLibraries', 'NativeLibraryStore'):
-            check('Lapp/patchlab/extension/offlinegames/' + name + ';' in classes, f"{name} extension present")
+            prefix = 'Lapp/patchlab/extension/offlinegames/' + ('strictv2/' if strict_loader else '')
+            check(prefix + name + ';' in classes, f"{name} extension present")
         load = next(m for m in player.get_methods() if m.get_name() == 'loadNative')
         calls = list(load.get_instructions())
         call = next(i for i, ins in enumerate(calls) if 'NativeLoader;->load(' in ins.get_output())
-        if args.fast_startup:
+        if strict_loader:
+            from verify_strict_loader import verify_dex, verify_extension
+            verify_dex(player)
+            verify_extension(classes)
+        elif args.fast_startup:
             check([i.get_name() for i in calls[call:call+4]] ==
                   ['invoke-static', 'move-result', 'if-eqz', 'invoke-static'] and
                   'NativeLibraries;->verifyLoaded()' in calls[call+3].get_output(),

@@ -26,7 +26,9 @@ import app.hushgram.extension.shared.settings.BooleanSetting;
  * binder group. The patch asks {@link #hideTray} as that group adds its row, and while Hide the
  * Stories tray is on the group adds none. Coming back to Home mid-feed, from a story opened in DMs
  * say, Instagram can also move the tray into an overlay above the feed without building the row
- * again (#88), so the patch asks {@link #hideTray} there too and the overlay stays empty.
+ * again (#88), so the patch asks {@link #keepTrayOutOfOverlay} there and the overlay stays empty
+ * while the tray is hidden. Keep the Stories tray in the feed answers yes there too, and the row
+ * stays in the feed instead of floating over it (#357).
  *
  * <p>The tray's items come from its own request, each marked with a reel type, and a story from an
  * account you don't follow is a suggested one. The patch passes each item the tray's parser reads
@@ -155,8 +157,7 @@ public final class StoriesTray {
     }
 
     /**
-     * Injected first thing where Home's story tray adds its row and where Instagram floats the tray
-     * over the feed. Answers true, and the tray stays out, while Hide the Stories tray is on, and
+     * Injected first thing where Home's story tray adds its row. Answers true, and the tray stays out, while Hide the Stories tray is on, and
      * false otherwise, or when anything goes wrong. Never throws, and never waits for the settings:
      * before they're ready the tray stays.
      */
@@ -171,6 +172,25 @@ public final class StoriesTray {
             return true;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.STORIES_TRAY, "tray row", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Injected first thing where Instagram floats the tray over the feed, as you come back to Home
+     * mid-feed or scroll up quickly. Answers true, and the tray stays in its row at the top of the
+     * feed, while Hide the Stories tray or Keep the Stories tray in the feed is on (#357: on some
+     * accounts the floating tray stayed over the feed after a swipe between tabs and never scrolled
+     * away). False otherwise, or when anything goes wrong. Never throws, and never waits for the
+     * settings: before they're ready the tray floats as Instagram decides.
+     */
+    public static boolean keepTrayOutOfOverlay() {
+        try {
+            HookStatus.invoked(FamilyNames.STORIES_TRAY);
+            if (!Utils.settingsReady()) return false;
+            return Settings.HIDE_STORIES_TRAY.get() || Settings.KEEP_TRAY_IN_FEED.get();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STORIES_TRAY, "floating tray", failure);
             return false;
         }
     }

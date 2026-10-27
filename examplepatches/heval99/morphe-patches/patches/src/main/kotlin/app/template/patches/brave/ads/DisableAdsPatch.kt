@@ -1,7 +1,9 @@
 package app.template.patches.brave.ads
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.string
 import app.morphe.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_BRAVE_EXPERIMENTAL
 import app.template.patches.shared.addInstructionsChecked
@@ -36,7 +38,7 @@ val disableAdsPatch = bytecodePatch(
             definingClass = "Lorg/chromium/chrome/browser/dialogs/BraveAdsSignupDialog;",
             returnType = "Z",
             parameters = emptyList(),
-            strings = listOf("should_show_onboarding_dialog_view_counter"),
+            strings = listOf(string("should_show_onboarding_dialog_view_counter", StringComparisonType.CONTAINS)),
         ).method.returnEarly(false)
     }
 }

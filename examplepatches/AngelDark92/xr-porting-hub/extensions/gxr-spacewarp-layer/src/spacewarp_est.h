@@ -36,7 +36,8 @@
 //   1  init ok (last successful SwpInit)
 //   2  mv ok (last SwpGenerateVectorsStereo)
 //   4  extrapolation ok (last SwpExtrapolateStereo)
-//   8  QCOM block-match extension missing (plain-SAD fallback armed; sticky)
+//   8  portable GLSL baseline armed (QCOM hardware path intentionally unarmed
+//      until a genuine hardware-SAD parity path exists; sticky)
 //   16 stand-down (any construction/GL error; sticky until a fresh SwpInit)
 //   32 estimator budget exceeded during the last mv/extrapolation call
 //      (bits 2/4 are then not set: the call returned false)
@@ -46,6 +47,18 @@
 #include <cstdint>
 
 #include <GLES3/gl3.h>  // GL entry-point typedefs + enums only; no GL calls here.
+
+// Diagnostics: the estimator is used on Android and in host tests. A native
+// builder must not silently compile the detailed compile/link/framebuffer
+// diagnostics to a no-op.
+#if !defined(SWP_EST_LOG)
+#if defined(__ANDROID__) || defined(SWP_HOST_TESTS)
+#include <android/log.h>
+#define SWP_EST_LOG(...) __android_log_print(ANDROID_LOG_INFO, "GXRSwarp", __VA_ARGS__)
+#else
+#define SWP_EST_LOG(...) ((void)0)
+#endif
+#endif
 
 typedef uint32_t u32;  // contract's u32
 
@@ -80,13 +93,51 @@ bool SwpGenerateVectorsStereo(u32 prevTexL, u32 currTexL, u32 prevTexR, u32 curr
                           const float* fovL, const float* fovR,
                           u32 mvTexL, u32 mvTexR);
 
+// Per-call geometry (2026-10-26): the selected projections can carry different
+// rect extents / array layouts. width/height are the native rect texels of THIS
+// pair; mvWidth/mvHeight are the caller-owned map texels for THIS call. The
+// estimator's internal working pyramid is capped at 1024 on its longest side
+// and never rewrites the caller's settings or output resolution.
+bool SwpGenerateVectorsStereoEx(u32 prevTexL, u32 currTexL, u32 prevTexR, u32 currTexR,
+                                const float* viewMatrixL, const float* viewMatrixR,
+                                const float* fovL, const float* fovR,
+                                u32 mvTexL, u32 mvTexR,
+                                u32 width, u32 height, u32 mvWidth, u32 mvHeight);
+
 // scaleFactor = normalized progress between the history frame indexes
 // (>= 1.0; values < 1.0 are clamped to 1.0 conservatively). dst = the
 // projection swapchain image the client is submitting this tick.
 bool SwpExtrapolateStereo(u32 mvTexL, u32 mvTexR, u32 srcTexL, u32 srcTexR,
                       u32 dstTexL, u32 dstTexR, float scaleFactor);
 
+// Layer-aware variant for admitted array swapchains: dstTex must be an array
+// texture and layer selects the view's imageArrayIndex.
+bool SwpExtrapolateStereoEx(u32 mvTexL, u32 mvTexR, u32 srcTexL, u32 srcTexR,
+                            u32 dstTexL, u32 dstTexR, int layerL, int layerR,
+                            int dstX0, int dstY0, int dstX1, int dstY1,
+                            float scaleFactor, u32 width, u32 height);
+
+// Rotation-align the older composite (prev) into the newer composite's camera
+// frame before residual motion estimation. Both inputs are 2D textures; the
+// matrices are the column-major world->camera views captured with each frame,
+// and fov is angleLeft/Right/Up/Down. Output preserves the newer frame's
+// alpha; the caller later submits with the newer frame's pose/FOV so runtime
+// late reprojection does not apply head rotation twice.
+bool SwpAlignHistoryStereo(u32 prevTexL, u32 prevTexR, u32 dstTexL, u32 dstTexR,
+                           const float* prevViewL, const float* prevViewR,
+                           const float* prevFovL, const float* prevFovR,
+                           const float* currViewL, const float* currViewR,
+                           const float* currFovL, const float* currFovR,
+                           u32 width, u32 height);
+
 u32 SwpLastStatus();  // bitmask above
+
+// Bytes retained by the enabled-only estimator (programs excluded): pyramids,
+// maps and scratch. Used by the dispatch admission ledger.
+unsigned long long SwpEstimatorFootprintBytes();
+// Completed-GPU timing (EXT_disjoint_timer_query) availability + last sample.
+bool SwpGpuTimingAvailable();
+unsigned long long SwpLastGpuMicros();
 
 extern const char* SwpLogTag;  // "GXRSwarp"
 
@@ -115,6 +166,10 @@ struct SwpGlTable {
     PFNGLUNIFORM1IPROC glUniform1i;
     PFNGLUNIFORM2IPROC glUniform2i;
     PFNGLUNIFORM1FPROC glUniform1f;
+    PFNGLUNIFORM2FPROC glUniform2f;
+    PFNGLUNIFORM4FPROC glUniform4f;
+    void (*glUniformMatrix3fv)(GLint location, GLsizei count, GLboolean transpose,
+                               const GLfloat* value);
     PFNGLUSEPROGRAMPROC glUseProgram;
     // Draw / state
     PFNGLDRAWARRAYSPROC glDrawArrays;
@@ -126,7 +181,10 @@ struct SwpGlTable {
     PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
     PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
     PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
+    void (*glFramebufferTextureLayer)(GLenum target, GLenum attachment, GLuint texture,
+                                      GLint level, GLint layer);
     PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
+    PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer;
     // Textures
     PFNGLGENTEXTURESPROC glGenTextures;
     PFNGLDELETETEXTURESPROC glDeleteTextures;
@@ -134,14 +192,31 @@ struct SwpGlTable {
     PFNGLACTIVETEXTUREPROC glActiveTexture;
     PFNGLTEXSTORAGE2DPROC glTexStorage2D;
     PFNGLTEXPARAMETERIPROC glTexParameteri;
+    void (*glTexSubImage2D)(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                            GLsizei width, GLsizei height, GLenum format, GLenum type,
+                            const void* pixels);
+    void (*glReadPixels)(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
+                         GLenum type, void* pixels);
+    // Sampler objects: the warp must not inherit client sampler state and must
+    // restore every unit it touches (2026-10-26).
+    void (*glGenSamplers)(GLsizei count, GLuint* samplers);
+    void (*glDeleteSamplers)(GLsizei count, const GLuint* samplers);
+    void (*glBindSampler)(GLuint unit, GLuint sampler);
+    void (*glSamplerParameteri)(GLuint sampler, GLenum pname, GLint param);
+    // Asynchronous completed-GPU timing (EXT_disjoint_timer_query).
+    void (*glGenQueries)(GLsizei n, GLuint* ids);
+    void (*glDeleteQueries)(GLsizei n, const GLuint* ids);
+    void (*glBeginQuery)(GLenum target, GLuint id);
+    void (*glEndQuery)(GLenum target);
+    void (*glGetQueryObjectuiv)(GLuint id, GLenum pname, GLuint* params);
+    void (*glGetQueryiv)(GLenum target, GLenum pname, GLint* params);
     // Query
     PFNGLGETSTRINGPROC glGetString;
     PFNGLGETINTEGERVPROC glGetIntegerv;
     // Raster-state control: the warp must not inherit the client's scissor,
     // blend, depth, cull or colour mask. Saved before every public call and
-    // restored after it (2026-10-20).
-    // Typed explicitly (not via PFNGL* typedefs): the host-test stub headers
-    // define only the entry points, and this table is the layer's own contract.
+    // restored after it (2026-10-20). Rasterizer discard is saved too
+    // (2026-10-26): a transform-feedback pass must not swallow the warp.
     GLboolean (*glIsEnabled)(GLenum cap);
     void (*glEnable)(GLenum cap);
     void (*glDisable)(GLenum cap);
@@ -195,21 +270,21 @@ struct SwpEstConfig {
     uint32_t budgetMicros;
     float fovScale;
 
-    int inputW, inputH;    // input texels
-    int mvW, mvH;          // mv-map texels
-    int blockGridW, blockGridH;  // input / block
-    int block;             // 16 direct, 8 fallback
+    int inputW, inputH;    // native rect texels (the per-call maximum)
+    int mvW, mvH;          // default map texels (per-call overrides allowed)
+    int workW, workH;      // level 0 working image (longest side <= 1024)
+    int maxLevels;         // half-resolution levels down to >= 64
+    int block;             // 8 px matching block at every level
+    int refineBlock;       // 4 px native refinement block
+    int nativeSearch;      // +-2 native texels around the upsampled seed
+    int levelSearch;       // +-2 level texels around the upsampled seed
 
-    // search geometry (input texels; conservative defaults, receipt-documented)
-    int globalMaxX, globalMaxY;   // absolute search half-extent
-    int gmeStepX, gmeStepY;       // GME candidate stride
-    int gmeOriginStrideX, gmeOriginStrideY;  // GME block-lattice stride
-    int searchSpanX, searchSpanY; // L1 window around the GME seed
-    int medianStride;             // median neighbor stride in mv texels (VD filterRange=3)
+    // Normalized matching error: mean per-channel |delta| in [0,1]. A nonzero
+    // displacement must improve on zero by at least
+    // max(1e-6, 0.01 * zeroError).
+    float minImprovementRatio;
+    float minImprovementAbs;
 
-    float sadScale;    // texel normalization of raw SAD (per path)
-    float noMotion;    // mean per-texel summed-channel |delta| below which a block is static
-    float noMotionUv;  // uv floor: below this the stored vector is zeroed
     float clampMagUv;  // extrapolation clamp magnitude, uv units
     float srRadiusUv;  // stretch radius, uv units
     int srMode;        // 0 = stretch ramp then clamp (default), 1 = hard clamp
@@ -228,8 +303,19 @@ void EstiGlShutdown();
 void EstiDropHandles();  // teardown WITHOUT GL calls (wrong context at destroy)
 bool EstiMvMapOneEye(const SwpEstConfig& cfg, u32 prevTex, u32 currTex, u32 mvTex,
                      SwpEstTickOut* out);
+bool EstiMvMapOneEyeEx(const SwpEstConfig& cfg, u32 prevTex, u32 currTex, u32 mvTex,
+                       int width, int height, int mvW, int mvH, SwpEstTickOut* out);
 bool EstiExtrapolateOneEye(const SwpEstConfig& cfg, float scaleFactor, u32 mvTex,
                            u32 srcTex, u32 dstTex, SwpEstTickOut* out);
+bool EstiExtrapolateOneEyeEx(const SwpEstConfig& cfg, float scaleFactor, u32 mvTex,
+                             u32 srcTex, u32 dstTex, int layer, int dstX, int dstY,
+                             int width, int height, SwpEstTickOut* out);
+bool EstiAlignOneEye(const SwpEstConfig& cfg, const float* prevView, const float* prevFov,
+                     const float* currView, const float* currFov, u32 prevTex, u32 dstTex,
+                     int width, int height, SwpEstTickOut* out);
+unsigned long long EstiFootprintBytes();
+bool EstiGpuTimingAvailable();
+unsigned long long EstiLastGpuMicros();
 
 }  // namespace swp_internal
 }  // namespace gxr

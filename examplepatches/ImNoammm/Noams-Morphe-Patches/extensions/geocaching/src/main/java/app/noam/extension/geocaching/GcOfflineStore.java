@@ -201,7 +201,9 @@ public final class GcOfflineStore {
             String source = matcher.group(2).replace("&amp;", "&");
             try {
                 String url = new URI("https://www.geocaching.com/geocache/").resolve(source).toString();
-                if (!url.startsWith("https://")) throw new IllegalArgumentException("Non-HTTPS image");
+                // Older descriptions link images over http; the hosts serve the same files over https.
+                if (url.startsWith("http://")) url = "https://" + url.substring(7);
+                if (!url.startsWith("https://")) throw new IllegalArgumentException("Not a web image");
                 String data = images.get(url);
                 if (data == null) {
                     if (images.size() >= 20) throw new IllegalArgumentException("Too many images");
@@ -218,7 +220,7 @@ public final class GcOfflineStore {
                 tag = PATTERN_SRCSET.matcher(tag).replaceAll("");
             } catch (Exception e) {
                 complete[0] = false;
-                Utils.logError("Offline image download failed for " + source, e);
+                Utils.log("Offline copy skips image " + source + " (" + e.getMessage() + ")");
             }
             matcher.appendReplacement(result, Matcher.quoteReplacement(tag));
         }

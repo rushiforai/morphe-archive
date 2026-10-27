@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import app.patchlab.extension.offlinegames.strictv2.NativeLibraryStore;
 import static org.junit.Assert.*;
 
 public class NativeLibraryStoreTest {

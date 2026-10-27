@@ -240,7 +240,7 @@ public class NewestReelsTest {
     }
 
     @Test
-    public void anUnavailableLazyEdgeIsReportedAndLeavesItsSignalUntimed() {
+    public void anUnloadedLazyEdgeIsCountedAndLeavesItsSignalUntimed() {
         Settings.NEWEST_REELS_FIRST.save(true);
         Object older = signal(REELS_TAB, 100);
         Object unavailable = new Object();
@@ -251,7 +251,16 @@ public class NewestReelsTest {
         NewestReels.sort(list);
         assertEquals(Arrays.asList(newer, unavailable, older), list);
         String line = statusLine();
-        assertTrue(line, line.contains("'reel edge' hook (it threw java.lang.IllegalStateException)"));
+        assertTrue(line, line.contains(" 0 missing"));
+        assertTrue(line, line.contains(NewestReels.UNLOADED + " 1"));
+    }
+
+    @Test
+    public void anyOtherEdgeFailureIsReportedAsABrokenHook() {
+        Settings.NEWEST_REELS_FIRST.save(true);
+        NewestReels.edgeFailed(new ClassCastException("not a tree"));
+        String line = statusLine();
+        assertTrue(line, line.contains("'reel edge' hook (it threw java.lang.ClassCastException)"));
     }
 
     @Test

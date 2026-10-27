@@ -78,6 +78,7 @@ public final class SettingsStatus {
     public static boolean hideKeyboardOnScroll() { return false; }
     public static boolean keepVideosMuted() { return false; }
     public static boolean videoEitherLandscape() { return false; }
+    public static boolean videoOnlyFromButton() { return false; }
     public static boolean swipeBackOnProfiles() { return false; }
     public static boolean hidePhoneNumber() { return false; }
     public static boolean shareNumberUnticked() { return false; }
@@ -89,6 +90,7 @@ public final class SettingsStatus {
     public static boolean reactionEffectsOff() { return false; }
     public static boolean hideFolderCounters() { return false; }
     public static boolean launchFolder() { return false; }
+    public static boolean hiddenChats() { return false; }
     public static boolean forwardHideSender() { return false; }
     public static boolean voiceMusicPlayer() { return false; }
     public static boolean silenceNonContacts() { return false; }
@@ -104,9 +106,11 @@ public final class SettingsStatus {
     public static boolean messageMenuRepeat() { return false; }
     public static boolean keepDeleted() { return false; }
     public static boolean redDeletedLabel() { return false; }
+    public static boolean keepEditHistory() { return false; }
     public static boolean askBeforeSending() { return false; }
     public static boolean outsideTranslate() { return false; }
     public static boolean hideChannelButtons() { return false; }
+    public static boolean hideChannelMute() { return false; }
     public static boolean hideSendAs() { return false; }
     public static boolean hideContactsTab() { return false; }
     public static boolean compactTabBar() { return false; }
@@ -115,6 +119,7 @@ public final class SettingsStatus {
     public static boolean fasterDownloads() { return false; }
     public static boolean dataSaverDownloads() { return false; }
     public static boolean saveDownloads() { return false; }
+    public static boolean galleryFolder() { return false; }
     public static boolean chatTypeFolders() { return false; }
     public static boolean storyRequests() { return false; }
     public static boolean storyBar() { return false; }

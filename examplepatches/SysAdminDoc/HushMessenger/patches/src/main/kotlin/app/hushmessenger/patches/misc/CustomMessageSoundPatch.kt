@@ -56,7 +56,7 @@ internal fun findMessageSound(entries: List<String>, expected: String = STOCK_NE
     val matches = entries.filter { it.startsWith("res/") && it.endsWith(".ogg") }.filter { sha256(read(it)) == expected }
     return when (matches.size) {
         1 -> matches.single()
-        0 -> refuse("this APK doesn't have Messenger's original new-message sound. Use an unmodified arm64 Messenger ${MessengerTarget.supportedApks()}")
+        0 -> refuse("this APK doesn't have Messenger's original new-message sound. Use an unmodified Messenger ${MessengerTarget.supportedApks()}")
         else -> refuse("this APK has ${matches.size} copies of Messenger's new-message sound (${matches.joinToString()}), so it can't tell which to replace")
     }
 }

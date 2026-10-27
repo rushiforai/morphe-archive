@@ -473,6 +473,10 @@ Use the order below. A choice made on a post lasts until restart. Links to comme
 Hide Meta AI comment summaries	Meta-AI-Zusammenfassungen von Kommentaren ausblenden
 # context: summary of that switch; the buttons are a post's Like, Comment and Share row
 Hides Meta AI's summary at the top of comments and the comment summary under a post's buttons. The comments themselves stay.	Blendet die Meta-AI-Zusammenfassung oben in den Kommentaren und die Kommentarzusammenfassung unter den Schaltflächen eines Beitrags aus. Die Kommentare selbst bleiben.
+# context: switch title under Comments; the few comments Facebook shows under a post in the feed, below its Like, Comment and Share row
+Hide comments under posts	Kommentare unter Beiträgen ausblenden
+# context: summary of that switch; Comment is the post's Comment button
+Feed posts stop showing a few comments under their buttons. Tap Comment to read them all.	Beiträge im Feed zeigen unter ihren Schaltflächen keine Kommentare mehr. Tippe auf Kommentieren, um alle zu lesen.
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	Nur „Gefällt mir“
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -739,16 +743,10 @@ Active. Marketplace, Notifications and Profile/Menu stay. Find Hushfacebook sett
 Active. Events, Notifications and Profile/Menu stay. Find Hushfacebook settings in Menu, under Settings and privacy.	Aktiv. Veranstaltungen, Benachrichtigungen und Profil/Menü bleiben erhalten. Die Hushfacebook-Einstellungen findest du im Menü unter Einstellungen und Privatsphäre.
 
 # context: Settings overview, category navigation and search.
-Marketplace only, Events only and your start tab	Marketplace-Modus, Veranstaltungs-Modus und Starttab
 Ads, suggestions and word filters	Werbung, Vorschläge und Wortfilter
-Suggestions, saving, auto-advance and viewing anonymously	Vorschläge, Speichern, automatischer Wechsel und anonymes Ansehen
 Cleaner reels and video controls	Reels und Videosteuerung
 Tap to play, quality and resume	Antippen zum Abspielen, Qualität und Fortsetzen
 Quality, format and file names	Qualität, Format und Dateinamen
-Settings	Einstellungen
-Browse settings	Einstellungen durchsuchen
-More settings	Weitere Einstellungen
-Additional Facebook preferences	Weitere Facebook-Einstellungen
 No matching settings	Keine passenden Einstellungen
 %1$d setting found	%1$d Einstellung gefunden
 %1$d settings found	%1$d Einstellungen gefunden
@@ -1571,13 +1569,8 @@ Report a problem	Problem melden
 Opens a GitHub report with your versions and settings filled in. Add what happened.	Öffnet eine GitHub-Meldung, in der deine Versionen und Einstellungen schon stehen. Ergänze, was passiert ist.
 # context: row near the top of the settings home page; a list of ready-made sets of switches
 Quick setups	Schnelleinstellungen
-Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	Schalte mehrere Schalter mit einem Tippen ein oder setze alle Schalter auf ihren Ausgangszustand zurück. Halte gedrückt, um diese Zeile auszublenden.
 # context: toast after a long press hides the Quick setups row from the settings home page; the page name is the one holding the row that brings it back
-Quick setups hidden. Bring it back from %1$s.	Schnelleinstellungen ausgeblendet. Du bekommst sie unter %1$s zurück.
 # context: row on the Pause, backup and diagnostics page; shows or hides the Quick setups row on the settings home page
-Quick setups on the home page	Schnelleinstellungen auf der Startseite
-Shown. Tap to hide it.	Angezeigt. Tippe zum Ausblenden.
-Hidden. Tap to show it again.	Ausgeblendet. Tippe, um sie wieder anzuzeigen.
 # context: name of a Quick setups choice that hides ads and nags; an adjective, as in a quiet feed
 Quiet	Ruhig
 Hides ads, suggestions, promos and prompts, and stops nagging notifications.	Blendet Werbung, Vorschläge, Werbeaktionen und Aufforderungen aus und stoppt lästige Benachrichtigungen.
@@ -1630,7 +1623,7 @@ On carriers with Facebook Flex, hides the purple Free mode bar. That bar is also
 # context: switch title under Picture-in-picture on the Playback page: the small window opens only from the Picture-in-picture row this adds to a reel's three-dot More menu, not when you leave Facebook
 Only from a reel's More menu	Nur über das Menü eines Reels
 # context: summary of that switch; Picture-in-picture is the name of the row in the reel's menu, translated as the row is; the three dots are the reel's own menu button
-Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu (the three dots) when you want one. That row is there whenever Picture-in-picture is on.	Wenn du Facebook verlässt, öffnet sich kein Fenster. Tippe im Menü eines Reels (die drei Punkte) auf Bild im Bild, wenn du eins möchtest. Diese Zeile ist da, solange Bild im Bild an ist.
+Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu (the three dots) when you want one. That row shows on upright reels, not wide ones.	Wenn du Facebook verlässt, öffnet sich kein Fenster. Tippe im Menü eines Reels (die drei Punkte) auf Bild im Bild, wenn du eins möchtest. Die Zeile gibt es bei Reels im Hochformat, nicht bei breiten.
 # context: switch title under Picture-in-picture on the Playback page; the button floats over a reel or video and opens the small window when tapped
 Picture-in-picture button	Schaltfläche für Bild im Bild
 # context: summary of that switch; "the window" is the small picture-in-picture window
@@ -1686,6 +1679,8 @@ Keeps the Messenger button but drops the unread count on it.	Behält den Messeng
 Hide the Facebook logo	Facebook-Logo ausblenden
 # context: summary of that switch; Hushfacebook is the app's name and stays as it is; press and hold is a long press
 Hides the Facebook logo in the top bar. The empty spot is the same size and still opens Hushfacebook settings when you press and hold it. Restart Facebook to see the change.	Blendet das Facebook-Logo in der oberen Leiste aus. Die leere Stelle ist genauso groß und öffnet bei langem Drücken weiterhin die Hushfacebook-Einstellungen. Starte Facebook neu, um die Änderung zu sehen.
+Hide the Create button	Erstellen-Button ausblenden
+Takes the + button for making a post, reel or story out of the top bar. Restart Facebook to see the change.	Nimmt den Plus-Button zum Erstellen von Beiträgen, Reels und Storys aus der oberen Leiste. Starte Facebook neu, um die Änderung zu sehen.
 # context: switch title under News feed; the counts are the numbers on the Like, Comment and Share buttons under a post
 Hide counts on posts	Zahlen bei Beiträgen ausblenden
 # context: summary of that switch; Like, Comment and Share are Facebook's own button labels, so use Facebook's wording in your language
@@ -1694,6 +1689,9 @@ Takes the numbers off the Like, Comment and Share buttons under posts, so each s
 Hide counts on reels	Zahlen bei Reels ausblenden
 # context: summary of that switch; Like, Comment and Share are Facebook's own button labels, so use Facebook's wording in your language
 Takes the numbers away from under a reel's Like, Comment and Share icons. The icons stay where they are. A change shows from the next reel.	Entfernt die Zahlen unter den Symbolen „Gefällt mir“, „Kommentieren“ und „Teilen“ eines Reels. Die Symbole bleiben, wo sie sind. Eine Änderung gilt ab dem nächsten Reel.
+# context: Reels and Watch switch for the dedicated WhatsApp sidebar button, independent of the Share menu
+Hide WhatsApp on reels	WhatsApp bei Reels ausblenden
+Hides the WhatsApp button beside reels and videos. WhatsApp stays in the Share menu. A change shows from the next video.	Blendet die WhatsApp-Schaltfläche neben Reels und Videos aus. WhatsApp bleibt im Teilen-Menü. Die Änderung gilt ab dem nächsten Video.
 # context: switch title under Reels and Watch; Save is Facebook's own label for the bookmark button down a reel's right side, so use Facebook's wording in your language
 Hide Save on reels	„Speichern“ bei Reels ausblenden
 # context: summary of that switch; the buttons under it are Download and More
@@ -1929,3 +1927,14 @@ Couldn't remove the header picture. Try again.	Das Kopfzeilenbild ließ sich nic
 The app holding that picture is taking too long, so Hushfacebook stopped waiting. The top of Home didn't change.	Die App, in der das Bild liegt, braucht zu lange, deshalb wartet Hushfacebook nicht mehr. Oben auf der Startseite hat sich nichts geändert.
 # context: toast when a tap on Home header picture comes while the last stalled app still holds a worker
 The app holding the last picture still hasn't answered. Try again later.	Die App mit dem letzten Bild hat noch immer nicht geantwortet. Versuche es später noch einmal.
+Inline feed video controls	Wiedergabesteuerung im Feed
+Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls.	Fügt Feed-Videos eine Wiedergabe-/Pausetaste hinzu. Tippe auf das Video selbst, um es im Vollbild zu öffnen. Live-Videos und Anzeigen behalten ihre eigenen Steuerelemente.
+Play feed video	Feed-Video abspielen
+Pause feed video	Feed-Video pausieren
+Support	Hilfe
+Reports, restart and app information	Fehlerberichte, Neustart und App-Informationen
+Your start tab and launch settings	Starttab und Startverhalten
+Saving, playback and anonymous viewing	Speichern, Wiedergabe und anonymes Ansehen
+Sorting, replies and reactions	Sortierung, Antworten und Reaktionen
+Expanded	Ausgeklappt
+Collapsed	Eingeklappt

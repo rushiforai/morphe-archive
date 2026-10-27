@@ -16,8 +16,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableExceptionHandler
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableTryBlock
 import java.io.ByteArrayInputStream
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.test.*
@@ -246,6 +248,43 @@ class ExpandedControlsTest {
             body.replace("iget-object v1, p0, Lfixture/Gate;->cache", "iget-object v1, p0, Lfixture/Gate;->other"),
             body.replace("iget-object v0, p0", "iget-object v2, p0"),
         )) assertEquals(false to false, takenBy(changed), changed)
+
+        // 584.1 reuses the false register in a systrace handler that only rethrows; one that can reach a return can't.
+        val handled = body.replace("iget-object v1", "goto :check\nmove-exception v5\nthrow v5\n:check\niget-object v1")
+        assertEquals(true to true, takenBy(handled))
+        for (changed in listOf(
+            handled.replace("throw v5", "throw v1"),
+            handled.replace("throw v5", "return v5"),
+            handled.replace("throw v5", "const/4 v5, 0x1\nthrow v5"),
+            handled.replace("throw v5", "if-eqz v5, :disabled\nthrow v5"),
+        )) assertEquals(false to false, takenBy(changed), changed)
+    }
+
+    @Test fun rethrowOnlyHandlersAreTheOnlyWritesTheGateCheckSkips() {
+        val handler = """
+            const/4 v1, 0x0
+            return v1
+            :handler
+            move-exception v5
+            invoke-static {}, LX/0Ap;->A00()V
+            throw v5
+        """.trimIndent()
+        fun skipped(text: String, tries: Boolean = false): Pair<Set<Int>, Set<Int>> {
+            val code = method("Lfixture/Gate;", "gate", 8, "Z", text).implementation!!.instructions.toList()
+            val start = code.take(2).sumOf { it.codeUnits }
+            val blocks = if (tries) listOf(ImmutableTryBlock(start, code[2].codeUnits + code[3].codeUnits,
+                listOf(ImmutableExceptionHandler(null, 0)))) else emptyList()
+            return rethrowOnlyWrites(code, blocks) to CompatMirror.rethrowOnlyWrites(code, blocks)
+        }
+        assertEquals(setOf(2) to setOf(2), skipped(handler))
+        for (changed in listOf(
+            handler.replace("throw v5", "throw v1"),
+            handler.replace("throw v5", "return v5\nthrow v5"),
+            handler.replace("invoke-static {}, LX/0Ap;->A00()V", "if-eqz v5, :handler"),
+            handler.replace("const/4 v1", ":out\nconst/4 v1").replace("invoke-static {}, LX/0Ap;->A00()V", "goto :out"),
+            handler.replace("invoke-static {}, LX/0Ap;->A00()V", "const/4 v5, 0x0"),
+        )) assertEquals(emptySet<Int>() to emptySet(), skipped(changed), changed)
+        assertEquals(emptySet<Int>() to emptySet(), skipped(handler, tries = true), "a handler inside a try block can be caught again")
     }
 
     // Modelled on the drawer case of Messenger's merged click listener, where the row lands in a high register.
@@ -290,6 +329,27 @@ class ExpandedControlsTest {
         assertEquals(original.drop(6), code.drop(11))
     }
 
+    @Test fun a5841ClickWithAnAlreadyTypedRowFieldNeedsNoCast() {
+        val method = fixtureMethod("LX/Jwp;->onClick(Landroid/view/View;)V", """
+            move-object/from16 v3, p0
+            iget-object v0, v3, LX/Jwp;->A01:LX/HRf;
+            move-object/from16 v16, v0
+            iget-object v0, v3, LX/Jwp;->A02:Ljava/lang/Object;
+            const-string v1, "$DRAWER_FOLDER_SELECTED"
+            return-void
+        """.trimIndent(), registers = 20)
+        method.injectMenuFolderClick("LX/HRf;")
+        val code = method.implementation!!.instructions.toList()
+        val call = code.filterIsInstance<RegisterRangeInstruction>().single {
+            (it as ReferenceInstruction).reference.toString() == "$SETTINGS->drawerFolderClicked(Ljava/lang/Object;)Ljava/lang/Object;"
+        }
+        assertEquals(16, call.startRegister)
+        assertTrue(code.any { instruction ->
+            instruction.opcode == Opcode.CHECK_CAST && (instruction as OneRegisterInstruction).registerA == 16 &&
+                ((instruction as ReferenceInstruction).reference as TypeReference).type == "LX/HRf;"
+        })
+    }
+
     @Test fun drawerFolderClickRejectsAMissingMarkerOrAnUnclearRowCast() {
         for (body in listOf(
             folderClick.replace(DRAWER_FOLDER_SELECTED, "HomeDrawerFragmentBase.somethingElse"),
@@ -326,6 +386,15 @@ class ExpandedControlsTest {
             "new-instance v1, LX/HRf;\n",
             "",
         )) assertFailsWith<PatchException> { builder(changed).menuFolderItemType() }
+    }
+
+    @Test fun anIconBuiltInPlaceBeforeThe5841SettingsRowIsAccepted() {
+        val id = "LX/HFb;->Ax1(LX/0MG;)Ljava/util/ArrayList;"
+        val icon = "sget-object v1, LX/1jj;->A66:LX/1jj;\nsget-object v3, LX/UD9;->A00:LX/UD9;\n" +
+            "new-instance v2, LX/KGb;\ninvoke-direct {v2, v1, v3}, LX/KGb;-><init>(LX/1jj;LX/UD9;)V\n" +
+            "move-object v3, v2\n"
+        val method = fixtureMethod(id, icon + folderRow("LX/HRf;", settingsKey) + "const/4 v0, 0x0\nreturn-object v0", 10)
+        assertEquals("LX/HRf;", method.menuFolderItemType())
     }
 
     @Test fun encryptedTypingFlagIsFilteredBeforeTheMailboxCallReadsIt() {
@@ -414,12 +483,22 @@ class ExpandedControlsTest {
         assertEquals(1, swapped.registerCount)
         assertEquals(stockDecode.filterIndexed { i, _ -> i != 1 }, decodeCode.drop(4).filterIndexed { i, _ -> i != 1 })
 
+        val customScale = fixtureMethod(DECODE_BITMAP,
+            DECODE_BITMAP_BODY.replace("Landroid/graphics/Bitmap;->createScaledBitmap", "LX/UKC;->A0G"), 22)
+        customScale.injectOriginalPhoto()
+        assertTrue(customScale.implementation!!.instructions.any {
+            (it as? ReferenceInstruction)?.reference?.toString() ==
+                "Lapp/hushmessenger/extension/OriginalPhoto;->decodeFile(Ljava/lang/String;)Landroid/graphics/Bitmap;"
+        })
+
         val refused = listOf(
             TRANSCODE_CONFIG to TRANSCODE_CONFIG_BODY.replace("ENABLE_UIT_TRANSCODING", "ENABLE_UIT_V2"),
             TRANSCODE_CONFIG to TRANSCODE_CONFIG_BODY.replace("return-object v2", "if-eqz v1, :again\nreturn-object v2\n:again\nreturn-object v2"),
             DECODE_BITMAP to DECODE_BITMAP_BODY.replace("move-result-object v1\nmove-wide",
                 "move-result-object v1\ninvoke-static {v11}, Landroid/graphics/BitmapFactory;->decodeFile(Ljava/lang/String;)Landroid/graphics/Bitmap;\nmove-wide"),
-            DECODE_BITMAP to DECODE_BITMAP_BODY.replace("invoke-static {v1, v2, v4, v5}, Landroid/graphics/Bitmap;->createScaledBitmap", "invoke-static {v1, v2, v4, v5}, LX/Fixture;->scale"),
+            DECODE_BITMAP to DECODE_BITMAP_BODY.replace(
+                "invoke-static {v1, v2, v4, v5}, Landroid/graphics/Bitmap;->createScaledBitmap(Landroid/graphics/Bitmap;IIZ)Landroid/graphics/Bitmap;",
+                "invoke-static {v1}, LX/Fixture;->scale(Landroid/graphics/Bitmap;)Landroid/graphics/Bitmap;"),
             DECODE_BITMAP to ":top\n" + DECODE_BITMAP_BODY.replace("return-object v1", "if-eqz v1, :top\nreturn-object v1"),
         )
         for ((id, body) in refused) assertFailsWith<PatchException>(body) { fixtureMethod(id, body, registers = 22).injectOriginalPhoto() }

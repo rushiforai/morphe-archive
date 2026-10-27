@@ -55,6 +55,8 @@ public class AutoReplyPictureTest {
     private AutoReplyPicture.Sender realSender;
     private BooleanSupplier realBridge;
     private AutoReplyPicture.Messenger realMessenger;
+    private java.util.concurrent.Executor realCopies;
+    private final List<Runnable> imports = new ArrayList<>();
     private Context context;
     private NotificationManager manager;
 
@@ -73,6 +75,8 @@ public class AutoReplyPictureTest {
         realSender = AutoReplyPicture.sender;
         realBridge = AutoReplyPicture.bridge;
         realMessenger = AutoReplyPicture.messenger;
+        realCopies = AutoReplyPicture.copies;
+        AutoReplyPicture.copies = imports::add;
         AutoReplyPicture.sender = (ctx, thread, picture, wanted) -> {
             pictures.add(thread + " " + picture);
             return null;
@@ -92,6 +96,7 @@ public class AutoReplyPictureTest {
         AutoReplyPicture.sender = realSender;
         AutoReplyPicture.bridge = realBridge;
         AutoReplyPicture.messenger = realMessenger;
+        AutoReplyPicture.copies = realCopies;
         File[] left = AutoReplyPicture.directory(context).listFiles();
         if (left != null) for (File file : left) Files.deleteIfExists(file.toPath());
     }
@@ -401,6 +406,372 @@ public class AutoReplyPictureTest {
         Dialog dialog = ShadowDialog.getLatestDialog();
         assertTrue(dialog.isShowing());
         return dialog.getWindow().getDecorView();
+    }
+
+    public static class ImportProvider extends android.content.ContentProvider {
+        @Override public boolean onCreate() { return true; }
+        @Override public String getType(Uri uri) { return "image/jpeg"; }
+        @Override public android.os.ParcelFileDescriptor openFile(Uri uri, String mode) throws java.io.FileNotFoundException {
+            return android.os.ParcelFileDescriptor.open(new File(getContext().getCacheDir(), uri.getLastPathSegment()),
+                android.os.ParcelFileDescriptor.MODE_READ_ONLY);
+        }
+        @Override public android.database.Cursor query(Uri uri, String[] columns, String selection, String[] args, String order) { return null; }
+        @Override public Uri insert(Uri uri, android.content.ContentValues values) { return null; }
+        @Override public int delete(Uri uri, String selection, String[] args) { return 0; }
+        @Override public int update(Uri uri, android.content.ContentValues values, String selection, String[] args) { return 0; }
+    }
+
+    private Uri importPicture(String name, int width, int height) throws IOException {
+        picture(new File(context.getCacheDir(), name), width, height, Bitmap.CompressFormat.JPEG);
+        Robolectric.setupContentProvider(ImportProvider.class, "reply.pictures");
+        return Uri.parse("content://reply.pictures/" + name);
+    }
+
+    private void pick(SettingsActivity activity, View root, Uri uri) {
+        root.findViewWithTag("auto_reply_picture_pick").performClick();
+        activity.onActivityResult(SettingsActivity.PICK_AUTO_REPLY_PICTURE, android.app.Activity.RESULT_OK, new Intent().setData(uri));
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void anOlderCopyCannotReplaceTheNewerPictureWhileTheEditorStaysOpen() throws IOException {
+        reply(null);
+        Uri a = importPicture("older.jpg", 40, 80), b = importPicture("newer.jpg", 80, 40);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = openReplies(screen.get());
+            pick(screen.get(), root, a);
+            pick(screen.get(), root, b);
+            imports.get(1).run();
+            imports.get(0).run();
+            var thumbnail = (android.graphics.drawable.BitmapDrawable)
+                ((android.widget.ImageView) root.findViewWithTag("auto_reply_picture_thumb")).getDrawable();
+            assertEquals(80, thumbnail.getBitmap().getWidth());
+            root.findViewWithTag("auto_reply_save").performClick();
+            assertEquals(80, bounds(AutoReplyPicture.fileFor(context, AutoReply.rules(Settings.preferences).get(0).picture)).outWidth);
+        }
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void theLatestSelectionWinsEvenWhenAnOlderCopyFinishesAfterSave() throws IOException {
+        reply(null);
+        Uri a = importPicture("a.jpg", 40, 80), b = importPicture("b.jpg", 80, 40);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = openReplies(screen.get());
+            pick(screen.get(), root, a);
+            assertFalse(root.findViewWithTag("auto_reply_save").isEnabled());
+            root.findViewWithTag("auto_reply_save").performClick();
+            assertTrue(ShadowDialog.getLatestDialog().isShowing());
+            assertNull(AutoReply.rules(Settings.preferences).get(0).picture);
+            pick(screen.get(), root, b);
+            imports.get(1).run();
+            assertTrue(root.findViewWithTag("auto_reply_save").isEnabled());
+            root.findViewWithTag("auto_reply_save").performClick();
+            String saved = AutoReply.rules(Settings.preferences).get(0).picture;
+            assertNotNull(saved);
+            assertEquals(80, bounds(AutoReplyPicture.fileFor(context, saved)).outWidth);
+            imports.get(0).run();
+            assertEquals(saved, AutoReply.rules(Settings.preferences).get(0).picture);
+            assertTrue(AutoReplyPicture.fileFor(context, saved).isFile());
+            assertEquals(1, AutoReplyPicture.directory(context).listFiles(file -> AutoReplyPicture.validName(file.getName())).length);
+        }
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void clearAndRemoveInvalidateAnInFlightSelection() throws IOException {
+        Uri source = importPicture("clear.jpg", 80, 40);
+        for (String action : new String[] {"auto_reply_picture_clear", "auto_reply_remove"}) {
+            reply(null);
+            imports.clear();
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                View root = openReplies(screen.get());
+                pick(screen.get(), root, source);
+                assertEquals(View.VISIBLE, root.findViewWithTag("auto_reply_picture_clear").getVisibility());
+                root.findViewWithTag(action).performClick();
+                assertTrue(((java.util.concurrent.Future<?>) imports.get(0)).isCancelled());
+                imports.get(0).run();
+                root.findViewWithTag("auto_reply_save").performClick();
+                assertTrue(AutoReply.rules(Settings.preferences).stream().noneMatch(rule -> rule.picture != null));
+                File[] kept = AutoReplyPicture.directory(context).listFiles(file -> AutoReplyPicture.validName(file.getName()));
+                assertTrue(kept == null || kept.length == 0);
+            }
+        }
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void cancelDiscardsALateCopyAndKeepsPicturesSharedBySavedRules() throws IOException {
+        File original = picture(new File(AutoReplyPicture.directory(context), PICTURE), 80, 60, Bitmap.CompressFormat.JPEG);
+        AutoReply.save(Settings.preferences, List.of(new AutoReply.Rule("one", "Away", PICTURE),
+            new AutoReply.Rule("two", "Away too", PICTURE)), false);
+        Uri source = importPicture("cancel.jpg", 40, 80);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = openReplies(screen.get());
+            pick(screen.get(), root, source);
+            root.findViewWithTag("auto_reply_cancel").performClick();
+            imports.get(0).run();
+            assertTrue(original.isFile());
+            assertEquals(2, AutoReply.rules(Settings.preferences).size());
+            assertEquals(1, AutoReplyPicture.directory(context).listFiles(file -> AutoReplyPicture.validName(file.getName())).length);
+        }
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void recreationKeepsOnlyTheAcceptedDraftAndDiscardsTheOldPendingCopy() throws IOException {
+        reply(null);
+        Uri accepted = importPicture("accepted.jpg", 80, 40), pending = importPicture("pending.jpg", 40, 80);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = openReplies(screen.get());
+            pick(screen.get(), root, accepted);
+            imports.get(0).run();
+            pick(screen.get(), root, pending);
+            screen.recreate();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            root = ShadowDialog.getLatestDialog().getWindow().getDecorView();
+            assertTrue(root.findViewWithTag("auto_reply_save").isEnabled());
+            imports.get(1).run();
+            root.findViewWithTag("auto_reply_save").performClick();
+            File saved = AutoReplyPicture.fileFor(context, AutoReply.rules(Settings.preferences).get(0).picture);
+            assertEquals(80, bounds(saved).outWidth);
+            assertEquals(1, AutoReplyPicture.directory(context).listFiles(file -> AutoReplyPicture.validName(file.getName())).length);
+        }
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aPickerResultCannotMoveToANewCardAtTheRemovedCardsPosition() throws IOException {
+        reply(null);
+        Uri source = importPicture("removed.jpg", 80, 40);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = openReplies(screen.get());
+            root.findViewWithTag("auto_reply_picture_pick").performClick();
+            root.findViewWithTag("auto_reply_remove").performClick();
+            root.findViewWithTag("auto_reply_add").performClick();
+            screen.get().onActivityResult(SettingsActivity.PICK_AUTO_REPLY_PICTURE, android.app.Activity.RESULT_OK, new Intent().setData(source));
+            assertTrue(imports.isEmpty());
+            assertEquals(View.GONE, root.findViewWithTag("auto_reply_picture_thumb").getVisibility());
+        }
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void anOutstandingPickerKeepsItsCardIdentityAcrossRecreation() throws IOException {
+        reply(null);
+        Uri source = importPicture("recreated.jpg", 80, 40);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = openReplies(screen.get());
+            root.findViewWithTag("auto_reply_picture_pick").performClick();
+            screen.recreate();
+            // Android may return the pick before the posted reply sheet is rebuilt.
+            screen.get().onActivityResult(SettingsActivity.PICK_AUTO_REPLY_PICTURE, android.app.Activity.RESULT_OK, new Intent().setData(source));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(1, imports.size());
+            imports.get(0).run();
+            root = ShadowDialog.getLatestDialog().getWindow().getDecorView();
+            root.findViewWithTag("auto_reply_save").performClick();
+            assertNotNull(AutoReply.rules(Settings.preferences).get(0).picture);
+        }
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void concurrentCopiesGetDifferentOwnedFiles() throws Exception {
+        File source = picture(new File(context.getCacheDir(), "parallel.jpg"), 40, 40, Bitmap.CompressFormat.JPEG);
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(2);
+        try {
+            java.util.concurrent.CountDownLatch start = new java.util.concurrent.CountDownLatch(1);
+            var a = pool.submit(() -> { start.await(); return AutoReplyPicture.copy(context, Uri.fromFile(source)); });
+            var b = pool.submit(() -> { start.await(); return AutoReplyPicture.copy(context, Uri.fromFile(source)); });
+            start.countDown();
+            String first = a.get(5, java.util.concurrent.TimeUnit.SECONDS), second = b.get(5, java.util.concurrent.TimeUnit.SECONDS);
+            assertNotEquals(first, second);
+            assertTrue(AutoReplyPicture.fileFor(context, first).isFile());
+            assertTrue(AutoReplyPicture.fileFor(context, second).isFile());
+        } finally { pool.shutdownNow(); }
+    }
+
+    private void assertRefused(AutoReplyPicture.Failure.Kind kind, File source, AutoReplyPicture.Import job) throws IOException {
+        try {
+            AutoReplyPicture.copy(context, Uri.fromFile(source), job);
+            fail("copied a picture that should have been refused");
+        } catch (AutoReplyPicture.Failure refused) {
+            assertEquals(kind, refused.kind);
+        }
+        String[] left = AutoReplyPicture.directory(context).list();
+        assertTrue(left == null || left.length == 0);
+        assertEquals(0, AutoReplyPicture.reserved());
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aFileOverTheSizeLimitIsRefusedWithoutLeavingASnapshot() throws IOException {
+        File big = new File(context.getCacheDir(), "big.jpg");
+        try (java.io.RandomAccessFile file = new java.io.RandomAccessFile(big, "rw")) {
+            file.setLength(AutoReplyPicture.MAX_SOURCE_BYTES + 1);
+        }
+        assertRefused(AutoReplyPicture.Failure.Kind.TOO_BIG, big, new AutoReplyPicture.Import());
+        Files.delete(big.toPath());
+    }
+
+    /** A PNG whose header claims [width] x [height], with one row of pixels behind it. */
+    private File claimedPng(String name, int width, int height) throws IOException {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        out.write(new byte[] {(byte) 0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n'});
+        java.nio.ByteBuffer header = java.nio.ByteBuffer.allocate(13).putInt(width).putInt(height).put((byte) 8).put((byte) 6);
+        java.util.zip.Deflater deflater = new java.util.zip.Deflater();
+        deflater.setInput(new byte[1 + width * 4]);
+        deflater.finish();
+        byte[] packed = new byte[64 * 1024];
+        byte[] pixels = java.util.Arrays.copyOf(packed, deflater.deflate(packed));
+        deflater.end();
+        for (String type : new String[] {"IHDR", "IDAT", "IEND"}) {
+            writeChunk(out, type, type.equals("IHDR") ? header.array() : type.equals("IDAT") ? pixels : new byte[0]);
+        }
+        File file = new File(context.getCacheDir(), name);
+        Files.write(file.toPath(), out.toByteArray());
+        return file;
+    }
+
+    private static void writeChunk(java.io.ByteArrayOutputStream out, String name, byte[] data) throws IOException {
+        byte[] type = name.getBytes(StandardCharsets.US_ASCII);
+        java.util.zip.CRC32 crc = new java.util.zip.CRC32();
+        crc.update(type);
+        crc.update(data);
+        out.write(java.nio.ByteBuffer.allocate(4).putInt(data.length).array());
+        out.write(type);
+        out.write(data);
+        out.write(java.nio.ByteBuffer.allocate(4).putInt((int) crc.getValue()).array());
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aPictureOverThePixelLimitIsRefusedBeforeDecoding() throws IOException {
+        File huge = claimedPng("huge.png", 8001, 8000);
+        BitmapFactory.Options bounds = bounds(huge);
+        assertEquals("the fixture's header decodes", 8001, bounds.outWidth);
+        assertRefused(AutoReplyPicture.Failure.Kind.TOO_BIG, huge, new AutoReplyPicture.Import());
+        Files.delete(huge.toPath());
+    }
+
+    @Test @Config(sdk = 36)
+    public void theDecodeIsSampledDownUntilItAndItsCopyFitTheBudget() throws AutoReplyPicture.Failure {
+        // 8000 square at the usual sample of 2 holds 64 MB decoded plus a 2048 square copy, over the 64 MiB budget.
+        assertEquals(2, AutoReplyPicture.sample(8000, 8000, AutoReplyPicture.MAX_EDGE));
+        assertTrue(AutoReplyPicture.bitmapBytes(8000, 8000, 2, 4, false) > AutoReplyPicture.BITMAP_BUDGET);
+        assertEquals(4, AutoReplyPicture.fittingSample(8000, 8000, 4, false));
+        assertEquals(2000L * 2000 * 4, AutoReplyPicture.bitmapBytes(8000, 8000, 4, 4, false));
+        // Turning always makes a copy, and half-float pictures take eight bytes a pixel.
+        assertEquals(2L * 2000 * 2000 * 8, AutoReplyPicture.bitmapBytes(8000, 8000, 4, 8, true));
+        assertEquals(30L * 60 * 4, AutoReplyPicture.bitmapBytes(60, 30, 1, 4, false));
+        try {
+            AutoReplyPicture.bitmapBytes(Integer.MAX_VALUE, Integer.MAX_VALUE, 1, 8, true);
+            fail("a huge header wrapped into a small estimate");
+        } catch (ArithmeticException expected) {}
+    }
+
+    @Test @Config(sdk = 36)
+    public void theSharedBudgetMakesALaterCopyWaitAndAStoppedOneGiveUp() throws AutoReplyPicture.Failure {
+        AutoReplyPicture.Import first = new AutoReplyPicture.Import();
+        AutoReplyPicture.reserve(AutoReplyPicture.BITMAP_BUDGET - 10, first);
+        try {
+            AutoReplyPicture.Import late = new AutoReplyPicture.Import(-1);
+            try {
+                AutoReplyPicture.reserve(100, late);
+                fail("reserved past the budget");
+            } catch (AutoReplyPicture.Failure refused) {
+                assertEquals(AutoReplyPicture.Failure.Kind.TOO_SLOW, refused.kind);
+            }
+            AutoReplyPicture.Import replaced = new AutoReplyPicture.Import();
+            replaced.cancel();
+            try {
+                AutoReplyPicture.reserve(100, replaced);
+                fail("a cancelled copy took the budget");
+            } catch (AutoReplyPicture.Failure refused) {
+                assertEquals(AutoReplyPicture.Failure.Kind.CANCELLED, refused.kind);
+            }
+            AutoReplyPicture.reserve(10, new AutoReplyPicture.Import());
+            AutoReplyPicture.release(10);
+        } finally {
+            AutoReplyPicture.release(AutoReplyPicture.BITMAP_BUDGET - 10);
+        }
+        assertEquals(0, AutoReplyPicture.reserved());
+        try {
+            AutoReplyPicture.reserve(AutoReplyPicture.BITMAP_BUDGET + 1, new AutoReplyPicture.Import());
+            fail("reserved more than the whole budget");
+        } catch (AutoReplyPicture.Failure refused) {
+            assertEquals(AutoReplyPicture.Failure.Kind.TOO_BIG, refused.kind);
+        }
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aCancelledOrExpiredCopyIsRefusedWithoutLeavingFiles() throws IOException {
+        File source = picture(new File(context.getCacheDir(), "stopped.jpg"), 40, 40, Bitmap.CompressFormat.JPEG);
+        AutoReplyPicture.Import cancelled = new AutoReplyPicture.Import();
+        cancelled.cancel();
+        assertRefused(AutoReplyPicture.Failure.Kind.CANCELLED, source, cancelled);
+        assertRefused(AutoReplyPicture.Failure.Kind.TOO_SLOW, source, new AutoReplyPicture.Import(-1));
+        Files.delete(source.toPath());
+    }
+
+    @Test @Config(sdk = 36)
+    public void twoCopiesRunAndTwoWaitAndACancelledOneGivesItsPlaceBack() throws Exception {
+        AutoReplyPicture.copies = realCopies;
+        java.util.concurrent.CountDownLatch hold = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.CountDownLatch running = new java.util.concurrent.CountDownLatch(AutoReplyPicture.WORKERS);
+        Runnable blocked = () -> {
+            running.countDown();
+            try { hold.await(); } catch (InterruptedException stopped) { Thread.currentThread().interrupt(); }
+        };
+        List<AutoReplyPicture.Import> jobs = new ArrayList<>();
+        try {
+            for (int i = 0; i < AutoReplyPicture.WORKERS + AutoReplyPicture.PENDING; i++) {
+                AutoReplyPicture.Import job = new AutoReplyPicture.Import();
+                AutoReplyPicture.submit(job, blocked);
+                jobs.add(job);
+            }
+            assertTrue(running.await(5, java.util.concurrent.TimeUnit.SECONDS));
+            try {
+                AutoReplyPicture.submit(new AutoReplyPicture.Import(), blocked);
+                fail("a fifth copy was queued");
+            } catch (java.util.concurrent.RejectedExecutionException expected) {}
+            jobs.get(jobs.size() - 1).cancel();
+            AutoReplyPicture.Import next = new AutoReplyPicture.Import();
+            AutoReplyPicture.submit(next, blocked);
+            jobs.add(next);
+        } finally {
+            hold.countDown();
+            for (AutoReplyPicture.Import job : jobs) job.cancel();
+        }
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void pickingAgainCancelsTheCardsEarlierCopy() throws IOException {
+        reply(null);
+        Uri a = importPicture("first.jpg", 40, 80), b = importPicture("second.jpg", 80, 40);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = openReplies(screen.get());
+            pick(screen.get(), root, a);
+            assertFalse(((java.util.concurrent.Future<?>) imports.get(0)).isCancelled());
+            pick(screen.get(), root, b);
+            assertTrue(((java.util.concurrent.Future<?>) imports.get(0)).isCancelled());
+            assertFalse(((java.util.concurrent.Future<?>) imports.get(1)).isCancelled());
+            root.findViewWithTag("auto_reply_picture_clear").performClick();
+            assertTrue(((java.util.concurrent.Future<?>) imports.get(1)).isCancelled());
+        }
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aCopyPastItsDeadlineGivesUpAndFreesSave() throws IOException {
+        reply(null);
+        Uri source = importPicture("stuck.jpg", 80, 40);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = openReplies(screen.get());
+            pick(screen.get(), root, source);
+            assertFalse(root.findViewWithTag("auto_reply_save").isEnabled());
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(AutoReplyPicture.DEADLINE_MS - 1, java.util.concurrent.TimeUnit.MILLISECONDS);
+            assertFalse(root.findViewWithTag("auto_reply_save").isEnabled());
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(1, java.util.concurrent.TimeUnit.MILLISECONDS);
+            assertTrue(root.findViewWithTag("auto_reply_save").isEnabled());
+            assertTrue(((java.util.concurrent.Future<?>) imports.get(0)).isCancelled());
+            assertEquals(SettingsText.english("auto_reply_picture_too_slow"),
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+            assertEquals(View.GONE, root.findViewWithTag("auto_reply_picture_thumb").getVisibility());
+            imports.get(0).run();
+            root.findViewWithTag("auto_reply_save").performClick();
+            assertNull(AutoReply.rules(Settings.preferences).get(0).picture);
+        }
     }
 
     @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)

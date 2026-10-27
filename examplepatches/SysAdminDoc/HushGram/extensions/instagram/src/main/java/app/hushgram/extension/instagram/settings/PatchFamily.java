@@ -77,7 +77,8 @@ public enum PatchFamily {
     TYPING(FamilyNames.TYPING, "typing", null, Settings.HIDE_TYPING),
     ACTIVE_STATUS(FamilyNames.ACTIVE_STATUS, "activeStatus", null, Settings.HIDE_ACTIVE_STATUS),
     LAST_ACTIVE(FamilyNames.LAST_ACTIVE, "lastActive", null, Settings.SHOW_LAST_ACTIVE),
-    MESSAGES_LOCK(FamilyNames.MESSAGES_LOCK, "messagesLock", null, Settings.LOCK_MESSAGES, Settings.LOCK_APP),
+    MESSAGES_LOCK(FamilyNames.MESSAGES_LOCK, "messagesLock", null, Settings.LOCK_MESSAGES, Settings.LOCK_APP,
+            Settings.DOUBLE_TAP_HIDDEN_CHATS),
     SCREENSHOT_REPORTS(FamilyNames.SCREENSHOT_REPORTS, "screenshotReports", null, Settings.HIDE_SCREENSHOTS),
     SCREENSHOT_BLOCK(FamilyNames.SCREENSHOT_BLOCK, "screenshotBlock", null, Settings.ALLOW_SCREENSHOTS),
     KEEP_IN_CHAT(FamilyNames.KEEP_IN_CHAT, "keepInChat", null, Settings.KEEP_IN_CHAT),
@@ -88,7 +89,7 @@ public enum PatchFamily {
     ASK_BEFORE_REFRESH(FamilyNames.ASK_BEFORE_REFRESH, "askBeforeRefresh", null, Settings.ASK_BEFORE_REFRESH),
     STORIES_TRAY(FamilyNames.STORIES_TRAY, "storiesTray", null, Settings.HIDE_SUGGESTED_STORIES,
             Settings.HIDE_STORY_REWINDS, Settings.HIDE_STORY_RECAPS, Settings.STOP_LOADING_STORIES,
-            Settings.HIDE_STORIES_TRAY, Settings.HIDE_MUSIC_CARD, Settings.HIDE_STORY_SUGGESTIONS,
+            Settings.HIDE_STORIES_TRAY, Settings.KEEP_TRAY_IN_FEED, Settings.HIDE_MUSIC_CARD, Settings.HIDE_STORY_SUGGESTIONS,
             Settings.HIDE_ADD_YOURS_CARDS),
     STORY_RING(FamilyNames.STORY_RING, "storyRingSize", null, Settings.STORY_RING),
     FEED_REELS(FamilyNames.FEED_REELS, "feedReels", null, Settings.HIDE_FEED_REELS),
@@ -101,6 +102,7 @@ public enum PatchFamily {
             Settings.ONLY_FOLLOWING, Settings.LOGO_ON_FOLLOWING),
     SWIPE_TO_CREATE(FamilyNames.SWIPE_TO_CREATE, "swipeToCreate", null, Settings.STOP_SWIPE_TO_CREATE),
     TAB_SWIPE(FamilyNames.TAB_SWIPE, "tabSwipe", null, Settings.STOP_TAB_SWIPING),
+    TAB_BAR_LAYOUT(FamilyNames.TAB_BAR_LAYOUT, "tabBarLayout", null),
     FULL_RESOLUTION(FamilyNames.FULL_RESOLUTION, "fullResolution", null, Settings.FULL_RESOLUTION_PHOTOS,
             Settings.ASK_FOR_LARGER_PHOTOS, Settings.FULL_SIZE_COVERS),
     META_AI(FamilyNames.META_AI, "metaAi", null, Settings.HIDE_META_AI_SEARCH, Settings.HIDE_META_AI_POSTS,
@@ -514,6 +516,8 @@ public enum PatchFamily {
                 return Collections.singletonList(Settings.HIDDEN_SETTINGS_ROWS);
             case REEL_TAP_AND_VOLUME:
                 return Collections.singletonList(Settings.REEL_TAP_CHOICE);
+            case TAB_BAR_LAYOUT:
+                return Collections.singletonList(Settings.TAB_BAR_LAYOUT);
             default:
                 return Collections.emptyList();
         }

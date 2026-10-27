@@ -2,6 +2,7 @@ package app.template.patches.firefoxfocus.misc.rating
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
@@ -21,7 +22,10 @@ internal const val STEP_PENDING = "Pending"
 // or "Reviewed" more than 90 days ago, and opens the Play Store when the review flow fails. The
 // step is read with getString(key, "Pending"). Only this check holds both other step names.
 internal object ShowAppReviewFingerprint : Fingerprint(
-    strings = listOf("ReviewNeeded", "Reviewed"),
+    strings = listOf(
+        string("ReviewNeeded", StringComparisonType.CONTAINS),
+        string("Reviewed", StringComparisonType.CONTAINS),
+    ),
     filters = listOf(
         string(STEP_PENDING),
         methodCall(

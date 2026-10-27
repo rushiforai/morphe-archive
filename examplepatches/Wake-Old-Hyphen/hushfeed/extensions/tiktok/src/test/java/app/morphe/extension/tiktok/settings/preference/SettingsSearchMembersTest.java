@@ -84,7 +84,7 @@ public class SettingsSearchMembersTest {
         statuses.clear();
     }
 
-    @Test public void everyBoxTickedOrNotOpensOnItselfAndBackReturnsToTheResults() throws Exception {
+    @Test public void everyBoxTickedOrNotOpensOnItselfAndSearchCanReopenInline() throws Exception {
         // Two ticked and five clear, so both states are searched for.
         Settings.HIDE_RAIL_LIKE.save(true);
         Settings.HIDE_RAIL_SHARE.save(true);
@@ -100,8 +100,9 @@ public class SettingsSearchMembersTest {
             FragmentManager manager = owner.get().getFragmentManager();
             TikTokPreferenceFragment page =
                     (TikTokPreferenceFragment) manager.findFragmentById(android.R.id.content);
-            assertEquals("the box did not open the Feed screen page",
-                    "INTERFACE", page.getArguments().getString("morphe_settings_section"));
+            assertSame("locating the box replaced the main fragment", search, page);
+            assertTrue(((SettingsMenuPreference) page.findPreference("section_interface")).isExpanded());
+            assertEquals(0, manager.getBackStackEntryCount());
             AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
             assertNotNull("opening " + LABELS[box] + " opened no dialog", dialog);
             assertTrue("the checklist is not showing for " + LABELS[box], dialog.isShowing());
@@ -120,10 +121,14 @@ public class SettingsSearchMembersTest {
 
             dialog.cancel();
             settle();
-            assertTrue("Back did not return to the results", manager.popBackStackImmediate());
+            Preference entry = page.findPreference("action_search_settings");
+            assertTrue("locating the member left search open", entry instanceof SettingsSearchEntryPreference);
+            assertTrue(entry.getOnPreferenceClickListener().onPreferenceClick(entry));
             settle();
-            assertTrue(((TikTokPreferenceFragment) manager.findFragmentById(android.R.id.content))
-                    .getArguments().getBoolean("morphe_settings_search"));
+            assertSame(search, manager.findFragmentById(android.R.id.content));
+            assertTrue(page.findPreference("action_search_settings") instanceof SettingsSearchInputPreference);
+            assertNotNull(memberResult(page, LABELS[box], ROW));
+            assertEquals(0, manager.getBackStackEntryCount());
             assertEquals("leaving the box changed a setting", saved, values());
             owner.pause().stop().destroy();
             owner = null;
@@ -380,7 +385,6 @@ public class SettingsSearchMembersTest {
         fragment.setArguments(arguments);
         activity.getFragmentManager().beginTransaction()
                 .replace(android.R.id.content, fragment)
-                .addToBackStack("search")
                 .commit();
         settle();
         return fragment;

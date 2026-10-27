@@ -68,7 +68,7 @@ public class MusicCardSettingsTest {
         PreferenceGroup stories = row.getParent();
         String[] keys = new String[stories.getPreferenceCount()];
         for (int i = 0; i < keys.length; i++) keys[i] = stories.getPreference(i).getKey();
-        assertEquals(Arrays.toString(keys), Settings.HIDE_STORIES_TRAY.key, keys[Arrays.asList(keys).indexOf(Settings.HIDE_MUSIC_CARD.key) - 1]);
+        assertEquals(Arrays.toString(keys), Settings.KEEP_TRAY_IN_FEED.key, keys[Arrays.asList(keys).indexOf(Settings.HIDE_MUSIC_CARD.key) - 1]);
         assertTrue(PatchFamily.STORIES_TRAY.switches.contains(Settings.HIDE_MUSIC_CARD));
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.HIDE_MUSIC_CARD.key));
     }

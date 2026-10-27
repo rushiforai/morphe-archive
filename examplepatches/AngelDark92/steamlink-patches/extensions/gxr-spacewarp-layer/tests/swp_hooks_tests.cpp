@@ -73,6 +73,9 @@ static const char* kGoodSha = nullptr;  // computed in main from the synthetic b
 // The wrapper the install must write into the slot.
 extern "C" void* SwpWrapEglCreateImageKHR(void* dpy, void* ctx, unsigned target, void* buffer,
                                           const int* attrs);
+extern "C" void* SwpWrapEglCreateImageKHR(void*, void*, unsigned, void*, const int*) {
+    return nullptr;  // hooks test never invokes the arrival wrapper
+}
 
 static void BuildFakeModule() {
     memset(g_fakeModule, 0x33, sizeof(g_fakeModule));  // plausible code filler
@@ -113,6 +116,22 @@ int main() {
     CHECK(slot == reinterpret_cast<void*>(0xE6C0), "fail closed: the slot is untouched");
     CHECK(!SwpHooksArmed(), "armed state stays false after the mprotect failure");
     g_mprotectFails = false;
+
+    // A scene imports the EGL export. An unresolved export or another hook's
+    // pointer must fail before handing over an original or touching the GOT.
+    void* invalidExports[] = {nullptr, reinterpret_cast<void*>(0xBAD0)};
+    for (void* expected : invalidExports) {
+        SwpHooksTestResetState();
+        g_testEglExport = expected;
+        g_mprotectCalls = 0;
+        g_eglOriginalCaptured = nullptr;
+        CHECK(!SwpHooksArm(), "missing or mismatched EGL export refuses interception");
+        CHECK(*reinterpret_cast<void**>(g_fakeModule + kFakeSlotOffset) ==
+                  reinterpret_cast<void*>(0xE6C0), "unexpected EGL pointer leaves slot unchanged");
+        CHECK(g_mprotectCalls == 0 && g_eglOriginalCaptured == nullptr,
+              "unexpected EGL pointer causes no write or original handover");
+    }
+    g_testEglExport = reinterpret_cast<void*>(0xE6C0);
 
     // 3. Resolved path: matching anchor + writable GOT -> exactly the wrapper.
     SwpHooksTestResetState();

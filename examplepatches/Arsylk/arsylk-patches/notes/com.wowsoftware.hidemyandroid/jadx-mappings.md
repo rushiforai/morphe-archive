@@ -76,3 +76,14 @@ for which registrar implements which feature.
 Note: strings are XOR-decrypted at runtime via `a0.n.l(...)`, so plaintext keys/messages are **not**
 present as `const-string` in the DEX — string fingerprints do not work on this app. Obfuscated `ta.*`
 names are **1.7.1-specific**; re-derive per version by the framework method a registrar hooks.
+
+## 1.7.5 re-derived pins
+
+| 1.7.2 | 1.7.5 | Meaning |
+|---|---|---|
+| `Lcb/h;->c:Z` | `Leb/h;->c:Z` | LicenseStore premium flag (same field name; class moved to package `eb`); written from the eval wrapper in `Lsa/h1;` |
+| `Lxa/k;->a` | `Lza/s;->a` | Tier-2 identity — cached signed-licence blob on the identity object `Lza/s;` (constructed in its `<init>(String,String,ta/p,J,J)V`) |
+| `Lqa/v0;`, `Lqa/z0;` | `Lsa/l1;`, `Lgb/c;` | account-gated premium state — `Lsa/l1;` (StartupRepository) holds the premium `MutableStateFlow` `j:Lid/g0;` (created FALSE; no-user and refresh-failure paths emit FALSE) and `Lgb/c;` (account VM) logout emits FALSE into it |
+| — | `Lsa/h1;` | validate coroutine — calls the eval wrapper `DeviceInfoProvider.f(...)Z` and writes the flag |
+| — | `Lid/g0;->j` / `Lid/w;->b` | premium-StateFlow setValue / factory — the only FALSE consumers the token-check rewrite may flip |
+| — | `Lvc/k;->a(Object,Object)Z` | equality helper — `Lsa/l1;` compares readiness state against FALSE here; must NOT be rewritten |

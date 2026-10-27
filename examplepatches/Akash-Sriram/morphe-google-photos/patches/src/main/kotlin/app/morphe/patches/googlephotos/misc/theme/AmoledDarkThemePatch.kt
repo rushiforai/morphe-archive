@@ -203,6 +203,33 @@ private val excludedThemeKeywords = listOf(
     "chipactivity",
 )
 
+private val intermediateBaseThemes = setOf(
+    "base.theme.photos.daynight",
+    "base.theme.photos.deprecated",
+    "base.theme.photos.deprecated.actionbar",
+    "base.theme.photos.deprecated.notitle",
+    "theme.photos.deprecated",
+    "theme.photos.deprecated.actionbar",
+    "theme.photos.deprecated.notitle",
+    "base.theme.photos.dialog.daynight",
+)
+
+private val protectedTranslucentThemes = mapOf(
+    "Base.Theme.Photos.Expander" to "Theme.Photos.Deprecated.ActionBar",
+    "Theme.Photos.Expander" to "Base.Theme.Photos.Expander",
+    "Theme.Photos.ThemedTransparent" to "Theme.Photos",
+    "NativeSharesheetChipActivityExpander" to "Theme.Photos.Expander",
+)
+
+private val translucentStyleItems = mapOf(
+    "android:windowBackground" to "@android:color/transparent",
+    "android:colorBackground" to "@android:color/transparent",
+    "android:statusBarColor" to "@android:color/transparent",
+    "android:navigationBarColor" to "@android:color/transparent",
+    "android:windowIsTranslucent" to "true",
+    "android:backgroundDimEnabled" to "true",
+)
+
 private val amoledStyleItems = mapOf(
     "android:colorBackground" to AMOLED_BLACK,
     "android:navigationBarColor" to AMOLED_BLACK,
@@ -267,9 +294,13 @@ val amoledDarkThemePatch = resourcePatch(
 
                 val resourcePath = "res/${file.relativeTo(resDirectory).invariantSeparatorsPath}"
                 val isNightFile = file.isNightValuesXml()
+                val isStyleFile = file.name.startsWith("style", ignoreCase = true) || file.name.startsWith("theme", ignoreCase = true)
                 document(resourcePath).use { document ->
                     changedColors += document.blackenAmoledColors(isNightFile)
                     changedStyles += document.forceAmoledThemeItems(isNightFile)
+                    if (isNightFile && isStyleFile) {
+                        changedStyles += document.ensureProtectedTranslucentThemes()
+                    }
                 }
             }
 
@@ -406,6 +437,13 @@ private fun Element.isAmoledTargetThemeStyle(isNightFile: Boolean): Boolean {
     if (name.startsWith("widget.") || name.startsWith("textappearance.") || name.startsWith("animation.")) return false
     if (parent.startsWith("@android:style/widget") || parent.startsWith("@style/widget.") || parent.startsWith("@style/textappearance.") || parent.startsWith("@style/animation.")) return false
 
+    // Overlays are not window themes and must never receive window-level backgrounds
+    if (name.startsWith("themeoverlay.") || name.startsWith("base.themeoverlay.")) return false
+    if (parent.startsWith("@style/themeoverlay.") || parent.startsWith("@style/base.themeoverlay.")) return false
+
+    // Intermediate base themes must never have window-level backgrounds injected
+    if (intermediateBaseThemes.any { name == it || name.startsWith("$it.") }) return false
+
     // Bottom sheets, dialogs, translucent/floating windows must never have their window backgrounds clobbered
     if (excludedThemeKeywords.any { it in name || it in parent }) return false
     if (hasTranslucentOrFloatingAttribute()) return false
@@ -482,6 +520,35 @@ private fun Element.ensureStyleItem(document: Document, name: String, value: Str
     item.textContent = value
     appendChild(item)
     return true
+}
+
+private fun Document.ensureProtectedTranslucentThemes(): Int {
+    val resources = documentElement ?: return 0
+    var changed = 0
+    val styles = getElementsByTagName("style")
+    val styleMap = mutableMapOf<String, Element>()
+    for (i in 0 until styles.length) {
+        val s = styles.item(i) as? Element ?: continue
+        styleMap[s.getAttribute("name")] = s
+    }
+
+    protectedTranslucentThemes.forEach { (styleName, parentName) ->
+        val style = styleMap[styleName] ?: run {
+            val newStyle = createElement("style")
+            newStyle.setAttribute("name", styleName)
+            newStyle.setAttribute("parent", "@style/$parentName")
+            resources.appendChild(newStyle)
+            changed++
+            newStyle
+        }
+
+        translucentStyleItems.forEach { (attrName, attrValue) ->
+            if (style.ensureStyleItem(this, attrName, attrValue) != null) {
+                changed++
+            }
+        }
+    }
+    return changed
 }
 
 private fun String.amoledRgb(): String {

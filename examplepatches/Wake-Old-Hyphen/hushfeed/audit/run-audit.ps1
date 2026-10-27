@@ -193,7 +193,7 @@ if ($Validate) {
                         }
                     }
                 }
-                foreach ($field in 'expect', 'expectNot', 'log', 'logNot') {
+                foreach ($field in 'expect', 'expectNot', 'preconditionExpect', 'log', 'logNot') {
                     $pattern = [string]$step.$field
                     if ($pattern -and $step.apk -ne 'dex-string') {
                         try { [void][regex]::new($pattern) } catch { & $bad "$field is not a valid regex: $pattern" }
@@ -1007,6 +1007,8 @@ function Invoke-Check($Entry, $Check, [hashtable]$Originals, [ref]$Restarted, $B
                                 throw "probe $($step.probe) failed: $((($answer -split "`n") | Where-Object { $_ -match '^failed |Exception' } | Select-Object -First 2) -join ' ')"
                             }
                             if (-not $answer) { throw "probe $($step.probe) never answered" }
+                            $preconditionProblem = Get-AuditProbePreconditionProblem $step $answer
+                            if ($preconditionProblem) { throw [System.InvalidOperationException]::new("precondition: $preconditionProblem") }
                             $miss = if ($step.expect -and -not (Test-Pattern $answer $step.expect)) { "probe $($step.probe) answer has nothing matching $($step.expect)" }
                                 elseif ($step.expectNot -and (Test-Pattern $answer $step.expectNot)) { "probe $($step.probe) answer matches $($step.expectNot)" }
                             if (-not $miss) { break }

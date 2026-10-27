@@ -32,7 +32,8 @@ public final class UiFullscreenWindowProbe {
         Configuration configuration = new Configuration(context.getResources().getConfiguration());
         configuration.orientation = Configuration.ORIENTATION_LANDSCAPE;
         Context themed = new ContextThemeWrapper(context.createConfigurationContext(configuration), android.R.style.Theme_Material);
-        UiFullscreenViewportProbe.verify(themed);
+        UiFullscreenStateProbe.verify(themed);
+        UiWindowBarsProbe.verify(themed);
         Window window = new ProbeWindow(themed);
         ProbeActivity activity = new ProbeActivity(window, themed);
 
@@ -52,9 +53,11 @@ public final class UiFullscreenWindowProbe {
         Constructor<?> sessionConstructor = sessionType.getDeclaredConstructor(Activity.class);
         sessionConstructor.setAccessible(true);
         Object session = sessionConstructor.newInstance(activity);
+        field(sessionType, "modernFullscreen").setBoolean(session, true);
         field(sessionType, "subscription").set(session, (AutoCloseable) () -> { });
         Map<?, ?> sessions = (Map<?, ?>) field(policy, "sessions").get(null);
         Map.class.getMethod("put", Object.class, Object.class).invoke(sessions, activity, session);
+        verifyRequests(activity, settingsConstructor, instance, registry);
         Method filter = policy.getDeclaredMethod("filterInsets", Activity.class, int.class);
         filter.setAccessible(true);
         Method viewFilter = policy.getDeclaredMethod("filterInsets", View.class, int.class);
@@ -138,6 +141,38 @@ public final class UiFullscreenWindowProbe {
             throw new AssertionError(label + ": wrong padding or keyboard inset lost");
     }
 
+    private static void verifyRequests(ProbeActivity activity, Constructor<?> settings, Field instance, Object registry) throws Exception {
+        int[] shown = {0};
+        var controller = (android.view.WindowInsetsController) Proxy.newProxyInstance(
+                android.view.WindowInsetsController.class.getClassLoader(), new Class<?>[] {android.view.WindowInsetsController.class},
+                (p, method, args) -> { if (method.getName().equals("show")) { shown[0] |= (int) args[0]; return null; }
+                    throw new UnsupportedOperationException(method.getName()); });
+        Window original = activity.window;
+        activity.window = new ProbeWindow(activity) {
+            @Override public android.view.WindowInsetsController getInsetsController() { return controller; }
+        };
+        try {
+            View decor = activity.window.getDecorView();
+            int bars = WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars();
+            for (int i = 0; i < 20; i++) {
+                dev.twitchpatches.extension.ui.UiSettings.setSystemUiVisibility(decor, View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                dev.twitchpatches.extension.ui.UiSettings.showSystemBars(controller, bars);
+            }
+            int flags = decor.getSystemUiVisibility();
+            if (shown[0] != 0 || (flags & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0 ||
+                    (flags & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0 || (flags & View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR) == 0)
+                throw new AssertionError("host requests must be filtered before showing bars");
+            dev.twitchpatches.extension.ui.UiSettings.showSystemBars(controller, WindowInsets.Type.ime());
+            if (shown[0] != WindowInsets.Type.ime()) throw new AssertionError("IME request changed");
+            instance.set(null, settings.newInstance(new ProbeApplication(false, false)));
+            dev.twitchpatches.extension.ui.UiSettings.setSystemUiVisibility(decor, 0);
+            dev.twitchpatches.extension.ui.UiSettings.showSystemBars(controller, bars);
+            if (decor.getSystemUiVisibility() != 0 || (shown[0] & bars) != bars)
+                throw new AssertionError("disabled overrides must pass through host requests");
+            System.out.println("PASS host bar requests: no show/hide oscillation, independent IME and live disable");
+        } finally { activity.window = original; instance.set(null, registry); }
+    }
+
     private static Field field(Class<?> type, String name) throws Exception {
         Field value = type.getDeclaredField(name);
         value.setAccessible(true);
@@ -172,7 +207,7 @@ public final class UiFullscreenWindowProbe {
     }
 
     private static final class ProbeActivity extends Activity {
-        private final Window window;
+        private Window window;
         private final Resources resources;
         int orientation = Configuration.ORIENTATION_LANDSCAPE;
         ProbeActivity(Window window, Context context) {
@@ -193,58 +228,5 @@ public final class UiFullscreenWindowProbe {
             return resources;
         }
         @Override public int getRequestedOrientation() { return ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE; }
-    }
-    static final class ProbeWindow extends Window {
-        private final android.widget.FrameLayout decor;
-        ProbeWindow(Context context) { super(context); decor = new android.widget.FrameLayout(context); }
-        private UnsupportedOperationException unsupported() { return new UnsupportedOperationException("Unused window operation"); }
-        @Override public void addContentView(android.view.View arg0, android.view.ViewGroup.LayoutParams arg1) { decor.addView(arg0, arg1); }
-        @Override public void closeAllPanels() { throw unsupported(); }
-        @Override public void closePanel(int arg0) { throw unsupported(); }
-        @Override public android.view.View getCurrentFocus() { throw unsupported(); }
-        @Override public android.view.View getDecorView() { return decor; }
-        @Override public android.view.LayoutInflater getLayoutInflater() { throw unsupported(); }
-        @Override public int getNavigationBarColor() { throw unsupported(); }
-        @Override public int getStatusBarColor() { throw unsupported(); }
-        @Override public int getVolumeControlStream() { throw unsupported(); }
-        @Override public void invalidatePanelMenu(int arg0) { throw unsupported(); }
-        @Override public boolean isFloating() { throw unsupported(); }
-        @Override public boolean isShortcutKey(int arg0, android.view.KeyEvent arg1) { throw unsupported(); }
-        @Override protected void onActive() { throw unsupported(); }
-        @Override public void onConfigurationChanged(android.content.res.Configuration arg0) { throw unsupported(); }
-        @Override public void openPanel(int arg0, android.view.KeyEvent arg1) { throw unsupported(); }
-        @Override public android.view.View peekDecorView() { return decor; }
-        @Override public boolean performContextMenuIdentifierAction(int arg0, int arg1) { throw unsupported(); }
-        @Override public boolean performPanelIdentifierAction(int arg0, int arg1, int arg2) { throw unsupported(); }
-        @Override public boolean performPanelShortcut(int arg0, int arg1, android.view.KeyEvent arg2, int arg3) { throw unsupported(); }
-        @Override public void restoreHierarchyState(android.os.Bundle arg0) { throw unsupported(); }
-        @Override public android.os.Bundle saveHierarchyState() { throw unsupported(); }
-        @Override public void setBackgroundDrawable(android.graphics.drawable.Drawable arg0) { decor.setBackground(arg0); }
-        @Override public void setChildDrawable(int arg0, android.graphics.drawable.Drawable arg1) { throw unsupported(); }
-        @Override public void setChildInt(int arg0, int arg1) { throw unsupported(); }
-        @Override public void setContentView(android.view.View arg0) { decor.addView(arg0); }
-        @Override public void setContentView(android.view.View arg0, android.view.ViewGroup.LayoutParams arg1) { decor.addView(arg0); }
-        @Override public void setContentView(int arg0) { throw unsupported(); }
-        @Override public void setDecorCaptionShade(int arg0) { throw unsupported(); }
-        @Override public void setFeatureDrawable(int arg0, android.graphics.drawable.Drawable arg1) { throw unsupported(); }
-        @Override public void setFeatureDrawableAlpha(int arg0, int arg1) { throw unsupported(); }
-        @Override public void setFeatureDrawableResource(int arg0, int arg1) { throw unsupported(); }
-        @Override public void setFeatureDrawableUri(int arg0, android.net.Uri arg1) { throw unsupported(); }
-        @Override public void setFeatureInt(int arg0, int arg1) { throw unsupported(); }
-        @Override public void setNavigationBarColor(int arg0) { throw unsupported(); }
-        @Override public void setResizingCaptionDrawable(android.graphics.drawable.Drawable arg0) { throw unsupported(); }
-        @Override public void setStatusBarColor(int arg0) { throw unsupported(); }
-        @Override public void setTitle(java.lang.CharSequence arg0) { throw unsupported(); }
-        @Override public void setTitleColor(int arg0) { throw unsupported(); }
-        @Override public void setVolumeControlStream(int arg0) { throw unsupported(); }
-        @Override public boolean superDispatchGenericMotionEvent(android.view.MotionEvent arg0) { throw unsupported(); }
-        @Override public boolean superDispatchKeyEvent(android.view.KeyEvent arg0) { throw unsupported(); }
-        @Override public boolean superDispatchKeyShortcutEvent(android.view.KeyEvent arg0) { throw unsupported(); }
-        @Override public boolean superDispatchTouchEvent(android.view.MotionEvent arg0) { throw unsupported(); }
-        @Override public boolean superDispatchTrackballEvent(android.view.MotionEvent arg0) { throw unsupported(); }
-        @Override public void takeInputQueue(android.view.InputQueue.Callback arg0) { throw unsupported(); }
-        @Override public void takeKeyEvents(boolean arg0) { throw unsupported(); }
-        @Override public void takeSurface(android.view.SurfaceHolder.Callback2 arg0) { throw unsupported(); }
-        @Override public void togglePanel(int arg0, android.view.KeyEvent arg1) { throw unsupported(); }
     }
 }

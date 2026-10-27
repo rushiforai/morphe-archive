@@ -61,7 +61,7 @@ class DownloadStoryHookTest {
     /** The hooks the patch writes are in the extension the bundle ships, public and static. */
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(LABELS, SAVE_STORY, BUILDING)) {
+        for (hook in listOf(LABELS, SAVE_STORY, BUILDING, LABEL_LIST)) {
             val declared = ExtensionDex.classDef(hook.substringBefore("->")).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
                 .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
@@ -125,6 +125,28 @@ class DownloadStoryHookTest {
 
         assertTrue("another class's builder changed", context.method(other, "A0o").code().none { it.referenceText() == BUILDING })
         assertEquals("a handler names its menu", 0, context.method(helper, "A0I").code().count { it.referenceText() == BUILDING })
+    }
+
+    /**
+     * #339: your own highlights' menu is built as a list. Its builder names its menu first, and each
+     * return hands the list to labelList() in place, the jump that lands on the return included.
+     */
+    @Test
+    fun theHighlightListGetsTheRowsInPlace() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryStory()
+
+        val code = context.method(helper, "A05").code()
+        assertEquals(BUILDING, code[0].referenceText())
+        assertEquals("the menu, p0 of five registers", 3, (code[0] as Instruction35c).registerC)
+        assertEquals("the original code moved", Opcode.NEW_INSTANCE, code[1].opcode)
+        val at = code.indexOfFirst { it.opcode == Opcode.RETURN_OBJECT }
+        assertEquals(listOf(Opcode.INVOKE_STATIC, Opcode.RETURN_OBJECT), code.subList(at - 1, at + 1).map { it.opcode })
+        assertEquals(LABEL_LIST, code[at - 1].referenceText())
+        assertEquals("labelList()'s argument", (code[at] as OneRegisterInstruction).registerA, (code[at - 1] as Instruction35c).registerC)
+        assertEquals("the jump to the return", at - 1, code.target(code.indexOfFirst { it.opcode == Opcode.IF_EQZ }))
+        assertEquals("one return", 1, code.count { it.opcode == Opcode.RETURN_OBJECT })
     }
 
     /** A tap asks save() first, with the tapped label and the menu's class; any other label goes on. */
@@ -335,6 +357,21 @@ class DownloadStoryHookTest {
                                 target !in returns && target !in returns.map { it - 1 })
                         }
                 }
+                // #339: your own highlights' menus are lists, the highlight sheet's among them.
+                val lists = statics.filter { it.returnType == "Ljava/util/ArrayList;" && menu.type in it.parameterTypes.map(Any::toString) }
+                assertTrue("${bundle.name}: no list builder holds the highlight sheet's name", lists.any { list ->
+                    list.code().any { it.opcode == Opcode.CONST_STRING && it.referenceText() == "story_highlight_action_sheet" }
+                })
+                val notJumps = setOf(Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH, Opcode.FILL_ARRAY_DATA)
+                lists.forEach { list ->
+                    val code = context.method(menu.type, list.name, list.parameterTypes.map(Any::toString)).code()
+                    assertEquals("${bundle.name}: ${list.name} names its menu first", BUILDING, code[0].referenceText())
+                    val returns = code.indices.filter { code[it].opcode == Opcode.RETURN_OBJECT }
+                    assertTrue("${bundle.name}: ${list.name} doesn't return", returns.isNotEmpty())
+                    returns.forEach { at -> assertEquals("${bundle.name}: ${list.name} before the return at $at", LABEL_LIST, code[at - 1].referenceText()) }
+                    code.indices.filter { code[it] is OffsetInstruction && code[it].opcode !in notJumps }
+                        .forEach { jump -> assertTrue("${bundle.name}: the jump at $jump in ${list.name} skips labelList()", code.target(jump) !in returns) }
+                }
                 val handlers = statics.filter { it.returnType == "V" && it.parameterTypes.lastOrNull()?.toString() == label && menu.type in it.parameterTypes.map(Any::toString) }
                 assertTrue("${bundle.name}: fewer handlers than builders", handlers.size >= builders.size)
                 handlers.forEach { handler ->
@@ -478,6 +515,7 @@ class DownloadStoryHookTest {
 
     private fun assertUntouched(context: BytecodePatchContext) {
         assertTrue("a builder changed", context.method(helper, "A0o").code().none { it.referenceText() == LABELS || it.referenceText() == BUILDING })
+        assertTrue("the list builder changed", context.method(helper, "A05").code().none { it.referenceText() == LABEL_LIST || it.referenceText() == BUILDING })
         assertEquals("a handler changed", Opcode.CONST_STRING, context.method(helper, "A0I").code().first().opcode)
         assertEquals("the story bridge was written", Opcode.CONST_4, context.method(INSTAGRAM_MEDIA, "storyMedia").code().first().opcode)
         assertEquals("a bridge was written", Opcode.CONST_4, context.method(INSTAGRAM_MEDIA, "videoVersions").code().first().opcode)
@@ -559,6 +597,16 @@ class DownloadStoryHookTest {
                     new-array v0, v0, $labels
                     move-object/from16 v20, v0
                     return-object v20
+                """),
+                // Your own highlight's menu, built as a list (#339), with a jump to its return.
+                method(helper, "A05", listOf(helper, "Lfixture/Sheet;"), "Ljava/util/ArrayList;", 5, static = true, body = """
+                    new-instance v0, Ljava/util/ArrayList;
+                    invoke-direct { v0 }, Ljava/util/ArrayList;-><init>()V
+                    const-string v1, "story_highlight_action_sheet"
+                    if-eqz v1, :done
+                    const/4 v2, 0x0
+                    :done
+                    return-object v0
                 """),
                 // The new sheet's handler: the menu seventh of thirteen, the label last.
                 method(helper, "A0I", listOf(dismiss) + List(5) { "Lfixture/Arg$it;" } + listOf(helper) + List(5) { "Lfixture/More$it;" } + listOf(label),

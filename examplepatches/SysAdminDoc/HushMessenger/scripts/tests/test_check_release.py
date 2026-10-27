@@ -22,6 +22,7 @@ spec = importlib.util.spec_from_file_location(
 )
 release = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(release)
+captures = sys.modules["readme_captures"]
 
 SSH_KEYGEN = shutil.which("ssh-keygen")
 GIT = shutil.which("git")
@@ -70,6 +71,25 @@ class FakeGradle:
 
     def kill(self):
         self.killed = True
+
+
+def capture_fixture(root):
+    """A one-control settings source with its README captures exported, as the release check expects."""
+    source = root / captures.SETTINGS
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_text(
+        '    static final String[][] CONTROLS = {\n'
+        '        {"people", "Hide People You May Know", "Hides suggested people.", "inbox"},\n'
+        "    };\n",
+        encoding="utf-8",
+    )
+    renders = root / "renders"
+    renders.mkdir()
+    (root / "assets").mkdir(exist_ok=True)
+    for render in captures.CAPTURES.values():
+        (renders / render).write_bytes(render.encode("utf-8"))
+    captures.export(root, renders)
+    shutil.rmtree(renders)
 
 
 def new_key(path):
@@ -144,6 +164,7 @@ class ReleaseChecks(unittest.TestCase):
             "extensions/messenger/build.gradle.kts",
             "versionName = project.version.toString()\n",
         )
+        capture_fixture(self.root)
         # Feed bytes committed at each fixture release tag, keyed by version.
         self.tags = {}
         tagged = patch.object(release, "tagged_public_feed", self.tagged_feed)
@@ -193,6 +214,12 @@ class ReleaseChecks(unittest.TestCase):
         self.write("SHA256SUMS.txt", f"{'0' * 64}  {self.bundle.name}\n")
         with self.assertRaisesRegex(ValueError, "checksum file"):
             release.verify(self.root, checksums=self.root / "SHA256SUMS.txt")
+
+    def test_release_refuses_readme_captures_of_an_older_settings_catalog(self):
+        source = self.root / captures.SETTINGS
+        source.write_text(source.read_text(encoding="utf-8").replace("People You May Know", "Suggested people"), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "older catalog"):
+            release.verify(self.root)
 
     def test_development_freezes_current_catalog_and_preserves_held_feed(self):
         held = self.hold()

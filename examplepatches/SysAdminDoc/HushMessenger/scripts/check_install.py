@@ -289,14 +289,20 @@ def conflicts(
     installed: dict[str, Apk],
     owners: dict[str, str],
     leftover: int | None = None,
+    user: int | None = None,
 ) -> list[str]:
     problems = []
     previous = installed.get(candidate.package)
     if previous:
         if previous.signers != candidate.signers:
+            # Android answers this one with INSTALL_FAILED_UPDATE_INCOMPATIBLE ("signatures do not match").
+            where = "" if user in (None, 0) else f" for Android user {user} (Secure Folder, a work profile or a second user)"
             problems.append(
-                f"{candidate.package}: current signing certificates differ from the installed app. "
-                "Keep its data intact. This check does not approve certificate rotation or replacement."
+                f"Same-package signer mismatch: {candidate.package} is already installed{where} with "
+                "different current signing certificates, so Android refuses this APK as an update "
+                "(INSTALL_FAILED_UPDATE_INCOMPATIBLE). Patch with the key that copy was signed with, or select "
+                "Clone install under another package name to keep both. Keep its data intact. "
+                "This check does not approve certificate rotation or replacement."
             )
         if previous.version_code > candidate.version_code:
             problems.append(
@@ -323,9 +329,12 @@ def conflicts(
             if owner not in installed:
                 raise ValueError(f"Cannot verify permission owner {owner}")
             if installed[owner].signers != candidate.signers:
+                # A different app holds the permission, so this is INSTALL_FAILED_DUPLICATE_PERMISSION,
+                # not a Messenger signer problem. Removing Messenger wouldn't help.
                 problems.append(
-                    f"{permission}: owned by {owner} with different current signing certificates. "
-                    "Use the same signing key for apps sharing this permission."
+                    f"Permission owner mismatch: {permission} is owned by {owner} with different current "
+                    "signing certificates, so Android refuses the install (INSTALL_FAILED_DUPLICATE_PERMISSION). "
+                    f"Patch with the same signing key as {owner}. The installed Messenger isn't the cause."
                 )
     return problems
 
@@ -605,7 +614,9 @@ def check(args: argparse.Namespace) -> int:
             print(
                 f"Installed {package} certificate SHA-256: {', '.join(sorted(info.signers))}"
             )
-    problems = conflicts(candidate, installed, owners, leftover)
+    problems = conflicts(
+        candidate, installed, owners, leftover, packages.get(candidate.package)
+    )
     if problems:
         for problem in problems:
             print(f"CONFLICT: {problem}")

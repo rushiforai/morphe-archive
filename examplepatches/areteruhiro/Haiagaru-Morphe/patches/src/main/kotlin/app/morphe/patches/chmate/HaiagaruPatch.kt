@@ -1602,6 +1602,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         patchHomeRefreshKeywords(packageMetadata.versionName)
         patchClipboardHistory(packageMetadata.versionName)
         patchNgEditGesture(packageMetadata.versionName)
+        patchViewingUserAgent(packageMetadata.versionName)
         patchToolbarIcons(packageMetadata.versionName)
         patchHiddenNgMenu(packageMetadata.versionName)
         patchNativeUploadHistory(packageMetadata.versionName)
@@ -1974,6 +1975,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         patchPatrolImages(packageMetadata.versionName)
         patchPatrolInterval(packageMetadata.versionName)
         patchExternalBoardAuth(packageMetadata.versionName)
+        patchBoardCookies(packageMetadata.versionName)
         patchBeAutoLogout(packageMetadata.versionName)
         patchExternalBoardEditor(packageMetadata.versionName)
         patchPosterHighlight(packageMetadata.versionName)
@@ -2744,6 +2746,7 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchWacchoiLongPressM
             move-result-object v0
             invoke-static {p0}, Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->captureDialog(Ljava/lang/Object;)V
             invoke-static {v0}, Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->appendForCurrentDialog(Ljava/lang/Object;)V
+            invoke-static {v0}, Lapp/morphe/extension/chmate/ResponseMenuSettings;->finishResponseMenu(Ljava/lang/Object;)V
             return-object v0
         """.trimIndent())
         klass.methods.remove(mutableBuilder)
@@ -3138,6 +3141,7 @@ private fun BytecodePatchContext.patchResponseArchive(version: String) {
             move-result-object v0
             move-object v1, p0
             invoke-static {v1, v0}, Lapp/morphe/extension/chmate/ResponseArchive;->appendDialog(Ljava/lang/Object;Ljava/lang/Object;)V
+            invoke-static {v0}, Lapp/morphe/extension/chmate/ResponseMenuSettings;->finishResponseMenu(Ljava/lang/Object;)V
             return-object v0
         """.trimIndent())
         dialog.methods.remove(menu)
@@ -4893,6 +4897,7 @@ val haiagaruPatch = resourcePatch(
             "haiagaru_wacchoi_search" to "ﾜｯﾁｮｲで検索",
             "haiagaru_wacchoi_lower" to "ﾜｯﾁｮｲ下4桁で検索",
             "haiagaru_wacchoi_upper" to "ﾜｯﾁｮｲ上4桁で検索",
+            "haiagaru_hissi_droid_plus" to "必死チェッカーDroid＋で開く",
         )) {
             for (values in listOf("values", "values-en")) {
                 document("res/$values/strings.xml").use { strings ->
@@ -4907,6 +4912,8 @@ val haiagaruPatch = resourcePatch(
                 it.createPublicId("drawable", name)
             }
             val iconPath = when (name) {
+                "haiagaru_hissi_droid_plus" ->
+                    "M3,3h12v2H5v14h14v-10h2v12H3zM13,3h8v8h-2V6.41l-8.29,8.3 -1.42,-1.42L17.59,5H13z"
                 "haiagaru_wacchoi_search" ->
                     "M15.5,14h-0.79l-0.28,-0.27C15.41,12.59 16,11.11 16,9.5C16,5.91 13.09,3 9.5,3S3,5.91 3,9.5S5.91,16 9.5,16c1.61,0 3.09,-0.59 4.23,-1.57l0.27,0.28v0.79l5,4.99L20.49,19l-4.99,-5zM9.5,14C7.01,14 5,11.99 5,9.5S7.01,5 9.5,5S14,7.01 14,9.5S11.99,14 9.5,14z"
                 "haiagaru_wacchoi_upper" ->
@@ -5171,7 +5178,7 @@ val haiagaruPatch = resourcePatch(
                     "app.morphe.extension.chmate.ExternalBoardAuthActivity")
                 setAttributeNS(ANDROID_XML_NAMESPACE, "android:exported", "false")
                 setAttributeNS(ANDROID_XML_NAMESPACE, "android:theme",
-                    "@android:style/Theme.Material.Light.NoActionBar")
+                    "@android:style/Theme.Translucent.NoTitleBar")
                 setAttributeNS(ANDROID_XML_NAMESPACE, "android:windowSoftInputMode", "adjustResize")
             })
             application.appendChild(document.createElement("activity").apply {
@@ -8340,7 +8347,7 @@ private fun BytecodePatchContext.isAdsOnlyBuild(): Boolean {
 @Suppress("unused")
 val haiagaruAdsOnlyPatch = bytecodePatch(
     name = "Haiagaru 広告だけの超軽量構成（検証用）",
-    description = "Haiagaru本体を外して選択してください。広告・広告枠の除去と再署名導入に必要な起動対策だけを適用します。検索・追加設定・フィルター等は組み込みません。検証中です。",
+    description = "Haiagaru本体を外して選択してください。広告・広告枠除去、5ch.net→5ch.io変換、板一覧の初期URL、再署名導入の起動対策を適用します。検索・追加設定・フィルター等は組み込みません。検証中です。",
     default = false,
 ) {
     compatibleWith(chMateCompatibility)
@@ -8349,6 +8356,20 @@ val haiagaruAdsOnlyPatch = bytecodePatch(
         var hasFullRuntime = false
         classDefForEach { if (it.type == "Lapp/morphe/extension/chmate/NativeToolTabs;") hasFullRuntime = true }
         check(!hasFullRuntime) { "Haiagaruと広告だけの超軽量構成は同時に選択できません" }
+        // Use only URL compatibility hooks; do not import the full settings/lifecycle runtime.
+        when (packageMetadata.versionName) {
+            "0.8.10.191 dev" -> {
+                patchBbsMenuUrl("a", "Lo/a7a\$read;")
+                patchPreIoDomainCompatibility("b")
+            }
+            "0.8.10.226 dev" -> {
+                patchBbsMenuUrl("a", "Lo/isInlineAdaptiveAdView\$read;")
+                patchPreIoDomainCompatibility("c")
+            }
+            "0.8.10.241" -> patchBbsMenuUrl("c", "Lo/TaskRunnerCompanion\$ComponentActivity;")
+            "0.8.10.242 dev" -> patchBbsMenuUrl("c", "Lo/getPlayProviderFactory\$ComponentActivity;")
+            "0.8.10.243 dev" -> patchBbsMenuUrl("b", "Lo/StandardAndroidSocketAdapterCompanion\$RemoteActionCompatParcelizer;")
+        }
         val profile=profileFor(packageMetadata.versionName)
         mutableClassDefBy(profile.providerClass).methods.single { it.name=="onCreate" && it.parameters.isEmpty() }
             .addInstruction(0,"invoke-static {}, $EXTENSION->installSignatureSpoof()V")

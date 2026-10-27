@@ -18,19 +18,32 @@ final class SettingsTranslations {
 
     static {
         // Add a locale with one line here, for example: add("pt-BR", SettingsTextPtBr.TEXT);
+        add("zh-TW", SettingsTextZhTw.TEXT);
+        // Traditional Chinese anywhere else (zh-Hant-HK, and zh-HK or zh-MO, which imply it). Simplified stays English.
+        add("zh-Hant", SettingsTextZhTw.TEXT);
     }
 
+    /** Refuses a table that gives one id twice, since the later line would quietly replace the earlier one. */
     static void add(String tag, String[][] pairs) {
         Map<String, String> table = new HashMap<>();
-        for (String[] pair : pairs) table.put(pair[0], pair[1]);
+        for (String[] pair : pairs)
+            if (table.put(pair[0], pair[1]) != null)
+                throw new IllegalStateException(tag + " translates " + pair[0] + " twice");
         LOCALES.put(tag, Collections.unmodifiableMap(table));
     }
 
-    /** The table for the locale's full tag, else for its language, else an empty one (English). */
+    /**
+     * The table for the locale's full tag, else for its language and script, else for its language, else an empty one
+     * (English). A locale that names a script never falls back to a region's table, so zh-Hans-TW stays English. Chinese
+     * without a script takes the one its region writes in.
+     */
     static Map<String, String> forLocale(Locale locale) {
-        String tag = locale.toLanguageTag();
-        Map<String, String> table = LOCALES.get(tag);
-        if (table == null) table = LOCALES.get(tag.split("-")[0]);
+        String language = locale.getLanguage(), script = locale.getScript(), region = locale.getCountry();
+        if (script.isEmpty() && language.equals("zh") && (region.equals("TW") || region.equals("HK") || region.equals("MO")))
+            script = "Hant";
+        Map<String, String> table = LOCALES.get(locale.toLanguageTag());
+        if (table == null && !script.isEmpty()) table = LOCALES.get(language + "-" + script);
+        if (table == null) table = LOCALES.get(language);
         return table != null ? table : Collections.emptyMap();
     }
 }

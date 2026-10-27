@@ -11,16 +11,26 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 internal data class DrawerFixtureMapping(
     val provider: String, val getter: String, val row: String, val section: String,
     val dispatcher: String, val iconBase: String, val icon: String, val glyph: String, val enums: String,
-    /** The Settings icon is built in place instead of coming from the icon's static factory, a 582 form that's refused. */
+    /** The Settings icon is built in place instead of coming from the icon's static factory (582 and 584.1's armv7 build). */
     val inlineIcon: Boolean = false,
     /** 584 builds its QR code row after Settings, from the same row class and its own folder key. */
     val qrRow: Boolean = false,
-)
+    /** The icon factory sits on [iconBase] and returns [icon] (584.1's second arm64 family, G7K.A00 returning G7P). */
+    val iconFactoryOnBase: Boolean = false,
+) {
+    fun iconFactory(owner: String = if (iconFactoryOnBase) iconBase else icon) = "$owner->A00($glyph)$icon"
+}
 
 private fun drawerMapping(refreshOwner: String) = when (refreshOwner) {
     "LX/9rv;" -> DrawerFixtureMapping("LX/CTJ;", "Ax4", "LX/HRf;", "LX/HRe;", "LX/Cfq;", "LX/Imx;", "LX/HNS;", "LX/1hJ;", "LX/0R2;")
-    "LX/8Yj;" -> DrawerFixtureMapping("LX/BgF;", "B0B", "LX/GKf;", "LX/GKz;", "LX/GJL;", "LX/H1A;", "LX/GNd;", "LX/1jJ;", "LX/0OS;",
+    "LX/7n5;" -> DrawerFixtureMapping("LX/8X3;", "B08", "LX/GTk;", "LX/GTi;", "LX/GTA;", "LX/HJq;", "LX/GTn;", "LX/1iq;", "LX/0OD;",
         qrRow = true)
+    "LX/8Wp;" -> DrawerFixtureMapping("LX/Bdu;", "B0G", "LX/G8j;", "LX/G8o;", "LX/G7c;", "LX/G7K;", "LX/G7P;", "LX/1jJ;", "LX/0OS;",
+        qrRow = true, iconFactoryOnBase = true)
+    "LX/8Yi;" -> DrawerFixtureMapping("LX/BgD;", "B0B", "LX/GKg;", "LX/GL0;", "LX/GJM;", "LX/H1B;", "LX/GNe;", "LX/1jJ;", "LX/0OS;",
+        qrRow = true)
+    "LX/8WE;" -> DrawerFixtureMapping("LX/Bcw;", "B0I", "LX/XwG;", "LX/Lxq;", "LX/GKD;", "LX/HA9;", "LX/Lyd;", "LX/1jj;", "LX/0OY;",
+        inlineIcon = true, qrRow = true)
     else -> error("Unrecorded drawer mapping: $refreshOwner")
 }
 
@@ -57,18 +67,28 @@ private fun drawerConstructor(owner: String, params: List<String>, names: List<S
         append("return-void")
     }, registers = params.size + 2, flags = PUBLIC_CONSTRUCTOR)
 
-/** The Settings icon from the icon's static factory, as 584 gets it, or built in place the way 582 did. */
-private fun settingsIcon(model: DrawerFixtureMapping, broken: String): String {
+/** The Settings icon from the icon's static factory, as 584 gets it, or built in place the way 582 and 584.1 do. */
+private fun settingsIcon(model: DrawerFixtureMapping, broken: String, iconFactory: String): String {
     val glyph = "${model.glyph}->${if (broken == "glyph") "A64" else "A65"}:${model.glyph}"
-    return (if (model.inlineIcon) listOf(
-        "sget-object v9, $glyph",
-        "sget-object v10, $FIXTURE_COLOR->A0A:$FIXTURE_COLOR",
-        "new-instance v3, ${model.icon}",
-        "invoke-direct {v3, v9, v10}, ${model.icon}-><init>(${model.glyph}$FIXTURE_COLOR_TYPE)V",
-        "nop",
-    ) else listOf(
+    return (if (model.inlineIcon) {
+        val type = if (broken == "inline-icon-type") "LX/WrongIcon;" else model.icon
+        val color = if (broken == "inline-icon-color") "$FIXTURE_COLOR->A0B:$FIXTURE_COLOR"
+            else "$FIXTURE_COLOR->A0A:$FIXTURE_COLOR"
+        val constructor = when (broken) {
+            "inline-icon-missing-ctor" -> ""
+            "inline-icon-constructor" -> "invoke-direct {v3, v9}, $type-><init>(${model.glyph})V"
+            else -> "invoke-direct {v3, v9, v10}, $type-><init>(${model.glyph}$FIXTURE_COLOR_TYPE)V"
+        }
+        listOf(
+            "sget-object v9, $glyph",
+            "sget-object v10, $color",
+            "new-instance v3, $type",
+            constructor,
+            "nop",
+        ).filter { it.isNotEmpty() }
+    } else listOf(
         "sget-object v3, $glyph",
-        "invoke-static {v3}, ${model.icon}->A00(${model.glyph})${model.icon}",
+        "invoke-static {v3}, $iconFactory",
         "move-result-object ${if (broken == "icon-origin") "v2" else "v3"}",
     )).joinToString("\n                ")
 }
@@ -85,8 +105,13 @@ private fun qrCodeRow(row: String, rowParams: List<String>) = listOf(
     "invoke-direct/range {v0 .. v8}, $row-><init>(${rowParams.joinToString("")})V",
 ).joinToString("\n                ")
 
-/** All five menu targets plus only the native contracts the new factory needs. [inlineIcon] overrides the mapping's icon shape. */
-internal fun legacyDrawerFixture(profile: ControlProfile, broken: String = "none", inlineIcon: Boolean? = null): LegacyDrawerFixture {
+/**
+ * All five menu targets plus only the native contracts the new factory needs. [inlineIcon] overrides the mapping's icon
+ * shape. [iconFactoryOn] puts the icon factory on "icon", "base" (its parent) or "dispatcher" (an unrelated class);
+ * null keeps the mapping's own.
+ */
+internal fun legacyDrawerFixture(profile: ControlProfile, broken: String = "none", inlineIcon: Boolean? = null,
+    iconFactoryOn: String? = null): LegacyDrawerFixture {
     val ids = profile.hooks.getValue("menu_settings")
     val refresh = ids.single { it.endsWith("()V") }
     val owner = refresh.substringBefore("->")
@@ -98,7 +123,12 @@ internal fun legacyDrawerFixture(profile: ControlProfile, broken: String = "none
         FIXTURE_STRING, FIXTURE_STRING, FIXTURE_STRING, FIXTURE_LIST, "Z")
     val rowNames = (0..7).map { "A0$it" }
     val sectionNames = listOf("A00", "A02", "A01", "A05", "A03", "A04", "A06", "A07")
-    val iconFactory = "${model.icon}->A00(${model.glyph})${model.icon}"
+    val iconFactoryOwner = when (iconFactoryOn ?: if (model.iconFactoryOnBase) "base" else "icon") {
+        "base" -> model.iconBase
+        "dispatcher" -> model.dispatcher
+        else -> model.icon
+    }
+    val iconFactory = model.iconFactory(iconFactoryOwner)
     val menuMethods = ids.map { id ->
         val kind = when {
             id == refresh -> "refresh"
@@ -113,7 +143,7 @@ internal fun legacyDrawerFixture(profile: ControlProfile, broken: String = "none
                 ${if (broken == "add") "throw v0" else "nop"}
                 const/4 v1, 0x0
                 const/4 v2, 0x0
-                ${settingsIcon(model, broken)}
+                ${settingsIcon(model, broken, iconFactory)}
                 sget-object v4, $SETTINGS_KEY->A00:$SETTINGS_KEY
                 const/4 v5, 0x0
                 const/4 v6, 0x0
@@ -232,12 +262,13 @@ internal fun legacyDrawerFixture(profile: ControlProfile, broken: String = "none
             if (broken == "section-store") "A02" else "")), extraFields = sectionNames.mapIndexed { slot, name -> drawerField(model.section, name, sectionParams[slot]) },
             flags = allocatedFlags("section")),
         fixtureClass(SETTINGS_SECTION, listOf(sectionSource)),
-        fixtureClass(model.dispatcher), fixtureClass(model.iconBase), fixtureClass(model.glyph, listOf(glyphInitializer(model.glyph)),
+        fixtureClass(model.dispatcher, listOfNotNull(iconFactoryMethod.takeIf { iconFactoryOwner == model.dispatcher })),
+        fixtureClass(model.iconBase, listOfNotNull(iconFactoryMethod.takeIf { iconFactoryOwner == model.iconBase })), fixtureClass(model.glyph, listOf(glyphInitializer(model.glyph)),
             extraFields = listOf(drawerField(model.glyph, "A64", model.glyph, true), drawerField(model.glyph, "A65", model.glyph, true))),
         fixtureClass(model.enums, extraFields = listOf(drawerField(model.enums, "A1P", FIXTURE_INTEGER, true), drawerField(model.enums, "A01", FIXTURE_INTEGER, true))),
         fixtureClass(FIXTURE_COLOR_TYPE), fixtureClass(FIXTURE_COLOR, interfaces = listOf(FIXTURE_COLOR_TYPE),
             extraFields = listOf(drawerField(FIXTURE_COLOR, "A0A", FIXTURE_COLOR, true))),
-        fixtureClass(model.icon, listOf(iconFactoryMethod) + drawerConstructor(model.icon,
+        fixtureClass(model.icon, listOfNotNull(iconFactoryMethod.takeIf { iconFactoryOwner == model.icon }) + drawerConstructor(model.icon,
             listOf(model.glyph, FIXTURE_COLOR_TYPE), listOf("A00", "A01"), setOf(1)), superclass = model.iconBase,
             extraFields = listOf(drawerField(model.icon, "A00", model.glyph), drawerField(model.icon, "A01", FIXTURE_COLOR_TYPE)),
             flags = allocatedFlags("icon")),

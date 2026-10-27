@@ -44,7 +44,7 @@ final class ReportProblemForm {
 
     /**
      * The titles of the switches that are on, in the screen's order. [rows] are every row the
-     * screen has, on it or not: with categories as pages, or during a search, most of them are
+     * screen has, on it or not: with categories folded, or during a search, most of them are
      * kept off the screen, and they still count.
      */
     static List<String> switchesOn(Iterable<? extends Preference> rows) {

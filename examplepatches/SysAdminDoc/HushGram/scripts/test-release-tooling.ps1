@@ -3022,9 +3022,11 @@ try {
         -Text (Get-Content -LiteralPath (Join-Path $releaseRepo 'gradle/libs.versions.toml') -Raw)
     $releaseReceipt = Join-Path $releaseRepo "release-receipt-$releaseVersionHere.json"
     $declaredBuild = $releaseTarget.PackageVersion
+    # The arm64 build's code comes first; the other ABIs' builds are declared after it (#346).
     $declaredCode = [string]@($releaseTarget.PackageVersionCodes[$declaredBuild])[0]
+    $declaredCodes = @($releaseTarget.PackageVersionCodes[$declaredBuild]) -join ' or '
     Assert-True (@($releaseTarget.PackageVersions).Count -eq 1 -and $declaredCode -match '^\d+$') `
-        ("HushGram declares one Instagram build pinned to one version code, and the cases below are built on that. " +
+        ("HushGram declares one Instagram version, its arm64 build's code first, and the cases below are built on that. " +
             "The catalog declares $(Format-DeclaredBuilds -Target $releaseTarget).")
 
     $coverageFixture = (Get-Content (Join-Path $PSScriptRoot 'patch-coverage-expectations.json') -Raw | ConvertFrom-Json).fixtures |
@@ -3517,7 +3519,7 @@ try {
         'build-release-receipt.ps1 went ahead with a fixture of the newer build only.'
     Assert-True (-not (Test-Path -LiteralPath $javaLog)) 'build-release-receipt.ps1 patched before it found the declared build missing.'
     $variantRefusal = "*No fixture is the declared $($releaseTarget.PackageName) $declaredBuild*" +
-        "$declaredBuild ($declaredCode)*$declaredBuild ($variantCode)*Nothing was patched*"
+        "$declaredBuild ($declaredCodes)*$declaredBuild ($variantCode)*Nothing was patched*"
     Assert-Throws { Invoke-ReceiptBuilder -Fixtures @($variantApkm) } $variantRefusal `
         'build-release-receipt.ps1 took another build of the declared version for the declared one.'
     Assert-True (-not (Test-Path -LiteralPath $javaLog)) 'build-release-receipt.ps1 patched another build of the declared version.'

@@ -15,6 +15,8 @@
 package app.template.patches.shared.misc.gms
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 // Both fingerprints anchor on play-services-basement library code (stable strings + shape), not
 // on app code. They are optional in the builder because an app only contains them when it
@@ -36,7 +38,10 @@ internal const val GOOGLE_SIGNATURE_INVALID_WARNING = " requires Google Play ser
 
 internal object GooglePlayUtilityFingerprint : Fingerprint(
     returnType = "I",
-    strings = listOf(GOOGLE_SIGNATURE_INVALID_WARNING, "com.google.android.gms"),
+    strings = listOf(
+        string(GOOGLE_SIGNATURE_INVALID_WARNING, StringComparisonType.CONTAINS),
+        string("com.google.android.gms", StringComparisonType.CONTAINS),
+    ),
     custom = { method, _ ->
         method.parameterTypes.map { if (it.startsWith("L")) "L" else it.toString() }.sorted() == listOf("I", "L")
     },
@@ -61,6 +66,6 @@ internal fun isServiceCheckParameters(parameterTypes: List<CharSequence>) =
 
 internal object ServiceCheckFingerprint : Fingerprint(
     returnType = "V",
-    strings = listOf(SERVICE_CHECK_MESSAGE),
+    strings = listOf(string(SERVICE_CHECK_MESSAGE, StringComparisonType.CONTAINS)),
     custom = { method, _ -> isServiceCheckParameters(method.parameterTypes) },
 )

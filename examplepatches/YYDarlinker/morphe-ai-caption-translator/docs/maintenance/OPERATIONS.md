@@ -1,6 +1,6 @@
 # 日常维护操作入口
 
-先读 [PROJECT-STATE](../PROJECT-STATE.md) 的当前身份和限制，再按 [开发环境](../DEVELOPMENT.md) 配置**本进程**工具/缓存输入。活动仓库只在 `E:\Projects\DeepSeek morphe-ai-caption-translator`；历史路径不自动回退。当前接受本地产品 **1.5.8 / local-1.5.8-m7b / candidate-02**，公开 **1.5.7**；[首轮最终验收](reviews/M7-FINAL-ACCEPTANCE.md)已接受本地规定范围及用户单设备短使用反馈；这不扩大为全部设备/服务认证。命令使用当前gradle.properties身份，发布/代理设备签名安装另依具体授权。
+先读[PROJECT-STATE](../PROJECT-STATE.md)、[当前文档](../README.md)和[开发环境](../DEVELOPMENT.md)。当前公开1.5.8 / release-1.5.8；正式CI/876项、匿名来源及组合见[发布结果](results/RELEASE-1.5.8-RESULT.md)。活动本地仓库仍在E:，环境只在本进程配置。下列命令按当前gradle.properties身份执行；未来新发布/模型/设备操作按相应用户请求，不自动复用本次授权。
 
 ## 改动和验证
 
@@ -52,3 +52,5 @@
 ## 工作区整理
 
 目录/归档/保留规则见[WORKSPACE](../WORKSPACE.md)，当前资料见[文档入口](../README.md)。2026-10-26仅整理本地，临时文件先内容去重归档再移除；正式/历史包、封存证据、源APK、工具链及Gradle缓存保留。`work/test-temp`是JVM测试临时目录，可再生，不能与用户设备缓存或`work/gradle-home`混为一谈。归档恢复默认只检查，遇到后续冲突整体拒绝；线上更新见[只读计划](GITHUB-UPDATE-PLAN.md)，本手册不授权线上操作。
+
+复现当前公开源码可以使用release-1.5.8身份；以后开始新的开发任务应设置该任务的明确local build ID并验证指定包。不能仅凭源码默认release标记认定某个本地重建包就是已公开资产，正式资产仍以Release下载SHA为准。

@@ -59,6 +59,11 @@ public final class XPostPreview {
     private static volatile int revision;
     private static final java.util.WeakHashMap<TextView, Boolean> BOUND = new java.util.WeakHashMap<>();
     private static final java.util.WeakHashMap<TextView, RowState> ROWS = new java.util.WeakHashMap<>();
+    // Native position restoration inflates a detached copy of a row. Its expansion
+    // state must match the displayed row rather than depend on a TextView instance.
+    private static final android.util.LruCache<String,RowState> ROW_STATES = new android.util.LruCache<String,RowState>(262_144) {
+        @Override protected int sizeOf(String source,RowState state){return Math.max(2048,source.length());}
+    };
     // Native body TextViews call onBound from their overridden setText. Our own
     // preview writes must not enter that binding hook again (191/226/242).
     private static final ThreadLocal<TextView> WRITING = new ThreadLocal<>();
@@ -70,6 +75,7 @@ public final class XPostPreview {
     private static final class Entry {
         Data data;
         long expires;
+        long staleUntil;
         boolean pending;
         long retry;
         int failures;
@@ -85,33 +91,36 @@ public final class XPostPreview {
         final Data[] data;
         final boolean[] expanded;
         final boolean needsFetch;
-        Marker(int revision, String[] ids, Data[] data, boolean[] expanded, boolean needsFetch) {
+        final RowState state;
+        Marker(int revision, String[] ids, Data[] data, boolean[] expanded, boolean needsFetch,RowState state) {
             this.revision = revision;
             this.full = Haiagaru.xPostPreviewFullText();
             this.collapsible = Haiagaru.xPostPreviewCollapsible();
             this.card = Haiagaru.xPostPreviewCard();
             this.actions = Haiagaru.xPostPreviewActions();
             this.ids = ids; this.data = data; this.expanded = expanded; this.needsFetch = needsFetch;
+            this.state=state;
         }
         boolean current(TextView view, boolean fetch) {
             if (revision != XPostPreview.revision || full != Haiagaru.xPostPreviewFullText()
                     || collapsible != Haiagaru.xPostPreviewCollapsible() || card != Haiagaru.xPostPreviewCard()
                     || actions != Haiagaru.xPostPreviewActions()
                     || fetch && needsFetch) return false;
-            RowState state = view == null ? null : ROWS.get(view);
             synchronized (CACHE) {
                 long now = android.os.SystemClock.elapsedRealtime();
                 for (int i = 0; i < ids.length; i++) {
                     boolean open = !collapsible || state != null && state.expanded.contains(ids[i]);
                     if (open != expanded[i]) return false;
-                    if (open && cached(CACHE.get(ids[i]), now) != data[i]) return false;
+                    Entry entry=CACHE.get(ids[i]);
+                    if (open && cached(entry, now) != data[i]) return false;
+                    if (fetch && open && entry!=null && now>=entry.expires && !entry.pending && now>=entry.retry) return false;
                 }
             }
             return true;
         }
     }
     private static Data cached(Entry entry, long now) {
-        return entry == null || now >= entry.expires ? null : entry.data;
+        return entry == null || now>=entry.expires&&now>=entry.staleUntil ? null : entry.data;
     }
     private static String[] ids(CharSequence source) {
         String text = source.toString();
@@ -258,9 +267,13 @@ public final class XPostPreview {
     }
 
     private static RowState rowState(TextView view, CharSequence source) {
-        RowState state=ROWS.get(view);
+        RowState state=view==null?null:ROWS.get(view);
         String key=source.toString();
-        if(state==null || !state.source.equals(key)) { state=new RowState(key); ROWS.put(view,state); }
+        if(state==null || !state.source.equals(key)) {
+            state=ROW_STATES.get(key);
+            if(state==null){state=new RowState(key);ROW_STATES.put(key,state);}
+            if(view!=null)ROWS.put(view,state);
+        }
         return state;
     }
 
@@ -274,7 +287,7 @@ public final class XPostPreview {
         Data[] snapshot = new Data[ids.length];
         boolean[] open = new boolean[ids.length];
         boolean needsFetch = false;
-        RowState state = collapsible && view != null ? rowState(view, source) : null;
+        RowState state = collapsible ? rowState(view, source) : null;
         for (int i = 0; i < ids.length; i++) {
             String id = ids[i];
             boolean expanded=!collapsible || state!=null && state.expanded.contains(id);
@@ -325,7 +338,7 @@ public final class XPostPreview {
             result.setSpan(new RelativeSizeSpan(.9f), start, result.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         if (result != null) {
-            result.setSpan(new Marker(currentRevision, ids, snapshot, open, needsFetch), source.length(), result.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            result.setSpan(new Marker(currentRevision, ids, snapshot, open, needsFetch,state), source.length(), result.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             return result;
         }
         return source;
@@ -353,8 +366,8 @@ public final class XPostPreview {
                 CACHE.put(id, entry);
             }
             if (entry.data != null && android.os.SystemClock.elapsedRealtime() < entry.expires) return entry.data;
-            entry.data = null;
-            if (!entry.pending && android.os.SystemClock.elapsedRealtime() < entry.retry) return null;
+            Data retained=cached(entry,android.os.SystemClock.elapsedRealtime());
+            if (!entry.pending && android.os.SystemClock.elapsedRealtime() < entry.retry) return retained;
             entry.views.removeIf(reference -> reference.get() == null);
             boolean subscribed = false;
             for (WeakReference<TextView> reference : entry.views) if (reference.get() == view) subscribed = true;
@@ -369,8 +382,8 @@ public final class XPostPreview {
                     scheduleRetry(id, entry, 10_000);
                 }
             }
+            return retained;
         }
-        return null;
     }
 
     private static void resolve(String id, Entry entry) {
@@ -387,8 +400,12 @@ public final class XPostPreview {
         List<WeakReference<TextView>> views;
         synchronized (CACHE) {
             if (CACHE.get(id) != entry) return; // Clear/eviction invalidated this in-flight request.
-            entry.data = data;
-            entry.expires = android.os.SystemClock.elapsedRealtime() + 900_000;
+            long now=android.os.SystemClock.elapsedRealtime();
+            if(data!=null){
+                entry.data=data;
+                entry.expires=now+900_000;
+                entry.staleUntil=now+7L*24*60*60*1000;
+            }else if(cached(entry,now)==null)entry.data=null;
             entry.pending = false;
             entry.failures = data == null ? entry.failures + 1 : 0;
             entry.retry = android.os.SystemClock.elapsedRealtime() + (entry.failures <= 2 ? 10_000 : 120_000);

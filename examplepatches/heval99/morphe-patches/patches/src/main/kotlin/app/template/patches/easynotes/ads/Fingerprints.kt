@@ -1,6 +1,8 @@
 package app.template.patches.easynotes.ads
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 /**
  * Matches [notes.easy.android.mynotes.App.isAdFree].
@@ -14,7 +16,7 @@ import app.morphe.patcher.Fingerprint
  * That literal occurs exactly once in the whole APK, so the fingerprint survives R8 renaming.
  */
 object AppIsAdFreeFingerprint : Fingerprint(
-    strings = listOf("adshow_switch"),
+    strings = listOf(string("adshow_switch", StringComparisonType.CONTAINS)),
     returnType = "Z",
     parameters = emptyList(),
 )

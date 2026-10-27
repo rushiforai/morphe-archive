@@ -16,7 +16,7 @@ import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsTestHost;
 
 public final class GboardDeveloperOptionsSettingsFeatureTest {
     @Test
-    public void rootEntryIsDirectAndRequestsOnlyThe1803HeaderId() throws Exception {
+    public void rootEntryIsDirectAndRequestsOnlyThe1853HeaderId() throws Exception {
         Path sourcePath = Path.of(
                 "src/main/java/dev/jason/gboardpatches/extension/developeroptions/"
                         + "GboardDeveloperOptionsSettingsFeature.java");
@@ -50,7 +50,7 @@ public final class GboardDeveloperOptionsSettingsFeatureTest {
                 "openRootEntry", GboardPatchesSettingsContract.FeatureHost.class);
         openRootEntry.invoke(feature, host);
 
-        Assert.assertEquals(0x7f140b4b, openedHeader.get());
+        Assert.assertEquals(0x7f140a6d, openedHeader.get());
         Assert.assertFalse(openedIntermediateFeature.get());
     }
 
@@ -70,7 +70,7 @@ public final class GboardDeveloperOptionsSettingsFeatureTest {
         Assert.assertFalse(activitySource.contains("17.0.10"));
         Assert.assertFalse(activitySource.contains("versionName.startsWith("));
         Assert.assertTrue(activitySource.contains(
-                "18.0.3.954559732-release-arm64-v8a"));
+                "18.5.4.993608717-release-arm64-v8a"));
         Assert.assertTrue(activitySource.contains(
                 "showUnsupportedDeveloperOptionsPackageDialog(currentPackage"));
         Assert.assertTrue(activitySource.contains(
@@ -78,7 +78,7 @@ public final class GboardDeveloperOptionsSettingsFeatureTest {
     }
 
     @Test
-    public void versionSupportRequiresExactFull1803ReleaseName() throws Exception {
+    public void versionSupportRequiresExactFull1853ReleaseName() throws Exception {
         String activityClassName =
                 "dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsActivity";
         Method versionCheck = Class.forName(activityClassName).getDeclaredMethod(
@@ -86,10 +86,11 @@ public final class GboardDeveloperOptionsSettingsFeatureTest {
         versionCheck.setAccessible(true);
 
         Assert.assertEquals(Boolean.TRUE, versionCheck.invoke(
-                null, "18.0.3.954559732-release-arm64-v8a"));
-        Assert.assertEquals(Boolean.FALSE, versionCheck.invoke(null, "18.0.3"));
+                null, "18.5.4.993608717-release-arm64-v8a"));
+        Assert.assertEquals(Boolean.FALSE, versionCheck.invoke(null, "18.5.4"));
+        Assert.assertEquals(Boolean.FALSE, versionCheck.invoke(null, "18.0.3.954559732-release-arm64-v8a"));
         Assert.assertEquals(Boolean.FALSE, versionCheck.invoke(
-                null, "18.0.3.954559732-release-arm64-v8a-debug"));
+                null, "18.5.4.993608717-release-arm64-v8a-debug"));
         Assert.assertEquals(Boolean.FALSE, versionCheck.invoke(
                 null, "18.0.3.932364120-release-arm64-v8a"));
         Assert.assertEquals(Boolean.FALSE, versionCheck.invoke(null, new Object[] { null }));

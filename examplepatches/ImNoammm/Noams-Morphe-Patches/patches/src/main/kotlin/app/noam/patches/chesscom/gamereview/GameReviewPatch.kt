@@ -99,8 +99,9 @@ val gameReviewPatch = bytecodePatch(
     description = "Game Review asks who reviews the game: chess.com, Lichess's servers (online, with your " +
         "Lichess account) or, with the Stockfish analysis patch, Stockfish on your phone (offline, no daily " +
         "limit). The phone and Lichess " +
-        "mark moves the Lichess way (?! inaccuracies, ? mistakes, ?? blunders, accuracy and centipawn " +
-        "loss) in chess.com's own review screen. Finished games only; a live game on screen is never analysed.",
+        "judge moves the Lichess way (?! inaccuracies, ? mistakes, ?? blunders, accuracy and centipawn " +
+        "loss) in chess.com's own review screen, and the phone marks the moves Lichess leaves unmarked " +
+        "Best, Excellent or Good, as chess.com does. Finished games only; a live game on screen is never analysed.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
@@ -125,9 +126,10 @@ val gameReviewPatch = bytecodePatch(
             )
         }
 
-        // A Lichess-style review shows Lichess's move types, plus chess.com's Best: the overview's
-        // other summary rows and the board's other badges are not drawn. The rows stay in the
-        // data, as the overview looks each one up and fails on a missing one.
+        // A Lichess-style review shows Lichess's move types, plus chess.com's Book and Miss and, from
+        // Local Stockfish, Best, Excellent and Good: the overview's other summary rows and the
+        // board's other badges are not drawn. The rows stay in the data, as the overview looks
+        // each one up and fails on a missing one.
         val classification = "Lcom/chess/compengine/AnalysisMoveClassification;"
         val overview = mutableClassDefBy("Lcom/chess/gamereview/ui/GameReviewOverviewScreenKt;")
         val overviewModel = "Lcom/chess/gamereview/ui/u1;"
@@ -250,19 +252,24 @@ val gameReviewPatch = bytecodePatch(
             ExternalLabel("original", repoMethod.getInstruction(0)),
         )
 
-        // The engine-line preview is rebuilt by the app from the eval PV; returning null makes
-        // the review fall back to the (always valid) played/best move. Safe for any review
-        // source, not only the local one, so this is unconditional.
-        GameReviewV2V0DFingerprint.method.addInstructions(
+        // In our own reviews the engine-line preview, which the app rebuilds from the eval PV, is
+        // left out: returning null makes the review fall back to the (always valid) played/best
+        // move. chess.com's own reviews show theirs.
+        GameReviewV2V0DFingerprint.method.addInstructionsWithLabels(
             0,
             """
+                invoke-static { }, $GAME_REVIEW->local()Z
+                move-result v0
+                if-eqz v0, :morphe_continuation
                 const/4 v0, 0
                 return-object v0
             """,
+            ExternalLabel("morphe_continuation", GameReviewV2V0DFingerprint.method.getInstruction(0)),
         )
 
-        // If the app is about to build a review item from data it cannot replay (no played
-        // move / unconvertible suggestion), return a neutral "book" item instead of crashing.
+        // If the app is about to build an item of our own review from data it cannot replay (no
+        // played move / unconvertible suggestion), return a neutral "book" item instead of
+        // crashing. chess.com's own reviews build theirs as before.
         GameReviewV2V0JFingerprint.method.addInstructions(
             0,
             """

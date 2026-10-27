@@ -37,7 +37,7 @@ class InstallBesideMetaAppsPatchTest {
     }
 
     private fun assertActionable(failure: PatchException) {
-        assertContains(failure.message.orEmpty(), "Use an unmodified arm64 Messenger 584.0.0.49.98 APK (version code 346814894)")
+        assertContains(failure.message.orEmpty(), "Use an unmodified Messenger ${MessengerTarget.supportedApks()}")
     }
 
     private fun manifest(): Document {

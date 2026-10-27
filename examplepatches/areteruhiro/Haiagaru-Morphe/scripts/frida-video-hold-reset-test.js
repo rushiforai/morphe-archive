@@ -35,21 +35,25 @@ Java.perform(function () {
         viewer.video.value.start();
         viewer.applyPlaybackSpeed.overload('float').call(viewer,1.25);
         controls.hide();
+        check(viewer.holdSpeedIndicator.value.getVisibility()===8,'2x indicator is hidden before long press');
         const v=viewer.video.value,p=Java.array('int',[0,0]);v.getLocationOnScreen(p);
         x=Number(p[0])+v.getWidth()*.5;y=Number(p[1])+v.getHeight()*.55;
         down=Number(Java.use('android.os.SystemClock').uptimeMillis());event(0);
         setTimeout(()=>main(()=>{
             check(viewer.holdSpeedActive.value&&Math.abs(viewer.playbackSpeed.value-2)<.01,'surface long press holds 2x');
+            check(viewer.holdSpeedIndicator.value.getVisibility()===0,'2x indicator is visible with controls hidden');
             const state=Java.use('android.os.Bundle').$new();viewer.onSaveInstanceState(state);
             check(Math.abs(state.getFloat('playbackSpeed')-1.25)<.01,'temporary 2x is not saved');
             event(1);
             check(!viewer.holdSpeedActive.value&&Math.abs(viewer.playbackSpeed.value-1.25)<.01,'release restores previous speed');
+            check(viewer.holdSpeedIndicator.value.getVisibility()===8,'release hides 2x indicator');
             viewer.speedButton.value.performLongClick();
             check(Math.abs(viewer.playbackSpeed.value-1)<.01,'speed button long press resets to 1x');
             viewer.video.value.pause();viewer.applyPlaybackSpeed.overload('float').call(viewer,1.5);
             check(!viewer.video.value.isPlaying(),'speed change preserves paused state');
             viewer.beginHoldSpeed();viewer.touchControls.value.cancel();
             check(!viewer.holdSpeedActive.value&&Math.abs(viewer.playbackSpeed.value-1.5)<.01,'cancellation restores base speed');
+            check(viewer.holdSpeedIndicator.value.getVisibility()===8,'cancellation hides 2x indicator');
             console.log('VIDEO_HOLD_RESET_COMPLETE '+count);restore();viewer.finish();
         }),800);
     }),1000);

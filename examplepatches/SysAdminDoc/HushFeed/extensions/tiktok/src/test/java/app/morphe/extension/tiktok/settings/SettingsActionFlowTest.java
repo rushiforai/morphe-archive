@@ -16,6 +16,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.preference.HookStatusPreference;
 import app.morphe.extension.tiktok.settings.preference.MorpheTikTokAboutPreference;
 import app.morphe.extension.tiktok.settings.preference.RecentSearchPreference;
+import app.morphe.extension.tiktok.settings.preference.SettingsMenuPreference;
+import app.morphe.extension.tiktok.settings.preference.SettingsSearchEntryPreference;
 import app.morphe.extension.tiktok.settings.preference.SettingsSearchInputPreference;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import java.lang.reflect.Field;
@@ -108,10 +110,11 @@ public class SettingsActionFlowTest {
         assertEquals(empty, titles(fragment));
     }
 
-    @Test public void searchQuerySurvivesOpeningAResultAndReturning() {
+    @Test public void locatingAResultClosesInlineSearchAndItsRecentQueryRunsAgain() {
         Bundle arguments = new Bundle();
         arguments.putBoolean("morphe_settings_search", true);
         TikTokPreferenceFragment fragment = attach(arguments);
+        SettingsSearchInputPreference originalPreference = row(fragment, SettingsSearchInputPreference.class);
         EditText input = fragment.getView().findViewWithTag("settings_search_input");
         assertNotNull("the search input was not attached", input);
 
@@ -121,17 +124,107 @@ public class SettingsActionFlowTest {
 
         clickTitle(fragment, "Default playback speed");
         fragment.getFragmentManager().executePendingTransactions();
-        idle();
-        assertNull("the search view stayed attached behind its result", fragment.getView());
+        settle(fragment);
+        assertSame(fragment, fragment.getFragmentManager().findFragmentById(android.R.id.content));
+        assertEquals(0, fragment.getFragmentManager().getBackStackEntryCount());
+        assertTrue(((SettingsMenuPreference) fragment.findPreference("section_playback")).isExpanded());
+        Preference entry = fragment.findPreference("action_search_settings");
+        assertTrue("locating the result left inline search open", entry instanceof SettingsSearchEntryPreference);
 
         assertEquals("opening a result keeps its search", List.of("speed"), SettingsSearchHistory.recent());
 
-        assertTrue(fragment.getFragmentManager().popBackStackImmediate());
-        idle();
+        assertTrue(entry.getOnPreferenceClickListener().onPreferenceClick(entry));
+        settle(fragment);
+        SettingsSearchInputPreference reopenedPreference = row(fragment, SettingsSearchInputPreference.class);
+        assertNotSame(originalPreference, reopenedPreference);
         EditText restored = fragment.getView().findViewWithTag("settings_search_input");
         assertNotNull("the search input was not rebuilt", restored);
+        assertTrue(restored.isShown());
+        assertTrue("the reopened search field did not receive focus", restored.hasFocus());
+        assertEquals("", restored.getText().toString());
+        assertEquals("", reopenedPreference.getQuery());
+        assertEquals(List.of("speed"), recents(fragment));
+        assertTrue(recentRow(fragment, "speed").performClick());
+        settle(fragment);
+        assertSame(restored, fragment.getView().findViewWithTag("settings_search_input"));
         assertEquals("speed", restored.getText().toString());
+        assertEquals("speed", reopenedPreference.getQuery());
+        assertEquals(5, restored.getSelectionStart());
+        assertEquals(5, restored.getSelectionEnd());
         assertTrue(titles(fragment).contains("Default playback speed"));
+
+        restored.setText("comment");
+        restored.setSelection(3);
+        settle(fragment);
+        assertSame(restored, fragment.getView().findViewWithTag("settings_search_input"));
+        assertTrue(restored.hasFocus());
+        assertEquals("comment", restored.getText().toString());
+        assertEquals("comment", reopenedPreference.getQuery());
+        assertEquals("the reopened field still belongs to the discarded preference",
+                "speed", originalPreference.getQuery());
+        assertEquals(3, restored.getSelectionStart());
+        assertEquals(3, restored.getSelectionEnd());
+        assertTrue(titles(fragment).stream().anyMatch(title -> title.toLowerCase().contains("sort")));
+        assertSame(fragment, fragment.getFragmentManager().findFragmentById(android.R.id.content));
+        assertEquals(0, fragment.getFragmentManager().getBackStackEntryCount());
+    }
+
+    @Test public void searchOpenedFromAnExpandedLowerCategoryKeepsItsVisibleInputAcrossResultUpdates() {
+        TikTokPreferenceFragment fragment = attach(new Bundle());
+        SettingsMenuPreference backup = (SettingsMenuPreference) fragment.findPreference("section_backup");
+        assertNotNull(backup);
+        assertTrue(backup.getOnPreferenceClickListener().onPreferenceClick(backup));
+        settle(fragment);
+        assertTrue(backup.isExpanded());
+
+        ListView list = fragment.getView().findViewById(android.R.id.list);
+        int backupPosition = -1;
+        for (int position = 0; position < list.getCount(); position++) {
+            if (list.getItemAtPosition(position) == backup) backupPosition = position;
+        }
+        assertTrue(backupPosition > 0);
+        list.setSelection(backupPosition);
+        settle(fragment);
+        assertTrue("the lower category was never scrolled into view", list.getFirstVisiblePosition() > 0);
+
+        Preference entry = fragment.findPreference("action_search_settings");
+        assertTrue(entry instanceof SettingsSearchEntryPreference);
+        assertTrue(entry.getOnPreferenceClickListener().onPreferenceClick(entry));
+        settle(fragment);
+        EditText input = fragment.getView().findViewWithTag("settings_search_input");
+        assertNotNull("opening search from the lower category did not reveal its field; visible "
+                + list.getFirstVisiblePosition() + ".." + list.getLastVisiblePosition() + " of " + list.getCount(), input);
+        assertTrue(input.isShown());
+        assertTrue("opening search did not focus the visible field; focusable=" + input.isFocusable()
+                + " enabled=" + input.isEnabled() + " touch=" + input.isInTouchMode()
+                + " descendantMode=" + list.getDescendantFocusability(), input.hasFocus());
+        assertFalse(backup.isExpanded());
+
+        for (String query : new String[]{"speed", "comment", "zzq_no_such_setting_zzq", ""}) {
+            input.setText(query);
+            int cursor = query.length() / 2;
+            input.setSelection(cursor);
+            settle(fragment);
+            EditText visible = fragment.getView().findViewWithTag("settings_search_input");
+            assertSame("updating results replaced the visible search field", input, visible);
+            assertTrue(visible.isShown());
+            assertTrue("updating results lost search focus", visible.hasFocus());
+            assertEquals("updating results moved the cursor", cursor, visible.getSelectionStart());
+            assertEquals(cursor, visible.getSelectionEnd());
+            assertEquals(query, visible.getText().toString());
+            assertEquals(query, row(fragment, SettingsSearchInputPreference.class).getQuery());
+            if ("speed".equals(query)) assertTrue(titles(fragment).contains("Default playback speed"));
+            else if ("comment".equals(query)) {
+                assertTrue(titles(fragment).stream().anyMatch(title -> title.toLowerCase().contains("sort")));
+            } else if (query.isEmpty()) assertTrue(titles(fragment).contains("Start typing"));
+            else assertTrue(titles(fragment).contains("No matching settings"));
+        }
+
+        assertSame(fragment, fragment.getFragmentManager().findFragmentById(android.R.id.content));
+        assertEquals(0, fragment.getFragmentManager().getBackStackEntryCount());
+        assertTrue(fragment.closeInlineSearch());
+        settle(fragment);
+        assertTrue("closing search lost the expanded lower category", backup.isExpanded());
     }
 
     /** #232: the empty box lists earlier searches, and each one runs again or goes away. */
@@ -267,15 +360,23 @@ public class SettingsActionFlowTest {
         activity.getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
         activity.getFragmentManager().executePendingTransactions();
         controller.visible();
-        View decor = activity.getWindow().getDecorView();
-        decor.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(1920, View.MeasureSpec.EXACTLY));
-        decor.layout(0, 0, 1080, 1920);
-        idle();
+        settle(fragment);
         return fragment;
     }
 
     private static void idle() { Shadows.shadowOf(Looper.getMainLooper()).idle(); }
+
+    private static void settle(TikTokPreferenceFragment fragment) {
+        View decor = fragment.getActivity().getWindow().getDecorView();
+        // Scrolling and focus are posted across traversal and animation frames.
+        for (int frame = 0; frame < 4; frame++) {
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(16));
+            decor.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(1920, View.MeasureSpec.EXACTLY));
+            decor.layout(0, 0, 1080, 1920);
+        }
+        idle();
+    }
 
     private static List<String> titles(TikTokPreferenceFragment fragment) {
         List<String> result = new ArrayList<>();

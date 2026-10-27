@@ -16,7 +16,7 @@ final class HaiagaruBackupSecrets {
             + "ローカルZIP自体は暗号化されません。共有・公開せず安全に保管してください。"
             + "MEGAセッションも選択すると含まれます。端末依存データは別項目・初期OFFです。"
             + "Android Keystoreの秘密鍵は取得できず、別端末への移行では再ログインが必要な場合があります。"
-            + "WebViewの通常Cookieを保存しますが、分離Cookie・端末認証・サイト側で失効したセッションは復元できません。";
+            + "Haiagaruの板別Cookieも対象です。WebViewの通常Cookieを保存しますが、WebViewの分離Cookie・端末認証・サイト側で失効したセッションは復元できません。";
     private static final String IDENTITY = "haiagaru.backup.identity";
     private static final String PRIVATE = "haiagaru.mega-sync.private";
 
@@ -97,7 +97,12 @@ final class HaiagaruBackupSecrets {
             String name = names.next();
             if (!allowed(name)) throw new IOException("未対応の認証設定領域です");
             String target = name.equals(source + "_preferences") ? context.getPackageName() + "_preferences" : name;
-            decode(context.getSharedPreferences(target, 0), preferences.getJSONObject(name), merge);
+            if(name.equals("haiagaru.board-cookies")){
+                synchronized(BoardCookies.class){
+                    decode(context.getSharedPreferences(target, 0), preferences.getJSONObject(name), merge);
+                    BoardCookies.restored();
+                }
+            }else decode(context.getSharedPreferences(target, 0), preferences.getJSONObject(name), merge);
         }
         if (auth.has("megaSession") && (!merge || !HaiagaruMegaSession.hasSession(context))) {
             if (Build.VERSION.SDK_INT < 24) throw new IOException("MEGAセッションの復元にはAndroid 7以降が必要です");

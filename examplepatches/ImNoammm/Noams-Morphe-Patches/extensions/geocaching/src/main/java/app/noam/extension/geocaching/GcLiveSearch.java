@@ -86,6 +86,11 @@ public final class GcLiveSearch {
         }
     }
 
+    /** Drops the reused map result, e.g. after a log changed a cache's found status. */
+    static void forgetRecent() {
+        recentModel = null;
+    }
+
     private static void remember(Object searchParams, double[] origin, Object model) {
         recentKey = searchKey(searchParams);
         recentOrigin = origin;
@@ -357,8 +362,14 @@ public final class GcLiveSearch {
             double lat = posted != null ? posted.optDouble("latitude", 0) : 0;
             double lon = posted != null ? posted.optDouble("longitude", 0) : 0;
 
-            Object callerSpecific = newInstance(PKG + ".LiteGeocache$GeocacheUserDataSummary",
-                new Class<?>[]{boolean.class, boolean.class}, false, true);
+            // Your found date (from the app's own finds list) makes found caches show as found.
+            String found = GcUserStats.foundDate(code);
+            Object callerSpecific = found == null
+                ? newInstance(PKG + ".LiteGeocache$GeocacheUserDataSummary",
+                    new Class<?>[]{boolean.class, boolean.class}, false, true)
+                : newInstance(PKG + ".LiteGeocache$GeocacheUserDataSummary",
+                    new Class<?>[]{int.class, Class.forName(PKG + ".Coordinate"), String.class, String.class, boolean.class, boolean.class},
+                    25, null, found, null, false, true);
             Object status = newInstance(PKG + ".LiteGeocache$GeocacheStatus",
                 new Class<?>[]{boolean.class, boolean.class, boolean.class, boolean.class, boolean.class, boolean.class},
                 false, false, premiumOnly, true, true, false);

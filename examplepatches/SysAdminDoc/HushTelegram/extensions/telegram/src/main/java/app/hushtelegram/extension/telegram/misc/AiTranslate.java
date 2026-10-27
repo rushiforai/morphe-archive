@@ -164,7 +164,9 @@ public final class AiTranslate {
     /** The target language in words, with its code, since a model reads "German (de)" better than "de". */
     static String languageName(String tag) {
         String name = Locale.forLanguageTag(tag).getDisplayLanguage(Locale.ENGLISH);
-        return name.isEmpty() || name.equalsIgnoreCase(tag) ? tag : name + " (" + tag + ")";
+        // Google's name stands in for one the phone doesn't know, like Krio or Mizo.
+        if (name.isEmpty() || name.equalsIgnoreCase(tag)) name = TranslateTarget.englishName(tag);
+        return name == null ? tag : name + " (" + tag + ")";
     }
 
     static String instructions(String target) {

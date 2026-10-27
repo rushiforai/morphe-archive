@@ -47,6 +47,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
 internal const val KEEP_DELETED = "$EXTENSION_PACKAGE/misc/KeepDeleted;"
+internal const val KEEP_EDITS = "$EXTENSION_PACKAGE/misc/KeepEdits;"
+internal const val USER_EDIT = "Lorg/telegram/tgnet/tl/TL_update\$TL_updateEditMessage;"
+internal const val CHANNEL_EDIT = "Lorg/telegram/tgnet/tl/TL_update\$TL_updateEditChannelMessage;"
 internal const val MESSAGES_CONTROLLER = "Lorg/telegram/messenger/MessagesController;"
 internal const val USER_DELETE = "Lorg/telegram/tgnet/tl/TL_update\$TL_updateDeleteMessages;"
 internal const val CHANNEL_DELETE = "Lorg/telegram/tgnet/tl/TL_update\$TL_updateDeleteChannelMessages;"
@@ -94,15 +97,25 @@ val keepDeletedPatch = bytecodePatch(
         } else {
             patchLog.warning("Keep deleted messages: ${plan.redMissing}. The patch goes on with the deleted label in the time's own color.")
         }
+        if (plan.editsMissing == null) {
+            enableCapability("keepEditHistory")
+        } else {
+            patchLog.warning("Keep deleted messages: ${plan.editsMissing}. The patch goes on without Keep edit history.")
+        }
         enableStatus("keepDeleted")
     }
+}
+
+/** A hook in the update loop, where [insertAt] is the instruction it goes in front of. */
+internal sealed interface LoopHook {
+    val insertAt: Int
 }
 
 /** One of the two places the update loop collects deleted message IDs. */
 internal class DeleteBranch(
     val hook: String,
     /** The instruction the hook goes in front of, just after the update is cast to its own type. */
-    val insertAt: Int,
+    override val insertAt: Int,
     val update: Int,
     /** The first instruction after the IDs are added, which the loop carries on from. */
     val tailStart: Int,
@@ -111,7 +124,17 @@ internal class DeleteBranch(
     val dest: Int,
     /** Two registers in a row that nothing reads from here on. */
     val scratch: Int,
-)
+) : LoopHook
+
+/** One of the two edit updates the update loop reads, with the hook right after its new message is read. */
+internal class EditHook(
+    val type: String,
+    override val insertAt: Int,
+    /** The register holding the edited message. */
+    val message: Int,
+    /** Two registers in a row that nothing reads from here on. */
+    val scratch: Int,
+) : LoopHook
 
 internal class KeepDeletedPlan(
     val updates: MutableMethod,
@@ -125,10 +148,26 @@ internal class KeepDeletedPlan(
     /** Where the label goes red, or null with [redMissing] saying why this build can't. */
     val red: RedLabel?,
     val redMissing: String?,
+    /** Where the update loop hands each edit over, empty with [editsMissing] saying why this build can't. */
+    val edits: List<EditHook>,
+    val editsMissing: String?,
 ) {
     /** Each hook goes in the method it was found for, the later one in the update loop first. */
     fun applyTo(updates: MutableMethod, push: MutableMethod, measure: MutableMethod) {
-        for (branch in branches.sortedByDescending { it.insertAt }) {
+        for (hook in (branches + edits).sortedByDescending { it.insertAt }) {
+            if (hook is EditHook) {
+                val a = hook.scratch
+                updates.addInstructionsAtControlFlowLabel(
+                    hook.insertAt,
+                    """
+                        move-object/from16 v$a, v${hook.message}
+                        move-object/from16 v${a + 1}, p0
+                        invoke-static/range {v$a .. v${a + 1}}, $KEEP_EDITS->edited($OBJECT$OBJECT)V
+                    """.trimIndent(),
+                )
+                continue
+            }
+            val branch = hook as DeleteBranch
             val a = branch.scratch
             updates.addInstructionsAtControlFlowLabel(
                 branch.insertAt,
@@ -185,11 +224,68 @@ internal class RedReturn(val index: Int, val bubble: Int, val text: Int)
 /** The bubble's time text field, and each return of the measuring the label is painted in front of. */
 internal class RedLabel(val field: String, val returns: List<RedReturn>)
 
-/** Why this build's label can't go red. */
-private class Unpainted(why: String) : Exception(why)
+/** Why this build can't have a part the patch goes on without: the red label, or the edit history. */
+private class Unbuilt(why: String) : Exception(why)
 
 private fun need(ok: Boolean, why: String) {
-    if (!ok) throw Unpainted(why)
+    if (!ok) throw Unbuilt(why)
+}
+
+/** The edited message's fields Keep edit history reads by name. */
+private val EDIT_FIELDS = listOf(
+    Triple(TL_MESSAGE, "id", "I"),
+    Triple(TL_MESSAGE, "message", "Ljava/lang/String;"),
+    Triple(TL_MESSAGE, "edit_date", "I"),
+    Triple(TL_MESSAGE, "dialog_id", "J"),
+)
+
+/**
+ * The update loop casts each edit update to its own type and reads the new message right away.
+ * The hook goes after that read, so the extension gets the message before Telegram stores it. A
+ * build where that can't be found keeps the rest of the patch, without the edit history.
+ *
+ * @return the two hooks, and null; or nothing and why there's none
+ */
+internal fun BytecodePatchContext.resolveEdits(updates: MutableMethod, branches: List<DeleteBranch>): Pair<List<EditHook>, String?> = try {
+    Pair(editHooks(updates, branches), null)
+} catch (missing: Unbuilt) {
+    Pair(emptyList(), missing.message)
+} catch (missing: PatchException) {
+    Pair(emptyList(), missing.message)
+}
+
+private fun BytecodePatchContext.editHooks(updates: MutableMethod, branches: List<DeleteBranch>): List<EditHook> {
+    for ((owner, name, type) in EDIT_FIELDS) {
+        val cls = classDefByOrNull(owner)
+        need(cls != null && AccessFlags.PUBLIC.isSet(cls.accessFlags) && cls.fields.any {
+            it.name == name && it.type == type && AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags)
+        }, "$owner->$name is no longer a public field Keep edit history can read")
+    }
+    need(classDefByOrNull(MESSAGE_OBJECT)?.methods?.any {
+        it.name == "getDialogId" && it.parameterTypes.joinToString("") == TL_MESSAGE && it.returnType == "J" &&
+            AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags)
+    } == true, "MessageObject no longer finds a message's chat for Keep edit history")
+    val body = updates.controlBody()
+    val flow = ControlFlow.of(updates)
+    val hooks = listOf(USER_EDIT, CHANNEL_EDIT).map { type ->
+        val field = "$type->message:$TL_MESSAGE"
+        val reads = body.indices.filter { body[it].opcode == Opcode.IGET_OBJECT && body[it].controlRef() == field }
+        need(reads.size == 1, "the update loop no longer reads $type's message once")
+        val iget = reads.single()
+        need(iget > 0 && body[iget - 1].opcode == Opcode.CHECK_CAST && body[iget - 1].controlRef() == type,
+            "$type isn't cast right before its message is read")
+        val insertAt = iget + 1
+        need(insertAt < body.size && flow.normal.indices.none { it != iget && insertAt in flow.normal[it] },
+            "something jumps past the read of $type's message")
+        need(branches.none { insertAt in it.insertAt..it.tailStart }, "$type's message is read inside a deletion branch")
+        val live = updates.liveAcrossInjection(insertAt)
+        val free = (0 until updates.localRegisterCount()).filter { it !in live }
+        val scratch = free.firstOrNull { it + 1 in free && it + 1 <= 255 }
+        need(scratch != null, "the update loop has no two registers in a row free after $type's message is read")
+        EditHook(type, insertAt, (body[iget] as TwoRegisterInstruction).registerA, scratch!!)
+    }
+    updates.requireThisIntact(PATCH, hooks.map { it.insertAt })
+    return hooks
 }
 
 /**
@@ -203,7 +299,7 @@ private fun need(ok: Boolean, why: String) {
  */
 internal fun resolveRedLabel(bubble: ClassDef, measure: Method): Pair<RedLabel?, String?> = try {
     Pair(redLabel(bubble, measure), null)
-} catch (missing: Unpainted) {
+} catch (missing: Unbuilt) {
     Pair(null, missing.message)
 } catch (missing: PatchException) {
     Pair(null, missing.message)
@@ -349,6 +445,8 @@ internal fun BytecodePatchContext.resolveKeepDeleted(): KeepDeletedPlan {
     controlHook(KEEP_DELETED, "labelled", listOf("Ljava/lang/String;"), "Ljava/lang/String;")
     controlHook(KEEP_DELETED, "painted", listOf(CHAR_SEQUENCE), CHAR_SEQUENCE)
     requireStatusMethod("redDeletedLabel")
+    controlHook(KEEP_EDITS, "edited", listOf(OBJECT, OBJECT), "V")
+    requireStatusMethod("keepEditHistory")
     requireTelegramNames()
 
     val controller = mutableClassDefByOrNull(MESSAGES_CONTROLLER)
@@ -366,6 +464,7 @@ internal fun BytecodePatchContext.resolveKeepDeleted(): KeepDeletedPlan {
     )
     updates.requireThisIntact(PATCH, branches.map { it.insertAt })
     requireNotificationCleanup(updates)
+    val (edits, editsMissing) = resolveEdits(updates, branches)
 
     // The push deletion, whose own entry the extension answers first.
     val push = controller.methods.filter { m ->
@@ -402,7 +501,8 @@ internal fun BytecodePatchContext.resolveKeepDeleted(): KeepDeletedPlan {
     controlShape(ControlFlow.of(measure).normal.none { 0 in it }, "something jumps back to the start of the message time measuring")
     val layout = requireRedraw(bubble, measure)
     val (red, redMissing) = resolveRedLabel(bubble, measure)
-    return KeepDeletedPlan(updates, branches, push, pushResult, measure, measure.parameterRegisterNumber(0), layout, red, redMissing)
+    return KeepDeletedPlan(updates, branches, push, pushResult, measure, measure.parameterRegisterNumber(0), layout, red, redMissing,
+        edits, editsMissing)
 }
 
 /**

@@ -12,7 +12,9 @@ import app.morphe.patches.telegram.misc.commerce.COMMERCE
 import app.morphe.patches.telegram.misc.commerce.hideCommercePatch
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
+import app.morphe.patches.telegram.misc.extension.parameterRegisterNumber
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
+import app.morphe.patches.telegram.misc.localcontrols.controlField
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
@@ -38,7 +40,10 @@ class HideFeaturesInviteFixtureTest {
                 m.controlBody().any { it.controlRef() == FEATURES_LABEL || it.controlRef() == INVITE_ICON }
             }
             val bases = FixtureDex.classes(build, anchors.mapNotNull { it.superclass }.toSet()).values
-            val hosts = (anchors + bases).distinctBy { it.type }
+            // Settings' list view and its adapter, both reached from Settings' onResume.
+            val listTypes = anchors.flatMap { it.methods }.filter { it.name == "onResume" }.flatMap { it.controlBody() }
+                .mapNotNull { it.controlField() }.flatMap { listOf(it.definingClass, it.type) }.filter { it.startsWith("L") }.toSet()
+            val hosts = (anchors + bases + FixtureDex.classes(build, listTypes).values).distinctBy { it.type }
             // Either patch may run first; they never touch the same instruction.
             for (commerceFirst in listOf(false, true)) {
                 val context = PatchContexts.of(ExtensionDex.classes() + hosts)
@@ -58,7 +63,13 @@ class HideFeaturesInviteFixtureTest {
                 assertEquals("$name: both Wallet gates", 4, gates(site.settings.controlBody()).size)
                 val append = site.append - gates(old[0].controlBody()).count { it < site.append }
                 val settingsBefore = withoutGates(old[0].controlBody())
-                val settingsAfter = withoutGates(site.settings.controlBody())
+                // The one added instruction: the builder hands its Settings screen over before anything else.
+                val shown = site.settings.controlBody().first()
+                assertEquals("$name: Settings shown first", LIST_SHOWN, shown.controlRef())
+                assertEquals(Opcode.INVOKE_STATIC_RANGE, shown.opcode)
+                assertEquals(listOf(site.settings.parameterRegisterNumber(0)), shown.namedRegisters())
+                assertEquals("$name: listShown once", 1, site.settings.controlBody().count { it.controlRef() == LIST_SHOWN })
+                val settingsAfter = withoutGates(site.settings.controlBody()).drop(1)
                 assertEquals("$name: replaced in place", settingsBefore.size, settingsAfter.size)
                 assertEquals(APPEND, settingsBefore[append].controlRef())
                 assertEquals(Opcode.INVOKE_STATIC, settingsAfter[append].opcode)
@@ -84,6 +95,15 @@ class HideFeaturesInviteFixtureTest {
                     assertTrue("$name: reads $field", stub.any { it.controlRef() == field })
                     assertTrue(field.startsWith("${site.adapter}->"))
                 }
+                val rebuild = context.mutableClassDefBy(FEATURES_INVITE).methods.single { it.name == "rebuildList" }.controlBody()
+                assertTrue("$name: only Settings", rebuild.first().opcode == Opcode.INSTANCE_OF && rebuild.first().controlRef() == site.settingsType)
+                assertEquals("$name: list view, then its adapter", listOf(site.listField, site.adapterField),
+                    rebuild.filter { it.opcode == Opcode.IGET_OBJECT }.map { it.controlRef() })
+                assertTrue(site.listField.startsWith("${site.settingsType}->"))
+                assertEquals("$name: the adapter's update, asked to animate", listOf(site.update),
+                    rebuild.filter { it.opcode == Opcode.INVOKE_VIRTUAL }.map { it.controlRef() })
+                assertTrue("$name: an update Settings itself makes", hosts.single { it.type == site.settingsType }.methods
+                    .any { m -> m.controlBody().any { it.opcode == Opcode.INVOKE_VIRTUAL && it.controlRef() == site.update } })
                 val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideFeaturesAndInvite" }.controlBody()
                 assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
             }

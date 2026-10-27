@@ -68,6 +68,6 @@ internal object LeagueSummaryParamsToStringFingerprint : Fingerprint(
     name = "toString",
     returnType = "Ljava/lang/String;",
     parameters = listOf(),
-    strings = listOf(", isAgeVerified="),
+    strings = listOf(string(", isAgeVerified=", StringComparisonType.CONTAINS)),
     filters = listOf(string("LeagueDetailSummaryScreenParams(tournamentId=", StringComparisonType.STARTS_WITH)),
 )

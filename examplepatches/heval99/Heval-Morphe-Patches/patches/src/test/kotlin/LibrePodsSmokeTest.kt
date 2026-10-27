@@ -38,15 +38,14 @@ class LibrePodsSmokeTest {
     @Test
     fun `Enable Premium patch applies and forces premium flag in PlayBillingProvider`() {
         val root = repoRoot()
+        // 1.0.4-play (versionCode 100040301), the COMPATIBILITY_LIBREPODS target.
         val apk = File(root, "apks/librepods/base.apk")
 
         // The APK lives in the gitignored apks/ directory. Skip rather than fail when it is
         // absent, so CI stays green; locally it is present and the test really runs.
         assumeTrue(apk.exists(), "skipping: base.apk not present at ${apk.path}")
 
-        val bundle = File(root, "patches/build/libs").walkTopDown()
-            .filter { it.isFile && it.extension == "mpp" && !it.name.contains("sources") && !it.name.contains("javadoc") }
-            .maxByOrNull { it.lastModified() } ?: error("no patch bundle (.mpp) found in patches/build/libs")
+        val bundle = newestPatchBundle(root)
         assertTrue(bundle.exists(), "patch bundle missing at ${bundle.path}")
 
         val all: Set<Patch<*>> = loadPatchesFromJar(setOf(bundle))
@@ -56,12 +55,8 @@ class LibrePodsSmokeTest {
         }.toList()
         assertTrue(target.size == 1, "expected exactly one Enable Premium patch in bundle")
 
-        val config = PatcherConfig(
-            apk,
-            workDir.resolve("out"),
-            PKG,
-            "1.0.1-rc1-play",
-        )
+        // validate = true: every match()/matchOrNull() must match at most one method.
+        val config = PatcherConfig(apk, workDir.resolve("out"), validate = true)
 
         // Patcher.invoke() only executes the patches. Patcher.get() is what finalizes the
         // bytecode context and emits the patched dex files - without it you just re-read

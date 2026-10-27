@@ -212,6 +212,7 @@ final class CrashGuard {
         private final Thread.UncaughtExceptionHandler delegate;
         CrashMark(Thread.UncaughtExceptionHandler delegate) { this.delegate = delegate; }
         @Override public void uncaughtException(Thread thread, Throwable throwable) {
+            try { LastCrash.record(filesDir, throwable, System.currentTimeMillis()); } catch (Throwable ignored) { }
             try { markCrash(); } catch (Throwable ignored) { }
             if (delegate != null) delegate.uncaughtException(thread, throwable);
         }

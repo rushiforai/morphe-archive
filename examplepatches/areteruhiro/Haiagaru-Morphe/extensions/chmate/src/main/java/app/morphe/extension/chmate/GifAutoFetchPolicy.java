@@ -6,13 +6,13 @@ import java.util.regex.Pattern;
 
 /** GIF files have an independent policy; MP4-backed animations remain video links. */
 final class GifAutoFetchPolicy {
-    private static final Pattern URL = Pattern.compile("https?://[^\\s<>\"'()（）]+", Pattern.CASE_INSENSITIVE);
     static final String KEY = "urlGifFetchMode";
     // UI order: image + GIF, image, GIF, neither. Legacy native GIF attachments = GIF only.
     static int mode(int saved, boolean images) { return saved >= 0 && saved <= 3 ? saved : images ? 2 : 3; }
     static boolean image(int mode) { return mode == 0 || mode == 1; }
     static boolean gif(int mode) { return mode == 0 || mode == 2; }
     static boolean supported(String value) {
+        value=PreviewUrls.normalize(value);
         if (value == null) return false;
         try {
             URI uri = URI.create(value);
@@ -24,10 +24,9 @@ final class GifAutoFetchPolicy {
     static String[] extract(String body) {
         LinkedHashSet<String> result = new LinkedHashSet<>();
         if (body != null) {
-            java.util.regex.Matcher urls = URL.matcher(body);
-            while (urls.find() && result.size() < 8) {
-                String value = urls.group().replace("&amp;", "&");
+            for(String value:PreviewUrls.extract(body,32)){
                 if (supported(value)) result.add(value);
+                if(result.size()>=8)break;
             }
         }
         return result.toArray(new String[0]);

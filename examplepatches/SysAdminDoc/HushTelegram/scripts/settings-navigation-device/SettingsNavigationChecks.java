@@ -250,18 +250,24 @@ public final class SettingsNavigationChecks extends Instrumentation {
     }
 
     private void nestedBack() throws Exception {
-        visibleClick("More settings");
-        visible("About");
-        Position more = position();
         visibleClick("About");
-        require("About".equals(route()), "Nested About page did not open");
+        require("".equals(route()) && expanded("About"), "The About section did not open in place");
+        visible("Changed switches");
+        Position home = position();
+        visibleClick("Changed switches");
+        require("changed".equals(route()), "The Changed switches page did not open");
         if ("gesture".equals(mode)) cancelGesture();
         back();
-        require("more".equals(route()), "System Back did not return nested page to More");
-        samePosition(more, position(), "Nested system Back lost the More scroll anchor");
-        back();
-        require("".equals(route()) && dialog() != null, "System Back did not return More to home");
+        require("".equals(route()) && dialog() != null, "System Back did not return Changed switches to home");
+        require(expanded("About"), "System Back closed the open About section");
+        samePosition(home, position(), "System Back from Changed switches lost the home scroll anchor");
         checks.put("systemBackNested", true).put("nestedScrollRetained", true);
+    }
+
+    private boolean expanded(String section) throws Exception {
+        java.lang.reflect.Method open = navigation().getClass().getDeclaredMethod("isExpanded", String.class);
+        open.setAccessible(true);
+        return (Boolean) open.invoke(navigation(), section);
     }
 
     private void searchBackAndRotation() throws Exception {

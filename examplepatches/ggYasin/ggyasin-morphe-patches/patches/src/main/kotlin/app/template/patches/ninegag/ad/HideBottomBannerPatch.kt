@@ -7,6 +7,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import app.template.patches.ninegag.shared.COMPATIBILITY_NINEGAG
@@ -24,17 +25,21 @@ val hideBottomBannerPatch = bytecodePatch {
     compatibleWith(COMPATIBILITY_NINEGAG)
 
     execute {
+        val latest = packageMetadata.versionName == "8.26.1"
+        val bannerClass = if (latest) "Lg3b;" else "Lo02;"
+        val bannerMethod = if (latest) "f" else "i"
+        val callbackClass = if (latest) "Li04;" else "Lmc;"
         val candidates = mutableListOf<Pair<ClassDef, Method>>()
         val expectedFlags = AccessFlags.PUBLIC.value or
             AccessFlags.STATIC.value or AccessFlags.FINAL.value
 
         classDefForEach { classDef ->
-            if (classDef.type != "Lo02;") return@classDefForEach
+            if (classDef.type != bannerClass) return@classDefForEach
             classDef.methods.forEach { method ->
-                if (method.name != "i" || method.returnType != "V" ||
+                if (method.name != bannerMethod || method.returnType != "V" ||
                     method.accessFlags != expectedFlags ||
                     method.parameterTypes.map { it.toString() } !=
-                    listOf("Landroid/widget/FrameLayout;", "Lmc;")
+                    listOf("Landroid/widget/FrameLayout;", callbackClass)
                 ) return@forEach
 
                 val references = method.implementation?.instructions
@@ -43,7 +48,18 @@ val hideBottomBannerPatch = bytecodePatch {
                 val strings = references.filterIsInstance<StringReference>()
                     .map { it.string }
                 val calls = references.filterIsInstance<MethodReference>()
-                if ("View must have a parent lifecycle" !in strings ||
+                val identityMatches = if (latest) {
+                    method.implementation?.registerCount == 11 &&
+                        method.implementation?.instructions?.count() == 54 &&
+                        references.filterIsInstance<FieldReference>().any {
+                            it.definingClass == "Le38;" && it.name == "adview_banner_binding" && it.type == "I"
+                        } && calls.any {
+                            it.definingClass == "Lkl0;" && it.name == "<init>" &&
+                                it.parameterTypes.map { type -> type.toString() } ==
+                                listOf("Landroid/widget/FrameLayout;", callbackClass)
+                        }
+                } else "View must have a parent lifecycle" in strings
+                if (!identityMatches ||
                     !calls.any {
                         it.definingClass == "Landroid/view/View;" &&
                             it.name == "isAttachedToWindow"
@@ -62,7 +78,7 @@ val hideBottomBannerPatch = bytecodePatch {
         }
 
         check(candidates.size == 1) {
-            "Expected one dedicated 9GAG 8.23.0 bottom banner initializer; " +
+            "Expected one dedicated 9GAG ${packageMetadata.versionName} bottom banner initializer; " +
                 "found ${candidates.size}"
         }
         val (classDef, originalMethod) = candidates.single()

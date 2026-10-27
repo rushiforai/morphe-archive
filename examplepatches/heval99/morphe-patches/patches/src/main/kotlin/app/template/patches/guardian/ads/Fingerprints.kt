@@ -1,8 +1,10 @@
 package app.template.patches.guardian.ads
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.Opcode
 
 internal const val AD_MANAGER_AD_VIEW = "Lcom/google/android/gms/ads/admanager/AdManagerAdView;"
@@ -17,9 +19,9 @@ internal const val AD_MANAGER_AD_VIEW = "Lcom/google/android/gms/ads/admanager/A
 internal object LoadAdFingerprint : Fingerprint(
     returnType = "V",
     strings = listOf(
-        "preparing ad request: %s",
-        "No consent given for google ads",
-        "Forced ad failure",
+        string("preparing ad request: %s", StringComparisonType.CONTAINS),
+        string("No consent given for google ads", StringComparisonType.CONTAINS),
+        string("Forced ad failure", StringComparisonType.CONTAINS),
     ),
     custom = { method, _ ->
         method.implementation != null && method.parameterTypes.size == 2 &&

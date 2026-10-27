@@ -20,7 +20,8 @@ Patch settings include search, emote provider controls and UI customization. Gro
 | Auto-claim bonus channel points | Automatically claims bonus channel points while watching live streams. |
 | BTTV, FFZ and 7TV emotes | Adds global and channel emotes to live chat, replay chat and the emote picker, with animations and tap previews. |
 | Reload stream | Reloads live streams with a double-tap control. |
-| UI settings | Controls the visibility of player buttons, channel actions, extensions and fullscreen system bars. |
+| Show deleted messages | Reveals retained deleted and moderated messages on tap in native and React Native chat. |
+| UI settings | Controls player buttons, channel actions, extensions, Hype Trains, leaderboards and fullscreen system bars. |
 | Block client-requested ads | Blocks native player ad requests. Restart Twitch after changing this setting. |
 | Playback diagnostics | Records playlist metadata and playback counters for troubleshooting. |
 | Inspect Twitch APK | Reports the APK package, version and DEX class count without modifying the app. |
@@ -35,10 +36,13 @@ Supported Twitch versions:
 
 | Version | Version code |
 | --- | --- |
+| 31.7.0 | 3107006 |
 | 31.6.0 | 3106006 |
 | 31.5.2 | 3105026 |
 
-Twitch 31.6.0 is the primary target; 31.5.2 remains supported by the same hooks. Verification uses ARM64 on Android 13. See [compatibility data](config/compatibility.json) for build results, device checks and remaining validation.
+Twitch 31.7.0 is the stable baseline. Earlier versions remain supported by the same hooks. Twitch 31.8.0_BETA (13108003) is an experimental target. Verification uses ARM64 on Android 13. See [compatibility data](config/compatibility.json) for build results, device checks and remaining validation.
+
+These patches require Morphe Patcher 2.0.1, available in Morphe Manager 2.2.0 and Morphe Desktop 1.19.1.
 
 Ad blocking is under evaluation. Google Play billing is unavailable in the re-signed app.
 
@@ -70,11 +74,11 @@ The bundle is written to `patches/build/libs/patches-<version>.mpp`. The Gradle 
 
 ## Contributing
 
-Changes and feature proposals are welcome. Keep pull requests focused on one feature or fix and target `dev`. Follow [AGENTS.md](AGENTS.md) for architecture and hook requirements, and [maintenance instructions](docs/MAINTENANCE.md) for evaluation and releases.
+Changes and feature proposals are welcome. Keep pull requests focused on one feature or fix and target `dev`. See [contributing](CONTRIBUTING.md) for setup and verification, and [maintenance](docs/MAINTENANCE.md) for releases.
 
-Include the app version, patch selection, tests and device results in your pull request.
+The [screen inventory](docs/SCREENS.md) lists the playback and settings surfaces covered by the patches. Interface customization modules use the [UI settings registry](docs/UI_SETTINGS.md).
 
-Interface customization modules use the [UI settings registry](docs/UI_SETTINGS.md).
+Thanks to [oviron](https://github.com/oviron) for Twitch 31.7.0 support and the original deleted-message patch.
 
 This patchset was developed with AI assistance for code generation, debugging and documentation.
 

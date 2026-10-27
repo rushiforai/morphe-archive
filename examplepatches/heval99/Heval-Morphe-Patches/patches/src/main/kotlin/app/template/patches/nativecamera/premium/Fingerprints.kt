@@ -1,6 +1,8 @@
 package app.template.patches.nativecamera.premium
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 // Method adapted from the Native Camera patches by WaggBR (Wagg13Patch_Morphe) and
 // franticg33k (morphe-patches), both GPL-3.0: anchor on the stable "rawcam_prefs" file and
@@ -12,7 +14,10 @@ object PremiumInitFingerprint : Fingerprint(
     name = "<init>",
     returnType = "V",
     parameters = listOf("Landroid/app/Application;"),
-    strings = listOf("is_premium", "rawcam_prefs"),
+    strings = listOf(
+        string("is_premium", StringComparisonType.CONTAINS),
+        string("rawcam_prefs", StringComparisonType.CONTAINS),
+    ),
 )
 
 // CameraViewModel premium setter: updates the StateFlow, persists "is_premium" through the
@@ -20,5 +25,5 @@ object PremiumInitFingerprint : Fingerprint(
 object SetPremiumFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Z"),
-    strings = listOf("is_premium"),
+    strings = listOf(string("is_premium", StringComparisonType.CONTAINS)),
 )

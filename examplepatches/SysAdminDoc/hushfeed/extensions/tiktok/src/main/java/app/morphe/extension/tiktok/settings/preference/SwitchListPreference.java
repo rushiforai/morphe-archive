@@ -30,7 +30,7 @@ import app.morphe.extension.tiktok.settings.L10n;
  * Share" is the same choice read at a glance, and the page is six rows shorter.
  *
  * <p>The row has a key of its own, so search can land on it, but no setting behind it: the
- * settings are the items'. Quick setups finds them on a page through {@link #settings()}.
+ * settings are the items'.
  */
 @SuppressWarnings("deprecation")
 public final class SwitchListPreference extends Preference {

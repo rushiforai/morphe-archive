@@ -14,9 +14,9 @@ import org.w3c.dom.Element
 private const val EXT_PREFIX = "Lapp/template/extension/pdb/"
 private const val INIT_PROVIDER = "app.template.extension.pdb.PdbInitProvider"
 private const val EXTRAS_ACTIVITY = "app.template.extension.pdb.PdbExtrasActivity"
+private const val HISTORY_ACTIVITY = "app.template.extension.pdb.SoulHistoryActivity"
 private const val SETTINGS_LAYOUT = "res/layout/fragment_app_setting.xml"
 private const val ENTRY_ID = "morphe_extras_entry"
-private const val DEV_ID = "morphe_dev_entry"
 
 private fun Document.el(tag: String, vararg attrs: Pair<String, String>): Element =
     createElement(tag).apply { attrs.forEach { (k, v) -> setAttribute(k, v) } }
@@ -88,17 +88,7 @@ val pdbExtrasResourcePatch = resourcePatch(
                 "app:ac_show_divider" to "false",
                 "app:ac_text" to "Pdb Extras \u2014 settings, tools & unlocks",
             )
-            val devEntry = doc.el(
-                "pdb.app.base.wigets.ActionCell",
-                "android:id" to "@+id/$DEV_ID",
-                "android:layout_width" to "fill_parent",
-                "android:layout_height" to "wrap_content",
-                "app:ac_show_arrow" to "true",
-                "app:ac_show_divider" to "false",
-                "app:ac_text" to "Open native dev screen (Tweaks)",
-            )
             card.appendChild(entry)
-            card.appendChild(devEntry)
             content.insertBefore(label, content.firstChild)
             content.insertBefore(card, content.firstChild.nextSibling)
         }
@@ -140,6 +130,19 @@ val pdbExtrasResourcePatch = resourcePatch(
                     ),
                 )
             }
+            val historyPresent = (0 until activities.length).any {
+                (activities.item(it) as? Element)
+                    ?.attributes?.getNamedItem("android:name")?.nodeValue == HISTORY_ACTIVITY
+            }
+            if (!historyPresent) {
+                application.appendChild(
+                    doc.el(
+                        "activity",
+                        "android:name" to HISTORY_ACTIVITY,
+                        "android:exported" to "false",
+                    ),
+                )
+            }
         }
     }
 }
@@ -163,9 +166,7 @@ val pdbExtrasResourcePatch = resourcePatch(
 @Suppress("unused")
 val pdbExtrasPatch = bytecodePatch(
     name = "Pdb Extras feature menu",
-    description = "Adds a Pdb Extras entry to the top of Pdb's Settings screen with toggles, " +
-        "hidden overrides, power tools (preference writer, chat data, identity controls) " +
-        "and a one-tap shortcut to Pdb's native dev screen.",
+    description = "Adds a single Pdb Extras entry to the top of Pdb's Settings screen.",
     default = true,
 ) {
     compatibleWith(PDB_COMPATIBILITY)

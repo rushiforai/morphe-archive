@@ -39,6 +39,41 @@ public final class NativeUpdatePolicy {
     /** Replaced with native Call.timeout access; must run before execute(). */
     public static void configure191(Object call) { }
 
+    /** Called only before execute, on the verified 191 board/thread reader. */
+    public static void prepareRequest191(Object call, String method, String url) {
+        if (!Haiagaru.fresh191UpdateConnection() || !isThreadResource(method, url)
+                || call == null || !"o.putFloat".equals(call.getClass().getName())) return;
+        try {
+            java.lang.reflect.Field target = nativeField(call.getClass(), "g");
+            Object request = target.get(call);
+            Class<?> type = request.getClass();
+            if (!"o.r8lambda17vlhACr7B0IDgCdn1Q67LKhir8".equals(type.getName())) return;
+            Object headers = nativeField(type, "a").get(request);
+            java.lang.reflect.Field values = headers.getClass().getDeclaredField("namesAndValues");
+            values.setAccessible(true);
+            String[] original = (String[]) values.get(headers);
+            String[] changed = UpdateConnectionHeaders.apply(original);
+            if (changed == original) return;
+            java.lang.reflect.Constructor<?> constructor = headers.getClass().getDeclaredConstructor(String[].class);
+            constructor.setAccessible(true);
+            Object replacement = constructor.newInstance((Object) changed);
+            // A Request may be shared by several Calls. Copy it, including tags/body,
+            // rather than changing the original immutable request or its Headers.
+            java.lang.reflect.Constructor<?> requestConstructor = type.getDeclaredConstructor(
+                    nativeField(type, "f").getType(), String.class, headers.getClass(),
+                    nativeField(type, "e").getType(), java.util.Map.class);
+            requestConstructor.setAccessible(true);
+            Object copy = requestConstructor.newInstance(nativeField(type, "f").get(request), method,
+                    replacement, nativeField(type, "e").get(request), nativeField(type, "b").get(request));
+            target.set(call, copy);
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            // Preserve native I/O if the verified request layout is unavailable.
+        }
+    }
+    private static java.lang.reflect.Field nativeField(Class<?> type, String name) throws ReflectiveOperationException {
+        java.lang.reflect.Field field = type.getDeclaredField(name); field.setAccessible(true); return field;
+    }
+
     /** Records a real TabletHomeActivity resume, distinguishing it from pane/tab changes. */
     public static void tabletActivityResume(Object activity) {
         if (activity == null || !"jp.syoboi.a2chMate.activity.TabletHomeActivity"

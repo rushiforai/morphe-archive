@@ -75,7 +75,8 @@ public enum PatchFamily {
     EXACT_NUMBERS(FamilyNames.EXACT_NUMBERS, "exactNumbers", null, Settings.EXACT_NUMBERS),
     REVEAL_SPOILERS(FamilyNames.REVEAL_SPOILERS, "revealSpoilers", null, Settings.REVEAL_SPOILERS),
     HIDE_KEYBOARD_ON_SCROLL(FamilyNames.HIDE_KEYBOARD_ON_SCROLL, "hideKeyboardOnScroll", null, Settings.HIDE_KEYBOARD_ON_SCROLL),
-    KEEP_VIDEOS_MUTED(FamilyNames.KEEP_VIDEOS_MUTED, "keepVideosMuted", null, Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE),
+    KEEP_VIDEOS_MUTED(FamilyNames.KEEP_VIDEOS_MUTED, "keepVideosMuted", null, Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE,
+            Settings.VIDEO_ONLY_FROM_BUTTON),
     SWIPE_BACK_ON_PROFILES(FamilyNames.SWIPE_BACK_ON_PROFILES, "swipeBackOnProfiles", null, Settings.SWIPE_BACK_ON_PROFILES),
     HIDE_PHONE_NUMBER(FamilyNames.HIDE_PHONE_NUMBER, "hidePhoneNumber", null, Settings.HIDE_PHONE_NUMBER,
             Settings.SHARE_NUMBER_UNTICKED),
@@ -86,7 +87,7 @@ public enum PatchFamily {
     NO_HAPTICS(FamilyNames.NO_HAPTICS, "noHaptics", null, Settings.NO_HAPTICS),
     REACTION_EFFECTS_OFF(FamilyNames.REACTION_EFFECTS_OFF, "reactionEffectsOff", null, Settings.REACTION_EFFECTS_OFF),
     HIDE_FOLDER_COUNTERS(FamilyNames.HIDE_FOLDER_COUNTERS, "hideFolderCounters", null, Settings.HIDE_FOLDER_COUNTERS,
-            Settings.LAUNCH_FOLDER),
+            Settings.LAUNCH_FOLDER, Settings.HIDDEN_CHATS),
     FORWARD_HIDE_SENDER(FamilyNames.FORWARD_HIDE_SENDER, "forwardHideSender", null, Settings.FORWARD_HIDE_SENDER),
     VOICE_MUSIC_PLAYER(FamilyNames.VOICE_MUSIC_PLAYER, "voiceMusicPlayer", null, Settings.VOICE_MUSIC_PLAYER),
     SILENCE_NON_CONTACTS(FamilyNames.SILENCE_NON_CONTACTS, "silenceNonContacts", null, Settings.SILENCE_NON_CONTACTS),
@@ -100,10 +101,11 @@ public enum PatchFamily {
     HIDE_BY_KEYWORD(FamilyNames.HIDE_BY_KEYWORD, "hideByKeyword", null, Settings.HIDE_BY_KEYWORD),
     HIDE_FEATURES_AND_INVITE(FamilyNames.HIDE_FEATURES_AND_INVITE, "hideFeaturesAndInvite", null, Settings.HIDE_FEATURES_AND_INVITE),
     MESSAGE_MENU_REPEAT(FamilyNames.MESSAGE_MENU_REPEAT, "messageMenuRepeat", null, Settings.MESSAGE_MENU_REPEAT, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS, Settings.MESSAGE_MENU_QUICK_FORWARD),
-    KEEP_DELETED_MESSAGES(FamilyNames.KEEP_DELETED_MESSAGES, "keepDeleted", null, Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL),
+    KEEP_DELETED_MESSAGES(FamilyNames.KEEP_DELETED_MESSAGES, "keepDeleted", null, Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL,
+            Settings.KEEP_EDIT_HISTORY),
     ASK_BEFORE_STICKER(FamilyNames.ASK_BEFORE_STICKER, "askBeforeSending", null, Settings.ASK_BEFORE_STICKER, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL),
     OUTSIDE_TRANSLATE(FamilyNames.OUTSIDE_TRANSLATE, "outsideTranslate", null, Settings.OUTSIDE_TRANSLATE),
-    HIDE_CHANNEL_BUTTONS(FamilyNames.HIDE_CHANNEL_BUTTONS, "hideChannelButtons", null, Settings.HIDE_CHANNEL_BUTTONS),
+    HIDE_CHANNEL_BUTTONS(FamilyNames.HIDE_CHANNEL_BUTTONS, "hideChannelButtons", null, Settings.HIDE_CHANNEL_BUTTONS, Settings.HIDE_CHANNEL_MUTE),
     HIDE_SEND_AS(FamilyNames.HIDE_SEND_AS, "hideSendAs", null, Settings.HIDE_SEND_AS),
     HIDE_CONTACTS_TAB(FamilyNames.HIDE_CONTACTS_TAB, "hideContactsTab", null, Settings.HIDE_CONTACTS_TAB,
             Settings.COMPACT_TAB_BAR, Settings.SIDE_MENU, Settings.HIDE_NEW_MESSAGE),
@@ -328,8 +330,8 @@ public enum PatchFamily {
         POLL_LINK_PREVIEWS(DISABLE_DRAFT_PREVIEWS, "pollLinkPreviews", "poll links"),
         STORY_LINK_PREVIEWS(DISABLE_DRAFT_PREVIEWS, "storyLinkPreviews", "story links"),
         BOT_SHARE_PREVIEWS(DISABLE_DRAFT_PREVIEWS, "botSharePreviews", "bot shares"),
-        LOCAL_DRAFTS(DISABLE_DRAFT_PREVIEWS, "localDrafts", "draft syncing"),
-        LOCAL_SEARCH(DISABLE_DRAFT_PREVIEWS, "localSearch", "search lookups"),
+        LOCAL_DRAFTS(DISABLE_DRAFT_PREVIEWS, "localDrafts", "draft syncing", true),
+        LOCAL_SEARCH(DISABLE_DRAFT_PREVIEWS, "localSearch", "search lookups", true),
         COMMERCE_SETTINGS_ROWS(HIDE_COMMERCE, "commerceSettingsRows", "Settings sales rows"),
         COMMERCE_PROFILE_GIFTS(HIDE_COMMERCE, "commerceProfileGifts", "profile Gifts tabs"),
         COMMERCE_CHANNEL_GIFT(HIDE_COMMERCE, "commerceChannelGift", "channel Gift button"),
@@ -345,39 +347,51 @@ public enum PatchFamily {
         BIRTHDAY_GIFT_BANNER(HIDE_PROMOTIONAL_BANNERS, "birthdayGiftBanner", "birthday gift banner"),
         CACHED_PROXY_DIALOG(HIDE_SPONSORED_PROXY, "cachedProxyDialog", "cached proxy channel"),
         CACHED_PROXY_FILTERS(HIDE_SPONSORED_PROXY, "cachedProxyFilters", "cached proxy folder entries"),
-        MY_CHATS_SEARCH(HIDE_POPULAR_APPS, "myChatsSearch", "public search lookups"),
-        NAME_FOLD(HIDE_POPULAR_APPS, "nameFold", "styled names in search"),
+        MY_CHATS_SEARCH(HIDE_POPULAR_APPS, "myChatsSearch", "public search lookups", true),
+        NAME_FOLD(HIDE_POPULAR_APPS, "nameFold", "styled names in search", true),
         COMPOSE_PLAIN_PASTE(NORMAL_PASTE, "composePlainPaste", "compose text paste"),
         CAPTION_PLAIN_PASTE(NORMAL_PASTE, "captionPlainPaste", "caption text paste"),
         PROFILE_LOCAL_IDS(SHOW_LOCAL_IDS, "profileLocalIds", "profile local IDs"),
         CHAT_DOUBLE_TAP_REACTION(DISABLE_DOUBLE_TAP_REACTIONS, "chatDoubleTapReaction", "chat double-tap reactions"),
         PREVIEW_DOUBLE_TAP_REACTION(DISABLE_DOUBLE_TAP_REACTIONS, "previewDoubleTapReaction", "preview double-tap reactions"),
         EXTERNAL_BROWSER_ROUTING(OPEN_EXTERNAL_LINKS, "externalBrowserRouting", "external browser routing"),
-        MINI_APP_LOCATION(OPEN_EXTERNAL_LINKS, "miniAppLocation", "Mini App and web page location"),
+        MINI_APP_LOCATION(OPEN_EXTERNAL_LINKS, "miniAppLocation", "Mini App and web page location", true),
         OPENED_LINK_TRACKING(STRIP_LINK_TRACKING, "openedLinkTracking", "opened link tracking"),
         SHARED_LINK_TRACKING(STRIP_LINK_TRACKING, "sharedLinkTracking", "shared link tracking"),
-        SKIP_AUTOLOGIN(STRIP_LINK_TRACKING, "skipAutologin", "website sign-in tokens"),
-        SHARE_NUMBER_UNTICKED(HIDE_PHONE_NUMBER, "shareNumberUnticked", "number sharing on new contacts"),
-        COMPACT_TAB_BAR(HIDE_CONTACTS_TAB, "compactTabBar", "bottom bar size"),
-        SIDE_MENU(HIDE_CONTACTS_TAB, "sideMenu", "side menu"),
-        HIDE_NEW_MESSAGE(HIDE_CONTACTS_TAB, "hideNewMessage", "new message button"),
-        LAUNCH_FOLDER(HIDE_FOLDER_COUNTERS, "launchFolder", "which folder the chat list opens on"),
-        LOCKED_VOICE(VOICE_ONE_AT_A_TIME, "lockedVoice", "voice playback while locked"),
-        DATA_SAVER_DOWNLOADS(FASTER_DOWNLOADS, "dataSaverDownloads", "automatic downloads on Data Saver"),
-        TITLE_EMOJI(HOLIDAY_LOOK, "titleEmoji", "emoji next to the chat list title"),
-        RED_DELETED_LABEL(KEEP_DELETED_MESSAGES, "redDeletedLabel", "red deleted label"),
-        VIDEO_EITHER_LANDSCAPE(KEEP_VIDEOS_MUTED, "videoEitherLandscape", "full screen video turning either way"),
+        SKIP_AUTOLOGIN(STRIP_LINK_TRACKING, "skipAutologin", "website sign-in tokens", true),
+        SHARE_NUMBER_UNTICKED(HIDE_PHONE_NUMBER, "shareNumberUnticked", "number sharing on new contacts", true),
+        COMPACT_TAB_BAR(HIDE_CONTACTS_TAB, "compactTabBar", "bottom bar size", true),
+        SIDE_MENU(HIDE_CONTACTS_TAB, "sideMenu", "side menu", true),
+        HIDE_NEW_MESSAGE(HIDE_CONTACTS_TAB, "hideNewMessage", "new message button", true),
+        LAUNCH_FOLDER(HIDE_FOLDER_COUNTERS, "launchFolder", "which folder the chat list opens on", true),
+        HIDDEN_CHATS(HIDE_FOLDER_COUNTERS, "hiddenChats", "chats hidden from the chat list", true),
+        LOCKED_VOICE(VOICE_ONE_AT_A_TIME, "lockedVoice", "voice playback while locked", true),
+        DATA_SAVER_DOWNLOADS(FASTER_DOWNLOADS, "dataSaverDownloads", "automatic downloads on Data Saver", true),
+        GALLERY_FOLDER(SAVE_DOWNLOADS, "galleryFolder", "gallery folder for saved photos and videos", true),
+        TITLE_EMOJI(HOLIDAY_LOOK, "titleEmoji", "emoji next to the chat list title", true),
+        RED_DELETED_LABEL(KEEP_DELETED_MESSAGES, "redDeletedLabel", "red deleted label", true),
+        EDIT_HISTORY(KEEP_DELETED_MESSAGES, "keepEditHistory", "earlier text of edited messages", true),
+        VIDEO_EITHER_LANDSCAPE(KEEP_VIDEOS_MUTED, "videoEitherLandscape", "full screen video turning either way", true),
+        VIDEO_ONLY_FROM_BUTTON(KEEP_VIDEOS_MUTED, "videoOnlyFromButton", "keeping a video upright until full screen", true),
+        HIDE_CHANNEL_MUTE(HIDE_CHANNEL_BUTTONS, "hideChannelMute", "Mute button on the channel bar", true),
         FIREBASE_CERTIFICATE_HEADER(REPAIR_FIREBASE_PUSH, "firebaseCertificateHeader", "Firebase certificate header"),
         FIREBASE_LOCAL_STATUS(REPAIR_FIREBASE_PUSH, "firebaseLocalStatus", "local notification status");
 
         public final PatchFamily family;
         final String statusMethod;
         public final String label;
+        /** Its hook backs only its own row, so the family's switch works the same without it. */
+        final boolean rowOnly;
 
         Capability(PatchFamily family, String statusMethod, String label) {
+            this(family, statusMethod, label, false);
+        }
+
+        Capability(PatchFamily family, String statusMethod, String label, boolean rowOnly) {
             this.family = family;
             this.statusMethod = statusMethod;
             this.label = label;
+            this.rowOnly = rowOnly;
         }
 
         /** A patch-time fact, independent of whether its switch is on or the app is paused. */
@@ -414,16 +428,19 @@ public enum PatchFamily {
         return Collections.unmodifiableSet(installed);
     }
 
-    /** Keeps the usual description for complete builds and names precise coverage for partial ones. */
+    /**
+     * Keeps the usual description for complete builds and names precise coverage for partial ones.
+     * A missing row-only target leaves the switch's description alone: its row is simply absent.
+     */
     String coverageSummary(String completeSummary) {
-        Set<Capability> expected = expectedCapabilities();
         Set<Capability> installed = installedCapabilities();
-        if (installed.size() == expected.size()) return completeSummary;
         List<String> covered = new ArrayList<>();
         List<String> missing = new ArrayList<>();
-        for (Capability capability : expected) {
+        for (Capability capability : expectedCapabilities()) {
+            if (capability.rowOnly) continue;
             (installed.contains(capability) ? covered : missing).add(L10n.t(capability.label));
         }
+        if (missing.isEmpty()) return completeSummary;
         if (covered.isEmpty()) return L10n.f("This patched app doesn't change %1$s.", L10n.join(missing));
         return L10n.f("This patched app changes %1$s but not %2$s.", L10n.join(covered), L10n.join(missing));
     }
@@ -431,10 +448,15 @@ public enum PatchFamily {
     private String coverageReportLine() {
         List<String> covered = new ArrayList<>();
         List<String> missing = new ArrayList<>();
+        boolean switchWorks = true;
         for (Capability capability : expectedCapabilities()) {
-            (capability.installed() ? covered : missing).add(capability.label);
+            boolean installed = capability.installed();
+            (installed ? covered : missing).add(capability.label);
+            if (!installed && !capability.rowOnly) switchWorks = false;
         }
-        String line = patchName + " coverage: " + (covered.isEmpty() ? "none" : String.join(", ", covered));
+        // Only row-only targets missing: the switch itself still does its job.
+        String line = patchName + " coverage: " + (!covered.isEmpty() ? String.join(", ", covered)
+                : switchWorks ? "switch only" : "none");
         return missing.isEmpty() ? line : line + "; missing: " + String.join(", ", missing);
     }
 

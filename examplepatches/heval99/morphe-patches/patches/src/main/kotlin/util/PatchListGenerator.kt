@@ -10,30 +10,50 @@ import app.morphe.patcher.patch.loadPatchesFromJar
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import java.io.File
-import java.net.URLClassLoader
-import java.util.jar.Manifest
+import java.util.jar.JarFile
+
+/**
+ * System property with the Gradle project version (gradle.properties `version`, bumped by
+ * semantic-release). patches/build.gradle.kts passes it to generatePatchesList and the tests.
+ */
+const val PATCHES_VERSION_PROPERTY = "patches.version"
 
 fun main() {
-    val patchFiles = setOf(
-        File("build/libs/").listFiles { file ->
-            val fileName = file.name
-            !fileName.contains("javadoc") &&
-                    !fileName.contains("sources") &&
-                    fileName.endsWith(".mpp")
-        }!!.first()
-    )
-    val loadedPatches = loadPatchesFromJar(patchFiles)
-    val patchClassLoader = URLClassLoader(patchFiles.map { it.toURI().toURL() }.toTypedArray())
-    val manifest = patchClassLoader.getResources("META-INF/MANIFEST.MF")
+    val version = requirePatchesVersion()
+    val bundle = selectPatchBundle(File("build/libs"), version)
+    generatePatchList(version, loadPatchesFromJar(setOf(bundle)))
+}
 
-    while (manifest.hasMoreElements()) {
-        Manifest(manifest.nextElement().openStream())
-            .mainAttributes
-            .getValue("Version")
-            ?.let {
-                generatePatchList(it, loadedPatches)
-            }
+/** The project version from [PATCHES_VERSION_PROPERTY]; fails when it was not passed in. */
+fun requirePatchesVersion(): String =
+    System.getProperty(PATCHES_VERSION_PROPERTY)?.takeIf { it.isNotBlank() && it != "unspecified" }
+        ?: error(
+            "system property $PATCHES_VERSION_PROPERTY is not set; run through Gradle " +
+                "(:patches:generatePatchesList or :patches:test), which passes the gradle.properties version"
+        )
+
+/**
+ * Exactly `patches-<version>.mpp` in [libsDir]. Other bundles there (older versions left in
+ * build/libs, whatever their timestamps) are ignored. Fails when the bundle is missing or its own
+ * manifest names another version.
+ */
+fun selectPatchBundle(libsDir: File, version: String): File {
+    val bundle = File(libsDir, "patches-$version.mpp")
+    if (!bundle.isFile) {
+        val others = libsDir.listFiles { file -> file.isFile && file.name.endsWith(".mpp") }
+            ?.map { it.name }?.sorted().orEmpty()
+        error(
+            "patch bundle ${bundle.path} for version $version not found; build it with " +
+                "`./gradlew :patches:buildAndroid`" +
+                if (others.isEmpty()) "" else " (ignored other bundles: ${others.joinToString()})"
+        )
     }
+    val bundleVersion = JarFile(bundle).use { it.manifest?.mainAttributes?.getValue("Version") }
+    check(bundleVersion == version) {
+        "patch bundle ${bundle.path} has manifest Version $bundleVersion, expected $version; " +
+            "rebuild it with `./gradlew :patches:buildAndroid`"
+    }
+    return bundle
 }
 
 @Suppress("DEPRECATION")
@@ -57,6 +77,7 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
                     // Format as #RRGGBB string for readability; null if not set
                     appIconColor = compat.appIconColor?.let { "#%06X".format(it) },
                     signatures = compat.signatures,
+                    formFactor = compat.formFactor?.name,
                     targets = compat.targets.map { target ->
                         JsonCompatibility.Target(
                             version = target.version,
@@ -138,6 +159,8 @@ private class JsonCompatibility(
     val appIconColor: String?,
     /** Valid SHA-256 signatures of the app. */
     val signatures: Set<String>?,
+    /** Device form factor of the app, e.g. MOBILE, TV. Null means all form factors. */
+    val formFactor: String?,
     val targets: List<Target>,
 ) {
     class Target(

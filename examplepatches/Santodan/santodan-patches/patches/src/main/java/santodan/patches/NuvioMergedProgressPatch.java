@@ -9,6 +9,10 @@ import com.android.tools.smali.dexlib2.builder.instruction.*;
 import com.android.tools.smali.dexlib2.iface.instruction.*;
 import com.android.tools.smali.dexlib2.iface.reference.*;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference;
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod;
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x;
 import java.io.*;
 import java.net.URI;
 import java.util.*;
@@ -38,6 +42,10 @@ public final class NuvioMergedProgressPatch {
                     MutableClass repository = context.mutableClassDefBy(NuvioNative.PROGRESS_REPOSITORY_TYPE);
                     hookRepository(repository);
                     hookLocalProgressWrites(repository);
+                    if (NuvioLayout.BETA8.equals(version)) {
+                        hookLocalOverlay(context.mutableClassDefBy("Lcom/nuvio/tv/data/local/vb;"));
+                        hookLocalOverlay(context.mutableClassDefBy("Lcom/nuvio/tv/data/local/mc;"));
+                    }
                     {
                         NuvioRemainingEpisodesPatch.hookCard(context.mutableClassDefBy(NuvioNative.HOME_CARD_TYPE),
                             NuvioNative.PROVIDER_BADGE_TYPE, EXT, "prepareProviderBadge", "renderProviderBadge");
@@ -66,6 +74,60 @@ public final class NuvioMergedProgressPatch {
                 });
                 return Unit.INSTANCE;
             });
+    }
+
+    /** Preserve the native suspend bodies; wrappers observe success without changing coroutine registers. */
+    static void hookLocalOverlay(MutableClass owner) {
+        boolean progress = owner.getType().equals("Lcom/nuvio/tv/data/local/vb;");
+        if (!progress && !owner.getType().equals("Lcom/nuvio/tv/data/local/mc;"))
+            throw unsupported("Unknown local playback store");
+        String[] names = progress ? new String[]{"C", "D", "A", "B"} : new String[]{"p", "q"};
+        String[] hashes = progress ? new String[]{
+            "a232432e72a86c177eaba02474066ba9bb8022983f26a07c786f071f503bf724",
+            "bdc9930c24509dfae469d7d45c8dcf9dac367114ab08c00f534dde3b3ffae8e4",
+            "f2d62aa9b41256b39d21956a1bd8c2e3fdea999329bcf083f66709f1594d6e5a",
+            "95203663b8961f483c122734694c96333a172a2103d0be37002903d2f3feca8c"
+        } : new String[]{"b8408bf487cee72251900954d38b6f574e80196a22b270e8da8294bd0b1ebee9",
+                        "909149006efa05e39ed03af6de376c71df494d0420a5c62c5f9cae015a2d1684"};
+        List<MutableMethod> targets = new ArrayList<>();
+        for (int i = 0; i < names.length; i++) {
+            String name = names[i];
+            MutableMethod target = unique(owner, name, name.equals("C") || name.equals("D") ? 3 : name.equals("A") || name.equals("p") ? 5 : 4);
+            if (target.getImplementation() == null || !target.getReturnType().equals("Ljava/lang/Object;") ||
+                com.android.tools.smali.dexlib2.AccessFlags.STATIC.isSet(target.getAccessFlags()) ||
+                !NuvioPlaybackButtonsPatch.fingerprint(target).equals(hashes[i]) ||
+                owner.getMethods().stream().anyMatch(m -> m.getName().startsWith("santodanLocal")))
+                throw unsupported("Local playback persistence changed or already patched: " + names[i]);
+            targets.add(target);
+        }
+        for (MutableMethod target : targets) {
+            String name = target.getName();
+            List<String> parameters;
+            String hook;
+            if (name.equals("C") || name.equals("D")) {
+                parameters = List.of("Ljava/lang/Object;", "Ljava/lang/Object;", "I", "Ljava/lang/Object;");
+                hook = name.equals("C") ? "localSave" : "localSaveBatch";
+            } else if (name.equals("A") || name.equals("p")) {
+                parameters = List.of("Ljava/lang/Object;", "Ljava/lang/String;", "Ljava/lang/Integer;", "Ljava/lang/Integer;", "I", "Ljava/lang/Object;");
+                hook = name.equals("A") ? "localRemove" : "localUnwatch";
+            } else {
+                parameters = List.of("Ljava/lang/Object;", "Ljava/lang/String;", "Ljava/lang/Object;", "I", "Ljava/lang/Object;");
+                hook = name.equals("B") ? "localRemoveBatch" : "localUnwatchBatch";
+            }
+            MutableMethod body = new MutableMethod(new ImmutableMethod(owner.getType(), "santodanLocal" + name,
+                target.getParameters(), target.getReturnType(), target.getAccessFlags(), target.getAnnotations(),
+                target.getHiddenApiRestrictions(), target.getImplementation()));
+            var wrapper = new ImmutableMethodImplementation(parameters.size(), List.of(
+                new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 0, parameters.size(), method(EXT, hook, parameters, "Ljava/lang/Object;")),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)), List.of(), List.of());
+            MutableMethod replacement = new MutableMethod(new ImmutableMethod(owner.getType(), name,
+                target.getParameters(), target.getReturnType(), target.getAccessFlags(), target.getAnnotations(),
+                target.getHiddenApiRestrictions(), wrapper));
+            owner.getMethods().remove(target);
+            owner.getMethods().add(body);
+            owner.getMethods().add(replacement);
+        }
     }
 
     static void hookActivity(MutableClass owner) {

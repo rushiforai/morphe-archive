@@ -8,10 +8,10 @@
     with -AuditBuild, walks the build already installed from that receipt), then opens every
     screen the patches reach: For You and Following with swipes, the comment and share sheets,
     search, the Friends, Inbox and Profile tabs, Inbox's Activity page, and every Hushfeed
-    settings page scrolled to its end plus Search settings. After each step TikTok has to still
+    settings section expanded and scrolled to its end, then collapsed, plus Search settings. After each step TikTok has to still
     be the foreground app on the same process. Logcat's crash lines for TikTok decide the rest.
 
-    The walk only opens screens and leaves them with Back. Every tap targets a node from a dump
+    The walk only opens screens or inline sections and closes them without changing controls. Every tap targets a node from a dump
     taken after the last swipe, sheet or Back, and Test-WalkTapAllowed refuses anything labeled
     like a follow, like, message, post or quick setup. A playing video blocks uiautomator, so a
     feed dump that fails pauses the video with one tap on its long_press_layout (read from
@@ -308,17 +308,44 @@ function Find-WalkRow([string]$Label, [int]$Width, [int]$Height, [string]$Name, 
     return $null
 }
 
-function Invoke-WalkScrollToEnd([string]$Name, [int]$Width, [int]$Height) {
+function Get-WalkSectionView([string]$Label, [int]$Width, [int]$Height, [string]$Name) {
+    $row = Find-WalkRow $Label $Width $Height $Name 'title'
+    if (-not $row) { return $null }
+    if ($row.Top -gt $Height * 0.4) {
+        # Leave room below the header. Refresh the dump before the next tap.
+        $distance = [int][Math]::Min($row.Top - $Height * 0.25, $Height * 0.45)
+        Invoke-WalkAdb shell input swipe ([int]($Width / 2)) ([int]($Height * 0.7)) `
+            ([int]($Width / 2)) ([int]($Height * 0.7) - $distance) 450 | Out-Null
+        Start-Sleep -Milliseconds 1300
+    }
+    $nodes = Get-WalkScreen $Name
+    $row = @(Find-UiNode -Nodes $nodes -Label $Label -Id 'title' |
+            Where-Object { $_.Top -gt $Height * 0.12 -and $_.Bottom -lt $Height * 0.95 }) | Select-Object -First 1
+    if (-not $row) { return $null }
+    $next = @($nodes | Where-Object { $_.Id -ceq 'title' -and $_.Top -ge $row.Bottom -and
+            $_.Bottom -lt $Height * 0.95 -and $_.Text } | Sort-Object Top) | Select-Object -First 1
+    return [pscustomobject]@{ Row = $row; Next = $(if ($next) { $next.Text } else { '' }) }
+}
+
+function Invoke-WalkScrollToEnd([string]$Name, [int]$Width, [int]$Height, [string]$StopLabel, [string]$StartLabel) {
     $before = ''
     for ($i = 0; $i -lt 40; $i++) {
         $nodes = Get-WalkScreen "$Name-scroll"
+        if (-not $nodes) { return $false }
+        $cutoff = $Height * 0.12
+        if ($StartLabel) {
+            $header = @(Find-UiNode -Nodes $nodes -Label $StartLabel -Id 'title') | Select-Object -First 1
+            if ($header) { $cutoff = [Math]::Max($cutoff, $header.Bottom) }
+        }
+        if ($StopLabel -and @(Find-UiNode -Nodes $nodes -Label $StopLabel -Id 'title' |
+                Where-Object { $_.Top -ge $cutoff -and $_.Bottom -lt $Height * 0.95 })) { return $true }
         $print = Get-UiFingerprint $nodes
-        if ($print -ceq $before) { return $true }
+        if ($print -ceq $before) { return -not [bool]$StopLabel }
         $before = $print
         Invoke-WalkSwipe $Width $Height
         if (-not (Test-WalkAlive "$Name scroll")) { return $false }
     }
-    return $true
+    return $false
 }
 
 $hushfeedPages = @('Feed filter', 'Feed tabs', 'Feed screen', 'Playback', 'Screen time', 'Comments', 'Downloads',
@@ -450,7 +477,7 @@ try {
         }
     }
 
-    # Hushfeed settings: Profile menu, Settings and privacy, Hushfeed, then every page.
+    # Hushfeed settings: expand and collapse each section on the same main page.
     $nodes = Get-WalkScreen 'profile'
     $menu = @(Find-UiNode -Nodes $nodes -Label $WalkLabels.ProfileMenu | Where-Object { $_.Top -lt $H * 0.15 }) | Select-Object -First 1
     if (-not $menu) { Write-WalkLog 'no Profile menu button' }
@@ -466,25 +493,31 @@ try {
             if ($row) {
                 Invoke-WalkTap $row 'Hushfeed' 3000
                 $searchLabel = Get-WalkTitleLabel 'Search settings' $translations
-                $homeLabel = $searchLabel + '|' + (Get-WalkTitleLabel 'Feed filter' $translations)
                 $hub = Get-WalkScreen 'hushfeed home'
                 if (-not @(Find-UiNode -Nodes $hub -Label $searchLabel -Id 'title')) { Write-WalkLog "the Hushfeed row opened no Hushfeed home" }
                 else {
                     Complete-WalkScreen 'settings: Hushfeed'
+                    $boundaryTitles = @($hushfeedPages) + @('Feature Gate Lab', 'Hushfeed', 'Report a problem', 'Support Hushfeed')
+                    $boundaryLabel = (@($boundaryTitles | ForEach-Object { Get-WalkTitleLabel $_ $translations }) -join '|')
                     foreach ($title in $hushfeedPages) {
                         $label = Get-WalkTitleLabel $title $translations
-                        $row = Find-WalkRow $label $W $H "home for $title" 'title'
-                        if (-not $row) { Write-WalkLog "no row for $title"; continue }
-                        Invoke-WalkTap $row $title 2500 $label
-                        $page = Get-WalkScreen "page $title"
-                        # The page's own heading, not the home row it was opened from (id "title").
-                        $titled = @(Find-UiNode -Nodes $page -Label $label | Where-Object { $_.Id -cne 'title' -and $_.Top -lt $H * 0.25 })
-                        if ($titled -and (Invoke-WalkScrollToEnd $title $W $H)) { Complete-WalkScreen "settings: $title" }
-                        elseif (-not $titled) { Write-WalkLog "$title opened no page titled $title" }
-                        Invoke-WalkBack $title
-                        if (-not @(Find-UiNode -Nodes (Get-WalkScreen "back from $title") -Label $homeLabel -Id 'title')) {
-                            if (-not (Find-WalkRow $homeLabel $W $H "home after $title" 'title')) { $faults.Add("Back from $title didn't return to Hushfeed's home"); break }
-                        }
+                        $closed = Get-WalkSectionView $label $W $H "closed $title"
+                        if (-not $closed) { Write-WalkLog "no row for $title"; continue }
+                        if (-not $closed.Next -or $closed.Next -cnotmatch $boundaryLabel) { $faults.Add("$title was not collapsed before the walk"); break }
+                        Invoke-WalkTap $closed.Row "expand $title" 2500 $label
+                        $expanded = Get-WalkSectionView $label $W $H "expanded $title"
+                        if (-not $expanded -or -not $expanded.Next -or $expanded.Next -ceq $closed.Next -or
+                                $expanded.Next -cmatch $boundaryLabel) { $faults.Add("$title showed no inline controls"); break }
+                        # The exact following row is the boundary. About also has a child named Hushfeed.
+                        $stopLabel = '(?-i)^' + [regex]::Escape($closed.Next) + '$'
+                        if (-not (Invoke-WalkScrollToEnd $title $W $H $stopLabel $label)) { $faults.Add("$title did not reach its final controls"); break }
+                        Save-WalkShot "$title expanded"
+                        $row = Find-WalkRow $label $W $H "collapse $title" 'title'
+                        if (-not $row) { $faults.Add("$title lost its inline header"); break }
+                        Invoke-WalkTap $row "collapse $title" 2000 $label
+                        $collapsed = Get-WalkSectionView $label $W $H "collapsed $title"
+                        if (-not $collapsed -or $collapsed.Next -cne $closed.Next) { $faults.Add("$title did not hide its inline controls"); break }
+                        Complete-WalkScreen "settings: $title"
                     }
                     $row = Find-WalkRow $searchLabel $W $H 'home for search' 'title'
                     if ($row) {

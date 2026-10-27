@@ -1,0 +1,105 @@
+name: "\U0001F41E Patching failed"
+description: Patching wouldn't start, stopped with an error, or the patched APK wouldn't install.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this when patching wouldn't start, stopped with an error, or the APK it produced wouldn't install.
+
+        - Patched app misbehaves? Use [Patched app broken](https://github.com/totsiaw/proxma-patches/issues/new?template=not_working.yml).
+        - App version newer than what's listed? Use [App update request](https://github.com/totsiaw/proxma-patches/issues/new?template=app_update.yml).
+  - type: dropdown
+    id: what-happened
+    attributes:
+      label: What happened
+      options:
+        - Patching failed
+        - Patching worked, install failed
+        - Patching did not start
+    validations:
+      required: true
+  - type: dropdown
+    id: app
+    attributes:
+      label: App and version
+      description: The app and version you tried to patch.
+      options:
+        # generated:targets
+        - "foodpanda 26.38.1"
+        - "foodpanda (another version, type it below)"
+        - "inDrive 5.188.0"
+        - "inDrive 5.189.0"
+        - "inDrive (another version, type it below)"
+        - "Investify 5.6.0"
+        - "Investify (another version, type it below)"
+        - "MTProxy 2.1.4"
+        - "MTProxy (another version, type it below)"
+        - "My Telenor 4.2.63"
+        - "My Telenor (another version, type it below)"
+        - "MyZong 5.19.19.112"
+        - "MyZong (another version, type it below)"
+        - "NetMonster 4.0.4"
+        - "NetMonster 5.0.0"
+        - "NetMonster 5.0.1"
+        - "NetMonster (another version, type it below)"
+        - "OLX 18.8.0"
+        - "OLX (another version, type it below)"
+        - "OLX India 20.07.001"
+        - "OLX India (another version, type it below)"
+        - "Safar 3.0.1"
+        - "Safar (another version, type it below)"
+        - "Simosa 3.3.4.2"
+        - "Simosa 3.3.5"
+        - "Simosa (another version, type it below)"
+        - "Storywise 1.0.3"
+        - "Storywise (another version, type it below)"
+        # /generated
+    validations:
+      required: true
+  - type: input
+    id: other-version
+    attributes:
+      label: Other version
+      description: If you picked "another version" above, type it here.
+      placeholder: "1.2.3"
+    validations:
+      required: false
+  - type: dropdown
+    id: apk-source
+    attributes:
+      label: APK source
+      description: Where did you get the APK?
+      options:
+        - APKMirror
+        - APKPure
+        - Uptodown
+        - APKCombo
+        - Play Store (via apkeep / Aurora)
+        - Other (type it below)
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Debug log
+      description: Paste the Morphe Manager or CLI error output here.
+      render: shell
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Additional info
+      description: Anything else that might help — screenshots, device model, Android version.
+    validations:
+      required: false
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched open and closed issues and this isn't a duplicate.
+          required: true
+        - label: The title describes the problem, not just the app name.
+          required: true

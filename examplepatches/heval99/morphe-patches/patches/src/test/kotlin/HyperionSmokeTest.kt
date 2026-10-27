@@ -89,7 +89,7 @@ class HyperionSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "2.2.7",
+            version = "2.2.13",
             patchNames = setOf("Enable Premium"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

@@ -8,6 +8,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -252,9 +253,8 @@ public class SettingsAccessibilityTest {
         assertNotNull("the screen's title is missing", title);
         assertEquals("Hushfacebook", String.valueOf(title.getText()));
         assertTrue("the screen's title isn't a heading", node(title).isHeading());
-        assertNotNull("the page's eyebrow is missing", eyebrow);
-        assertFalse("the eyebrow duplicates the screen's heading", node(eyebrow).isHeading());
-        assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO, eyebrow.getImportantForAccessibility());
+        assertNull("the compact toolbar must not repeat a Settings eyebrow", eyebrow);
+        assertTrue("Back and the title share one toolbar", back.getParent() == title.getParent());
     }
 
     @Test

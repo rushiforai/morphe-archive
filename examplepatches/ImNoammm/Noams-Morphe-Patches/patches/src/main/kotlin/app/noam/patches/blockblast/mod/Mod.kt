@@ -1,8 +1,11 @@
 package app.noam.patches.blockblast.mod
 
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.rawResourcePatch
+import app.morphe.patcher.patch.resourcePatch
 import app.noam.patches.blockblast.shared.Hek
+import org.w3c.dom.Element
 import java.security.MessageDigest
 
 /**
@@ -70,9 +73,32 @@ internal object Mod {
 // assets/main.js of Block Blast 10.8.1 (HEK-encrypted), the only build the replacement boot script is made from.
 private const val STOCK_MAIN_JS_SHA256 = "ad3bec65265ca02c21669d558d7851c3befa46de6d82f7d82b1824de8f95baa5"
 
+private val patchGuardManifestPatch = resourcePatch {
+    execute {
+        document("AndroidManifest.xml").use { manifest ->
+            // Created before Application.onCreate, so a downloaded hot update is wiped before the
+            // engine reads its search paths (issue: mods vanish after playing online).
+            val application = manifest.getElementsByTagName("application").item(0) as Element
+            val provider = manifest.createElement("provider")
+            provider.setAttribute("android:name", "app.noam.extension.blockblast.PatchGuardProvider")
+            provider.setAttribute("android:authorities", "com.block.juggle.bbmod.patchguard")
+            provider.setAttribute("android:exported", "false")
+            provider.setAttribute("android:initOrder", (Int.MAX_VALUE - 1).toString())
+            application.appendChild(provider)
+        }
+    }
+}
+
+// The extension dex (both providers) rides with the loader, so every build carries the guard.
+private val patchGuardPatch = bytecodePatch {
+    dependsOn(patchGuardManifestPatch)
+    extendWith("extensions/blockblast.mpe")
+}
+
 internal val modLoaderPatch = rawResourcePatch(
     description = "Loads the patches' script when the game starts and stops hot updates from replacing the game code.",
 ) {
+    dependsOn(patchGuardPatch)
     execute {
         Mod.reset()
         val mainJs = get("assets/main.js")

@@ -41,6 +41,7 @@
 feed/VideoOverlayHider.java|VISUAL_SEARCH_LAYER_IDS|47.5.3:ft|df_search_biz|com.ss.android.ugc.aweme.search.entry.visualsearch.v2.ui.SearchVisualSearchContainerComponentV2|-
 feed/VideoOverlayHider.java|VISUAL_SEARCH_PILL_IDS|47.5.3:d6|df_search_biz|com.ss.android.ugc.aweme.search.entry.visualsearch.v2.tagv3.impl.AlgoVTagProcessorV3|on:View#1
 feed/VideoOverlayHider.java|LIVE_ENTRANCE_IDS|47.5.3:ka3|app|com.bytedance.tiktok.homepage.mainfragment.inflate.HomepageIconServiceImpl|on:TuxIconView#1
+feed/VideoOverlayHider.java|LIVE_CAPTION_IDS|47.5.3:o5c|app|com.ss.android.ugc.aweme.feed.adapter.widget.enterroom.EnterRoomDecisionWidget|-
 feed/VideoOverlayHider.java|CAPTION_IDS|desc|app|com.ss.android.ugc.aweme.feed.assem.desc.VideoDescAssem|on:View
 feed/VideoOverlayHider.java|MUSIC_IDS|47.5.3:o8s|app|com.ss.android.ugc.aweme.feed.assem.music.VideoMusicTitleAssem|on:LinearLayout#1
 feed/VideoOverlayHider.java|ACTION_BAR_IDS|47.5.3:lke|app|com.ss.android.ugc.feed.platform.cell.interact.InteractAreaComponent|on:View#5
@@ -71,6 +72,9 @@ feed/VideoOverlayHider.java|DETAIL_SEARCH_BOX_IDS|47.5.3:o_l|app|com.ss.android.
 feed/VideoOverlayHider.java|CELL_ROOT_ID|view_rootview|app|com.ss.android.ugc.aweme.feed.adapter.VideoViewCell|at:3
 feed/VideoOverlayHider.java|PAGER_COLUMN_ID|viewpager_container|app|com.by.andInflater.common_feed_fragment_feed_base_opt|on:LinearLayout
 feed/VideoOverlayHider.java|WIDGET_LAYER_ID|widget_container|app|com.by.andInflater.common_feed_interaction_area_feed|on:InteractAreaRootLayout
+feed/VideoOverlayHider.java|LIVE_PREVIEW_NAME_ID|tv_live_nickname|app|com.ss.android.ugc.aweme.feed.adapter.widget.LivePreviewInteractionLayerWidget|on:View#5
+feed/VideoOverlayHider.java|LIVE_PREVIEW_TIPS_ID|tv_live_tips|app|class-method:getTvLiveTipsFromXml|at:14
+feed/VideoOverlayHider.java|DRAMA_TIPS_ID|tv_drama_tips|app|com.ss.android.ugc.aweme.series.commonfeed.holder.PaidContentImmersiveViewHolder|on:TuxTextView#1
 feed/VideoOverlayHider.java|LIKE_COUNT_ROW_IDS|47.5.3:g92|app|com.by.andInflater.common_feed_layout_video_digg|on:InteractRelativeLayout
 feed/VideoOverlayHider.java|COMMENT_COUNT_ROW_IDS|47.5.3:ejt|app|com.by.andInflater.common_feed_layout_video_comment_count|on:InteractRelativeLayout
 feed/VideoOverlayHider.java|FAVORITE_COUNT_ROW_IDS|47.5.3:i95|app|com.by.andInflater.common_feed_layout_video_favorite|on:InteractRelativeLayout

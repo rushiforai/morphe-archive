@@ -1,7 +1,9 @@
 package app.template.patches.onefootball.ads
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.string
 
 private const val COMPONENT_MODEL = "Lcom/onefootball/experience/core/model/ComponentModel;"
 private const val ADS_PROTO = "Lcom/onefootball/experience/component/ads/generated/Ads\$"
@@ -45,11 +47,11 @@ private const val RESULT = "Lio/flutter/plugin/common/MethodChannel\$Result;"
 object GetAdDataHandleFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(METHOD_CALL, RESULT),
-    strings = listOf("getAdData"),
+    strings = listOf(string("getAdData", StringComparisonType.CONTAINS)),
 )
 
 object GetOmpAdDataHandleFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(METHOD_CALL, RESULT),
-    strings = listOf("getOMPAdData"),
+    strings = listOf(string("getOMPAdData", StringComparisonType.CONTAINS)),
 )

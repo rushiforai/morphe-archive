@@ -12,16 +12,19 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_HEVY
 import app.template.patches.shared.addInstructionsChecked
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.w3c.dom.Element
 
 // Push (Firebase Messaging) and purchases (RevenueCat) must keep working; nothing here touches them.
 
-private const val SENTRY_MODULE = "Lio/sentry/react/RNSentryModuleImpl;"
+// React Native looks the bridge modules and their @ReactMethods up by name, so R8 keeps them;
+// Adjust ships keep rules for its com.adjust.sdk classes.
+private const val SENTRY_MODULE = "Lio/sentry/react/RNSentryModule;"
 private const val ADJUST_PACKAGE_HANDLER = "Lcom/adjust/sdk/PackageHandler;"
-private const val FACEBOOK_EVENT_QUEUE = "Lcom/facebook/appevents/AppEventQueue;"
-private const val AMPLITUDE_CONTEXT = "Lcom/amplitude/reactnative/AndroidContextProvider;"
 private const val AMPLITUDE_MODULE = "Lcom/amplitude/reactnative/AmplitudeReactNativeModule;"
-private const val BRANCH = "Lio/branch/referral/Branch;"
+private const val BRANCH_MODULE = "Lio/branch/rnbranch/RNBranchModule;"
 private const val PROMISE = "Lcom/facebook/react/bridge/Promise;"
 
 // Sentry's auto-init is already off in the manifest (React Native starts it); these providers
@@ -72,7 +75,8 @@ val blockTelemetryPatch = bytecodePatch(
 
     execute {
         // 1. Sentry: initNativeSdk(ReadableMap, Promise) resolves true, as it does after a
-        // successful init, without calling SentryAndroid.init.
+        // successful init, without calling SentryAndroid.init. Since 3.2.2 RNSentryModuleImpl is
+        // renamed, so the bridge method that delegates to it (its only caller) is hooked instead.
         methods(SENTRY_MODULE, "initNativeSdk", listOf("Lcom/facebook/react/bridge/ReadableMap;", PROMISE)).forEach {
             it.addInstructionsChecked(
                 0,
@@ -88,13 +92,23 @@ val blockTelemetryPatch = bytecodePatch(
         methods(ADJUST_PACKAGE_HANDLER, "addPackage").forEach { it.returnEarly() }
         methods(ADJUST_PACKAGE_HANDLER, "sendFirstPackage").forEach { it.returnEarly() }
 
-        // 3. Facebook: the app event queue never flushes.
-        methods(FACEBOOK_EVENT_QUEUE, "flush").forEach { it.returnEarly() }
+        // 3. Facebook: the app event queue never flushes. AppEventQueue is renamed since 3.2.2, so
+        // flushAndWait, where every flush ends up, is hooked instead of flush.
+        FacebookFlushAndWaitFingerprint.method.returnEarly()
 
-        // 4. Amplitude: limit ad tracking reads as on and the device info (ad ID) is never
-        // prefetched; the legacy-database migration finds no events to upload.
-        methods(AMPLITUDE_CONTEXT, "isLimitAdTrackingEnabled").forEach { it.returnEarly(true) }
-        methods(AMPLITUDE_CONTEXT, "prefetch").forEach { it.returnEarly() }
+        // 4. Amplitude: the ad ID is never read, so limit ad tracking keeps its default (on) and
+        // no ad ID reaches JS; the legacy-database migration finds no events to upload.
+        // 3.2.2 no longer has AndroidContextProvider.isLimitAdTrackingEnabled or prefetch (R8
+        // removed them as unused), so the two ad-ID readers they guarded return null instead.
+        listOf(AmplitudeGoogleAdIdFingerprint, AmplitudeAmazonAdIdFingerprint).forEach {
+            it.method.addInstructionsChecked(
+                0,
+                """
+                    const/4 v0, 0x0
+                    return-object v0
+                """.trimIndent(),
+            )
+        }
         methods(AMPLITUDE_MODULE, "getLegacyEvents", listOf("Ljava/lang/String;", "Ljava/lang/String;", PROMISE)).forEach {
             it.addInstructionsChecked(
                 0,
@@ -107,7 +121,17 @@ val blockTelemetryPatch = bytecodePatch(
             )
         }
 
-        // 5. Branch: tracking reads as disabled.
-        methods(BRANCH, "isTrackingDisabled").forEach { it.returnEarly(true) }
+        // 5. Branch: tracking reads as disabled. Branch is renamed since 3.2.2; its
+        // isTrackingDisabled()Z is the one the bridge method of the same name calls.
+        val bridge = methods(BRANCH_MODULE, "isTrackingDisabled", listOf(PROMISE)).single()
+        val target = bridge.implementation!!.instructions
+            .filter { it.opcode == Opcode.INVOKE_VIRTUAL }
+            .mapNotNull { (it as ReferenceInstruction).reference as? MethodReference }
+            .singleOrNull { it.returnType == "Z" && it.parameterTypes.isEmpty() }
+            ?: throw PatchException("$BRANCH_MODULE.isTrackingDisabled no longer calls a single ()Z method")
+        methods(target.definingClass, target.name, emptyList())
+            .filter { it.returnType == "Z" }
+            .ifEmpty { throw PatchException("${target.definingClass}.${target.name}()Z not found") }
+            .forEach { it.returnEarly(true) }
     }
 }

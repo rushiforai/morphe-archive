@@ -19,9 +19,9 @@
        the baseline and didn't run now fails, as does anything missing, ambiguous or a crash.
        A -MayIdle family (or one the baseline lists under mayIdle) waits on what Facebook serves,
        so it gets a note either way and is never written into the baseline's ranOnWalk.
-    6. Opens every settings page named in SettingsNavigation.java, scrolls it to the end and
+    6. Expands every settings category named in SettingsNavigation.java and Support, scrolls to the end and
        screenshots each screenful, in dark and light, plus one dark pass per -Locales entry.
-       The text of each page goes next to its screenshots, and index.html shows them all.
+       Each section's text and native expansion metadata go next to its screenshots, and index.html shows them all.
     7. Puts the switches, the night mode and the app language back, and removes the audit folder.
     8. Writes summary.txt and walk-receipt.json (walk-receipt.ps1): the result, whether the whole
        audit ran, the device, and the patch build identity the app reported. A release publishes
@@ -31,7 +31,8 @@
     the next run to be held to: run it once on a build you trust after Facebook's version changes.
     -MinimumTapY keeps navigation taps below a caller's reserved area by scrolling rows down.
     Locale checks follow the app's ordered language list, including its English fallback.
-    The requested application locale and displayed page identity still have to match.
+    The requested application locale and section identity have to match. Each targeted section
+    needs schema 3 proof that it is expanded and has visible child rows.
 
 .EXAMPLE
     scripts/device-audit.ps1 -Serial emulator-5554 -ExpectedDevice Hushfacebook_API36 -Apk out/hushfacebook.apk
@@ -605,13 +606,33 @@ function Get-AuditLocales {
     return $locales
 }
 
+# JSON objects as hashtables in both editions. Windows PowerShell has no -AsHashtable, and the
+# pre-push hook falls back to it wherever git's PATH has no pwsh, so every restore check there
+# threw "A parameter cannot be found that matches parameter name 'AsHashtable'".
+function ConvertFrom-AuditJsonTable([string]$Json) {
+    if ((Get-Command ConvertFrom-Json).Parameters.ContainsKey('AsHashtable')) {
+        return , ($Json | ConvertFrom-Json -AsHashtable)
+    }
+    $toTable = {
+        param($value)
+        if ($value -is [System.Management.Automation.PSCustomObject]) {
+            $table = @{}
+            foreach ($property in $value.PSObject.Properties) { $table[$property.Name] = & $toTable $property.Value }
+            return , $table
+        }
+        if ($value -is [array]) { return , @(foreach ($item in $value) { & $toTable $item }) }
+        return $value
+    }
+    return , (& $toTable ($Json | ConvertFrom-Json))
+}
+
 # Whether $Restored puts back every switch $Original holds, and holds each switch $Original has
 # no entry for (one added after the build that wrote it) at its value in $Defaults.
 function Test-AuditSettingsRestored([string]$Original, [string]$Restored, [string]$Defaults) {
     try {
-        $before = $Original | ConvertFrom-Json -AsHashtable
-        $after = $Restored | ConvertFrom-Json -AsHashtable
-        $reset = $Defaults | ConvertFrom-Json -AsHashtable
+        $before = ConvertFrom-AuditJsonTable $Original
+        $after = ConvertFrom-AuditJsonTable $Restored
+        $reset = ConvertFrom-AuditJsonTable $Defaults
     } catch { return $false }
     foreach ($snapshot in @($before, $after, $reset)) {
         if ($snapshot -isnot [hashtable] -or $snapshot.settings -isnot [hashtable]) { return $false }
@@ -744,13 +765,13 @@ function Get-Report([string]$Path) {
     throw 'Facebook wrote no report.txt.'
 }
 
-# The settings pages, as SettingsNavigation names them.
+# The accordion's category routes, followed by its Support section.
 function Get-SettingsPages {
     $source = Join-Path $PSScriptRoot '..\extensions\facebook\src\main\java\app\morphe\extension\facebook\settings\SettingsNavigation.java'
     $pages = [regex]::Matches([IO.File]::ReadAllText($source), 'section\("([^"]+)"') | ForEach-Object { $_.Groups[1].Value }
     if (-not $pages) { throw "No settings pages found in $source" }
-    # "" is the first page and "more" the list of the secondary pages.
-    return @('', 'more') + @($pages)
+    # "" captures the main list before opening each category in place.
+    return @('') + @($pages) + @('support')
 }
 
 function Close-Settings {
@@ -759,7 +780,7 @@ function Close-Settings {
         $record = ((Invoke-Adb shell "cat $AuditDir/page.json 2>/dev/null; true") -join "`n").Trim()
         $shown = if ($record) { $record | ConvertFrom-Json } else { $null }
         if (-not ($text -contains 'Hushfacebook' -or $text -contains 'Search settings' -or
-                ($shown -and $shown.schema -eq 2 -and $text -contains $shown.title))) { return }
+                ($shown -and $shown.schema -in @(2, 3) -and $text -contains $shown.title))) { return }
         Invoke-Adb shell input keyevent KEYCODE_BACK | Out-Null
         Start-Sleep -Milliseconds 900
     }
@@ -791,6 +812,22 @@ function Get-AuditLocaleTable([string]$ActualLocale, [object]$LocaleTags) {
     return [pscustomobject]@{ Tag = 'en'; Rows = @{} }
 }
 
+function Test-AuditSectionShown([object]$Shown, [string]$Page) {
+    if ($null -eq $Shown -or ($Shown.schema -isnot [int] -and $Shown.schema -isnot [long]) -or $Shown.schema -ne 3 -or
+            $Shown.route -isnot [string] -or $Shown.route -cne $Page -or
+            $Shown.title -isnot [string] -or [string]::IsNullOrWhiteSpace($Shown.title) -or
+            $Shown.expandedSections -isnot [Collections.IList] -or
+            ($Shown.sectionRows -isnot [int] -and $Shown.sectionRows -isnot [long]) -or $Shown.sectionRows -lt 0) { return $false }
+    $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    foreach ($section in $Shown.expandedSections) {
+        if ($section -isnot [string] -or $section -cnotmatch "^[A-Za-z0-9 ,']{1,64}$" -or -not $seen.Add($section)) { return $false }
+    }
+    $targetExpanded = $Shown.expandedSections -ccontains $Page
+    if ($Shown.targetExpanded -isnot [bool] -or $Shown.targetExpanded -ne $targetExpanded) { return $false }
+    if (-not $Page) { return $Shown.sectionRows -eq 0 -and $Shown.title -ceq 'Hushfacebook' }
+    return $targetExpanded -and $Shown.sectionRows -gt 0
+}
+
 function Save-SettingsPages([string]$Pass, [string]$RequestedLocale = '') {
     $dir = Join-Path $OutDir "pages-$Pass"
     New-Item -ItemType Directory -Force $dir | Out-Null
@@ -807,6 +844,7 @@ function Save-SettingsPages([string]$Pass, [string]$RequestedLocale = '') {
         Start-Sleep -Seconds $SettleSeconds
         $pageRecord = ((Invoke-Adb shell "cat $AuditDir/page.json 2>/dev/null; true") -join "`n").Trim()
         $shown = if ($pageRecord) { $pageRecord | ConvertFrom-Json } else { $null }
+        if ($pageRecord) { [IO.File]::WriteAllText((Join-Path $dir "$name.json"), $pageRecord) }
         $allText = New-Object System.Collections.Generic.List[string]
         $last = $null
         $shots = 0
@@ -831,7 +869,7 @@ function Save-SettingsPages([string]$Pass, [string]$RequestedLocale = '') {
             $table = Get-AuditLocaleTable ([string]$shown.locale) $shown.localeTags
             $localeMatches = $null -ne $table -and ($actualTag -ceq $requestedTag -or $actualTag.StartsWith("$requestedTag-", [StringComparison]::Ordinal))
             $translations = if ($table) { $table.Rows } else { @{} }
-            $titleKey = if (-not $page) { 'Hushfacebook' } elseif ($page -ceq 'more') { 'More settings' } else { $page }
+            $titleKey = if (-not $page) { 'Hushfacebook' } elseif ($page -ceq 'support') { 'Support' } else { $page }
             $expectedTitle = if ($translations.ContainsKey($titleKey) -and -not [string]::IsNullOrEmpty($translations[$titleKey])) {
                 $translations[$titleKey]
             } else { $titleKey }
@@ -841,10 +879,11 @@ function Save-SettingsPages([string]$Pass, [string]$RequestedLocale = '') {
                 $announcedTable = $table.Tag
             }
         }
-        $opened = $null -ne $shown -and $shown.schema -eq 2 -and $shown.route -ceq $page -and $localeMatches -and
-            -not [string]::IsNullOrWhiteSpace($shown.title) -and $allText.Contains($shown.title)
+        $opened = (Test-AuditSectionShown $shown $page) -and $localeMatches -and
+            $allText.Contains('Hushfacebook') -and $allText.Contains($shown.title)
         $results.Add([pscustomobject]@{ Page = $(if ($page) { $page } else { 'Home' }); Name = $name; Shots = $shots
-            Opened = $opened; Locale = $shown.locale; TextLocale = $(if ($table) { $table.Tag } else { $null }) })
+            Opened = $opened; Locale = $shown.locale; TextLocale = $(if ($table) { $table.Tag } else { $null })
+            ExpandedSections = $shown.expandedSections; SectionRows = $shown.sectionRows; TargetExpanded = $shown.targetExpanded })
         Write-Step ("{0} {1}: {2} screen(s){3}" -f $Pass, $(if ($page) { $page } else { 'Home' }), $shots, $(if ($opened) { '' } else { ', NOT OPENED' }))
     }
     Close-Settings

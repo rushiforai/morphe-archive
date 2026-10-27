@@ -361,8 +361,6 @@ Copy the sound link,Salin tautan suara
 Copy the video link,Salin tautan video
 Couldn't change the Lab settings. Try again.,Pengaturan Lab tidak bisa diubah. Coba lagi.
 Couldn't clear the suggested accounts. Reopen the Inbox and try again.,Akun yang disarankan tidak bisa dihapus. Buka lagi Kotak Masuk lalu coba lagi.
-Couldn't open settings search. Reopen settings and try again.,Pencarian pengaturan tidak bisa dibuka. Buka lagi pengaturan lalu coba lagi.
-Couldn't open that settings section. Reopen settings and try again.,Bagian pengaturan itu tidak bisa dibuka. Buka lagi pengaturan lalu coba lagi.
 Couldn't open the file picker to export. Try again.,Pemilih berkas untuk ekspor tidak bisa dibuka. Coba lagi.
 Couldn't open the file picker to import. Try again.,Pemilih berkas untuk impor tidak bisa dibuka. Coba lagi.
 Couldn't put back the diagnostic data. Try again.,Data diagnostik tidak bisa dikembalikan. Coba lagi.
@@ -1331,28 +1329,6 @@ Your filters hid everything TikTok just sent. Most were %1$s.,Filtermu menyembun
 "Zero switches this off. Count the minutes the player spends running in the feed. Time on messages, a profile or search doesn't count.","Nol mematikan ini. Menghitung menit saat pemutar berjalan di feed. Waktu di pesan, profil, atau pencarian tidak dihitung."
 collapsed,Diciutkan
 expanded,Diperluas
-Already active,Sudah aktif
-Applying Calm feed,Menerapkan Feed tenang
-Calm feed,Feed tenang
-Calm feed couldn't be applied. Nothing was changed.,Feed tenang tidak dapat diterapkan. Tidak ada yang diubah.
-Calm feed couldn't start. Try again in a moment.,Feed tenang tidak dapat dimulai. Coba lagi sebentar lagi.
-Calm feed is on. Restart TikTok to apply all changes.,Feed tenang aktif. Mulai ulang TikTok untuk menerapkan semua perubahan.
-Calm feed is on.,Feed tenang aktif.
-Changed,Diubah
-"Hide ads, Shop posts, LIVE videos and replays, promotional music, and paid partnerships.","Sembunyikan iklan, postingan Toko, video LIVE dan tayangan ulang, musik promosi, serta kemitraan berbayar."
-On,Aktif
-On. Restore puts back the feed setup you had before.,Aktif. Pulihkan akan mengembalikan pengaturan feed kamu sebelumnya.
-Preset,Preset
-Quick setup,Penyiapan cepat
-Restore setup,Pulihkan pengaturan
-Restoring setup,Memulihkan pengaturan
-Some Calm feed settings changed. Restore still puts back your earlier setup.,Beberapa pengaturan Feed tenang berubah. Pulihkan tetap akan mengembalikan pengaturan kamu sebelumnya.
-Use Calm feed,Gunakan Feed tenang
-Working,Sedang bekerja
-Your current settings already match Calm feed.,Pengaturan kamu saat ini sudah cocok dengan Feed tenang.
-Your previous feed setup couldn't be restored. Nothing was changed.,Pengaturan feed kamu sebelumnya tidak dapat dipulihkan. Tidak ada yang diubah.
-Your previous feed setup is back. Restart TikTok to apply all changes.,Pengaturan feed kamu sebelumnya sudah dipulihkan. Mulai ulang TikTok untuk menerapkan semua perubahan.
-Your previous feed setup is back.,Pengaturan feed kamu sebelumnya sudah dipulihkan.
 Hide search suggestions above comments,Sembunyikan saran pencarian di atas komentar
 Compact comment header,Header komentar ringkas
 Easier comment likes,Lebih mudah menyukai komentar
@@ -2106,20 +2082,6 @@ Report a problem,Laporkan masalah
 Opens a GitHub report with your versions and settings filled in. Add what happened.,Membuka laporan GitHub dengan versi dan pengaturanmu yang sudah terisi. Tambahkan apa yang terjadi.
 Support Hushfeed,Dukung Hushfeed
 No app on this phone opens web links,Tidak ada aplikasi di ponsel ini yang membuka tautan web
-Quick setups,Pengaturan cepat
-"Quiet hides ads, Shop and LIVE. Privacy hides your views and typing and stops tracking. Back to defaults resets every switch. Press and hold to hide this row.","Tenang menyembunyikan iklan, Toko, dan LIVE. Privasi menyembunyikan tontonan dan ketikanmu serta menghentikan pelacakan. Kembalikan default mengatur ulang setiap sakelar. Tekan lama untuk menyembunyikan baris ini."
-Quick setups hidden. Bring it back from %1$s.,Pengaturan cepat disembunyikan. Tampilkan lagi lewat %1$s.
-Quick setups on the home page,Pengaturan cepat di Beranda
-Shown. Tap to hide it.,Ditampilkan. Ketuk untuk menyembunyikan.
-Hidden. Tap to show it again.,Disembunyikan. Ketuk untuk menampilkannya lagi.
-Quiet,Tenang
-Back to defaults,Kembalikan default
-Changed 1 setting,1 pengaturan diubah
-Changed %1$d settings,%1$d pengaturan diubah
-Your settings already match,Pengaturanmu sudah sesuai
-That setup couldn't be applied. Nothing was changed.,Pengaturan itu tidak dapat diterapkan. Tidak ada yang diubah.
-Quick setups couldn't start. Try again in a moment.,Pengaturan cepat tidak dapat dimulai. Coba lagi sebentar lagi.
-Your earlier settings are back,Pengaturan sebelumnya sudah kembali
 "Your feed","Feed kamu"
 "Saving and sharing","Menyimpan dan berbagi"
 "Privacy and app","Privasi dan aplikasi"
@@ -2207,7 +2169,34 @@ Floating bottom bar,Bilah bawah mengambang
 Liquid glass look,Tampilan kaca cair
 "Draw the main feed's floating pill as glass, lighter and more see-through, with a bright rim along its top edge. Needs Floating bottom bar.","Gambar kapsul mengambang di feed utama sebagai kaca, lebih terang dan lebih transparan, dengan tepi terang di sisi atasnya. Perlu Bilah bawah mengambang."
 Glass lens on the current tab,Lensa kaca di tab saat ini
-"On the main feed, a smaller piece of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.","Di feed utama, sepotong kaca yang lebih kecil ada di belakang tab yang sedang kamu buka dan bergeser ke tab berikutnya yang kamu pilih. Perlu Tampilan kaca cair."
+Pill height,Tinggi kapsul
+Compact,Ringkas
+Standard,Standar
+How tall the main feed's floating pill is inside the bar. Compact leaves more of the video showing around it. The tabs keep their size and their taps.,Seberapa tinggi kapsul mengambang di feed utama di dalam bilah. Ringkas menyisakan lebih banyak video di sekitarnya. Tab tetap dengan ukuran dan area ketuknya.
+Pill corners,Sudut kapsul
+Rounder,Lebih bulat
+Fully round,Bulat penuh
+How round the main feed's floating pill and its glass lens are. Fully round gives them half circle ends.,Seberapa bulat kapsul mengambang di feed utama dan lensa kacanya. Bulat penuh membuat ujungnya setengah lingkaran.
+Glass opacity,Kepekatan kaca
+Most see-through,Paling tembus pandang
+More see-through,Lebih tembus pandang
+Frosted,Buram
+How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least.,Seberapa banyak video yang terlihat lewat kapsul kaca di feed utama. Paling tembus pandang memperlihatkan paling banyak dan Buram paling sedikit.
+"On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.","Di feed utama, gelembung kaca yang menonjol ada di belakang tab yang sedang kamu buka dan bergeser ke tab berikutnya yang kamu pilih. Perlu Tampilan kaca cair."
+Slide across the tabs,Geser di sepanjang tab
+"On the main feed, slide a finger along the glass pill and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.","Di feed utama, geser jari di sepanjang kapsul kaca dan lensanya ikut. Lepas jari dan tab itu terbuka. Ketuk dan tekan lama tetap seperti biasa. Perlu Lensa kaca di tab saat ini."
+Haptics on the tabs,Getaran di tab
+"On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.","Di feed utama, getaran ringan setiap kali lensa kaca melewati sebuah tab, saat bergeser setelah ketukan atau di bawah jarimu. Perlu Lensa kaca di tab saat ini."
+Haptic style,Gaya getaran
+Short pulse,Denyut singkat
+Phone's click,Klik bawaan HP
+Soft tick,Ketukan lembut
+Full tick,Ketukan penuh
+The tick on the main feed's tabs. Short pulse is one quick tap of the motor. Phone's click is the click your phone makes elsewhere. Soft tick rings a little longer. Full tick is the phone's strongest tick.,Getaran di tab feed utama. Denyut singkat adalah satu ketukan cepat dari motor. Klik bawaan HP adalah klik yang biasa dibuat HP kamu di tempat lain. Ketukan lembut bergetar sedikit lebih lama. Ketukan penuh adalah ketukan terkuat HP kamu.
+Blur strength,Kekuatan blur
+Soft blur,Blur lembut
+Strong blur,Blur kuat
+How much the video behind the glass pill on the main feed is blurred.,Seberapa kuat video di belakang kapsul kaca di feed utama diburamkan.
 Bring back TikTok's translation,Kembalikan terjemahan TikTok
 "Brings back the translation rows on TikTok's Language page, under Settings and privacy, for accounts that only see App language there.","Mengembalikan baris terjemahan di halaman Bahasa TikTok, di Pengaturan dan privasi, untuk akun yang di sana hanya melihat Bahasa aplikasi."
 For accounts TikTok took translation away from. Brings back See translation under video descriptions and in captions. Restart TikTok to see the change.,Untuk akun yang terjemahannya dihapus TikTok. Mengembalikan Lihat terjemahan di bawah deskripsi video dan di teks video. Mulai ulang TikTok untuk melihat perubahannya.
@@ -2283,5 +2272,15 @@ The export may be incomplete. The original recording files are still kept.,Hasil
 Some recording files remain. Try deleting them again.,Beberapa file rekaman masih tersisa. Coba hapus lagi.
 "Recovered recording saved to %1$s","Rekaman yang dipulihkan disimpan ke %1$s"
 "Open setting location","Buka lokasi setelan"
-"Tap a switch to change it. Press and hold to open its page.","Ketuk sakelar untuk mengubahnya. Tekan lama untuk membuka halamannya."
-"This setting isn't available on this page. Go back and search again.","Setelan ini tidak tersedia di halaman ini. Kembali dan cari lagi."
+"Expanded","Diperluas"
+"Collapsed","Diciutkan"
+This setting isn't available. Search for another setting.,Setelan ini tidak tersedia. Cari setelan lain.
+Hide the Hushfeed row,Sembunyikan baris Hushfeed
+"Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.","Keluarkan Hushfeed dari Pengaturan dan privasi TikTok. Untuk membuka pengaturan ini, tekan lama Untuk Kamu di bagian atas feed, atau Beranda jika Tekan lama Beranda untuk pengaturan Hushfeed aktif."
+Open the search page,Buka halaman pencarian
+TikTok's search page couldn't be opened. Restart TikTok and try again.,Halaman pencarian TikTok tidak bisa dibuka. Mulai ulang TikTok lalu coba lagi.
+Fold the search into a button,Lipat pencarian jadi tombol
+"Shows a search button at the top left of the comments instead of the box, so the comments get that room back. Tap it to search, and tap it again to put the box away. Search within comments must be on.","Menampilkan tombol pencarian di kiri atas komentar sebagai ganti kotaknya, jadi komentar mendapat ruang itu kembali. Ketuk untuk mencari, lalu ketuk lagi untuk menyimpan kotaknya. “Cari dalam komentar” harus menyala."
+Put the comment search away,Tutup pencarian komentar
+Tap @names in bios,Ketuk @nama di bio
+An @username in a profile's bio opens that profile when you tap it. The rest of the bio still translates on a tap.,@nama pengguna di bio profil membuka profil itu saat diketuk. Bagian bio lainnya tetap diterjemahkan saat diketuk.

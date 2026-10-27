@@ -50,6 +50,18 @@ class EmoteHooksTest {
         assertThrows(PatchException::class.java) { textViewField(method, 2) }
     }
 
+    @Test fun rejectsReceiverDerivedAcrossConditionalFlow() {
+        val method = binder("""
+            iget-object v1, p0, Lsynthetic/Base;->text:Landroid/widget/TextView;
+            if-eqz p2, :render
+            nop
+            :render
+            invoke-virtual {v1, v2, v3}, $TEXT_SETTER
+            return-void
+        """)
+        assertThrows(PatchException::class.java) { textViewField(method, 3) }
+    }
+
     @Test fun derivesSourceFieldFromItsLabelAndRejectsAmbiguity() {
         val method = binder("""
             const-string v0, ", sourceChannelId="

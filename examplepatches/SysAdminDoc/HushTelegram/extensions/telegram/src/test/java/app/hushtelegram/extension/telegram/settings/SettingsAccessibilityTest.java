@@ -225,7 +225,7 @@ public class SettingsAccessibilityTest {
         assertNotNull("the back icon is missing", back.getDrawable());
 
         View title = dialog.getView().findViewWithTag(SettingsDialog.PAGE_TITLE);
-        assertEquals("Your Telegram.", String.valueOf(((TextView) title).getText()));
+        assertEquals("HushTelegram", String.valueOf(((TextView) title).getText()));
         assertTrue("the screen's title isn't a heading", node(title).isHeading());
     }
 
@@ -236,7 +236,8 @@ public class SettingsAccessibilityTest {
      * view. So the list keeps the keyboard, the card is a stop with a ring, and Enter presses Pause.
      */
     @Test
-    public void aDpadStopsOnTheStatusCardWhereEnterPressesPause() throws Exception {
+    public void aDpadStopsOnThePausedStatusCardWhereEnterPressesResume() throws Exception {
+        app.hushtelegram.extension.shared.settings.BaseSettings.PAUSED.save(true);
         SettingsDialog dialog = SettingsL10nTest.show(controller.get());
         ListView list = dialog.getView().findViewById(android.R.id.list);
         leaveTouchMode(list);
@@ -259,11 +260,38 @@ public class SettingsAccessibilityTest {
 
         press(root, android.view.KeyEvent.KEYCODE_DPAD_UP);
         assertEquals(0, list.getSelectedItemPosition());
-        assertFalse(app.hushtelegram.extension.shared.settings.BaseSettings.PAUSED.savedValue());
+        assertTrue(app.hushtelegram.extension.shared.settings.BaseSettings.PAUSED.savedValue());
         press(root, android.view.KeyEvent.KEYCODE_ENTER);
-        assertTrue("Enter on the card didn't press Pause",
+        assertFalse("Enter on the card didn't press Resume",
                 app.hushtelegram.extension.shared.settings.BaseSettings.PAUSED.savedValue());
         assertEquals("Enter moved the keyboard out of the list", list, root.findFocus());
+    }
+
+    /**
+     * Not paused, no card is drawn, so the keyboard's first stop is the first section heading with
+     * its ring, Enter opens it in place, and the toolbar's Pause is a real focusable button.
+     */
+    @Test
+    public void aDpadStopsOnTheFirstHeadingWhereEnterOpensItAndPauseSitsInTheToolbar() throws Exception {
+        SettingsDialog dialog = SettingsL10nTest.show(controller.get());
+        ListView list = dialog.getView().findViewById(android.R.id.list);
+        leaveTouchMode(list);
+        list.requestFocus();
+        ShadowLooper.idleMainLooper();
+        View root = list.getRootView();
+        if (list.getSelectedItemPosition() != 0) press(root, android.view.KeyEvent.KEYCODE_DPAD_DOWN);
+        assertEquals(0, list.getSelectedItemPosition());
+        Preference first = (Preference) list.getSelectedItem();
+        assertTrue(first.getKey(), first.getKey().startsWith("section_"));
+        assertTrue("the heading shows no ring", ringShows(list.getSelectedView().getBackground()));
+        HushTelegramPreferenceFragment page = (HushTelegramPreferenceFragment) dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID);
+        String id = first.getKey().substring("section_".length());
+        assertFalse(page.navigation.isExpanded(id));
+        press(root, android.view.KeyEvent.KEYCODE_ENTER);
+        assertTrue("Enter didn't open the heading", page.navigation.isExpanded(id));
+        assertEquals("Enter moved the keyboard out of the list", list, root.findFocus());
+        assertEquals(View.VISIBLE, dialog.pauseAction.getVisibility());
+        assertTrue(dialog.pauseAction.isFocusable());
     }
 
     /**

@@ -39,6 +39,7 @@ internal const val FEATURES_INVITE = "$EXTENSION_PACKAGE/misc/FeaturesInvite;"
 internal const val ADD_FEATURES = "$FEATURES_INVITE->addFeaturesRow(Ljava/util/ArrayList;Ljava/lang/Object;)Z"
 internal const val SECTION_COUNT = "$FEATURES_INVITE->sectionCount(Ljava/lang/Object;II)I"
 internal const val SECTION_ROW = "$FEATURES_INVITE->sectionRow(Ljava/lang/Object;II)I"
+internal const val LIST_SHOWN = "$FEATURES_INVITE->listShown(Ljava/lang/Object;)V"
 internal const val FEATURES_LABEL = "Lorg/telegram/messenger/R\$string;->TelegramFeatures:I"
 internal const val INVITE_LABEL = "Lorg/telegram/messenger/R\$string;->InviteFriends:I"
 internal const val INVITE_ICON = "Lorg/telegram/messenger/R\$drawable;->settings_invite:I"
@@ -89,6 +90,25 @@ val hideFeaturesInvitePatch = bytecodePatch(
             const/4 v0, 0x0
             return v0
         """)
+        // Each step returns on its own, so no register meets a label holding two kinds of value.
+        writeStub(FEATURES_INVITE, "rebuildList", 5, """
+            instance-of v0, p0, ${site.settingsType}
+            if-nez v0, :hush_settings
+            return-void
+            :hush_settings
+            check-cast p0, ${site.settingsType}
+            iget-object v1, p0, ${site.listField}
+            if-nez v1, :hush_list
+            return-void
+            :hush_list
+            iget-object v2, v1, ${site.adapterField}
+            if-nez v2, :hush_adapter
+            return-void
+            :hush_adapter
+            const/4 v3, 0x1
+            invoke-virtual {v2, v3}, ${site.update}
+            return-void
+        """)
         site.insert(site.settings, site.counter, site.rows)
         enableStatus("hideFeaturesAndInvite")
     }
@@ -100,6 +120,8 @@ val hideFeaturesInvitePatch = bytecodePatch(
  * and [rows] the base's row-in-section lookup, with [row] the row it worked out. The Contacts
  * adapter is [adapter], and its fields say whether it's the main list ([phonebook]), a picker
  * ([onlyUsers]) and whether it has no Telegram contacts and lists people to invite ([inviteList]).
+ * The Settings screen ([settingsType]) holds its list view in [listField], the view its adapter in
+ * [adapterField], and [update] has that adapter build its rows again.
  */
 internal class FeaturesInviteSite(
     val settings: MutableMethod,
@@ -112,10 +134,17 @@ internal class FeaturesInviteSite(
     val phonebook: String,
     val onlyUsers: String,
     val inviteList: String,
+    val settingsType: String,
+    val listField: String,
+    val adapterField: String,
+    val update: String,
 ) {
     fun insert(settings: MutableMethod, counter: MutableMethod, rows: MutableMethod) {
         val (list, item) = settings.controlBody()[append].namedRegisters()
         settings.replaceInstruction(append, "invoke-static {v$list, v$item}, $ADD_FEATURES")
+        // The builder's first argument is the Settings screen, untouched before its first instruction.
+        val screen = settings.parameterRegisterNumber(0)
+        settings.addInstructions(0, "invoke-static/range {v$screen .. v$screen}, $LIST_SHOWN")
         val (self, section) = counter.controlBody()[counted - 1].namedRegisters()
         val count = counter.controlBody()[counted].namedRegisters().single()
         counter.addInstructions(counted + 1, "invoke-static {v$self, v$section, v$count}, $SECTION_COUNT\nmove-result v$count")
@@ -132,6 +161,8 @@ internal fun BytecodePatchContext.resolveFeaturesInvite(): FeaturesInviteSite {
     controlHook(FEATURES_INVITE, "sectionCount", listOf("Ljava/lang/Object;", "I", "I"), "I")
     controlHook(FEATURES_INVITE, "sectionRow", listOf("Ljava/lang/Object;", "I", "I"), "I")
     controlHook(FEATURES_INVITE, "inviteLayout", listOf("Ljava/lang/Object;"), "I")
+    controlHook(FEATURES_INVITE, "listShown", listOf("Ljava/lang/Object;"), "V")
+    controlHook(FEATURES_INVITE, "rebuildList", listOf("Ljava/lang/Object;"), "V")
 
     val builders = mutableListOf<Pair<String, String>>()
     val binders = mutableListOf<Pair<String, String>>()
@@ -171,6 +202,25 @@ internal fun BytecodePatchContext.resolveFeaturesInvite(): FeaturesInviteSite {
         (copies.isEmpty() && list == argument ||
             copies.size == 1 && copies[0].opcode in OBJECT_MOVES && copies[0].namedRegisters() == listOf(list, argument)),
         "the Telegram Features row isn't added to Settings' own list")
+
+    // Settings keeps the rows it built: onResume reaches its adapter through the list view, and the
+    // screen's one (Z)V call on that adapter builds the rows again.
+    val screen = classDefByOrNull(settingsType)!!
+    val resume = screen.methods.filter { it.name == "onResume" && shape(it, emptyList(), "V") }.controlSingle("Settings' onResume").controlBody()
+    val view = resume.indices.filter { at ->
+        resume[at].opcode == Opcode.IGET_OBJECT && resume[at].controlField()?.definingClass == settingsType &&
+            resume.getOrNull(at + 1)?.opcode == Opcode.IGET_OBJECT && resume[at + 1].namedRegisters().getOrNull(1) == resume[at].namedRegisters()[0]
+    }.controlSingle("Settings' list adapter")
+    val listField = resume[view].controlField()!!
+    val adapterField = resume[view + 1].controlField()!!
+    controlShape(adapterField.definingClass == listField.type, "Settings' adapter isn't its list view's")
+    val update = screen.methods.flatMap { m -> m.controlBody().filter { it.opcode == Opcode.INVOKE_VIRTUAL } }.mapNotNull { it.call() }
+        .filter { it.definingClass == adapterField.type && it.parameterTypes.map(CharSequence::toString) == listOf("Z") && it.returnType == "V" }
+        .map { "${it.definingClass}->${it.name}(Z)V" }.distinct().controlSingle("Settings' list update")
+    controlShape(AccessFlags.PUBLIC.isSet(screen.accessFlags) && reachable(listField.definingClass, listField.name) &&
+        reachable(adapterField.definingClass, adapterField.name) && classDefByOrNull(adapterField.type)?.let { found ->
+            AccessFlags.PUBLIC.isSet(found.accessFlags) && found.methods.any { "${it.definingClass}->${it.name}(Z)V" == update && AccessFlags.PUBLIC.isSet(it.accessFlags) }
+        } == true, "Settings' list update can't be called from outside")
 
     // Contacts: the adapter that binds Invite Friends, and the sectioned list base it extends.
     val (adapterType, binderRef) = binders.controlSingle("the Contacts list's row binder")
@@ -238,7 +288,16 @@ internal fun BytecodePatchContext.resolveFeaturesInvite(): FeaturesInviteSite {
 
     val base2 = mutableClassDefBy(base.type)
     return FeaturesInviteSite(settings, append, base2.methods.single { ref(it) == ref(counter) }, counted,
-        base2.methods.single { ref(it) == ref(rows) }, row, adapterType, phonebook, onlyUsers, inviteList)
+        base2.methods.single { ref(it) == ref(rows) }, row, adapterType, phonebook, onlyUsers, inviteList,
+        settingsType, "${listField.definingClass}->${listField.name}:${listField.type}",
+        "${adapterField.definingClass}->${adapterField.name}:${adapterField.type}", update)
+}
+
+/** A public instance field of a public class, so the extension's stub can read it. */
+private fun BytecodePatchContext.reachable(type: String, name: String): Boolean {
+    val owner = classDefByOrNull(type) ?: return false
+    return AccessFlags.PUBLIC.isSet(owner.accessFlags) &&
+        owner.fields.any { it.name == name && AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags) }
 }
 
 /** Only [from] reaches [at], so an insert there runs on every path. */

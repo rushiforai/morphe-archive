@@ -215,10 +215,10 @@ class GboardLanFtpManifestPatchTest {
         const val SOURCE_PACKAGE = "com.google.android.inputmethod.latin"
         const val FINAL_PACKAGE = "dev.jason.com.google.android.inputmethod.latin"
         const val MANIFEST_FIXTURE =
-            "/gboard/18.0.3/package-rename/AndroidManifest.normalized.xml"
-        const val SETTINGS_FIXTURE = "/gboard/18.0.3/package-rename/settings.xml"
+            "/gboard/18.5.3/packagerename/AndroidManifest.xml"
+        const val SETTINGS_FIXTURE = "/gboard/18.5.3/packagerename/settings.xml"
         const val SETTINGS_LEGACY_FIXTURE =
-            "/gboard/18.0.3/package-rename/settings_legacy.xml"
+            "/gboard/18.5.3/packagerename/settings_legacy.xml"
         const val MINIMAL_MANIFEST =
             "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" " +
                 "package=\"$SOURCE_PACKAGE\"><application /></manifest>"

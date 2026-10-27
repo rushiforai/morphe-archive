@@ -28,6 +28,7 @@ public class SettingsDividerTest {
     @Before public void reset() {
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().commit();
+        OpenSections.all();
     }
 
     @After public void restore() {

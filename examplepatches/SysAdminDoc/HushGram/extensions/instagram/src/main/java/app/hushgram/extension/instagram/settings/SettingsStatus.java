@@ -276,6 +276,11 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Rewritten by the Tab bar layout patch. */
+    public static boolean tabBarLayout() {
+        return false;
+    }
+
     public static boolean swipeToCreate() {
         return false;
     }

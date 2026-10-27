@@ -35,7 +35,8 @@ final class SettingsDialog extends LinearLayout {
         if (text.layoutDirection() == LAYOUT_DIRECTION_RTL) setTextDirection(TEXT_DIRECTION_RTL);
         setAccessibilityPaneTitle(title);
         header = ui.column();
-        TextView heading = ui.text(title, 24, ui.text, true);
+        TextView heading = ui.title(title, 24);
+        heading.setTag("dialog_title");
         heading.setAccessibilityHeading(true);
         header.addView(heading);
         ui.add(header, ui.text(hint, 14, ui.muted, false), 8);

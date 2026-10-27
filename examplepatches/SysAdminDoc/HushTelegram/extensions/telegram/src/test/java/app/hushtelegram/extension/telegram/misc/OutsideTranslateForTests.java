@@ -46,6 +46,7 @@ public final class OutsideTranslateForTests {
             @Override public boolean eligible() { return true; }
             @Override public String original() { return "Привет, мир"; }
             @Override public boolean translated() { return false; }
+            @Override public String telegramTarget() { return null; }
             @Override public void apply(String text, String language) {}
             @Override public void refresh() {}
         };

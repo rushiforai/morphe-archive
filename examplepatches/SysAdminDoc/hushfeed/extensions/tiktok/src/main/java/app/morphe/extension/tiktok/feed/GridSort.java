@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
@@ -37,6 +38,7 @@ import java.util.WeakHashMap;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -167,7 +169,26 @@ public final class GridSort {
      * saves it as the order every grid follows.
      */
     static void apply(Object adapter, String order) {
-        Settings.PROFILE_GRID_SORT.save(order);
+        apply(adapter, order, null);
+    }
+
+    private static void apply(Object adapter, String order, View chosenFrom) {
+        if (chosenFrom != null && !currentControl(adapter, chosenFrom)) return;
+        View grid = gridView(adapter);
+        SortChip control = controlOn(grid);
+        boolean saved;
+        synchronized (Setting.class) {
+            boolean retainedOriginal = control != null && control.originalChosen;
+            if (control != null) control.stopRetainingOriginal();
+            saved = Settings.PROFILE_GRID_SORT.save(order);
+            if (control != null && (saved ? control == chosenFrom && OFF.equals(order) : retainedOriginal)) {
+                control.retainOriginal();
+            }
+        }
+        if (!saved) {
+            Utils.showToastShort(L10n.t("Couldn't save the change. Try again."));
+            return;
+        }
         List<?> original;
         synchronized (ORIGINALS) {
             original = ORIGINALS.get(adapter);
@@ -184,7 +205,6 @@ public final class GridSort {
                 }
             }
         }
-        View grid = gridView(adapter);
         showChip(adapter, grid);
         int size = original == null ? 0 : original.size();
         if (wantsNextPage(order, 0, size, onScreen(grid))) askForNextPage(adapter);
@@ -445,33 +465,156 @@ public final class GridSort {
         return grid != null && grid.isShown() && grid.getGlobalVisibleRect(new Rect());
     }
 
+    /** Original selected here keeps only this control, until its grid leaves the screen. */
+    private static final class SortChip extends TextView {
+        Object adapter;
+        View grid;
+        volatile boolean originalChosen;
+        private OriginalWatch originalWatch;
+
+        SortChip(Context context) {
+            super(context);
+        }
+
+        void retainOriginal() {
+            synchronized (Setting.class) {
+                stopRetainingOriginal();
+                originalChosen = true;
+                originalWatch = new OriginalWatch(Setting.preferences.preferences);
+                originalWatch.preferences.registerOnSharedPreferenceChangeListener(originalWatch);
+            }
+        }
+
+        void stopRetainingOriginal() {
+            synchronized (Setting.class) {
+                originalChosen = false;
+                if (originalWatch == null) return;
+                originalWatch.preferences.unregisterOnSharedPreferenceChangeListener(originalWatch);
+                originalWatch = null;
+            }
+        }
+
+        private final class OriginalWatch implements SharedPreferences.OnSharedPreferenceChangeListener {
+            final SharedPreferences preferences;
+
+            OriginalWatch(SharedPreferences preferences) {
+                this.preferences = preferences;
+            }
+
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences preferences, String key) {
+                if (key != null && !Settings.PROFILE_GRID_SORT.key.equals(key)) return;
+                synchronized (Setting.class) {
+                    if (originalWatch != this || !originalChosen) return;
+                    originalChosen = false;
+                    this.preferences.unregisterOnSharedPreferenceChangeListener(this);
+                }
+                MAIN.post(() -> {
+                    synchronized (Setting.class) {
+                        // A callback already queued before unregister belongs to the old choice.
+                        if (originalWatch != this) return;
+                        originalWatch = null;
+                    }
+                    if (controlOn(grid) == SortChip.this) showChip(adapter, grid);
+                });
+            }
+        }
+
+        void expireOriginal() {
+            synchronized (Setting.class) {
+                if (!originalChosen && originalWatch == null) return;
+                stopRetainingOriginal();
+            }
+            setVisibility(View.GONE);
+            // Window detach can be iterating the parent's children. Remove after that traversal.
+            MAIN.post(() -> {
+                ViewParent parent = getParent();
+                if (getVisibility() == View.GONE && parent instanceof ViewGroup) {
+                    ((ViewGroup) parent).removeView(this);
+                }
+            });
+        }
+
+        @Override
+        protected void onWindowVisibilityChanged(int visibility) {
+            super.onWindowVisibilityChanged(visibility);
+            if (visibility != View.VISIBLE) expireOriginal();
+        }
+
+        @Override
+        protected void onDetachedFromWindow() {
+            stopRetainingOriginal();
+            super.onDetachedFromWindow();
+        }
+    }
+
+    private static SortChip controlOn(View grid) {
+        if (grid == null || !(grid.getParent() instanceof FrameLayout)) return null;
+        FrameLayout frame = (FrameLayout) grid.getParent();
+        for (int i = 0; i < frame.getChildCount(); i++) {
+            View child = frame.getChildAt(i);
+            if (child instanceof SortChip && CHIP_TAG.equals(child.getTag())) return (SortChip) child;
+        }
+        return null;
+    }
+
+    private static boolean currentControl(Object adapter, View anchor) {
+        View grid = gridView(adapter);
+        if (grid == null) return false;
+        Object currentAdapter = Reflect.invoke(grid, "getAdapter");
+        if (currentAdapter != null && currentAdapter != adapter) return false;
+        SortChip control = controlOn(grid);
+        return control == anchor && control != null && control.adapter == adapter
+                && control.grid == grid && control.isAttachedToWindow() && control.isShown()
+                && !Setting.isPaused() && onScreen(control.grid);
+    }
+
     /**
-     * The chip over the grid's top corner while an order is chosen. TikTok's grid sits in a
-     * FrameLayout of its own, so the chip floats over the corner without moving a cell. Any other
-     * parent gets no chip. Original order takes it away, which is the stock grid.
+     * The chip over the grid's top corner while an order is chosen, or while Original was chosen
+     * from this control. A default Original grid and an explicit disable keep TikTok's stock grid.
+     * TikTok's FrameLayout lets the chip float over the corner without moving a cell.
      */
     private static void showChip(Object adapter, View grid) {
         if (grid == null) return;
+        Object currentAdapter = Reflect.invoke(grid, "getAdapter");
+        if (currentAdapter != null && currentAdapter != adapter) return;
         ViewParent parent = grid.getParent();
         if (!(parent instanceof FrameLayout)) return;
         FrameLayout frame = (FrameLayout) parent;
-        View existing = null;
-        for (int i = 0; i < frame.getChildCount(); i++) {
-            View child = frame.getChildAt(i);
-            if (CHIP_TAG.equals(child.getTag())) existing = child;
+        SortChip chip = controlOn(grid);
+        // Late reads from an inactive old grid cannot take over the current grid's control.
+        // A newly attached grid can still bind its control before its first layout.
+        if (chip != null && chip.grid != grid
+                && (!grid.isShown() || (grid.isLaidOut() && !onScreen(grid)))) return;
+        View existing = chip;
+        boolean differentControl = chip != null && (chip.grid != grid || chip.adapter != adapter);
+        boolean shown = onScreen(grid);
+        int index;
+        boolean hideChip;
+        synchronized (Setting.class) {
+            index = indexOf(Settings.PROFILE_GRID_SORT.get());
+            hideChip = Setting.isPaused() || index < 0 || (index == 0
+                    && (chip == null || differentControl || !chip.originalChosen || !shown));
+            if (chip != null && (differentControl || index > 0 || hideChip)) chip.stopRetainingOriginal();
         }
-        int index = indexOf(Settings.PROFILE_GRID_SORT.get());
-        if (index <= 0) {
+        if (chip != null && chip.grid != grid) {
+            frame.removeView(chip);
+            chip = null;
+            existing = null;
+        }
+        if (hideChip) {
             if (existing != null) frame.removeView(existing);
             return;
         }
-        TextView chip = existing instanceof TextView ? (TextView) existing : null;
         if (chip == null) {
             Context context = frame.getContext();
-            chip = new TextView(context);
+            chip = new SortChip(context);
             chip.setTag(CHIP_TAG);
             chip.setTextColor(SettingsUi.OVERLAY_TEXT);
             chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_CAPTION);
+            chip.setMinWidth(SettingsUi.dp(context, 48));
+            chip.setMinHeight(SettingsUi.dp(context, 48));
+            chip.setGravity(Gravity.CENTER);
             int paddingX = SettingsUi.dp(context, 10);
             int paddingY = SettingsUi.dp(context, 5);
             chip.setPadding(paddingX, paddingY, paddingX, paddingY);
@@ -486,6 +629,9 @@ public final class GridSort {
             frame.addView(chip, layout);
             followHeader(chip, grid);
         }
+        chip.adapter = adapter;
+        chip.grid = grid;
+        chip.setVisibility(View.VISIBLE);
         chip.setText(L10n.t(LABELS[index]));
         // Set every time: the parent can outlive one adapter and get the next one.
         chip.setOnClickListener(view -> choose(adapter, view));
@@ -497,8 +643,34 @@ public final class GridSort {
      * Keeps the chip under a full-width row at the top of the grid as the grid lays out and
      * scrolls. The listener drops itself once the chip is taken away.
      */
-    private static void followHeader(View chip, View grid) {
-        final class Follow implements ViewTreeObserver.OnScrollChangedListener, ViewTreeObserver.OnGlobalLayoutListener {
+    private static void followHeader(SortChip chip, View grid) {
+        final class Follow implements ViewTreeObserver.OnScrollChangedListener,
+                ViewTreeObserver.OnGlobalLayoutListener, View.OnAttachStateChangeListener {
+            private ViewTreeObserver observer;
+
+            private void removeFrom(ViewTreeObserver from) {
+                if (from == null || !from.isAlive()) return;
+                from.removeOnScrollChangedListener(this);
+                from.removeOnGlobalLayoutListener(this);
+            }
+
+            private void unobserve() {
+                removeFrom(observer);
+                observer = null;
+            }
+
+            void observe() {
+                ViewTreeObserver current = grid.getViewTreeObserver();
+                if (observer == current && current.isAlive()) return;
+                removeFrom(observer);
+                // A floating observer's listeners already merged into the window on attach.
+                removeFrom(current);
+                observer = current;
+                if (!current.isAlive()) return;
+                current.addOnScrollChangedListener(this);
+                current.addOnGlobalLayoutListener(this);
+            }
+
             @Override
             public void onScrollChanged() {
                 update();
@@ -509,21 +681,48 @@ public final class GridSort {
                 update();
             }
 
+            @Override
+            public void onViewAttachedToWindow(View view) {
+                observe();
+                MAIN.post(this::update);
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View view) {
+                unobserve();
+                chip.setVisibility(View.GONE);
+                chip.expireOriginal();
+                MAIN.post(this::update);
+            }
+
+            private void remove() {
+                chip.stopRetainingOriginal();
+                ViewParent parent = chip.getParent();
+                if (parent instanceof ViewGroup) ((ViewGroup) parent).removeView(chip);
+            }
+
             private void update() {
+                Object currentAdapter = Reflect.invoke(grid, "getAdapter");
+                if (Setting.isPaused() || (currentAdapter != null && currentAdapter != chip.adapter)
+                        || (chip.originalChosen && !onScreen(grid))) remove();
+                if (chip.getParent() != null && grid.isAttachedToWindow()
+                        && chip.getParent() != grid.getParent()) {
+                    remove();
+                    showChip(chip.adapter, grid);
+                }
                 if (chip.getParent() != null) {
+                    if (!grid.isAttachedToWindow()) chip.setVisibility(View.GONE);
+                    else if (indexOf(Settings.PROFILE_GRID_SORT.get()) > 0) chip.setVisibility(View.VISIBLE);
                     placeChip(chip, grid);
                     return;
                 }
-                ViewTreeObserver observer = grid.getViewTreeObserver();
-                if (!observer.isAlive()) return;
-                observer.removeOnScrollChangedListener(this);
-                observer.removeOnGlobalLayoutListener(this);
+                grid.removeOnAttachStateChangeListener(this);
+                unobserve();
             }
         }
         Follow follow = new Follow();
-        ViewTreeObserver observer = grid.getViewTreeObserver();
-        observer.addOnScrollChangedListener(follow);
-        observer.addOnGlobalLayoutListener(follow);
+        grid.addOnAttachStateChangeListener(follow);
+        follow.observe();
     }
 
     private static void placeChip(View chip, View grid) {
@@ -577,7 +776,7 @@ public final class GridSort {
                     .setTitle(L10n.t("Sort this grid"))
                     .setSingleChoiceItems(labels, indexOf(Settings.PROFILE_GRID_SORT.get()), (shown, which) -> {
                         shown.dismiss();
-                        apply(adapter, ORDERS[which]);
+                        apply(adapter, ORDERS[which], anchor);
                     })
                     .setNegativeButton(L10n.t("Cancel"), null)
                     .create();

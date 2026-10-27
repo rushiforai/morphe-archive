@@ -70,6 +70,28 @@ public final class UiSettings implements SettingGroup {
         return UiFullscreenPolicy.filterInsets(view, types);
     }
 
+    public static void nativePlayerLayout(android.view.View root, boolean portrait, Enum<?> mode) {
+        UiFullscreenPolicy.nativeLayout(root, !portrait && mode != null &&
+                !mode.name().startsWith("MINIMIZED") && !mode.name().equals("PICTURE_IN_PICTURE"));
+    }
+
+    public static void modernPlayerLayout(android.app.Activity activity, boolean fullscreen) {
+        UiFullscreenPolicy.modernLayout(activity, fullscreen);
+    }
+
+    public static void hostSystemBars(android.app.Activity activity, boolean hidden) {
+        UiFullscreenPolicy.hostBars(activity, hidden);
+    }
+
+    public static void setSystemUiVisibility(android.view.View view, int flags) {
+        view.setSystemUiVisibility(UiFullscreenPolicy.legacyRequest(view, flags));
+    }
+
+    public static void showSystemBars(android.view.WindowInsetsController controller, int types) {
+        int filtered = UiFullscreenPolicy.showRequest(controller, types);
+        if (filtered != 0) controller.show(filtered);
+    }
+
     public static AutoCloseable observe(Runnable listener) { return requireInstance().features.observe(listener); }
 
     public static String snapshot() {

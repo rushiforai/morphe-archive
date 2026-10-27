@@ -31,7 +31,7 @@ class HideFolderCountersFixtureTest {
                 m.returnType == "I" && m.controlBody().map { it.controlRef() }.let { MAIN_UNREAD in it && FILTER_UNREAD in it }
             }.map(ImmutableClassDef::of)
             // The chat list too: the patch's folder at launch switch goes in with the counters, and warns without it.
-            val context = PatchContexts.of((ExtensionDex.classes() + hosts + launchFolderHosts(build)).distinctBy { it.type })
+            val context = PatchContexts.of((ExtensionDex.classes() + hosts + menuHosts(build)).distinctBy { it.type })
             val counter = context.resolveHideFolderCounters()
             val old = ImmutableMethod.of(counter)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) })
@@ -47,7 +47,7 @@ class HideFolderCountersFixtureTest {
                 assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), (before[i] as? ReferenceInstruction)?.reference?.toString()),
                     listOf(after[i + 5].opcode, after[i + 5].namedRegisters(), (after[i + 5] as? ReferenceInstruction)?.reference?.toString()))
             }
-            for (flag in listOf("hideFolderCounters", "launchFolder")) {
+            for (flag in listOf("hideFolderCounters", "launchFolder", "hiddenChats")) {
                 val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
                 assertEquals("$name: $flag", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
             }

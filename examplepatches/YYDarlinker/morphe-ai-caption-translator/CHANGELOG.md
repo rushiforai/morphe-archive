@@ -1,9 +1,11 @@
 ## [1.5.8](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.5.7...v1.5.8) (2026-10-26)
 
-### 🐛 Bug Fixes
-
-* harden caption ownership, retries, configuration and cache recovery ([18b4b7e](https://github.com/YYDarlinker/morphe-ai-caption-translator/commit/18b4b7e98ad5e760da67b1f1f4020c4f2a30271d))
-* release AI caption translator 1.5.8 ([#8](https://github.com/YYDarlinker/morphe-ai-caption-translator/issues/8)) ([09d5384](https://github.com/YYDarlinker/morphe-ai-caption-translator/commit/09d5384059b0962f733ec8a2ce1e411fa1a1bcde))
+- Improve caption state when switching videos or turning AI off, keeping late translations out of the current captions.
+- Respect service retry delays and reduce unnecessary requests from old translation tasks.
+- Keep unsaved input after settings errors and apply fields that were successfully saved.
+- Show clearer errors for unreadable settings without deleting credentials; allow retrying synchronization after a successful save.
+- Preserve valid source captions when a cache update fails.
+- Make diagnostics clearer about service errors, retry waits and why translation stopped.
 
 ## [1.5.7](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.5.6...v1.5.7) (2026-10-24)
 

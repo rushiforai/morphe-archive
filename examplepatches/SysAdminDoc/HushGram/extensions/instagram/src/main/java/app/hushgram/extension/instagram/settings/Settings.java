@@ -110,10 +110,9 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_profile_menu_long_press", FALSE);
 
     /**
-     * HushGram's settings list their categories, and a tap opens one as its own page. Search still
-     * looks through every category. On to start (#80, #100). The button under the status card, or
-     * this switch, makes the page one long list. A choice about the page itself, so it's read
-     * saved, not through Pause.
+     * Categories expand inline on the main settings screen. Off shows every setting in one list.
+     * Keep the existing stored key and default for upgrades and backups. Read the saved value
+     * because Pause doesn't change how settings are displayed.
      */
     public static final BooleanSetting CATEGORY_PAGES =
             new BooleanSetting("hushgram_category_pages", TRUE);
@@ -425,6 +424,14 @@ public class Settings extends BaseSettings {
             new StringSetting("hushgram_hidden_chats", "", false, false);
 
     /**
+     * Two quick taps on Messages' button, on the tab bar or at the top of Home, open the list of
+     * hidden chats over Instagram, after the phone's lock while a messages lock is on
+     * ({@link app.hushgram.extension.instagram.direct.HiddenChatsTap}, #358). Off to start.
+     */
+    public static final BooleanSetting DOUBLE_TAP_HIDDEN_CHATS =
+            new BooleanSetting("hushgram_double_tap_hidden_chats", FALSE);
+
+    /**
      * What unlocks the messages: the phone's lock, or a HushGram PIN
      * ({@link app.hushgram.extension.instagram.direct.PinLock}). It isn't a switch, and a backup
      * leaves it out, since a restored choice of PIN would have no PIN behind it.
@@ -669,6 +676,14 @@ public class Settings extends BaseSettings {
     /** The whole row of stories at the top of Home, Your story included. Off until you turn it on. */
     public static final BooleanSetting HIDE_STORIES_TRAY =
             new BooleanSetting("hushgram_hide_stories_tray", FALSE);
+
+    /**
+     * The row of stories stays in the feed instead of floating over it when you come back to Home
+     * mid-feed ({@link app.hushgram.extension.instagram.stories.StoriesTray#keepTrayOutOfOverlay}).
+     * Off to start.
+     */
+    public static final BooleanSetting KEEP_TRAY_IN_FEED =
+            new BooleanSetting("hushgram_keep_tray_in_feed", FALSE);
 
     /**
      * The Music for you card Instagram puts between stories in the viewer
@@ -1869,6 +1884,14 @@ public class Settings extends BaseSettings {
             new EnumSetting<>("hushgram_start_tab", app.hushgram.extension.instagram.reels.StartTab.HOME, true);
 
     /**
+     * Which tab bar Instagram draws ({@link app.hushgram.extension.instagram.reels.TabBarLayout}, #356):
+     * the one Instagram picks for the account, the newer swipe bar or the classic one. The tab host
+     * lays itself out once, as Instagram starts, so a change takes a restart. Starts on Instagram's.
+     */
+    public static final EnumSetting<app.hushgram.extension.instagram.reels.TabBarLayoutChoice> TAB_BAR_LAYOUT =
+            new EnumSetting<>("hushgram_tab_bar_layout", app.hushgram.extension.instagram.reels.TabBarLayoutChoice.INSTAGRAM, true);
+
+    /**
      * The speed locked with Instagram's own 2x lock on a reel stays for the next reels, until the
      * lock is slid off, a hold at the edge is let go of, or Instagram restarts.
      */
@@ -2370,11 +2393,4 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SIGN_IN_NOTICE_HIDDEN =
             new BooleanSetting("hushgram_sign_in_notice_hidden", FALSE, false, false);
 
-    /**
-     * A long press took the Quick setups row off the settings home. It isn't a switch: a pause
-     * doesn't bring the row back, no Quick setups choice touches it, and a settings backup leaves
-     * it out. The Quick setups on the home page row on Settings backup brings it back.
-     */
-    public static final BooleanSetting HIDE_QUICK_SETUPS =
-            new BooleanSetting("hushgram_hide_quick_setups", FALSE, false, false);
 }

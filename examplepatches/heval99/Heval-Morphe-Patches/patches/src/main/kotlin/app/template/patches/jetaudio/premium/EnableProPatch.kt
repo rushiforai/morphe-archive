@@ -1,6 +1,7 @@
 package app.template.patches.jetaudio.premium
 
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -31,10 +32,15 @@ private fun MutableMethod.isPurchaseGetter(): Boolean =
     returnType == "Z" && implementation != null &&
         (parameterTypes.isEmpty() || parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;"))
 
+// Full method identity (owner, name, parameters, return type), so a same-named call into
+// another class never counts as a call to one of the purchase getters.
+private fun MethodReference.identity(): String =
+    "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
+
 private fun MutableMethod.callsAnyOf(targets: Set<String>): Boolean =
     implementation!!.instructions.any { instruction ->
         val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-        ref != null && "${ref.name}(${ref.parameterTypes.joinToString("")})" in targets
+        ref != null && ref.identity() in targets
     }
 
 @Suppress("unused")
@@ -47,12 +53,17 @@ val enableProPatch = bytecodePatch(
     execute {
         val purchaseInfo = purchaseInfoClass()
         val getters = purchaseInfo.methods.filter { it.isPurchaseGetter() }
-        val getterSignatures = getters.map { "${it.name}(${it.parameterTypes.joinToString("")})" }.toSet()
+        val getterSignatures = getters.map { it.identity() }.toSet()
 
         // Only patch leaf getters (those that do not call another getter of this class).
         // The compound ones (e.g. "purchased any plugin") then follow the patched leaves.
-        getters
-            .filterNot { it.callsAnyOf(getterSignatures) }
-            .forEach { it.returnEarly(true) }
+        val leaves = getters.filterNot { it.callsAnyOf(getterSignatures) }
+        if (leaves.isEmpty()) {
+            throw PatchException(
+                "jetAudio purchase info class ${purchaseInfo.type} has no leaf boolean getter " +
+                    "(${getters.size} getters, all compound)",
+            )
+        }
+        leaves.forEach { it.returnEarly(true) }
     }
 }

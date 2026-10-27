@@ -54,6 +54,7 @@ import java.util.Set;
 
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.facebook.settings.SettingsEntry;
+import app.morphe.extension.facebook.settings.ShimmerTitle;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.HushfacebookPause;
@@ -224,6 +225,7 @@ public class AppLockTest {
         }
         assertNotNull(heading);
         assertTrue("the title isn't a heading", heading.isAccessibilityHeading());
+        assertTrue("the cover's title wears Facebook's gradient", ShimmerTitle.wears(heading));
         assertNotNull(reason);
         assertEquals(View.ACCESSIBILITY_LIVE_REGION_POLITE, reason.getAccessibilityLiveRegion());
     }

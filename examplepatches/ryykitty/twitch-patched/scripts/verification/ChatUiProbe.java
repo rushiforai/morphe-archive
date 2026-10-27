@@ -52,7 +52,7 @@ public final class ChatUiProbe {
         dispatch(text, MotionEvent.ACTION_CANCEL, x, y);
         dispatch(text, MotionEvent.ACTION_UP, 1, y);
         check(forwarded[0] == 3, "cancelled gestures release the external emote handler");
-        Window window = new UiFullscreenWindowProbe.ProbeWindow(context);
+        Window window = new ProbeWindow(context);
         SettingsWindow.configure(window, Color.BLACK);
         check(window.getAttributes().width == -1 && window.getAttributes().height == -1, "settings window fills its bounds");
         check(window.getAttributes().layoutInDisplayCutoutMode == WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT,

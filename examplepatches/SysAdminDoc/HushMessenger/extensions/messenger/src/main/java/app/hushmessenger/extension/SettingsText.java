@@ -86,10 +86,9 @@ final class SettingsText {
     static {
         ENGLISH.put("controls", "Controls");
         ENGLISH.put("app", "App");
-        ENGLISH.put("all", "All");
+        ENGLISH.put("section_expanded", "Expanded");
+        ENGLISH.put("section_collapsed", "Collapsed");
         ENGLISH.put("inbox", "Inbox");
-        ENGLISH.put("chats", "Chats");
-        ENGLISH.put("more", "More");
         ENGLISH.put("navigation", "Navigation");
         ENGLISH.put("stickers", "Stickers");
         ENGLISH.put("conversations", "Conversations");
@@ -100,7 +99,6 @@ final class SettingsText {
         ENGLISH.put("settings", "HushMessenger settings");
         ENGLISH.put("preview_title", "HushMessenger UI preview");
         ENGLISH.put("preview_notice", "UI preview. These controls don't change Messenger.");
-        ENGLISH.put("tagline", "Make Messenger yours.");
         ENGLISH.put("open", "Open");
         ENGLISH.put("open_messenger", "Open Messenger");
         ENGLISH.put("reopen", "Some changes apply after App > Restart Messenger.");
@@ -156,7 +154,6 @@ final class SettingsText {
         ENGLISH.put("settings_open_failed", "Couldn't open HushMessenger settings.");
         ENGLISH.put("settings_open_instead", "Patch controls: long-press Messenger's home screen icon");
         ENGLISH.put("restart_save_failed", "Couldn't save, so Messenger wasn't restarted. Try again.");
-        ENGLISH.put("setup", "Your setup");
         ENGLISH.put("paused", "Pause all changes");
         ENGLISH.put("search", "Find a control");
         ENGLISH.put("empty_title", "No controls match");
@@ -198,6 +195,7 @@ final class SettingsText {
         ENGLISH.put("about", "About HushMessenger");
         ENGLISH.put("version", "Version");
         ENGLISH.put("installed", "Installed controls");
+        ENGLISH.put("screen_art_blurry", "This Messenger download only has icons for %1$s dpi screens, and this phone's is %2$s dpi, so they look blurry. To fix it, patch an APKMirror build marked nodpi or one made for your screen.");
         ENGLISH.put("copy", "Copy setup");
         ENGLISH.put("copy_help", "Copies app versions and control choices. No account or chat details. Nothing is sent.");
         ENGLISH.put("setup_activity_help", "Activity notes only show that a control ran. They don't prove it had a visible effect or protected your privacy.");
@@ -390,6 +388,8 @@ final class SettingsText {
         ENGLISH.put("auto_reply_picture_thumb", "The picture sent with this reply");
         ENGLISH.put("auto_reply_picture_copying", "Copying the picture...");
         ENGLISH.put("auto_reply_picture_failed", "Couldn't use that picture. Try another one.");
+        ENGLISH.put("auto_reply_picture_too_big", "That picture is too big. Pick a smaller one.");
+        ENGLISH.put("auto_reply_picture_too_slow", "That picture took too long to load. Try again or pick another one.");
         ENGLISH.put("auto_reply_picture_no_picker", "No app here can pick a picture");
         ENGLISH.put("font_file_choose", "Choose a font file");
         ENGLISH.put("font_phone", "Use your phone's font");

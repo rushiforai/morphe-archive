@@ -8,7 +8,9 @@ package app.morphe.extension.tiktok.interaction;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.view.MotionEvent;
@@ -240,7 +242,8 @@ public final class GestureActions {
                 || "original_sound".equals(action) || "copy_link".equals(action)
                 || "copy_sound_link".equals(action) || "youtube_music".equals(action)
                 || "sleep_timer".equals(action) || "save_frame".equals(action)
-                || "save_cover".equals(action) || "clear_display".equals(action);
+                || "save_cover".equals(action) || "clear_display".equals(action)
+                || "open_search".equals(action);
     }
 
     /**
@@ -411,9 +414,38 @@ public final class GestureActions {
                     : L10n.f("Playing at %1$sx", PlaybackSpeedPatch.speedLabel(speed)));
             return true;
         }
+        if ("open_search".equals(action)) {
+            // Posted, like the sleep timer, so the page opens after the gesture is done with the touch.
+            Utils.runOnMainThread(() -> openSearchPage(Utils.getVisibleActivity()));
+            return true;
+        }
         if (!"comments".equals(action)) return false;
         openOnScreenComments();
         return true;
+    }
+
+    /**
+     * TikTok's own link for its home screen Search shortcut, which opens the empty search page
+     * with the keyboard up. It goes through TikTok's router like any of its links, so it still
+     * works with Hide feed search button on, where there is no button left to press (#251).
+     */
+    static final String SEARCH_PAGE_URI = "snssdk1233://search?enter_from=home_screen_icon&enter_method=enter"
+            + "&enter_blank_page=1&enter_from_sub=app_outside&set_hint_by_sug_word=1";
+
+    static boolean openSearchPage(Context context) {
+        if (context == null) context = Utils.getContext();
+        if (context == null) return false;
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(SEARCH_PAGE_URI))
+                .setPackage(context.getPackageName());
+        if (!(context instanceof Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            context.startActivity(intent);
+            return true;
+        } catch (RuntimeException failure) {
+            Logger.printException(() -> "Could not open the search page", failure);
+            Utils.showToastShort(L10n.t("TikTok's search page couldn't be opened. Restart TikTok and try again."));
+            return false;
+        }
     }
 
     /** The page for the post's sound, or null when the post carries only its own audio. */

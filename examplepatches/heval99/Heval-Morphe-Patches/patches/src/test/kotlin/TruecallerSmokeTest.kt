@@ -54,6 +54,7 @@ private const val T9_INCREMENTAL_HELPER = "morpheRefreshT9Incremental"
 private const val CLEVERTAP_FEATURE_KEY = "featureCleverTap"
 private const val CRASHLYTICS_COLLECTION_KEY = "firebase_crashlytics_collection_enabled"
 private const val CONTACT_TYPE = "Lcom/truecaller/enterpriseinfo/api/model/ContactType;"
+private const val CALL_LOG_FILTER_TYPE = "Lcom/truecaller/calllog/api/FilterType;"
 private const val MOBILE_NUMBERS_SELECTION = "data_type = ? AND data_phonebook_id NOT NULL AND data8 = ?"
 
 class TruecallerSmokeTest {
@@ -95,7 +96,7 @@ class TruecallerSmokeTest {
     }
 
     @Test
-    fun `Truecaller patches unlock premium, remove ads, telemetry, contact upload, update prompts, auto-launch, nags, promotions and optional UI, show caller numbers in the call log, and route GMS to MicroG RE`() {
+    fun `Truecaller patches unlock premium, remove ads, telemetry, contact upload, update prompts, auto-launch, nags, promotions and optional UI, show caller numbers in the call log, hide its filters, and route GMS to MicroG RE`() {
         val root = repoRoot()
         val apk = File(root, "apks/truecaller/base.apk")
 
@@ -137,6 +138,7 @@ class TruecallerSmokeTest {
                 "Hide promotions",
                 "Hide after-call screen for contacts",
                 "Show caller number in call log",
+                "Hide call log filters",
                 "GmsCore support",
                 "Spoof signature",
             ),
@@ -159,6 +161,7 @@ class TruecallerSmokeTest {
         assertHideBusinessMedia(classes)
         assertDisableContactUpload(classes)
         assertShowCallerNumber(classes, byType, apk)
+        assertHideCallLogFilters(classes, byType)
         // onGetCredential tests isAvailableOnDevice(int) in this build, so the routing applies.
         assertGmsCoreSupport(classes, workDir, PKG, TRUECALLER_INIT, SIGNATURE_SHA1, expectCredentialRouting = true)
         assertSpoofSignature(classes, PKG, SIGNATURE_SHA1)
@@ -977,6 +980,58 @@ class TruecallerSmokeTest {
         }
 
         // 3. The verified business campaign toggles are checked in assertToggleOverrides.
+    }
+
+    private fun assertHideCallLogFilters(classes: List<ClassDef>, byType: Map<String, ClassDef>) {
+        // 1. The filter row composable (static, void, 11 parameters, "filtersStartPadding") returns at once.
+        val (rowClass, row) = classes.singleMethod("call log filter row") { _, m ->
+            AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" && m.params().size == 11 &&
+                m.params()[2] == "Lkotlin/jvm/functions/Function1;" && m.params()[4] == "I" &&
+                m.params()[6] == "Lkotlin/jvm/functions/Function0;" && m.params()[7] == "Z" &&
+                "filtersStartPadding" in m.strings()
+        }
+        assertReturnsEarlyVoid(row, label = "${rowClass.type}.${row.name} (call log filter row)")
+
+        // 2. The filter setter TruecallerInit uses for the intent extras (the (FilterType)V call after
+        // "set_missed_filter" and FilterType.MISSED in onNewIntent) loads FilterType.NONE into p1 first.
+        fun Instruction.setterCall() = call()?.takeIf {
+            it.returnType == "V" && it.parameterTypes.map(CharSequence::toString) == listOf(CALL_LOG_FILTER_TYPE)
+        }
+        val init = byType[TRUECALLER_INIT] ?: error("$TRUECALLER_INIT not found")
+        val onNewIntent = init.method("onNewIntent", listOf("Landroid/content/Intent;")).instructions()
+        val extra = onNewIntent.indexOfFirst { it.stringOrNull() == "set_missed_filter" }
+        check(extra >= 0) { "TruecallerInit.onNewIntent no longer reads set_missed_filter" }
+        val missed = (extra until onNewIntent.size).first { onNewIntent[it].field()?.let { f ->
+            f.definingClass == CALL_LOG_FILTER_TYPE && f.name == "MISSED"
+        } == true }
+        val setterRef = (missed until onNewIntent.size).firstNotNullOf { onNewIntent[it].setterCall() }
+        val setter = (byType[setterRef.definingClass] ?: error("${setterRef.definingClass} not found"))
+            .method(setterRef.name, listOf(CALL_LOG_FILTER_TYPE))
+        val label = "${setterRef.definingClass}.${setterRef.name}(FilterType)"
+        val p1 = setter.implementation!!.registerCount - 1 // this + one FilterType parameter
+        val first = setter.instructions().getOrNull(0)
+        check(first?.opcode == Opcode.SGET_OBJECT && (first as OneRegisterInstruction).registerA == p1 &&
+            first.field()?.let { it.definingClass == CALL_LOG_FILTER_TYPE && it.name == "NONE" } == true
+        ) { "$label does not start with sget-object p1, FilterType.NONE; got ${first?.opcode} ${first?.field()}" }
+        // The forced value reaches the coroutine that reloads the list (a constructor taking the FilterType),
+        // with nothing writing p1 before it (R8 reuses p1 for a constant afterwards).
+        val insns = setter.instructions()
+        val reload = insns.indexOfFirst { insn ->
+            insn.call()?.let { it.name == "<init>" && CALL_LOG_FILTER_TYPE in it.parameterTypes.map(CharSequence::toString) } == true
+        }
+        check(reload > 0 && (insns[reload] as? FiveRegisterInstruction)?.let { five ->
+            listOf(five.registerC, five.registerD, five.registerE, five.registerF, five.registerG).take(five.registerCount).contains(p1)
+        } == true) { "$label does not pass p1 to the reload coroutine" }
+        check((1 until reload).none { insns[it] is OneRegisterInstruction && insns[it].opcode.setsRegister() && (insns[it] as OneRegisterInstruction).registerA == p1 }) {
+            "$label overwrites p1 before the reload coroutine"
+        }
+        // onCreate and onNewIntent select filters through this one setter only.
+        for (name in listOf("onCreate", "onNewIntent")) {
+            val calls = init.methods.filter { it.name == name }.flatMap { m -> m.instructions().mapNotNull { it.setterCall() } }
+            check(calls.isNotEmpty() && calls.all { it.definingClass == setterRef.definingClass && it.name == setterRef.name }) {
+                "TruecallerInit.$name selects filters through ${calls.map { "${it.definingClass}->${it.name}" }.distinct()}, not $label"
+            }
+        }
     }
 
     private fun assertDisableContactUpload(classes: List<ClassDef>) {

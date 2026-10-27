@@ -473,6 +473,10 @@ Use the order below. A choice made on a post lasts until restart. Links to comme
 Hide Meta AI comment summaries	Ẩn tóm tắt bình luận của Meta AI
 # context: summary of that switch; the buttons are a post's Like, Comment and Share row
 Hides Meta AI's summary at the top of comments and the comment summary under a post's buttons. The comments themselves stay.	Ẩn bản tóm tắt của Meta AI ở đầu phần bình luận và bản tóm tắt bình luận dưới các nút của bài viết. Bản thân các bình luận vẫn giữ nguyên.
+# context: switch title under Comments; the few comments Facebook shows under a post in the feed, below its Like, Comment and Share row
+Hide comments under posts	Ẩn bình luận dưới bài viết
+# context: summary of that switch; Comment is the post's Comment button
+Feed posts stop showing a few comments under their buttons. Tap Comment to read them all.	Bài viết trên bảng tin không còn hiện bình luận dưới các nút. Nhấn Bình luận để đọc tất cả.
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	Chỉ Thích
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -739,16 +743,10 @@ Active. Marketplace, Notifications and Profile/Menu stay. Find Hushfacebook sett
 Active. Events, Notifications and Profile/Menu stay. Find Hushfacebook settings in Menu, under Settings and privacy.	Đang hoạt động. Sự kiện, Thông báo và Trang cá nhân/Menu vẫn giữ lại. Cài đặt Hushfacebook nằm trong Menu, mục Cài đặt & quyền riêng tư.
 
 # context: Settings overview, category navigation and search.
-Marketplace only, Events only and your start tab	Chỉ Marketplace, Chỉ Sự kiện và tab mở đầu
 Ads, suggestions and word filters	Quảng cáo, gợi ý và bộ lọc từ
-Suggestions, saving, auto-advance and viewing anonymously	Gợi ý, lưu, tự chuyển và xem ẩn danh
 Cleaner reels and video controls	Reel gọn hơn và điều khiển video
 Tap to play, quality and resume	Nhấn để phát, chất lượng và phát tiếp
 Quality, format and file names	Chất lượng, định dạng và tên tệp
-Settings	Cài đặt
-Browse settings	Duyệt cài đặt
-More settings	Cài đặt khác
-Additional Facebook preferences	Tùy chọn Facebook bổ sung
 No matching settings	Không có cài đặt phù hợp
 %1$d setting found	Tìm thấy %1$d cài đặt
 %1$d settings found	Tìm thấy %1$d cài đặt
@@ -1571,13 +1569,8 @@ Report a problem	Báo cáo sự cố
 Opens a GitHub report with your versions and settings filled in. Add what happened.	Mở một báo cáo trên GitHub đã điền sẵn phiên bản và cài đặt của bạn. Hãy thêm mô tả chuyện đã xảy ra.
 # context: row near the top of the settings home page; a list of ready-made sets of switches
 Quick setups	Thiết lập nhanh
-Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	Bật một nhóm công tắc chỉ với một lần nhấn, hoặc đưa mọi công tắc về trạng thái ban đầu. Nhấn giữ để ẩn dòng này.
 # context: toast after a long press hides the Quick setups row from the settings home page; the page name is the one holding the row that brings it back
-Quick setups hidden. Bring it back from %1$s.	Đã ẩn Thiết lập nhanh. Bạn có thể hiện lại từ %1$s.
 # context: row on the Pause, backup and diagnostics page; shows or hides the Quick setups row on the settings home page
-Quick setups on the home page	Thiết lập nhanh trên trang chính
-Shown. Tap to hide it.	Đang hiện. Nhấn để ẩn.
-Hidden. Tap to show it again.	Đang ẩn. Nhấn để hiện lại.
 # context: name of a Quick setups choice that hides ads and nags; an adjective, as in a quiet feed
 Quiet	Yên tĩnh
 Hides ads, suggestions, promos and prompts, and stops nagging notifications.	Ẩn quảng cáo, gợi ý, quảng bá và lời nhắc, đồng thời dừng thông báo làm phiền.
@@ -1630,7 +1623,7 @@ On carriers with Facebook Flex, hides the purple Free mode bar. That bar is also
 # context: switch title under Picture-in-picture on the Playback page: the small window opens only from the Picture-in-picture row this adds to a reel's three-dot More menu, not when you leave Facebook
 Only from a reel's More menu	Chỉ từ menu Thêm của reel
 # context: summary of that switch; Picture-in-picture is the name of the row in the reel's menu, translated as the row is; the three dots are the reel's own menu button
-Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu (the three dots) when you want one. That row is there whenever Picture-in-picture is on.	Rời khỏi Facebook sẽ không mở cửa sổ. Khi muốn, hãy nhấn Hình trong hình trong menu Thêm của reel (dấu ba chấm). Dòng đó luôn có khi Hình trong hình bật.
+Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu (the three dots) when you want one. That row shows on upright reels, not wide ones.	Rời khỏi Facebook sẽ không mở cửa sổ. Khi muốn, hãy nhấn Hình trong hình trong menu Thêm của reel (dấu ba chấm). Dòng đó có ở thước phim dọc, không có ở thước phim ngang.
 # context: switch title under Picture-in-picture on the Playback page; the button floats over a reel or video and opens the small window when tapped
 Picture-in-picture button	Nút hình trong hình
 # context: summary of that switch; "the window" is the small picture-in-picture window
@@ -1686,6 +1679,8 @@ Keeps the Messenger button but drops the unread count on it.	Giữ nút Messenge
 Hide the Facebook logo	Ẩn logo Facebook
 # context: summary of that switch; Hushfacebook is the app's name and stays as it is; press and hold is a long press
 Hides the Facebook logo in the top bar. The empty spot is the same size and still opens Hushfacebook settings when you press and hold it. Restart Facebook to see the change.	Ẩn logo Facebook trên thanh trên cùng. Chỗ trống có cùng kích thước và vẫn mở phần cài đặt Hushfacebook khi nhấn giữ. Hãy khởi động lại Facebook để thấy thay đổi.
+Hide the Create button	Ẩn nút Tạo
+Takes the + button for making a post, reel or story out of the top bar. Restart Facebook to see the change.	Gỡ nút + để tạo bài viết, thước phim và tin khỏi thanh trên cùng. Hãy khởi động lại Facebook để thấy thay đổi.
 # context: switch title under News feed; the counts are the numbers on the Like, Comment and Share buttons under a post
 Hide counts on posts	Ẩn số đếm trên bài viết
 # context: summary of that switch; Like, Comment and Share are Facebook's own button labels, so use Facebook's wording in your language
@@ -1694,6 +1689,9 @@ Takes the numbers off the Like, Comment and Share buttons under posts, so each s
 Hide counts on reels	Ẩn số đếm trên reel
 # context: summary of that switch; Like, Comment and Share are Facebook's own button labels, so use Facebook's wording in your language
 Takes the numbers away from under a reel's Like, Comment and Share icons. The icons stay where they are. A change shows from the next reel.	Bỏ các con số bên dưới biểu tượng Thích, Bình luận và Chia sẻ của reel. Các biểu tượng vẫn ở nguyên chỗ. Thay đổi hiện từ reel tiếp theo.
+# context: Reels and Watch switch for the dedicated WhatsApp sidebar button, independent of the Share menu
+Hide WhatsApp on reels	Ẩn WhatsApp trên reel
+Hides the WhatsApp button beside reels and videos. WhatsApp stays in the Share menu. A change shows from the next video.	Ẩn nút WhatsApp bên cạnh reel và video. WhatsApp vẫn có trong menu Chia sẻ. Thay đổi có hiệu lực từ video tiếp theo.
 # context: switch title under Reels and Watch; Save is Facebook's own label for the bookmark button down a reel's right side, so use Facebook's wording in your language
 Hide Save on reels	Ẩn nút Lưu trên reel
 # context: summary of that switch; the buttons under it are Download and More
@@ -1929,3 +1927,14 @@ Couldn't remove the header picture. Try again.	Không thể xóa ảnh tiêu đ�
 The app holding that picture is taking too long, so Hushfacebook stopped waiting. The top of Home didn't change.	Ứng dụng chứa ảnh đó phản hồi quá lâu nên Hushfacebook đã ngừng chờ. Đầu Trang chủ không thay đổi.
 # context: toast when a tap on Home header picture comes while the last stalled app still holds a worker
 The app holding the last picture still hasn't answered. Try again later.	Ứng dụng chứa ảnh trước đó vẫn chưa phản hồi. Hãy thử lại sau.
+Inline feed video controls	Nút điều khiển video trong bảng tin
+Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls.	Thêm nút phát/tạm dừng vào video trong bảng tin. Chạm vào video để mở toàn màn hình. Video trực tiếp và quảng cáo giữ nguyên các nút điều khiển.
+Play feed video	Phát video trong bảng tin
+Pause feed video	Tạm dừng video trong bảng tin
+Support	Hỗ trợ
+Reports, restart and app information	Báo cáo, khởi động lại và thông tin ứng dụng
+Your start tab and launch settings	Tab khởi đầu và cài đặt khi mở ứng dụng
+Saving, playback and anonymous viewing	Lưu, phát và xem ẩn danh
+Sorting, replies and reactions	Sắp xếp, trả lời và cảm xúc
+Expanded	Đã mở rộng
+Collapsed	Đã thu gọn

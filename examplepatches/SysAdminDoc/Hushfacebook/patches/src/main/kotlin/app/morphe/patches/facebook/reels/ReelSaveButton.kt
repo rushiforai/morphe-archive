@@ -10,7 +10,8 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.downloads.reel.SIDEBAR
-import app.morphe.patches.facebook.downloads.reel.isSidebarBuilder
+import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.feed.methodsNaming
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.freeLocalsAt
 import app.morphe.util.classDefForEachReferencing
@@ -25,25 +26,27 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 /*
- * The Save button down a reel's right side (#190). Read from 583, 2026-10-19, arm64 and armv7; the
- * obfuscated names here are for reviewers, the code never writes one down.
+ * The Save and direct WhatsApp buttons down a reel's right side (#190, #243). Read from 584
+ * arm64; obfuscated names here are for reviewers, the code never writes one down.
  *
- * - The reel sidebar's builder (arm64 LX/APP;->A02, armv7 LX/AR8;->A02, the method Download any
- *   reel adds its button in) walks a list of button types, one constant of Facebook's icon enum
- *   (LX/1UP; on both) for each button, and builds, marks and names one button per type. The walk
- *   reads each type with Iterator.next() and casts it to the enum straight away.
- * - Save is the BOOKMARK constant: the per-type factory (arm64 LX/ARY;->A06) builds "save_button"
- *   for ordinal 274, which the enum's <clinit> names BOOKMARK. Like, Comment and Share are LIKE,
- *   COMMENT and SHARE. The enum's names are strings in its <clinit>, so name() reads them at run
- *   time on any build.
- * - Skipping a type before it's built leaves the three lists in step, since nothing has been
- *   added for it yet. The assembly call only asks the type list where one other button sits
- *   (ImmutableList.indexOf), to place a badge beside it.
+ * - The shared per-type factory (LX/93I;->A06) names "whatsapp_button" and both sidebar
+ *   components. Its four callers walk a list of icon enum constants (LX/1Wz;), casting each
+ *   Iterator.next() answer straight away: the UDDSideBarComponent and FbShortsSideBarComponent
+ *   renders (LX/AF0; and LX/Th4;), their list builder (LX/U58;) and the VddVerticalUfiComponent
+ *   builder (LX/93Q;). The old Save hook covered only the first render.
+ * - Save is BOOKMARK (ordinal 274). APP_WHATSAPP (146) builds "whatsapp_button", with the
+ *   WhatsApp icon and its own click. Like, Comment and Share are LIKE, COMMENT and SHARE.
+ *   The enum's names are strings in its <clinit>, so name() reads them at run time.
+ * - Skipping a type before it's built leaves each caller's component and metadata lists in step,
+ *   since nothing has been added for it yet. The renders also use the input list to locate a badge.
  * - The hook goes right after the cast: the extension is handed the type, and true jumps back to
  *   the walk's hasNext(), as the walk's own `continue` does.
  */
 
 internal const val REEL_SIDEBAR_BUTTON = "$EXTENSION_PACKAGE/reels/ReelDeclutter;->hideSidebarButton(Ljava/lang/Object;)Z"
+internal const val WHATSAPP_BUTTON_ID = "whatsapp_button"
+internal const val WHATSAPP_SIDEBAR_TYPE = "APP_WHATSAPP"
+internal const val SHORTS_SIDEBAR = "FbShortsSideBarComponent"
 
 private const val PATCH = "Clean up Reels"
 private const val ITERATOR = "Ljava/util/Iterator;"
@@ -85,35 +88,48 @@ private fun Instruction.iteratorCall(name: String): Int? {
 }
 
 /**
- * Puts the Save switch's check right after the sidebar builder casts each button type: the type
+ * Puts the sidebar switches' check right after each builder casts a button type: the type
  * goes to the extension, and true goes back to hasNext() before anything is built for it. Refuses
- * unless there's one sidebar builder, one such walk in it, and a free local for the answer.
+ * unless the shared factory has the four proven callers, each with one such walk over the same
+ * enum, and a free local for the answer. No component or aligned-list entry exists at that point.
  */
 internal fun BytecodePatchContext.hideReelSaveButton() {
+    val factories = methodsNaming(WHATSAPP_BUTTON_ID) { holdsString(it, SIDEBAR) && holdsString(it, SHORTS_SIDEBAR) }
+    val factory = factories.singleOrNull()
+        ?: throw PatchException("$PATCH: expected one shared sidebar factory naming $WHATSAPP_BUTTON_ID, found ${factories.size}")
+    val enumType = factory.parameterTypes.map(CharSequence::toString).singleOrNull { type ->
+        classDefByOrNull(type)?.let { icons ->
+            icons.superclass == ENUM && icons.methods.any { it.name == "<clinit>" && holdsString(it, WHATSAPP_SIDEBAR_TYPE) }
+        } == true
+    } ?: throw PatchException("$PATCH: the shared sidebar factory has no unique enum naming $WHATSAPP_SIDEBAR_TYPE")
     val builders = mutableListOf<Pair<String, Method>>()
-    // A sidebar builder names SIDEBAR ([isSidebarBuilder]).
-    classDefForEachReferencing(strings = listOf(SIDEBAR)) { classDef ->
+    classDefForEachReferencing(types = listOf(factory.definingClass)) { classDef ->
         if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
-        classDef.methods.filter { isSidebarBuilder(it, classDef.methods) }.forEach { builders += classDef.type to it }
+        classDef.methods.filter { method ->
+            method.implementation?.instructions?.any {
+                val call = (it as? ReferenceInstruction)?.reference as? MethodReference
+                call != null && call.definingClass == factory.definingClass && isCalledBy(factory, call)
+            } == true
+        }.forEach { builders += classDef.type to it }
     }
-    val (owner, found) = builders.singleOrNull()
-        ?: throw PatchException("$PATCH: expected one reel sidebar builder, found ${builders.size}")
-    // Read from the method being edited: Download any reel adds its block to the same builder, and
-    // either patch can run first.
-    val builder = mutableClassDefBy(owner).methods.single {
-        it.name == found.name && it.parameterTypes.map(CharSequence::toString) == found.parameterTypes.map(CharSequence::toString)
+    if (builders.size != 4) throw PatchException("$PATCH: expected four shared sidebar factory callers, found ${builders.size}")
+    for ((owner, found) in builders) {
+        // Download any reel edits the UDD builder too, and either patch can run first.
+        val builder = mutableClassDefBy(owner).methods.single {
+            it.name == found.name && it.parameterTypes.map(CharSequence::toString) == found.parameterTypes.map(CharSequence::toString)
+        }
+        val walk = buttonTypeWalk(builder) { it == enumType }
+            ?: throw PatchException("$PATCH: $owner->${found.name} doesn't read the sidebar's enum in one iterator walk")
+        val at = walk.cast + 1
+        val answer = builder.freeLocalsAt("$PATCH: the sidebar switches' answer", at, 1, targets = listOf(walk.hasNext), highest = 255).single()
+        builder.addInstructionsWithLabels(
+            at,
+            """
+                invoke-static/range { v${walk.type} .. v${walk.type} }, $REEL_SIDEBAR_BUTTON
+                move-result v$answer
+                if-nez v$answer, :next_button
+            """,
+            ExternalLabel("next_button", builder.getInstruction(walk.hasNext)),
+        )
     }
-    val walk = buttonTypeWalk(builder) { classDefByOrNull(it)?.superclass == ENUM }
-        ?: throw PatchException("$PATCH: $owner->${found.name} doesn't read its button types off one iterator into an enum")
-    val at = walk.cast + 1
-    val answer = builder.freeLocalsAt("$PATCH: the Save switch's answer", at, 1, targets = listOf(walk.hasNext), highest = 255).single()
-    builder.addInstructionsWithLabels(
-        at,
-        """
-            invoke-static/range { v${walk.type} .. v${walk.type} }, $REEL_SIDEBAR_BUTTON
-            move-result v$answer
-            if-nez v$answer, :next_button
-        """,
-        ExternalLabel("next_button", builder.getInstruction(walk.hasNext)),
-    )
 }

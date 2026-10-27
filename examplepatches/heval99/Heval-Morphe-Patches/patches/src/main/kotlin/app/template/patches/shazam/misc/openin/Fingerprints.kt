@@ -39,5 +39,9 @@ internal object StreamingProviderConstructorFingerprint : Fingerprint(
 internal object StreamingProvidersFromConfigFingerprint : Fingerprint(
     returnType = "Ljava/util/List;",
     parameters = listOf(),
-    strings = listOf("packageName(...)", "songUri(...)", "albumUri(...)"),
+    strings = listOf(
+        string("packageName(...)", StringComparisonType.CONTAINS),
+        string("songUri(...)", StringComparisonType.CONTAINS),
+        string("albumUri(...)", StringComparisonType.CONTAINS),
+    ),
 )

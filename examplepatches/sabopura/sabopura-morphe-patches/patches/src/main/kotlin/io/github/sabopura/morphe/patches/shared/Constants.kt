@@ -3,7 +3,6 @@ package io.github.sabopura.morphe.patches.shared
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
-import app.morphe.patcher.patch.SupportedAbi
 
 object Constants {
     const val PACKAGE_NAME = "jp.gocro.smartnews.android"
@@ -11,7 +10,7 @@ object Constants {
     val SMARTNEWS_COMPATIBILITY = Compatibility(
         name = "SmartNews",
         packageName = PACKAGE_NAME,
-        description = "SmartNews ad-removal patch set (26.6.50 and later)",
+        description = "SmartNews ad-removal patch set",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x0C73C7,
         signatures = setOf(
@@ -21,40 +20,6 @@ object Constants {
             "867abbf06837d164a35e376c2e16f08381346e7f916b029ac53a45c36d744883",
         ),
         targets = listOf(
-            AppTarget(
-                version = "26.6.50",
-                versionCodes = SupportedAbi.entries.associateWith { 1113 },
-                description = "Initial SmartNews APKS target verified against jp.gocro.smartnews.android 26.6.50[1113].",
-            ),
-            AppTarget(
-                version = "26.7.10",
-                versionCodes = SupportedAbi.entries.associateWith { 1115 },
-                description = "SmartNews APKS target 26.7.10[1115]. Ads gated by version-resilient config-key " +
-                    "anchors after the 26.7 ad config/view refactor (AdRelatedAttributes/AttributeProvider removed).",
-            ),
-            AppTarget(
-                version = "26.8.50",
-                versionCodes = SupportedAbi.entries.associateWith { 1001135 },
-                description = "Verified universal APK target. Disables server/unified insertion gates and typed " +
-                    "third-party, sticky-banner, interstitial, and weather ad configs; hides native and reader ads.",
-            ),
-            AppTarget(
-                version = "26.9.11",
-                versionCodes = SupportedAbi.entries.associateWith { 1001138 },
-                description = "Automatically verified on the dedicated Android API 36 emulator.",
-            ),
-            AppTarget(
-                version = "26.9.20",
-                versionCodes = SupportedAbi.entries.associateWith { 1001139 },
-                description = "Automatically verified on the dedicated Android API 36 emulator.",
-            ),
-            AppTarget(
-                version = "26.10.10",
-                // Both the universal APK (1001144) and the Google Play build (1144) are verified.
-                versionCodes = null,
-                description = "Universal APK and Google Play APKM: ad-free public feed and scrolling verified " +
-                    "on the dedicated Android API 36 emulator.",
-            ),
             AppTarget(
                 version = "26.10.20",
                 // Both the universal APK (1001145) and the Google Play build (1145) are verified.
@@ -78,20 +43,20 @@ object Constants {
     val SMARTNEWS_MISSIONS_COMPATIBILITY = Compatibility(
         name = "SmartNews",
         packageName = PACKAGE_NAME,
-        description = "SmartNews My missions auto-claim (26.9.20 and later)",
+        description = "SmartNews My missions auto-claim",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x0C73C7,
         signatures = SMARTNEWS_COMPATIBILITY.signatures,
-        targets = SMARTNEWS_COMPATIBILITY.targets.filter { it.version in setOf("26.9.20", "26.10.10", "26.10.20", "26.10.30") },
+        targets = SMARTNEWS_COMPATIBILITY.targets.filter { it.version in setOf("26.10.20", "26.10.30") },
     )
 
     val SMARTNEWS_BROWSER_COMPATIBILITY = Compatibility(
         name = "SmartNews",
         packageName = PACKAGE_NAME,
-        description = "SmartNews pages in an external browser (26.9.20 and later)",
+        description = "SmartNews pages in an external browser",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x0C73C7,
         signatures = SMARTNEWS_COMPATIBILITY.signatures,
-        targets = SMARTNEWS_COMPATIBILITY.targets.filter { it.version in setOf("26.9.20", "26.10.10", "26.10.20", "26.10.30") },
+        targets = SMARTNEWS_COMPATIBILITY.targets.filter { it.version in setOf("26.10.20", "26.10.30") },
     )
 }

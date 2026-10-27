@@ -23,7 +23,7 @@ class CastboxSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "11.26.1-260915290",
+            version = "11.27.0-261014339",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

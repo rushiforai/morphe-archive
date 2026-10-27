@@ -314,7 +314,7 @@
 
     const/4 v8, 0x4
 
-    const-string v9, "Export mc_overrides.json"
+    const-string v9, "Export modified flags"
 
     const/4 v10, 0x0
 
@@ -346,7 +346,7 @@
 
     const/16 v23, 0x5
 
-    const-string v24, "Import mc_overrides.json"
+    const-string v24, "Import flags"
 
     const/16 v25, 0x0
 
@@ -601,7 +601,7 @@
 
     const/4 v8, 0x4
 
-    const-string v9, "Export mc_overrides.json"
+    const-string v9, "Export modified flags"
 
     const/4 v10, 0x0
 
@@ -633,7 +633,7 @@
 
     const/16 v23, 0x5
 
-    const-string v24, "Import mc_overrides.json"
+    const-string v24, "Import flags"
 
     const/16 v25, 0x0
 

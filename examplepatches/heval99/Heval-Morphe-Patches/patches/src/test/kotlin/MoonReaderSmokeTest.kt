@@ -25,7 +25,7 @@ class MoonReaderSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "10.7",
+            version = "10.8",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

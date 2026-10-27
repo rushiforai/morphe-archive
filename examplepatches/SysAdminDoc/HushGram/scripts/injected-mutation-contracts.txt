@@ -90,6 +90,11 @@ once-call Lapp/hushgram/extension/instagram/direct/InboxSuggestions;->units(Ljav
 # switch on; twice or elsewhere, it isn't the guard the patch wrote.
 start-call Lapp/hushgram/extension/instagram/direct/Instants;->hide()Z in static (Lcom/instagram/common/session/UserSession;Z)Z holding const:0x8105ae00001a0a
 once-call Lapp/hushgram/extension/instagram/direct/Instants;->hide()Z in static (Lcom/instagram/common/session/UserSession;Z)Z holding const:0x8105ae00001a0a
+# Tab bar layout (#356) hands each of the three returns of Instagram's newer tab bar gate (07xk.A05 on
+# 452), the static (UserSession) method answering a boolean from an override and the navigation
+# config, to TabBarLayout.newTabBar(int) first. The config's string read has another shape, so the
+# shape and the flag pick the gate alone. Fewer calls leave a return with Instagram's own bar.
+once-call Lapp/hushgram/extension/instagram/reels/TabBarLayout;->newTabBar(I)Z in static (Lcom/instagram/common/session/UserSession;)Z sites 3 holding const:0x2081080a00102a78
 # Read messages without the seen receipt (#13) hands ThreadSeen.hold(Object, Object) the receipt and
 # the account the handler keeps first in the mutation queue's handler for an ordinary chat's seen
 # receipt (05cs.Gsm on 450), the one method holding both names of the GraphQL mutation that carries
@@ -186,6 +191,10 @@ first-call Lapp/hushgram/extension/instagram/direct/HiddenChats;->redraw(Ljava/l
 # searches store's counted reader, after it sorts them and before it trims them to the count. The
 # store's plain reader is left alone, since opening a chat writes entries back by their place in it.
 # No rule here either, for the same reason.
+# Double-tap Messages for hidden chats reads every touch in IgFragmentActivity.dispatchTouchEvent,
+# first or right after Tap to play's TapClock, and keeps the second tap of a double tap on Messages
+# from Instagram. Left out, the switch shows but a double tap only opens Messages (#358).
+once-call Lapp/hushgram/extension/instagram/direct/HiddenChatsTap;->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z in instance (Landroid/view/MotionEvent;)Z holding dispatchTouchEvent
 # View live anonymously asks LiveSeen.hold() first where the live heartbeat manager's tick asks for
 # a viewer's or guest's heartbeat (IgLiveHeartbeatManager.A00 calling 036w.A00 on 450, the request
 # adding live_with_eligibility), and the tick returns its plain result while the switch is on. The
@@ -893,17 +902,17 @@ once-call Lapp/hushgram/extension/instagram/feed/LargerPhotos;->screen([Ljava/la
 once-call Lapp/hushgram/extension/instagram/feed/FullResolution;->photo(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in static (Landroid/content/Context;Lcom/instagram/common/typedurl/ImageUrl;Lcom/instagram/feed/media/Media;)L*; holding instagram.features.feed.ui.rows.image.FeedImageUseCase#getImageSource()\sCould\snot\sgenerate\simageUrl\sfor\smediaId=\s
 #
 # Hide suggested stories asks hideTray() first thing in Home's story tray row build, the one method
-# holding "MainFeedStoryTrayBinderGroup.buildRowViewTypes", and in the floating tray helper's show,
-# the one method holding "floating_tray_overlay_container" and "show_tray_fail_reason", which moves
-# the tray over the feed on a return to Home without building its row (#88). Two methods share the
-# guard, so shared-call. It passes each item the stories tray response's parser reads through
+# holding "MainFeedStoryTrayBinderGroup.buildRowViewTypes", and keepTrayOutOfOverlay() first thing
+# in the floating tray helper's show, the one method holding "floating_tray_overlay_container" and
+# "show_tray_fail_reason", which moves the tray over the feed on a return to Home without building
+# its row (#88, #357). Each guard is written once. It passes each item the stories tray response's parser reads through
 # filter() once, in the one unsafeParseFromJson holding "tray", "story_ranking_token" and
 # "remaining_reel_ids_to_fetch", and the ids of the reels that parser reads under
 # "remaining_reel_ids_to_fetch" through remaining() once, so Stop loading stories and highlights empties both.
 start-call Lapp/hushgram/extension/instagram/stories/StoriesTray;->hideTray()Z in instance (L*;Ljava/lang/Object;Ljava/lang/Object;)V holding MainFeedStoryTrayBinderGroup.buildRowViewTypes
-shared-call Lapp/hushgram/extension/instagram/stories/StoriesTray;->hideTray()Z in instance (L*;Ljava/lang/Object;Ljava/lang/Object;)V holding MainFeedStoryTrayBinderGroup.buildRowViewTypes
-start-call Lapp/hushgram/extension/instagram/stories/StoriesTray;->hideTray()Z in instance (Landroid/view/View;Landroid/view/View;Ljava/lang/String;I)V holding floating_tray_overlay_container show_tray_fail_reason
-shared-call Lapp/hushgram/extension/instagram/stories/StoriesTray;->hideTray()Z in instance (Landroid/view/View;Landroid/view/View;Ljava/lang/String;I)V holding floating_tray_overlay_container show_tray_fail_reason
+once-call Lapp/hushgram/extension/instagram/stories/StoriesTray;->hideTray()Z in instance (L*;Ljava/lang/Object;Ljava/lang/Object;)V holding MainFeedStoryTrayBinderGroup.buildRowViewTypes
+start-call Lapp/hushgram/extension/instagram/stories/StoriesTray;->keepTrayOutOfOverlay()Z in instance (Landroid/view/View;Landroid/view/View;Ljava/lang/String;I)V holding floating_tray_overlay_container show_tray_fail_reason
+once-call Lapp/hushgram/extension/instagram/stories/StoriesTray;->keepTrayOutOfOverlay()Z in instance (Landroid/view/View;Landroid/view/View;Ljava/lang/String;I)V holding floating_tray_overlay_container show_tray_fail_reason
 once-call Lapp/hushgram/extension/instagram/stories/StoriesTray;->filter(Ljava/lang/Object;)Ljava/lang/Object; in instance (*)Ljava/lang/Object; holding tray story_ranking_token remaining_reel_ids_to_fetch
 once-call Lapp/hushgram/extension/instagram/stories/StoriesTray;->remaining(Ljava/util/ArrayList;)Ljava/util/ArrayList; in instance (*)Ljava/lang/Object; holding tray story_ranking_token remaining_reel_ids_to_fetch
 # It also asks midcard(String) right after the type of a midcard reel is turned into its id, in each
@@ -1017,6 +1026,16 @@ start-call Lapp/hushgram/extension/instagram/download/StoryDownload;->building(L
 shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->building(Ljava/lang/Object;)V in static (*)[Ljava/lang/CharSequence; holding location_story_action_sheet story_highlight_action_sheet
 start-call Lapp/hushgram/extension/instagram/download/StoryDownload;->building(Ljava/lang/Object;)V in static (*)[Ljava/lang/CharSequence; holding ReelOptionsOverflowHelper location_story_action_sheet
 shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->building(Ljava/lang/Object;)V in static (*)[Ljava/lang/CharSequence; holding ReelOptionsOverflowHelper location_story_action_sheet
+# Your own highlights' menus are built as a list (#339): the builder holding story_highlight_action_sheet
+# and itas-android, and the class's one static taking the menu alone and answering a list, picked by
+# the label key only the menu's class loads. Each tells the extension which menu it's building first
+# and hands its list to labelList() where it returns, once, and nothing else calls labelList().
+start-call Lapp/hushgram/extension/instagram/download/StoryDownload;->building(Ljava/lang/Object;)V in static (LX/*;LX/*;)Ljava/util/ArrayList; holding story_highlight_action_sheet itas-android
+shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->building(Ljava/lang/Object;)V in static (LX/*;LX/*;)Ljava/util/ArrayList; holding story_highlight_action_sheet itas-android
+once-call Lapp/hushgram/extension/instagram/download/StoryDownload;->labelList(Ljava/util/List;)V in static (LX/*;LX/*;)Ljava/util/ArrayList; holding story_highlight_action_sheet itas-android
+start-call Lapp/hushgram/extension/instagram/download/StoryDownload;->building(Ljava/lang/Object;)V in static (LX/*;)Ljava/util/ArrayList; class-holding archive_highlight_option
+shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->building(Ljava/lang/Object;)V in static (LX/*;)Ljava/util/ArrayList; class-holding archive_highlight_option
+once-call Lapp/hushgram/extension/instagram/download/StoryDownload;->labelList(Ljava/util/List;)V in static (LX/*;)Ljava/util/ArrayList; class-holding archive_highlight_option
 start-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (*Ljava/lang/CharSequence;)V holding friendships/mute_friend_reel/%s/
 shared-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (*Ljava/lang/CharSequence;)V holding friendships/mute_friend_reel/%s/
 start-call Lapp/hushgram/extension/instagram/download/StoryDownload;->save(Ljava/lang/CharSequence;Ljava/lang/Object;)Z in static (*Ljava/lang/CharSequence;)V holding story_interactions/bulk_story_like/
@@ -2010,6 +2029,16 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelTapAndVolume;->keepMuted(I
 # the class that calls a superclass onCreate. Left out, stories open as the ringer and volume
 # alone say; twice or elsewhere, it isn't the call the patch wrote.
 once-call Lapp/hushgram/extension/instagram/stories/StorySound;->startWithSound(Ljava/lang/Object;)I in instance (Landroid/os/Bundle;)V calling instance L*;->onCreate(Landroid/os/Bundle;)V class-holding ReelViewerFragment.onCurrentActiveItemBound
+# On a yes it tells StorySound.opened() whether the account's sound was already on, in the same
+# onCreate. The viewer's onPause asks StorySound.pausing() first and StorySound.paused() once, and
+# its onResume asks StorySound.resuming() first, so a story that turned the sound on puts it back
+# before the feed resumes (#342). Left out, the feed and Reels keep the story's sound.
+once-call Lapp/hushgram/extension/instagram/stories/StorySound;->opened(Ljava/lang/Object;I)V in instance (Landroid/os/Bundle;)V calling instance L*;->onCreate(Landroid/os/Bundle;)V class-holding ReelViewerFragment.onCurrentActiveItemBound
+start-call Lapp/hushgram/extension/instagram/stories/StorySound;->pausing(Ljava/lang/Object;)I in instance ()V holding ReelViewerFragment.onPause
+once-call Lapp/hushgram/extension/instagram/stories/StorySound;->pausing(Ljava/lang/Object;)I in instance ()V holding ReelViewerFragment.onPause
+once-call Lapp/hushgram/extension/instagram/stories/StorySound;->paused(Ljava/lang/Object;I)I in instance ()V holding ReelViewerFragment.onPause
+start-call Lapp/hushgram/extension/instagram/stories/StorySound;->resuming(Ljava/lang/Object;)I in instance ()V holding ReelViewerFragment.onResume
+once-call Lapp/hushgram/extension/instagram/stories/StorySound;->resuming(Ljava/lang/Object;)I in instance ()V holding ReelViewerFragment.onResume
 # Stop swipe up to reply asks StorySwipeReply.keepsSwipe() first thing in the reply composer's
 # swipe listener, the one instance ()Z method that reads a Redex class's EditText field and focuses
 # it (0Axw.GKf on 452, 0BfY.GKr on its other build 385810231), and once in the story viewer's item delegate,

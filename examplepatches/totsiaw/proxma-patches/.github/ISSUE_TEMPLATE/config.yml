@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: App request
+    url: https://github.com/totsiaw/proxma-patches/discussions/new?category=app-requests
+    about: Request patches for an app not listed here yet.
+  - name: General question
+    url: https://github.com/totsiaw/proxma-patches/discussions/new?category=q-a
+    about: Ask a question about patching, installing or using the bundle.

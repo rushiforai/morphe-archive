@@ -41,6 +41,7 @@ import app.morphe.extension.shared.settings.EarlyApplication;
 import app.morphe.extension.shared.settings.PausedProcess;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.SettingsMenuPreference;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 
 import org.junit.After;
@@ -858,18 +859,18 @@ public class PrivacySwitchesTest {
         try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
             Activity activity = owner.get();
             Utils.setContext(activity);
-            TikTokPreferenceFragment privacy = open(activity, "PRIVACY");
+            SettingsMenuPreference privacy = open(activity, "PRIVACY");
             List<String> keys = keysOn(privacy);
             List<String> expected = List.of(Settings.DISABLE_ANALYTICS.key, Settings.GHOST_MODE.key,
                     Settings.STOP_SEARCH_HISTORY.key, Settings.BLOCK_CONTACT_LIST.key, Settings.BLOCK_INSTALLED_APPS.key,
                     Settings.BLOCK_LOCATION.key, Settings.BLOCK_CLIPBOARD_READS.key, Settings.HIDE_VPN.key,
                     Settings.BLOCK_ADVERTISING_ID.key, Settings.BLOCK_MOTION_SENSORS.key, Settings.STOP_BENCHMARK_RUNS.key,
                     Settings.CAMERA_MIC_INDICATOR.key, Settings.BLOCK_WEBVIEW_JS_INTERFACES.key);
-            assertEquals("the Privacy page lists tracking, then device access, then links",
+            assertEquals("the Privacy category lists tracking, then device access, then links",
                     expected, keys.stream().filter(expected::contains).toList());
             assertNotNull("Tracking heading", privacy.findPreference(Settings.GHOST_MODE.key));
 
-            TikTokPreferenceFragment behavior = open(activity, "BEHAVIOR");
+            SettingsMenuPreference behavior = open(activity, "BEHAVIOR");
             assertNull("Ghost mode has moved off App behavior", behavior.findPreference(Settings.GHOST_MODE.key));
             assertNull(behavior.findPreference(Settings.DISABLE_ANALYTICS.key));
             assertNotNull("the layout rows are still App behavior's",
@@ -877,7 +878,7 @@ public class PrivacySwitchesTest {
         }
     }
 
-    private static TikTokPreferenceFragment open(Activity activity, String section) {
+    private static SettingsMenuPreference open(Activity activity, String section) {
         TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
         Bundle arguments = new Bundle();
         arguments.putString("morphe_settings_section", section);
@@ -885,14 +886,18 @@ public class PrivacySwitchesTest {
         activity.getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
         activity.getFragmentManager().executePendingTransactions();
         Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
-        return fragment;
+        SettingsMenuPreference group = (SettingsMenuPreference) fragment.findPreference(
+                "section_" + section.toLowerCase(java.util.Locale.ROOT));
+        assertNotNull("the main list has no " + section + " category", group);
+        assertTrue("the requested category stayed collapsed", group.isExpanded());
+        assertEquals(0, activity.getFragmentManager().getBackStackEntryCount());
+        return group;
     }
 
-    private static List<String> keysOn(TikTokPreferenceFragment fragment) {
-        var screen = fragment.getPreferenceScreen();
+    private static List<String> keysOn(SettingsMenuPreference group) {
         java.util.ArrayList<String> keys = new java.util.ArrayList<>();
-        for (int index = 0; index < screen.getPreferenceCount(); index++) {
-            String key = screen.getPreference(index).getKey();
+        for (int index = 0; index < group.getPreferenceCount(); index++) {
+            String key = group.getPreference(index).getKey();
             if (key != null) keys.add(key);
         }
         return keys;

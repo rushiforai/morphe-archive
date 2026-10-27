@@ -38,9 +38,9 @@ Features designed and built by this project rather than simply unlocking an exis
 
   Preview:
 
-  <img alt="Web Clipboard pairing gate" src="docs/assets/features/web-clipboard/01-pairing-gate.png" width="720">
+  <img alt="Web Clipboard pairing gate" src="assets/features/web-clipboard/01-pairing-gate.png" width="720">
 
-  <img alt="Web Clipboard conversation view" src="docs/assets/features/web-clipboard/02-conversation-view.png" width="720">
+  <img alt="Web Clipboard conversation view" src="assets/features/web-clipboard/02-conversation-view.png" width="720">
 
 </details>
 
@@ -228,12 +228,6 @@ Features already present in Gboard that are exposed by enabling hidden settings,
   <summary><code>Quick Insert</code></summary>
 
 Enables the Quick Insert panel and toolbar access point.
-</details>
-
-<details>
-  <summary><code>Hyperspeed Typing Animation</code></summary>
-
-Shows the animation during sustained fast typing with support for all keyboards.
 </details>
 
 <details>

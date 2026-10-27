@@ -1,6 +1,8 @@
 package app.template.patches.alarmclock.ads
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 internal const val SHOP_FEATURE = "Lcom/alarmclock/xtreme/shop/data/ShopFeature;"
 
@@ -14,6 +16,6 @@ internal const val SHOP_FEATURE = "Lcom/alarmclock/xtreme/shop/data/ShopFeature;
 object ShopEntitlementCandidateFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf(SHOP_FEATURE),
-    strings = listOf("feature"),
+    strings = listOf(string("feature", StringComparisonType.CONTAINS)),
     custom = { method, _ -> method.implementation != null },
 )

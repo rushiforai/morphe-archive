@@ -17,6 +17,7 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.shared.settings.BooleanSetting;
 
 /**
  * What the Clean up Reels patch asks before a reel's footer is built.
@@ -48,7 +49,8 @@ import app.morphe.extension.shared.settings.BaseSettings;
  *       takes the text under the icon. {@link #countText} is handed that text first thing in the
  *       constructor and answers what the button keeps (#180).
  *   <li>The sidebar builds those buttons by walking a list of types, one icon constant each.
- *       {@link #hideSidebarButton} is handed each type as it's read, and true skips Save (#190).
+ *       {@link #hideSidebarButton} is handed each type as it's read, and true skips Save or the
+ *       direct WhatsApp button (#190, #243).
  *   <li>The speaker button under them comes from one of two places, picked by a server flag: the
  *       video controls build it only when one check of Facebook's answers yes, and
  *       {@link #showsSoundButton} is handed that answer before they branch on it. Otherwise the
@@ -131,9 +133,10 @@ public final class ReelDeclutter {
     static final String COUNTS_ROUTE = "Reel counts";
     static final String COUNT = "button count";
 
-    /** Counted under its own name each time the sidebar skips its Save or speaker button. */
+    /** Counted under its own name each time a sidebar button is skipped. */
     static final String SIDEBAR_ROUTE = "Reel sidebar buttons";
     static final String SAVE_BUTTON = "Save button";
+    static final String WHATSAPP_BUTTON = "WhatsApp button";
     static final String SOUND_BUTTON = "speaker button";
 
     /**
@@ -142,6 +145,7 @@ public final class ReelDeclutter {
      * so {@code name()} reads this on any build. Like, Comment and Share are LIKE, COMMENT and SHARE.
      */
     static final String SAVE_TYPE = "BOOKMARK";
+    static final String WHATSAPP_TYPE = "APP_WHATSAPP";
 
     /**
      * What a hidden count becomes: one zero-width space. The button still has a text row, so it
@@ -481,26 +485,33 @@ public final class ReelDeclutter {
     }
 
     /**
-     * Injection point, in the reel sidebar's builder, handed each button type as it's read and before
-     * anything is built for it (#190). True skips that type, so the button isn't built, marked or
-     * named, and the ones before it move down. Only Save goes, and only while its switch is on. Never
+     * Injection point, in the reel sidebar builders, handed each button type before anything is
+     * built for it (#190, #243). True skips that type, so the button isn't built, marked or named,
+     * and the others close the gap. Save and direct WhatsApp each have their own switch. Never
      * throws: off, paused, before the settings are ready, for any other type or on a failure the
      * button is built as before.
      *
      * @param type the constant of Facebook's icon enum the sidebar is about to build a button for.
      */
     public static boolean hideSidebarButton(Object type) {
+        String button = SAVE_BUTTON;
         try {
             HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
-            if (!(type instanceof Enum) || !SAVE_TYPE.equals(((Enum<?>) type).name())) return false;
-            if (!Utils.settingsReady() || !Settings.HIDE_REEL_SAVE_BUTTON.get()) return false;
+            if (!(type instanceof Enum)) return false;
+            String name = ((Enum<?>) type).name();
+            if (!SAVE_TYPE.equals(name) && !WHATSAPP_TYPE.equals(name)) return false;
+            if (WHATSAPP_TYPE.equals(name)) button = WHATSAPP_BUTTON;
+            if (!Utils.settingsReady()) return false;
+            BooleanSetting setting = SAVE_TYPE.equals(name) ? Settings.HIDE_REEL_SAVE_BUTTON : Settings.HIDE_REEL_WHATSAPP_BUTTON;
+            if (!setting.get()) return false;
             FeedFilterCounters.sawList(SIDEBAR_ROUTE, 1);
-            FeedFilterCounters.sawKind(SIDEBAR_ROUTE, SAVE_BUTTON);
-            FeedFilterCounters.removed(SIDEBAR_ROUTE, 1, SAVE_BUTTON);
-            logOnce(SAVE_BUTTON, () -> "Reel sidebar: skipped the Save button");
+            FeedFilterCounters.sawKind(SIDEBAR_ROUTE, button);
+            FeedFilterCounters.removed(SIDEBAR_ROUTE, 1, button);
+            String hidden = button;
+            logOnce(hidden, () -> "Reel sidebar: skipped the " + hidden);
             return true;
         } catch (Throwable failure) {
-            HookStatus.threw(FamilyNames.REEL_DECLUTTER, SAVE_BUTTON, failure);
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, button, failure);
             return false;
         }
     }

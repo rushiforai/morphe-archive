@@ -28,6 +28,8 @@ class DefaultSelectionPolicyTest {
             "means uninstalling, and every later build has to carry it too or it won't install over this one.",
         "Custom new-message sound" to "It replaces Messenger's sound file when you patch, with no switch, and it " +
             "needs a file picked in its option, which Manager only shows in Expert mode.",
+        "Custom launcher icon" to "It redraws Messenger's home screen icon when you patch, with no switch, so " +
+            "only people who want the new look should get it. Its style option shows in Expert mode.",
     )
 
     private fun namedPatches(): List<JsonObject> {

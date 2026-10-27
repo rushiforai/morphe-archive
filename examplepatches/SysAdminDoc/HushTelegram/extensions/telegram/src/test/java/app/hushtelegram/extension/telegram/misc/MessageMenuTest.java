@@ -7,6 +7,7 @@ package app.hushtelegram.extension.telegram.misc;
 import static org.junit.Assert.*;
 
 import android.content.Context;
+import app.hushtelegram.extension.shared.L10n;
 import app.hushtelegram.extension.shared.SettingsContextRule;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.shared.settings.BooleanSetting;
@@ -132,6 +133,20 @@ public class MessageMenuTest {
         assertEquals("File data center: 4", lines.get(6));
         assertTrue(lines.get(7), lines.get(7).startsWith("File size: "));
         assertEquals("no edit and no original date, so no lines for them", 8, lines.size());
+    }
+
+    @Test public void detailsListTheTextKeptFromBeforeEachEditOldestFirst() {
+        Context context = RuntimeEnvironment.getApplication();
+        MessageMenu.Facts facts = new MessageMenu.Facts();
+        facts.id = 42;
+        facts.chat = 5;
+        facts.edited = 1_790_000_200;
+        facts.earlier = Arrays.asList(new KeepEdits.Version("first try", 1_790_000_100), new KeepEdits.Version("second try", 1_790_000_200));
+        List<String> lines = Arrays.asList(MessageMenu.describe(context, facts).split("\n"));
+        assertEquals(5, lines.size());
+        assertTrue(lines.get(2), lines.get(2).startsWith("Edited: "));
+        assertTrue(lines.get(3), lines.get(3).startsWith("Before the edit at ") && lines.get(3).endsWith(": " + L10n.isolate("first try")));
+        assertTrue(lines.get(4), lines.get(4).startsWith("Before the edit at ") && lines.get(4).endsWith(": " + L10n.isolate("second try")));
     }
 
     @Test public void pausingAnEarlyStartOrAnUnreadableSwitchKeepsTheMenu() {

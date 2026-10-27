@@ -562,9 +562,8 @@ public class SettingsEntryTest {
                         && Settings.OPEN_LINKS_EXTERNALLY.key.equals(((Preference) row).getKey())) onLinks = true;
             }
             assertTrue("the screen didn't open on Links", onLinks);
+            assertTrue(pageOver(activity.get()).navigation.isExpanded("Links"));
 
-            SettingsL10nTest.backOf(dialog).performClick();
-            SettingsL10nTest.backOf(dialog).performClick();
             SettingsL10nTest.backOf(dialog).performClick();
             ShadowLooper.idleMainLooper();
             assertNull("the screen stayed open", dialogOver(activity.get()));
@@ -588,7 +587,8 @@ public class SettingsEntryTest {
         ShadowLooper.idleMainLooper();
         List<String> titles = titles(pageOver(activity.get()));
         assertTrue(titles.toString(), titles.contains("Save videos other apps can open"));
-        assertFalse(titles.toString(), titles.contains("Browse settings"));
+        assertTrue(titles.toString(), titles.contains("Opening Facebook"));
+        assertTrue(pageOver(activity.get()).navigation.isExpanded("Downloads"));
         assertNull("the request was kept for the next screen", SettingsEntry.takeRequestedSetting());
     }
 
@@ -596,23 +596,35 @@ public class SettingsEntryTest {
     @Test public void aRequestForASettingMovesAScreenAlreadyOpen() {
         PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);
         ActivityController<Activity> activity = openedOverNewActivity();
-        assertTrue(titles(pageOver(activity.get())).contains("Browse settings"));
+        HushfacebookPreferenceFragment page = pageOver(activity.get());
+        assertTrue(titles(page).contains("Downloads"));
+        assertFalse(page.navigation.isExpanded("Downloads"));
+        page.navigation.navigate("Playback");
         SettingsEntry.onNewIntent(activity.get(),
                 SettingsEntry.settingIntent(RuntimeEnvironment.getApplication(), Settings.DOWNLOAD_COMPATIBLE.key));
         activity.pause().resume();
         ShadowLooper.idleMainLooper();
         List<String> titles = titles(pageOver(activity.get()));
         assertTrue(titles.toString(), titles.contains("Save videos other apps can open"));
+        assertTrue(pageOver(activity.get()).navigation.isExpanded("Downloads"));
+        assertTrue("a setting request collapsed an open section", pageOver(activity.get()).navigation.isExpanded("Playback"));
+        assertNull("the request was kept for the next screen", SettingsEntry.takeRequestedSetting());
     }
 
     /** The launcher entry is open to every app: a request that isn't a key's shape opens the overview. */
     @Test public void aRequestThatIsNoKeyOpensTheOverview() {
+        PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);
         Intent odd = SettingsEntry.settingIntent(RuntimeEnvironment.getApplication(), "Save videos\nFAKE LINE");
         ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class, odd).create();
         SettingsEntry.onActivityCreate(activity.get());
         activity.start().resume();
         ShadowLooper.idleMainLooper();
-        assertTrue(titles(pageOver(activity.get())).contains("Browse settings"));
+        HushfacebookPreferenceFragment page = pageOver(activity.get());
+        ListView list = page.getView().findViewById(android.R.id.list);
+        org.junit.Assert.assertEquals(23, list.getCount());
+        org.junit.Assert.assertEquals("section_Opening Facebook", ((Preference) list.getItemAtPosition(0)).getKey());
+        assertFalse(page.navigation.isExpanded("Downloads"));
+        assertFalse(titles(pageOver(activity.get())).contains("More settings"));
         String report = app.morphe.extension.shared.settings.preference.LogBufferManager.buildExportText();
         assertFalse(report, report.contains("FAKE LINE"));
     }

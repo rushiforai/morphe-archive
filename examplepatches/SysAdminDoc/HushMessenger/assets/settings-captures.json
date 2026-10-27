@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "rendered_on": "8aae1884c88beec6e6dc6a96212a63fcdd31028d",
+  "producer": "SettingsScreenshotTest.captureProductionPagesAndDialogsInBothThemes",
+  "controls": 58,
+  "catalog_sha256": "0a85cec7a0da967525f168821db36581928c15789340c16923e616dc09a4354a",
+  "images": {
+    "assets/settings-dark.png": "3818215075156be1d495d698de5a70eb0ddfaddb8289738b628d5a24cd61f961",
+    "assets/settings-light.png": "21f46dc91554f8bf8d243cf89811804fb7a4742b153b24381079504a375c574a",
+    "assets/settings-app-dark.png": "957aedea941ca39de1f36913ddc20bbbd40b66e253e0dd146db1025dcab93fc4",
+    "assets/settings-app-light.png": "0a3acffd34ea95ec1dfd0dbeca726e6c440f559db25e7dbbf905920d9d473ac8"
+  }
+}

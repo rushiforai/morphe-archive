@@ -78,13 +78,16 @@ def resolve_compositions(macros, consts):
         "swp_version_line": "SWP_GLSL_VERSION",
         "swp_sad_direct_prefix": "SWP_GLSL_DIRECT_PREFIX",
         "swp_sad_fallback_prefix": "SWP_GLSL_FALLBACK_PREFIX",
-        "swp_sad_core": "SWP_GLSL_SAD_CORE",
-        "swp_gme_core": "SWP_GLSL_GME_CORE",
-        "swp_h1_core": "SWP_GLSL_H1_CORE",
+        "swp_dense_core": "SWP_GLSL_DENSE_CORE",
+        "swp_refine_core": "SWP_GLSL_REFINE_CORE",
+        "swp_downsample_frag": "SWP_GLSL_DOWNSAMPLE_FRAG",
         "swp_median_frag": "SWP_GLSL_MEDIAN_FRAG",
         "swp_extrap_frag": "SWP_GLSL_EXTRAP_FRAG",
-        "swp_sad_frag": "SWP_GLSL_VERSION SWP_GLSL_DIRECT_PREFIX SWP_GLSL_SAD_CORE",
-        "swp_sad_fallback_frag": "SWP_GLSL_VERSION SWP_GLSL_FALLBACK_PREFIX SWP_GLSL_SAD_CORE",
+        "swp_align_frag": "SWP_GLSL_ALIGN_FRAG",
+        "swp_dense_frag": "SWP_GLSL_VERSION SWP_GLSL_DIRECT_PREFIX SWP_GLSL_DENSE_CORE",
+        "swp_dense_fallback_frag": "SWP_GLSL_VERSION SWP_GLSL_FALLBACK_PREFIX SWP_GLSL_DENSE_CORE",
+        "swp_refine_frag": "SWP_GLSL_VERSION SWP_GLSL_DIRECT_PREFIX SWP_GLSL_REFINE_CORE",
+        "swp_refine_fallback_frag": "SWP_GLSL_VERSION SWP_GLSL_FALLBACK_PREFIX SWP_GLSL_REFINE_CORE",
     }
     for name, want in expect_expr.items():
         got = consts.get(name, "").replace("\n", " ").strip()
@@ -92,14 +95,14 @@ def resolve_compositions(macros, consts):
             fail(f"composition drift: const {name} != {want!r} (got {got!r})")
     out = {
         "swp_vert_quad": macros["SWP_GLSL_VERSION"] + macros["SWP_GLSL_QUAD_VERT"],
-        "swp_sad_frag_direct": ver + direct + macros["SWP_GLSL_SAD_CORE"],
-        "swp_sad_fallback_frag": ver + fb + macros["SWP_GLSL_SAD_CORE"],
+        "swp_downsample_frag": macros["SWP_GLSL_DOWNSAMPLE_FRAG"],
+        "swp_dense_frag": ver + direct + macros["SWP_GLSL_DENSE_CORE"],
+        "swp_dense_fallback_frag": ver + fb + macros["SWP_GLSL_DENSE_CORE"],
         "swp_median_frag": macros["SWP_GLSL_MEDIAN_FRAG"],
+        "swp_refine_frag": ver + direct + macros["SWP_GLSL_REFINE_CORE"],
+        "swp_refine_fallback_frag": ver + fb + macros["SWP_GLSL_REFINE_CORE"],
         "swp_extrap_frag": macros["SWP_GLSL_EXTRAP_FRAG"],
-        "swp_gme_direct": ver + direct + macros["SWP_GLSL_GME_CORE"],
-        "swp_gme_fallback": ver + fb + macros["SWP_GLSL_GME_CORE"],
-        "swp_h1_direct": ver + direct + macros["SWP_GLSL_H1_CORE"],
-        "swp_h1_fallback": ver + fb + macros["SWP_GLSL_H1_CORE"],
+        "swp_align_frag": macros["SWP_GLSL_ALIGN_FRAG"],
     }
     return out
 
@@ -160,11 +163,14 @@ def run_glslang(path, kind):
 # Programs the worker links, and the compositions each one may build. GME/H1
 # compose behind either SAD prefix and both arms must resolve the same names.
 REFLECT_PROGRAMS = {
-    "progGme": ("gme", ("swp_gme_direct", "swp_gme_fallback")),
-    "progSad": ("sad", ("swp_sad_frag_direct", "swp_sad_fallback_frag")),
-    "progMed": ("median", ("swp_median_frag",)),
-    "progH1": ("h1", ("swp_h1_direct", "swp_h1_fallback")),
+    "progDown": ("down", ("swp_downsample_frag",)),
+    "progDense": ("dense", ("swp_dense_fallback_frag",)),
+    "progDenseQcom": ("dense", ("swp_dense_frag",)),
+    "progMedian": ("median", ("swp_median_frag",)),
+    "progRefine": ("refine", ("swp_refine_fallback_frag",)),
+    "progRefineQcom": ("refine", ("swp_refine_frag",)),
     "progExtrap": ("extrap", ("swp_extrap_frag",)),
+    "progAlign": ("align", ("swp_align_frag",)),
 }
 
 
@@ -260,7 +266,7 @@ def check_uniform_reflection(comp, macros, tmp, report):
 def main():
     text = SHADERS_H.read_text(encoding="utf8")
     macros, consts = extract_shaders(text)
-    if len(macros) < 9 or len(consts) != 11:
+    if len(macros) < 10 or len(consts) != 14:
         fail(f"extraction: macros={len(macros)} consts={len(consts)}")
         sys.exit(1)
 

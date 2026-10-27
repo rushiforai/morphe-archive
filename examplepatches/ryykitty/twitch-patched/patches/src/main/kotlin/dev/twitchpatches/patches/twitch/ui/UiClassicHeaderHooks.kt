@@ -52,10 +52,15 @@ internal fun BytecodePatchContext.injectClassicHeader(all: List<Method>, owner: 
         iget-object v1, p0, $root
         iget-object v2, v0, $title
         if-nez v2, :visible
+        const-string v2, "hide_leaderboards"
+        invoke-static {v2}, $UI_SETTINGS->enabled(Ljava/lang/String;)Z
+        move-result v2
+        if-nez v2, :extensions
         iget-object v2, v0, $leaderboard
         invoke-virtual {v2}, ${leaderboardVisible.reference}
         move-result v2
         if-nez v2, :visible
+        :extensions
         iget-boolean v2, v0, $extensions
         if-eqz v2, :actions
         const-string v2, "hide_channel_extensions"

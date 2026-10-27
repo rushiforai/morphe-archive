@@ -1,6 +1,6 @@
 # 本地工作区与资料分层
 
-2026-10-26（Asia/Shanghai）。唯一活动仓库：`E:\Projects\DeepSeek morphe-ai-caption-translator`。当前接受本地 **1.5.8 / local-1.5.8-m7b / candidate-02**，公开 **1.5.7**。首轮成熟化已验收，本次仅按用户要求做本地整理；GitHub只读盘点与[更新计划](maintenance/GITHUB-UPDATE-PLAN.md)，未写线上。
+2026-10-26（Asia/Shanghai）。唯一活动仓库：`E:\Projects\DeepSeek morphe-ai-caption-translator`；当前公开 **1.5.8 / release-1.5.8**。先前本地整理及后续用户明确授权的[GitHub发布/收尾](maintenance/GITHUB-UPDATE-PLAN.md)均已完成，历史只读盘点不当作当前未完成状态。
 
 ## 当前入口
 
@@ -15,14 +15,14 @@
 | build/delivery、build/release-artifacts、build/maintenance及N*交付 | 正式/历史/候选产物；全部保留，不能因为旧或文件名相同就覆盖/删除 |
 | validation/runs、.verification | 证据/状态镜像/私有可恢复归档；保留封存证据，含原始设备/模型内容的材料不公开上传 |
 | work/toolchain、work/gradle-home、work/android-user-home | 工具/依赖/Android构建输入；保持，不清共享工具缓存或用户配置 |
-| work/test-temp | JVM测试生成的字体、本地库和fixture临时目录；本次原文件已内容去重归档并清空，根目录保留；下次测试可再生，不是设备用户缓存 |
+| work/test-temp | JVM测试生成的字体、本地库和fixture临时目录；整理阶段原文件已内容去重归档，根目录保留；后续发布/测试可再生，不表示目录永久为空，不是设备用户缓存 |
 | work/temp、work/pycache | 进程临时工作/字节码缓存；本次保持，前者还存在旧发布检查输入，不能按名字整目录删除 |
 | .tmp | 一次性研究和演练；286个根层散文件已归档收纳，本机`.tmp/README.md`说明恢复（该私有索引不随源码分发）。子目录、M7a隔离源码演练、失败/回退演练、研究源及APK/DEX输入均未移动 |
 | YouTube/ | 6个原始APK输入，本次保留；新增目录级忽略，不打包发布专有APK |
 | .devenv/ | 忽略的兼容别名；新增共享ignore规则，不变更文件或本机exclude |
-| .git | 历史/索引/分支配置；当前HEAD、分支、index/exclude均保持，不commit、reset、clean、fetch/pull或切换工作树 |
+| .git | 历史/索引/分支配置；整理阶段的入场保护见原报告；随后按新授权完成有界commit/push/merge/fetch同步，不reset/clean或重写旧历史 |
 
-`.gitignore`新增Python编译缓存和本地输入规则；已跟踪的文件仍被跟踪，尤其根目录旧诊断和gradle.properties不会凭ignore自动移出。`.gitattributes`保留原`* -text`，仅把恢复树标为generated；将来提交后才影响GitHub语言统计。生产/测试字节及本次前后构建输入指纹保持，候选不重建。
+`.gitignore`新增Python编译缓存和本地输入规则；已跟踪的文件仍被跟踪，旧诊断本轮另作外部输入迁移并取消跟踪、本机字节保留；gradle.properties仍受版本管理，不凭ignore隐去。`.gitattributes`保留原`* -text`，仅把恢复树标为generated；将来提交后才影响GitHub语言统计。生产/测试字节及本次前后构建输入指纹保持，候选不重建。
 
 ## 本次可恢复收纳
 
@@ -55,4 +55,4 @@
 
 新开发只用活动仓库；临时工作用新的`.tmp/<明确任务>/`子目录，正式证据用`validation/runs/<独占ID>/`，构建交付用`build/`。不要重新散放根诊断、APK、MPP或依赖目录。临时文件在所属进程退出后可按明确清单归档/清理；正式包、封存证据、历史回放输入及共享依赖不套用临时规则。
 
-GitHub同步、远端CI、正式发布和依赖升级分别审批/验证；本次状态仍为本地脏工作树，未将其强行弄成“干净”。最新源码字节已有私有快照，线上同步计划包括后续有界入库，禁止用git clean/reset替代整理。
+GitHub1.5.8发布、远端CI及本轮依赖/分支整理已完成，收尾维护记录快进同步main/dev；本地原未提交成果通过有界提交入库，私有原件/源快照保留。工作树整洁来自提交和可恢复收纳，未用git clean/reset丢弃修改。未来新需求和发布按用户新请求安排，私有材料不随源码上传。

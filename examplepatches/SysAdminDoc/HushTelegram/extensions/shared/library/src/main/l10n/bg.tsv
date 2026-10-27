@@ -1,0 +1,947 @@
+# Bulgarian for HushTelegram: the English key, a tab, the translation. One row per string.
+# context: Chat-list-only story controls and immutable hook coverage.
+Hide Stories	Скриване на историите
+Removes the story bar above your chats, the rings around profile pictures and the Post Story button. Profile stories and archives stay.	Премахва лентата с истории над чатовете, пръстените около профилните снимки и бутона за публикуване на история. Историите в профилите и архивите остават.
+story list requests	заявки за списъка с истории
+chat-list story bar	лента с истории в списъка с чатове
+Post Story button	бутон за публикуване на история
+avatar story rings	пръстени на историите около профилните снимки
+avatar story taps	докосвания на историите от профилните снимки
+# After editing, run python scripts/gen-l10n.py from the repository root.
+%1$d item in that file isn't a setting this version of HushTelegram knows, so it'll be left out.	%1$d елемент във файла не е настройка, позната на тази версия на HushTelegram, и ще бъде пропуснат.
+%1$d items in that file aren't settings this version of HushTelegram knows, so they'll be left out.	%1$d елемента във файла не са настройки, познати на тази версия на HushTelegram, и ще бъдат пропуснати.
+%1$d switch will change.	%1$d превключвател ще се промени.
+%1$d switches will change.	%1$d превключвателя ще се променят.
+%1$s. It was set when you patched, so Pause can't turn it off. To get rid of it, patch again without that patch.	%1$s. Зададено е при пачването, затова „Пауза“ не може да го изключи. За да го премахнете, пачнете отново без този пач.
+%1$s. They were set when you patched, so Pause can't turn them off. To get rid of one, patch again without the patch named in brackets after it.	%1$s. Зададени са при пачването, затова „Пауза“ не може да ги изключи. За да премахнете някое от тях, пачнете отново без пача, посочен в скоби след него.
+A diagnostic report is already being saved.	В момента вече се записва диагностичен отчет.
+A file named %1$s in %2$s paused HushTelegram.	Файл с име %1$s в %2$s постави HushTelegram на пауза.
+About	Информация
+Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 и по-стари версии не показват кои връзки се отварят тук. Докоснете, за да отворите настройките на приложението, после „Отваряне по подразбиране“.
+Back	Назад
+Cancel	Отказ
+Clear diagnostic data	Изчистване на диагностичните данни
+Copy quick report	Копиране на кратък отчет
+Couldn't import or restore old settings. Check the switches.	Импортирането или възстановяването не успяха. Проверете превключвателите.
+Couldn't import the settings. Nothing was changed.	Настройките не можаха да бъдат импортирани. Нищо не е променено.
+Couldn't open that file. Nothing was changed.	Файлът не можа да се отвори. Нищо не е променено.
+Couldn't open the file picker. Try again.	Избирачът на файлове не можа да се отвори. Опитайте отново.
+Couldn't put back the diagnostic data. Try again.	Диагностичните данни не можаха да бъдат възстановени. Опитайте отново.
+Couldn't save the settings file. Try again.	Файлът с настройки не можа да бъде записан. Опитайте отново.
+Couldn't start that. Try again in a moment.	Това не можа да започне. Опитайте отново след малко.
+# context: Toast when the person saves a filter list, translation service, sticker size or chat list emoji while a settings import is still being written. The dialog stays open with what they typed.
+Wait for the settings import to finish, then save again.	Изчакайте импортирането на настройките да приключи и запазете отново.
+Couldn't start the report export. Try again in a moment.	Експортирането на отчета не можа да започне. Опитайте отново след малко.
+Couldn't turn HushTelegram back on. Try again.	HushTelegram не можа да бъде включен отново. Опитайте отново.
+Debug logging	Подробен дневник
+Diagnostic data cleared. Tap again to put it back.	Диагностичните данни са изчистени. Докоснете отново, за да ги върнете.
+Diagnostic data put back.	Диагностичните данни са върнати.
+Diagnostic report copied to the clipboard.	Диагностичният отчет е копиран в клипборда.
+Clears the activity log and patch checks that a report would include.	Изчиства дневника на дейността и проверките на пачовете, които ще бъдат включени в отчета.
+Every switch except Debug logging acts as if it were off. Your choices stay saved. Edits made when you patched stay in.	Всички превключватели освен „Подробен дневник“ действат като изключени. Изборът ви се запазва. Промените от пачването остават.
+Export diagnostic report	Експортиране на диагностичен отчет
+Export settings	Експортиране на настройките
+After Telegram restarts, every switch except Debug logging acts as if it were off. Your choices stay saved. Edits made when you patched stay in.	След рестартиране на Telegram всички превключватели освен „Подробен дневник“ действат като изключени. Изборът ви се запазва. Промените от пачването остават.
+Hide ads	Скриване на рекламите
+Privacy	Поверителност
+Settings exported but not checked. Open the file to make sure.	Настройките са експортирани без проверка. Отворете файла, за да се уверите.
+That app is slow to answer. Nothing was changed. Try again.	Приложението отговаря бавно. Нищо не е променено. Опитайте отново.
+That file's app still hasn't answered. Try again later.	Приложението на файла още не е отговорило. Опитайте по-късно.
+That app is slow. It may still save the file, so check it.	Приложението е бавно. Може все пак да запише файла, затова го проверете.
+The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	Файлът %1$s не можа да бъде премахнат. Изтрийте го от %2$s и докоснете „Възобновяване“ отново.
+Saved, but the file doesn't match. Save it again as a new file.	Записано е, но файлът не съвпада. Запишете го отново като нов файл.
+Until you resume, every switch except Debug logging acts as if it were off. Your choices stay saved. Edits made when you patched stay in.	Докато не възобновите, всички превключватели освен „Подробен дневник“ действат като изключени. Изборът ви се запазва. Промените от пачването остават.
+Full report saved to %1$s	Пълният отчет е записан в %1$s
+The GPL-3.0 license, and credits for the projects HushTelegram is built on	Лицензът GPL-3.0 и авторите на проектите, върху които е изграден HushTelegram
+HushTelegram is on	HushTelegram е включен
+HushTelegram is paused	HushTelegram е на пауза
+HushTelegram settings	Настройки на HushTelegram
+HushTelegram settings couldn't open	Настройките на HushTelegram не можаха да се отворят
+Import	Импортиране
+Import settings	Импортиране на настройки
+Importing settings	Настройките се импортират
+Licenses	Лицензи
+Links	Връзки
+OK	ОК
+Pause HushTelegram	Поставяне на HushTelegram на пауза
+Reading the settings file	Файлът с настройки се чете
+Retry	Опитайте пак
+Save full report	Запазване на пълния отчет
+# The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
+Check for new HushTelegram releases	Проверка за нови версии на HushTelegram
+Once a day, when Telegram starts, checks GitHub for a newer HushTelegram and shows it at the top of these settings. Nothing is downloaded.	Веднъж дневно, при стартиране на Telegram, проверява в GitHub за по-нов HushTelegram и го показва най-горе в тези настройки. Нищо не се изтегля.
+Check now	Проверка сега
+Checks GitHub for the newest release right now, even if the switch above is off.	Проверява в GitHub за най-новата версия веднага, дори превключвателят по-горе да е изключен.
+Checking GitHub now.	Проверява се в GitHub.
+HushTelegram %1$s is out. Update it in Morphe Manager.	HushTelegram %1$s е наличен. Актуализирайте го в Morphe Manager.
+You have the newest HushTelegram release.	Имате най-новата версия на HushTelegram.
+The newest HushTelegram release is %1$s.	Най-новата версия на HushTelegram е %1$s.
+Couldn't reach GitHub. Try again later.	Няма връзка с GitHub. Опитайте по-късно.
+GitHub is blocking checks from this network for now. Try again later.	GitHub блокира проверките от тази мрежа засега. Опитайте по-късно.
+GitHub sent a reply HushTelegram couldn't read. Try again later.	GitHub изпрати отговор, който HushTelegram не можа да прочете. Опитайте по-късно.
+Saving the settings file	Файлът с настройки се записва
+Settings couldn't open	Настройките не можаха да се отворят
+Settings couldn't refresh. Reopen settings and try again.	Настройките не можаха да се обновят. Отворете ги отново и опитайте пак.
+Settings exported.	Настройките са експортирани.
+Settings imported. %1$d switch changed.	Настройките са импортирани. Променен е %1$d превключвател.
+Settings imported. %1$d switches changed.	Настройките са импортирани. Променени са %1$d превключвателя.
+Source code and issues	Изходен код и проблеми
+Stays in while paused	Остава в сила и при пауза
+Tap to turn it back on.	Докоснете, за да го включите отново.
+That file is too big for a settings file. Nothing was changed.	Файлът е твърде голям за файл с настройки. Нищо не е променено.
+That file isn't readable text. Nothing was changed.	Файлът не е четим текст. Нищо не е променено.
+That file lists a setting twice. Nothing was changed.	Във файла една настройка е посочена два пъти. Нищо не е променено.
+That isn't a HushTelegram settings file. Nothing was changed.	Това не е файл с настройки на HushTelegram. Нищо не е променено.
+A value in that file can't be read. Nothing was changed.	Стойност във файла не може да се прочете. Нищо не е променено.
+That file is damaged. Download it again. Nothing was changed.	Файлът е повреден. Изтеглете го отново. Нищо не е променено.
+Update HushTelegram to read that file. Nothing was changed.	Актуализирайте HushTelegram, за да прочетете този файл. Нищо не е променено.
+The report couldn't be saved yet. Try again in a moment.	Отчетът още не можа да бъде записан. Опитайте отново след малко.
+The diagnostic report couldn't be saved. Try again.	Диагностичният отчет не можа да бъде записан. Опитайте отново.
+The file %1$s couldn't be removed. Delete it from %2$s to turn HushTelegram back on.	Файлът %1$s не можа да бъде премахнат. Изтрийте го от %2$s, за да включите HushTelegram отново.
+Couldn't remove %1$s. Delete it by hand.	%1$s не можа да се премахне. Изтрийте го ръчно.
+Couldn't save that. It's back to the saved value. Try again.	Това не можа да се запази. Върната е запазената стойност. Опитайте отново.
+There's no diagnostic data to clear.	Няма диагностични данни за изчистване.
+There's no diagnostic data to put back.	Няма диагностични данни за връщане.
+This phone has no file picker, so you can't choose a file here.	Този телефон няма избирач на файлове, затова не можете да изберете файл тук.
+Version	Версия
+Records what HushTelegram does and shows error messages, to help with a bug report. Leave it off for everyday use.	Записва какво прави HushTelegram и показва съобщенията за грешки, за да помогне при подаване на сигнал за проблем. За всекидневна употреба го оставете изключен.
+You paused HushTelegram.	Поставихте HushTelegram на пауза.
+Your switches already match that file, so nothing will change.	Превключвателите ви вече съвпадат с файла, затова нищо няма да се промени.
+Copy a short report to the clipboard.	Копирайте кратък отчет в клипборда.
+Settings imported.	Настройките са импортирани.
+Can't open the link. Go to %1$s.	Връзката не може да се отвори. Отворете %1$s.
+# context: Sections on the settings home list. Settings backup contains export and import; Diagnostics contains logging and diagnostic data controls.
+Settings backup	Резервно копие на настройките
+Diagnostics	Диагностика
+Updates	Актуализации
+Jump to a section	Преминаване към раздел
+Go straight to one group of settings. Back returns to where you were.	Отидете направо на група настройки. „Назад“ ви връща там, където бяхте.
+No matching settings	Няма съвпадащи настройки
+%1$d setting found	Намерена е %1$d настройка
+%1$d settings found	Намерени са %1$d настройки
+Try a different word or clear the search.	Опитайте с друга дума или изчистете търсенето.
+Search settings	Търсене в настройките
+Clear search	Изчистване на търсенето
+Your switches are working.	Превключвателите ви работят.
+Pause	Пауза
+Resume	Възобновяване
+Undo	Отмяна
+# context: Links section, the Supported links row. It reads Android's own per-app selection of Telegram's web addresses (Android 12 and later) and opens Android's Open by default page for this app. Use the phone's own names for Open supported links, Open by default and App info.
+Supported links	Поддържани връзки
+Opening supported links is off for this app in Android's settings. Tap to turn it on.	„Отваряне на поддържаните връзки“ е изключено за това приложение в настройките на Android. Докоснете, за да го включите.
+Android didn't say which links open here. Tap to check in Android's settings.	Android не каза кои връзки се отварят тук. Докоснете, за да проверите в настройките на Android.
+Selecting links by hand	Ръчен избор на връзки
+A change here applies after Telegram restarts.	Промяната тук влиза в сила след рестартиране на Telegram.
+Android opens t.me links in this Telegram app only if you select their addresses on its Open by default page. Other link settings don't change.	Android отваря връзките t.me в това приложение на Telegram само ако изберете адресите им на страницата „Отваряне по подразбиране“. Другите настройки за връзки не се променят.
+Android verified this app for Telegram's web addresses, so their links open here.	Android провери това приложение за уеб адресите на Telegram, затова техните връзки се отварят тук.
+App settings didn't open. Try App info, then Open by default.	Не се отвориха. Вижте „Информация за приложението“ > „Отваряне по подразбиране“.
+Removes sponsored messages in channels, sponsored accounts in search and ads in videos. They're never loaded, so none count as seen.	Премахва спонсорираните съобщения в каналите, спонсорираните акаунти в търсенето и рекламите във видеоклиповете. Те никога не се зареждат, затова не се броят за видяни.
+HushTelegram %1$s on Telegram %2$s	HushTelegram %1$s за Telegram %2$s
+HushTelegram %1$s is made for Telegram %2$s.	HushTelegram %1$s е направен за Telegram %2$s.
+HushTelegram pauses when Telegram restarts.	HushTelegram се поставя на пауза при рестартиране на Telegram.
+HushTelegram turns back on when Telegram restarts.	HushTelegram се включва отново при рестартиране на Telegram.
+It's made for Telegram %1$s.	Направен е за Telegram %1$s.
+None of Telegram's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Нито един от уеб адресите на Telegram не е избран за това приложение, затова връзките се отварят другаде. Докоснете, за да ги изберете в настройките на Android.
+Only some of Telegram's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Само някои от уеб адресите на Telegram са избрани за това приложение, а връзките към останалите се отварят другаде. Докоснете, за да ги изберете в настройките на Android.
+Saved. Restart Telegram to apply this change.	Запазено. Рестартирайте Telegram, за да приложите промяната.
+# context: the restart row's title while one change waits for a restart; a tap restarts Telegram
+Restart Telegram to apply this change	Рестартирайте Telegram, за да приложите промяната
+# context: the same row with several changes waiting; %1$d is how many
+Restart Telegram to apply %1$d changes	Рестартирайте Telegram, за да приложите %1$d промени
+# context: the restart row's summary; the settings screen comes back on the page it was on
+Telegram closes and reopens on this page.	Telegram се затваря и се отваря отново на тази страница.
+# context: home page row just above Support; a tap opens a new bug report on GitHub in a browser
+Report a problem	Съобщаване за проблем
+# context: that row's summary
+Opens a GitHub report with your versions and settings filled in. Add what happened.	Отваря сигнал в GitHub с вашите версии и настройки. Добавете какво се е случило.
+# context: row on the Settings backup page, and the title of the dialog it opens
+Quick setups	Готови настройки
+# context: that row's summary
+Turn on a set of switches in one tap, or put every switch back the way it started.	Включете набор от превключватели с едно докосване или върнете всеки превключвател както е бил в началото.
+# context: Row on the Look and feel page that switches how the HushTelegram settings pages are drawn: each group of rows on a rounded card with an outline, or plain rows with a thin line between them. Its line says which look is on and what a tap changes it to.
+Settings look	Вид на настройките
+Cards. Tap for plain rows.	Карти. Докоснете за обикновени редове.
+Plain rows. Tap for cards.	Обикновени редове. Докоснете за карти.
+# context: Quick setups choice that turns on the switches that hide ads, suggestions and nags
+Quiet	Тихо
+# context: what Quiet does, under its name
+Hides ads, suggestions, stories, promotions and nags.	Скрива реклами, предложения, истории, промоции и напомняния.
+# context: what the Privacy choice does, under its name; the phone number is the person's own, covered where Telegram shows it
+Stops usage reports, strips tracking from links and covers your own phone number on screen.	Спира отчетите за употреба, премахва проследяването от връзките и скрива вашия телефонен номер на екрана.
+# context: Quick setups choice that puts every feature switch back to its starting value
+Back to defaults	Стойности по подразбиране
+# context: what Back to defaults does, under its name
+Puts every feature switch back the way it started.	Връща всеки превключвател както е бил в началото.
+# context: toast after a Quick setups choice changed exactly one switch
+Changed %1$d setting	Променена е %1$d настройка
+# context: the same toast for any other count, zero included; %1$d is how many
+Changed %1$d settings	Променени са %1$d настройки
+Ads in channels and search	Реклами в каналите и търсенето
+Ads in channels	Реклами в каналите
+Ads in search	Реклами в търсенето
+%1$s, and more	%1$s и още
+Stop usage reports	Спиране на отчетите за употреба
+# context: Immutable hook coverage shown when a patch has missing targets.
+channel ads	реклами в каналите
+video ads	реклами във видеоклиповете
+search ads	реклами в търсенето
+channel read metrics	показатели за четене на канали
+This patched app doesn't change %1$s.	Това пачнато приложение не променя %1$s.
+This patched app changes %1$s but not %2$s.	Това пачнато приложение променя %1$s, но не и %2$s.
+Telegram crashed or froze within a minute of starting three times in a row, so HushTelegram paused itself.	Telegram се срина или блокира в рамките на минута след стартиране три пъти поред, затова HushTelegram се постави на пауза.
+Telegram's web addresses are selected for this app in Android's settings, so their links open here.	Уеб адресите на Telegram са избрани за това приложение в настройките на Android, затова връзките им се отварят тук.
+Usage reports and call diagnostics	Отчети за употреба и диагностика на обажданията
+Usage reports	Отчети за употреба
+Call diagnostics	Диагностика на обажданията
+Try again, or go back to Telegram.	Опитайте отново или се върнете в Telegram.
+Turn off Telegram's update checks	Изключване на проверките за актуализации на Telegram
+Your choices are saved. Tap Resume, then restart Telegram.	Изборът ви е запазен. Докоснете „Възобновяване“, после рестартирайте Telegram.
+Telegram stops offering updates from telegram.org. Those can't install over this patched build, so patch each new version in Morphe Manager instead.	Telegram спира да предлага актуализации от telegram.org. Те не могат да се инсталират върху това пачнато копие, затова пачвайте всяка нова версия в Morphe Manager.
+No HushTelegram release is out yet.	Още няма издадена версия на HushTelegram.
+Hide recommendations	Скриване на препоръките
+Hides suggested similar channels and bots, including ones already saved, and stops asking Telegram for new ones.	Скрива предложените подобни канали и ботове, включително вече запазените, и спира да иска нови от Telegram.
+similar channels and bots	подобни канали и ботове
+cached recommendations	кеширани препоръки
+Stop call diagnostics	Спиране на диагностиката на обажданията
+Stops your phone from automatically sending call problem reports and log files when Telegram's server asks for them.	Не позволява на телефона ви автоматично да изпраща отчети за проблеми с обажданията и лог файлове, когато сървърът на Telegram ги поиска.
+call debug reports	отчети за отстраняване на грешки в обажданията
+call log file uploads	качвания на лог файлове от обаждания
+call log reports	отчети от лога на обажданията
+Hide Premium, gifts and Stars	Скриване на Premium, подаръци и Stars
+Removes Premium, Stars, My Grams, Wallet, Business and Send a Gift from Settings, Wallet and Send Gram from the chat, profile and link menus, Gifts tabs on profiles, the Gift button in channels, and Premium stickers, their effects and Premium emoji packs if you don't have Premium.	Премахва Premium, Stars, My Grams, Wallet, Business и „Send a Gift“ от настройките, Wallet и Send Gram от менютата на чата, профила и връзките, разделите „Gifts“ в профилите, бутона „Gift“ в каналите, както и Premium стикерите, ефектите им и Premium пакетите с емоджи, ако нямате Premium.
+Settings sales rows	редове за продажби в настройките
+profile Gifts tabs	раздели „Gifts“ в профилите
+channel Gift button	бутон „Gift“ в каналите
+attach menu Wallet button	бутон Wallet в менюто за прикачване
+chat list menu Wallet item	елемент Wallet в менюто на списъка с чатове
+profile menu Send Gram item	елемент Send Gram в менюто на профила
+TON link Send Gram item	елемент Send Gram в TON връзките
+Gram transfer Send Gram item	елемент Send Gram при Gram преводи
+Premium stickers in the keyboard and packs	Premium стикери в клавиатурата и пакетите
+Premium sticker effects	ефекти на Premium стикерите
+Premium emoji packs in the emoji keyboard	Premium пакети с емоджи в клавиатурата за емоджи
+Hide promotional banners	Скриване на промоционалните банери
+Hides the Premium, birthday and low Stars balance banners above your chat list. Account security notices and other suggestions still show.	Скрива банерите за Premium, рождени дни и нисък баланс на Stars над списъка с чатове. Известията за сигурност на акаунта и другите предложения се показват.
+promotional suggestions	промоционални предложения
+birthday gift banner	банер за подарък за рожден ден
+Hide sponsored proxy channel	Скриване на спонсорирания прокси канал
+Hides the sponsored channel a proxy adds to your chat list and folders. Your proxy settings aren't touched.	Скрива спонсорирания канал, който прокси добавя към списъка с чатове и папките. Настройките на проксито не се променят.
+cached proxy channel	кеширан прокси канал
+cached proxy folder entries	кеширани записи на прокси в папките
+Open links externally	Отваряне на връзките в браузъра
+Opens normal web links in your browser. Telegram links, sign-in and payment pages keep working the way they did.	Отваря обикновените уеб връзки в браузъра ви. Връзките на Telegram, входът и страниците за плащане работят както преди.
+Remove link tracking tags	Премахване на проследяващите етикети
+Removes tracking tags like utm_source, gclid and fbclid from links you open or share. A link with any other tag is left unchanged.	Премахва проследяващи етикети като utm_source, gclid и fbclid от връзките, които отваряте или споделяте. Връзка с друг етикет остава непроменена.
+# context: Links page switch title. When on, links to the websites Telegram signs you in to automatically open without your account's sign-in token.
+No automatic sign-in on Telegram's sites	Без автоматичен вход в сайтовете на Telegram
+# context: Summary under that switch. The token is what signs the account in on those sites without asking.
+Telegram adds a sign-in token for your account to links to some of its own websites. With this on, those links open without it, and you can sign in there yourself.	Telegram добавя токен за вход във вашия акаунт към връзки към някои свои уебсайтове. Когато е включено, тези връзки се отварят без него и можете да влезете там сами.
+external browser routing	маршрутизиране към външен браузър
+opened link tracking	проследяване на отваряни връзки
+shared link tracking	проследяване на споделяни връзки
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Strip link tracking that leaves the account's sign-in token off links to Telegram's websites.
+website sign-in tokens	токени за вход в уебсайтове
+Stops usage reports to Telegram, like how long you read each channel post and what you tap on Premium screens. Messages and calls work as before.	Спира отчетите за употреба към Telegram, като колко време четете всяка публикация в канал и какво докосвате на екраните на Premium. Съобщенията и обажданията работят както преди.
+Premium promo views	показвания на Premium промоции
+Premium promo taps	докосвания на Premium промоции
+Premium promo accepts	приемания на Premium промоции
+Premium promo failures	неуспехи на Premium промоции
+dual camera reports	отчети за двойна камера
+Accounts	Акаунти
+Every switch here applies to all the accounts in this Telegram app, not only the one you have open.	Всеки превключвател тук важи за всички акаунти в това приложение на Telegram, не само за отворения.
+No previews before sending	Без визуализации преди изпращане
+Telegram doesn't look up link previews for messages you haven't sent yet, including shares, polls, story links and bots. Sent messages still get one.	Telegram не търси визуализации на връзки за съобщения, които още не сте изпратили, включително споделяния, анкети, връзки към истории и ботове. Изпратените съобщения пак получават такава.
+# context: Privacy page switch title. When on, an unsent message stays only on this phone instead of syncing to the account's other devices.
+Keep drafts on this phone	Черновите остават в телефона
+# context: Summary under that switch. Clearing a draft (emptying the text box) is still sent so other devices drop it too.
+A message you start but don't send stays on this phone and stops syncing to your other devices. Clearing a draft still clears it there.	Съобщение, което започвате, но не изпращате, остава на този телефон и не се синхронизира с другите ви устройства. Изчистването на чернова пак я изчиства и там.
+# context: Privacy page switch title. When on, text typed in Telegram's main search is no longer sent to Telegram's server, except in its Posts tab. Search inside a chat still is.
+Keep searches on this phone	Търсене само в телефона
+# context: Summary under that switch. Chats, Channels, Apps and Posts are tabs in Telegram's search, and the media tabs are Media, Links, Files, Music and Voice, so use Telegram's own words for those tabs in your language. Public accounts means people, bots and channels found by username.
+What you type in the main search isn't sent to Telegram, except in the Posts tab. The Chats tab finds your chats and contacts on this phone, plus recent searches, but not messages or public accounts. Channels, Apps, the media tabs and chat or date filters don't search for typed text. Search inside a chat still goes to Telegram.	Написаното в основното търсене не се изпраща на Telegram, освен в раздела „Posts“. Разделът „Chats“ намира вашите чатове и контакти на този телефон, плюс скорошни търсения, но не и съобщения или публични акаунти. „Channels“, „Apps“, разделите с медия и филтрите за чат или дата не търсят по написан текст. Търсенето в чат пак отива до Telegram.
+# context: Extra line under Telegram's "No results" message in the Chats tab of search, shown while Keep searches on this phone is on. It explains why nothing from Telegram's server turned up.
+Only chats and contacts on this phone were searched.	Търсени са само чатове и контакти на този телефон.
+Draft link previews	Визуализации на връзки в чернови
+chat drafts	чернови на чатове
+share sheet comments	коментари в менюто за споделяне
+poll links	връзки в анкети
+story links	връзки в истории
+bot shares	споделяния от ботове
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Draft link previews that keeps drafts off the server.
+draft syncing	синхронизиране на чернови
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Draft link previews that keeps text typed in search's Chats tab from being sent to Telegram.
+search lookups	търсенията към сървъра
+Camera only on tap	Камера само при докосване
+Opening the attachment gallery doesn't start the camera or ask for camera access. Tap the camera tile to start it.	Отварянето на галерията за прикачване не стартира камерата и не иска достъп до нея. Докоснете плочката на камерата, за да я стартирате.
+Gallery camera	Камера в галерията
+No swipe actions on chats	Без действия с плъзгане в чатовете
+Swiping a chat in your list no longer archives, mutes, pins, deletes or marks it read. Press and hold still offers every action.	Плъзгането на чат в списъка вече не го архивира, заглушава, закача, изтрива или отбелязва като прочетен. Натискането и задържането пак предлага всички действия.
+Hide popular apps	Скриване на популярните приложения
+Hides the Popular apps list on the Apps tab of search, and doesn't ask Telegram for it. Apps you've opened and other results stay.	Скрива списъка с популярни приложения в раздела „Apps“ на търсенето и не го иска от Telegram. Приложенията, които сте отваряли, и другите резултати остават.
+Hide contacts on Telegram	Скриване на контактите в Telegram
+When your chat list is short, Telegram lists your contacts below it. This hides that list and its heading. Chats, folders and search stay.	Когато списъкът ви с чатове е къс, Telegram показва контактите ви под него. Това скрива списъка и заглавието му. Чатовете, папките и търсенето остават.
+Hide greeting stickers	Скриване на стикерите за поздрав
+Empty private chats stop suggesting a sticker to say hello. Their other text and notices, and the sticker picker, stay.	Празните лични чатове вече не предлагат стикер за поздрав. Другият им текст и известия, както и панелът със стикери, остават.
+Quiet contacts prompts	По-малко подкани за контактите
+After you say no to contacts access, the Contacts tab stops asking again and its warning badge goes away.	След като откажете достъп до контактите, разделът „Contacts“ спира да пита отново и предупредителната му значка изчезва.
+New Year look all year	Новогодишен вид през цялата година
+Shows Telegram's Santa hat and New Year snow all year, not only around New Year. Snow falls on the chat list's top bar and on chat backgrounds once Wallpaper rotation is on under Power Saving, in Effects in Chats.	Показва Дядоколедовата шапка на Telegram и новогодишния сняг през цялата година, не само около Нова година. Снегът вали върху горната лента на списъка с чатове и върху фоновете на чатовете, когато „Wallpaper rotation“ е включено в „Power Saving“, в „Effects in Chats“.
+# context: Look and feel page row title, and the title of its editor dialog. The person picks an emoji or a few letters shown after Telegram's name (its logo) at the top of the chat list.
+Emoji next to the chat list title	Емоджи до заглавието на списъка с чатове
+# context: Summary under that row while nothing is set. Premium emoji status is Telegram's own paid status emoji next to the name, which this doesn't change.
+Add an emoji or a few letters after Telegram's name at the top of the chat list. It stays on this phone, and your Premium emoji status is left alone.	Добавете емоджи или няколко букви след името на Telegram най-горе в списъка с чатове. Остава само на този телефон, а емоджи статусът ви в Premium не се променя.
+# context: Summary under that row once something is set. %1$s is the emoji or letters the person saved.
+%1$s shows after Telegram's name at the top of the chat list, on this phone only. Tap to change it.	%1$s се показва след името на Telegram най-горе в списъка с чатове, само на този телефон. Докоснете, за да го промените.
+# context: Lowercase word for an empty value in the import preview line "%1$s: %2$s to %3$s", for example "Emoji next to the chat list title: none to X".
+none	няма
+# context: Label and hint of the one text field in the editor dialog.
+Emoji or a few letters	Емоджи или няколко букви
+# context: Instructions at the top of the editor dialog.
+Shown after Telegram's name at the top of the chat list. It stays on this phone, so nothing goes to Telegram and your Premium emoji status is left alone. Leave it empty to show nothing, and restart Telegram to see a change.	Показва се след името на Telegram най-горе в списъка с чатове. Остава само на този телефон, така че нищо не се изпраща до Telegram, а емоджи статусът ви в Premium не се променя. Оставете празно, за да не се показва нищо, и рестартирайте Telegram, за да видите промяната.
+# context: Error under the field and toast when the text is too long to save. Keep it under about 64 characters.
+That's too long. Try an emoji or two, or a short word.	Твърде дълго е. Опитайте с едно-две емоджи или къса дума.
+# context: Error under the field and toast when saving failed. Keep it under about 64 characters.
+Couldn't save the emoji. Try again in a moment.	Емоджито не се запази. Опитайте отново след малко.
+# context: Short toast after the editor saved text that needs no restart, such as clearing it again before restarting.
+Saved.	Запазено.
+# context: Sentence in the settings import preview when the imported file changes that text.
+The emoji next to the chat list title will change.	Емоджито до заглавието на списъка с чатове ще се промени.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Holiday look all year that draws the emoji after the chat list title.
+emoji next to the chat list title	емоджи до заглавието на списъка с чатове
+Use system font	Системен шрифт
+Bold, italic and code text use your phone's font instead of Telegram's built-in one. Restart Telegram to see the change.	Удебеленият, курсивният и кодовият текст използват шрифта на телефона ви вместо вградения в Telegram. Рестартирайте Telegram, за да видите промяната.
+AMOLED black	AMOLED черно
+Night and Dark themes use pure black screens. Message bubbles and menus keep their colors. Restart Telegram to see the change.	Нощната и тъмната тема използват изцяло черни екрани. Балончетата със съобщения и менютата запазват цветовете си. Рестартирайте Telegram, за да видите промяната.
+Hide translate bar	Скриване на лентата за превод
+Chats in another language stop showing the translate bar at the top. Translate moves to the chat's menu, and a chat you're translating keeps its bar.	Чатовете на друг език вече не показват лентата за превод най-горе. Преводът се премества в менюто на чата, а чат, който превеждате, запазва лентата си.
+Exact numbers	Точни числа
+Member, subscriber, view, reply and reaction counts show in full, like 12,345 instead of 12.3K.	Броят на членове, абонати, преглеждания, отговори и реакции се показва изцяло, например 12 345 вместо 12,3K.
+Reveal spoilers	Разкриване на спойлери
+Spoiler text, photos and videos show right away without a tap. View-once media, sensitive content and login codes stay covered.	Спойлерният текст, снимки и видеоклипове се показват веднага, без докосване. Медията за еднократно гледане, чувствителното съдържание и кодовете за вход остават скрити.
+Hide keyboard on scroll	Скриване на клавиатурата при превъртане
+The keyboard closes when you start scrolling a chat. The emoji and sticker panel stays open.	Клавиатурата се затваря, когато започнете да превъртате чат. Панелът с емоджита и стикери остава отворен.
+Keep videos muted on volume keys	Заглушени видеоклипове при бутоните за звука
+Volume keys only change the volume. They no longer start the video or round video on screen with sound. Tap a video to hear it.	Бутоните за звука променят само силата на звука. Те вече не пускат видеоклипа или видеосъобщението на екрана със звук. Докоснете видеоклипа, за да го чуете.
+# context: a second switch under Keep videos muted on volume keys (#27). Telegram turns a video put in full screen to one fixed landscape side; with this on it follows the phone to either side.
+Full screen videos turn either way	Видеоклиповете на цял екран се въртят във всяка посока
+# context: that switch's summary. "full screen" is Telegram's full screen button on a video; "auto-rotate" is Android's own screen rotation setting, use the phone's name for it.
+After you tap full screen, a video follows your phone to either landscape side, even with auto-rotate off.	След като докоснете цял екран, видеоклипът следва телефона ви към всяка от хоризонталните страни, дори при изключено автоматично завъртане.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that lets a full screen video turn to either landscape side.
+full screen video turning either way	видеоклипове на цял екран, които се въртят във всяка посока
+# context: a third switch under Keep videos muted on volume keys (#27). With it on, an open video in the viewer stays in portrait when the phone is turned, and goes landscape only from Telegram's full screen button.
+Turn videos only from the full screen button	Въртене на видеоклиповете само с бутона за цял екран
+# context: that switch's summary. "full screen" is Telegram's full screen button on a video; use the phone's own words for turning the phone.
+An open video stays upright when you turn your phone. It goes landscape only when you tap full screen.	Отвореният видеоклип остава изправен, когато завъртите телефона. Преминава в хоризонтален изглед само когато докоснете цял екран.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that keeps an open video upright until full screen.
+keeping a video upright until full screen	държане на видеоклипа изправен до цял екран
+Swipe back on profiles	Плъзгане назад в профилите
+Swiping right on a profile's photos or media tabs goes back, like the rest of the profile, instead of showing the previous photo or tab.	Плъзгането надясно по снимките или разделите с медия в профил връща назад, както в останалата част от профила, вместо да показва предишната снимка или раздел.
+Hide phone number	Скриване на телефонния номер
+Your own phone number shows as dots in Settings and your profile, which helps with screenshots. Others' numbers stay visible.	Собственият ви телефонен номер се показва като точки в настройките и профила ви, което помага при екранни снимки. Номерата на другите остават видими.
+# context: Privacy page switch title, under Hide phone number. When on, the box on Telegram's add contact screen that shares your own phone number with the new contact starts unticked.
+Don't share my number by default	Без споделяне на номера по подразбиране
+# context: Summary under that switch. The box is Telegram's own checkbox on the add contact screen, and the person can still tick it.
+When you add someone as a contact from their chat, Telegram ticks the box that shares your phone number with them. With this on, the box starts clear and your number goes only if you tick it.	Когато добавите някого като контакт от чата му, Telegram отмята полето, което споделя телефонния ви номер с него. При включена опция полето е празно и номерът ви се изпраща само ако го отметнете.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide phone number that starts the add contact screen's share box unticked.
+number sharing on new contacts	споделяне на номера при нови контакти
+Message times with seconds	Часове на съобщенията със секунди
+Each message's time includes seconds, like 9:41:27 PM, so messages sent close together are easy to tell apart.	Часът на всяко съобщение включва секунди, например 21:41:27, така че съобщения, изпратени близо едно до друго, се различават лесно.
+Allow chat blur on slower phones	Размазване в чата и на по-бавни телефони
+Telegram only blurs chat headers and panels on fast phones. This lets any phone do it, once Blur in chat is on under Power saving.	Telegram размазва заглавните части и панелите на чата само на бързи телефони. Това позволява на всеки телефон да го прави, когато „Blur in chat“ е включено в „Power Saving“.
+Play voice messages one at a time	Гласови съобщения едно по едно
+When a voice or video message ends, the next one doesn't start by itself.	Когато гласово съобщение или видеосъобщение свърши, следващото не започва само.
+# context: Playback page switch title, under Play voice messages one at a time and independent of it. When on, voice and round video messages can't be started while the phone's lock screen shows.
+Keep voice messages quiet while locked	Тихи гласови съобщения при заключен екран
+# context: Summary under that switch. Round video messages are Telegram's circular video notes; the notification is Telegram's music player notification.
+While your phone is locked, voice and round video messages don't start, resume or skip to the next one, whether from headphones, a car, the notification or the lock screen. One that's already playing finishes. Music and other videos play as usual.	Докато телефонът е заключен, гласовите съобщения и кръглите видеосъобщения не се пускат, не се възобновяват и не преминават към следващото, независимо дали от слушалки, кола, известието или заключения екран. Съобщение, което вече се възпроизвежда, се изслушва докрай. Музиката и другите видеоклипове се възпроизвеждат както обикновено.
+# context: Short toast when a voice or round video message was asked to play while the phone is locked and the switch is on.
+Unlock your phone to play voice and video messages.	Отключете телефона, за да пуснете гласови и видеосъобщения.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the locked phone part of Play voice messages one at a time.
+voice playback while locked	гласово възпроизвеждане при заключен екран
+Stop vibrations on taps	Без вибрации при докосване
+Taps, long presses, swipes and wrong entries no longer vibrate the phone. Incoming calls still vibrate, and notifications follow your own settings.	Докосванията, дългите натискания, плъзганията и грешните въвеждания вече не карат телефона да вибрира. Входящите обаждания пак вибрират, а известията следват вашите настройки.
+Turn off reaction effects	Изключване на ефектите на реакциите
+When someone reacts to a message, the emoji doesn't fly across the screen and burst. The reaction still shows on the message.	Когато някой реагира на съобщение, емоджито не прелита през екрана и не се пръсва. Реакцията пак се вижда върху съобщението.
+Hide folder tab counters	Скриване на броячите в папките
+Folder tabs above the chat list show just their names, without unread counts. Chats stay unread and the app icon badge doesn't change.	Разделите на папките над списъка с чатове показват само имената си, без брой непрочетени. Чатовете остават непрочетени, а значката на иконата на приложението не се променя.
+Hide sender names when forwarding	Скриване на името на подателя при препращане
+Each new forward starts with Hide sender's name turned on, so copies arrive without the original author. You can still turn it off before sending.	Всяко ново препращане започва с включено „Hide Sender Name“, така че копията пристигат без първоначалния автор. Можете да го изключите преди изпращане.
+Voice messages in the music player	Гласови съобщения в музикалния плейър
+While a voice message plays, tapping the bar above the chat opens the full music player, where you can drag to skip around, instead of jumping to the message.	Докато се възпроизвежда гласово съобщение, докосването на лентата над чата отваря пълния музикален плейър, където можете да превъртате, вместо да отива до съобщението.
+Silence people outside your contacts	Заглушаване на хора извън контактите
+Private messages from people not in your contacts still show a notification, but without sound or vibration. Bots, reminders and login codes keep their sound.	Лични съобщения от хора, които не са във вашите контакти, пак показват известие, но без звук и вибрация. Ботовете, напомнянията и кодовете за вход запазват звука си.
+Disable pull to archive	Изключване на дърпането за архив
+Pulling down the chat list no longer opens the archive. Use Archived chats in the list's menu instead. Restart Telegram to see the change.	Дърпането надолу на списъка с чатове вече не отваря архива. Вместо това използвайте „Archived Chats“ в менюто на списъка. Рестартирайте Telegram, за да видите промяната.
+Start the camera on the rear lens	Камера със задния обектив
+The camera in the attachment menu always opens on the rear lens, not the lens you used last. You can still flip it.	Камерата в менюто за прикачване винаги се отваря със задния обектив, а не с последния използван. Пак можете да я обърнете.
+Hide gallery camera tile	Скриване на плочката на камерата в галерията
+The attachment menu's photo grid starts with your photos instead of a live camera tile. A chat picks this up the next time you open it.	Решетката със снимки в менюто за прикачване започва с вашите снимки вместо с плочка на камерата на живо. Чатът го отчита при следващото отваряне.
+Hide time on stickers	Скриване на часа върху стикерите
+Stickers and big animated emoji no longer show the time and read checks in their corner. Other messages keep their time.	Стикерите и големите анимирани емоджита вече не показват часа и знаците за прочитане в ъгъла си. Другите съобщения запазват часа си.
+Ignore mentions in muted chats	Игнориране на споменаванията в заглушени чатове
+Mentions and replies in groups or channels you've muted no longer notify you. Chats you haven't muted notify as before.	Споменаванията и отговорите в групи или канали, които сте заглушили, вече не ви известяват. Чатовете, които не сте заглушили, известяват както преди.
+Hide blocked users in groups	Скриване на блокираните потребители в групи
+Messages from people you've blocked are left out of groups and supergroups you open, and don't notify you. Nothing is deleted. Private chats and channel posts stay as they are.	Съобщенията от хора, които сте блокирали, се пропускат в групите и супергрупите, които отваряте, и не ви известяват. Нищо не се изтрива. Личните чатове и публикациите в каналите остават както са.
+Hide Telegram Features and Invite Friends	Скриване на „Telegram Features“ и „Покани приятели“
+Removes the Telegram Features row from Settings and Invite Friends from Contacts. With no contacts yet, the invite list goes too.	Премахва реда „Telegram Features“ от настройките и „Покани приятели“ от контактите. Ако още нямате контакти, списъкът с покани също изчезва.
+Add Repeat to the message menu	Добавяне на „Повтаряне“ в менюто на съобщението
+Keep deleted messages	Запазване на изтритите съобщения
+Messages others delete stay in your chat on this phone, marked deleted next to the time. Your own deletes and disappearing messages work as usual.	Съобщенията, които другите изтрият, остават в чата ви на този телефон, отбелязани като изтрити до часа. Вашите изтривания и изчезващите съобщения работят както обикновено.
+# context: a second switch under Keep deleted messages (#25). Turned on, the word "deleted" that marks a kept message next to its time is drawn in red.
+Show deleted in red	Изтритото в червено
+# context: that switch's summary. "deleted" is the label shown next to the time, "Keep deleted messages" the name of the switch above it.
+The deleted label next to a kept message's time turns red, so it stands out in the chat. Works with Keep deleted messages on.	Надписът „изтрито“ до часа на запазено съобщение става червен, за да се набива на очи в чата. Работи при включено „Запазване на изтритите съобщения“.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that draws the deleted label in red.
+red deleted label	червен надпис за изтрито
+# context: an action row under Keep deleted messages; a tap deletes every message that switch kept
+Clear kept messages	Изчистване на запазените съобщения
+Deletes the messages this phone kept after others deleted them, in every account, the way Telegram would have.	Изтрива съобщенията, които този телефон е запазил, след като другите са ги изтрили, във всички акаунти, както би направил Telegram.
+# context: the notice after that tap when nothing was kept
+There are no kept messages to clear.	Няма запазени съобщения за изчистване.
+# context: the notice right after that tap, while the kept messages are still being removed
+Removing %1$d kept message.	Премахва се %1$d запазено съобщение.
+Removing %1$d kept messages.	Премахват се %1$d запазени съобщения.
+# context: the notice once Telegram has finished removing them, with how many went
+Removed %1$d kept message.	Премахнато е %1$d запазено съобщение.
+Removed %1$d kept messages.	Премахнати са %1$d запазени съобщения.
+# context: a third switch under Keep deleted messages. Turned on, the text a message had before someone else edited it is kept on the phone.
+Keep edit history	Запазване на историята на редакциите
+# context: that switch's summary. "Message details" is HushTelegram's own message menu item, translated the same as that row.
+Keeps the text a message had before someone else edited it, on this phone only. Message details in the message's menu shows it.	Пази текста, който съобщението е имало, преди някой друг да го редактира, само на този телефон. Показва се в Подробности за съобщението в менюто на съобщението.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that keeps the text from before an edit.
+earlier text of edited messages	предишния текст на редактираните съобщения
+# context: an action row under Keep edit history; a tap forgets every earlier text that switch kept
+Clear edit history	Изчистване на историята на редакциите
+Forgets the earlier text this phone kept for edited messages, in every account.	Забравя предишния текст, който този телефон е запазил за редактирани съобщения, във всички акаунти.
+# context: the notice after that tap when nothing was kept. A toast: two short lines at most.
+There's no edit history to clear.	Няма история на редакциите за изчистване.
+# context: the notice after that tap, with how many messages had earlier text. A toast: two short lines at most.
+Cleared the edit history of %1$d message.	Историята на редакциите на %1$d съобщение е изчистена.
+Cleared the edit history of %1$d messages.	Историята на редакциите на %1$d съобщения е изчистена.
+# context: a line in Message details. %1$s is the date and time of the edit, %2$s the text the message had before it.
+Before the edit at %1$s: %2$s	Преди редакцията (%1$s): %2$s
+Ask before sending a sticker	Потвърждение преди изпращане на стикер
+Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it. Scheduled stickers go out without asking.	Пита „Изпращане“ или „Отказ“, преди докоснат стикер да влезе в чат. „Отказ“ го отхвърля. Планираните стикери се изпращат без питане.
+Translate with an outside service	Превод с външна услуга
+Translate here	Превеждане тук
+Show original	Показване на оригинала
+Translate this chat	Превеждане на този чат
+This chat will be translated	Този чат ще бъде преведен
+This chat shows the original messages	Този чат показва оригиналните съобщения
+Translation isn't available right now	Преводът не е наличен в момента
+# context: a short toast when messages scroll by faster than the translation service answers; the newest skipped ones are asked for as answers come in, the others when they're shown again
+Lots to translate at once. The rest will follow.	Има много за превеждане наведнъж. Останалото ще последва.
+# context: Toast shown once after an update clears the translated chats saved before each choice belonged to a Telegram account.
+Turn chat translation on again. It's now set per account.	Включете отново превеждането на чата. Вече е за всеки акаунт поотделно.
+Ask before sending a GIF	Потвърждение преди изпращане на GIF
+Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it. Scheduled GIFs go out without asking.	Пита „Изпращане“ или „Отказ“, преди докоснат GIF да влезе в чат. „Отказ“ го отхвърля. Планираните GIF файлове се изпращат без питане.
+Ask before sending a voice or video message	Потвърждение преди изпращане на гласово или видеосъобщение
+Asks Send or Cancel before a voice or video message you recorded goes out. Cancel throws the recording away.	Пита „Изпращане“ или „Отказ“, преди записано от вас гласово или видеосъобщение да бъде изпратено. „Отказ“ изхвърля записа.
+Ask before starting a call	Потвърждение преди започване на обаждане
+Asks Call or Cancel before the call button in a chat or on a profile starts a call.	Пита „Обаждане“ или „Отказ“, преди бутонът за обаждане в чат или профил да започне обаждане.
+Send sticker	Изпращане на стикер
+Send this sticker to this chat?	Да се изпрати ли този стикер в този чат?
+Send GIF	Изпращане на GIF
+Send this GIF to this chat?	Да се изпрати ли този GIF в този чат?
+Send voice message	Изпращане на гласово съобщение
+Send this voice message to this chat?	Да се изпрати ли това гласово съобщение в този чат?
+Send video message	Изпращане на видеосъобщение
+Send this video message to this chat?	Да се изпрати ли това видеосъобщение в този чат?
+Send	Изпращане
+Start a call	Започване на обаждане
+Start a voice call?	Да започне ли гласово обаждане?
+Start a video call?	Да започне ли видеообаждане?
+Call	Обаждане
+# context: the label before the time of a message someone else deleted that this phone kept
+deleted	изтрито
+Add Copy photo to the message menu	Добавяне на „Копиране на снимката“ в менюто на съобщението
+Add Message details to the message menu	Добавяне на „Подробности за съобщението“ в менюто на съобщението
+Repeat	Повтаряне
+Copy photo	Копиране на снимката
+Photo copied	Снимката е копирана
+Message details	Подробности за съобщението
+Message ID: %1$s	ID на съобщението: %1$s
+Chat ID: %1$s	ID на чата: %1$s
+Sender ID: %1$s	ID на подателя: %1$s
+Sent: %1$s	Изпратено: %1$s
+Edited: %1$s	Редактирано: %1$s
+Forwarded from: %1$s	Препратено от: %1$s
+Original sender ID: %1$s	ID на първоначалния подател: %1$s
+Originally sent: %1$s	Първоначално изпратено: %1$s
+File data center: %1$s	Център за данни на файла: %1$s
+File size: %1$s	Размер на файла: %1$s
+Copy	Копиране
+Message details copied	Подробностите за съобщението са копирани
+Add Quick forward to the message menu	Добавяне на „Бързо препращане“ в менюто на съобщението
+Quick forward	Бързо препращане
+Forward to	Препращане към
+Forwarding to %1$s	Препращане към %1$s
+Can't forward there	Не може да се препрати там
+No chat to forward to	Няма чат за препращане
+# context: Notifications repair and bottom-pull controls.
+Notifications	Известия
+Repair Firebase push registration	Поправяне на регистрацията за Firebase известия
+Tries to help this patched Telegram sign up for push notifications with Firebase, Google's notification service, using Telegram's original certificate. Notification permission and battery settings still apply.	Опитва се да помогне на този пачнат Telegram да се регистрира за push известия през Firebase, услугата на Google за известия, с оригиналния сертификат на Telegram. Разрешението за известия и настройките на батерията пак се прилагат.
+Firebase certificate header	Заглавна част на сертификата за Firebase
+Stop pull to next channel	Спиране на дърпането към следващия канал
+Pulling up at the bottom of a channel only scrolls. Open the next channel from your chat list.	Дърпането нагоре в дъното на канал само превърта. Отваряйте следващия канал от списъка с чатове.
+Stop pull to next topic	Спиране на дърпането към следващата тема
+Pulling up at the bottom of a forum topic only scrolls. Open the next topic from the topic list.	Дърпането нагоре в дъното на тема във форум само превърта. Отваряйте следващата тема от списъка с теми.
+# context: Read-only local notification facts, independent of repair and Pause.
+Notification status on this phone	Състояние на известията на този телефон
+local notification status	локално състояние на известията
+Notification permission: %1$s	Разрешение за известия: %1$s
+Notification ID saved on this phone: %1$s	ID на известията, запазено на този телефон: %1$s
+Signed-in accounts: %1$s	Акаунти, в които сте влезли: %1$s
+Accounts Telegram confirmed for notifications: %1$s	Акаунти, потвърдени от Telegram за известия: %1$s
+Telegram's reply to notification sign-up: %1$s	Отговор на Telegram на регистрацията за известия: %1$s
+# context: Notification status lines about Telegram's own Keep-Alive Service and Background Connection switches. Use exactly the labels Telegram shows in this language (translations.telegram.org keys NotificationsService, NotificationsServiceConnection, Settings, SettingsNotifications and NotificationsOther).
+Keep-Alive Service and Background Connection on: %1$s	Услуга Keep-Alive и Свързване на заден план са включени: %1$s
+Without push, turn both on to get messages on time. They're in Telegram's own Settings > Notifications, under Other.	Без push включете и двете, за да получавате съобщенията навреме. Те са в Настройки > Notifications на самия Telegram, под Друго.
+No reply since Telegram started	Няма отговор, откакто Telegram стартира
+Accepted	Приета
+Refused	Отказана
+Refused (%1$s)	Отказана (%1$s)
+# context: One line per account and push service in the notification status. %1$s is the account number, %2$s is Firebase or UnifiedPush, %3$s is Accepted or Refused, %4$s is how long ago.
+Telegram's reply to account %1$s on %2$s: %3$s, %4$s	Отговор на Telegram към акаунт %1$s за %2$s: %3$s, %4$s
+less than a minute ago	преди по-малко от минута
+%1$s min ago	преди %1$s мин
+%1$s h ago	преди %1$s ч
+This only shows what's saved on this phone. It doesn't prove notifications will arrive.	Това показва само какво е запазено на този телефон. Не гарантира, че известията ще пристигат.
+Unknown	Неизвестно
+Allowed	Разрешено
+Blocked	Блокирано
+Yes	Да
+No	Не
+Use normal paste	Обикновено поставяне
+Show user and chat IDs	Показване на ID на потребители и чатове
+Disable double-tap reactions	Изключване на реакциите с двойно докосване
+Pastes text exactly as you copied it, without Telegram adding formatting, tables or code styling. Spaces and links stay as they were.	Поставя текста точно както сте го копирали, без Telegram да добавя форматиране, таблици или кодов стил. Интервалите и връзките остават както са.
+Adds a copyable ID number for a user or chat to the profile's menu. Telegram isn't asked for anything extra.	Добавя ID номер, който може да се копира, за потребител или чат в менюто на профила. От Telegram не се иска нищо допълнително.
+Show where a profile photo is stored	Показване къде е съхранена профилната снимка
+A profile's menu also shows which of Telegram's five data centers (its server locations) stores the profile photo. No photo, no number.	Менюто на профила показва още в кой от петте центъра за данни на Telegram (местата на сървърите му) се съхранява профилната снимка. Без снимка няма номер.
+Double-tapping a message no longer adds a reaction. Scrolling, normal taps, selecting and the reaction menu work as before.	Двойното докосване на съобщение вече не добавя реакция. Превъртането, обикновените докосвания, избирането и менюто с реакции работят както преди.
+compose text paste	поставяне на текст в полето за съобщение
+caption text paste	поставяне на текст в описание
+profile local IDs	локални ID в профили
+chat double-tap reactions	реакции с двойно докосване в чатове
+preview double-tap reactions	реакции с двойно докосване в преглед
+User ID %1$s	ID на потребител %1$s
+Chat ID %1$s	ID на чат %1$s
+Copy user ID %1$s	Копиране на ID на потребител %1$s
+Copy chat ID %1$s	Копиране на ID на чат %1$s
+ID	ID
+ID copied	ID е копирано
+Data center %1$s	Център за данни %1$s
+Copy data center %1$s	Копиране на център за данни %1$s
+Data center copied	Центърът за данни е копиран
+# context: titles of the settings pages that replaced the Chats page, after Morphe Manager's categories.
+Ads	Реклами
+Chat list	Списък с чатове
+Conversations	Разговори
+Playback	Възпроизвеждане
+Look and feel	Външен вид
+# context: Hide channel bar buttons and Hide Send as button. Search, Direct messages, Info, Mute and Join are Telegram's own button names in a channel; Send as is Telegram's name for the picture that picks who you post as.
+Hide channel bar buttons	Скриване на бутоните в лентата на канала
+Search, Direct messages and Info leave the bar at the bottom of a channel. Mute and Join stay, and tapping the channel's name at the top still opens its info. A channel picks this up the next time you open it.	Търсенето, личните съобщения и информацията излизат от лентата в долната част на канала. „Заглушаване“ и „Присъединяване“ остават, а докосването на името на канала най-горе пак отваря информацията за него. Каналът го отчита при следващото отваряне.
+# context: a second switch under Hide channel bar buttons (#26). Mute, Search, Info and Join are Telegram's own button names in a channel; Mute is the middle button of the bar at the bottom of a joined channel, and it reads Unmute while the channel is muted.
+Hide channel Mute button	Скриване на бутона за заглушаване на канала
+# context: that switch's summary. Use each button's name as Telegram shows it in your language.
+The bar at the bottom of a channel you've joined goes away, along with its Mute button and the Search and Info buttons beside it. Channels you haven't joined still show Join. To mute a channel, open its info. A channel picks this up the next time you open it.	Лентата в долната част на канал, към който сте се присъединили, изчезва заедно с бутона „Заглушаване“ и бутоните „Търсене“ и „Информация“ до него. Каналите, към които не сте се присъединили, пак показват „Присъединяване“. За да заглушите канал, отворете информацията за него. Каналът го отчита при следващото отваряне.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide channel bar buttons that hides the Mute button of a joined channel's bar.
+Mute button on the channel bar	бутона за заглушаване в лентата на канала
+Hide Send as button	Скриване на бутона „Изпращане като“
+Your picture next to the message box goes away in groups and channels where you could post as a channel, while you're posting as yourself. Once you pick a channel it shows again, so you can always see who you're posting as. To pick one, turn this off first. A chat picks this up the next time you open it.	Снимката ви до полето за съобщение изчезва в групи и канали, където бихте могли да публикувате като канал, докато публикувате като себе си. След като изберете канал, пак се показва, за да виждате винаги като кого публикувате. За да изберете, първо изключете това. Чатът го отчита при следващото отваряне.
+# context: Hide Contacts tab. Contacts, Calls and Settings are Telegram's own names for the tabs in the bar at the bottom of the main screen; the new message button is the round pencil button on the chat list.
+Hide Contacts tab	Скриване на раздела „Contacts“
+The Contacts tab leaves the bar at the bottom of the main screen, and swiping doesn't open its page either. The Calls or Settings tab stays as Telegram has it, and the chat list's new message button still opens your contacts. Restart Telegram to see the change.	Разделът „Contacts“ излиза от лентата в долната част на главния екран и плъзганията не отварят страницата му. Разделът „Calls“ или „Settings“ остава, както го има в Telegram, а бутонът за ново съобщение в списъка с чатове пак отваря контактите ви. Рестартирайте Telegram, за да видите промяната.
+# context: Chat list page switch title, under Hide Contacts tab and independent of it. When on, the bar at the bottom of the main screen (Chats, Contacts, Calls or Settings, Profile) is drawn shorter and narrower.
+Compact bottom bar	Компактна долна лента
+# context: Summary under that switch. The tabs are the buttons in that bar; they keep their height so they stay as easy to tap.
+The bar at the bottom of the main screen gets shorter and only as wide as its tabs need. The tabs keep their full height, so they're just as easy to tap. Restart Telegram to see the change.	Лентата в долната част на главния екран става по-ниска и само толкова широка, колкото е нужно на разделите ѝ. Разделите запазват пълната си височина, така че се докосват също толкова лесно. Рестартирайте Telegram, за да видите промяната.
+# context: Chat list page switch title, under Hide Contacts tab. When on, swiping right on the first chat folder slides in a menu from the left edge, like the navigation drawer older Telegram versions had.
+Side menu	Странично меню
+# context: Summary under that switch. The list names the menu's rows: My Profile, New Message, Contacts, Calls, Saved Messages, Settings, and an account switcher. Back is the phone's back gesture or button.
+Swipe right on your first chat folder and a menu slides in, like the one older Telegram had. It has your profile, new message, contacts, calls, saved messages and settings, plus a way to switch accounts. Back or a tap beside it closes it.	Плъзнете надясно върху първата си папка с чатове и ще се отвори меню, като в по-старите версии на Telegram. В него има „My Profile“, „Ново съобщение“, „Контакти“, „Повиквания“, „Saved Messages“ и „Настройки“, плюс превключване между акаунти. Затваря се с жеста или бутона за назад, или с докосване извън него.
+# context: Row near the top of that side menu, under the account name. Tapping it shows Telegram's list of signed-in accounts to switch between, or add one.
+Switch account	Смяна на акаунта
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide Contacts tab that makes the bottom bar compact.
+bottom bar size	размера на долната лента
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide Contacts tab that adds the menu sliding in from the left of the chat list.
+side menu	страничното меню
+# context: Hide messages by keyword. A filter is one line of text the person writes; a line in slashes is a regular expression. The settings page has one list for groups and one for channels, each edited in a dialog with Save and Cancel. Keep /crypto|airdrop/ exactly as written.
+Hide messages by keyword	Скриване на съобщения по ключова дума
+Messages in groups and channels that match one of your filters are left out when you open the chat. Private chats and your own messages stay as they are. Nothing is deleted, and your filters stay on this phone.	Съобщенията в групи и канали, които съвпадат с някой от вашите филтри, се пропускат при отваряне на чата. Личните чатове и вашите собствени съобщения не се променят. Нищо не се изтрива, а филтрите остават на този телефон.
+Filters for groups	Филтри за групи
+Filters for channels	Филтри за канали
+No filters yet.	Още няма филтри.
+%1$d filter.	%1$d филтър.
+%1$d filters.	%1$d филтъра.
+A list holds up to %1$d filters.	Списъкът побира до %1$d филтъра.
+Line %1$d is longer than %2$d characters.	Ред %1$d е по-дълъг от %2$d знака.
+Line %1$d isn't a valid regex. Fix it or take off the slashes.	Ред %1$d не е валиден регулярен израз. Поправете го или махнете наклонените черти.
+Line %1$d may be slow on long messages. Try a simpler pattern.	Ред %1$d може да работи бавно при дълги съобщения. Опитайте по-прост шаблон.
+This list is too long for a settings file. Remove a few lines.	Списъкът е твърде дълъг за файл с настройки. Премахнете няколко реда.
+One filter a line	По един филтър на ред
+Text on a line matches wherever it appears in a message. A line in slashes, like /crypto|airdrop/, is a regular expression. Case doesn't matter.	Текст на ред съвпада навсякъде в съобщението. Ред между наклонени черти, например /crypto|airdrop/, е регулярен израз. Главните и малките букви не се различават.
+Save	Запазване
+Couldn't save the filters. Try again in a moment.	Филтрите не можаха да се запазят. Опитайте отново след малко.
+Filters saved.	Филтрите са запазени.
+%1$d list of message filters will change.	%1$d списък с филтри за съобщения ще се промени.
+%1$d lists of message filters will change.	%1$d списъка с филтри за съобщения ще се променят.
+# context: Change sticker size. The person picks a size for stickers in chats as a percent of Telegram's own size (50%, 75%, 125% or 150%), from a list that opens when they tap the Sticker size row. %1$s is that percent, already written the way the language writes one, for example 75%.
+Change sticker size	Промяна на размера на стикерите
+Stickers in chats show at the size you pick below. Animated emoji and dice keep Telegram's size. A chat picks this up the next time you open it.	Стикерите в чатовете се показват в размера, който изберете по-долу. Анимираните емоджита и заровете запазват размера на Telegram. Чатът го отчита при следващото отваряне.
+Sticker size	Размер на стикерите
+%1$s of Telegram's size	%1$s от размера на Telegram
+Couldn't save the size. Try again in a moment.	Размерът не можа да се запази. Опитайте отново след малко.
+The sticker size will change.	Размерът на стикерите ще се промени.
+# context: short headings that split the Conversations and Look and feel settings pages into groups of switches. Each names what the switches under it change: things inside an open chat, the menu a message opens on a long press, sending, the attachment menu's camera and gallery, translation, messages hidden from a chat, messages others deleted, the theme, how messages and stickers look, profiles, touch feedback and the keyboard, and rows or buttons hidden to reduce clutter.
+In a chat	В чата
+Message menu	Меню на съобщението
+Sending	Изпращане
+Attachment menu	Меню за прикачване
+Translation	Превод
+Hidden messages	Скрити съобщения
+Deleted messages	Изтрити съобщения
+Theme	Тема
+Messages and stickers	Съобщения и стикери
+Profiles	Профили
+Touch and keyboard	Докосване и клавиатура
+Less clutter	По-малко претрупване
+# context: title of the last row on the settings home page; a tap opens the maintainer's Ko-fi page in a browser
+Support HushTelegram	Подкрепа за HushTelegram
+# context: Faster downloads, a switch on the Playback page. Telegram downloads a file in pieces; this makes them bigger and asks for more at once.
+Faster downloads	По-бързо изтегляне
+# context: that switch's summary. KB is kilobytes. "Goes back to small ones" means Telegram drops to the small pieces on its own if a big one fails.
+Files download in 512 KB pieces, 8 at a time, instead of 128 KB pieces 4 at a time. If a big piece fails, Telegram goes back to small ones. The next download picks this up.	Файловете се теглят на части по 512 KB, по 8 наведнъж, вместо на части по 128 KB, по 4 наведнъж. Ако голяма част не успее, Telegram се връща към малките. Следващото изтегляне прилага промяната.
+# context: Translate with an outside service, on the Conversations page. A row under that switch, and the title of the dialog it opens: where the text to translate is sent.
+Translation service	Услуга за превод
+Google's web translate. Tap to use an AI service with your own key.	Уеб преводачът на Google. Докоснете, за да използвате AI услуга със собствен ключ.
+# context: that row's summary once an AI service is set. %1$s is the service's host name, like api.openai.com, and %2$s its model name, like gpt-4o-mini.
+Your AI service at %1$s, model %2$s.	Вашата AI услуга на %1$s, модел %2$s.
+# context: hints in the three fields of that dialog: the web address of the AI service, the model to ask, and the secret key the service gave the person.
+Service address	Адрес на услугата
+Model	Модел
+How to translate (optional)	Как да се превежда (по желание)
+API key	API ключ
+# context: the dialog's explanation. OpenAI, OpenRouter, DeepSeek and Groq are company names and stay as they are.
+With a key, the text you translate goes to this AI service instead of Google. Any service that takes OpenAI's chat format works, like OpenAI, OpenRouter, DeepSeek or Groq. The key stays on this phone and never goes in a settings file.	С ключ текстът за превод се изпраща до тази AI услуга вместо до Google. Работи всяка услуга, която приема чат формата на OpenAI, например OpenAI, OpenRouter, DeepSeek или Groq. Ключът остава на този телефон и не попада във файл с настройки.
+# context: a dialog button that goes back to Google's free web translate and forgets the key. "Use Google" is also quoted in a message below.
+Use Google	Използване на Google
+Couldn't save the translation service. Try again in a moment.	Услугата за превод не можа да се запази. Опитайте отново след малко.
+Translation service saved.	Услугата за превод е запазена.
+Back to Google's web translate.	Обратно към уеб преводача на Google.
+# context: why the dialog can't save yet. https:// stays as it is.
+Type your API key, or tap Use Google.	Въведете своя API ключ или докоснете „Използване на Google“.
+Type a model name.	Въведете име на модел.
+Take the spaces out of the address, model and key.	Махнете интервалите от адреса, модела и ключа.
+The address has to start with https://.	Адресът трябва да започва с https://.
+# context: a short toast when the AI service turns the key down (HTTP 401 or 403).
+Your AI service didn't accept the key	Вашата AI услуга не прие ключа
+# context: a switch on the Notifications page. UnifiedPush is the name of an open notification standard and stays as it is.
+UnifiedPush notifications	Известия през UnifiedPush
+# context: that switch's summary. Firebase is Google's notification service and ntfy is an app; both names stay as they are.
+For phones where Firebase notifications don't arrive. Telegram signs up an address from a UnifiedPush app like ntfy, and Telegram's servers call it to wake Telegram when something arrives. The messages still come from Telegram itself. Turned off, Telegram goes back to Firebase the next time it starts.	За телефони, на които известията през Firebase не пристигат. Telegram се регистрира с адрес от приложение за UnifiedPush, например ntfy, а сървърите на Telegram го извикват, за да събудят Telegram при ново съобщение. Съобщенията пак идват от самия Telegram. При изключване Telegram се връща към Firebase при следващото стартиране.
+# context: a row under that switch, and the title of the list it opens: which installed UnifiedPush app, like ntfy, delivers the notifications.
+Push app	Приложение за известия
+Install a UnifiedPush app like ntfy, then come back here.	Инсталирайте приложение за UnifiedPush, например ntfy, и се върнете тук.
+# context: that row's summary. %1$s is the app's name, like ntfy. "The switch" is the UnifiedPush notifications switch above the row.
+%1$s. Turn the switch on to sign up with it.	%1$s. Включете превключвателя, за да се регистрирате с него.
+%1$s ended the sign-up. Turn the switch off and on to sign up again.	%1$s прекрати регистрацията. Изключете и включете превключвателя, за да се регистрирате отново.
+%1$s turned the sign-up down. Check that it allows UnifiedPush.	%1$s отхвърли регистрацията. Проверете дали позволява UnifiedPush.
+# context: the Push app row's summary when the UnifiedPush app (%1$s, its name) hands out a plain http address; Telegram only calls https
+%1$s gave an address without https, which Telegram's servers won't call.	%1$s даде адрес без https, който сървърите на Telegram няма да извикат.
+# context: the Push app row's summary while the UnifiedPush app (%1$s, its name) says its push server is temporarily down; the sign-up is kept
+The server behind %1$s is down for now. Wake-ups come back once it's up.	Сървърът зад %1$s засега не работи. Събужданията ще се върнат, щом заработи.
+# context: the row's summary once signed up: Telegram's servers wake Telegram up through that app.
+Telegram's wake-ups come through %1$s.	Събужданията на Telegram идват през %1$s.
+Signing up with %1$s…	Регистриране с %1$s…
+# context: a toast when the row is tapped and no UnifiedPush app is installed.
+Install a UnifiedPush app like ntfy first.	Първо инсталирайте приложение за UnifiedPush, например ntfy.
+# context: the Push app row's summary when several UnifiedPush apps are installed and none is picked yet. Tapping the row opens the list.
+Tap to pick which UnifiedPush app to use.	Докоснете, за да изберете кое приложение за UnifiedPush да се ползва.
+# context: Save downloaded files, a switch on the Playback page. It copies each downloaded file or song to the phone's shared Download/Telegram folder.
+Save downloaded files	Запазване на изтеглените файлове
+# context: that switch's summary. "Download/Telegram" is a folder path and stays as it is. Chats that don't allow saving are ones whose owner turned on Telegram's content protection.
+Each file or song you download also goes to Download/Telegram on your phone, where file managers and other apps can open it. Files from secret chats and chats that don't allow saving stay in Telegram.	Всеки изтеглен файл или песен се копира и в Download/Telegram на телефона, откъдето файловите мениджъри и други приложения могат да го отворят. Файловете от тайни чатове и от чатове, които не позволяват запазване, остават в Telegram.
+# context: a second switch under Save downloaded files (#29). Turned on, it also copies files from chats whose owner turned on Telegram's content protection. Secret chats stay excluded.
+Also save from chats that don't allow saving	Запазване и от чатове, които не позволяват запазване
+# context: that switch's summary, a warning that it goes past the chat owner's choice. "Save downloaded files" is the name of the switch above it.
+With Save downloaded files on, files from chats whose owner turned off saving get copied too. Only use it where the owner is fine with you keeping a copy, since it goes past their setting. Secret chats still stay in Telegram.	При включено „Запазване на изтеглените файлове“ се копират и файловете от чатове, чийто собственик е забранил запазването. Ползвайте това само където собственикът е съгласен да пазите копие, защото заобикаля неговата настройка. Тайните чатове пак остават в Telegram.
+# context: Folders by chat type, a switch on the Chat list page. Turning it on makes Telegram chat folders for each kind of chat.
+Folders by chat type	Папки по вид чат
+# context: that switch's summary. Private, Groups, Channels and Bots are the folder names, use the same words as their own entries.
+Turning this on makes Private, Groups, Channels and Bots folders, as tabs above the chat list and on your other devices. Turning it off removes the ones it made, unless you renamed or changed them.	Включването създава папки Лични, Групи, Канали и Ботове като раздели над списъка с чатове и на другите ви устройства. Изключването премахва създадените от него папки, освен ако сте ги преименували или променили.
+# context: a chat folder name for one-to-one chats with people. Telegram allows at most 12 characters.
+Private	Лични
+# context: a chat folder name for group chats. At most 12 characters.
+Groups	Групи
+# context: a chat folder name for channels. At most 12 characters.
+Channels	Канали
+# context: a chat folder name for chats with bots. At most 12 characters.
+Bots	Ботове
+# context: a toast after flipping the Folders by chat type switch while HushTelegram is paused.
+HushTelegram is paused, so your folders stay as they are.	HushTelegram е на пауза, затова папките ви остават непроменени.
+# context: a toast when the folder switch is flipped before signing in.
+Sign in to Telegram first.	Първо влезте в Telegram.
+# context: a toast when the folder switch is flipped before Telegram has loaded the folder list.
+Telegram is still loading your folders. Try again in a moment.	Telegram още зарежда папките ви. Опитайте отново след малко.
+# context: a toast when making or removing the folders failed.
+Couldn't change your folders. Try again in a moment.	Папките не можаха да се променят. Опитайте отново след малко.
+# context: a toast when every chat type already has a folder, so none were made.
+You already have a folder for each chat type.	Вече имате папка за всеки вид чат.
+# context: a short toast (two lines at most) when Telegram's folder limit left no room, so no folders were made.
+Folder limit reached. Remove a folder and try again.	Достигнат е лимитът на папки. Премахнете папка и опитайте пак.
+# context: a short toast (two lines at most) when only some of the folders fit under Telegram's folder limit.
+Made some folders. The folder limit left no room for the rest.	Някои папки са създадени. За останалите няма място заради лимита.
+# context: a short toast (two lines at most) after the folders were made. Private, Groups, Channels and Bots are the folder names, use the same words as their own entries.
+Made Private, Groups, Channels and Bots folders.	Създадени са папките Лични, Групи, Канали и Ботове.
+# context: a toast after turning the switch off when none of its folders were left to remove.
+There were no folders from HushTelegram to remove.	Нямаше папки от HushTelegram за премахване.
+# context: a short toast (two lines at most) after the switch went off. Folders the person renamed or changed are kept.
+Removed the folders HushTelegram made. Changed ones stay.	Папките на HushTelegram са премахнати. Променените остават.
+# context: a short toast (two lines at most) when Telegram hasn't answered the new folder requests after two seconds, for example while offline.
+Asking Telegram to make your folders.	Искане към Telegram да създаде папките.
+# context: a short toast (two lines at most) when Telegram hasn't answered the folder delete requests after two seconds, for example while offline.
+Asking Telegram to remove the folders.	Искане към Telegram да премахне папките.
+# context: a short toast (two lines at most) when Telegram's server made some of the folders and turned the others down.
+Made some folders. Telegram turned the rest down.	Някои папки са създадени. Telegram отхвърли останалите.
+# context: a short toast (two lines at most) when Telegram's server turned down every folder, so the switch went back off.
+Telegram turned the folders down. Try again later.	Telegram отхвърли папките. Опитайте по-късно.
+# context: a short toast (two lines at most) when the folders were made but Telegram's server didn't take the order of the tabs.
+Made the folders. Telegram didn't save their order.	Папките са създадени. Telegram не запази реда им.
+# context: a short toast (two lines at most) when the switch was turned off but Telegram's server wouldn't delete some of the folders. The switch goes back on, and turning it off again asks only for those.
+Telegram kept some folders. Turn this off again to retry.	Telegram запази някои папки. Изключете пак, за да опитате отново.
+# context: a short toast (two lines at most) when Telegram's server wouldn't delete any of the folders, so the switch went back on.
+Telegram didn't remove the folders. Try again in a moment.	Telegram не премахна папките. Опитайте отново след малко.
+# context: a short toast (two lines at most) when the folder switch is flipped while Telegram still hasn't answered the last flip.
+Telegram is still answering. Try again in a moment.	Telegram още отговаря. Опитайте отново след малко.
+Telegram refused this app's ID	Telegram отхвърли ID на приложението
+Telegram turned down the API ID this app signs in with, so no login code was sent. Patch HushTelegram again with Use registered Telegram API credentials and your own ID from my.telegram.org/apps. The guide walks you through it.	Telegram отхвърли API ID, с който приложението влиза, затова не беше изпратен код за вход. Пачнете HushTelegram отново с „Use registered Telegram API credentials“ и собствен ID от my.telegram.org/apps. Ръководството ви превежда през стъпките.
+Telegram didn't accept the API ID and hash this app was patched with, so no login code was sent. Copy both again from my.telegram.org/apps and patch once more.	Telegram не прие API ID и хеша, с които е пачнато приложението, затова не беше изпратен код за вход. Копирайте ги отново от my.telegram.org/apps и пачнете пак.
+Open the guide	Отваряне на ръководството
+%1$s turns on	%1$s се включва
+%1$s turns off	%1$s се изключва
+Preparing the diagnostic report	Подготвяне на диагностичния отчет
+# context: Readable actions, validation, import details and notification recovery.
+Open notification settings	Отваряне на настройките за известия
+Tap for details and Android settings.	Докоснете за подробности и настройките на Android.
+%1$d filter	%1$d филтър
+%1$d filters	%1$d филтъра
+%1$s: %2$s to %3$s	%1$s: от %2$s към %3$s
+This field is too long. Use %1$d characters or fewer.	Полето е твърде дълго. Използвайте най-много %1$d знака.
+Couldn't copy that. Try again.	Не можа да се копира. Опитайте отново.
+Couldn't complete that action. Try again.	Действието не можа да се изпълни. Опитайте отново.
+Stop translating this chat	Спиране на превода на този чат
+(Translated. Open the message menu for the original.)	(Преведено. Отворете менюто на съобщението за оригинала.)
+Adds Repeat under Forward in a message's menu. It sends the same message again to the chat. Not shown in protected or secret chats.	Добавя „Повтаряне“ под „Препрати“ в менюто на съобщението. Изпраща същото съобщение отново в чата. Не се показва в защитени и тайни чатове.
+Adds Copy photo to a downloaded photo's menu, so you can paste the picture into another app. Not shown in protected or secret chats.	Добавя „Копиране на снимката“ в менюто на изтеглена снимка, за да я поставите в друго приложение. Не се показва в защитени и тайни чатове.
+Adds Message details to a message's menu. It shows IDs, send and edit times, where it was forwarded from, and file info.	Добавя „Подробности за съобщението“ в менюто на съобщението. Показва ID, часове на изпращане и редактиране, откъде е препратено и данни за файла.
+Adds Quick forward to a message's menu. One tap sends it to Saved Messages or a recent chat. Not in protected or secret chats.	Добавя „Бързо препращане“ в менюто на съобщението. С едно докосване го изпраща в „Saved Messages“ или в скорошен чат. Не се показва в защитени и тайни чатове.
+Adds Translate here to a message's menu and Translate this chat to a chat's menu, using the translation service you choose. The text you ask to translate is sent to that service, one message at a time. Nothing leaves your phone until you turn a chat or message on.	Добавя „Превеждане тук“ в менюто на съобщението и „Превеждане на този чат“ в менюто на чата, чрез избраната от вас услуга за превод. Текстът за превод се изпраща до тази услуга, по едно съобщение. Нищо не напуска телефона ви, докато не включите превод за чат или съобщение.
+Save the full report to a file. The saved location is shown afterward.	Запазва пълния отчет във файл. Мястото му се показва след това.
+# context: Readable actions, validation, import details and notification recovery.
+Copy a short report or save the full one to a file. The saved location is shown afterward. Links, IDs and sign-in details are left out. Look it over before sharing.	Копирайте кратък отчет или запазете пълния във файл. Мястото му се показва след това. Връзките, ID и данните за вход са изключени. Прегледайте го, преди да го споделите.
+# context: Readable actions, validation, import details and notification recovery.
+Loads your switches, filter lists and sticker size from a saved file. You see what will change before anything is applied. It applies to all accounts.	Зарежда превключвателите, списъците с филтри и размера на стикерите от запазен файл. Преди да се приложи нещо, виждате какво ще се промени. Важи за всички акаунти.
+# context: Readable actions, validation, import details and notification recovery.
+Close	Затваряне
+Couldn't open notification settings. Open Android settings.	Настройките за известия не се отвориха. Отворете настройките на Android.
+# context: Search only my chats, the second switch under Hide popular apps on the Ads page.
+Search only my chats	Търсене само в моите чатове
+Search finds your chats, contacts and messages from chats you're in, and nothing public. The Channels, Apps and Posts tabs go away, and a hashtag's public posts don't load.	Търсенето намира вашите чатове, контакти и съобщения от чатове, в които участвате, и нищо публично. Разделите „Channels“, „Apps“ и „Posts“ изчезват, а публичните публикации на хаштаг не се зареждат.
+public search lookups	публични търсения
+# context: Settings lock row on the Pause page, its notes, and what a refused change says (#17). For the first minutes after locking the row reads Unlock now and one tap takes the lock off (#23); %1$d is minutes.
+Lock HushTelegram settings	Заключване на настройките на HushTelegram
+Makes every setting here read-only. A tap within %1$d min unlocks them again. After that, unlocking takes 24 hours.	Прави всички настройки тук само за четене. Докосване в рамките на %1$d мин ги отключва веднага. След това отключването отнема 24 часа.
+Unlock now	Отключване сега
+Locked just now. Tap within %1$d min to unlock right away. After that, unlocking takes 24 hours.	Заключено току-що. Докоснете в рамките на %1$d мин за незабавно отключване. След това отключването отнема 24 часа.
+Start unlock	Начало на отключването
+Your settings are locked. Tap to start the 24-hour wait. You can cancel it while it runs.	Настройките са заключени. Докоснете, за да започне 24-часовото чакане. Можете да го отмените, докато тече.
+Cancel unlock	Отмяна на отключването
+Settings unlock in %1$d h %2$d min. Tap to cancel and keep them locked.	Настройките се отключват след %1$d ч %2$d мин. Докоснете, за да отмените и да останат заключени.
+Settings locked. Changed your mind? Tap again within %1$d min.	Настройките са заключени. Размислихте ли? Докоснете пак в рамките на %1$d мин.
+Settings unlocked. They change as usual again.	Настройките са отключени. Променят се както обикновено.
+Unlock started. Settings open in 24 hours unless you cancel.	Отключването започна. Настройките се отварят след 24 часа, освен ако не го отмените.
+Unlock canceled. Settings stay locked.	Отключването е отменено. Настройките остават заключени.
+Couldn't change the lock. Try again in a moment.	Заключването не можа да се промени. Опитайте отново след малко.
+Settings are locked. They unlock in %1$d h %2$d min.	Настройките са заключени. Отключват се след %1$d ч %2$d мин.
+Settings are locked. Tap Start unlock, then wait 24 hours.	Настройките са заключени. Докоснете Начало на отключването и изчакайте 24 часа.
+Settings are locked. Tap Unlock now within %1$d min.	Настройките са заключени. Докоснете Отключване сега в рамките на %1$d мин.
+# context: Export settings row, its first sentence: what a settings file holds. The sentence after it lists what the file leaves out.
+Saves your switches, filter lists, sticker size and chat list emoji to a file, for all the accounts in this Telegram app. Your chats, drafts and kept messages aren't in it.	Запазва във файл превключвателите, списъците с филтри, размера на стикерите и емоджито до заглавието на списъка с чатове, за всички акаунти в това приложение на Telegram. Вашите чатове, чернови и запазени съобщения не са включени.
+# context: Export settings row. %1$s is a list joined the language's own way: row titles as they show (Pause HushTelegram, Debug logging, Check for new HushTelegram releases, Lock HushTelegram settings, Settings look, UnifiedPush notifications, Folders by chat type) and the lowercase phrase below it, which ends the list.
+Left out of the file: %1$s.	Извън файла остават: %1$s.
+the translation service, its key and the chats you turned translation on for	услугата за превод, нейният ключ и чатовете, за които сте включили превод
+# context: Sentences added after a description to say which account it works on. "Both" is turning Folders by chat type on and turning it off. The last one closes the About page's Accounts row.
+Both work on the account you have open.	И в двата случая се засяга акаунтът, който е отворен.
+A chat or message you turn on stays on only in the account you turned it on in.	Чат или съобщение, за което включите превод, остава включено само в акаунта, в който сте го включили.
+This covers every account in this Telegram app.	Това важи за всички акаунти в това приложение на Telegram.
+A few things belong to the account you have open instead, and their descriptions say so.	Някои неща се отнасят само до отворения акаунт и описанията им го посочват.
+# context: The message filter editor's tester. The person types a message under the list and taps Try; the answer names the first line that would hide it. %1$d is that line's number, %2$s the line itself. The message is never saved.
+Try a message below to see which line would hide it. It isn't saved anywhere.	Въведете съобщение по-долу, за да видите кой ред би го скрил. То не се запазва никъде.
+Try a message	Проверка на съобщение
+Paste or type a message	Поставете или въведете съобщение
+Try	Проверка
+Type a message to try the filters on.	Въведете съобщение, върху което да изпробвате филтрите.
+There are no filters to try yet.	Още няма филтри за изпробване.
+No filter here would hide this message.	Никой филтър тук не би скрил това съобщение.
+Line %1$d would hide this message: %2$s	Ред %1$d би скрил това съобщение: %2$s
+# context: The settings home page's Changed switches row and the page it opens, which lists every switch whose saved value isn't the one it starts with; flipping one there puts it back and takes it off the page. %1$d is how many switches.
+Changed switches	Променени превключватели
+No changed switches	Няма променени превключватели
+A switch you turn on or off shows up here until you put it back.	Включен или изключен превключвател се появява тук, докато не го върнете.
+Every switch is the way it started.	Всеки превключвател е такъв, какъвто беше в началото.
+%1$d switch differs from how it started. Open to flip it back.	%1$d превключвател се различава от началното си състояние. Отворете, за да го върнете.
+%1$d switches differ from how they started. Open to flip any of them back.	%1$d превключвателя се различават от началното си състояние. Отворете, за да върнете някой от тях.
+# context: Quick setups dialog, the last card. It shows after a choice changed switches and puts those switches back the way they were
+Undo the last setup	Отмяна на последната настройка
+# context: toast after a Quick setups choice changed switches, pointing at the undo card in the Quick setups dialog; %1$d is how many, first for exactly one and then for any other count
+Changed %1$d setting. Undo it from Quick setups.	Променена е %1$d настройка. Отменете я от Готови настройки.
+Changed %1$d settings. Undo them from Quick setups.	Променени са %1$d настройки. Отменете ги от Готови настройки.
+# context: toast after a Quick setups choice changed nothing because some switches couldn't take the change just then, for example while a settings import writes; %1$d is how many
+Nothing changed. %1$d switch couldn't change now.	Нищо не се промени. %1$d превключвател не можа да се промени сега.
+Nothing changed. %1$d switches couldn't change now.	Нищо не се промени. %1$d превключвателя не можаха да се променят сега.
+# context: toast after Undo the last setup; %1$d is how many switches went back the way they were
+Put back %1$d switch	Върнат е %1$d превключвател
+Put back %1$d switches	Върнати са %1$d превключвателя
+# context: Undo the last setup card, under its name: what the last Quick setups choice did. %1$s is a list of switch titles joined the language's own way; %1$d counts switches. The last sentence says Undo turns switches back but can't bring back what a switch deleted as it changed
+Turned on: %1$s.	Включени: %1$s.
+Turned off: %1$s.	Изключени: %1$s.
+%1$d other switch was already set.	Още %1$d превключвател вече беше настроен.
+%1$d other switches were already set.	Още %1$d превключвателя вече бяха настроени.
+%1$d switch couldn't change.	%1$d превключвател не можа да се промени.
+%1$d switches couldn't change.	%1$d превключвателя не можаха да се променят.
+%1$d switch you changed since stays as you set it.	%1$d превключвател, който сте променили оттогава, остава както сте го задали.
+%1$d switches you changed since stay as you set them.	%1$d превключвателя, които сте променили оттогава, остават както сте ги задали.
+Only switches go back. Anything a switch already cleared, like chats' translate choices, stays cleared.	Връщат се само превключвателите. Всичко, което превключвател вече е изчистил, например избора за превод на чатове, остава изчистено.
+# context: Headings that split the Notification status on this phone dialog into three parts: what Android allows on this phone, the push service Telegram signs up with, and what Telegram's servers answered for each signed-in account
+On this phone	На този телефон
+Push service	Услуга за известия
+Telegram accounts	Акаунти в Telegram
+# context: Notification status lines read from Android. Background use is Android's own Restricted setting for the app, and %1$s is Allowed, Restricted or Unknown. The three battery optimization lines are whole: Android's battery saving for the app is on, off or unknown, so make the value agree with the setting's name
+Background use: %1$s	Работа във фонов режим: %1$s
+Restricted	Ограничено
+Battery optimization: Unknown	Оптимизиране на батерията: неизвестно
+Battery optimization: On	Оптимизиране на батерията: включено
+Battery optimization: Off	Оптимизиране на батерията: изключено
+# context: Notification status line naming the UnifiedPush app's state; %1$s is a whole sentence such as "Telegram's wake-ups come through ntfy."
+UnifiedPush: %1$s	UnifiedPush: %1$s
+# context: Notification status, under a reply from Telegram that carries the error name APP_PUSH_APIKEY_MISSING. Keep the error name as it is
+APP_PUSH_APIKEY_MISSING means Telegram's servers have no push key set up for this app. That's configured on Telegram's side, so no setting on this phone fixes it.	APP_PUSH_APIKEY_MISSING означава, че сървърите на Telegram нямат настроен ключ за известия за това приложение. Това се настройва от страната на Telegram, затова никоя настройка на този телефон не го поправя.
+# context: Button in the Notification status dialog, shown when Android restricts Telegram in the background, or from Android 12 when it optimizes Telegram's battery; it opens Android's App info page for Telegram, where those are set. Then the toast when that page can't open
+Open app info	Отваряне на информацията за приложението
+Couldn't open app info. Open Android settings.	Информацията за приложението не се отвори. Отворете настройките на Android.
+# context: Filter editor, under Try a message, when the phone is too busy to check the message against the filters right now
+Couldn't try it now. Try again in a moment.	Не можа да се изпробва сега. Опитайте отново след малко.
+# context: Second switch under Faster downloads on the Playback page. Data Saver is Android's own setting (use Android's name for it); metered means a network Android counts as paid per use, like mobile data
+Hold automatic downloads on Data Saver	Задържане на автоматичните изтегляния при Икономия на данни
+While Android's Data Saver is on and the network is metered, Telegram doesn't start photos, videos, files, voice messages, music or stories downloading on its own, and stops the ones in its download queue. What you tap still downloads.	Докато Икономията на данни на Android е включена и мрежата е с отчитане, Telegram не започва сам да тегли снимки, видеоклипове, файлове, гласови съобщения, музика или истории и спира тези от опашката за изтегляне. Каквото докоснете, пак се тегли.
+# context: Under Hold automatic downloads on Data Saver, what Android reports when the page opens. One of these four, then one of the three network lines
+Android's Data Saver is on.	Икономията на данни на Android е включена.
+Android's Data Saver is off.	Икономията на данни на Android е изключена.
+Android's Data Saver is on, but Telegram may use data freely.	Икономията на данни на Android е включена, но Telegram може да ползва данни свободно.
+Android doesn't say whether Data Saver is on.	Android не казва дали Икономията на данни е включена.
+This network is metered.	Тази мрежа е с отчитане.
+This network isn't metered.	Тази мрежа не е с отчитане.
+Android doesn't say whether this network is metered.	Android не казва дали тази мрежа е с отчитане.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Data Saver part of Faster downloads: holding automatic media downloads while Android's Data Saver is on
+automatic downloads on Data Saver	автоматичните изтегляния при Икономия на данни
+# context: Button in the Notification status dialog before Android 12, shown when Android optimizes Telegram's battery but doesn't restrict it in the background. It opens Android's battery optimization list, where Telegram can be set not to be optimized. Then the toast when neither that list nor App info can open
+Open battery optimization	Отваряне на оптимизирането на батерията
+Couldn't open battery optimization. Open Android settings.	Оптимизирането на батерията не се отвори. Отворете настройките на Android.
+# context: Switch on the Links page, under Open links externally, off by default. Mini Apps are the web apps bots open inside Telegram (use Telegram's own name for them). Location means the phone's GPS position; the summary also says a site can still guess a rough area from the internet connection, and that sending a location in a chat isn't affected
+Keep your location from Mini Apps	Скриване на местоположението от Mini Apps
+Mini Apps are told your phone's location isn't available, and web pages opened in Telegram are refused it. A page that already had it keeps it until you close it. Sites can still guess a rough area from your connection. Sending your location in a chat works as before.	Mini Apps получават отговор, че местоположението на телефона не е достъпно, а уеб страниците, отворени в Telegram, не го получават. Страница, която вече го има, го запазва, докато я затворите. Сайтовете пак могат да налучкат приблизителен район по връзката ви. Изпращането на местоположение в чат работи както преди.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the location part of Open links externally: keeping the phone's location from Mini Apps and web pages opened in Telegram
+Mini App and web page location	местоположението за Mini Apps и уеб страници
+# context: Third choice in the Export diagnostic report dialog, after Copy quick report and Save full report, and the title of the preview dialog it opens. Short, like the other two choices
+Preview the report	Преглед на отчета
+# context: Line under the Preview the report choice. The preview shows the report and lets you untick its parts before Copy or Save
+See the report first and leave out any part you'd rather not share, then copy or save it.	Вижте отчета първо и оставете извън него части, които не искате да споделяте, после го копирайте или запазете.
+# context: Line at the top of the report preview, above one checkbox per part of the report. Copy and Save are the dialog's buttons, so use the same words as those buttons
+Untick a part to leave it out. Copy and Save use only what's ticked.	Махнете отметката от част, за да я оставите извън отчета. Копиране и Запазване ползват само отметнатото.
+# context: Note in the report preview when the report is too long to show whole. %1$s and %2$s are numbers already formatted for the phone's language. Save writes the whole report to a file; Copy puts what fits on the clipboard, dropping the oldest log events first
+Showing the first %1$s of %2$s characters. Save keeps all of it, and Copy keeps what fits, leaving out the oldest events first.	Показани са първите %1$s от %2$s знака. Запазване съхранява всичко, а Копиране взима каквото се побира, като първо изпуска най-старите събития.
+# context: Switch on the Ads page under Search only my chats, off by default. Styled letters are the decorative Unicode letters some people use in their names, like mathematical bold or fullwidth letters. With it on, local search finds those names when plain letters are typed
+Find names in styled letters	Намиране на имена с оформени букви
+# context: Summary of Find names in styled letters. The three sample words are written in styled letters (bold, italic, wide): keep them styled, use words in your language that mean bold, italic and wide, and avoid letters with accents since those can't be styled. Highlighted means the matched part of a search result is colored
+Searching your chats and contacts also finds names written in letters like 𝐁𝐨𝐥𝐝, 𝘐𝘵𝘢𝘭𝘪𝘤 or Ｗｉｄｅ when you type plain ones. Names still show as they're written and numbers aren't changed. A name found this way isn't highlighted.	Търсенето в чатовете и контактите ви намира и имена, написани с букви като 𝐁𝐨𝐥𝐝, 𝘐𝘵𝘢𝘭𝘪𝘤 или Ｗｉｄｅ, когато въведете обикновени. Имената се показват както са написани, а числата не се променят. Намереното така име не се маркира.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide popular apps that lets search find names written in styled letters
+styled names in search	оформените имена в търсенето
+# context: Toast after Save in the report preview when some parts were left out, so it isn't the full report. %1$s is where the file went, like Download/Morphe/name.txt. Match the wording of Full report saved to %1$s
+Report saved to %1$s	Отчетът е запазен в %1$s
+# context: Note in the report preview when the text couldn't be redrawn after a box was ticked or unticked. Copy and Save are the dialog's buttons, so use the same words as those buttons
+Couldn't update the preview. Copy and Save still use only what's ticked.	Прегледът не можа да се обнови. Копиране и Запазване пак ползват само отметнатото.
+# context: Switch on the Chat list page under Hide folder tab counters, off by default. With it on, the chat list opens on a folder the user picked instead of All Chats when the app starts
+Open a folder at launch	Отваряне на папка при стартиране
+# context: Summary of Open a folder at launch. All Chats is Telegram's own name for the first folder tab: use Telegram's translation of it. Locked means a folder Telegram locks because the account has more folders than its limit allows
+The chat list opens on the folder you pick below instead of All Chats. Each account keeps its own pick, and the folder order doesn't change. If that folder is gone, renamed or locked, All Chats opens as usual.	Списъкът с чатове се отваря на папката, която изберете по-долу, вместо на „All Chats“. Всеки акаунт помни своя избор, а редът на папките не се променя. Ако папката е изтрита, преименувана или заключена, се отваря „All Chats“ както обикновено.
+# context: Row under Open a folder at launch. Its summary is the picked folder's name, and a tap lists All Chats and the account's folders to pick from
+Folder to open	Папка за отваряне
+# context: Telegram's own name for the folder tab with every chat (FilterAllChats). Use Telegram's translation
+All Chats	All Chats
+# context: Toast when Folder to open is tapped and the account has no chat folders
+You don't have any folders yet.	Още нямате папки.
+# context: Toast when the picked folder couldn't be written to the phone's storage
+Couldn't save the folder. Try again in a moment.	Папката не можа да се запази. Опитайте отново след малко.
+# context: Toast when Folder to open is tapped and Telegram's folder list can't be read
+Couldn't read your folders.	Папките ви не можаха да се прочетат.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that opens the chat list on a picked folder
+which folder the chat list opens on	коя папка отваря списъкът с чатове
+# context: Switch on the Chat list page under Hide folder tab counters, off by default. With it on, the chats the user ticks in Chats to hide stop showing in the chat list
+Hide picked chats	Скриване на избрани чатове
+# context: Summary of Hide picked chats. All Chats is Telegram's own name for the first folder tab and Archived Chats Telegram's name for the archive (ArchivedChats): use Telegram's translations. The app badge is the unread count on the app's icon
+The chats you pick below leave All Chats, your folders and archived chats. They keep their messages and notifications, search still finds them, and nothing changes on your other devices. Each account keeps its own list. Folder tab counts and the app badge still count their unread messages.	Чатовете, които изберете по-долу, излизат от All Chats, папките ви и Archived Chats. Те запазват съобщенията и известията си, търсенето пак ги намира и нищо не се променя на другите ви устройства. Всеки акаунт пази свой списък. Броячите на разделите на папките и значката на приложението продължават да броят непрочетените им съобщения.
+# context: Row under Hide picked chats. Its summary names the hidden chats, and a tap lists the account's chats to tick
+Chats to hide	Чатове за скриване
+# context: Summary of Chats to hide when no chat is ticked
+No chats hidden yet.	Още няма скрити чатове.
+# context: Toast when Chats to hide is tapped and Telegram's chat list can't be read
+Couldn't read your chats.	Чатовете ви не можаха да се прочетат.
+# context: Toast when Chats to hide is tapped and the account has no chats
+You don't have any chats yet.	Още нямате чатове.
+# context: Toast when the ticked chats couldn't be written to the phone's storage
+Couldn't save the chats. Try again in a moment.	Чатовете не можаха да се запазят. Опитайте отново след малко.
+# context: Item in the chat list's long press menu (the three dots, under Block). It hides the selected chats from the chat list
+Hide from chat list	Скриване от списъка с чатове
+# context: Toast after the long press menu's Hide from chat list hid the selected chats
+Hidden from your chat list.	Скрито от списъка с чатове.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that hides picked chats
+chats hidden from the chat list	кои чатове са скрити от списъка с чатове
+# context: Chats to hide's list names the account's own chat this way, as Telegram's chat list does (SavedMessages): use Telegram's applied translation
+Saved Messages	Запазени съобщения
+# context: Chat list page switch title, under Hide Contacts tab. When on, the round pencil button (new message) on the chat list is removed.
+Hide new message button	Скриване на бутона за ново съобщение
+# context: Summary under that switch. The menu is the side menu or Telegram's own menu; search is the chat list's search.
+Removes the round pencil button from the chat list. Start a chat from the menu or search. Restart Telegram to see the change.	Премахва кръглия бутон с молив от списъка с чатове. Започнете чат от менюто или търсенето. Рестартирайте Telegram, за да видите промяната.
+# context: Lowercase noun phrase in a status line. It names the part of Hide Contacts tab that removes the round pencil (new message) button from the chat list.
+new message button	бутона за ново съобщение
+# context: Playback page row title under Save downloaded files. Tapping it picks the gallery folder Save to Gallery writes photos and videos to.
+Gallery folder	Папка в галерията
+# context: Choice in the gallery folder list and its summary. Pictures/Telegram and Movies/Telegram are folder names on the phone, keep them as they are.
+Pictures/Telegram and Movies/Telegram (Telegram's own)	Pictures/Telegram и Movies/Telegram (тези на Telegram)
+# context: Summary under the gallery folder row. %1$s is the picked folder name, like DCIM/Telegram.
+Photos and videos you save to the gallery go to %1$s. Camera photos and automatic saving keep Telegram's folders.	Снимките и видеоклиповете, които запазвате в галерията, отиват в %1$s. Снимките от камерата и автоматичното запазване остават в папките на Telegram.
+# context: Line in the settings import preview when the file changes only the gallery folder.
+The gallery folder will change.	Папката в галерията ще се промени.
+# context: Lowercase noun phrase in a status line. It names the part of Save downloaded files that picks the gallery folder.
+gallery folder for saved photos and videos	папка в галерията за запазените снимки и видеоклипове
+# context: Conversations page row title under Translation service, and the title of the language list it opens. Tapping it picks the language outside translations are written in.
+Translate into	Превеждане на
+# context: Summary under the Translate into row. %1$s is the picked language's name, or Telegram's language.
+Language for outside translations: %1$s. Tap to pick another.	Език на външните преводи: %1$s. Докоснете, за да изберете друг.
+# context: First choice in the Translate into list: translate into the language Telegram's app is set to, as before there was a choice.
+Telegram's language	Езикът на Telegram
+# context: A language in the Translate into list: %1$s is the name the language calls itself, %2$s its name in the app's language, like Deutsch (German).
+%1$s (%2$s)	%1$s (%2$s)
+# context: Hint in the search field at the top of the Translate into list.
+Search languages	Търсене на езици
+# context: Toast when the language picked in the Translate into list couldn't be saved.
+Couldn't save the language. Try again in a moment.	Езикът не можа да се запази. Опитайте отново след малко.
+# context: Line in the settings import preview when the file changes the Translate into language.
+The translation language will change.	Езикът на превода ще се промени.
+# context: A screen reader's state for a settings section heading that opens and closes in place.
+Expanded	Разгънато
+Collapsed	Свито

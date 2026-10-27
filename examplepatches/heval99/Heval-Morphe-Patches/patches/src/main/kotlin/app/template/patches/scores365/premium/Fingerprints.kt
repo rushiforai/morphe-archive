@@ -1,6 +1,8 @@
 package app.template.patches.scores365.premium
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 // The entitlement data class every premium check reads (isPremium, getAdsFree, getTipster, getPlus,
 // getDelayedNotifications, getNotificationSounds). The class name is kept un-obfuscated.
@@ -19,5 +21,5 @@ internal object RemoveAdsBasicActivityOnCreateFingerprint : Fingerprint(
     name = "onCreate",
     returnType = "V",
     parameters = listOf("Landroid/os/Bundle;"),
-    strings = listOf("iabc_fnrts"),
+    strings = listOf(string("iabc_fnrts", StringComparisonType.CONTAINS)),
 )

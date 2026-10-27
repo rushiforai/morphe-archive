@@ -6,10 +6,8 @@
  */
 package app.hushgram.extension.instagram.settings;
 
-import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.RESTORE_QUICK_SETUPS_ROW_KEY;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.category;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.mark;
-import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.restoreQuickSetupsSummary;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.toggle;
 
 import android.content.Context;
@@ -51,19 +49,5 @@ final class BackupCategory {
         page.undoConfiguration.setTitle(L10n.t("Undo settings import"));
         backup.addPreference(mark(page.undoConfiguration, SettingsIcons.DELETE));
         page.showConfiguration();
-        Row restoreQuick = new Row(context);
-        restoreQuick.setKey(RESTORE_QUICK_SETUPS_ROW_KEY);
-        restoreQuick.setPersistent(false);
-        restoreQuick.actsAtOnce = true;
-        restoreQuick.setTitle(L10n.t("Quick setups on the home page"));
-        restoreQuick.setSummary(restoreQuickSetupsSummary());
-        restoreQuick.setOnPreferenceClickListener(p -> {
-            if (Settings.HIDE_QUICK_SETUPS.save(!Settings.HIDE_QUICK_SETUPS.savedValue())) {
-                p.setSummary(restoreQuickSetupsSummary());
-                page.filterSettings();
-            }
-            return true;
-        });
-        backup.addPreference(mark(restoreQuick, SettingsIcons.TOOLS));
     }
 }

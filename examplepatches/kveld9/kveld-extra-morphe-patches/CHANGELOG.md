@@ -1,3 +1,52 @@
+## [1.30.0](https://github.com/kveld9/kveld-extra-morphe-patches/compare/v1.29.0...v1.30.0) (2026-10-27)
+
+### New Features
+
+* **moovit:** add Places API (New) search patch ([72d57fb](https://github.com/kveld9/kveld-extra-morphe-patches/commit/72d57fb96d1afdc70b8fe18353f47553582b4a87))
+
+## [1.29.0](https://github.com/kveld9/kveld-extra-morphe-patches/compare/v1.28.0...v1.29.0) (2026-10-27)
+
+### ⚠ BREAKING CHANGES
+
+* **officehub:** drop Microsoft 365 patch target
+
+### Bug Fixes
+
+* **test:** reject unsafe archive entry names in patch test runner ([8f2e06c](https://github.com/kveld9/kveld-extra-morphe-patches/commit/8f2e06c05d6a62b3d7378504b9f118fcf1c56ca7))
+
+### New Features
+
+* **capcut:** neutralize Google Play Billing for devices without GMS ([4e583ae](https://github.com/kveld9/kveld-extra-morphe-patches/commit/4e583aeb6c40f07c3f5a19b0e26ea7965b5ba27f))
+* **officehub:** drop Microsoft 365 patch target ([04549ec](https://github.com/kveld9/kveld-extra-morphe-patches/commit/04549ecb1677478182c7351831267438516f224c))
+
+## [1.28.0](https://github.com/kveld9/kveld-extra-morphe-patches/compare/v1.27.1...v1.28.0) (2026-10-26)
+
+### Bug Fixes
+
+* **ci:** close all orphan matching issues instead of only first ([caa123f](https://github.com/kveld9/kveld-extra-morphe-patches/commit/caa123f8dc5b6d443073c042e9ddc5b83f41be42))
+* **ci:** roll forward stale update issues to the latest upstream version ([6f4006d](https://github.com/kveld9/kveld-extra-morphe-patches/commit/6f4006dbca5ae4dc3bc69c29e026c725614b4c26))
+* **ibispaint:** fail loudly when native binary is missing instead of reporting false success ([e9b5287](https://github.com/kveld9/kveld-extra-morphe-patches/commit/e9b528762220d000462c5321ad255c9818d35709))
+* **moovit:** update supported version to 5.203.0.1812 ([614e473](https://github.com/kveld9/kveld-extra-morphe-patches/commit/614e4732794852b5a99591373b98352f2adc4fc5))
+* **moovit:** update suppress paywalls hooks for 5.203.0.1812 ([c41eebc](https://github.com/kveld9/kveld-extra-morphe-patches/commit/c41eebc47a22e6e2b1748e910aef5228fae39c87))
+* **moovit:** update unlock plus hook for 5.203.0.1812 ([a8a7635](https://github.com/kveld9/kveld-extra-morphe-patches/commit/a8a7635a9fb1e9fe2d51afc7775201b4df1986be))
+* **test:** derive candidate APK names from target version constants ([071f0b8](https://github.com/kveld9/kveld-extra-morphe-patches/commit/071f0b8e0e4f0008b83b22ea12a09130e388c184))
+* **test:** restrict IbisPaint filename pattern against foreign stubs ([c1fbc34](https://github.com/kveld9/kveld-extra-morphe-patches/commit/c1fbc34650c06edf9705739f5edeed7b00483bc2))
+* **twitter:** update supported version to 12.37.2-prod.01 ([d07e0b4](https://github.com/kveld9/kveld-extra-morphe-patches/commit/d07e0b48ae009cffef4ca38b56a2fb80468e41ff))
+* **word:** anchor storage quota check fingerprint to unified storage package ([d0499b5](https://github.com/kveld9/kveld-extra-morphe-patches/commit/d0499b585447fcbf9ce1ca5090833f8e93105ab6))
+* **word:** correct first-run detection fingerprint for Word 16.0.20527.20034 ([47f95e6](https://github.com/kveld9/kveld-extra-morphe-patches/commit/47f95e65813caba90d7b3c97e25dddad2eb1ec17))
+* **word:** dynamically resolve identity register in account switcher patch ([430e91d](https://github.com/kveld9/kveld-extra-morphe-patches/commit/430e91d51e4e85bc3fb46c1328aae0399ba078cf))
+* **word:** hook license check callback for Word 16.0.20527.20034 ([27734e9](https://github.com/kveld9/kveld-extra-morphe-patches/commit/27734e92beb476701f6b40a9b1596e0c7669237a))
+
+### New Features
+
+* **ibispaint:** add Enable Prime membership patch for IbisPaint X 14.1.2 ([5e34f24](https://github.com/kveld9/kveld-extra-morphe-patches/commit/5e34f24d1f7af5e3d03445de3aca808e3dcbdd04))
+* **word:** add Word target with Unlock 365 Family patch ([0c7b85b](https://github.com/kveld9/kveld-extra-morphe-patches/commit/0c7b85b143ad157764b726d4ec135c8b59a38a4d))
+* **word:** block telemetry and tracking SDKs ([0eb85af](https://github.com/kveld9/kveld-extra-morphe-patches/commit/0eb85afac7facf8a9fd30d0e55837a7c15099074))
+* **word:** bypass code transparency checks on Word ([3187666](https://github.com/kveld9/kveld-extra-morphe-patches/commit/3187666abfbb717daa370c53207b9db799355e84))
+* **word:** register Word in APKMirror update checker ([e6c2e66](https://github.com/kveld9/kveld-extra-morphe-patches/commit/e6c2e664b8651d1f6c37fe3915449a5e8fe15324))
+* **word:** remove login requirement and first-run paywalls ([384fd5d](https://github.com/kveld9/kveld-extra-morphe-patches/commit/384fd5d11ab69846f2ab1979ccfaf50c8c975cc1))
+* **word:** remove shared user ID to allow side-by-side Office installs ([feb4241](https://github.com/kveld9/kveld-extra-morphe-patches/commit/feb42416ccd38a3e6a5e68bf8e6a4a147b156c25))
+
 ## [1.27.1](https://github.com/kveld9/kveld-extra-morphe-patches/compare/v1.27.0...v1.27.1) (2026-10-25)
 
 ### Bug Fixes

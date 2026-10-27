@@ -35,7 +35,7 @@ class DuplilaSmokeTest {
         assumeTrue(apk.exists(), "skipping: base.apk not present at ${apk.path}")
 
         val classes = applyPatches(
-            apk = apk, workDir = workDir, pkg = PKG, version = "5.1",
+            apk = apk, workDir = workDir, pkg = PKG, version = "5.3",
             patchNames = setOf("Disable license check", "Enable Premium", "Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

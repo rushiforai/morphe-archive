@@ -96,7 +96,7 @@ public class SettingsEntryTest {
     }
 
     @Test public void theNativeTitleUsesEveryExistingTranslation() {
-        for (String language : new String[]{"de", "es", "in", "pt-rBR", "tr"}) {
+        for (String language : new String[]{"bg", "de", "es", "in", "pt-rBR", "tr"}) {
             RuntimeEnvironment.setQualifiers(language);
             org.junit.Assert.assertEquals(language,
                     app.hushtelegram.extension.shared.L10nTablesForTests.of(language.toLowerCase(java.util.Locale.ROOT))

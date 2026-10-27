@@ -1,77 +1,106 @@
 # XR Porting Hub — Quest & Pico apps on Android XR
 
-[Morphe](https://morphe.software) patches that run **Meta Quest / Pico apps on Android XR devices**, starting with the **Samsung Galaxy XR (SM-I610)** headset. Originally a Steam Link-only patch set; now a hub for Meta Quest / Pico → Android XR ports.
+[![Morphe](https://img.shields.io/badge/Morphe-1.30.0%2B-6f42c1?style=flat-square)](https://morphe.software)
+[![Device](https://img.shields.io/badge/Device-Galaxy%20XR-1428A0?style=flat-square)](#apps)
+[![Release](https://img.shields.io/github/v/release/AngelDark92/xr-porting-hub?style=flat-square)](https://github.com/AngelDark92/xr-porting-hub/releases)
+[![License](https://img.shields.io/github/license/AngelDark92/xr-porting-hub?style=flat-square)](LICENSE)
+
+[Morphe](https://morphe.software) patches that run **Meta Quest / Pico apps on Android XR devices**, starting with the **Samsung Galaxy XR (SM-I610)**.
+
+> **For the best Spacewarp or Optical Flow experience:** use the [Galaxy XR Driver](https://github.com/AngelDark92/GalaxyXR-Driver) on your PC.
+
+## Apps
 
 | App | Package | Supported builds | Patches by |
 |---|---|---|---|
 | Steam Link VR | `com.valvesoftware.steamlinkvr` | 2.0.20/5001712, 2.0.20/5001812, 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395 | AngelDark92; controller tracking and haptics by [@4uva4ek](https://github.com/4uva4ek) |
 | 4XVR | `cn.vr4p.oculus4xvrplayerov` | 2.0.22/20022 | [@logkim1](https://github.com/logkim1/4XVR-GalaxyXR) |
 
-- **Steam Link VR** — streams SteamVR from your PC to the headset. The patches fix resolution, color and OLED calibration, microphone, controller tracking, permissions and startup for Android XR.
-- **4XVR** — video player with 4X clarity, MVC 3D and HDR. The patches port the Quest build to Galaxy XR: launch compatibility, launcher icon, controller models, libplacebo HDR pipeline, 72 Hz refresh profile, 5.1-channel audio, frame-synced render dispatch, the subtitle suite and the launch-critical Meta platform decoupling. The premium unlock (no purchase check) is new and experimental, off by default.
+- **Steam Link VR** streams SteamVR from your PC. Patches fix resolution, color/OLED, microphone, controller tracking, permissions and startup.
+- **4XVR** is a 4X clarity, MVC 3D and HDR video player. The port adds Galaxy XR launch, controller models, HDR/playback, 72 Hz, 5.1 audio, subtitles and the launch-critical, default-on Meta platform decoupling; the premium unlock (no purchase check) is experimental and off by default.
 
-Each app keeps its own package, exact supported builds, sources, payloads and compatibility list. Morphe patches one APK at a time, so pick the app you want.
+## Quick start
 
-## What you need
+**You need:**
 
-- An Android XR headset (Samsung Galaxy XR) and, for Steam Link, a PC with Steam and SteamVR.
-- [Morphe Manager](https://morphe.software) **1.30.0 or newer** on the headset, compatibility checks enabled.
-- An app APK in one of the exact builds above.
-- This repository's patches: [add the source to Morphe](https://morphe.software/add-source?github=AngelDark92/xr-porting-hub), or download the `.mpp` from [Releases](https://github.com/AngelDark92/xr-porting-hub/releases) and import it.
+- A Samsung Galaxy XR; for Steam Link, a PC with Steam and SteamVR.
+- [Morphe Manager](https://morphe.software) **1.30.0+ on the headset**.
+- An exact-build APK, plus this repository's [source](https://morphe.software/add-source?github=AngelDark92/xr-porting-hub) (add it in Morphe) or [`.mpp`](https://github.com/AngelDark92/xr-porting-hub/releases) (import it).
 
-## 1. Get the app APK (Meta store)
-
-Both apps come from the Meta store. You need one of the exact version/build pairs listed above.
+### 1. Get the app APK (Meta store)
 
 1. On your PC, install [DownQ for Chrome](https://chromewebstore.google.com/detail/downq/clocmpojdjmikkaepgkmplgooejmnchb) ([Firefox port](https://addons.mozilla.org/en-US/firefox/addon/downq-for-firefox/), unofficial, not runtime-tested).
-2. Open the store page in that browser and sign in to your Meta account: [Steam Link](https://www.meta.com/experiences/steam-link/5841245619310585/) or [4XVR Video Player](https://www.meta.com/experiences/4xvr-video-player/5936567899722707). 4XVR is a paid app — own it on your account first.
-3. Click the **Downgrade** button at the **bottom right** of the page, choose the version/build you need, and download its APK. Check both numbers before downloading.
-
-Downgrade lists the builds Meta still serves. If the build you need is not offered, use an original APK of that exact version/build you already have.
-
-<img width="2986" height="1896" alt="DownQ downgrade button on the Steam Link store page" src="https://github.com/user-attachments/assets/3cb2c534-f4b0-46a1-80be-1854d2ab2cbf" />
-
+2. Open the store page and sign in: [Steam Link](https://www.meta.com/experiences/steam-link/5841245619310585/) or [4XVR Video Player](https://www.meta.com/experiences/4xvr-video-player/5936567899722707). 4XVR is paid — own it first.
+3. Click **Downgrade** at the **bottom right**, choose the exact version/build, and download. Check both numbers.
 4. Copy the APK to the headset.
-### Alternative direct download 
-- ```https://drive.google.com/file/d/1P9t7wf-DZQzb5anJIXBYTxGq_5mUuOfp/view?usp=sharing ``` 2.0.20
-- ```https://drive.google.com/file/d/1eGhp7IU7w_SqhbBdls3qFf1_Osxuj5Yu/view?usp=sharing ``` 2.0.23
-- ```https://drive.google.com/file/d/1U3UNdBFqEWcJ3LTWHFAto5KDu0xNBdQ5/view?usp=sharing ``` 2.0.24
 
-## 2. Patch and install
+> **Missing build?** Downgrade lists what Meta still serves. If yours is missing, use an original APK of that exact version/build.
 
-1. Open Morphe Manager and load this repository's source or `.mpp`.
-2. Select the app APK. Keep compatibility checks enabled: version and build code are both verified.
-3. Keep the recommended selection — Morphe Manager auto-selects the recommended patches for the detected exact build. Leave patch options at their defaults unless you need a specific adjustment.
-4. Run patching, then install the result from Morphe Manager.
-5. For Steam Link: launch it, complete the permission prompts and connect to SteamVR on your PC. If the Battery usage page opens, select **Unrestricted**.
+<img width="720" height="457" alt="DownQ downgrade button on the Steam Link store page" src="https://github.com/user-attachments/assets/3cb2c534-f4b0-46a1-80be-1854d2ab2cbf" />
 
-The [full patch list](TECHNICAL_REFERENCE.md#full-patch-list) is in the technical reference. Do not assume another build is compatible because it has the same version name.
+<details>
+<summary><strong>Direct APK downloads</strong></summary>
+
+- [Steam Link 2.0.20](https://drive.google.com/file/d/1P9t7wf-DZQzb5anJIXBYTxGq_5mUuOfp/view?usp=sharing)
+- [Steam Link 2.0.23](https://drive.google.com/file/d/1eGhp7IU7w_SqhbBdls3qFf1_Osxuj5Yu/view?usp=sharing)
+- [Steam Link 2.0.24](https://drive.google.com/file/d/1U3UNdBFqEWcJ3LTWHFAto5KDu0xNBdQ5/view?usp=sharing)
+
+</details>
+
+### 2. Patch and install
+
+1. Open Morphe Manager and load the source or `.mpp`.
+2. Select the APK; keep compatibility checks enabled (version and build code are verified).
+3. Keep the recommended selection and default options for the detected exact build.
+4. Patch, then install from Morphe Manager.
+5. Steam Link: launch, grant permissions and connect to SteamVR. If the Battery usage page opens, select **Unrestricted**.
+
+> **Build check:** the [full patch list](TECHNICAL_REFERENCE.md#full-patch-list) is in the technical reference. Same version name does not mean another build is compatible.
 
 ## Controller fixes
 
-Controller velocity frame is on by default; the other controller patches are optional. Use one path:
+**Controller velocity frame** is on by default; the rest are optional. Use one path:
 
-- **Non-root:** **Controller pose extrapolation** + **Controller velocity frame**. Add the 2 Shizuku controller patches if Shizuku is running and granted to Steam Link.
-- **Root (KernelSU):** no controller patch — deselect Controller velocity frame and use the KernelSU modules with the controller fixes. The PC-side Galaxy XR SteamVR driver is optional for VRLink compatibility.
+| Setup | Apply |
+|---|---|
+| **Non-root, no Shizuku** | **Controller pose extrapolation** + **Controller velocity frame**. |
+| **Non-root, Shizuku granted to Steam Link** | Add to the pair above: **Controller tracking from the controller HAL through Shizuku** + **Controller grip haptics through Shizuku**. |
+| **Root (KernelSU)** | No controller APK patch — deselect **Controller velocity frame**; use the KernelSU controller-fix modules. |
 
-Which patch, which build, and when: [Controller fixes — what to apply](CONTROLLER-FIXES.md).
+> **Do not mix** an APK patch and a root module for the same fix. Full guidance: [Controller fixes](CONTROLLER-FIXES.md).
 
 ## Optional
 
-- **Face and tongue tracking** (Steam Link): install VRCFaceTracking and the [Galaxy XR LinkFT module](https://github.com/compdoge/LinkFT) on your PC, then enable **OSC**, **eye sharing** and **face sharing** in Steam Link and set the output port to **9015**.
-- **USB streaming** (Steam Link 2.0.23/5002363): [manual Galaxy XR USB setup guide](Install/USB-STREAMING.md). Wi-Fi must stay on for discovery in the tested workflow; longer stability is untested.
-- **Experimental patches** (GXR spacewarp layer, Controller pose time, OpenXR CPU and GPU BOOST; 4XVR premium unlock): off by default, not in the recommended set, headset validation pending.
+### Spacewarp and Optical Flow
+
+For the best Spacewarp and Optical Flow experience, install the [Galaxy XR Driver](https://github.com/AngelDark92/GalaxyXR-Driver) and **Galaxy XR Companion** on the PC. It also adds Galaxy XR identity, native panel resolution, controller models and image processing.
+
+| Mode | Runs on | Needs |
+|---|---|---|
+| **Async Spacewarp** | Headset | The experimental **GXR spacewarp layer** patch on the headset, plus **Async Spacewarp** in the PC driver. Without the headset layer, enabling Async Spacewarp holds frames instead of synthesizing them. |
+| **Optical Flow** | PC | The driver's bundled OFXR Bridge. |
+
+> **One mode at a time.** Spacewarp is experimental; headset validation is pending.
+
+### Extras
+
+- **Face and tongue tracking:** install VRCFaceTracking and the [Galaxy XR LinkFT module](https://github.com/compdoge/LinkFT); enable OSC, eye and face sharing in Steam Link; set the output port to **9015**.
+- **USB streaming** (2.0.23/5002363): [setup guide](Install/USB-STREAMING.md). Wi-Fi must stay on for discovery; longer stability untested.
+- **Experimental patches:** GXR spacewarp layer, Controller pose time, OpenXR CPU and GPU BOOST and the 4XVR premium unlock are off by default, not in the recommended set; headset validation is pending.
+
+---
 
 ## Status and credits
 
-- **Steam Link VR** — released patch set. Controller tracking and haptics patches (HAL pose, velocity frame, pose extrapolation, grip haptics through Shizuku) are based on [@4uva4ek's Galaxy XR modules](https://github.com/4uva4ek). Per-build headset validation is ongoing; local static and patching evidence is recorded under [`diagnostics/`](diagnostics/).
-- **4XVR** — ported from [@logkim1's 4XVR-GalaxyXR patch set](https://github.com/logkim1/4XVR-GalaxyXR), which supplies the launch, HDR pipeline, playback and premium-hook work this port builds on. His work, credited. Headset validation of this repository's port is pending, so treat it as early software.
+- **Steam Link VR** — released; controller fixes based on [@4uva4ek's modules](https://github.com/4uva4ek). Per-build validation is ongoing; evidence is under [`diagnostics/`](diagnostics/).
+- **4XVR** — ported from [@logkim1's 4XVR-GalaxyXR patch set](https://github.com/logkim1/4XVR-GalaxyXR); his work, credited. Headset validation is pending; treat it as early software.
+- **Galaxy XR Driver** — built on [CustomHeadsetOpenVR](https://github.com/sboys3/CustomHeadsetOpenVR) by sboys3, with modifications by timkhronos and compdoge; Optical Flow uses [OFXR-Bridge](https://github.com/tig3rmast3r/OFXR-Bridge) by tig3rmast3r and [djules75's fork](https://github.com/djules75/OFXR-Bridge).
 - Not affiliated with Meta, Samsung, Valve or 4XVR.
 
 ## More information
 
-See the [technical reference](TECHNICAL_REFERENCE.md) for the full patch list, implementation details, validation notes and build instructions. Release changes are listed in the [changelog](CHANGELOG.md).
+[Technical reference](TECHNICAL_REFERENCE.md) · [Changelog](CHANGELOG.md) · [Agent instructions](AGENTS.md)
 
 ## License
 
-Licensed under the [GNU General Public License v3.0](LICENSE). Agent-facing instructions live in [AGENTS.md](AGENTS.md).
+[GNU General Public License v3.0](LICENSE).

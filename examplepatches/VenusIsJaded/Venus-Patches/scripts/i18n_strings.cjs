@@ -220,7 +220,7 @@ for (let i = 0; i < tokens.length - 1; i++) {
     if (t.value === 'highlightColorPicker') propStrings(args[0], PROP_TEXTS.highlightColorPicker);
     else if (t.value === 'el' && args[0]?.length === 1 && args[0][0].value === 'PresetOrCustom') propStrings(args[1], PROP_TEXTS.PresetOrCustom);
 }
-for (const table of ['HIGHLIGHT_PING_CHOICES', 'HIGHLIGHT_DELETED_CHOICES']) {
+for (const table of ['HIGHLIGHT_PING_CHOICES', 'HIGHLIGHT_DELETED_CHOICES', 'MY_PRESETS']) {
     const match = new RegExp('const ' + table + ' = \\[([\\s\\S]*?)\\];').exec(source);
     if (match) for (const value of match[1].matchAll(/\["\w+", "([^"]+)"/g)) found.add(value[1]);
 }

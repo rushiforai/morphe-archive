@@ -23,7 +23,7 @@ class FairEmailSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.2338",
+            version = "1.2339",
             patchNames = setOf("Enable Pro"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

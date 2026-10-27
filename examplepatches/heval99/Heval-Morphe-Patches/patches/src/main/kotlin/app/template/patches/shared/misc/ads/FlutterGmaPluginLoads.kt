@@ -2,8 +2,10 @@ package app.template.patches.shared.misc.ads
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.Match
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.template.patches.shared.addInstructionsChecked
 import app.template.patches.shared.addInstructionsWithLabelsChecked
@@ -54,7 +56,7 @@ val FLUTTER_GMA_LOAD_METHODS = listOf(
 internal object FlutterGmaMethodCallFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(METHOD_CALL, METHOD_RESULT),
-    strings = FLUTTER_GMA_LOAD_METHODS + "MobileAds#initialize",
+    strings = (FLUTTER_GMA_LOAD_METHODS + "MobileAds#initialize").map { string(it, StringComparisonType.CONTAINS) },
     custom = { method, _ -> method.implementation != null },
 )
 
@@ -62,7 +64,12 @@ internal object FlutterGmaMethodCallFingerprint : Fingerprint(
 // event with the error to Dart on the main looper.
 internal object FlutterGmaAdFailedToLoadFingerprint : Fingerprint(
     returnType = "V",
-    strings = listOf("adId", "eventName", "onAdFailedToLoad", "loadAdError"),
+    strings = listOf(
+        string("adId", StringComparisonType.CONTAINS),
+        string("eventName", StringComparisonType.CONTAINS),
+        string("onAdFailedToLoad", StringComparisonType.CONTAINS),
+        string("loadAdError", StringComparisonType.CONTAINS),
+    ),
     custom = { method, _ ->
         method.implementation != null && method.parameterTypes.size == 2 &&
             method.parameterTypes[0].toString() == "I"
@@ -73,7 +80,7 @@ internal object FlutterGmaAdFailedToLoadFingerprint : Fingerprint(
 // base class, which holds the int adId.
 internal object FlutterGmaTrackAdFingerprint : Fingerprint(
     returnType = "V",
-    strings = listOf("Ad for following adId already exists: %d"),
+    strings = listOf(string("Ad for following adId already exists: %d", StringComparisonType.CONTAINS)),
     custom = { method, _ ->
         method.implementation != null && method.parameterTypes.size == 2 &&
             method.parameterTypes[1].toString() == "I"

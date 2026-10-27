@@ -49,7 +49,8 @@ public final class SettingsSearchInputPreference extends Preference {
     public SettingsSearchInputPreference(Context context, QueryListener queryListener) {
         super(context);
         this.queryListener = queryListener;
-        setSelectable(false);
+        // ListView keeps focus and scroll anchored to its selected row during result updates.
+        setSelectable(true);
         setOrder(-800);
     }
 
@@ -185,14 +186,16 @@ public final class SettingsSearchInputPreference extends Preference {
     protected void onBindView(View view) {
         super.onBindView(view);
         if (focusedOnEntry || editText == null || editText.length() > 0) return;
-        focusedOnEntry = true;
+        EditText input = editText;
         // After the list has laid the row out; a request on a view not yet in the window lands
         // nowhere, and the keyboard needs the focused view to be in the window as well.
-        editText.post(() -> {
-            editText.requestFocus();
-            InputMethodManager manager = (InputMethodManager) editText.getContext()
+        input.post(() -> {
+            if (editText != input || !input.isAttachedToWindow() || !input.isShown()
+                    || !input.requestFocus()) return;
+            focusedOnEntry = true;
+            InputMethodManager manager = (InputMethodManager) input.getContext()
                     .getSystemService(Context.INPUT_METHOD_SERVICE);
-            if (manager != null) manager.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
+            if (manager != null) manager.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
         });
     }
 

@@ -40,7 +40,7 @@ class BusinessCalendarSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "2.55.7",
+            version = "2.55.8",
             patchNames = setOf("Disable ads", "Disable telemetry", "Unlock Pro"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

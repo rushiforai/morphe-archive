@@ -17,13 +17,14 @@
 //     invalidated at xrDestroySession (never read a destroyed root).
 //   * The enable read calls the base's pinned ValueTransportSystem read API
 //     DIRECTLY - 5002363: ValueTransportSystem::BGetRemoteValue (runtime vaddr
-//     0x179ee0); 5001712: ValueTransportSystem::GetRemoteValue (runtime vaddr
-//     0x16a2c4) - with the VTS object embedded at SVLRoot + 0xa08 (derived from
-//     each base's real call-site add+bl pairs; identical 0xa08 on both audited
-//     bases). Signatures and semantics are re-derived from the receipt
-//     disassembly + the frozen 0x80-byte anchors (Gate-0 appendices
-//     gxr_spacewarp_vts_5002363.json / gxr_spacewarp_vts_5001712.json, emitted
-//     by tests/derive_gate0_vts.py --base <base>):
+//     0x179ee0); 5002395: the same BGetRemoteValue at 0x17ba50; 5001712:
+//     ValueTransportSystem::GetRemoteValue (runtime vaddr 0x16a2c4) - with the
+//     VTS object embedded at SVLRoot + 0xa08 (derived from each base's real
+//     call-site add+bl pairs; 0xa08 on every audited base). Signatures and
+//     semantics are re-derived from the receipt disassembly + the frozen
+//     0x80-byte anchors (Gate-0 appendices gxr_spacewarp_vts_<base>.json;
+//     5002363/5001712 emitted by tests/derive_gate0_vts.py --base <base>, the
+//     restored legacy bases and 5002395 hand-frozen and --check-only):
 //         shared register shape: x0 = the VTS (SVLRoot+0xa08), w1 = id, x2 =
 //         out, w3 = size.
 //       5002363 (bool present): bool in w0 - true ONLY when the id's holder
@@ -95,35 +96,39 @@ constexpr const char* kSceneSoname = "libvrlink_scene.so";
 constexpr size_t kAnchorSize = 0x80;
 
 // ---------------------------------------------------------------------------
-// Pins — RE-DERIVABLE, per base, frozen in gxr_spacewarp_vts_5002363.json /
-// gxr_spacewarp_vts_5001712.json by tests/derive_gate0_vts.py (regenerate with
+// Pins — RE-DERIVABLE, per base, one frozen appendix per supported base:
+// gxr_spacewarp_vts_<base>.json. 5002363 and 5001712 are emitted by
+// tests/derive_gate0_vts.py (regenerate with
 // `python -B tests/derive_gate0_vts.py --base <5002363|5001712>`; `... --check`
-// cross-verifies these constants against the derivation). Values re-derived
-// from the decoded trees [verified 2026-10-17]. The bases differ in MORE than
-// addresses: 2.0.20/5001712 has NO BGetRemoteValue - its read API is
-// ValueTransportSystem::GetRemoteValue, which RETURNS THE COPIED BYTE COUNT
-// (0xffffffff = id absent; present == copied == requested) instead of
-// 5002363's full-copy bool; the profile therefore carries the returned-value
-// policy. The runtime selection is the codecs-support pattern: hash each
-// profile's base-anchor window at the dl_iterate_phdr base (order: 5002363
-// first, 5001712 second), first match wins, no match = latched fail closed.
+// cross-verifies these constants against the derivation). 5001812, 5001968,
+// 5002244 and 5002395 use the same hand-frozen shape as the restored legacy
+// bases and are verify-only in that script (`--check`). Values re-derived from
+// the decoded trees [initial derivation 2026-10-17; 2.0.24/5002395 added
+// 2026-10-26]. The bases differ in MORE than addresses: 2.0.20/5001712 has NO
+// BGetRemoteValue - its read API is ValueTransportSystem::GetRemoteValue, which
+// RETURNS THE COPIED BYTE COUNT (0xffffffff = id absent; present == copied ==
+// requested) instead of 5002363/5002395's full-copy bool; the profile therefore
+// carries the returned-value policy. The runtime selection is the
+// codecs-support pattern: hash each profile's base-anchor window at the
+// dl_iterate_phdr base (order: 5002363 first, 5001712 second, then the restored
+// legacy bases and 5002395), first match wins, no match = latched fail closed.
 // ---------------------------------------------------------------------------
 
 // The carrier (owner decision per brief 10; unused-id + guard checks derive
-// PER BASE): the carrier id travels the same wire on both bases.
+// PER BASE): the carrier id travels the same wire on every base.
 constexpr uint32_t kCarrierId = 0x48;
 constexpr uint32_t kCarrierPayloadBytes = 4;
 constexpr uint32_t kReadCadenceEndframes = 60;
 
 // The per-base read-API returned-value policy (derived per base):
 enum class ReadReturn : uint8_t {
-    kBoolPresentFullCopy,  // 5002363 BGetRemoteValue: bool, true = present && full copy
+    kBoolPresentFullCopy,  // 5002363/5002395 BGetRemoteValue: bool, present && full copy
     kCopiedByteCount,      // 5001712 GetRemoteValue: u32 copied bytes; 0xffffffff = absent
 };
 
 // The per-base profile record (codecs-support anchor-identity pattern). All
 // runtime vaddrs: anchor window offsets are runtime offsets in the code
-// segment (PT_LOAD-identity on both bases); capture/write slots are GOT
+// segment (PT_LOAD-identity on every base); capture/write slots are GOT
 // runtime vaddrs added to dlpi_addr.
 struct VtsProfile {
     const char* build;             // exact (versionName, versionCode) the profile covers
@@ -141,7 +146,7 @@ struct VtsProfile {
     const char* captureRxUnreliableSha256;
     uintptr_t captureRxUnreliableSlot;  // RUNTIME vaddr (GOT)
     // The embedded VTS object offset inside SVLRoot, proven from the lib's real
-    // call-site add+bl pairs (both bases derive 0xa08):
+    // call-site add+bl pairs (every base derives 0xa08):
     uintptr_t vtsEmbedOffset;
 };
 
@@ -240,13 +245,36 @@ const VtsProfile kVtsProfile5002244 = {
     0xa08,
 };
 
+// 2.0.24/5002395 sixth (2026-10-26): fresh per-base derivation from
+// android-steamlinkvr-release-base-2.0.24-5002395. Same named read/capture
+// methods and the same 0xa08 VTS embed as 5002363; BGetRemoteValue keeps the
+// full-copy bool policy (identical 164-byte body modulo addresses), and
+// RXUnreliableStream keeps the 4-argument signature.
+const VtsProfile kVtsProfile5002395 = {
+    "2.0.24/5002395",
+    0xfe954,
+    "ef7f310bbd65499404aa89a18f873c42a87282a16799b84119c75377654003a3",
+    "BGetRemoteValue",
+    0x17ba50,
+    "9701b8dffa8277fb88f2fe7989bf7caa96b922c33b8f73ce356b950e6b6c9dc9",
+    ReadReturn::kBoolPresentFullCopy,
+    0x16dd4c,
+    "5923592d8f8675634571537abf2a04f2a5d513a57efc0981e91d62f068a924e2",
+    0x231800,  // RUNTIME vaddr (GOT)
+    0x16dbec,
+    "2808819d4d269ecae43aca1c731e85e8bae64125d05e0853e1f348c717853463",
+    0x231760,  // RUNTIME vaddr (GOT)
+    0xa08,     // SVLRoot + 0xa08 (11 real add+bl sites on this base)
+};
+
 // Order of tries: the two originally verified bases first, then the restored
-// legacy bases.
+// legacy bases and the newest 5002395 profile.
 const VtsProfile* const kVtsProfiles[] = {
     &kVtsProfile5002363, &kVtsProfile5001712, &kVtsProfile5001812,
     &kVtsProfile5001968, &kVtsProfile5002244,
+    &kVtsProfile5002395,
 };
-constexpr size_t kVtsProfileCount = 5;
+constexpr size_t kVtsProfileCount = 6;
 
 // bool (*)(VTS* obj, unsigned id, void* out, unsigned size) — the shared
 // AArch64 argument shape of the re-derived read APIs (this, id, out, size).
@@ -284,11 +312,8 @@ std::atomic<uintptr_t> g_svlRoot{0};
 std::atomic<int> g_carrier{kCarrierUnknown};
 // Last published 4-byte carrier value (0 / 1 / 2); the mode source of truth.
 std::atomic<uint32_t> g_carrierValue{0};
-// 2026-10-21 (owner directive): half rate is retired on both sides. The host no
-// longer publishes carrier 2, and a 2 from an older host runs as late-frames-only
-// here, so the mode cannot be entered by a stale driver. The half-rate synthesis
-// code stays compiled; flip this flag (and the host's kHalfRateRetired) to revive.
-std::atomic<bool> g_halfRateRetired{true};
+// 2026-10-26 (owner directive): carrier 2 is half rate again. Unknown values
+// still read as late-frame recovery; nothing rewrites the host's saved mode.
 
 // Per-session one-line log flags (reset by SwpVtsResetSession).
 std::atomic<bool> g_notPresentLogged{false};
@@ -483,9 +508,6 @@ void PollCarrierLogged() {
         return;
     }
     if (value > kCarrierModeHalfRate) value = kCarrierModeLateFrames;  // undefined mode reads as late-frames
-    if (value == kCarrierModeHalfRate && g_halfRateRetired.load(std::memory_order_relaxed)) {
-        value = kCarrierModeLateFrames;  // retired: a stale host's half rate applies as late frames
-    }
     const uint32_t previousValue = g_carrierValue.exchange(value);
     const int next = value != 0 ? kCarrierOn : kCarrierOff;
     const int previous = g_carrier.exchange(next);
@@ -675,22 +697,16 @@ void SwpVtsTestSetRoot(void* root) { SwpVtsRootObserved(root); }
 // model "the host published the carrier before the session ticks").
 void SwpVtsTestPublish(uint32_t value) {
     if (value > kCarrierModeHalfRate) value = kCarrierModeLateFrames;
-    if (value == kCarrierModeHalfRate && g_halfRateRetired.load(std::memory_order_relaxed)) {
-        value = kCarrierModeLateFrames;  // mirror the production retirement mapping
-    }
     g_carrierValue.store(value);
     g_carrier.store(value != 0 ? kCarrierOn : kCarrierOff);
     ++g_carrierGeneration;
 }
-void SwpVtsTestSetHalfRateRetired(bool retired) { g_halfRateRetired.store(retired); }
+void SwpVtsTestSetHalfRateRetired(bool) {}  // retired flag removed 2026-10-26
 void SwpVtsTestResetAll() {
     g_state.store(kVtsStatePending);
     g_svlRoot.store(0);
     g_carrierValue.store(0);
     g_carrier.store(kCarrierUnknown);
-    // Production default: half rate retired. A suite that flips it must not leak
-    // the flip into the next suite.
-    g_halfRateRetired.store(true);
     g_notPresentLogged.store(false);
     g_notCapturedLogged.store(false);
     g_notArmedLogged.store(false);

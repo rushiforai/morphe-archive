@@ -17,7 +17,7 @@ dest=root/'dist'/filename;dest.parent.mkdir(exist_ok=True)
 if source.resolve()!=dest.resolve():shutil.copyfile(source,dest)
 manifest={
     'created_at':datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S'),
-    'description':'Clone, MC Debug, Mobile Config JSON import/export and local trust. All enabled by default.',
+    'description':'Clone, MC Debug, top-left menu long-press, Mobile Config JSON import/export and local trust. All enabled by default.',
     'download_url':f'https://raw.githubusercontent.com/{a.repository}/{a.branch}/dist/{filename}',
     'signature_download_url':'',
     'version':version,

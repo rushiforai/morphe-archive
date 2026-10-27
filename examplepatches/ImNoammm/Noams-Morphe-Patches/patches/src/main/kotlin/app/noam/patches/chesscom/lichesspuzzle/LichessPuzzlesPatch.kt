@@ -44,6 +44,19 @@ private const val PATH_STATS = "Lcom/chess/features/path/ui/v4;"
 private const val RATING_STATS = "Lcom/chess/features/puzzles/db/model/o;"
 private const val STATS_LOADED = "Lcom/chess/features/puzzles/rated/p0\$q0;"
 private const val VIEW_MODEL = "Lcom/chess/features/puzzles/rated/RatedPuzzlesGameViewModel;"
+private const val PATH_REPOSITORY = "Lcom/chess/features/path/data/PathProgressRepositoryImpl;"
+private const val PUZZLE_SERVICE = "Lcom/chess/features/puzzles/api/h;"
+private const val GUEST_STORE = "Lcom/chess/internal/puzzles/r2;"
+private const val HOME_PUZZLES_VM = "Lcom/chess/features/puzzles/home/menu/HomePuzzlesMenuViewModel;"
+private const val HOME_PUZZLES_REFRESH =
+    "Lcom/chess/features/puzzles/home/menu/HomePuzzlesMenuViewModel\$refreshData\$2;"
+private const val HOME_PUZZLES_RESUME =
+    "Lcom/chess/features/puzzles/home/menu/HomePuzzlesMenuViewModel\$refreshDailyPuzzleFab\$2;"
+private const val HUB_STATE = "Lcom/chess/features/puzzles/home/ui/y1;"
+private const val HUB_PATH = "Lcom/chess/features/puzzles/home/ui/z1;"
+private const val HUB_USER = "Lcom/chess/features/puzzles/home/ui/a2;"
+private const val UNIT = "sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;\nreturn-object v0"
+private const val NOTHING = "const/4 v0, 0x0\nreturn-object v0"
 
 private val lichessPuzzlesResourcePatch = resourcePatch(
     description = "Adds the Puzzles tab button's text.",
@@ -195,6 +208,64 @@ val lichessPuzzlesPatch = bytecodePatch(
         } ?: throw PatchException("The guest puzzles were not found")
         guestPuzzles.addInstructions(0, "invoke-static/range { p0 .. p0 }, $PUZZLES->onGuestPuzzles(Ljava/lang/Object;)V")
 
+        // A Lichess session supplies puzzles, solutions and rating locally; skip server calls.
+        fun MutableMethod.skipIf(condition: String, result: String = UNIT) = addInstructionsWithLabels(
+            0,
+            """
+                invoke-static { }, $PUZZLES->$condition()Z
+                move-result v0
+                if-eqz v0, :morphe_continue
+                $result
+            """,
+            ExternalLabel("morphe_continue", getInstruction(0)),
+        )
+        fun MutableMethod.fetchesPuzzle() = implementation?.instructions?.any { instruction ->
+            instruction.methodReference?.let { it.definingClass == PUZZLE_SERVICE && it.name == "b" } == true
+        } == true
+        // Next puzzle and prefetch; the prefetch returns its error, the update methods Unit.
+        repository.methods.filter { it.returnType == "Ljava/lang/Object;" && it.fetchesPuzzle() }
+            .forEach { method ->
+                val result = if (method.parameterTypes.firstOrNull()?.toString() == "J") NOTHING else UNIT
+                method.skipIf("session", result)
+            }
+        // Don't mix chess.com's guest puzzles into the Lichess database.
+        refill.skipIf("session")
+        // The Lichess screen must not refresh the hub's path; the hub does that on resume.
+        mutableClassDefBy(PATH_REPOSITORY).methods.filter {
+            it.parameterTypes.size == 1 && it.returnType == "Ljava/lang/Object;"
+        }.forEach { it.skipIf("onPuzzleScreen") }
+
+        // The hub only refreshes its daily puzzle on resume; also refresh its path.
+        fun MutableMethod.createsType(type: String) = implementation?.instructions?.any { instruction ->
+            ((instruction as? ReferenceInstruction)?.reference as? TypeReference)?.type == type
+        } == true
+        val homePuzzles = mutableClassDefBy(HOME_PUZZLES_VM)
+        val refreshData = homePuzzles.methods.singleOrNull { method ->
+            method.parameterTypes.isEmpty() && method.returnType == "V" && method.createsType(HOME_PUZZLES_REFRESH)
+        } ?: throw PatchException("The Puzzles hub's refresh was not found")
+        val refreshOnResume = homePuzzles.methods.singleOrNull { method ->
+            method.parameterTypes.isEmpty() && method.returnType == "V" && method.createsType(HOME_PUZZLES_RESUME)
+        } ?: throw PatchException("The Puzzles hub's resume was not found")
+        refreshOnResume.addInstructions(0, "invoke-direct { p0 }, $HOME_PUZZLES_VM->${refreshData.name}()V")
+
+        // Keep the hub's map and XP on the pre-session values while Lichess closes.
+        val hubState = mutableClassDefBy(HUB_STATE)
+        val hubStateConstructor = hubState.methods.singleOrNull { method ->
+            method.name == "<init>" && method.parameterTypes.size == 12 &&
+                method.parameterTypes[6].toString() == HUB_PATH
+        } ?: throw PatchException("The Puzzles hub state constructor was not found")
+        hubStateConstructor.addInstructions(
+            1,
+            """
+                invoke-static { p6 }, $PUZZLES->userForHub(Ljava/lang/Object;)Ljava/lang/Object;
+                move-result-object p6
+                check-cast p6, $HUB_USER
+                invoke-static { p7 }, $PUZZLES->pathForHub(Ljava/lang/Object;)Ljava/lang/Object;
+                move-result-object p7
+                check-cast p7, $HUB_PATH
+            """,
+        )
+
         val score: MutableMethod = repository.methods.singleOrNull { method ->
             method.parameterTypes.size == 4 && method.parameterTypes[0].toString() == "Ljava/util/List;" &&
                 method.parameterTypes[1].toString() == SOLUTION && method.parameterTypes[2].toString() == "Z"
@@ -230,7 +301,8 @@ val lichessPuzzlesPatch = bytecodePatch(
 
         // During a Lichess session chess.com's puzzle screen plays it as rated and online: the
         // guest mode stays the data source, but "local mode" is off (solutions get scored, rating
-        // stats load), the layout is Classic, and the rating it shows is the Lichess one.
+        // stats load), the layout is Classic, and the rating it shows is the Lichess one. The
+        // server calls that come with it are skipped above.
         fun MutableMethod.whileSession(value: String) = addInstructionsWithLabels(
             0,
             """
@@ -241,6 +313,9 @@ val lichessPuzzlesPatch = bytecodePatch(
             """,
             ExternalLabel("morphe_no_session", getInstruction(0)),
         )
+        // Wait for the background Lichess insert instead of ending the guest flow.
+        mutableClassDefBy(GUEST_STORE).methods.single { it.parameterTypes.isEmpty() && it.returnType == "Z" }
+            .whileSession("const/4 v0, 0x1\nreturn v0")
         val regularMode = enumField(MODE, "REGULAR")
         mutableClassDefBy(MODE).methods.single { it.parameterTypes.isEmpty() && it.returnType == "Z" }
             .whileSession("const/4 v0, 0x0\nreturn v0")
@@ -249,8 +324,7 @@ val lichessPuzzlesPatch = bytecodePatch(
         val ratingValue = "invoke-static { }, $PUZZLES->rating()I\nmove-result v0\nreturn v0"
         mutableClassDefBy(PATH_STATS).getterForLabel(", userRating=").whileSession(ratingValue)
 
-        // The Classic layout shows the rating (bottom right) only once the screen has its path
-        // stats, which guest mode never loads: a session starts with default ones instead.
+        // The Classic layout needs path stats, which guest mode never loads.
         val statsLoaded = mutableClassDefBy(STATS_LOADED)
         val withStats = statsLoaded.methods.singleOrNull { method ->
             method.returnType == PATH_STATS && method.parameterTypes.map { it.toString() } == listOf(PATH_STATS)
@@ -269,7 +343,7 @@ val lichessPuzzlesPatch = bytecodePatch(
             ExternalLabel("morphe_stats", withStats.getInstruction(0)),
         )
         mutableClassDefBy(RATING_STATS).getterForLabel(", current=").whileSession(ratingValue)
-        // The chip itself also needs rating stats, which guest mode gives as flowOf(null).
+        // The rating chip also needs stats, which guest mode gives as flowOf(null).
         val ratingStats = mutableClassDefBy(VIEW_MODEL).methods.singleOrNull { method ->
             method.parameterTypes.isEmpty() && method.annotations.any { annotation ->
                 annotation.type == "Ldalvik/annotation/Signature;" && annotation.elements.any { element ->

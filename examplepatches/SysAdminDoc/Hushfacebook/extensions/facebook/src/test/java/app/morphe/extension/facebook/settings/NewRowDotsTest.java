@@ -134,7 +134,7 @@ public class NewRowDotsTest {
     }
 
     @Test
-    public void aKeyMissingFromTheStoredSetDotsItsRowAndItsSectionUntilThePageIsLeft() {
+    public void aKeyMissingFromTheStoredSetDotsItsRowUntilTheSectionIsCollapsed() {
         open();
         forget(KEY);
         open();
@@ -151,7 +151,14 @@ public class NewRowDotsTest {
         // Opening it doesn't clear it: the dot shows for the whole visit.
         assertFalse(store().getStringSet(NewRowDots.SEEN, null).contains(KEY));
 
-        assertTrue(page.navigation.back());
+        Preference header = null;
+        for (int i = 0; i < page.navigation.getCount(); i++) {
+            Preference item = page.navigation.getItem(i);
+            if (("section_" + section.getTitle()).equals(item.getKey())) header = item;
+        }
+        assertNotNull(header);
+        assertTrue(header.getOnPreferenceClickListener().onPreferenceClick(header));
+        assertFalse(page.navigation.isExpanded(section.getTitle().toString()));
         assertTrue(store().getStringSet(NewRowDots.SEEN, null).contains(KEY));
         assertEquals("the home row is clear once the page was seen", new ArrayList<String>(), dottedTitles());
         assertTrue(page.navigation.open(section));

@@ -53,7 +53,7 @@ internal fun sdkGateFingerprint(sdk: String) = Fingerprint(
 internal object OphanSubmitFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Lophan/thrift/nativeapp/NativeAppSubmission;"),
-    strings = listOf("Ophan submission failed"),
+    strings = listOf(string("Ophan submission failed", StringComparisonType.CONTAINS)),
     filters = listOf(string("https://ophan.theguardian.com/mob", StringComparisonType.STARTS_WITH)),
     custom = { method, _ -> method.implementation != null },
 )
@@ -63,7 +63,7 @@ internal object OphanSubmitFingerprint : Fingerprint(
 internal object CrashlyticsGetInstanceFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     parameters = listOf(),
-    strings = listOf("FirebaseCrashlytics component is not present."),
+    strings = listOf(string("FirebaseCrashlytics component is not present.", StringComparisonType.CONTAINS)),
     custom = { method, classDef -> method.returnType == classDef.type },
 )
 
@@ -73,6 +73,8 @@ internal object CrashlyticsGetInstanceFingerprint : Fingerprint(
 internal object PushReceivedBeaconFingerprint : Fingerprint(
     returnType = OBJECT,
     parameters = listOf(OBJECT),
-    strings = listOf("https://mobile-events.guardianapis.com/notification/received?platform=android"),
+    strings = listOf(
+        string("https://mobile-events.guardianapis.com/notification/received?platform=android", StringComparisonType.CONTAINS),
+    ),
     custom = { method, _ -> method.implementation != null },
 )

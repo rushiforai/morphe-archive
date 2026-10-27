@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 
 import app.hushtelegram.extension.shared.SettingsContextRule;
+import app.hushtelegram.extension.shared.ui.ShimmerTitle;
 
 /**
  * WCAG 2.2 AA for what HushTelegram draws itself: the settings screen, its dialogs and its
@@ -137,8 +138,8 @@ public class ScreenColorsTest {
         ScreenColors page = ScreenColors.DEFAULT;
         assertEquals(19.22, contrast(page.title, page.background), 0.01);
         assertEquals(10.20, contrast(page.summary, page.background), 0.01);
-        assertEquals(12.49, contrast(page.heading, page.background), 0.01);
-        assertEquals(10.46, contrast(page.onAccent, page.accent), 0.01);
+        assertEquals(8.16, contrast(page.heading, page.background), 0.01);
+        assertEquals(7.26, contrast(page.onAccent, page.accent), 0.01);
         assertEquals(4.76, contrast(page.offThumb(), page.switchOff), 0.01);
     }
 
@@ -266,6 +267,32 @@ public class ScreenColorsTest {
             assertEquals(android.view.ViewGroup.LayoutParams.MATCH_PARENT, text.getLayoutParams().width);
             assertEquals(android.view.Gravity.CENTER, text.getGravity() & android.view.Gravity.CENTER);
         }
+        assertTrue("the recovery title wears Telegram's blues", ShimmerTitle.wears(title));
+        assertTrue("the message keeps its own colour", !ShimmerTitle.wears(summary));
+    }
+
+    /**
+     * Every HushTelegram title wears Telegram's blues, so every stop reads at 7:1 on the black
+     * screen and on the dialogs' panel, and a painted dialog's title wears them.
+     */
+    @Test
+    public void everyTitleStopReadsOnTheScreenAndItsDialogs() {
+        assertTrue("on the screen", ShimmerTitle.readsOn(ScreenColors.DEFAULT.background));
+        assertTrue("on a dialog", ShimmerTitle.readsOn(ScreenColors.DEFAULT.dialog));
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(controller.get())
+                    .setTitle("Reset all settings?").setPositiveButton("Reset", null).create();
+            dialog.show();
+            try {
+                ScreenColors.DEFAULT.paint(dialog);
+                int titleId = dialog.getContext().getResources().getIdentifier("alertTitle", "id", "android");
+                TextView title = dialog.findViewById(titleId);
+                assertNotNull(title);
+                assertTrue("dialog titles wear Telegram's blues", ShimmerTitle.wears(title));
+            } finally {
+                dialog.dismiss();
+            }
+        }
     }
 
     /**
@@ -323,10 +350,10 @@ public class ScreenColorsTest {
             row.layout(0, 0, 1080, row.getMeasuredHeight());
 
             String which = samsungLarge ? "the large-text row" : "the standard row";
-            assertEquals(which + " pads its icon tile", 32 * dp, icon.getPaddingStart() + icon.getPaddingEnd()
+            assertEquals(which + " pads its icon tile", 28 * dp, icon.getPaddingStart() + icon.getPaddingEnd()
                     + icon.getPaddingTop() + icon.getPaddingBottom());
-            assertEquals(which + "'s icon tile", 40 * dp, icon.getWidth());
-            assertEquals(which + "'s glyph", 24 * dp, icon.getWidth() - icon.getPaddingLeft() - icon.getPaddingRight());
+            assertEquals(which + "'s icon tile", 36 * dp, icon.getWidth());
+            assertEquals(which + "'s glyph", 22 * dp, icon.getWidth() - icon.getPaddingLeft() - icon.getPaddingRight());
             assertTrue(which + " moves its icon past the edge of the line that clips it", frame.getLeft() >= 0);
             int x = 0;
             for (View at = title; at != row; at = (View) at.getParent()) x += at.getLeft();
@@ -337,7 +364,7 @@ public class ScreenColorsTest {
 
     /**
      * The plain look (#18): no card behind a row, a thin line under it from where its text starts,
-     * none under a group's last row, the text 20 dp from the edge and still a 48 dp target. The
+     * none under a group's last row, the text 16 dp from the edge and still a 48 dp target. The
      * status and restart rows stay cards, section titles take the accent, and a dialog's choices
      * lose their cards too.
      */
@@ -356,21 +383,21 @@ public class ScreenColorsTest {
             ScreenColors.Divider line = divider(row);
             assertNotNull("no line under a row inside its group", line);
             assertEquals(colors.outline, line.color);
-            assertEquals(20 * dp, line.start);
+            assertEquals(16 * dp, line.start);
             line.setBounds(0, 0, 1080, 200);
-            assertEquals(new android.graphics.Rect(20 * dp, 200 - dp, 1080, 200), line.line());
-            assertEquals(20 * dp, row.getPaddingStart());
+            assertEquals(new android.graphics.Rect(16 * dp, 200 - dp, 1080, 200), line.line());
+            assertEquals(16 * dp, row.getPaddingStart());
             assertTrue(row.getMinimumHeight() >= 48 * dp);
 
             preference.setIcon(new ColorDrawable(Color.WHITE));
             colors.paintSurface(row, preference, false, false);
-            assertEquals("the line starts at the text past the icon", 74 * dp, divider(row).start);
+            assertEquals("the line starts at the text past the icon", 64 * dp, divider(row).start);
 
             colors.paintSurface(row, preference, false, true);
             assertEquals("a group's last row has a line under it", null, divider(row));
 
             colors.paintSurface(row, preference, true, true, true, false);
-            assertEquals("the status row isn't a card", 36 * dp, row.getPaddingStart());
+            assertEquals("the status row isn't a card", 26 * dp, row.getPaddingStart());
 
             android.widget.LinearLayout heading = new android.widget.LinearLayout(context);
             TextView title = new TextView(context);
@@ -392,7 +419,7 @@ public class ScreenColorsTest {
         }
         preference.setIcon(null);
         colors.paintSurface(row, preference, true, false);
-        assertEquals("the cards came back without the switch", 36 * dp, row.getPaddingStart());
+        assertEquals("the cards came back without the switch", 26 * dp, row.getPaddingStart());
         assertEquals(null, divider(row));
     }
 

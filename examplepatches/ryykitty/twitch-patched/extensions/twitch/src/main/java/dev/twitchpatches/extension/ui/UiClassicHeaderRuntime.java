@@ -44,6 +44,7 @@ public final class UiClassicHeaderRuntime {
         return (UiSettings.enabled("classic_support_hide_subscribe") ? 1 : 0)
                 | (UiSettings.enabled("classic_support_hide_gift") ? 2 : 0)
                 | (UiSettings.enabled("classic_support_hide_bits") ? 4 : 0)
-                | (UiSettings.enabled("hide_channel_extensions") ? 8 : 0);
+                | (UiSettings.enabled("hide_channel_extensions") ? 8 : 0)
+                | (UiSettings.enabled("hide_leaderboards") ? 16 : 0);
     }
 }

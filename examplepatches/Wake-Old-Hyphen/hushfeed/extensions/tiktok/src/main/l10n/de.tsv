@@ -369,8 +369,6 @@ Copy the sound link	Soundlink kopieren
 Copy the video link	Videolink kopieren
 Couldn't change the Lab settings. Try again.	Die Lab-Einstellungen ließen sich nicht ändern. Versuch es noch einmal.
 Couldn't clear the suggested accounts. Reopen the Inbox and try again.	Die Kontovorschläge ließen sich nicht entfernen. Öffne den Posteingang noch einmal und versuch es erneut.
-Couldn't open settings search. Reopen settings and try again.	Die Einstellungssuche ließ sich nicht öffnen. Öffne die Einstellungen noch einmal und versuch es erneut.
-Couldn't open that settings section. Reopen settings and try again.	Dieser Einstellungsbereich ließ sich nicht öffnen. Öffne die Einstellungen noch einmal und versuch es erneut.
 Couldn't open the file picker to export. Try again.	Die Dateiauswahl zum Exportieren ließ sich nicht öffnen. Versuch es noch einmal.
 Couldn't open the file picker to import. Try again.	Die Dateiauswahl zum Importieren ließ sich nicht öffnen. Versuch es noch einmal.
 Couldn't put back the diagnostic data. Try again.	Die Diagnosedaten ließen sich nicht zurückholen. Versuch es noch einmal.
@@ -994,7 +992,6 @@ Search settings	Einstellungen durchsuchen
 Search share actions	Share-Aktionen durchsuchen
 Search within comments	In Kommentaren suchen
 Search these comments	Diese Kommentare durchsuchen
-Search translated titles and descriptions, then open the original setting.	Übersetzte Titel und Beschreibungen durchsuchen und dann die ursprüngliche Einstellung öffnen.
 Ask TikTok for search results that aren't personalized to your account. This changes results, not search buttons or suggestions.	Fordere Suchergebnisse an, die nicht auf dein Konto zugeschnitten sind. Das ändert die Ergebnisse, nicht die Suchschaltflächen oder Vorschläge.
 Search by name or gate key	Nach Name oder Gate-Schlüssel suchen
 Seconds. Zero keeps every length. If everything the feed just sent would be filtered out, the video closest to your limit is kept so the feed isn't empty.	Sekunden. Null behält jede Länge. Würde alles wegfallen, was der Feed gerade geschickt hat, bleibt das Video, das deinem Limit am nächsten kommt, damit der Feed nicht leer ist.
@@ -1336,28 +1333,6 @@ Zero switches this off. Counts every video that comes up in the feed and tells y
 Zero switches this off. Count the minutes the player spends running in the feed. Time on messages, a profile or search doesn't count.	Null schaltet das aus. Zählt die Minuten, die der Player im Feed läuft. Zeit in Nachrichten, auf einem Profil oder in der Suche zählt nicht.
 collapsed	Eingeklappt
 expanded	Ausgeklappt
-Already active	Bereits aktiv
-Applying Calm feed	„Ruhiger Feed“ wird angewendet
-Calm feed	Ruhiger Feed
-Calm feed couldn't be applied. Nothing was changed.	„Ruhiger Feed“ konnte nicht angewendet werden. Es wurde nichts geändert.
-Calm feed couldn't start. Try again in a moment.	„Ruhiger Feed“ konnte nicht gestartet werden. Versuche es gleich noch einmal.
-Calm feed is on. Restart TikTok to apply all changes.	„Ruhiger Feed“ ist aktiv. Starte TikTok neu, um alle Änderungen anzuwenden.
-Calm feed is on.	„Ruhiger Feed“ ist aktiv.
-Changed	Geändert
-Hide ads, Shop posts, LIVE videos and replays, promotional music, and paid partnerships.	Blendet Werbung, Shop-Beiträge, LIVE-Videos und Wiederholungen, Werbemusik und bezahlte Partnerschaften aus.
-On	Aktiv
-On. Restore puts back the feed setup you had before.	Aktiv. Mit „Wiederherstellen“ wird deine vorherige Feed-Einrichtung zurückgesetzt.
-Preset	Voreinstellung
-Quick setup	Schnelleinrichtung
-Restore setup	Einrichtung wiederherstellen
-Restoring setup	Einrichtung wird wiederhergestellt
-Some Calm feed settings changed. Restore still puts back your earlier setup.	Einige Einstellungen für „Ruhiger Feed“ wurden geändert. Mit „Wiederherstellen“ kehrst du trotzdem zu deiner vorherigen Einrichtung zurück.
-Use Calm feed	„Ruhiger Feed“ verwenden
-Working	Wird verarbeitet
-Your current settings already match Calm feed.	Deine aktuellen Einstellungen entsprechen bereits „Ruhiger Feed“.
-Your previous feed setup couldn't be restored. Nothing was changed.	Deine vorherige Feed-Einrichtung konnte nicht wiederhergestellt werden. Es wurde nichts geändert.
-Your previous feed setup is back. Restart TikTok to apply all changes.	Deine vorherige Feed-Einrichtung ist wiederhergestellt. Starte TikTok neu, um alle Änderungen anzuwenden.
-Your previous feed setup is back.	Deine vorherige Feed-Einrichtung ist wiederhergestellt.
 Hide search suggestions above comments	Suchvorschläge über Kommentaren ausblenden
 Compact comment header	Kompakte Kommentar-Kopfzeile
 Easier comment likes	Kommentare leichter liken
@@ -2126,22 +2101,8 @@ Report a problem	Problem melden
 Opens a GitHub report with your versions and settings filled in. Add what happened.	Öffnet einen GitHub-Bericht, in dem deine Versionen und Einstellungen schon eingetragen sind. Ergänze, was passiert ist.
 Support Hushfeed	Hushfeed unterstützen
 No app on this phone opens web links	Keine App auf diesem Handy öffnet Weblinks
-Quick setups	Schnelleinstellungen
-Quiet hides ads, Shop and LIVE. Privacy hides your views and typing and stops tracking. Back to defaults resets every switch. Press and hold to hide this row.	Ruhig blendet Werbung, Shop und LIVE aus. Datenschutz verbirgt deine Aufrufe und dein Tippen und stoppt das Tracking. Standard wiederherstellen setzt jeden Schalter zurück. Halte gedrückt, um diese Zeile auszublenden.
 # context: toast after a long press hides the Quick setups card from the settings home page; the page name is the one holding the row that brings it back
-Quick setups hidden. Bring it back from %1$s.	Schnelleinstellungen ausgeblendet. Du holst sie unter %1$s zurück.
 # context: row on the Backup and restore page; shows or hides the Quick setups card on the settings home page
-Quick setups on the home page	Schnelleinstellungen auf der Startseite
-Shown. Tap to hide it.	Angezeigt. Tippe zum Ausblenden.
-Hidden. Tap to show it again.	Ausgeblendet. Tippe, um sie wieder anzuzeigen.
-Quiet	Ruhig
-Back to defaults	Standard wiederherstellen
-Changed 1 setting	1 Einstellung geändert
-Changed %1$d settings	%1$d Einstellungen geändert
-Your settings already match	Deine Einstellungen passen schon
-That setup couldn't be applied. Nothing was changed.	Diese Einrichtung konnte nicht angewendet werden. Es wurde nichts geändert.
-Quick setups couldn't start. Try again in a moment.	Schnelleinstellungen konnten nicht starten. Versuch es gleich noch einmal.
-Your earlier settings are back	Deine vorherigen Einstellungen sind zurück
 # context: a heading on the settings home page, over Feed filter, Feed tabs, Feed screen, Playback and Screen time
 Your feed	Dein Feed
 # context: a heading on the settings home page, over Downloads and Share sheet
@@ -2234,7 +2195,34 @@ Show the main feed's tabs on a rounded, see-through dark pill that floats over t
 Liquid glass look	Liquid-Glass-Look
 Draw the main feed's floating pill as glass, lighter and more see-through, with a bright rim along its top edge. Needs Floating bottom bar.	Zeichnet die schwebende Pille im Haupt-Feed als Glas, heller und durchsichtiger, mit einem hellen Rand an der Oberkante. Braucht Schwebende untere Leiste.
 Glass lens on the current tab	Glaslinse auf dem aktuellen Tab
-On the main feed, a smaller piece of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.	Im Haupt-Feed liegt ein kleineres Stück Glas hinter dem Tab, auf dem du bist, und gleitet zum nächsten Tab, den du wählst. Braucht Liquid-Glass-Look.
+Pill height	Pillenhöhe
+Compact	Kompakt
+Standard	Standard
+How tall the main feed's floating pill is inside the bar. Compact leaves more of the video showing around it. The tabs keep their size and their taps.	Wie hoch die schwebende Pille im Haupt-Feed in der Leiste ist. Kompakt lässt mehr vom Video um sie herum frei. Die Tabs behalten ihre Größe und ihre Tippflächen.
+Pill corners	Pillenecken
+Rounder	Runder
+Fully round	Ganz rund
+How round the main feed's floating pill and its glass lens are. Fully round gives them half circle ends.	Wie rund die schwebende Pille im Haupt-Feed und ihre Glaslinse sind. Ganz rund gibt ihnen halbkreisförmige Enden.
+Glass opacity	Glasdeckkraft
+Most see-through	Am durchsichtigsten
+More see-through	Durchsichtiger
+Frosted	Milchglas
+How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least.	Wie viel vom Video im Haupt-Feed durch die Glaspille scheint. Am durchsichtigsten zeigt am meisten und Milchglas am wenigsten.
+On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.	Im Haupt-Feed liegt eine gewölbte Glasblase hinter dem Tab, auf dem du bist, und gleitet zum nächsten Tab, den du wählst. Braucht Liquid-Glass-Look.
+Slide across the tabs	Über die Tabs gleiten
+On the main feed, slide a finger along the glass pill and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	Zieh im Haupt-Feed einen Finger über die Glaspille und die Linse folgt ihm. Lass los und dieser Tab öffnet sich. Tippen und langes Drücken funktionieren wie bisher. Braucht Glaslinse auf dem aktuellen Tab.
+Haptics on the tabs	Haptik auf den Tabs
+On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	Im Haupt-Feed ein leichtes Ticken, jedes Mal wenn die Glaslinse an einem Tab vorbeikommt, ob sie nach einem Tippen oder unter deinem Finger gleitet. Braucht Glaslinse auf dem aktuellen Tab.
+Haptic style	Haptikstil
+Short pulse	Kurzer Impuls
+Phone's click	Klick des Handys
+Soft tick	Sanftes Ticken
+Full tick	Volles Ticken
+The tick on the main feed's tabs. Short pulse is one quick tap of the motor. Phone's click is the click your phone makes elsewhere. Soft tick rings a little longer. Full tick is the phone's strongest tick.	Das Ticken auf den Tabs im Haupt-Feed. Kurzer Impuls ist ein schnelles Antippen des Motors. Klick des Handys ist der Klick, den dein Handy auch sonst macht. Sanftes Ticken klingt etwas länger nach. Volles Ticken ist das stärkste Ticken des Handys.
+Blur strength	Unschärfestärke
+Soft blur	Sanfte Unschärfe
+Strong blur	Starke Unschärfe
+How much the video behind the glass pill on the main feed is blurred.	Wie stark das Video hinter der Glaspille im Haupt-Feed unscharf wird.
 # context: a switch on the Comments page. Language, Settings and privacy and App language are TikTok's own labels: its language page, the menu that page sits in, and the page's first row
 Bring back TikTok's translation	TikToks Übersetzung zurückholen
 Brings back the translation rows on TikTok's Language page, under Settings and privacy, for accounts that only see App language there.	Holt die Übersetzungszeilen auf TikToks Seite Sprache unter Einstellungen und Datenschutz zurück, für Konten, die dort nur App-Sprache sehen.
@@ -2310,3 +2298,11 @@ Some recording files remain. Try deleting them again.	Einige Aufnahmedateien sin
 
 # context: Explicit recording Retry when the original stop reason was not retained.
 Recovered recording saved to %1$s	Wiederhergestellte Aufnahme in %1$s gespeichert
+
+# context: Settings search switch location action, gesture hint, and missing original row.
+Open setting location	Zur Einstellung springen
+Expanded	Ausgeklappt
+Collapsed	Eingeklappt
+This setting isn't available. Search for another setting.	Diese Einstellung ist nicht verfügbar. Suche nach einer anderen Einstellung.
+Hide the Hushfeed row	Hushfeed-Zeile ausblenden
+Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.	Nimmt Hushfeed aus TikToks Einstellungen und Datenschutz. Um diese Einstellungen zu öffnen, halte Für dich oben im Feed gedrückt, oder Startseite, wenn Startseite lange drücken für Hushfeed-Einstellungen an ist.

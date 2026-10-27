@@ -49,7 +49,7 @@ private val expectedManifestRoles = mapOf(
     ),
 )
 
-// Component names and instruction sites match every supported arm64 APK.
+// Component names and instruction sites match every supported APK.
 internal val expectedGuardOwners = mapOf(
     APP_COMMUNICATION to mapOf(
         "activity" to setOf(
@@ -88,8 +88,28 @@ internal val expectedGuardOwners = mapOf(
     ),
 )
 
-/** The six permission loads in 584.0.0.49.98's one arm64 build so far. Generated from 346814894's record. */
-internal val expectedDexSites346814894 = mapOf(
+/** The six permission loads in 584.1.0.61.98's arm64 builds. Generated from 346816935's record. */
+internal val expectedDexSites346816935 = mapOf(
+    "LX/0U4;->A03()V@25" to APP_COMMUNICATION,
+    "LX/0hb;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
+    "LX/1gT;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1gT;Ljava/lang/String;Ljava/lang/String;)V@38" to APP_COMMUNICATION,
+    "LX/2FV;->A01(Landroid/content/Intent;LX/2FV;)V@24" to APP_COMMUNICATION_FORMAT,
+    "LX/31S;->A03(Ljava/lang/Object;IILX/4Ik;)Ljava/lang/Object;@643" to APP_COMMUNICATION_FORMAT,
+    "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0g(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@564" to APP_COMMUNICATION_FORMAT,
+)
+
+/** The six permission loads in 584.1.0.61.98's other arm64 builds. Generated from 346816951's record. */
+internal val expectedDexSites346816951 = mapOf(
+    "LX/0US;->A03()V@25" to APP_COMMUNICATION,
+    "LX/0hn;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
+    "LX/1gv;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1gv;Ljava/lang/String;Ljava/lang/String;)V@38" to APP_COMMUNICATION,
+    "LX/2G9;->A01(Landroid/content/Intent;LX/2G9;)V@24" to APP_COMMUNICATION_FORMAT,
+    "LX/32S;->A04(Ljava/lang/Object;LX/4FR;II)Ljava/lang/Object;@1233" to APP_COMMUNICATION_FORMAT,
+    "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0g(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@564" to APP_COMMUNICATION_FORMAT,
+)
+
+/** The six permission loads in 584.1.0.61.98's arm64 build that keeps 584.0's layout. Generated from 346816973's record. */
+internal val expectedDexSites346816973 = mapOf(
     "LX/0US;->A03()V@25" to APP_COMMUNICATION,
     "LX/0hn;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
     "LX/1gv;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1gv;Ljava/lang/String;Ljava/lang/String;)V@38" to APP_COMMUNICATION,
@@ -98,12 +118,39 @@ internal val expectedDexSites346814894 = mapOf(
     "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0g(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@564" to APP_COMMUNICATION_FORMAT,
 )
 
+/** The six permission loads in 584.1.0.61.98's armv7 builds. Generated from 346816966's record. */
+internal val expectedDexSites346816966 = mapOf(
+    "LX/0fw;->A03()V@25" to APP_COMMUNICATION,
+    "LX/0hw;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
+    "LX/1hL;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1hL;Ljava/lang/String;Ljava/lang/String;)V@38" to APP_COMMUNICATION,
+    "LX/2GZ;->A01(Landroid/content/Intent;LX/2GZ;)V@24" to APP_COMMUNICATION_FORMAT,
+    "LX/32s;->A04(Ljava/lang/Object;LX/4G2;II)Ljava/lang/Object;@1233" to APP_COMMUNICATION_FORMAT,
+    "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0f(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@613" to APP_COMMUNICATION_FORMAT,
+)
+
 /** The loads an unknown build is checked against. */
-internal val expectedDexSites = expectedDexSites346814894
+internal val expectedDexSites = expectedDexSites346816935
 
 /** Each supported build's permission loads, by version code, as scripts/profiles records them. */
 internal val expectedDexSitesByBuild: Map<Int, Map<String, String>> = mapOf(
-    346814894 to expectedDexSites346814894,
+    346816935 to expectedDexSites346816935,
+    346816937 to expectedDexSites346816935,
+    346816939 to expectedDexSites346816935,
+    346816940 to expectedDexSites346816935,
+    346816951 to expectedDexSites346816951,
+    346816955 to expectedDexSites346816951,
+    346816969 to expectedDexSites346816951,
+    346816972 to expectedDexSites346816951,
+    346816973 to expectedDexSites346816973,
+    346817004 to expectedDexSites346816951,
+    346817005 to expectedDexSites346816951,
+    346817021 to expectedDexSites346816951,
+    346817022 to expectedDexSites346816951,
+    346817023 to expectedDexSites346816951,
+    346817024 to expectedDexSites346816951,
+    346816949 to expectedDexSites346816966,
+    346816966 to expectedDexSites346816966,
+    346817019 to expectedDexSites346816966,
 )
 
 internal fun expectedDexSitesFor(
@@ -115,7 +162,7 @@ private fun renamed(name: String): String =
     SHARED_PREFIX + name.removePrefix(META_PREFIX)
 
 private fun unsupportedApk(reason: String, versions: Map<String, List<Int>> = MessengerTarget.VERSIONS) =
-    PatchException("$PATCH_NAME: $reason. Use an unmodified arm64 Messenger ${MessengerTarget.supportedApks(versions)}.")
+    PatchException("$PATCH_NAME: $reason. Use an unmodified Messenger ${MessengerTarget.supportedApks(versions)}.")
 
 /**
  * Every patch that touches Messenger runs this first, and Manager shows whichever dependent patch
@@ -126,7 +173,7 @@ internal fun validateVersionCode(versionCode: String, versions: Map<String, List
     if (versions.values.none { versionCode.toIntOrNull() in it }) {
         throw PatchException(
             "This Messenger build (version code $versionCode) isn't supported yet, so nothing was patched. " +
-                "Use an unmodified arm64 Messenger ${MessengerTarget.supportedApks(versions)}. " +
+                "Use an unmodified Messenger ${MessengerTarget.supportedApks(versions)}. " +
                 "APKMirror lists the version code of every download.",
         )
     }

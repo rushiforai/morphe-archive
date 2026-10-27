@@ -23,7 +23,7 @@ class FishBuddySmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "11.0.125",
+            version = "11.0.137",
             patchNames = setOf("Enable Premium"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

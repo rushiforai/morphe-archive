@@ -1,6 +1,6 @@
 # Gryphou's Morphe Patches
 
-Morphe patch bundle for Crunchyroll and De'Longhi Comfort.
+Morphe patch bundle for Crunchyroll, De'Longhi Comfort, and PETKIT.
 
 ## About
 
@@ -8,11 +8,12 @@ This repository contains Morphe patches that:
 
 - Enable Android Picture-in-Picture for Crunchyroll (`com.crunchyroll.crunchyroid`).
 - Hide the `GetReceivedShares-003` incident popup, remove the login location requirement, and suppress notification permission and app review prompts in De'Longhi Comfort (`com.ddsx_ayla_android`).
+- Remove the Explore (Explorer) section from the home page in PETKIT (`com.petkit.oversea`, version `13.10.1`).
 
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.0](https://github.com/NekoGryphou/gryphous-morphe-patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.3.0](https://github.com/NekoGryphou/gryphous-morphe-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
 <details open>
 <summary>📦 De'Longhi Comfort&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -43,6 +44,21 @@ This repository contains Morphe patches that:
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Enable Picture-in-Picture](#enable-picture-in-picture) | Enables automatic Android Picture-in-Picture when leaving Crunchyroll playback. |  |
+
+</details>
+
+<details open>
+<summary>📦 PETKIT&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 13.10.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Hide Explore section](#hide-explore-section) | Removes the Explore (Explorer) section from the PETKIT home page. |  |
 
 </details>
 

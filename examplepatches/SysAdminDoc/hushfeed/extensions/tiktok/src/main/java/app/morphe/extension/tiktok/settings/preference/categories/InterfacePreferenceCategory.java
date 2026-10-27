@@ -690,24 +690,56 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Show the main feed's tabs on a rounded, see-through dark pill that floats over the video. Needs See-through bottom bar.",
                     Settings.FLOATING_BOTTOM_BAR
             ));
+            addPreference(new ChoicePreference(context, "Pill height", Settings.GLASS_BAR_HEIGHT,
+                    new String[]{"Compact", "Standard"},
+                    new String[]{"compact", "standard"})
+                    .withNote("How tall the main feed's floating pill is inside the bar. Compact leaves more of the video showing around it. The tabs keep their size and their taps."));
+            addPreference(new ChoicePreference(context, "Pill corners", Settings.GLASS_CORNERS,
+                    new String[]{"Standard", "Rounder", "Fully round"},
+                    new String[]{"standard", "rounder", "round"})
+                    .withNote("How round the main feed's floating pill and its glass lens are. Fully round gives them half circle ends."));
             addPreference(new TogglePreference(
                     context,
                     "Liquid glass look",
                     "Draw the main feed's floating pill as glass, lighter and more see-through, with a bright rim along its top edge. Needs Floating bottom bar.",
                     Settings.LIQUID_GLASS_BOTTOM_BAR
             ));
+            addPreference(new ChoicePreference(context, "Glass opacity", Settings.GLASS_OPACITY,
+                    new String[]{"Most see-through", "More see-through", "Standard", "Frosted"},
+                    new String[]{"clear", "light", "standard", "frosted"})
+                    .withNote("How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least."));
             addPreference(new TogglePreference(
                     context,
                     "Glass lens on the current tab",
-                    "On the main feed, a smaller piece of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.",
+                    "On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Needs Liquid glass look.",
                     Settings.GLASS_TAB_LENS
             ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Slide across the tabs",
+                    "On the main feed, slide a finger along the glass pill and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.",
+                    Settings.GLASS_TAB_SLIDE
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Haptics on the tabs",
+                    "On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.",
+                    Settings.GLASS_HAPTICS
+            ));
+            addPreference(new ChoicePreference(context, "Haptic style", Settings.GLASS_HAPTIC_STYLE,
+                    new String[]{"Short pulse", "Phone's click", "Soft tick", "Full tick"},
+                    new String[]{"short", "system", "soft", "full"})
+                    .withNote("The tick on the main feed's tabs. Short pulse is one quick tap of the motor. Phone's click is the click your phone makes elsewhere. Soft tick rings a little longer. Full tick is the phone's strongest tick."));
             addPreference(new TogglePreference(
                     context,
                     "Blur the video behind the bar",
                     "Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.",
                     Settings.GLASS_VIDEO_BLUR
             ));
+            addPreference(new ChoicePreference(context, "Blur strength", Settings.GLASS_BLUR_STRENGTH,
+                    new String[]{"Soft blur", "Standard", "Strong blur"},
+                    new String[]{"light", "standard", "strong"})
+                    .withNote("How much the video behind the glass pill on the main feed is blurred."));
             addPreference(new TogglePreference(
                     context,
                     "See-through status bar",
@@ -762,9 +794,10 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             List<String> tapLabels = new ArrayList<>(Arrays.asList("TikTok default", "Do nothing", "Open comments",
                     "Save the original sound", "Copy the video link", "Copy the sound link",
                     "Find the sound on YouTube Music", "Set a sleep timer that closes TikTok",
-                    "Save the frame on screen as a photo", "Save the video's cover"));
+                    "Save the frame on screen as a photo", "Save the video's cover", "Open the search page"));
             List<String> tapValues = new ArrayList<>(Arrays.asList("default", "nothing", "comments", "original_sound",
-                    "copy_link", "copy_sound_link", "youtube_music", "sleep_timer", "save_frame", "save_cover"));
+                    "copy_link", "copy_sound_link", "youtube_music", "sleep_timer", "save_frame", "save_cover",
+                    "open_search"));
             if (SettingsStatus.liveSpeedEnabled) {
                 tapLabels.add("Speed up this video, double tap again to undo");
                 tapValues.add("speed_toggle");
@@ -801,10 +834,10 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Do nothing", "Like the video", "Open comments", "Save the original sound",
                     "Copy the video link", "Copy the sound link", "Find the sound on YouTube Music",
                     "Set a sleep timer that closes TikTok", "Save the frame on screen as a photo",
-                    "Save the video's cover"));
+                    "Save the video's cover", "Open the search page"));
             List<String> pressValues = new ArrayList<>(Arrays.asList("default", "nothing", "like", "comments",
                     "original_sound", "copy_link", "copy_sound_link", "youtube_music", "sleep_timer", "save_frame",
-                    "save_cover"));
+                    "save_cover", "open_search"));
             if (SettingsStatus.automaticClearDisplayEnabled) {
                 pressLabels.add("Turn Clear display on or off");
                 pressValues.add("clear_display");

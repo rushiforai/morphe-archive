@@ -5,7 +5,7 @@ import com.android.tools.smali.dexlib2.iface.reference.*;
 import java.io.File;
 import java.util.*;
 
-/** Checks the DEX wiring of the Block ads patch in a patched 31.5.2 or 31.6.0 APK. */
+/** Checks the DEX wiring of the Block ads patch in a patched APK (analysed on 31.5.2; declared for 31.6.0 and 31.7.0). */
 class VerifyAdsDex {
     public static void main(String[] args) throws Exception {
         String ads = "Lio/github/sabopura/morphe/extension/twitch/ads/";

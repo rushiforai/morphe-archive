@@ -187,6 +187,24 @@ class MaterialYouTokenFixtureTest {
                     "LX/Qab;-><init>(Landroid/content/Context;)V@116",
                     "LX/Qab;->A0e()V@35",
                 ),
+                // 584's 32-bit build reads the same 18, at the same offsets.
+                "armeabi-v7a" to MAPBOX + setOf(
+                    "LX/AcB;->A0R(Ljava/lang/Integer;)V@16",
+                    "LX/DIN;->A02(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/Integer;@88",
+                    "LX/G9d;->A00(Landroid/content/Context;Lcom/facebook/react/bridge/ReadableMap;)Landroid/graphics/drawable/Drawable;@20",
+                    "LX/Pb9;->F6s(LX/RQz;)V@155",
+                    "LX/Pb9;->F6s(LX/RQz;)V@169",
+                    "LX/Pb9;->F6s(LX/RQz;)V@54",
+                    "LX/Pb9;->F6s(LX/RQz;)V@67",
+                    "LX/Pb9;->F6s(LX/RQz;)V@79",
+                    "LX/Pb9;->F6s(LX/RQz;)V@82",
+                    "LX/Pce;->DHd(LX/enp;I)V@169",
+                    "LX/Pce;->DHd(LX/enp;I)V@226",
+                    "LX/Pce;->DHd(LX/enp;I)V@32",
+                    "LX/QTH;->A04(LX/QTH;LX/QgX;)V@9",
+                    "LX/Qab;-><init>(Landroid/content/Context;)V@116",
+                    "LX/Qab;->A0e()V@35",
+                ),
             ),
         )
     }

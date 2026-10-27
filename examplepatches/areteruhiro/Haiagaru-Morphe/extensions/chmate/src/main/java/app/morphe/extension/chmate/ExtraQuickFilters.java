@@ -655,6 +655,40 @@ public final class ExtraQuickFilters {
         }catch(Exception e){Log.w("Haiagaru","Extended filter dialog",e);return false;}
     }
     private static boolean imageList(Object a) {return QuickFilterToolbar.openImageList(a);}
+    /** Read the visible thread only, at media launch time; no scrolling-time scans or URL cache. */
+    static ArrayList<String> threadMedia(Context context,String selected) {
+        while(context instanceof android.content.ContextWrapper&&!(context instanceof Activity))
+            context=((android.content.ContextWrapper)context).getBaseContext();
+        if(!(context instanceof Activity))return null;
+        ArrayList<String> found=null;
+        for(WeakReference<Object> reference:new ArrayList<>(OWNERS))try{
+            Object fragment=reference.get();if(fragment==null||call(fragment,"getActivity",new Class<?>[0])!=context)continue;
+            View root=(View)call(fragment,"getView",new Class<?>[0]);
+            android.graphics.Rect visible=new android.graphics.Rect();
+            if(root==null||!root.isShown()||!root.hasWindowFocus()||!root.getGlobalVisibleRect(visible)||visible.isEmpty())continue;
+            Object a=adapter(fragment),idx=index(a);
+            Method flags=idx.getClass().getMethod(legacy(a)?"d":middle(a)?"a":"b",int.class);flags.setAccessible(true);
+            List<?> rows=PopularReplies.fullList(field(a,legacy(a)?"K":middle(a)?"J":"o"));
+            LinkedHashSet<String> urls=new LinkedHashSet<>();int characters=0;
+            int inspected=0;
+            for(Object response:rows){
+                if(++inspected>10000)break;
+                if(!response(response))continue;
+                if((((Number)flags.invoke(idx,number(response))).intValue()&0x1010)!=0)continue;
+                Method attachments=response.getClass().getDeclaredMethod(legacy(a)||middle(a)?"d":"haiagaruPatrolAttachments");
+                attachments.setAccessible(true);String[] values=(String[])attachments.invoke(response);
+                if(values!=null)for(String value:values){String url=PreviewUrls.normalize(value);
+                    if(MediaGallery.supported(url)&&!urls.contains(url)){if(characters+url.length()>96000)break;urls.add(url);characters+=url.length();}
+                    if(urls.size()>=4096)break;}
+                if(urls.size()>=4096||characters>=96000)break;
+            }
+            if(!urls.contains(PreviewUrls.normalize(selected)))continue;
+            // Two visible threads with the same URL are ambiguous: preserve the native scope.
+            if(found!=null)return null;
+            found=new ArrayList<>(urls);
+        }catch(ReflectiveOperationException|RuntimeException ignored){}catch(Exception ignored){}
+        return found;
+    }
     public static View unwrap(View view) {return view instanceof Bar?((Bar)view).original:view;}
     public static View legacyRowOwner(Object owner,View row) {return legacyRow(row,owner);}
     public static void bindHolder(Object owner,Object holder,View row) {bind(row,owner);}

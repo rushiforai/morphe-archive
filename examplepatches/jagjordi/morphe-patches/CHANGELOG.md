@@ -1,3 +1,9 @@
+## [1.27.0](https://github.com/jagjordi/morphe-patches/compare/v1.26.0...v1.27.0) (2026-10-26)
+
+### ✨ New Features
+
+* **caltopo:** add Unlock Desktop features patch ([9f8b8e4](https://github.com/jagjordi/morphe-patches/commit/9f8b8e4454ffc9d1b2e932867b6724cd54863c2a))
+
 ## [1.26.0](https://github.com/jagjordi/morphe-patches/compare/v1.25.0...v1.26.0) (2026-10-24)
 
 ### ✨ New Features

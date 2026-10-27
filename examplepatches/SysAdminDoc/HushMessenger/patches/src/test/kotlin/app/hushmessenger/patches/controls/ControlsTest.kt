@@ -244,24 +244,32 @@ class ControlsTest {
         assertEquals(code.lastIndex, code.branchTarget(serverBranch + 4))
     }
 
-    /** The reader has ten registers and keeps false in v5; 583's eight-register reader with its own flag is refused. */
-    @Test fun theNotificationsReaderKeepsFalseInV5AndRefuses583s() {
-        val reader = peopleJewelMethod()
-        reader.injectPeopleSection()
-        val code = reader.implementation!!.instructions.toList()
-        assertEquals("$SETTINGS->hidePeopleSection(Z)Z", (code[12] as ReferenceInstruction).reference.toString())
-        assertEquals("$SETTINGS->keepPeopleSection(Z)Z", (code[22] as ReferenceInstruction).reference.toString())
+    /**
+     * 584 and most 584.1 builds keep false in v5 of ten registers, and some 584.1 arm64 builds in v3 of eight. Either
+     * works while the default stays a local nothing overwrites before the server branch. 583's reader is refused.
+     */
+    @Test fun theNotificationsReaderTakesEitherFalseRegisterAndRefuses583s() {
+        for (reader in listOf(peopleJewelMethod(), peopleJewelMethod(default = "v3", registers = 8, logger = "v4"))) {
+            reader.injectPeopleSection()
+            val code = reader.implementation!!.instructions.toList()
+            assertEquals("$SETTINGS->hidePeopleSection(Z)Z", (code[12] as ReferenceInstruction).reference.toString())
+            assertEquals("$SETTINGS->keepPeopleSection(Z)Z", (code[22] as ReferenceInstruction).reference.toString())
+            assertEquals(code.lastIndex, code.branchTarget(14))
+        }
+        assertEquals(2, listOf(peopleJewelMethod(), peopleJewelMethod(default = "v3", registers = 8, logger = "v4"))
+            .count { CompatMirror.peopleSection(it, PREFERENCE_GETTER) != null })
         val flag583 = "72344188615735036L"
         for (changed in listOf(
-            // The false default has to be in v5 of ten registers.
-            peopleJewelMethod(default = "v3"),
-            peopleJewelMethod(registers = 8),
-            peopleJewelMethod(registers = 9),
+            // v1 holds the preferences, v8 is a parameter, and v2 takes the logger's result before the server branch.
+            peopleJewelMethod(default = "v1"),
+            peopleJewelMethod(default = "v8"),
+            peopleJewelMethod(default = "v2"),
             // 583's reader: its own flag, false in v3 of eight registers.
             peopleJewelMethod(serverFlag = flag583, default = "v3", registers = 8, logger = "v4"),
             peopleJewelMethod(serverFlag = flag583),
         )) {
             val before = changed.implementation!!.instructions.toList()
+            assertNull(CompatMirror.peopleSection(changed, PREFERENCE_GETTER))
             assertFailsWith<PatchException> { changed.injectPeopleSection() }
             assertEquals(before, changed.implementation!!.instructions.toList())
         }
@@ -432,11 +440,13 @@ class ControlsTest {
         assertEquals(Opcode.MOVE_RESULT, code[64].opcode)
         assertEquals(0, (code[64] as OneRegisterInstruction).registerA)
         assertEquals(Opcode.IF_NEZ, code[65].opcode)
+        // 584.1 arm64 gives the same check nine registers, still with false in v2.
+        assertEquals(63, browserCheck(registers = 9).validateBrowserPreference())
         // 582's shape (false in v3 of nine registers, skipping ahead when the answer is off) and any mix of the two are
         // refused before anything changes.
         for ((registers, default, branch) in listOf(
-            Triple(9, 3, "if-eqz"), Triple(9, 3, "if-nez"), Triple(8, 2, "if-eqz"), Triple(8, 3, "if-nez"), Triple(9, 2, "if-nez"),
-            Triple(10, 3, "if-eqz"),
+            Triple(9, 3, "if-eqz"), Triple(9, 3, "if-nez"), Triple(8, 2, "if-eqz"), Triple(8, 3, "if-nez"), Triple(9, 2, "if-eqz"),
+            Triple(10, 3, "if-eqz"), Triple(10, 2, "if-nez"),
         )) {
             val changed = browserCheck(registers, default, branch)
             val before = changed.implementation!!.instructions.toList()

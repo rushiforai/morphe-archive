@@ -508,6 +508,12 @@ public final class SessionPlaybackHold {
         handBackSwitchPause(resume);
     }
 
+    /** A newly created pager can hydrate the scope while its original player is unchanged. */
+    public static boolean switchPlayerNotReplaced() {
+        Target owner = switchHeld;
+        return owner == null || owner == current;
+    }
+
     /**
      * The app lock covers TikTok: the video on screen stops the way the switches stop it, and
      * stays stopped on each report of it playing until {@link #releaseForLock}. Kept apart from
@@ -545,6 +551,8 @@ public final class SessionPlaybackHold {
     /** Pauses the current video for a switch or the lock. Answers whether it paused one. */
     private static boolean pauseForSwitchIfPlaying() {
         if (!(switchWanted || lockWanted) || SessionBudget.isLocked()) return false;
+        app.morphe.extension.tiktok.playback.PausePlayback.onPlaybackPageChanged();
+        if (!(switchWanted || lockWanted)) return false;
         Target target = current;
         if (target == null) return false;
         Object controller = target.controller.get();

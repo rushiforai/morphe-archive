@@ -139,6 +139,18 @@ public class L10nCatalogTest {
         assertEquals(null, placeholderProblem("%1$s of %2$s", "%2$s: %1$s"));
     }
 
+    @Test
+    public void traditionalChineseHasTheCompleteCatalogAndItsOwnFeedAndSaveText() throws IOException {
+        Map<String, String> simplified = readTable("zh-rcn");
+        Map<String, String> traditional = readTable("zh-rtw");
+        assertEquals(simplified.keySet(), traditional.keySet());
+        for (String key : new String[]{"Hide sponsored posts", "Save video"}) {
+            assertTrue("Traditional Chinese has no " + key, traditional.containsKey(key));
+            assertFalse(key + " still reads English", key.equals(traditional.get(key)));
+            assertFalse(key + " reused the Simplified text", simplified.get(key).equals(traditional.get(key)));
+        }
+    }
+
     /**
      * Public writing here uses no em or en dash, and no hyphen standing in for one. A control or
      * invisible formatting character in a table would reach the screen unseen.

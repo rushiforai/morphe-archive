@@ -55,7 +55,7 @@ public final class AuraMCDebugJsonBridge {
         Intent intent = new Intent("android.intent.action.CREATE_DOCUMENT");
         intent.addCategory("android.intent.category.OPENABLE");
         intent.setType("application/json");
-        intent.putExtra("android.intent.extra.TITLE", "mc_overrides.json");
+        intent.putExtra("android.intent.extra.TITLE", "muse_overrides.json");
         activity.startActivityForResult(intent, REQUEST_EXPORT);
     }
 
@@ -81,7 +81,7 @@ public final class AuraMCDebugJsonBridge {
             ContentResolver resolver = activity.getContentResolver();
             if (requestCode == REQUEST_EXPORT) {
                 copyToDocument(overrideFile(activity), resolver.openOutputStream(uri));
-                Toast.makeText(activity, "mc_overrides.json exported", Toast.LENGTH_LONG).show();
+                Toast.makeText(activity, "muse_overrides.json exported", Toast.LENGTH_LONG).show();
             } else {
                 copyToOverrideFile(resolver.openInputStream(uri), overrideFile(activity));
                 Toast.makeText(activity, "Mobile Config overrides imported", Toast.LENGTH_LONG).show();

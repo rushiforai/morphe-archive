@@ -525,8 +525,8 @@ public final class MorpheSettingsActivity extends Activity {
                 + "match Analyze with Lichess. About three times as long as Standard.",
             "5,000,000 positions a move, the most. About five times as long as Deep.",
         };
-        list.addView(caption(meaning[depth] + " Local Stockfish works offline on this phone and marks moves "
-            + "the Lichess way."));
+        list.addView(caption(meaning[depth] + " Local Stockfish works offline on this phone. It judges moves "
+            + "the Lichess way and marks the rest Best, Excellent or Good, as chess.com does."));
     }
 
     private void renderPuzzles() {
@@ -566,10 +566,15 @@ public final class MorpheSettingsActivity extends Activity {
     private LinearLayout offlinePuzzles() {
         LinearLayout offline = card();
         Integer progress = LichessPuzzles.downloadProgress();
-        int stored = LichessPuzzles.storedPuzzles();
-        String status = progress != null ? "Downloading…" + (progress >= 0 ? " " + progress + "%" : "")
-            : stored == 0 ? "None on this phone yet" : String.format(Locale.ROOT, "%,d puzzles on this phone, %,d solved",
-                stored, LichessPuzzles.storedSolved());
+        boolean deleting = LichessPuzzles.deleting();
+        if (deleting) progress = -1;
+        // Counted in the background: the page shows again once they are.
+        int[] counts = progress == null ? LichessPuzzles.counts(this::render) : null;
+        String status = deleting ? "Deleting…"
+            : progress != null ? "Downloading…" + (progress >= 0 ? " " + progress + "%" : "")
+            : counts == null ? "Counting the puzzles on this phone…"
+            : counts[0] == 0 ? "None on this phone yet"
+            : String.format(Locale.ROOT, "%,d puzzles on this phone, %,d solved", counts[0], counts[1]);
         TextView statusText = text(status, 15, TEXT);
         statusText.setPadding(dp(16), dp(14), dp(16), dp(14));
         offline.addView(statusText);
@@ -596,10 +601,10 @@ public final class MorpheSettingsActivity extends Activity {
                     render();
                 }));
             }
-            if (stored > 0) {
+            if (counts != null && counts[0] > 0) {
                 offline.addView(divider(16));
                 offline.addView(actionRow("Delete puzzles", "Frees the space; your rating stays.", () -> {
-                    LichessPuzzles.deletePuzzles();
+                    LichessPuzzles.deletePuzzles(this::render);
                     render();
                 }));
             }
@@ -641,7 +646,7 @@ public final class MorpheSettingsActivity extends Activity {
             list.addView(headline("Game reviews"));
             if (Features.stockfishPatched()) {
                 list.addView(lead("Game Review asks who reviews each game: chess.com, Local Stockfish on this "
-                    + "phone (offline) or Lichess (online). Local Stockfish and Lichess mark moves the Lichess way."));
+                    + "phone (offline) or Lichess (online). Local Stockfish and Lichess judge moves the Lichess way."));
                 reviewDepthChoice();
             } else {
                 list.addView(lead("Game Review asks who reviews each game: chess.com or Lichess (online). Lichess's "

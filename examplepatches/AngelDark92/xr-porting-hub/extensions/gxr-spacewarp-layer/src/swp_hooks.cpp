@@ -16,24 +16,32 @@
 //      write the wrapper pointer, restore PROT_READ.
 //   4. Fail closed on unknown layout at every step; exactly one log line.
 //
-// Pins re-derived from the CURRENT decoded trees, per base [verified 2026-10-17]:
-//   - anchor @ offset 0xfd6fc: the code segment (r-x) IS PT_LOAD-identity for
-//     this lib (p_offset == p_vaddr), so file offset == runtime offset there.
-//   - eglCreateImageKHR GOT slot @ runtime vaddr 0x22fcc8 (single JUMP_SLOT
-//     relocation, exactly one .dynsym import, occurrence count 1). NOTE: this lib
-//     is NOT PT_LOAD-identity in its writable segments (writable PT_LOAD delta is
-//     one 16 KiB page), so this pin is a runtime vaddr, added to dlpi_addr only,
-//     never a file offset.
+// Pins re-derived from the CURRENT decoded trees, per base [initial derivation
+// 2026-10-17; 2.0.24/5002395 added 2026-10-26]. The table now carries one
+// record per supported exact base; the loop below selects by the identity
+// anchor, so a new base is added here together with its gate JSON, Kotlin
+// preconditions and test entry:
+//   - anchor @ offset 0xfd6fc (5002363) / 0xfd304 (5001712) / 0xfd1c0
+//     (5001812) / 0xf9168 (5001968) / 0xfa4a8 (5002244) / 0xfe954 (5002395):
+//     the code segment (r-x) IS PT_LOAD-identity for this lib
+//     (p_offset == p_vaddr), so file offset == runtime offset there.
+//   - eglCreateImageKHR GOT slot: one JUMP_SLOT relocation and exactly one
+//     .dynsym import per base. NOTE: this lib is NOT PT_LOAD-identity in its
+//     writable segments (writable PT_LOAD delta is one 16 KiB page), so a slot
+//     is a runtime vaddr, added to dlpi_addr only, never a file offset.
 // Gate-0 JSONs (frozen evidence, consumed by the Kotlin patch + mirrors test):
-//   patches/src/main/resources/steamlink/androidxr/gxr_spacewarp_gate0_5002363.json
-//   patches/src/main/resources/steamlink/androidxr/gxr_spacewarp_gate0_5001712.json
-//   (regenerate with python -B tests/derive_gate0.py --base <5002363|5001712>;
+//   patches/src/main/resources/steamlink/androidxr/gxr_spacewarp_gate0_<base>.json
+//   (regenerate with python -B tests/derive_gate0.py --base <base>;
 //   never full-file-sha gating; a base's layout is never transplanted).
 //   - 2.0.20/5001712 (brief 13, fresh per-base derivation): identity anchor
 //     0xfd304 (this base's codecs-support audit window; the 5002363 window
 //     0xfd6fc/f5c43c6a... hashes to 692664de... on this lib, so the bases do
 //     NOT share anchor bytes), slot 0x21bb88 (single JUMP_SLOT, exactly one
 //     .dynsym import, occurrence count 1; same non-identity writables).
+//   - 2.0.24/5002395 (2026-10-26): identity anchor 0xfe954 (this base's
+//     codecs-support audit window; window unique), slot 0x232170 (single
+//     JUMP_SLOT, exactly one .dynsym import). See
+//     diagnostics/steamlink-5002395/SPACEWARP-2026-10-26.md.
 
 #include <android/log.h>
 #if !defined(SWP_HOST_TESTS)
@@ -113,14 +121,26 @@ const GOTProfile kProfile5002244 = {
     0x226150,
 };
 
+// 2.0.24/5002395 sixth (2026-10-26): fresh per-base derivation from
+// android-steamlinkvr-release-base-2.0.24-5002395. The identity anchor is this
+// base's codecs-support audit window (0xfe954); the slot is this base's own
+// eglCreateImageKHR JUMP_SLOT.
+const GOTProfile kProfile5002395 = {
+    "2.0.24/5002395",
+    0xfe954,
+    "ef7f310bbd65499404aa89a18f873c42a87282a16799b84119c75377654003a3",
+    0x232170,
+};
+
 // Runtime base selection (the codecs-support-layer anchor-identity pattern):
 // the loop below hashes each profile's anchor window at the dl_iterate_phdr
 // base in this order; the first matching profile wins; no match = the same
 // fail-closed stand-down as before (unknown layouts never gain interception).
 const GOTProfile* const kProfiles[] = {
     &kProfile5002363, &kProfile5001712, &kProfile5001812, &kProfile5001968, &kProfile5002244,
+    &kProfile5002395,
 };
-constexpr size_t kProfileCount = 5;
+constexpr size_t kProfileCount = 6;
 
 std::atomic<int> g_state{0};  // 0 = pending, 1 = armed, 2 = failed closed / disabled
 std::atomic<bool> g_busy{false};
@@ -154,9 +174,10 @@ extern "C" bool SwpHooksArmed() { return g_state.load() == 1; }
 
 #if defined(SWP_HOST_TESTS)
 // Host tests drive a synthetic scene mapping; there is no dynamic linker, so the
-// residency and slot-owner probes degrade to the pre-existing patch path.
+// EGL resolution is injected so the production pointer check is still exercised.
 bool IsOwnAddress(void*) { return false; }
-bool IsSceneAddress(void*) { return true; }
+void* g_testEglExport = reinterpret_cast<void*>(0xE6C0);
+void* ResolveEglCreateImage() { return g_testEglExport; }
 #else
 // The loader dlcloses a layer with the XR instance that mounted it while its
 // wrapper stays in the scene GOT; keep this copy mapped so the next instance can
@@ -178,12 +199,18 @@ bool IsOwnAddress(void* address) {
            std::strstr(info.dli_fname, "libgxr_spacewarp.so");
 }
 
-bool IsSceneAddress(void* address) {
-    Dl_info info{};
-    return address && dladdr(address, &info) && info.dli_fname &&
-           std::strstr(info.dli_fname, kSceneSoname);
+void* ResolveEglCreateImage() {
+    // This is an imported EGL entry point, not a function owned by the scene.
+    // Resolve the public dependency explicitly rather than accepting arbitrary
+    // foreign pointers or assuming a device-specific EGL implementation path.
+    static void* const egl = dlopen("libEGL.so", RTLD_NOW | RTLD_LOCAL);
+    return egl ? dlsym(egl, "eglCreateImageKHR") : nullptr;
 }
 #endif  // SWP_HOST_TESTS
+
+bool IsExpectedEglAddress(void* address) {
+    return address && address == ResolveEglCreateImage();
+}
 
 extern "C" bool SwpHooksArm() {
     int current = g_state.load();
@@ -256,8 +283,8 @@ extern "C" bool SwpHooksArm() {
             chosen->build, chosen->slotEglCreateImageKHR);
         return true;
     }
-    if (!IsSceneAddress(original)) {
-        LOG("eglCreateImageKHR GOT slot holds a foreign pointer; no interception"
+    if (!IsExpectedEglAddress(original)) {
+        LOG("eglCreateImageKHR GOT slot does not match the resolved EGL export; no interception"
             " (fail closed)");
         g_state.store(2);
         g_busy.store(false);

@@ -1,0 +1,69 @@
+name: "\U0001F4E6 App update request"
+description: A supported app has a newer version — request that patches be updated for it.
+labels: ["app-update"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this when a supported app has released a new version and the current patches don't work on it.
+
+        - App not supported at all? [Request it in Discussions](https://github.com/totsiaw/proxma-patches/discussions/new?category=app-requests).
+  - type: dropdown
+    id: app
+    attributes:
+      label: App (current supported version)
+      options:
+        # generated:targets
+        - "foodpanda 26.38.1"
+        - "foodpanda (another version, type it below)"
+        - "inDrive 5.188.0"
+        - "inDrive 5.189.0"
+        - "inDrive (another version, type it below)"
+        - "Investify 5.6.0"
+        - "Investify (another version, type it below)"
+        - "MTProxy 2.1.4"
+        - "MTProxy (another version, type it below)"
+        - "My Telenor 4.2.63"
+        - "My Telenor (another version, type it below)"
+        - "MyZong 5.19.19.112"
+        - "MyZong (another version, type it below)"
+        - "NetMonster 4.0.4"
+        - "NetMonster 5.0.0"
+        - "NetMonster 5.0.1"
+        - "NetMonster (another version, type it below)"
+        - "OLX 18.8.0"
+        - "OLX (another version, type it below)"
+        - "OLX India 20.07.001"
+        - "OLX India (another version, type it below)"
+        - "Safar 3.0.1"
+        - "Safar (another version, type it below)"
+        - "Simosa 3.3.4.2"
+        - "Simosa 3.3.5"
+        - "Simosa (another version, type it below)"
+        - "Storywise 1.0.3"
+        - "Storywise (another version, type it below)"
+        # /generated
+    validations:
+      required: true
+  - type: input
+    id: new-version
+    attributes:
+      label: New version available
+      description: The newer version number from the Play Store or APK source.
+      placeholder: "1.2.4"
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional info
+      description: Did patching fail, or did you just notice the version mismatch?
+    validations:
+      required: false
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched open and closed issues and this isn't a duplicate.
+          required: true

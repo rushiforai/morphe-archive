@@ -8,6 +8,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.*;
 import com.android.tools.smali.dexlib2.iface.reference.*;
 import com.android.tools.smali.dexlib2.immutable.ImmutableDexFile;
 import com.android.tools.smali.dexlib2.writer.pool.DexPool;
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction;
 import java.io.File;
 import java.nio.file.*;
 import java.util.*;
@@ -25,6 +26,19 @@ public class VerifyPosterIdChainHooks {
         return instruction instanceof ReferenceInstruction r && r.getReference() instanceof MethodReference m
                 && m.getDefiningClass().equals(EXT) && m.getName().equals(name);
     }
+    static boolean sameRead(Instruction a, Instruction b) {
+        return a.getOpcode()==Opcode.IGET_OBJECT && b.getOpcode()==Opcode.IGET_OBJECT
+            && a instanceof TwoRegisterInstruction x && b instanceof TwoRegisterInstruction y
+            && x.getRegisterA()==y.getRegisterA() && x.getRegisterB()==y.getRegisterB()
+            && ((ReferenceInstruction)a).getReference().equals(((ReferenceInstruction)b).getReference());
+    }
+    static boolean nativeMap(BytecodePatchContext context, String type) {
+        if(type.equals("Ljava/util/Map;"))return true;
+        if(type.startsWith("Ljava/")||type.startsWith("Lj$/"))return false;
+        ClassDef cls=context.classDefBy(type);
+        for(String parent:cls.getInterfaces())if(nativeMap(context,parent))return true;
+        return cls.getSuperclass()!=null && nativeMap(context,cls.getSuperclass());
+    }
     public static void main(String[] args) throws Exception {
         String[][] profiles = {
             {"191 dev","Lo/m9ExternalSyntheticLambda1;","SE_","K","C","Lo/processAdDisplayErrorPostbackForUserError;","h","c","c"},
@@ -33,7 +47,8 @@ public class VerifyPosterIdChainHooks {
             {"242 dev","Lo/zzaW;","c","a","c","Lo/KeJ11;","g","h",""},
             {"243 dev","Lo/zzdpd;","e","b","a","Lo/zzabv;","h","j",""}
         };
-        check(args.length == profiles.length, "Provide APKs in 191/226/241/242/243 order");
+        if (args.length == 3) profiles = new String[][] {profiles[0], profiles[1], profiles[3]};
+        check(args.length == profiles.length, "Provide APKs in 191/226/242 or 191/226/241/242/243 order");
         for (int p=0; p<profiles.length; p++) {
             String[] profile = profiles[p];
             File temp = Path.of("build/verification/poster-id-chain/hooks-"+p).toAbsolutePath().toFile();
@@ -43,7 +58,41 @@ public class VerifyPosterIdChainHooks {
             try (BytecodePatchContext context = new BytecodePatchContext(config,
                     new PackageMetadata("jp.co.airfront.android.a2chMate","0.8.10."+profile[0],"1",null))) {
                 context.decodeDexFiles$morphe_patcher();
+                String hiddenOwner = profile[0].startsWith("242")
+                    ? "Ljp/syoboi/a2chMate/ui/reslist/ResListFragmentViewModel$onBackPressedInput_delegatelambda0$3;" : profile[1];
+                String hiddenMethod = profile[0].startsWith("242") ? "invokeSuspend" : profile[8];
+                Method before = null;
+                if(!hiddenMethod.isEmpty()) for(Method m:context.mutableClassDefBy(hiddenOwner).getMethods())
+                    if(m.getName().equals(hiddenMethod) && m.getParameterTypes().equals(List.of(profile[0].startsWith("242")?"Ljava/lang/Object;":"Z"))) before=m;
+                List<Instruction> hiddenBefore = before == null ? List.of() : code(before);
+                Map<Instruction, Instruction> branchTargets = new IdentityHashMap<>();
+                for(Instruction i:hiddenBefore)if(i instanceof BuilderOffsetInstruction b)
+                    branchTargets.put(i,b.getTarget().getLocation().getInstruction());
+                int hiddenRegisters = before == null ? 0 : before.getImplementation().getRegisterCount();
                 PosterIdChainNgPatchKt.patchPosterIdChainNg(context);
+                if(before != null) {
+                    List<Instruction> after=code(before);
+                    int hiddenCalls=0;
+                    for(int i=0;i<after.size();i++)if(call(after.get(i),"applyHidden")) {
+                        hiddenCalls++;
+                        FiveRegisterInstruction hook=(FiveRegisterInstruction)after.get(i);
+                        check(hook.getRegisterCount()==1,"hidden filter takes only owner");
+                        check(after.get(i+1).getOpcode()==Opcode.IGET_OBJECT && after.get(i+1) instanceof TwoRegisterInstruction r
+                            && r.getRegisterB()==hook.getRegisterC(),"hidden filter precedes native map read with exact owner");
+                        Instruction anchor=after.get(i+1);
+                        for(var branch:branchTargets.entrySet()) if(sameRead(branch.getValue(),anchor))
+                            check(((BuilderOffsetInstruction)branch.getKey()).getTarget().getLocation().getInstruction()==after.get(i),
+                                "native jumps into filtering phase execute hidden hook");
+                    }
+                    check(hiddenCalls==1,"one transparent filter hook");
+                    check(before.getImplementation().getRegisterCount()==hiddenRegisters,"hidden filter register count unchanged");
+                    after.removeIf(i->call(i,"applyHidden")||call(i,"reset"));
+                    check(after.size()==hiddenBefore.size(),"original hidden-filter instruction count retained");
+                    for(int i=0;i<after.size();i++)check(after.get(i)==hiddenBefore.get(i)||sameRead(after.get(i),hiddenBefore.get(i)),
+                        "original hidden-filter instruction/branch retained at "+i);
+                    Path hiddenDex=temp.toPath().resolve("hidden-filter.dex");Files.createDirectories(hiddenDex.getParent());
+                    DexPool.writeTo(hiddenDex.toString(),new ImmutableDexFile(Opcodes.getDefault(),List.of(context.mutableClassDefBy(hiddenOwner))));
+                }
                 ClassDef owner = context.mutableClassDefBy(profile[1]);
                 Method target = null;
                 for (Method method : owner.getMethods()) {
@@ -92,6 +141,18 @@ public class VerifyPosterIdChainHooks {
                     if(field.getName().equals(profile[4]))matcher=field.getType();
                 }
                 check(rows && matcher!=null,"native source list and WORD matcher");
+                if(before!=null) {
+                    String mapName=profile[0].startsWith("191")?"N":profile[0].startsWith("226")?"K":"j";
+                    String mapType=null;
+                    for(Field f:owner.getInstanceFields())if(f.getName().equals(mapName))mapType=f.getType();
+                    check(mapType!=null && (mapType.equals("Landroid/util/SparseIntArray;")||nativeMap(context,mapType)),
+                        "transparent NG map implements SparseIntArray or java.util.Map");
+                    String number=profile[0].startsWith("226")?"l":"o";
+                    String anchors=profile[0].startsWith("191")?"d":profile[0].startsWith("226")?"a":"b";
+                    Set<String> fields=new HashSet<>();
+                    for(Field f:context.classDefBy(profile[5]).getInstanceFields())fields.add(f.getName()+":"+f.getType());
+                    check(fields.contains(number+":I")&&fields.contains(anchors+":[I"),"native response number and parsed anchor fields");
+                }
                 boolean items=false;
                 for(String type=matcher; type!=null && !type.equals("Ljava/lang/Object;" );) {
                     ClassDef cls=context.classDefBy(type);
@@ -108,7 +169,7 @@ public class VerifyPosterIdChainHooks {
                 Path dex=temp.toPath().resolve("ng-engine.dex"); Files.createDirectories(dex.getParent());
                 DexPool.writeTo(dex.toString(),new ImmutableDexFile(Opcodes.getDefault(),List.of(owner)));
                 check(Files.size(dex)>0,"patched engine serialized");
-                System.out.println("PASS "+profile[0]+" production hook, argument registers, native model/rule layout and DEX serialization");
+                System.out.println("PASS "+profile[0]+" production hooks, original instructions/registers, transparent-filter branch targets, native maps/anchors/rules and DEX serialization");
             }
             System.gc();
         }

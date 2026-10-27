@@ -33,16 +33,36 @@ public final class SaveDownloadsForTests {
         final boolean fileOrSong;
         final boolean forbidden;
         final boolean secret;
+        /** Whether it's a photo or a video, and a photo's size Telegram shows it at. */
+        final boolean photoOrVideo;
+        final Document photo;
 
         Message(Document document, boolean fileOrSong, boolean forbidden) {
             this(document, fileOrSong, forbidden, false);
         }
 
         Message(Document document, boolean fileOrSong, boolean forbidden, boolean secret) {
+            this(document, fileOrSong, forbidden, secret, false, null);
+        }
+
+        private Message(Document document, boolean fileOrSong, boolean forbidden, boolean secret, boolean photoOrVideo,
+                Document photo) {
             this.document = document;
             this.fileOrSong = fileOrSong;
             this.forbidden = forbidden;
             this.secret = secret;
+            this.photoOrVideo = photoOrVideo;
+            this.photo = photo;
+        }
+
+        /** A photo message, its biggest size named [size]. */
+        static Message photo(Document size, boolean forbidden, boolean secret) {
+            return new Message(null, false, forbidden, secret, true, size);
+        }
+
+        /** A video message, whose file is its document. */
+        static Message video(Document video, boolean forbidden) {
+            return new Message(video, false, forbidden, false, true, null);
         }
     }
 
@@ -87,6 +107,16 @@ public final class SaveDownloadsForTests {
         @Override
         public String documentName(Object document) {
             return ((Document) document).name;
+        }
+
+        @Override
+        public boolean photoOrVideo(Object message) {
+            return ((Message) message).photoOrVideo;
+        }
+
+        @Override
+        public Object photo(Object message) {
+            return ((Message) message).photo;
         }
     };
 

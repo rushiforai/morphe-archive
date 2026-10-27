@@ -473,6 +473,10 @@ Use the order below. A choice made on a post lasts until restart. Links to comme
 Hide Meta AI comment summaries	Sembunyikan ringkasan komentar Meta AI
 # context: summary of that switch; the buttons are a post's Like, Comment and Share row
 Hides Meta AI's summary at the top of comments and the comment summary under a post's buttons. The comments themselves stay.	Menyembunyikan ringkasan Meta AI di bagian atas komentar dan ringkasan komentar di bawah tombol postingan. Komentarnya sendiri tetap ada.
+# context: switch title under Comments; the few comments Facebook shows under a post in the feed, below its Like, Comment and Share row
+Hide comments under posts	Sembunyikan komentar di bawah postingan
+# context: summary of that switch; Comment is the post's Comment button
+Feed posts stop showing a few comments under their buttons. Tap Comment to read them all.	Postingan di feed tidak lagi menampilkan komentar di bawah tombolnya. Ketuk Komentari untuk membaca semuanya.
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	Hanya Suka
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -739,16 +743,10 @@ Active. Marketplace, Notifications and Profile/Menu stay. Find Hushfacebook sett
 Active. Events, Notifications and Profile/Menu stay. Find Hushfacebook settings in Menu, under Settings and privacy.	Aktif. Acara, Notifikasi, dan Profil/Menu tetap ada. Setelan Hushfacebook ada di Menu, pada Pengaturan dan privasi.
 
 # context: Settings overview, category navigation and search.
-Marketplace only, Events only and your start tab	Mode Marketplace, mode Acara, dan tab awal
 Ads, suggestions and word filters	Iklan, saran, dan filter kata
-Suggestions, saving, auto-advance and viewing anonymously	Saran, penyimpanan, perpindahan otomatis, dan melihat secara anonim
 Cleaner reels and video controls	Reels lebih bersih dan kontrol video
 Tap to play, quality and resume	Ketuk untuk memutar, kualitas, dan melanjutkan
 Quality, format and file names	Kualitas, format, dan nama file
-Settings	Pengaturan
-Browse settings	Jelajahi pengaturan
-More settings	Pengaturan lainnya
-Additional Facebook preferences	Preferensi Facebook tambahan
 No matching settings	Tidak ada pengaturan yang cocok
 %1$d setting found	%1$d pengaturan ditemukan
 %1$d settings found	%1$d pengaturan ditemukan
@@ -1571,13 +1569,8 @@ Report a problem	Laporkan masalah
 Opens a GitHub report with your versions and settings filled in. Add what happened.	Membuka laporan GitHub dengan versi dan pengaturan Anda yang sudah terisi. Tambahkan apa yang terjadi.
 # context: row near the top of the settings home page; a list of ready-made sets of switches
 Quick setups	Pengaturan cepat
-Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	Nyalakan sekumpulan sakelar dengan sekali ketuk, atau kembalikan setiap sakelar seperti semula. Tekan dan tahan untuk menyembunyikan baris ini.
 # context: toast after a long press hides the Quick setups row from the settings home page; the page name is the one holding the row that brings it back
-Quick setups hidden. Bring it back from %1$s.	Pengaturan cepat disembunyikan. Tampilkan lagi lewat %1$s.
 # context: row on the Pause, backup and diagnostics page; shows or hides the Quick setups row on the settings home page
-Quick setups on the home page	Pengaturan cepat di Beranda
-Shown. Tap to hide it.	Ditampilkan. Ketuk untuk menyembunyikan.
-Hidden. Tap to show it again.	Disembunyikan. Ketuk untuk menampilkannya lagi.
 # context: name of a Quick setups choice that hides ads and nags; an adjective, as in a quiet feed
 Quiet	Tenang
 Hides ads, suggestions, promos and prompts, and stops nagging notifications.	Menyembunyikan iklan, saran, promosi, dan ajakan, serta menghentikan notifikasi yang mengganggu.
@@ -1630,7 +1623,7 @@ On carriers with Facebook Flex, hides the purple Free mode bar. That bar is also
 # context: switch title under Picture-in-picture on the Playback page: the small window opens only from the Picture-in-picture row this adds to a reel's three-dot More menu, not when you leave Facebook
 Only from a reel's More menu	Hanya dari menu reel
 # context: summary of that switch; Picture-in-picture is the name of the row in the reel's menu, translated as the row is; the three dots are the reel's own menu button
-Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu (the three dots) when you want one. That row is there whenever Picture-in-picture is on.	Keluar dari Facebook tidak membuka jendela. Ketuk Gambar dalam gambar di menu reel (tiga titik) saat kamu menginginkannya. Baris itu ada setiap kali Gambar dalam gambar aktif.
+Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu (the three dots) when you want one. That row shows on upright reels, not wide ones.	Keluar dari Facebook tidak membuka jendela. Ketuk Gambar dalam gambar di menu reel (tiga titik) saat kamu menginginkannya. Baris itu ada di reel tegak, bukan di reel lebar.
 # context: switch title under Picture-in-picture on the Playback page; the button floats over a reel or video and opens the small window when tapped
 Picture-in-picture button	Tombol gambar dalam gambar
 # context: summary of that switch; "the window" is the small picture-in-picture window
@@ -1686,6 +1679,8 @@ Keeps the Messenger button but drops the unread count on it.	Tombol Messenger te
 Hide the Facebook logo	Sembunyikan logo Facebook
 # context: summary of that switch; Hushfacebook is the app's name and stays as it is; press and hold is a long press
 Hides the Facebook logo in the top bar. The empty spot is the same size and still opens Hushfacebook settings when you press and hold it. Restart Facebook to see the change.	Menyembunyikan logo Facebook di bilah atas. Ruang kosongnya berukuran sama dan tetap membuka pengaturan Hushfacebook saat ditekan lama. Mulai ulang Facebook untuk melihat perubahannya.
+Hide the Create button	Sembunyikan tombol Buat
+Takes the + button for making a post, reel or story out of the top bar. Restart Facebook to see the change.	Menghapus tombol + untuk membuat postingan, reel, dan cerita dari bilah atas. Mulai ulang Facebook untuk melihat perubahannya.
 # context: switch title under News feed; the counts are the numbers on the Like, Comment and Share buttons under a post
 Hide counts on posts	Sembunyikan angka di postingan
 # context: summary of that switch; Like, Comment and Share are Facebook's own button labels, so use Facebook's wording in your language
@@ -1694,6 +1689,9 @@ Takes the numbers off the Like, Comment and Share buttons under posts, so each s
 Hide counts on reels	Sembunyikan angka di reel
 # context: summary of that switch; Like, Comment and Share are Facebook's own button labels, so use Facebook's wording in your language
 Takes the numbers away from under a reel's Like, Comment and Share icons. The icons stay where they are. A change shows from the next reel.	Menghapus angka di bawah ikon Suka, Komentari, dan Bagikan pada reel. Ikon tetap di tempatnya. Perubahan terlihat mulai reel berikutnya.
+# context: Reels and Watch switch for the dedicated WhatsApp sidebar button, independent of the Share menu
+Hide WhatsApp on reels	Sembunyikan WhatsApp di reel
+Hides the WhatsApp button beside reels and videos. WhatsApp stays in the Share menu. A change shows from the next video.	Menyembunyikan tombol WhatsApp di samping reel dan video. WhatsApp tetap ada di menu Bagikan. Perubahan berlaku mulai video berikutnya.
 # context: switch title under Reels and Watch; Save is Facebook's own label for the bookmark button down a reel's right side, so use Facebook's wording in your language
 Hide Save on reels	Sembunyikan Simpan di reel
 # context: summary of that switch; the buttons under it are Download and More
@@ -1929,3 +1927,14 @@ Couldn't remove the header picture. Try again.	Gambar header tidak dapat dihapus
 The app holding that picture is taking too long, so Hushfacebook stopped waiting. The top of Home didn't change.	Aplikasi yang menyimpan gambar itu terlalu lama, jadi Hushfacebook berhenti menunggu. Bagian atas Beranda tidak berubah.
 # context: toast when a tap on Home header picture comes while the last stalled app still holds a worker
 The app holding the last picture still hasn't answered. Try again later.	Aplikasi yang menyimpan gambar terakhir masih belum merespons. Coba lagi nanti.
+Inline feed video controls	Kontrol video di beranda
+Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls.	Menambahkan tombol putar/jeda pada video di beranda. Ketuk video untuk membukanya dalam layar penuh. Video siaran langsung dan iklan tetap memakai kontrolnya sendiri.
+Play feed video	Putar video beranda
+Pause feed video	Jeda video beranda
+Support	Bantuan
+Reports, restart and app information	Laporan, mulai ulang, dan informasi aplikasi
+Your start tab and launch settings	Tab awal dan pengaturan saat dibuka
+Saving, playback and anonymous viewing	Menyimpan, memutar, dan menonton secara anonim
+Sorting, replies and reactions	Urutan, balasan, dan reaksi
+Expanded	Diperluas
+Collapsed	Diciutkan

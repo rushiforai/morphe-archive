@@ -409,18 +409,49 @@ private fun bubbleShortcutField(byType: Map<String, ClassDef>, shortcut: Method)
         ref?.name == "<init>" && ref.definingClass == shortcut.returnType &&
             ref.bubbleParameters().toList().contains(SHORTCUT) &&
             s.argument(at, ref.bubbleParameters().indexOf(SHORTCUT) + 1)?.let { s.callValue(at, it) == build } == true
-    } ?: return null
-    if (!s.returns(s.key(containerCtor, s.argument(containerCtor, 0)!!))) return null
-    val constructor = target(s.reference(containerCtor)) ?: return null
-    val cf = BubbleValues(constructor)
-    val shortcutRegister = cf.parameter(SHORTCUT) ?: return null
-    val shortcutField = cf.code.indices.mapNotNull { at ->
-        val i = cf.code[at] as? TwoRegisterInstruction ?: return@mapNotNull null
-        val ref = (i as? ReferenceInstruction)?.reference as? FieldReference ?: return@mapNotNull null
-        ref.takeIf { cf.code[at].opcode == Opcode.IPUT_OBJECT && it.type == SHORTCUT &&
-            cf.key(at, i.registerA) == cf.key(0, shortcutRegister) && cf.key(at, i.registerB) == cf.key(0, cf.self()) }
-    }.singleOrNull() ?: return null
-    return shortcutField
+    }
+    if (containerCtor != null && s.returns(s.key(containerCtor, s.argument(containerCtor, 0)!!))) {
+        val constructor = target(s.reference(containerCtor)) ?: return null
+        val cf = BubbleValues(constructor)
+        val shortcutRegister = cf.parameter(SHORTCUT) ?: return null
+        val shortcutField = cf.code.indices.mapNotNull { at ->
+            val i = cf.code[at] as? TwoRegisterInstruction ?: return@mapNotNull null
+            val field = (i as? ReferenceInstruction)?.reference as? FieldReference ?: return@mapNotNull null
+            field.takeIf { cf.code[at].opcode == Opcode.IPUT_OBJECT && it.type == SHORTCUT &&
+                cf.key(at, i.registerA) == cf.key(0, shortcutRegister) && cf.key(at, i.registerB) == cf.key(0, cf.self()) }
+        }.singleOrNull()
+        if (shortcutField != null) return shortcutField
+    }
+    // 584.1 armv7 builds the shortcut into a holder, then copies it onto the returned container in the container
+    // constructor. Follow the holder field through the container constructor to the field readers use.
+    val holderFields = s.code.indices.mapNotNull { at ->
+        val i = s.code[at] as? TwoRegisterInstruction ?: return@mapNotNull null
+        val field = (i as? ReferenceInstruction)?.reference as? FieldReference ?: return@mapNotNull null
+        field.takeIf { s.code[at].opcode == Opcode.IPUT_OBJECT && it.type == SHORTCUT &&
+            s.callValue(at, i.registerA) == build }
+    }
+    if (holderFields.size == 1) {
+        val holderField = holderFields.single()
+        for (at in s.calls()) {
+            val ref = s.reference(at) ?: continue
+            if (ref.name != "<init>" || ref.definingClass != shortcut.returnType) continue
+            val constructor = target(ref) ?: continue
+            val cf = BubbleValues(constructor)
+            val holder = cf.parameter(holderField.definingClass) ?: continue
+            for (site in cf.code.indices) {
+                val i = cf.code[site] as? TwoRegisterInstruction ?: continue
+                val field = (i as? ReferenceInstruction)?.reference as? FieldReference ?: continue
+                if (cf.code[site].opcode != Opcode.IPUT_OBJECT || field.definingClass != shortcut.returnType ||
+                    field.type != SHORTCUT) continue
+                val definition = cf.definitions(site, i.registerA).singleOrNull() ?: continue
+                if (definition < 0 || cf.code[definition].opcode != Opcode.IGET_OBJECT) continue
+                val read = cf.code[definition] as? TwoRegisterInstruction ?: continue
+                if ((read as? ReferenceInstruction)?.reference?.toString() != holderField.toString()) continue
+                if (cf.key(definition, read.registerB) == cf.key(0, holder)) return field
+            }
+        }
+    }
+    return null
 }
 
 private fun connectedBubbleValues(classes: List<ClassDef>, shortcut: Method, attachment: Method,

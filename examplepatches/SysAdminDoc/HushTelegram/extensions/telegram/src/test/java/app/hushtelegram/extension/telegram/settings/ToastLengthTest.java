@@ -32,7 +32,7 @@ public class ToastLengthTest {
     private static final int ENGLISH_LIMIT = 64;
     // Translations run longer than English. This catches the ones that run far longer.
     private static final int TRANSLATION_LIMIT = 80;
-    private static final String[] LANGUAGES = {"de", "es", "in", "pt-rBR", "tr"};
+    private static final String[] LANGUAGES = {"bg", "de", "es", "in", "pt-rBR", "tr"};
 
     // ChatTypeFolders.switchBack hands its text back to be shown, as the folder switch's toast.
     private static final Pattern TOAST_CALL = Pattern.compile("\\b(?:showToastShort|showToastLong|watch|makeText|switchBack)\\(");

@@ -199,6 +199,8 @@ function Test-SelectionRefusal {
        1.19.0 (patcher 2.0): stepResults with an error text, failures as {name, error}, failureReason
        and failureDetail, no result file for an unreadable options file, and log lines led by ERROR:. #>
     param([object]$Selection, [object]$Report, [string]$PrivateLog, [object]$Stock)
+    # 1.19.1 prints each stack line in italics, and the style codes in front of the tab hide every frame from the line checks.
+    $PrivateLog = $PrivateLog -replace "$([char]27)\[[0-9;]*m", ''
     $exceptions = @([regex]::Matches($PrivateLog,
         '(?m)^[ \t]*(?:(?:Caused by|Suppressed):[ \t]*|Exception in thread "[^"\r\n]+" )?([\w.$]+(?:Exception|Error))(?::|[ \t]*\r?$)') | ForEach-Object { $_.Groups[1].Value })
     if ($null -eq $Report) {
@@ -387,7 +389,7 @@ function Invoke-PatchSelectionMatrix {
             $expected = Get-SelectionExpectation -Catalog $catalog -StatusModel $model -Selection $selection
             $expectationPath = Join-Path $caseDir 'expectation-private.json'
             [IO.File]::WriteAllText($expectationPath, ($expected | ConvertTo-Json -Depth 8), [Text.UTF8Encoding]::new($false))
-            $arguments = @('-Xmx2g', '-XX:ActiveProcessorCount=2', '-jar', $DesktopJar, 'patch', '--unsigned', '-p', $Bundle,
+            $arguments = @('-Xmx2g', '-XX:ActiveProcessorCount=2', '-jar', $DesktopJar, 'patch', '--validate', '--unsigned', '-p', $Bundle,
                 '-o', $output, '-t', $temporary, '-r', $reportPath)
             if (-not $selection.Default) {
                 $arguments += '--exclusive'

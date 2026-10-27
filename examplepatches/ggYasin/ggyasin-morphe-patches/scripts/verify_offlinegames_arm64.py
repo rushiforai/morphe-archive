@@ -122,6 +122,10 @@ def verify(args):
         check(manifest['abi'] == 'arm64-v8a' and manifest['version'] == '3.15.3', 'ARM64 manifest selects correct version/ABI')
         for name in ('libmain.so','libunity.so','libil2cpp.so'):
             check(hashlib.sha256(apk.read('lib/arm64-v8a/'+name)).hexdigest() == manifest[name], name+' matches final manifest')
+        strict_loader = manifest.get('loader') == 'strict-v2'
+        if strict_loader:
+            from verify_strict_loader import verify as verify_loader
+            verify_loader(apk.read('lib/arm64-v8a/libmain.so'), 'arm64-v8a')
         expected = bytearray(original)
         edits = EDITS | (STARTUP if args.fast_startup else {})
         for offset, replacement in edits.items(): expected[offset:offset+4] = bytes.fromhex(replacement)
@@ -143,9 +147,15 @@ def verify(args):
         load = next(m for m in player.get_methods() if m.get_name() == 'loadNative')
         instructions = list(load.get_instructions())
         call = next(i for i, ins in enumerate(instructions) if 'NativeLoader;->load(' in ins.get_output())
-        check('NativeLibraries;->verifyLoaded()' in instructions[call+3].get_output(), 'Post-load diagnostic hook present')
+        if strict_loader:
+            from verify_strict_loader import verify_dex, verify_extension
+            verify_dex(player)
+            verify_extension(classes)
+        else:
+            check('NativeLibraries;->verifyLoaded()' in instructions[call+3].get_output(), 'Post-load diagnostic hook present')
         for name in ('NativeLibraryStore','NativeLibraries','NativeLoadStatus'):
-            check('Lapp/patchlab/extension/offlinegames/'+name+';' in classes, name+' present')
+            prefix='Lapp/patchlab/extension/offlinegames/' + ('strictv2/' if strict_loader else '')
+            check(prefix+name+';' in classes, name+' present')
     execute(original, data, args.fast_startup)
     print('OUTPUT SHA-256', hashlib.sha256(data).hexdigest())
     print('ARM64 instructions executed with engine calls stubbed; device behavior remains unverified.')

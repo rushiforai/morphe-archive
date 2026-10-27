@@ -51,7 +51,7 @@ fun MutableMethod.addHevalGate(
         throw PatchException("$definingClass->$name has no instruction at index $index")
     }
     val anchor = getInstruction(index)
-    if (anchor.opcode.name.startsWith("MOVE_RESULT") || anchor.opcode == Opcode.MOVE_EXCEPTION) {
+    if (anchor.opcode in UNSPLITTABLE_OPCODES) {
         throw PatchException("$definingClass->$name: a gate cannot be inserted before ${anchor.opcode} at $index")
     }
 
@@ -79,6 +79,15 @@ fun MutableMethod.addHevalGate(
         ExternalLabel("heval_stock", anchor),
     )
 }
+
+/**
+ * A move-result* must directly follow its invoke / filled-new-array and a move-exception must open
+ * its catch handler, so no gate may go in front of them. Explicit values: dexlib2's `Opcode.name`
+ * field is the lowercase mnemonic ("move-result"), not the enum constant name.
+ */
+private val UNSPLITTABLE_OPCODES = setOf(
+    Opcode.MOVE_RESULT, Opcode.MOVE_RESULT_OBJECT, Opcode.MOVE_RESULT_WIDE, Opcode.MOVE_EXCEPTION,
+)
 
 /** Runtime `returnEarly()` for a void method: returns at once while [featureId] is on. */
 fun MutableMethod.hevalReturnEarly(featureId: String) {

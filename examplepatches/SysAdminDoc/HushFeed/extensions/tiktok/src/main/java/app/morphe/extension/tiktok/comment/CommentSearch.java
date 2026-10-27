@@ -7,9 +7,16 @@
 package app.morphe.extension.tiktok.comment;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.graphics.drawable.StateListDrawable;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -18,6 +25,7 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.TypedValue;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.EditorInfo;
@@ -27,6 +35,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -102,6 +112,14 @@ public final class CommentSearch {
     static final String STATUS_TAG = "comment_search_status";
     static final String EXPORT_TAG = "comment_export_row";
     static final String EXPORT_COUNT_TAG = "comment_export_count";
+    static final String TOGGLE_TAG = "comment_search_toggle";
+
+    /**
+     * The comment sheet's own header, the bar with the count and the X. A folded search puts
+     * its button at the empty left end of it (#254). Held weakly, and only used while it is
+     * still on screen in the same window as the list.
+     */
+    private static WeakReference<View> header = new WeakReference<>(null);
 
     private static final View.OnAttachStateChangeListener ROW_ATTACH_LISTENER =
             new View.OnAttachStateChangeListener() {
@@ -125,6 +143,16 @@ public final class CommentSearch {
 
     public static boolean enabled() {
         return Settings.COMMENT_SEARCH.get();
+    }
+
+    /** Whether the box waits behind a search button until it is wanted (#254). */
+    static boolean folded() {
+        return Settings.COMMENT_SEARCH_FOLDED.get();
+    }
+
+    /** The compact header hook hands over the sheet's count bar as TikTok builds it. */
+    static void onHeaderBound(View view) {
+        if (view != null) header = new WeakReference<>(view);
     }
 
     /** The settings page calls this after saving, including when the comment sheet is cached. */
@@ -382,6 +410,39 @@ public final class CommentSearch {
         return null;
     }
 
+    /** The magnifier a folded search shows in place of the box. */
+    private static ImageView searchToggle(Context context, boolean dark) {
+        ImageView toggle = new ImageView(context);
+        toggle.setTag(TOGGLE_TAG);
+        toggle.setImageDrawable(new SearchGlyphDrawable(context, SettingsUi.textPrimaryOn(dark)));
+        toggle.setScaleType(ImageView.ScaleType.CENTER);
+        // Borderless, so the press shows as a circle on the header rather than a grey block.
+        toggle.setBackground(new RippleDrawable(
+                ColorStateList.valueOf(SettingsUi.borderOn(dark)), null, null));
+        toggle.setClickable(true);
+        toggle.setFocusable(true);
+        toggle.setContentDescription(L10n.t(context, "Search these comments"));
+        return toggle;
+    }
+
+    /**
+     * Puts the button at the left end of the sheet's header, which TikTok leaves empty. Only a
+     * header that is on screen in the same window as the list will do: the compact header
+     * switch collapses it to nothing, and a header left from an earlier sheet is no use either.
+     */
+    private static boolean placeInHeader(View toggle, LinearLayout column) {
+        View bar = header.get();
+        if (!(bar instanceof FrameLayout) || Settings.COMPACT_COMMENT_HEADER.get()) return false;
+        if (!bar.isAttachedToWindow() || bar.getVisibility() != View.VISIBLE) return false;
+        if (bar.getRootView() != column.getRootView()) return false;
+        int size = SettingsUi.dp(toggle.getContext(), 48);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size,
+                Gravity.START | Gravity.CENTER_VERTICAL);
+        params.setMarginStart(SettingsUi.dp(toggle.getContext(), 8));
+        ((FrameLayout) bar).addView(toggle, params);
+        return true;
+    }
+
     /** Builds the box and puts it in {@code column}, directly above whatever holds the list. */
     private static void insertBox(LinearLayout column, View anchor, ViewGroup listView) {
         WeakReference<SearchField> existing = DECORATED.get(column);
@@ -441,24 +502,44 @@ public final class CommentSearch {
             }
         });
         box.setOnEditorActionListener((view, actionId, event) -> {
-            if (actionId != EditorInfo.IME_ACTION_SEARCH) return false;
+            // A hardware Enter arrives as IME_NULL, down then up. Left unclaimed, Android
+            // moves focus to the next view and leaves the keyboard up over the list.
+            boolean enter = actionId == EditorInfo.IME_NULL && event != null
+                    && event.getKeyCode() == KeyEvent.KEYCODE_ENTER;
+            if (actionId != EditorInfo.IME_ACTION_SEARCH && !enter) return false;
+            if (enter && event.getAction() != KeyEvent.ACTION_UP) return true;
             // Filtering already happened as it was typed, so the key's job is to get the
             // keyboard out of the way of the comments it just narrowed down.
             InputMethodManager keyboard = (InputMethodManager)
                     context.getSystemService(Context.INPUT_METHOD_SERVICE);
             if (keyboard != null) keyboard.hideSoftInputFromWindow(view.getWindowToken(), 0);
             view.clearFocus();
+            // Folded, the box goes back behind its button too. The filter stays, and the
+            // status line under the header keeps saying the list is narrowed.
+            SearchField field = searchFieldFor(listView);
+            if (field != null && field.toggle != null) field.fold();
             return true;
         });
         int insertionIndex = column.indexOfChild(anchor);
+        ImageView toggle = folded() ? searchToggle(context, dark) : null;
+        if (toggle != null && !placeInHeader(toggle, column)) {
+            // No header to sit in, so the button takes a short row of its own above the list.
+            int size = SettingsUi.dp(context, 48);
+            LinearLayout.LayoutParams toggleParams = new LinearLayout.LayoutParams(size, size);
+            toggleParams.gravity = Gravity.START;
+            toggleParams.setMarginStart(SettingsUi.dp(context, 8));
+            column.addView(toggle, insertionIndex++, toggleParams);
+        }
         column.addView(box, insertionIndex);
         column.addView(status, insertionIndex + 1);
         if (exports != null) column.addView(exports, insertionIndex + 2);
         // Only once it is really in. Marking the column first would blacklist it for good if
         // anything above threw, and the sheet would never get a box again.
         SearchField field = new SearchField(column, listView, box, status,
-                new SettingsUi.ClearGlyphDrawable(context, SettingsUi.textSecondaryOn(dark)), exports);
+                new SettingsUi.ClearGlyphDrawable(context, SettingsUi.textSecondaryOn(dark)), exports,
+                toggle, dark);
         field.wireClearControl();
+        field.wireToggle();
         DECORATED.put(column, new WeakReference<>(field));
 
         // The column can be further up than the sheet and outlive it, so the box leaves with
@@ -474,15 +555,78 @@ public final class CommentSearch {
         private final Drawable clearIcon;
         /** The export buttons, or null while their switch is off. */
         private final LinearLayout exports;
+        /** The search button a folded box hides behind, or null while the box always shows. */
+        final ImageView toggle;
+        private final boolean dark;
 
         SearchField(LinearLayout column, ViewGroup listView, EditText box, TextView status,
-                Drawable clearIcon, LinearLayout exports) {
+                Drawable clearIcon, LinearLayout exports, ImageView toggle, boolean dark) {
             this.exports = exports;
             this.column = column;
             this.listView = listView;
             this.box = box;
             this.status = status;
             this.clearIcon = clearIcon;
+            this.toggle = toggle;
+            this.dark = dark;
+        }
+
+        /** A folded box starts put away, and the button opens it and puts it away again. */
+        void wireToggle() {
+            if (toggle == null) return;
+            toggle.setOnClickListener(view -> {
+                if (box.getVisibility() == View.VISIBLE) fold();
+                else unfold();
+            });
+            fold();
+        }
+
+        void unfold() {
+            box.setVisibility(View.VISIBLE);
+            if (exports != null) exports.setVisibility(View.VISIBLE);
+            updateToggle();
+            box.requestFocus();
+            // After the box has been laid out, or the keyboard has nothing to attach to.
+            box.post(() -> {
+                InputMethodManager keyboard = (InputMethodManager)
+                        box.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (keyboard != null && box.hasFocus()) keyboard.showSoftInput(box, InputMethodManager.SHOW_IMPLICIT);
+            });
+        }
+
+        void fold() {
+            if (box.hasFocus()) {
+                InputMethodManager keyboard = (InputMethodManager)
+                        box.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (keyboard != null) keyboard.hideSoftInputFromWindow(box.getWindowToken(), 0);
+                box.clearFocus();
+            }
+            box.setVisibility(View.GONE);
+            if (exports != null) exports.setVisibility(View.GONE);
+            updateToggle();
+        }
+
+        /**
+         * The button names what a tap does next, and takes the accent while the box is open or
+         * a search is narrowing the list, so a folded filter is never invisible.
+         */
+        private void updateToggle() {
+            if (toggle == null) return;
+            boolean open = box.getVisibility() == View.VISIBLE;
+            Context context = toggle.getContext();
+            String label = L10n.t(context, open ? "Put the comment search away" : "Search these comments");
+            if (!TextUtils.equals(toggle.getContentDescription(), label)) toggle.setContentDescription(label);
+            Drawable glyph = toggle.getDrawable();
+            if (glyph instanceof SearchGlyphDrawable) {
+                ((SearchGlyphDrawable) glyph).setColor(open || !query.isEmpty()
+                        ? SettingsUi.accentOn(dark) : SettingsUi.textPrimaryOn(dark));
+            }
+        }
+
+        private void removeToggle() {
+            if (toggle == null) return;
+            ViewParent parent = toggle.getParent();
+            if (parent instanceof ViewGroup) ((ViewGroup) parent).removeView(toggle);
         }
 
         /**
@@ -548,11 +692,13 @@ public final class CommentSearch {
                     column.removeView(box);
                     column.removeView(status);
                     if (exports != null) column.removeView(exports);
+                    removeToggle();
                 });
             } else {
                 column.removeView(box);
                 column.removeView(status);
                 if (exports != null) column.removeView(exports);
+                removeToggle();
             }
         }
 
@@ -581,6 +727,7 @@ public final class CommentSearch {
 
         void updateResult(String wanted, Matches matches) {
             showClearControl(!wanted.isEmpty());
+            updateToggle();
             if (wanted.isEmpty()) {
                 clearStatus();
                 return;
@@ -779,6 +926,67 @@ public final class CommentSearch {
                 params.height = restored;
                 row.setLayoutParams(params);
             }
+        }
+    }
+
+    /** A magnifier drawn with the clear glyph's stroke, so the two read as one set. */
+    static final class SearchGlyphDrawable extends Drawable {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final int size;
+
+        SearchGlyphDrawable(Context context, int color) {
+            paint.setColor(color);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(SettingsUi.strokePx(context, 2f));
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            size = SettingsUi.dp(context, 24);
+        }
+
+        void setColor(int color) {
+            if (paint.getColor() == color) return;
+            paint.setColor(color);
+            invalidateSelf();
+        }
+
+        int getColor() {
+            return paint.getColor();
+        }
+
+        @Override public int getIntrinsicWidth() {
+            return size;
+        }
+
+        @Override public int getIntrinsicHeight() {
+            return size;
+        }
+
+        @Override public void draw(Canvas canvas) {
+            Rect bounds = getBounds();
+            if (bounds.isEmpty()) return;
+            float side = Math.min(bounds.width(), bounds.height());
+            float left = bounds.exactCenterX() - side / 2f;
+            float top = bounds.exactCenterY() - side / 2f;
+            float radius = side * 0.28f;
+            float lensX = left + side * 0.42f;
+            float lensY = top + side * 0.42f;
+            canvas.drawCircle(lensX, lensY, radius, paint);
+            // The handle starts on the rim, down and to the right at 45 degrees.
+            float rim = radius * 0.7071f;
+            canvas.drawLine(lensX + rim, lensY + rim, left + side * 0.82f, top + side * 0.82f, paint);
+        }
+
+        @Override public void setAlpha(int alpha) {
+            paint.setAlpha(alpha);
+            invalidateSelf();
+        }
+
+        @Override public void setColorFilter(ColorFilter colorFilter) {
+            paint.setColorFilter(colorFilter);
+            invalidateSelf();
+        }
+
+        @Override public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
         }
     }
 }

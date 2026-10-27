@@ -27,10 +27,13 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.CountDownLatch;
@@ -49,6 +52,11 @@ public final class PhotosModelSeeder {
     private static final String SHARED_PREFS_DIR_NAME = "shared_prefs";
     private static final String MDD_GROUPS_XML = "gms_icing_mdd_groups.xml";
     private static final String MDD_FILES_XML = "gms_icing_mdd_shared_files.xml";
+
+    // Non-ML promo assets from old A/B experiments that are not genuine editing models
+    private static final Set<String> EXCLUDED_NON_MODEL_GROUPS = new HashSet<>(
+        Collections.singletonList("stamp_ab_on")
+    );
 
     private static volatile int cachedExpectedCount = -1;
 
@@ -129,44 +137,47 @@ public final class PhotosModelSeeder {
 
     public static boolean hasZeroByteFiles(File dir) {
         if (dir == null || !dir.exists() || !dir.isDirectory()) return false;
-        File[] files = dir.listFiles((d, name) -> name != null && name.startsWith("datadownloadfile_"));
-        if (files == null) return false;
-        for (File f : files) {
-            if (f.length() <= 0) return true;
+        Map<String, String> expectedFiles = parseFileToShaMapping();
+        for (String filename : expectedFiles.keySet()) {
+            File f = new File(dir, filename);
+            if (f.exists() && f.length() <= 0) return true;
         }
         return false;
     }
 
-    public static void downloadGroup(Context context, String groupName) {
-        if (context == null || groupName == null) return;
-        new Thread(() -> {
-            try {
-                File filesDir = context.getFilesDir();
-                File targetModelsDir = new File(filesDir, MDD_MODELS_REL_PATH);
-                if (!targetModelsDir.exists()) targetModelsDir.mkdirs();
+    public static boolean downloadGroup(Context context, String groupName) {
+        if (context == null || groupName == null) return false;
+        try {
+            File filesDir = context.getFilesDir();
+            File targetModelsDir = new File(filesDir, MDD_MODELS_REL_PATH);
+            if (!targetModelsDir.exists()) targetModelsDir.mkdirs();
 
-                Map<String, List<ModelEntry>> groupMap = parseAllGroupsFromManifests();
-                List<ModelEntry> entries = groupMap.get(groupName);
-                if (entries == null || entries.isEmpty()) {
-                    Logger.printInfo(() -> "PhotosModelSeeder: downloadGroup(): No models found for group " + groupName);
-                    return;
-                }
-
-                Map<String, String> fileToSha = parseFileToShaMapping();
-                Logger.printInfo(() -> "PhotosModelSeeder: Downloading " + entries.size() + " models on-demand for group " + groupName);
-                CdnAssetDownloader.unlockDirectory(targetModelsDir);
-
-                for (ModelEntry entry : entries) {
-                    File dest = new File(targetModelsDir, entry.filename);
-                    String sha = fileToSha.get(entry.filename);
-                    CdnAssetDownloader.download(entry.url, dest, sha);
-                }
-
-                CdnAssetDownloader.lockDirectory(targetModelsDir);
-            } catch (Throwable t) {
-                Logger.printInfo(() -> "PhotosModelSeeder: downloadGroup failed for " + groupName + ": " + t.getMessage());
+            Map<String, List<ModelEntry>> groupMap = parseAllGroupsFromManifests();
+            List<ModelEntry> entries = groupMap.get(groupName);
+            if (entries == null || entries.isEmpty()) {
+                Logger.printInfo(() -> "PhotosModelSeeder: downloadGroup(): No models found for group " + groupName);
+                return false;
             }
-        }, "PhotosModelGroupDownloader").start();
+
+            Map<String, String> fileToSha = parseFileToShaMapping();
+            Logger.printInfo(() -> "PhotosModelSeeder: Downloading " + entries.size() + " models on-demand for group " + groupName);
+            CdnAssetDownloader.unlockDirectory(targetModelsDir);
+
+            boolean allSuccess = true;
+            for (ModelEntry entry : entries) {
+                File dest = new File(targetModelsDir, entry.filename);
+                String sha = fileToSha.get(entry.filename);
+                if (!CdnAssetDownloader.download(entry.url, dest, sha)) {
+                    allSuccess = false;
+                }
+            }
+
+            CdnAssetDownloader.lockDirectory(targetModelsDir);
+            return allSuccess;
+        } catch (Throwable t) {
+            Logger.printInfo(() -> "PhotosModelSeeder: downloadGroup failed for " + groupName + ": " + t.getMessage());
+            return false;
+        }
     }
 
     private static void startDynamicDownload(Context context, File targetModelsDir, File prefsDir) {
@@ -252,10 +263,16 @@ public final class PhotosModelSeeder {
     public static class ModelEntry {
         public final String url;
         public final String filename;
+        public final String sha;
 
-        public ModelEntry(String url, String filename) {
+        public ModelEntry(String url, String filename, String sha) {
             this.url = url;
             this.filename = filename;
+            this.sha = sha;
+        }
+
+        public ModelEntry(String url, String filename) {
+            this(url, filename, null);
         }
     }
 
@@ -293,8 +310,13 @@ public final class PhotosModelSeeder {
     public static Map<String, String> parseFileToShaMapping() {
         if (sCachedFileToSha != null) return sCachedFileToSha;
         Map<String, String> fileToSha = new HashMap<>();
-        for (Map.Entry<String, String> e : parseShaToFileMapping().entrySet()) {
-            fileToSha.put(e.getValue(), e.getKey());
+        Map<String, List<ModelEntry>> groupMap = parseAllGroupsFromManifests();
+        for (List<ModelEntry> entries : groupMap.values()) {
+            for (ModelEntry entry : entries) {
+                if (entry.filename != null && entry.sha != null) {
+                    fileToSha.put(entry.filename, entry.sha);
+                }
+            }
         }
         sCachedFileToSha = fileToSha;
         return fileToSha;
@@ -354,6 +376,10 @@ public final class PhotosModelSeeder {
                 }
             } catch (Exception ignored) {}
 
+            if (EXCLUDED_NON_MODEL_GROUPS.contains(groupName)) {
+                continue;
+            }
+
             try {
                 byte[] rawVal = Base64.decode(valB64, Base64.DEFAULT);
                 String decVal = new String(rawVal, "ISO-8859-1");
@@ -378,7 +404,7 @@ public final class PhotosModelSeeder {
                         String sha = sm.group();
                         String filename = shaToFile.get(sha);
                         if (filename != null) {
-                            entries.add(new ModelEntry(url, filename));
+                            entries.add(new ModelEntry(url, filename, sha));
                         }
                     }
                 }
@@ -450,6 +476,24 @@ public final class PhotosModelSeeder {
                 while (m.find()) {
                     String rawKeyB64 = m.group(1);
                     String rawValB64 = m.group(2);
+
+                    if (MDD_GROUPS_XML.equals(xml.getName())) {
+                        try {
+                            byte[] rawKey = Base64.decode(rawKeyB64, Base64.DEFAULT);
+                            String dec = new String(rawKey, "ISO-8859-1");
+                            boolean skip = false;
+                            for (String excluded : EXCLUDED_NON_MODEL_GROUPS) {
+                                if (dec.contains(excluded)) {
+                                    skip = true;
+                                    break;
+                                }
+                            }
+                            if (skip) {
+                                changed = true;
+                                continue;
+                            }
+                        } catch (Exception ignored) {}
+                    }
 
                     String patchedKeyB64 = patchProtobufBase64(rawKeyB64, newPackageName, true);
                     String patchedValB64 = patchProtobufBase64(rawValB64, newPackageName, false);
@@ -553,8 +597,15 @@ public final class PhotosModelSeeder {
 
     private static int countModelsInDir(File dir) {
         if (dir == null || !dir.exists() || !dir.isDirectory()) return 0;
-        File[] files = dir.listFiles((d, name) -> name != null && name.startsWith("datadownloadfile_"));
-        return files == null ? 0 : files.length;
+        Map<String, String> expectedFiles = parseFileToShaMapping();
+        int count = 0;
+        for (String filename : expectedFiles.keySet()) {
+            File f = new File(dir, filename);
+            if (f.exists() && f.length() > 0) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public static class ModelHealthReport {
@@ -798,7 +849,8 @@ public final class PhotosModelSeeder {
         Map<String, List<ModelEntry>> allGroups = parseAllGroupsFromManifests();
         Map<String, String> fileToSha = parseFileToShaMapping();
 
-        Runnable refreshGroups = () -> {
+        final Runnable[] refreshGroups = new Runnable[1];
+        refreshGroups[0] = () -> {
             listLayout.removeAllViews();
             for (Map.Entry<String, List<ModelEntry>> entry : allGroups.entrySet()) {
                 String groupName = entry.getKey();
@@ -877,11 +929,17 @@ public final class PhotosModelSeeder {
                         badge.setText("Repairing...");
                         badge.setClickable(false);
                         new Thread(() -> {
-                            downloadGroup(activity, groupName);
+                            boolean success = downloadGroup(activity, groupName);
                             activity.runOnUiThread(() -> {
-                                Toast.makeText(activity, "Repaired group: " + formatGroupName(groupName), Toast.LENGTH_SHORT).show();
-                                badge.setText("✓ Healthy");
-                                bBg.setColor(successColor);
+                                int newCount = countModelsInDir(modelsDir);
+                                tvStatus.setText((newCount >= expectedTotal ? "🟢 " : "🟡 ") + newCount + " / " + expectedTotal + " Models Installed");
+                                tvStatus.setTextColor(newCount >= expectedTotal ? successColor : 0xFFE5A50A);
+                                if (success) {
+                                    Toast.makeText(activity, "Repaired group: " + formatGroupName(groupName), Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(activity, "Failed to repair some models for " + formatGroupName(groupName), Toast.LENGTH_SHORT).show();
+                                }
+                                refreshGroups[0].run();
                             });
                         }).start();
                     });
@@ -899,13 +957,17 @@ public final class PhotosModelSeeder {
                         badge.setText("Downloading...");
                         badge.setClickable(false);
                         new Thread(() -> {
-                            downloadGroup(activity, groupName);
+                            boolean success = downloadGroup(activity, groupName);
                             activity.runOnUiThread(() -> {
                                 int newCount = countModelsInDir(modelsDir);
-                                tvStatus.setText("🟢 " + newCount + " / " + expectedTotal + " Models Installed");
-                                tvStatus.setTextColor(successColor);
-                                badge.setText("✓ Healthy");
-                                bBg.setColor(successColor);
+                                tvStatus.setText((newCount >= expectedTotal ? "🟢 " : "🟡 ") + newCount + " / " + expectedTotal + " Models Installed");
+                                tvStatus.setTextColor(newCount >= expectedTotal ? successColor : 0xFFE5A50A);
+                                if (success) {
+                                    Toast.makeText(activity, "Installed group: " + formatGroupName(groupName), Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(activity, "Failed to download some models for " + formatGroupName(groupName), Toast.LENGTH_SHORT).show();
+                                }
+                                refreshGroups[0].run();
                             });
                         }).start();
                     });
@@ -917,7 +979,7 @@ public final class PhotosModelSeeder {
             }
         };
 
-        refreshGroups.run();
+        refreshGroups[0].run();
 
         // Wire Health Check & Repair Action
         btnHealthCheck.setOnClickListener(v -> {
@@ -947,7 +1009,7 @@ public final class PhotosModelSeeder {
                             tvStatus.setText("🟢 " + healthy + " / " + total + " Models Verified Healthy");
                             tvStatus.setTextColor(successColor);
                         }
-                        refreshGroups.run();
+                        refreshGroups[0].run();
                     });
                 }
             });

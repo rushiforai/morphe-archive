@@ -1527,6 +1527,9 @@ function Get-VerifiedApplyStamp {
         patchListSha256  = (Get-Sha256Hex -Path $PatchList).ToLowerInvariant()
         desktopJarSha256 = (Get-Sha256Hex -Path $DesktopJar).ToLowerInvariant()
         forced           = $Forced
+        # Every run that writes a stamp passes --validate, so each fingerprint matched one method.
+        # A run kept from before that has no such field and is patched again.
+        validation       = 'fingerprint-single-match'
     }
 }
 

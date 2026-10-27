@@ -45,7 +45,7 @@ public final class SettingsWindowProbe {
         ToggleSetting navigation = registry.options().stream().filter(option -> option.key().equals("fullscreen_hide_navigation_bar")).findFirst().orElseThrow();
         Configuration configuration = new Configuration(context.getResources().getConfiguration());
         configuration.orientation = Configuration.ORIENTATION_LANDSCAPE;
-        Window window = new UiFullscreenWindowProbe.ProbeWindow(context.createConfigurationContext(configuration));
+        Window window = new ProbeWindow(context.createConfigurationContext(configuration));
         int original = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
         window.getDecorView().setSystemUiVisibility(original);
         AutoCloseable session = null;

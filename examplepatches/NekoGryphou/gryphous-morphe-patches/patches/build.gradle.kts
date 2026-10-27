@@ -3,7 +3,7 @@ group = "io.github.nekogryphou.morphe.patches"
 patches {
     about {
         name = "Gryphou's Morphe Patches"
-        description = "Android app patches for Crunchyroll and De'Longhi Comfort."
+        description = "Android app patches for Crunchyroll, De'Longhi Comfort, and PETKIT."
         source = "https://github.com/NekoGryphou/gryphous-morphe-patches"
         author = "NekoGryphou"
         contact = "darkosdash@gmail.com"

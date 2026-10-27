@@ -25,7 +25,9 @@ import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragmen
 /** Adds presentation to the platform adapter without changing preference binding or persistence. */
 @SuppressWarnings("deprecation")
 final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapter {
+    private static final int SEARCH_INPUT_OWNER = 0x7f7f4006;
     private final ListAdapter delegate;
+    private final int searchInputViewType;
     private final DataSetObserver observer = new DataSetObserver() {
         @Override public void onChanged() { notifyDataSetChanged(); }
         @Override public void onInvalidated() { notifyDataSetInvalidated(); }
@@ -33,6 +35,7 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
 
     SettingsListAdapter(ListAdapter delegate) {
         this.delegate = delegate;
+        searchInputViewType = delegate.getViewTypeCount();
         delegate.registerDataSetObserver(observer);
     }
 
@@ -42,8 +45,11 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
     @Override public Object getItem(int position) { return delegate.getItem(position); }
     @Override public long getItemId(int position) { return delegate.getItemId(position); }
     @Override public boolean hasStableIds() { return delegate.hasStableIds(); }
-    @Override public int getItemViewType(int position) { return delegate.getItemViewType(position); }
-    @Override public int getViewTypeCount() { return delegate.getViewTypeCount(); }
+    @Override public int getItemViewType(int position) {
+        return getItem(position) instanceof SettingsSearchInputPreference
+                ? searchInputViewType : delegate.getItemViewType(position);
+    }
+    @Override public int getViewTypeCount() { return searchInputViewType + 1; }
     @Override public boolean areAllItemsEnabled() { return delegate.areAllItemsEnabled(); }
     @Override public boolean isEnabled(int position) { return delegate.isEnabled(position); }
 
@@ -55,9 +61,7 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
                 || item instanceof SectionHeadingPreference
                 || item instanceof SettingsStatusPreference
                 || item instanceof SettingsSearchInputPreference
-                || item instanceof SettingsSearchEntryPreference
-                || item instanceof CalmFeedPresetPreference
-                || item instanceof QuickSetupsPreference;
+                || item instanceof SettingsSearchEntryPreference;
     }
 
     /** The recovery page's message, which is drawn as the page's title rather than as a row. */
@@ -74,13 +78,29 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
     }
 
     @Override public View getView(int position, View convertView, ViewGroup parent) {
-        View row = delegate.getView(position, convertView, parent);
+        TikTokPreferenceFragment.clearRecycledHighlight(convertView, getItem(position));
+        SearchTogglePreference.clearLocationAction(convertView);
+        // The platform freezes its view types when attached. Inline search arrives later,
+        // so reserve its type here and bind it directly to keep the focused field reusable.
+        View row;
+        if (getItem(position) instanceof SettingsSearchInputPreference) {
+            Preference input = (Preference) getItem(position);
+            if (convertView != null && convertView.getTag(SEARCH_INPUT_OWNER) != input) convertView = null;
+            row = input.getView(convertView, parent);
+            row.setTag(SEARCH_INPUT_OWNER, input);
+        } else row = delegate.getView(position, convertView, parent);
         if (isErrorMessage(getItem(position))) {
             SettingsUi.styleErrorHeading(row);
             return row;
         }
         if (isBoundary(position)) return row;
         Preference preference = (Preference) getItem(position);
+        if (parent instanceof android.widget.ListView && parent.isLongClickable()
+                && (preference.getClass() == Preference.class || preference instanceof TogglePreference
+                    || (preference instanceof SettingsMenuPreference
+                        && !((SettingsMenuPreference) preference).isExpandable()))
+                && preference.isSelectable())
+            SearchTogglePreference.bindTapOnly(row, preference);
         if (preference instanceof SettingsMenuPreference && ((SettingsMenuPreference) preference).isCompact()) {
             SettingsUi.styleCompactMenuRow(row, isBoundary(position + 1),
                     ((SettingsMenuPreference) preference).isAbout());

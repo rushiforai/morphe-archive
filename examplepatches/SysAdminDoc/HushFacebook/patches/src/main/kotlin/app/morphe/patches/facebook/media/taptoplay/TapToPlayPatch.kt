@@ -51,7 +51,8 @@ internal const val PATCH = "Tap to play"
 val tapToPlayPatch = bytecodePatch(
     name = "Tap to play",
     description = "Videos, reels, stories and music wait for your tap instead of starting by themselves, so " +
-        "nothing plays until you want it to. Starts off. Turn it on in Hushfacebook settings > Playback.",
+        "nothing plays until you want it to. A separate switch adds a play/pause button to feed videos. " +
+        "The switches start off in Hushfacebook settings > Playback.",
 ) {
     category("Playback")
     dependsOn(settingsPatch)
@@ -59,6 +60,7 @@ val tapToPlayPatch = bytecodePatch(
 
     execute {
         val play = hookGrootPlayer()
+        installFeedVideoControls(play)
         hookLegacyPlayer(play.parameterTypes.single().toString())
         // A build where the params moved keeps the rest of the patch.
         try {

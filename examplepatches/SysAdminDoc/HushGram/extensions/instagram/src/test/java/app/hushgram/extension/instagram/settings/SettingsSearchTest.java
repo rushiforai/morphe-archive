@@ -304,36 +304,6 @@ public class SettingsSearchTest {
         assertEquals(before, rows(page.getPreferenceScreen()));
     }
 
-    /**
-     * Quick setups sits above every section. A search that only matches its aliases ("privacy")
-     * used to list it ahead of the rows named for the search, and one named for it keeps it first.
-     */
-    @Test public void quickSetupsIsRankedWithTheRows() throws Exception {
-        open(PatchFamily.FOLLOWING_FEED, PatchFamily.HIDE_ADS, PatchFamily.SANITIZE_SHARING_LINKS);
-        ShadowLooper.idleMainLooper();
-        Preference quick = visible(HushgramPreferenceFragment.QUICK_SETUPS_ROW_KEY);
-        assertNotNull(quick);
-        int built = quick.getOrder();
-        page.searchSettings("privacy");
-        ShadowLooper.idleMainLooper();
-        assertSame("an alias still finds it", quick, visible(HushgramPreferenceFragment.QUICK_SETUPS_ROW_KEY));
-        ListAdapter shown = page.getPreferenceScreen().getRootAdapter();
-        int at = -1, firstSection = -1;
-        for (int i = 0; i < shown.getCount(); i++) {
-            if (shown.getItem(i) == quick) at = i;
-            if (firstSection < 0 && shown.getItem(i) instanceof PreferenceCategory) firstSection = i;
-        }
-        assertTrue("no section matched privacy", firstSection >= 0);
-        assertTrue("Quick setups only mentions privacy and comes after the sections", at > firstSection);
-
-        page.searchSettings("quick");
-        ShadowLooper.idleMainLooper();
-        assertEquals("named for the search, it keeps its place", built, quick.getOrder());
-        page.searchSettings("");
-        ShadowLooper.idleMainLooper();
-        assertEquals(built, quick.getOrder());
-    }
-
     private static boolean holds(CharSequence title) {
         String text = HushgramPreferenceFragment.searchText(title);
         return text.contains("start") && text.contains("tab");

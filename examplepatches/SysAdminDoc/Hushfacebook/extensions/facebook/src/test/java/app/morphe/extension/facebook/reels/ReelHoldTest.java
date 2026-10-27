@@ -390,7 +390,8 @@ public class ReelHoldTest {
         // The first lift's speed was changed, the second's already was the speed before the hold.
         assertEquals(report, 1, report.split("Reel hold: back to 1.5x \\(the speed before the hold\\)", -1).length - 1);
         assertEquals(report, 2, report.split("Reel hold: back to 1.5x", -1).length - 1);
-        assertTrue(report, !report.contains("1.25"));
+        // Match a speed, not a coincidental fraction in the report's timestamps.
+        assertTrue(report, !report.contains("1.25x"));
     }
 
     /**

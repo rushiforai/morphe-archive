@@ -104,11 +104,12 @@ test('native support models filter before layout and keep Follow and notificatio
     assert.deepEqual(Array.from(render(vertical).props.buttons, button => button.kind), ['follow', 'subscribe', 'upgrade']);
     const notificationSettings = {notificationSetting: 'always', notificationsLoaded: true, onOpenSubscribe() {}};
     f.preferences.classic_support_hide_gift = true;
-    const empty = render({...notificationSettings, buttons: [{kind: 'subscribe'}, {kind: 'gift'}]});
-    assert.equal(empty.type, original);
-    assert.equal(empty.props.buttons.length, 0);
-    assert.equal(empty.props.notificationSetting, 'always');
-    assert.equal(empty.props.onOpenSubscribe, notificationSettings.onOpenSubscribe);
+    assert.equal(render({...notificationSettings, buttons: [{kind: 'subscribe'}, {kind: 'gift'}]}), null);
+    const follow = render({...notificationSettings, buttons: [{kind: 'follow'}, {kind: 'subscribe'}]});
+    assert.equal(follow.type, original);
+    assert.deepEqual(Array.from(follow.props.buttons, button => button.kind), ['follow']);
+    assert.equal(follow.props.notificationSetting, 'always');
+    assert.equal(follow.props.onOpenSubscribe, notificationSettings.onOpenSubscribe);
 });
 
 test('chat Bits visibility follows its layout and restores the original availability', () => {

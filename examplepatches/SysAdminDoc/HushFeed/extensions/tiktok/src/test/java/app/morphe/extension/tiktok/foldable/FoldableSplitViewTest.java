@@ -92,6 +92,127 @@ public class FoldableSplitViewTest {
         }
     }
 
+    public static class InsetBoundsActivity extends TestActivity {
+        boolean metricsUnavailable;
+        int metricsReads;
+        int metricsAllowed = Integer.MAX_VALUE;
+        @Override public android.view.WindowManager getWindowManager() {
+            android.view.WindowManager original = super.getWindowManager();
+            return (android.view.WindowManager) java.lang.reflect.Proxy.newProxyInstance(
+                    android.view.WindowManager.class.getClassLoader(),
+                    new Class<?>[] { android.view.WindowManager.class }, (proxy, method, arguments) -> {
+                        if (method.getName().equals("getCurrentWindowMetrics")) {
+                            if (++metricsReads > metricsAllowed || metricsUnavailable) {
+                                throw new IllegalStateException("window metrics unavailable");
+                            }
+                            int width = Math.round(620 * getResources().getDisplayMetrics().density);
+                            return new android.view.WindowMetrics(new android.graphics.Rect(0, 0, width, width),
+                                    new android.view.WindowInsets.Builder().build());
+                        }
+                        return method.invoke(original, arguments);
+                    });
+        }
+    }
+
+    /** Window bounds include bars that the available configuration width excludes on API 30. */
+    @Test @Config(sdk = 30, qualifiers = "w599dp-h900dp")
+    public void theContainerAndLiveCheckUseTheSameAvailableConfigurationWidth() {
+        Settings.FOLDABLE_SPLIT_VIEW.save(true);
+        java.util.List<android.app.Activity> rebuilt = new java.util.ArrayList<>();
+        FoldableSplitView.recreator = rebuilt::add;
+        try (var owner = Robolectric.buildActivity(InsetBoundsActivity.class).setup()) {
+            InsetBoundsActivity activity = owner.get();
+            Utils.setActivity(activity);
+            Configuration configuration = new Configuration(activity.getResources().getConfiguration());
+            assertEquals(599, configuration.screenWidthDp);
+            assertFalse(FoldableSplitView.shouldForce(activity, configuration));
+            assertFalse("the container used bounds that the live split check cannot use",
+                    FoldableSplitView.shouldForceContainer());
+            FoldableSplitView.onConfigurationChanged(activity, configuration);
+            assertEquals(0, rebuilt.size());
+
+            // A supplied new configuration still wins while the old activity window is narrow.
+            configuration.screenWidthDp = 600;
+            assertTrue(FoldableSplitView.shouldForce(activity, configuration));
+            FoldableSplitView.onConfigurationChanged(activity, configuration);
+            assertEquals(java.util.Collections.singletonList(activity), rebuilt);
+        }
+    }
+
+    @Test @Config(sdk = 30, qualifiers = "w599dp-h900dp")
+    public void theMetricsFallbackAlsoRecordsTheWidthOfTheBuiltContainer() {
+        Settings.FOLDABLE_SPLIT_VIEW.save(true);
+        java.util.List<android.app.Activity> rebuilt = new java.util.ArrayList<>();
+        FoldableSplitView.recreator = rebuilt::add;
+        try (var owner = Robolectric.buildActivity(InsetBoundsActivity.class).setup()) {
+            InsetBoundsActivity activity = owner.get();
+            Utils.setActivity(activity);
+            Configuration original = new Configuration(activity.getResources().getConfiguration());
+            try {
+                activity.getResources().getConfiguration().screenWidthDp = 0;
+                assertTrue(FoldableSplitView.shouldForceContainer());
+                FoldableSplitView.onConfigurationChanged(activity, width(activity, 620));
+                assertEquals("a metrics-wide build was recorded as narrow", 0, rebuilt.size());
+                FoldableSplitView.onConfigurationChanged(activity, width(activity, 599));
+                assertEquals(java.util.Collections.singletonList(activity), rebuilt);
+            } finally {
+                activity.getResources().getConfiguration().setTo(original);
+            }
+        }
+    }
+
+    @Test @Config(sdk = 30, qualifiers = "w599dp-h900dp")
+    public void anUnavailableWidthDoesNotRecordOrRebuildANativeContainer() {
+        Settings.FOLDABLE_SPLIT_VIEW.save(true);
+        java.util.List<android.app.Activity> rebuilt = new java.util.ArrayList<>();
+        FoldableSplitView.recreator = rebuilt::add;
+        try (var owner = Robolectric.buildActivity(InsetBoundsActivity.class).setup()) {
+            InsetBoundsActivity activity = owner.get();
+            Utils.setActivity(activity);
+            Configuration original = new Configuration(activity.getResources().getConfiguration());
+            try {
+                activity.getResources().getConfiguration().screenWidthDp = 0;
+                activity.metricsUnavailable = true;
+                assertFalse(FoldableSplitView.shouldForceContainer());
+                FoldableSplitView.onConfigurationChanged(activity, width(activity, 620));
+                assertEquals("an unavailable width was recorded as narrow", 0, rebuilt.size());
+
+                activity.metricsUnavailable = false;
+                assertTrue(FoldableSplitView.shouldForceContainer());
+                activity.metricsUnavailable = true;
+                FoldableSplitView.onConfigurationChanged(activity, width(activity, 0));
+                assertEquals("an unavailable width became a crossing", 0, rebuilt.size());
+                FoldableSplitView.onConfigurationChanged(activity, width(activity, 599));
+                assertEquals(java.util.Collections.singletonList(activity), rebuilt);
+            } finally {
+                activity.getResources().getConfiguration().setTo(original);
+            }
+        }
+    }
+    @Test @Config(sdk = 30, qualifiers = "w599dp-h900dp")
+    public void aContainerUsesOneWidthReadForItsDecisionAndBuildRecord() {
+        Settings.FOLDABLE_SPLIT_VIEW.save(true);
+        java.util.List<android.app.Activity> rebuilt = new java.util.ArrayList<>();
+        FoldableSplitView.recreator = rebuilt::add;
+        try (var owner = Robolectric.buildActivity(InsetBoundsActivity.class).setup()) {
+            InsetBoundsActivity activity = owner.get();
+            Utils.setActivity(activity);
+            Configuration original = new Configuration(activity.getResources().getConfiguration());
+            try {
+                activity.getResources().getConfiguration().screenWidthDp = 0;
+                activity.metricsReads = 0;
+                activity.metricsAllowed = 1;
+                assertTrue(FoldableSplitView.shouldForceContainer());
+                FoldableSplitView.onConfigurationChanged(activity, width(activity, 599));
+                assertEquals("the forced-wide build lost its real narrow crossing",
+                        java.util.Collections.singletonList(activity), rebuilt);
+                assertEquals("the decision and build record must share one width", 1, activity.metricsReads);
+            } finally {
+                activity.getResources().getConfiguration().setTo(original);
+            }
+        }
+    }
+
     /** Opened folded, then unfolded with TikTok still open: issue #26. */
     @Test public void aWindowThatCrossesTheThresholdBuildsTheFeedAgainOncePerCrossing() {
         Settings.FOLDABLE_SPLIT_VIEW.save(true);

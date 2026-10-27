@@ -11,7 +11,7 @@ Java.perform(function(){
  const P=Java.use('app.morphe.extension.chmate.ViewingUserAgent'),J=Java.use('java.lang.String'),ReflectArray=Java.use('java.lang.reflect.Array');
  const Modifier=Java.use('java.lang.reflect.Modifier');
  const prefs=app.getSharedPreferences('io.github.areteruhiro.chmate.haiagaru.ui-config',0);
- const hadFlag=prefs.contains('replaceUserAgent'),oldFlag=prefs.getBoolean('replaceUserAgent',false),hadAgent=prefs.contains('userAgent'),oldAgent=prefs.getString('userAgent',null);
+ const hadFlag=prefs.contains('viewingBrowserUserAgentEnabled'),oldFlag=prefs.getBoolean('viewingBrowserUserAgentEnabled',false),hadAgent=prefs.contains('userAgent'),oldAgent=prefs.getString('userAgent',null);
  const before=Java.use('java.lang.System').getProperty('http.agent');let count=0;
  function text(value){return String(J.valueOf.overload('java.lang.Object').call(J,value));}
  function check(value,label){if(!value)throw Error(label);count++;console.log('PASS '+label);}
@@ -70,13 +70,13 @@ Java.perform(function(){
  }
  function requestHeader(url,method){const result=request(url,method,headerObject());return header(field(result.getClass(),profile.headers).get(result),'User-Agent');}
  try{
-  prefs.edit().putBoolean('replaceUserAgent',true).putString('userAgent','Viewing-UA-Fixture').commit();
+  prefs.edit().putBoolean('viewingBrowserUserAgentEnabled',true).putString('userAgent','Viewing-UA-Fixture').commit();
   const read='https://bbs.example.invalid/android/subject.txt',post='https://bbs.example.invalid/test/bbs.cgi';
   check(requestHeader(read,'GET')==='Viewing-UA-Fixture','native GET applies viewing UA');
-  check(requestHeader(post,'POST')==='Native-Original','native posting UA unchanged');
-  check(requestHeader(read,'POST')==='Native-Original','native POST to read-looking path unchanged');
-  check(requestHeader('https://imgw.syoboi.jp/3/image','POST')==='Native-Original','upload UA unchanged');
-  check(requestHeader('https://bbs.example.invalid/auth-code','GET')==='Native-Original','authentication UA unchanged');
+  check(requestHeader(post,'POST')==='Viewing-UA-Fixture','native posting uses selected UA');
+  check(requestHeader(read,'POST')==='Viewing-UA-Fixture','native POST uses selected UA');
+  check(requestHeader('https://imgw.syoboi.jp/3/image','POST')==='Viewing-UA-Fixture','native HTTP scope includes configured UA');
+  check(requestHeader('https://bbs.example.invalid/auth-code','GET')==='Viewing-UA-Fixture','authentication request uses selected UA');
   const shared=headerObject();request(read,'GET',shared);check(header(shared,'User-Agent')==='Native-Original','shared headers not mutated');
   const Fake=Java.registerClass({name:'org.haiagaru.test.ViewingUaConnection'+Date.now(),superClass:Java.use('java.net.HttpURLConnection'),methods:{
    $init:[{returnType:'void',argumentTypes:['java.net.URL'],implementation(url){this.$super.$init(url);}}],
@@ -85,15 +85,15 @@ Java.perform(function(){
   const get=Fake.$new(URL.$new(read));get.setRequestProperty('User-Agent','Native-Original');P.prepare(get);
   check(text(get.getRequestProperty('User-Agent'))==='Viewing-UA-Fixture','java.net read UA applied');
   const write=Fake.$new(URL.$new(post));write.setRequestMethod('POST');P.setRequestProperty(write,'User-Agent','Native-Original');P.prepare(write);
-  check(text(write.getRequestProperty('User-Agent'))==='Native-Original','java.net posting UA unchanged');
+  check(text(write.getRequestProperty('User-Agent'))==='Viewing-UA-Fixture','java.net posting uses selected UA');
   const output=Fake.$new(URL.$new(read));output.setDoOutput(true);P.setRequestProperty(output,'User-Agent','Native-Original');P.prepare(output);
-  check(text(output.getRequestProperty('User-Agent'))==='Native-Original','implicit output request unchanged');
-  prefs.edit().putBoolean('replaceUserAgent',false).commit();
+  check(text(output.getRequestProperty('User-Agent'))==='Viewing-UA-Fixture','implicit output request uses selected UA');
+  prefs.edit().putBoolean('viewingBrowserUserAgentEnabled',false).commit();
   check(requestHeader(read,'GET')==='Native-Original','OFF preserves native UA');
   check(text(Java.use('java.lang.System').getProperty('http.agent'))===text(before),'process-wide http.agent unchanged');
   console.log('VIEWING_UA_COMPLETE '+version+' checks='+count);
  }catch(error){console.log('FAIL '+error.stack);}finally{
-  const edit=prefs.edit();if(hadFlag)edit.putBoolean('replaceUserAgent',oldFlag);else edit.remove('replaceUserAgent');
+  const edit=prefs.edit();if(hadFlag)edit.putBoolean('viewingBrowserUserAgentEnabled',oldFlag);else edit.remove('viewingBrowserUserAgentEnabled');
   if(hadAgent)edit.putString('userAgent',oldAgent);else edit.remove('userAgent');edit.commit();console.log('UA_PREFERENCES_RESTORED');
  }
 });

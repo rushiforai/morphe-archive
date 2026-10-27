@@ -34,10 +34,14 @@ import java.io.File
  * and skips without it.
  */
 class HideFeedsHeaderFixtureTest {
-    /** Each declared build's container type, the controller's type, and the controller's register, by ABI. */
+    /**
+     * Each declared build's container type, the controller's type, and the controller's register,
+     * by ABI. 584's two builds agree on all three.
+     */
     private val expected = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
             "arm64-v8a" to Triple("LX/1yY;", "LX/XbL;", 5),
+            "armeabi-v7a" to Triple("LX/1yY;", "LX/XbL;", 5),
         ),
     )
 
@@ -45,6 +49,7 @@ class HideFeedsHeaderFixtureTest {
     private val room = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
             "arm64-v8a" to ("LX/YHp;" to "LX/YV0;"),
+            "armeabi-v7a" to ("LX/YHp;" to "LX/YV0;"),
         ),
     )
 

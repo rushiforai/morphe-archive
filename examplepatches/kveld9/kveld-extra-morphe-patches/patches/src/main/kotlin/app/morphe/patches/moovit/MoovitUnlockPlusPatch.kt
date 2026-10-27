@@ -21,11 +21,13 @@ private val subscriptionStateFingerprint = Fingerprint(
     parameters = emptyList(),
 )
 
-private val subscriptionPackageStateFingerprint = Fingerprint(
+private val subscriptionPackageInitFingerprint = Fingerprint(
     definingClass = "Lcom/moovit/app/subscription/premium/packages/a;",
-    name = "b",
-    returnType = "Lcom/moovit/app/subscription/premium/packages/SubscriptionPackageState;",
-    parameters = emptyList(),
+    name = "<init>",
+    parameters = listOf(
+        "Lcom/moovit/MoovitApplication;",
+        "Lcom/moovit/app/subscription/premium/packages/SubscriptionPackageType;",
+    ),
 )
 
 private val safeRideCalculateStateFingerprint = Fingerprint(
@@ -65,15 +67,21 @@ val moovitUnlockPlusPatch = bytecodePatch(
         )
         patched++
 
-        // 2. Package state -> always ACTIVE
-        subscriptionPackageStateFingerprint.method.addInstructions(
-            0,
-            """
-                sget-object p0, Lcom/moovit/app/subscription/premium/packages/SubscriptionPackageState;->ACTIVE:Lcom/moovit/app/subscription/premium/packages/SubscriptionPackageState;
-                return-object p0
-            """.trimIndent(),
-        )
-        patched++
+        // 2. Package state -> always ACTIVE on initialization
+        run {
+            val instructions = subscriptionPackageInitFingerprint.method.implementation!!.instructions
+            val inactiveIndex = instructions.indexOfFirst { instruction ->
+                instruction.opcode == Opcode.SGET_OBJECT &&
+                    (instruction as? ReferenceInstruction)?.reference.toString().contains("SubscriptionPackageState;->INACTIVE")
+            }
+            check(inactiveIndex >= 0) { "SubscriptionPackageState.INACTIVE reference not found in SubscriptionPackage.<init>." }
+            val reg = (instructions[inactiveIndex] as OneRegisterInstruction).registerA
+            subscriptionPackageInitFingerprint.method.replaceInstruction(
+                inactiveIndex,
+                "sget-object v$reg, Lcom/moovit/app/subscription/premium/packages/SubscriptionPackageState;->ACTIVE:Lcom/moovit/app/subscription/premium/packages/SubscriptionPackageState;",
+            )
+            patched++
+        }
 
         // 3. SafeRide calculate state -> always ACTIVE
         safeRideCalculateStateFingerprint.method.addInstructions(

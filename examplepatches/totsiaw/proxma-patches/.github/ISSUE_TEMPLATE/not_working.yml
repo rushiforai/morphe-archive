@@ -1,0 +1,121 @@
+name: "\U0001F6A8 Patched app broken"
+description: The patched app crashes, a patch has no effect, or something else is wrong after patching.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this when patching succeeded and the app installed, but something is wrong.
+
+        - Patching itself failed? Use [Patching failed](https://github.com/totsiaw/proxma-patches/issues/new?template=bug_report.yml).
+  - type: dropdown
+    id: what-happened
+    attributes:
+      label: What happened
+      options:
+        - The app crashes or won't open
+        - A patched feature is still locked
+        - The patch has no visible effect
+        - Something else (describe below)
+    validations:
+      required: true
+  - type: dropdown
+    id: app
+    attributes:
+      label: App and version
+      description: The app and version you patched.
+      options:
+        # generated:targets
+        - "foodpanda 26.38.1"
+        - "foodpanda (another version, type it below)"
+        - "inDrive 5.188.0"
+        - "inDrive 5.189.0"
+        - "inDrive (another version, type it below)"
+        - "Investify 5.6.0"
+        - "Investify (another version, type it below)"
+        - "MTProxy 2.1.4"
+        - "MTProxy (another version, type it below)"
+        - "My Telenor 4.2.63"
+        - "My Telenor (another version, type it below)"
+        - "MyZong 5.19.19.112"
+        - "MyZong (another version, type it below)"
+        - "NetMonster 4.0.4"
+        - "NetMonster 5.0.0"
+        - "NetMonster 5.0.1"
+        - "NetMonster (another version, type it below)"
+        - "OLX 18.8.0"
+        - "OLX (another version, type it below)"
+        - "OLX India 20.07.001"
+        - "OLX India (another version, type it below)"
+        - "Safar 3.0.1"
+        - "Safar (another version, type it below)"
+        - "Simosa 3.3.4.2"
+        - "Simosa 3.3.5"
+        - "Simosa (another version, type it below)"
+        - "Storywise 1.0.3"
+        - "Storywise (another version, type it below)"
+        # /generated
+    validations:
+      required: true
+  - type: input
+    id: other-version
+    attributes:
+      label: Other version
+      description: If you picked "another version" above, type it here.
+      placeholder: "1.2.3"
+    validations:
+      required: false
+  - type: dropdown
+    id: patches
+    attributes:
+      label: Which patches were applied?
+      multiple: true
+      options:
+        - All available patches
+        - Remove ads
+        - Remove ads & tracking
+        - Block trackers
+        - Bypass device validation
+        - Auto-claim daily rewards
+        - Unlock premium
+        - Bypass PairIP
+        - Force dark mode
+        - Unlock daily reward (skip ad)
+        - Hide bottom tabs
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: stock-check
+    attributes:
+      label: Does the unpatched (stock) app have the same problem?
+      options:
+        - "No, the stock app works fine"
+        - "Yes, the stock app fails the same way"
+        - "I have not tried"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug description
+      description: What happens, step by step. Include screenshots or a screen recording if possible.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logcat output
+      description: "Run `adb logcat -d | grep -iE 'PROXMA|crash|fatal|exception'` and paste the output."
+      render: shell
+    validations:
+      required: false
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched open and closed issues and this isn't a duplicate.
+          required: true
+        - label: The title describes the problem, not just the app name.
+          required: true

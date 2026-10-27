@@ -375,7 +375,7 @@ foreach ($apk in $Fixture) {
         } else {
             $enable = @()
             foreach ($name in $patchNames) { $enable += '-e'; $enable += $name }
-            $arguments = @('patch', '--exclusive', '--continue-on-error', '--unsigned', '-p', $Bundle,
+            $arguments = @('patch', '--validate', '--exclusive', '--continue-on-error', '--unsigned', '-p', $Bundle,
                 '-o', $out, '-t', $temp, '-r', $resultPath)
             if ($forced) { $arguments += '-f' }
             $arguments = $arguments + $enable + @($patchInput)

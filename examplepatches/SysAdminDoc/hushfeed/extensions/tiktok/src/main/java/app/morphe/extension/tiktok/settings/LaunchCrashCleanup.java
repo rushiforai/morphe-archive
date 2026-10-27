@@ -14,8 +14,8 @@ import java.util.Arrays;
 /**
  * TikTok's own recovery from crashes at launch. On the third launch crash in a row it deletes
  * every preferences file whose name isn't on its keep-list, and Hushfeed's weren't on it: a crash
- * loop erased every setting, the Lab's rules and the Calm feed undo one start before Hushfeed's
- * safe mode could pause anything.
+ * loop erased every setting and the Lab's rules one start before Hushfeed's safe mode could
+ * pause anything.
  *
  * <p>This runs where TikTok builds that list, which can be inside its crash handler and before
  * Hushfeed has a context, so it touches nothing but the array it is given. The names are
@@ -26,7 +26,6 @@ public final class LaunchCrashCleanup {
     static final String[] HUSHFEED_FILES = {
             Setting.PREFERENCES_NAME,
             FeatureGateLabStore.PREFS_NAME,
-            CalmFeedPreset.PREFERENCES,
             ReleaseNotes.PREFS_NAME,
             DeviceIdentity.PREFERENCES,
     };

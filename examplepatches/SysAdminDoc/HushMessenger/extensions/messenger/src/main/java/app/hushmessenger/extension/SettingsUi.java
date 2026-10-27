@@ -19,28 +19,32 @@ import android.widget.TextView;
 /** Framework-only styling: the extension can run without adding host resources. */
 final class SettingsUi {
     final Context context;
-    final int background, surface, text, muted, accent, line, outline, selected, warning, warningSurface;
+    /** accent is for text and lines on the page; accentFill is Messenger's blue behind white text, like its own buttons. */
+    final int background, surface, text, muted, accent, accentFill, line, outline, selected, warning, warningSurface;
     final int track, thumb, ripple, infoSurface, infoBorder, selectedText, error, selection;
-    final boolean largeText;
+    final boolean largeText, light;
 
     SettingsUi(Context context, boolean light) {
         this.context = context;
-        background = light ? 0xfffaf7f9 : 0xff000000;
-        surface = light ? 0xffffffff : 0xff141419;
-        text = light ? 0xff211b23 : 0xfff4f1f3;
-        muted = light ? 0xff645966 : 0xffaeb3bf;
-        accent = light ? 0xff9e3157 : 0xfff6a9c0;
-        line = light ? 0xffded6dd : 0xff303640;
-        outline = light ? 0xff8b7c89 : 0xff657080;
-        selected = accent;
+        this.light = light;
+        background = light ? 0xfff0f2f5 : 0xff000000;
+        surface = light ? 0xffffffff : 0xff10151d;
+        text = light ? 0xff050505 : 0xfff3f5f9;
+        muted = light ? 0xff65676b : 0xffa6afbe;
+        // No one blue reads as text on both the page and under white text, so each job gets its own.
+        accent = light ? 0xff0064e0 : 0xff4599ff;
+        accentFill = 0xff0866ff;
+        line = light ? 0xffdadde1 : 0xff222c3a;
+        outline = light ? 0xff8a8d91 : 0xff5c6878;
+        selected = accentFill;
         warning = light ? 0xff785100 : 0xffffcc67;
         warningSurface = light ? 0xffffefc5 : 0xff352800;
-        track = light ? 0xffd9d0d8 : 0xff2b3039;
+        track = light ? 0xffd8dadf : 0xff2a3442;
         thumb = light ? 0xffffffff : 0xffe1e6ef;
-        ripple = light ? 0x229e3157 : 0x33f3a6b8;
-        infoSurface = light ? 0xfff2ebf0 : 0xff1b1f26;
-        infoBorder = light ? 0xffe4d9e1 : 0xff292f39;
-        selectedText = light ? 0xffffffff : background;
+        ripple = light ? 0x220866ff : 0x334599ff;
+        infoSurface = light ? 0xffe7f3ff : 0xff0f1c2e;
+        infoBorder = light ? 0xffcfe3fb : 0xff1d3350;
+        selectedText = 0xffffffff;
         error = light ? 0xffb3261e : 0xffffb4ab;
         selection = (accent & 0x00ffffff) | 0x55000000;
         largeText = context.getResources().getConfiguration().fontScale > 1.3f ||
@@ -74,10 +78,17 @@ final class SettingsUi {
         return view;
     }
 
+    /** A HushMessenger title: bold text in Messenger's moving gradient. */
+    TextView title(String value, int size) {
+        TextView view = text(value, size, text, true);
+        ShimmerTitle.wear(view, light);
+        return view;
+    }
+
     TextView heading(String value) {
         // The text is English on every phone, so English capitals: a Turkish phone's own would dot the I.
-        TextView view = text(value.toUpperCase(java.util.Locale.ROOT), 13, muted, true);
-        view.setLetterSpacing(0.06f);
+        TextView view = text(value.toUpperCase(java.util.Locale.ROOT), 12, muted, true);
+        view.setLetterSpacing(0.07f);
         view.setAccessibilityHeading(true);
         return view;
     }
@@ -96,7 +107,7 @@ final class SettingsUi {
     Drawable interactive(int fill, int border, int radius, int focus) {
         StateListDrawable states = new StateListDrawable();
         Drawable focused;
-        if (fill == accent) {
+        if (fill == accentFill) {
             // No one color stands out from both the accent fill and the page, so an accent control gets two
             // rings: the outer one in the text color against the page, the inner one in the fill's own text color.
             GradientDrawable outer = shape(fill, 0, radius);
@@ -111,9 +122,9 @@ final class SettingsUi {
             ring.setStroke(dp(2), focus);
             focused = ring;
         }
-        states.addState(new int[] {-android.R.attr.state_enabled}, shape(fill == accent ? track : fill, border == 0 ? 0 : line, radius));
+        states.addState(new int[] {-android.R.attr.state_enabled}, shape(fill == accentFill ? track : fill, border == 0 ? 0 : line, radius));
         states.addState(new int[] {android.R.attr.state_focused}, focused);
-        states.addState(new int[] {android.R.attr.state_hovered}, shape(fill == accent ? fill : infoSurface, border, radius));
+        states.addState(new int[] {android.R.attr.state_hovered}, shape(fill == accentFill ? fill : infoSurface, border, radius));
         states.addState(new int[] {}, shape(fill, border, radius));
         return new RippleDrawable(ColorStateList.valueOf(ripple), states, shape(0xffffffff, 0, radius));
     }
@@ -139,7 +150,7 @@ final class SettingsUi {
         Button view = button(title);
         view.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
         view.setTextColor(new ColorStateList(new int[][] {{-android.R.attr.state_enabled}, {}}, new int[] {muted, selectedText}));
-        view.setBackground(interactive(accent, 0, 12));
+        view.setBackground(interactive(accentFill, 0, 12));
         return view;
     }
 
@@ -222,7 +233,7 @@ final class SettingsUi {
         disabled.setSize(dp(40), dp(20));
         tracks.addState(new int[] {-android.R.attr.state_enabled}, disabled);
         for (boolean on : new boolean[] {true, false}) {
-            GradientDrawable drawable = shape(on ? accent : track, on ? accent : outline, 6);
+            GradientDrawable drawable = shape(on ? accentFill : track, on ? accentFill : outline, 6);
             drawable.setSize(dp(40), dp(20));
             tracks.addState(on ? new int[] {android.R.attr.state_checked} : new int[] {}, drawable);
         }

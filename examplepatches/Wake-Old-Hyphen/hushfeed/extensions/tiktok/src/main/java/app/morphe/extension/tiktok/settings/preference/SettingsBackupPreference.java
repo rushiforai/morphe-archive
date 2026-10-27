@@ -100,7 +100,11 @@ public final class SettingsBackupPreference extends Preference
      * without an order and so landed among the logging rows, which put Back up and Restore
      * four rows apart with unrelated switches between them.
      */
-    public static void addTo(TikTokPreferenceFragment fragment, PreferenceScreen screen) {
+    public static void addTo(TikTokPreferenceFragment fragment, android.preference.PreferenceScreen screen) {
+        addTo(fragment, (android.preference.PreferenceGroup) screen);
+    }
+
+    public static void addTo(TikTokPreferenceFragment fragment, android.preference.PreferenceGroup screen) {
         int order = screen.getPreferenceCount();
         for (Object[] row : new Object[][]{
                 {EXPORT, "Back up settings",
@@ -117,10 +121,6 @@ public final class SettingsBackupPreference extends Preference
             screen.addPreference(preference);
             ROWS.add(new java.lang.ref.WeakReference<>(preference));
         }
-        // Where the home page's Quick setups card comes back after a long press hid it.
-        QuickSetupsHomePreference quickSetups = new QuickSetupsHomePreference(fragment.getActivity());
-        quickSetups.setOrder(order);
-        screen.addPreference(quickSetups);
     }
 
     /**

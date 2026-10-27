@@ -48,12 +48,21 @@ after the development tests pass.
 records its identity and optionally decompiles or patches it. For example:
 
 ```powershell
-./scripts/evaluate-update.ps1 -InputApk '.local/inputs/twitch.apkm' -ExpectedVersion '31.6.0' -Decompile
+./scripts/evaluate-update.ps1 -InputApk '.local/inputs/twitch.apkm' -ExpectedVersion '31.7.0' -Decompile
 ```
 
 Review the candidate's hooks before updating `TwitchTarget.kt`. Evaluate native
 and React Native playback, chat, settings and ad handling before declaring a
 version supported. Originals, signing keys and run artifacts stay under `.local/`.
+
+Use the APK's exact version name for prereleases and keep experimental targets
+marked as experimental. The current stable baseline is 31.7.0; 31.8.0_BETA is
+being evaluated separately. The [screen inventory](SCREENS.md) lists the surfaces
+to include in regression checks.
+
+Morphe Patcher 2 decodes resources lazily. Use `ResourcePatchContext.decode` for
+wildcard resource scans before enumerating matched files. Direct file access
+decodes individual resources on demand.
 
 See [the upgrade workflow](UPGRADES.md) for repository synchronization, baseline
 checkpoints, device recovery and overnight acceptance checks.

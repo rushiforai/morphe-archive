@@ -14,6 +14,9 @@ import static org.junit.Assert.assertTrue;
 import android.os.Looper;
 import android.text.SpannableString;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.After;
@@ -193,6 +196,46 @@ public class StoryDownloadTest {
         assertTrue(report, report.contains("video posted as a video 1"));
         assertTrue(report, report.contains("video with no posted type 1"));
         assertTrue(report, report.contains("photo 1"));
+    }
+
+    /**
+     * #339: your own highlight's menu is a list, and it gets Download at its end, in place and only
+     * once. Off, it's Instagram's own, and a list that can't take more stays as it was.
+     */
+    @Test
+    public void yourOwnHighlightsMenuOffersDownload() {
+        List<Object> menu = new ArrayList<>(Arrays.asList("Edit highlight", "Send to"));
+        StoryDownload.labelList(menu);
+        assertEquals(Arrays.asList("Edit highlight", "Send to", "Download"), menu);
+        StoryDownload.labelList(menu);
+        assertEquals("added twice", 3, menu.size());
+
+        List<Object> styled = new ArrayList<>(Arrays.asList("Edit highlight", new SpannableString("Download")));
+        StoryDownload.labelList(styled);
+        assertEquals(2, styled.size());
+
+        StoryDownload.labelList(null);
+        List<Object> fixed = Collections.unmodifiableList(new ArrayList<>(Arrays.asList("Edit highlight")));
+        StoryDownload.labelList(fixed);
+        assertEquals(1, fixed.size());
+
+        Settings.DOWNLOAD_STORIES.save(false);
+        List<Object> off = new ArrayList<>(Arrays.asList("Edit highlight"));
+        StoryDownload.labelList(off);
+        assertEquals(Arrays.asList("Edit highlight"), off);
+    }
+
+    /** A highlight that's a photo story with music gets both rows in its list, as any story's menu does. */
+    @Test
+    @Config(shadows = Story.class)
+    public void aHighlightWithMusicGetsBothRows() {
+        StoryDownload.building(new Object());
+        Story.media = new Object();
+        Story.video = true;
+        Story.posted = StoryDownload.POSTED_PHOTO;
+        List<Object> menu = new ArrayList<>(Arrays.asList("Edit highlight"));
+        StoryDownload.labelList(menu);
+        assertEquals(Arrays.asList("Edit highlight", "Download as video", "Download as photo"), menu);
     }
 
     /** A story's Media as the bridges read it: a video or not, its upload's flag and the type it was posted as. */

@@ -18,6 +18,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 
@@ -40,7 +41,7 @@ private fun drawerChanged(detail: String): Nothing = throw PatchException("Messe
 private fun Method.drawerCode() = implementation?.instructions?.toList() ?: drawerChanged("$name has no code")
 private fun MethodReference.drawerParams() = parameterTypes.map { it.toString() }
 private fun Instruction.drawerRef() = (this as? ReferenceInstruction)?.reference
-private fun Instruction.drawerArgs(): List<Int> = when (this) {
+internal fun Instruction.drawerArgs(): List<Int> = when (this) {
     is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
     is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
     else -> emptyList()
@@ -48,7 +49,7 @@ private fun Instruction.drawerArgs(): List<Int> = when (this) {
 private val OBJECT_MOVES = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
 
 /** Follow one register only within its straight-line path; an incoming branch makes its value ambiguous. */
-private fun Method.drawerOrigin(before: Int, register: Int): Int {
+internal fun Method.drawerOrigin(before: Int, register: Int): Int {
     val code = drawerCode()
     val landings = jumpTargets()
     var wanted = register
@@ -280,35 +281,81 @@ internal fun prepareLegacyDrawer(
         drawerChanged("settings row receiver changed")
     val iconResult = add.drawerOrigin(rowCallAt, rowArgs[3])
     val addCode = add.drawerCode()
-    // The factory below rebuilds the Settings icon the same way the native builder does: 584 calls the
-    // icon's static factory with the glyph. An icon constructed in place in the builder is refused.
-    val icon = addCode.getOrNull(iconResult - 1)?.drawerRef() as? MethodReference ?: drawerChanged("settings icon factory changed")
-    if (addCode[iconResult].opcode != Opcode.MOVE_RESULT_OBJECT || addCode[iconResult - 1].opcode != Opcode.INVOKE_STATIC ||
-        icon.drawerParams().size != 1 || !models.subtype(icon.returnType, rowParams[2])) drawerChanged("settings icon flow changed")
-    val iconFactory = models.type(icon.definingClass).methods.singleOrNull { it.hookId() == icon.toString() }
-        ?: drawerChanged("settings icon factory is missing")
-    val glyphAt = add.drawerOrigin(iconResult - 1, addCode[iconResult - 1].drawerArgs().single())
-    val settingsGlyph = addCode[glyphAt].drawerRef() as? FieldReference ?: drawerChanged("settings glyph changed")
-    if (addCode[glyphAt].opcode != Opcode.SGET_OBJECT || settingsGlyph.type != icon.drawerParams().single() ||
-        !AccessFlags.PUBLIC.isSet(iconFactory.accessFlags) || !AccessFlags.STATIC.isSet(iconFactory.accessFlags) ||
-        iconFactory.implementation?.tryBlocks?.isNotEmpty() == true) drawerChanged("settings icon contract changed")
-    val iconCode = iconFactory.drawerCode()
-    val iconBuild = iconCode.indices.singleOrNull { iconCode[it].opcode == Opcode.INVOKE_DIRECT }
-        ?: drawerChanged("settings icon construction changed")
-    val iconCtor = iconCode[iconBuild].drawerRef() as? MethodReference ?: drawerChanged("settings icon constructor changed")
-    val iconArgs = iconCode[iconBuild].drawerArgs()
-    if (icon.definingClass != icon.returnType || iconCtor.definingClass != icon.returnType || iconCtor.name != "<init>" ||
-        iconCtor.drawerParams().size != 2 || iconCtor.drawerParams()[0] != settingsGlyph.type || iconArgs.size != 3 ||
-        iconArgs[1] != iconFactory.implementation!!.registerCount - 1 ||
-        iconCode.size != 4 || iconCode[0].opcode != Opcode.SGET_OBJECT || iconCode[1].opcode != Opcode.NEW_INSTANCE ||
-        iconCode[1].drawerRef().toString() != icon.returnType || (iconCode[1] as OneRegisterInstruction).registerA != iconArgs[0] ||
-        iconCode[3].opcode != Opcode.RETURN_OBJECT || (iconCode[3] as OneRegisterInstruction).registerA != iconArgs[0] ||
-        (iconCode[0] as OneRegisterInstruction).registerA != iconArgs[2]) drawerChanged("settings icon is not freshly constructed")
-    val color = iconCode[0].drawerRef() as? FieldReference ?: drawerChanged("settings icon color changed")
-    if (!models.subtype(color.type, iconCtor.drawerParams()[1])) drawerChanged("settings icon color type changed")
-    models.field(color, true)
-    models.constructor(icon.returnType, iconCtor.drawerParams(), listOf("A00", "A01"), setOf(0, 1), public = false)
-    val iconSetup = "sget-object v3, $settingsGlyph\ninvoke-static {v3}, $icon\nmove-result-object v3"
+    val iconType: String
+    val iconCtorParams: List<String>
+    val iconCtorPublic: Boolean
+    val iconSetup: String
+    val settingsGlyph: FieldReference
+    if (addCode[iconResult].opcode == Opcode.NEW_INSTANCE) {
+        // 584.1 builds the Settings icon in place, straight into the row constructor's icon argument.
+        val allocation = addCode[iconResult] as? OneRegisterInstruction ?: drawerChanged("settings icon construction changed")
+        iconType = (addCode[iconResult].drawerRef() as? TypeReference)?.type ?: drawerChanged("settings icon construction changed")
+        models.type(iconType)
+        if (!models.subtype(iconType, rowParams[2])) drawerChanged("settings icon type changed")
+        val ctorAt = iconResult + 1
+        val ctorInsn = addCode.getOrNull(ctorAt) as? ReferenceInstruction
+        val ctor = ctorInsn?.drawerRef() as? MethodReference
+        if (ctorInsn?.opcode != Opcode.INVOKE_DIRECT || ctor == null || ctor.definingClass != iconType || ctor.name != "<init>")
+            drawerChanged("settings icon construction changed")
+        val ctorArgs = ctorInsn.drawerArgs()
+        iconCtorParams = ctor.drawerParams()
+        if (iconCtorParams.size != 2 || ctorArgs.size != 3 || ctorArgs[0] != allocation.registerA)
+            drawerChanged("settings icon construction changed")
+        val glyphAt = add.drawerOrigin(ctorAt, ctorArgs[1])
+        val colorAt = add.drawerOrigin(ctorAt, ctorArgs[2])
+        val glyph = addCode[glyphAt].drawerRef() as? FieldReference ?: drawerChanged("settings glyph changed")
+        val color = addCode[colorAt].drawerRef() as? FieldReference ?: drawerChanged("settings icon color changed")
+        if (addCode[glyphAt].opcode != Opcode.SGET_OBJECT || addCode[colorAt].opcode != Opcode.SGET_OBJECT ||
+            glyph.type != iconCtorParams[0] || !models.subtype(color.type, iconCtorParams[1]))
+            drawerChanged("settings icon contract changed")
+        models.field(glyph, true)
+        models.field(color, true)
+        settingsGlyph = glyph
+        iconCtorPublic = true
+        iconSetup = """
+            sget-object v2, $glyph
+            sget-object v3, $color
+            new-instance v0, $iconType
+            invoke-direct {v0, v2, v3}, $ctor
+            move-object v3, v0
+            const/4 v2, 0x0
+        """.trimIndent()
+    } else {
+        // The factory below rebuilds the Settings icon the same way the native builder does: 584 calls the
+        // icon's static factory with the glyph.
+        val icon = addCode.getOrNull(iconResult - 1)?.drawerRef() as? MethodReference ?: drawerChanged("settings icon factory changed")
+        if (addCode[iconResult].opcode != Opcode.MOVE_RESULT_OBJECT || addCode[iconResult - 1].opcode != Opcode.INVOKE_STATIC ||
+            icon.drawerParams().size != 1 || !models.subtype(icon.returnType, rowParams[2])) drawerChanged("settings icon flow changed")
+        val iconFactory = models.type(icon.definingClass).methods.singleOrNull { it.hookId() == icon.toString() }
+            ?: drawerChanged("settings icon factory is missing")
+        val glyphAt = add.drawerOrigin(iconResult - 1, addCode[iconResult - 1].drawerArgs().single())
+        val glyph = addCode[glyphAt].drawerRef() as? FieldReference ?: drawerChanged("settings glyph changed")
+        if (addCode[glyphAt].opcode != Opcode.SGET_OBJECT || glyph.type != icon.drawerParams().single() ||
+            !AccessFlags.PUBLIC.isSet(iconFactory.accessFlags) || !AccessFlags.STATIC.isSet(iconFactory.accessFlags) ||
+            iconFactory.implementation?.tryBlocks?.isNotEmpty() == true) drawerChanged("settings icon contract changed")
+        val iconCode = iconFactory.drawerCode()
+        val iconBuild = iconCode.indices.singleOrNull { iconCode[it].opcode == Opcode.INVOKE_DIRECT }
+            ?: drawerChanged("settings icon construction changed")
+        val iconCtor = iconCode[iconBuild].drawerRef() as? MethodReference ?: drawerChanged("settings icon constructor changed")
+        val iconArgs = iconCode[iconBuild].drawerArgs()
+        // 584.1's second arm64 family keeps the factory on the icon's parent type (G7K.A00 returns a new G7P).
+        if (!models.subtype(icon.returnType, icon.definingClass) || iconCtor.definingClass != icon.returnType || iconCtor.name != "<init>" ||
+            iconCtor.drawerParams().size != 2 || iconCtor.drawerParams()[0] != glyph.type || iconArgs.size != 3 ||
+            iconArgs[1] != iconFactory.implementation!!.registerCount - 1 ||
+            iconCode.size != 4 || iconCode[0].opcode != Opcode.SGET_OBJECT || iconCode[1].opcode != Opcode.NEW_INSTANCE ||
+            iconCode[1].drawerRef().toString() != icon.returnType || (iconCode[1] as OneRegisterInstruction).registerA != iconArgs[0] ||
+            iconCode[3].opcode != Opcode.RETURN_OBJECT || (iconCode[3] as OneRegisterInstruction).registerA != iconArgs[0] ||
+            (iconCode[0] as OneRegisterInstruction).registerA != iconArgs[2]) drawerChanged("settings icon is not freshly constructed")
+        val color = iconCode[0].drawerRef() as? FieldReference ?: drawerChanged("settings icon color changed")
+        if (!models.subtype(color.type, iconCtor.drawerParams()[1])) drawerChanged("settings icon color type changed")
+        models.field(color, true)
+        iconType = icon.returnType
+        iconCtorParams = iconCtor.drawerParams()
+        iconCtorPublic = false
+        settingsGlyph = glyph
+        iconSetup = "sget-object v3, $settingsGlyph\ninvoke-static {v3}, $icon\nmove-result-object v3"
+    }
+    models.constructor(iconType, iconCtorParams, listOf("A00", "A01"), setOf(0, 1), public = iconCtorPublic)
     // Obfuscated glyph names move between versions; the enum's own name for the Settings gear doesn't.
     if (models.enumName(settingsGlyph) != "SETTINGS") drawerChanged("settings glyph is not the Settings gear")
     models.field(settingsGlyph, true)

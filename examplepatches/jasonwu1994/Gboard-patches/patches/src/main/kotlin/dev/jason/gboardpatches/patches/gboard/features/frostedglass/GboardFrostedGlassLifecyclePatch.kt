@@ -18,7 +18,7 @@ import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitt
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 
-private const val OWNER = "Loup;"
+private const val OWNER = "Lphr;"
 private val onConfigureWindow = GboardMethodTarget(OWNER, "onConfigureWindow", listOf("Landroid/view/Window;", "Z", "Z"), "V")
 private val onWindowShown = GboardMethodTarget(OWNER, "onWindowShown", emptyList(), "V")
 private val onWindowHidden = GboardMethodTarget(OWNER, "onWindowHidden", emptyList(), "V")
@@ -65,7 +65,7 @@ private fun MutableMethod.applyFrostedGlassConfigureDelegate(): MutableMethod {
 
 private const val FROSTED_CONFIGURE_STOCK_REGISTERS = 11
 private const val FROSTED_CONFIGURE_PATCHED_REGISTERS = 17
-private const val FROSTED_CONFIGURE_DESCRIPTOR = "Loup;->onConfigureWindow(Landroid/view/Window;ZZ)V"
+private const val FROSTED_CONFIGURE_DESCRIPTOR = "Lphr;->onConfigureWindow(Landroid/view/Window;ZZ)V"
 private val FROSTED_CONFIGURE_RUNTIME_DESCRIPTOR =
     RuntimeAbiCatalog.abi(RuntimeCallId.FROSTED_GLASS_RUNTIME_AFTER_CONFIGURE_WINDOW).reference
 private val FROSTED_CONFIGURE_ENTRY_COPIES = """

@@ -184,18 +184,21 @@ public final class NativeToolTabs {
     }
     /** Resolve actual ownership, not today's HOME/thread preference (existing tabs can differ). */
     private static ThreadSelection threadSelection(Activity activity,Object fragment)throws Exception{
+        return paneSelection(activity,fragment,false);
+    }
+    private static ThreadSelection paneSelection(Activity activity,Object fragment,boolean home)throws Exception{
         if(!tablet(activity)||!(fragment instanceof NativeToolFragment)||!marker(arguments(fragment)))return null;
         String version=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;
         Class<?> fragmentClass=Class.forName("androidx.fragment.app.Fragment",false,activity.getClassLoader());
         if("0.8.10.191 dev".equals(version)){
-            Object pane=tabField(activity,"I"),adapter=tabField(pane,"d");
+            Object pane=tabField(activity,home?"k":"I"),adapter=tabField(pane,"d");
             int index=(Integer)tabCall(adapter,"a",new Class<?>[]{fragmentClass},fragment);
             if(index<0||index!=(Integer)tabField(tabField(pane,"e"),"a"))return null;
             return new ThreadSelection(pane,"d",index,((java.util.List<?>)tabField(adapter,"a")).size(),true);
         }
         boolean v226="0.8.10.226 dev".equals(version);
         if(!v226&&!"0.8.10.242 dev".equals(version))return null;
-        Object pane=Array.get(tabField(activity,v226?"r":"w"),1),model=tabField(pane,v226?"a":"e");
+        Object pane=Array.get(tabField(activity,v226?"r":"w"),home?0:1),model=tabField(pane,v226?"a":"e");
         int index;
         if(v226)index=(Integer)tabCall(model,"d",new Class<?>[]{fragmentClass},fragment);
         else{
@@ -267,9 +270,46 @@ public final class NativeToolTabs {
     }
     /** Called after touch dispatch; native selection updates both the tab strip and the pager. */
     static boolean moveThreadTool(Activity activity,Object fragment,int offset){
+        return moveTool(activity,fragment,offset,false);
+    }
+    static boolean moveAdjacentTool(Activity activity,Object fragment,int offset){
+        return moveTool(activity,fragment,offset,false)||moveTool(activity,fragment,offset,true);
+    }
+    /** Native New tab creates a blank type-3 page, including native history links. */
+    static boolean newBlankTab(Activity activity,Object fragment){
+        if(activity==null||activity.isFinishing()||activity.isDestroyed())return false;
+        try{
+            boolean home;
+            if(paneSelection(activity,fragment,false)!=null)home=false;
+            else if(paneSelection(activity,fragment,true)!=null)home=true;
+            else return false;
+            String version=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;
+            boolean v191="0.8.10.191 dev".equals(version),v226="0.8.10.226 dev".equals(version);
+            Object pane=v191?tabField(activity,home?"k":"I"):
+                    Array.get(tabField(activity,v226?"r":"w"),home?0:1);
+            Class<?> position=Class.forName(v191?"jp.syoboi.a2chMate.activity.TabletHomeActivity$write":
+                    v226?"o.fWG":"o.zzfc",false,activity.getClassLoader());
+            Field value=position.getDeclaredField(v191?"a":"b");value.setAccessible(true);
+            Method opener=activity.getClass().getDeclaredMethod(v191?"d":"b",pane.getClass(),position);
+            opener.setAccessible(true);
+            opener.invoke(activity,pane,value.get(null));
+            return true;
+        }catch(Exception error){android.util.Log.w("Haiagaru","Could not create native blank tab",error);return false;}
+    }
+    static boolean navigateTool(Activity activity,Object fragment,boolean forward){
+        if(activity==null||activity.isFinishing()||activity.isDestroyed()
+                ||!(fragment instanceof NativeToolFragment))return false;
+        try{
+            if(paneSelection(activity,fragment,false)==null&&paneSelection(activity,fragment,true)==null)return false;
+            if(((NativeToolFragment)fragment).navigateHistory(forward))return true;
+            // Back at the tool's root returns to the native previous page through normal close.
+            return !forward&&closeCurrentTab(activity,fragment);
+        }catch(Exception error){android.util.Log.w("Haiagaru","Could not navigate tool history",error);return false;}
+    }
+    private static boolean moveTool(Activity activity,Object fragment,int offset,boolean home){
         if(offset!=-1&&offset!=1)return false;
         try{
-            ThreadSelection selection=threadSelection(activity,fragment);
+            ThreadSelection selection=paneSelection(activity,fragment,home);
             if(selection==null||selection.index+offset<0||selection.index+offset>=selection.count)return false;
             tabCall(selection.owner,selection.select,new Class<?>[]{int.class},selection.relative?offset:selection.index+offset);
             return true;
@@ -389,6 +429,7 @@ public final class NativeToolTabs {
         void resume(){}
         void pause(){}
         void close(){}
+        boolean navigateHistory(boolean forward){return NativeToolTabHistory.navigate(view,forward);}
     }
     static Content content(Object fragment,Activity activity,Bundle restored){
         Bundle args=arguments(fragment);
@@ -526,6 +567,10 @@ public final class NativeToolTabs {
             scroll.post(()->scroll.scrollTo(0,0));
         }
         @Override void save(Bundle state){if(selected!=null)state.putString(SELECTED,selected);}
+        @Override boolean navigateHistory(boolean forward){
+            if(!forward&&selected!=null){show(null);return true;}
+            return false;
+        }
         @Override void close(){SettingsTabUi.clear(categoryHost);Haiagaru.settingsClosed();}
     }
 }

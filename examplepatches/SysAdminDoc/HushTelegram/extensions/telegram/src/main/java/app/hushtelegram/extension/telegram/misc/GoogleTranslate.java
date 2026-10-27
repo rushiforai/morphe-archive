@@ -57,13 +57,36 @@ final class GoogleTranslate {
 
         /** Whether the text already reads in [target], so there's nothing to show. */
         boolean sameLanguageAs(String target) {
-            return !source.isEmpty() && base(source).equals(base(target));
+            return sameLanguageAs(target, false);
+        }
+
+        /**
+         * [exact] is for a language the person picked (#35): Chinese in the other script, or a
+         * language's regional or other-script choice, then still gets translated into it.
+         */
+        boolean sameLanguageAs(String target, boolean exact) {
+            if (source.isEmpty()) return false;
+            return exact ? code(source).equals(code(target)) : base(source).equals(base(target));
         }
 
         private static String base(String tag) {
+            String code = code(tag);
+            int dash = code.indexOf('-');
+            return dash < 0 ? code : code.substring(0, dash);
+        }
+
+        /** Lower case, with the old codes Google and Java still give Hebrew, Javanese and Indonesian read as today's. */
+        private static String code(String tag) {
             String lower = tag.toLowerCase(Locale.ROOT);
             int dash = lower.indexOf('-');
-            return dash < 0 ? lower : lower.substring(0, dash);
+            String language = dash < 0 ? lower : lower.substring(0, dash);
+            String rest = dash < 0 ? "" : lower.substring(dash);
+            switch (language) {
+                case "iw": return "he" + rest;
+                case "jw": return "jv" + rest;
+                case "in": return "id" + rest;
+                default: return lower;
+            }
         }
     }
 

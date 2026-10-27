@@ -444,6 +444,8 @@ final class FeedPages {
                     L10n.t("An open reply thread keeps loading as you scroll, so there's no View more replies to tap.")));
             comments.addPreference(toggle(context, Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES,
                     L10n.t("The whole View more replies row opens the replies, not just its words.")));
+            comments.addPreference(toggle(context, Settings.HIDE_POST_COMMENT_PREVIEWS,
+                    L10n.t("Feed posts stop showing a few comments under their buttons. Tap Comment to read them all.")));
             comments.addPreference(toggle(context, Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS,
                     L10n.t("A group post's comments end without the Related groups list and its Join buttons.")));
             comments.addPreference(toggle(context, Settings.HIDE_SHOP_LINK_COMMENTS,

@@ -20,7 +20,11 @@ internal object LicenseResponseFingerprint : Fingerprint(
     name = "<init>",
     returnType = "V",
     parameters = listOf("I"),
-    strings = listOf("Licensed", "Retrying", "Unlicensed"),
+    strings = listOf(
+        string("Licensed", StringComparisonType.CONTAINS),
+        string("Retrying", StringComparisonType.CONTAINS),
+        string("Unlicensed", StringComparisonType.CONTAINS),
+    ),
 )
 
 // Licence manager companion: "is licensed" from the cached status, or kicks off a check.

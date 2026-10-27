@@ -22,7 +22,6 @@ import java.util.concurrent.Executors;
 /** GIF playback uses the platform decoder, including on Android 5–8. */
 public final class GifViewerActivity extends HaiagaruComposeActivity {
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
-    private volatile HttpURLConnection connection;
     private volatile boolean closed;
     private volatile int generation;
     private String url;
@@ -34,12 +33,7 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
     private boolean pendingSave;
 
     static boolean supported(String value) {
-        try {
-            URI uri = URI.create(value);
-            return ("https".equalsIgnoreCase(uri.getScheme()) || "http".equalsIgnoreCase(uri.getScheme()))
-                    && uri.getHost() != null && uri.getUserInfo() == null && uri.getPath() != null
-                    && uri.getPath().toLowerCase(java.util.Locale.ROOT).endsWith(".gif");
-        } catch (RuntimeException invalid) { return false; }
+        return GifAutoFetchPolicy.supported(value);
     }
 
     /** Called after the native image activity's super.onCreate, before it loads images. */
@@ -49,9 +43,12 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
         if (incoming == null) return false;
         java.util.ArrayList<String> links = incoming.getStringArrayListExtra("links");
         int index = incoming.getIntExtra("index", 0);
-        if (links == null || index < 0 || index >= links.size() || !supported(links.get(index))) return false;
-        activity.startActivity(new Intent(activity, GifViewerActivity.class)
-                .setData(Uri.parse(links.get(index))));
+        if (links == null || index < 0 || index >= links.size()) return false;
+        String selected=PreviewUrls.normalize(links.get(index));
+        if(!supported(selected)&&!DirectVideoUrls.supported(selected))return false;
+        if(supported(selected)?VideoViewerSettings.nativeGif(activity):VideoViewerSettings.nativeVideo(activity))return false;
+        java.util.ArrayList<String> group=MediaViewerNavigation.links(activity);
+        activity.startActivity(MediaViewerNavigation.destination(activity,group,group.indexOf(selected)));
         activity.finish(); return true;
     }
 
@@ -59,7 +56,8 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
         super.onCreate(state);
         Uri uri = getIntent().getData();
         if (!Haiagaru.videoViewerEnabled() || uri == null || !supported(uri.toString())) { finish(); return; }
-        url = uri.toString();
+        url = PreviewUrls.normalize(uri.toString());
+        playing=VideoViewerSettings.prefs(this).getBoolean(VideoViewerSettings.GIF_AUTOPLAY,true);
         if (state != null) { playing = state.getBoolean("playing", true); pendingSave = state.getBoolean("save", false); }
         unregisterBack = VideoViewerBack.register(this);
         LinearLayout root = new LinearLayout(this);
@@ -73,7 +71,7 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
         // be lost when converting a model toolbar into Compose controls.
         LinearLayout toolbar = new LinearLayout(this); toolbar.setGravity(Gravity.CENTER_VERTICAL);
         toolbar.setPadding(dp(8), 0, dp(8), 0);
-        TextView title = new TextView(this); title.setText("GIF"); title.setTextColor(Color.WHITE);
+        TextView title = new TextView(this); title.setText("GIF"+MediaViewerNavigation.counter(this)); title.setTextColor(Color.WHITE);
         title.setTextSize(16); title.setGravity(Gravity.CENTER_VERTICAL); title.setPadding(dp(8), 0, dp(12), 0);
         toolbar.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
         play = button(playing ? "一時停止" : "再生"); play.setEnabled(false);
@@ -97,40 +95,42 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
 
     private void load() {
         final int request = ++generation;
-        HttpURLConnection old = connection; if (old != null) old.disconnect();
+        final boolean refresh=forceReload;
         image.setMovie(null); play.setEnabled(false); status.setVisibility(View.VISIBLE); status.setText("GIFを読み込み中…");
         worker.execute(() -> {
-            HttpURLConnection current = null;
             try {
                 if (closed || request != generation) return;
-                current = (HttpURLConnection) new URL(url).openConnection(); connection = current;
-                current.setConnectTimeout(20000); current.setReadTimeout(20000);
-                int code = current.getResponseCode();
-                if (code != 200) throw new java.io.IOException("HTTP " + code);
-                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                try (InputStream input = current.getInputStream()) {
-                    byte[] buffer = new byte[16384]; int n;
-                    while ((n = input.read(buffer)) != -1) {
-                        if (closed || request != generation) return;
-                        if (bytes.size() + n > 64 * 1024 * 1024) throw new java.io.IOException("GIFが大きすぎます（64MB超）");
-                        bytes.write(buffer, 0, n);
+                java.io.File file=GifMediaLoader.load(this,url,GifFileCache.MAX_FILE,refresh,()->closed||request!=generation);
+                Movie movie;android.graphics.drawable.Drawable animation;
+                if(android.os.Build.VERSION.SDK_INT>=28){
+                    try{animation=ModernGif.decode(file,getResources().getDisplayMetrics().widthPixels,
+                            getResources().getDisplayMetrics().heightPixels);}
+                    catch(java.io.IOException|RuntimeException invalid){GifFileCache.invalidate(new java.io.File(getCacheDir(),"haiagaru-gif-files"),url,file);throw invalid;}
+                    movie=null;
+                }else{
+                    movie=Movie.decodeFile(file.getAbsolutePath());animation=null;
+                    if(movie==null||movie.width()<=0||movie.height()<=0){
+                        GifFileCache.invalidate(new java.io.File(getCacheDir(),"haiagaru-gif-files"),url,file);
+                        throw new java.io.IOException("GIFを読み取れません");
                     }
                 }
-                byte[] data = bytes.toByteArray();
-                if (data.length < 6 || data[0] != 'G' || data[1] != 'I' || data[2] != 'F')
-                    throw new java.io.IOException("GIFデータではありません");
-                Movie movie = Movie.decodeByteArray(data, 0, data.length);
-                if (movie == null || movie.width() <= 0 || movie.height() <= 0) throw new java.io.IOException("GIFを読み取れません");
                 runOnUiThread(() -> {
-                    if (closed || request != generation) return;
-                    image.setMovie(movie); image.setPlaying(playing && foreground);
+                    if (closed || request != generation) {if(animation!=null&&android.os.Build.VERSION.SDK_INT>=28)ModernGif.stop(animation);return;}
+                    if(animation!=null)image.setAnimation(animation);else image.setMovie(movie);
+                    image.setPlaying(playing && foreground);
                     play.setEnabled(true); status.setText(""); status.setVisibility(View.GONE);
                 });
             } catch (Exception | OutOfMemoryError failure) {
                 runOnUiThread(() -> { if (!closed && request == generation)
                     status.setText("GIFを再生できません。︙から再読み込み、または外部アプリで開いてください。"); });
-            } finally { if (current != null) current.disconnect(); if (connection == current) connection = null; }
+            }
         });
+    }
+    private boolean forceReload;
+
+    @Override public boolean dispatchTouchEvent(android.view.MotionEvent event) {
+        if(MediaViewerNavigation.onTouch(this,event,image))return true;
+        return super.dispatchTouchEvent(event);
     }
 
     private void showMenu(View anchor) {
@@ -140,9 +140,10 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
         menu.getMenu().add(0, 3, 2, "URLをコピー");
         menu.getMenu().add(0, 4, 3, "GIFを保存");
         menu.getMenu().add(0, 5, 4, "画面を回転");
+        menu.getMenu().add(0, 6, 5, "ビューアの操作設定");
         menu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
-                case 1: load(); return true;
+                case 1: forceReload=true;load();forceReload=false;return true;
                 case 2:
                     try { startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW)
                             .setDataAndType(Uri.parse(url), "image/gif"), "GIFを開く")); }
@@ -155,6 +156,7 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
                 case 5: setRequestedOrientation(getResources().getConfiguration().orientation == 2
                         ? android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                         : android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); return true;
+                case 6: VideoViewerSettings.show(this);return true;
                 default: return false;
             }
         }); menu.show();
@@ -178,24 +180,41 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
         state.putBoolean("playing", playing); state.putBoolean("save", pendingSave); super.onSaveInstanceState(state);
     }
     @Override protected void onDestroy() {
-        closed = true; generation++; if (connection != null) connection.disconnect(); worker.shutdownNow();
+        closed = true; generation++; worker.shutdownNow();
         if (image != null) image.setMovie(null);
         if (unregisterBack != null) unregisterBack.run(); super.onDestroy();
     }
     private final class GifCanvas extends View {
         private Movie movie;
+        private android.graphics.drawable.Drawable animation;
         private boolean animating;
         private long elapsed, started;
         GifCanvas() { super(GifViewerActivity.this); setLayerType(View.LAYER_TYPE_SOFTWARE, null); setContentDescription("GIFアニメーション"); }
-        void setMovie(Movie value) { movie = value; elapsed = 0; started = SystemClock.uptimeMillis(); invalidate(); }
+        void setMovie(Movie value) {
+            if(animation!=null){if(android.os.Build.VERSION.SDK_INT>=28)ModernGif.stop(animation);animation.setCallback(null);animation=null;}
+            setLayerType(value==null?View.LAYER_TYPE_NONE:View.LAYER_TYPE_SOFTWARE,null);
+            movie = value; elapsed = 0; started = SystemClock.uptimeMillis(); invalidate();
+        }
+        void setAnimation(android.graphics.drawable.Drawable value){
+            setMovie(null);animation=value;animation.setCallback(this);setLayerType(View.LAYER_TYPE_NONE,null);invalidate();
+        }
         void setPlaying(boolean value) {
+            if(animation!=null&&android.os.Build.VERSION.SDK_INT>=28)ModernGif.play(animation,value);
             if (animating == value) return;
             long now = SystemClock.uptimeMillis();
             if (animating) elapsed += now - started; else started = now;
             animating = value; invalidate();
         }
+        @Override protected boolean verifyDrawable(android.graphics.drawable.Drawable value){return value==animation||super.verifyDrawable(value);}
         @Override protected void onDraw(Canvas canvas) {
-            super.onDraw(canvas); if (movie == null) return;
+            super.onDraw(canvas);
+            if(animation!=null){
+                float ratio=Math.min((float)getWidth()/Math.max(1,animation.getIntrinsicWidth()),(float)getHeight()/Math.max(1,animation.getIntrinsicHeight()));
+                int width=Math.round(animation.getIntrinsicWidth()*ratio),height=Math.round(animation.getIntrinsicHeight()*ratio);
+                int left=(getWidth()-width)/2,top=(getHeight()-height)/2;
+                animation.setBounds(left,top,left+width,top+height);animation.draw(canvas);return;
+            }
+            if (movie == null) return;
             int duration = Math.max(1, movie.duration());
             movie.setTime((int)((elapsed + (animating ? SystemClock.uptimeMillis() - started : 0)) % duration));
             float scale = Math.min((float)getWidth()/movie.width(), (float)getHeight()/movie.height());
@@ -203,5 +222,23 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
             canvas.scale(scale, scale); movie.draw(canvas, 0, 0); canvas.restore();
             if (animating && movie.duration() > 0) postInvalidateDelayed(16);
         }
+    }
+    /** API 28+ decodes/advances frames on the platform animation pipeline instead of Movie.setTime on UI. */
+    private static final class ModernGif {
+        static android.graphics.drawable.Drawable decode(java.io.File file,int width,int height)throws java.io.IOException{
+            return android.graphics.ImageDecoder.decodeDrawable(android.graphics.ImageDecoder.createSource(file),(decoder,info,source)->{
+                decoder.setAllocator(android.graphics.ImageDecoder.ALLOCATOR_SOFTWARE);
+                double ratio=Math.min(1d,Math.min((double)Math.max(1,width)/info.getSize().getWidth(),(double)Math.max(1,height)/info.getSize().getHeight()));
+                decoder.setTargetSize(Math.max(1,(int)Math.round(info.getSize().getWidth()*ratio)),Math.max(1,(int)Math.round(info.getSize().getHeight()*ratio)));
+            });
+        }
+        static void play(android.graphics.drawable.Drawable value,boolean playing){
+            if(value instanceof android.graphics.drawable.AnimatedImageDrawable){
+                android.graphics.drawable.AnimatedImageDrawable gif=(android.graphics.drawable.AnimatedImageDrawable)value;
+                gif.setRepeatCount(android.graphics.drawable.AnimatedImageDrawable.REPEAT_INFINITE);
+                if(playing)gif.start();else gif.stop();
+            }
+        }
+        static void stop(android.graphics.drawable.Drawable value){play(value,false);}
     }
 }

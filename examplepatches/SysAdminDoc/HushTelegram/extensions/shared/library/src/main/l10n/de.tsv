@@ -43,7 +43,6 @@ Export diagnostic report	Diagnosebericht exportieren
 Export settings	Einstellungen exportieren
 After Telegram restarts, every switch except Debug logging acts as if it were off. Your choices stay saved. Edits made when you patched stay in.	Nach einem Neustart von Telegram verhält sich jeder Schalter außer Debug-Protokollierung, als wäre er aus. Deine Auswahl bleibt gespeichert. Änderungen, die beim Patchen gemacht wurden, bleiben aktiv.
 Hide ads	Werbung ausblenden
-Links, updates, backup and more	Links, Updates, Sicherung und mehr
 Privacy	Datenschutz
 Settings exported but not checked. Open the file to make sure.	Einstellungen exportiert, aber nicht geprüft. Öffne die Datei zur Kontrolle.
 That app is slow to answer. Nothing was changed. Try again.	Die App antwortet langsam. Es wurde nichts geändert. Versuche es noch einmal.
@@ -111,14 +110,12 @@ Your switches already match that file, so nothing will change.	Deine Schalter en
 Copy a short report to the clipboard.	Kurzen Bericht in die Zwischenablage kopieren.
 Settings imported.	Einstellungen importiert.
 Can't open the link. Go to %1$s.	Der Link lässt sich nicht öffnen. Geh zu %1$s.
-# context: Separate pages under More settings. Settings backup contains export and import; Diagnostics contains logging and diagnostic data controls.
+# context: Sections on the settings home list. Settings backup contains export and import; Diagnostics contains logging and diagnostic data controls.
 Settings backup	Sicherung der Einstellungen
 Diagnostics	Diagnose
 Updates	Updates
 Jump to a section	Zu einem Abschnitt springen
 Go straight to one group of settings. Back returns to where you were.	Direkt zu einer Gruppe von Einstellungen. Zurück bringt dich dorthin, wo du warst.
-Browse settings	Einstellungen durchsuchen
-More settings	Weitere Einstellungen
 No matching settings	Keine passenden Einstellungen
 %1$d setting found	%1$d Einstellung gefunden
 %1$d settings found	%1$d Einstellungen gefunden
@@ -334,6 +331,12 @@ Full screen videos turn either way	Vollbildvideos drehen sich in beide Richtunge
 After you tap full screen, a video follows your phone to either landscape side, even with auto-rotate off.	Nachdem du auf Vollbild getippt hast, folgt ein Video deinem Handy auf beide Seiten im Querformat, auch wenn Automatisch drehen aus ist.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that lets a full screen video turn to either landscape side.
 full screen video turning either way	Drehen von Vollbildvideos in beide Richtungen
+# context: a third switch under Keep videos muted on volume keys (#27). With it on, an open video in the viewer stays in portrait when the phone is turned, and goes landscape only from Telegram's full screen button.
+Turn videos only from the full screen button	Videos nur über die Vollbild-Taste drehen
+# context: that switch's summary. "full screen" is Telegram's full screen button on a video; use the phone's own words for turning the phone.
+An open video stays upright when you turn your phone. It goes landscape only when you tap full screen.	Ein geöffnetes Video bleibt aufrecht, wenn du dein Handy drehst. Es wechselt nur ins Querformat, wenn du auf Vollbild tippst.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that keeps an open video upright until full screen.
+keeping a video upright until full screen	Aufrechthalten eines Videos bis zum Vollbild
 Swipe back on profiles	Auf Profilen zurückwischen
 Swiping right on a profile's photos or media tabs goes back, like the rest of the profile, instead of showing the previous photo or tab.	Wischen nach rechts auf den Fotos oder Medien-Tabs eines Profils geht zurück, wie im Rest des Profils, statt das vorherige Foto oder den vorherigen Tab zu zeigen.
 Hide phone number	Telefonnummer ausblenden
@@ -404,6 +407,22 @@ Removing %1$d kept messages.	%1$d behaltene Nachrichten werden entfernt.
 # context: the notice once Telegram has finished removing them, with how many went
 Removed %1$d kept message.	%1$d behaltene Nachricht entfernt.
 Removed %1$d kept messages.	%1$d behaltene Nachrichten entfernt.
+# context: a third switch under Keep deleted messages. Turned on, the text a message had before someone else edited it is kept on the phone.
+Keep edit history	Bearbeitungsverlauf behalten
+# context: that switch's summary. "Message details" is HushTelegram's own message menu item, translated the same as that row.
+Keeps the text a message had before someone else edited it, on this phone only. Message details in the message's menu shows it.	Behält den Text, den eine Nachricht hatte, bevor jemand anderes sie bearbeitet hat, nur auf diesem Handy. Nachrichtendetails im Menü der Nachricht zeigt ihn.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that keeps the text from before an edit.
+earlier text of edited messages	den früheren Text bearbeiteter Nachrichten
+# context: an action row under Keep edit history; a tap forgets every earlier text that switch kept
+Clear edit history	Bearbeitungsverlauf löschen
+Forgets the earlier text this phone kept for edited messages, in every account.	Vergisst den früheren Text, den dieses Handy für bearbeitete Nachrichten behalten hat, in jedem Konto.
+# context: the notice after that tap when nothing was kept. A toast: two short lines at most.
+There's no edit history to clear.	Kein Bearbeitungsverlauf vorhanden.
+# context: the notice after that tap, with how many messages had earlier text. A toast: two short lines at most.
+Cleared the edit history of %1$d message.	Bearbeitungsverlauf von %1$d Nachricht gelöscht.
+Cleared the edit history of %1$d messages.	Bearbeitungsverlauf von %1$d Nachrichten gelöscht.
+# context: a line in Message details. %1$s is the date and time of the edit, %2$s the text the message had before it.
+Before the edit at %1$s: %2$s	Vor der Bearbeitung (%1$s): %2$s
 Ask before sending a sticker	Vor dem Senden eines Stickers nachfragen
 Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it. Scheduled stickers go out without asking.	Fragt Senden oder Abbrechen, bevor ein angetippter Sticker in einen Chat geht. Abbrechen verwirft ihn. Geplante Sticker gehen ohne Nachfrage raus.
 Translate with an outside service	Mit einem externen Dienst übersetzen
@@ -529,6 +548,12 @@ Look and feel	Aussehen und Bedienung
 # context: Hide channel bar buttons and Hide Send as button. Search, Direct messages, Info, Mute and Join are Telegram's own button names in a channel; Send as is Telegram's name for the picture that picks who you post as.
 Hide channel bar buttons	Tasten der Kanalleiste ausblenden
 Search, Direct messages and Info leave the bar at the bottom of a channel. Mute and Join stay, and tapping the channel's name at the top still opens its info. A channel picks this up the next time you open it.	Suche, Direktnachrichten und Info verschwinden aus der Leiste unten in einem Kanal. Stummschalten und Beitreten bleiben, und ein Tippen auf den Kanalnamen oben öffnet weiterhin seine Infos. Ein Kanal übernimmt das beim nächsten Öffnen.
+# context: a second switch under Hide channel bar buttons (#26). Mute, Search, Info and Join are Telegram's own button names in a channel; Mute is the middle button of the bar at the bottom of a joined channel, and it reads Unmute while the channel is muted.
+Hide channel Mute button	Stummschalten-Taste im Kanal ausblenden
+# context: that switch's summary. Use each button's name as Telegram shows it in your language.
+The bar at the bottom of a channel you've joined goes away, along with its Mute button and the Search and Info buttons beside it. Channels you haven't joined still show Join. To mute a channel, open its info. A channel picks this up the next time you open it.	Die Leiste unten in einem Kanal, dem du beigetreten bist, verschwindet, samt ihrer Stummschalten-Taste und den Tasten Suche und Info daneben. Kanäle, denen du nicht beigetreten bist, zeigen weiterhin Beitreten. Um einen Kanal stummzuschalten, öffne seine Infos. Ein Kanal übernimmt das beim nächsten Öffnen.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide channel bar buttons that hides the Mute button of a joined channel's bar.
+Mute button on the channel bar	Stummschalten-Taste der Kanalleiste
 Hide Send as button	Senden-als-Taste ausblenden
 Your picture next to the message box goes away in groups and channels where you could post as a channel, while you're posting as yourself. Once you pick a channel it shows again, so you can always see who you're posting as. To pick one, turn this off first. A chat picks this up the next time you open it.	Dein Bild neben dem Eingabefeld verschwindet in Gruppen und Kanälen, in denen du als Kanal posten könntest, solange du als du selbst postest. Sobald du einen Kanal wählst, erscheint es wieder, damit du immer siehst, als wer du postest. Um einen zu wählen, schalte das zuerst aus. Ein Chat übernimmt das beim nächsten Öffnen.
 # context: Hide Contacts tab. Contacts, Calls and Settings are Telegram's own names for the tabs in the bar at the bottom of the main screen; the new message button is the round pencil button on the chat list.
@@ -703,8 +728,6 @@ Open the guide	Anleitung öffnen
 %1$s turns on	%1$s wird eingeschaltet
 %1$s turns off	%1$s wird ausgeschaltet
 Preparing the diagnostic report	Diagnosebericht wird erstellt
-Your Telegram.	Dein Telegram.
-A quieter space, your way.	Ein ruhigerer Ort, ganz nach deinem Geschmack.
 # context: Readable actions, validation, import details and notification recovery.
 Open notification settings	Benachrichtigungseinstellungen öffnen
 Tap for details and Android settings.	Tippe für Details und Android-Einstellungen.
@@ -871,9 +894,58 @@ Couldn't save the folder. Try again in a moment.	Der Ordner ließ sich nicht spe
 Couldn't read your folders.	Deine Ordner ließen sich nicht lesen.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that opens the chat list on a picked folder
 which folder the chat list opens on	Ordner, in dem die Chatliste startet
+# context: Switch on the Chat list page under Hide folder tab counters, off by default. With it on, the chats the user ticks in Chats to hide stop showing in the chat list
+Hide picked chats	Ausgewählte Chats ausblenden
+# context: Summary of Hide picked chats. All Chats is Telegram's own name for the first folder tab and Archived Chats Telegram's name for the archive (ArchivedChats): use Telegram's translations. The app badge is the unread count on the app's icon
+The chats you pick below leave All Chats, your folders and archived chats. They keep their messages and notifications, search still finds them, and nothing changes on your other devices. Each account keeps its own list. Folder tab counts and the app badge still count their unread messages.	Die Chats, die du unten auswählst, verschwinden aus Alle Chats, deinen Ordnern und Archivierte Chats. Sie behalten ihre Nachrichten und Benachrichtigungen, die Suche findet sie weiterhin, und auf deinen anderen Geräten ändert sich nichts. Jedes Konto behält seine eigene Liste. Die Zähler der Ordner-Tabs und das Symbol-Abzeichen der App zählen ihre ungelesenen Nachrichten weiterhin.
+# context: Row under Hide picked chats. Its summary names the hidden chats, and a tap lists the account's chats to tick
+Chats to hide	Auszublendende Chats
+# context: Summary of Chats to hide when no chat is ticked
+No chats hidden yet.	Noch keine Chats ausgeblendet.
+# context: Toast when Chats to hide is tapped and Telegram's chat list can't be read
+Couldn't read your chats.	Deine Chats ließen sich nicht lesen.
+# context: Toast when Chats to hide is tapped and the account has no chats
+You don't have any chats yet.	Du hast noch keine Chats.
+# context: Toast when the ticked chats couldn't be written to the phone's storage
+Couldn't save the chats. Try again in a moment.	Die Chats ließen sich nicht speichern. Versuch es gleich noch einmal.
+# context: Item in the chat list's long press menu (the three dots, under Block). It hides the selected chats from the chat list
+Hide from chat list	Aus der Chatliste ausblenden
+# context: Toast after the long press menu's Hide from chat list hid the selected chats
+Hidden from your chat list.	Aus deiner Chatliste ausgeblendet.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that hides picked chats
+chats hidden from the chat list	Chats, die in der Chatliste ausgeblendet sind
+# context: Chats to hide's list names the account's own chat this way, as Telegram's chat list does (SavedMessages): use Telegram's applied translation
+Saved Messages	Gespeichertes
 # context: Chat list page switch title, under Hide Contacts tab. When on, the round pencil button (new message) on the chat list is removed.
 Hide new message button	Button für neue Nachricht ausblenden
 # context: Summary under that switch. The menu is the side menu or Telegram's own menu; search is the chat list's search.
 Removes the round pencil button from the chat list. Start a chat from the menu or search. Restart Telegram to see the change.	Entfernt den runden Stift-Button aus der Chatliste. Starte einen Chat über das Menü oder die Suche. Starte Telegram neu, um die Änderung zu sehen.
 # context: Lowercase noun phrase in a status line. It names the part of Hide Contacts tab that removes the round pencil (new message) button from the chat list.
 new message button	Button für neue Nachricht
+# context: Playback page row title under Save downloaded files. Tapping it picks the gallery folder Save to Gallery writes photos and videos to.
+Gallery folder	Galerieordner
+# context: Choice in the gallery folder list and its summary. Pictures/Telegram and Movies/Telegram are folder names on the phone, keep them as they are.
+Pictures/Telegram and Movies/Telegram (Telegram's own)	Pictures/Telegram und Movies/Telegram (die von Telegram)
+# context: Summary under the gallery folder row. %1$s is the picked folder name, like DCIM/Telegram.
+Photos and videos you save to the gallery go to %1$s. Camera photos and automatic saving keep Telegram's folders.	Fotos und Videos, die du in der Galerie speicherst, landen in %1$s. Kamerafotos und automatisches Speichern bleiben bei den Ordnern von Telegram.
+# context: Line in the settings import preview when the file changes only the gallery folder.
+The gallery folder will change.	Der Galerieordner wird geändert.
+# context: Lowercase noun phrase in a status line. It names the part of Save downloaded files that picks the gallery folder.
+gallery folder for saved photos and videos	Galerieordner für gespeicherte Fotos und Videos
+# context: Conversations page row title under Translation service, and the title of the language list it opens. Tapping it picks the language outside translations are written in.
+Translate into	Übersetzen in
+# context: Summary under the Translate into row. %1$s is the picked language's name, or Telegram's language.
+Language for outside translations: %1$s. Tap to pick another.	Sprache für externe Übersetzungen: %1$s. Tippe, um eine andere zu wählen.
+# context: First choice in the Translate into list: translate into the language Telegram's app is set to, as before there was a choice.
+Telegram's language	Sprache von Telegram
+# context: A language in the Translate into list: %1$s is the name the language calls itself, %2$s its name in the app's language, like Deutsch (German).
+%1$s (%2$s)	%1$s (%2$s)
+# context: Hint in the search field at the top of the Translate into list.
+Search languages	Sprachen suchen
+# context: Toast when the language picked in the Translate into list couldn't be saved.
+Couldn't save the language. Try again in a moment.	Die Sprache ließ sich nicht speichern. Versuch es gleich noch einmal.
+# context: Line in the settings import preview when the file changes the Translate into language.
+The translation language will change.	Die Übersetzungssprache wird geändert.
+# context: A screen reader's state for a settings section heading that opens and closes in place.
+Expanded	Ausgeklappt
+Collapsed	Eingeklappt

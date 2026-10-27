@@ -111,7 +111,7 @@ public final class SettingsEntry {
     private static WeakReference<Activity> host;
     private static volatile boolean closedByUser;
     /**
-     * The category page the pending request opens on, after Restart now. Kept while the screen
+     * The category the pending request opens expanded, after Restart now. Kept while the screen
      * moves to a screen in front, and dropped by the next request or the person closing it.
      */
     private static volatile String requestedPage;

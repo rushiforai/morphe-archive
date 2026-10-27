@@ -1,5 +1,122 @@
 # NuvioTV merged tracking progress
 
+## Immediate local playback overlay (beta.8, 2026-10-25)
+
+This section supersedes the provider-observer/Home-reconciliation behavior described
+below. The provider snapshot remains an immutable baseline. Successful native local
+playback writes update a separate, profile-scoped journal and notify the visible
+progress, episode-detail, watched-item and next-up flows directly. They do not wait
+for a provider response, Home navigation or another merge.
+
+Partial playback supplies the actual native progress record to details and the
+resumable Home flow. Completion uses native `isCompleted$default`, including source
+thresholds and overrides: the completed record leaves resumable progress and enters
+the native next-up seed flow unchanged. The patch does not add one to the episode;
+native aired-episode/next-up logic chooses the next eligible episode. Same-timestamp
+manual batches choose the furthest season/episode, as native local storage does.
+Rewatching exposes partial progress without deleting existing watched membership.
+Manual unmarks remove only the affected episode, including known unambiguous aliases.
+When the unmarked episode was the current completed seed, a separate membership-backed
+anchor lets native next-up select an unwatched episode. Unmarking an unrelated episode
+does not regress the current resume record. Read-only completed detail projections
+are never journaled or reused as resume cards/actual playback records.
+
+Native playback thresholds, scrobbling, local persistence and error handling remain
+native. The existing main-provider scrobbler filter and Nuvio Sync write gate remain:
+included providers are read sources, not a broadcast list for playback writes. Native
+explicit manual history actions retain their existing handling. Local next-up seeds
+bypass remote episode remapping; unrelated provider seeds retain native preparation.
+Disabling merging bypasses overlay recording and uses native provider routing.
+
+Persistence is incremental in `santodan_nuvio_merged_progress_local_snapshot_v2_<profile>`
+preferences. Only changed entries/tombstones are encoded, on one coalescing worker.
+The UI sees the updated in-memory journal before its small disk commit; the native
+save then completes asynchronously on its original dispatcher after that commit.
+There is no UI-thread disk wait. Successful synchronous and suspended native writes
+notify exactly once; native failures/cancellation do not create successful overlay
+events. Optional journal failures are logged without changing native error results.
+The journal survives restarts, uses explicit native profile arguments, rejects older
+local record replays and hides a previous profile's baseline during profile switches.
+It contains actual local changes, not an imported provider watched history.
+
+Startup and explicit Sync now are the only all-provider read/reconciliation triggers.
+Each profile gets one startup claim per process. Startup work is Home-only and stops
+on leaving Home/player entry; ordinary navigation does not retry it. The user can
+retry with Sync now. A quick startup restores saved CW, compact membership and local
+entries, then samples included trackers once without forcing a remote refresh. The
+startup tracker phase keeps the Home Cancel control available. Explicit menu sync
+uses the native user-initiated refresh. Provider notifications have no merge observer;
+playback exit only resumes the paused native Home CW pipeline against the current
+visible state. Settings changes do not reset the startup claim. Native independent
+tracker/library jobs remain native; the patch does not claim to cancel their scopes.
+
+After a successful startup/menu snapshot is published, entries are reconciled against
+their write destination. Acknowledgement requires matching progress/watched data and
+sufficient native timestamps, or demonstrably newer authoritative activity. Reads
+started before the local change, other included sources and unavailable providers
+cannot acknowledge it. Retirement also checks that the selected merged baseline can
+represent the change: a stale higher-progress competing source must not reappear merely
+because the main provider acknowledged a write. Confirmed compatible entries are
+deleted from the journal. Pending changes are not silently expired or truncated while
+their providers remain stale/offline. Native timestamp precision may delay retirement;
+it must not allow an older completed snapshot to erase a newer partial rewatch.
+
+Playback updates do not decode compressed membership/full WatchedItem history, read
+all providers, traverse metadata, serialize the whole CW cache or refresh watched
+badges across the library. History projection caching depends on membership flags,
+so position-only updates do not repeatedly rebuild it. The native Home CW `i1` job
+pause/resume safeguard remains. Profile-local projection work uses Default/IO.
+
+Latest input remains original `com.nuvio.tv` 1.1.0-beta.8/code1071, SHA256
+`7aeae6f64e9128be2c7545c50061376839e20a88d47722ac220ba40be7c182f8`.
+Original DEX evidence is in `../.inspect-nuvio-beta8/local-overlay-store-contracts.txt`,
+`local-overlay-repository-contracts.txt` and `local-overlay-provider-api.txt`.
+Only beta.8 gains hooks. Exact fingerprinted native local preferences methods are:
+
+| Owner | Methods | Event |
+| --- | --- | --- |
+| `com.nuvio.tv.data.local.vb` | `C(WatchProgress,int,ContinuationImpl)`, `D(List,int,ContinuationImpl)` | Successful local save/batch |
+| `com.nuvio.tv.data.local.vb` | `A(String,Integer,Integer,int,ContinuationImpl)`, `B(String,List,int,ContinuationImpl)` | Successful progress removal/batch |
+| `com.nuvio.tv.data.local.mc` | `p(String,Integer,Integer,int,ContinuationImpl)`, `q(String,List,int,ContinuationImpl)` | Successful watched removal/batch |
+
+The original method bodies, register counts, branches and exception regions are copied
+unchanged under patch-owned `santodanLocal<method>` names. Three-instruction wrappers
+pass the original receiver/arguments to the extension. Native `pb/qb/nb/ob` state-machine
+re-entry goes directly to the preserved body; it must not wrap placeholder arguments
+again. There are no invented native constructor layouts. Existing verified WatchProgress
+26-argument and WatchedItem 11-argument contracts serve the local record codec/projection.
+Packaged verification checks all six wrappers and exact original-body fingerprints after
+DEX reload, with original-APK missing/changed/ambiguous/already-patched rejection tests.
+Inherited enum calls resolve against actual Android SDK class definitions, not host-JDK
+assumptions or signature exemptions; nonexistent SDK methods still reject.
+
+Relevant verification command:
+
+```powershell
+.\build-local.ps1 :patches:buildAndroid :patches:verifyNuvioPlaybackOverlayRuntime :patches:verifyNuvioProviderRefreshRuntime :patches:verifyNuvioWatchedSnapshotRuntime :patches:verifyNuvioRemainingSyncRuntime :patches:verifyNuvioSyncBannerRuntime :patches:verifyNuvioBeta8 :patches:verifyNuvioBeta8Bundle --offline
+```
+
+Regression coverage includes immediate detail/Home flow updates, native threshold
+delegation, completed seed identity/no double advancement, batches, rewatch/unmark,
+incremental restart persistence, profile isolation, stale/foreign/competing snapshots,
+in-flight write ordering, acknowledgement/newer authority, synchronous/suspended native
+success and failure, cancellation, original dispatcher restoration and startup/menu-only
+read triggers. Original native library-provider isolation remains checked.
+
+The command above passed on 2026-10-25 (`BUILD SUCCESSFUL`, 1m10s); all runtime,
+original-DEX and standalone/combined packaged checks passed, with no new cross-DEX
+findings beyond the original 36 optional-library findings. Evidence:
+`../.inspect-nuvio-beta8/playback-overlay-complete-verification.log`.
+The new overlay verifier is also included in `verifyNuvioLatest` for future runs.
+
+Device validation still required: threshold completion/partial exits to details and
+Home; aired next-up and anime numbering with cached metadata; rewatch and manual
+watched/unwatched batches; profile switching/restarting with pending records; offline
+or HTTP 429 main-provider reads; native provider receipts proving main-only playback
+writes; no repeated all-provider reads on Home; and Mi Box playback frame/GC behavior.
+Verification did not build a delivery APK, sign, install, publish or run a workflow.
+Use the normal `patches/build/libs/patches-0.14.0.mpp` build output.
+
 Latest device feedback (2026-10-24): the user reports that the current build now
 seems to work correctly after the cached episode-marker change. Provider-side
 watched receipts, particularly MDBList, remain to be checked on the next episode.

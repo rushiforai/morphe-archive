@@ -44,6 +44,23 @@ internal object AppCompatibilities {
      */
     const val INSTAGRAM_TARGET_VERSION_CODE = 385811006
 
+    /**
+     * The other three builds of [INSTAGRAM_TARGET_VERSION], one per ABI, each with its own version
+     * code. Manager is told about every one, so a 32-bit phone is pointed at the armeabi-v7a build
+     * rather than the arm64 one, which it can't install (#346).
+     */
+    const val INSTAGRAM_TARGET_VERSION_CODE_ARMEABI_V7A = 385811005
+    const val INSTAGRAM_TARGET_VERSION_CODE_X86 = 385811007
+    const val INSTAGRAM_TARGET_VERSION_CODE_X86_64 = 385811008
+
+    /** Each declared ABI's build of [INSTAGRAM_TARGET_VERSION]. */
+    val INSTAGRAM_TARGET_VERSION_CODES = mapOf(
+        SupportedAbi.ARM64_V8A to INSTAGRAM_TARGET_VERSION_CODE,
+        SupportedAbi.ARMEABI_V7A to INSTAGRAM_TARGET_VERSION_CODE_ARMEABI_V7A,
+        SupportedAbi.X86 to INSTAGRAM_TARGET_VERSION_CODE_X86,
+        SupportedAbi.X86_64 to INSTAGRAM_TARGET_VERSION_CODE_X86_64,
+    )
+
     /** Instagram's own floor, Android 9. */
     const val INSTAGRAM_TARGET_MIN_SDK = 28
 
@@ -60,7 +77,7 @@ internal object AppCompatibilities {
             targets = listOf(
                 AppTarget(
                     version = INSTAGRAM_TARGET_VERSION,
-                    versionCodes = mapOf(SupportedAbi.ARM64_V8A to INSTAGRAM_TARGET_VERSION_CODE),
+                    versionCodes = INSTAGRAM_TARGET_VERSION_CODES,
                     minSdk = INSTAGRAM_TARGET_MIN_SDK,
                 ),
             ),

@@ -430,6 +430,42 @@ try {
         -AllowedDependencyNames $allDependencies -OutputPath $reportApk `
         -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $target.PackageVersion
     Assert-True (-not $failedStepValidation.Valid) 'A result whose rebuild step failed passed.'
+    # What morphe-desktop 1.19.1 wrote for a fingerprint --validate found ambiguous (six LaunchActivity
+    # (Z)V methods, probed 2026-10-26). With --continue-on-error it exits 0, keeps success true and
+    # saves an APK, so only the failed PATCHING step and the failedPatches entry show it.
+    $ambiguousName = @($allNames)[0]
+    $ambiguousError = 'app.morphe.patcher.patch.PatchException: Fingerprint validation failed. Expected a single ' +
+        'match but found 6 matches: app.morphe.patches.telegram.misc.updates.CheckAppUpdateFingerprint@5e1df2cb ' +
+        'Matched methods: Lorg/telegram/ui/LaunchActivity;->G(Z)V, Lorg/telegram/ui/LaunchActivity;->I(Z)V'
+    $validateContinue = $dependencyReport | Select-Object *
+    $validateContinue.stepResults = @([pscustomobject]@{ step = 'PATCHING'; success = $false },
+        [pscustomobject]@{ step = 'REBUILDING'; success = $true })
+    $validateContinue.appliedPatches = @(@($allNames + $allDependencies) | Where-Object { $_ -cne $ambiguousName })
+    $validateContinue.failedPatches = @([pscustomobject]@{ name = $ambiguousName; error = $ambiguousError })
+    $validateContinueValidation = Test-PatchingReport -Report $validateContinue -ExpectedNames $allNames `
+        -AllowedDependencyNames $allDependencies -OutputPath $reportApk `
+        -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $target.PackageVersion
+    Assert-True (-not $validateContinueValidation.Valid -and
+        @($validateContinueValidation.FailureCodes) -contains 'PATCH_FAILED' -and
+        @($validateContinueValidation.FailureCodes) -contains 'PATCHING_STEP_FAILED') `
+        "An ambiguous fingerprint under --continue-on-error passed: $($validateContinueValidation.Reason)"
+    # Without --continue-on-error it exits 1, writes success false and the reason, and saves nothing.
+    $validateStop = $validateContinue | Select-Object *
+    $validateStop.success = $false
+    $validateStop.stepResults = @([pscustomobject]@{ step = 'PATCHING'; success = $false
+        error = "Patch `"$ambiguousName`" failed: Fingerprint validation failed. Expected a single match but found 6 matches" })
+    $validateStop | Add-Member -NotePropertyName failureReason -NotePropertyValue 'Patching failed'
+    $validateStopValidation = Test-PatchingReport -Report $validateStop -ExpectedNames $allNames `
+        -AllowedDependencyNames $allDependencies -OutputPath (Join-Path $caseRoot 'not-saved.apk') `
+        -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $target.PackageVersion
+    Assert-True (-not $validateStopValidation.Valid -and
+        @($validateStopValidation.FailureCodes) -contains 'REPORT_FAILED' -and
+        @($validateStopValidation.FailureCodes) -contains 'PATCH_FAILED') `
+        "An ambiguous fingerprint that stopped patching passed: $($validateStopValidation.Reason)"
+    $ambiguousFailures = @(Get-ReportFailures -Entries $validateContinue.failedPatches)
+    Assert-True ($ambiguousFailures.Count -eq 1 -and $ambiguousFailures[0].Name -ceq $ambiguousName -and
+        $ambiguousFailures[0].Reason -match 'Fingerprint validation failed') `
+        'The ambiguous fingerprint failure lost its patch name or reason.'
     # Failed patches read the same from either shape, and an entry without a name is skipped.
     $readFailures = @(Get-ReportFailures -Entries @(
         [pscustomobject]@{ name = 'Current shape'; error = "app.morphe.patcher.patch.PatchException: current`n`tat frame" },
@@ -4748,7 +4784,7 @@ try {
         'if /i "%~nx4"=="ResourceTableCheck.java" goto resources',
         'if /i "%~nx4"=="DexDiff.java" goto dexdiff',
         'if /i "%~nx1"=="NativeLibraryCheck.java" goto native',
-        'set "OUT=" & set "RESULT=" & set "LAST=" & set "PREV=" & set "FORCED=0"',
+        'set "OUT=" & set "RESULT=" & set "LAST=" & set "PREV=" & set "FORCED=0" & set "VALIDATED=0"',
         'rem What the JVM itself is told comes ahead of -jar <jar>. The line is kept as it arrived for',
         'rem the case that asks: an option with = in it reaches %1 and on as two.',
         'if not "%~1"=="-jar" >>"!HERE!jvm.log" echo %*',
@@ -4781,6 +4817,7 @@ try {
         'if "!PREV!"=="-o" set "OUT=!V!"',
         'if "!PREV!"=="-r" set "RESULT=!V!"',
         'if "!V!"=="-f" set "FORCED=1"',
+        'if "!V!"=="--validate" set "VALIDATED=1"',
         'set "PREV=!V!"',
         'set "LAST=!V!"',
         'exit /b 0',
@@ -4791,6 +4828,11 @@ try {
         'if exist "!LAST!.source" (',
         '    set /p SRC=<"!LAST!.source"',
         '    set "VIA= merged"',
+        ')',
+        'rem Every patch run these scripts make checks that each fingerprint matched one method.',
+        'if not "!VALIDATED!"=="1" (',
+        '    echo [stand-in] a patch run without --validate 1>&2',
+        '    exit /b 11',
         ')',
         '>>"!HERE!java.log" echo patch !SRC!!VIA! forced=!FORCED!',
         'rem The CLI logs WARNING and SEVERE on standard error, which Windows PowerShell 5.1 makes a',
@@ -5284,6 +5326,25 @@ class AlignmentFixture {
             "patch $($fixturePaths[$_]) merged forced=$(if ($_ -eq $newerBuild) { 1 } else { 0 })" })
         Assert-True ((@(Get-Content -LiteralPath $javaLog) -join "`n") -eq ($expectedRepatched -join "`n")) `
             "build-release-receipt.ps1 did not patch exactly the fixtures whose kept run no longer matched: $(@(Get-Content -LiteralPath $javaLog) -join '; ')"
+
+        # A run kept before the scripts passed --validate has no validation field, so it can't stand
+        # in for a validated run and that fixture is patched again. Its bundle hash goes back to the
+        # real one first, so the missing field is the only thing wrong with it.
+        $unvalidatedStamp = Get-Content -LiteralPath $staleStampPath -Raw | ConvertFrom-Json
+        Assert-True ($unvalidatedStamp.validation -ceq 'fingerprint-single-match') `
+            "The run kept for $staleBuild doesn't say its fingerprints were validated: $($unvalidatedStamp | ConvertTo-Json -Compress)"
+        $unvalidatedStamp.bundleSha256 = (Get-Sha256Hex -Path $releaseBundle).ToLowerInvariant()
+        [System.IO.File]::WriteAllText($staleStampPath, ($unvalidatedStamp | ConvertTo-Json), [System.Text.UTF8Encoding]::new($false))
+        Invoke-ReceiptBuilder -Fixtures $allFixtures -AppliedDir $appliedDir
+        $onlyChanged = @($builtBuilds | Where-Object { $_ -eq $newerBuild } | ForEach-Object {
+            "patch $($fixturePaths[$_]) merged forced=1" })
+        Assert-True ((@(Get-Content -LiteralPath $javaLog) -join "`n") -eq ($onlyChanged -join "`n")) `
+            "A kept run with its bundle hash put back was not read: $(@(Get-Content -LiteralPath $javaLog) -join '; ')"
+        $unvalidatedStamp.PSObject.Properties.Remove('validation')
+        [System.IO.File]::WriteAllText($staleStampPath, ($unvalidatedStamp | ConvertTo-Json), [System.Text.UTF8Encoding]::new($false))
+        Invoke-ReceiptBuilder -Fixtures $allFixtures -AppliedDir $appliedDir
+        Assert-True ((@(Get-Content -LiteralPath $javaLog) -join "`n") -eq ($expectedRepatched -join "`n")) `
+            "build-release-receipt.ps1 read a kept run stamped without validation: $(@(Get-Content -LiteralPath $javaLog) -join '; ')"
 
         # Nothing kept where -AppliedDir points: every fixture is patched, as without it.
         Invoke-ReceiptBuilder -Fixtures $allFixtures -AppliedDir (Join-Path $releaseRoot 'nothing-kept')

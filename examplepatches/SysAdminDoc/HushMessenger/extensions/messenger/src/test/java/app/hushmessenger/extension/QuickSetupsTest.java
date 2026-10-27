@@ -27,6 +27,7 @@ public class QuickSetupsTest {
         CrashGuard.resetForTests();
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().commit();
+        OpenSections.all();
         forgetHeldAnswers();
     }
 
@@ -155,6 +156,11 @@ public class QuickSetupsTest {
             View root = screen.get().getWindow().getDecorView();
             View undo = root.findViewWithTag("undo");
             root.findViewWithTag("tab_app").performClick();
+            // The bar's title draws a frame every 10 ms, and Robolectric moves its clock on by a frame delay at each
+            // one, so the Undo window would seem to run out early. Hidden, the title only looks in every half second
+            // through a plain handler, which leaves the clock to the test.
+            root.findViewWithTag("wordmark").setVisibility(View.INVISIBLE);
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(50));
             root.findViewWithTag("quick_defaults").performClick();
             assertEquals("Undo Back to defaults", ((TextView) undo).getText().toString());
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(SettingsActivity.UNDO_MILLIS - 1));
@@ -219,8 +225,12 @@ public class QuickSetupsTest {
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
             View root = screen.get().getWindow().getDecorView();
             root.findViewWithTag("tab_app").performClick();
-            assertTrue(((TextView) ((android.view.ViewGroup) root.findViewWithTag("quick_setups")).getChildAt(0))
-                .getText().toString().endsWith("Press and hold to hide this section."));
+            // The section is its header and then the card, whose first line is the help.
+            android.view.ViewGroup card = (android.view.ViewGroup) ((android.view.ViewGroup) root.findViewWithTag("quick_setups")).getChildAt(1);
+            assertTrue(((TextView) card.getChildAt(0)).getText().toString().endsWith("Press and hold to hide this section."));
+            // Holding the header hides it too.
+            assertTrue(root.findViewWithTag("section_quick_setups").performLongClick());
+            assertFalse(root.findViewWithTag("quick_setups").isShown());
         }
     }
 

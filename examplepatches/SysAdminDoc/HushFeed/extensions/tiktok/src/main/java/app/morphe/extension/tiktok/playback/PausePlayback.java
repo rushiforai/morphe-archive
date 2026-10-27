@@ -48,6 +48,8 @@ import java.lang.ref.WeakReference;
 public final class PausePlayback {
     /** Written from the audio focus callback, which is not guaranteed to be the main thread. */
     private static volatile boolean quietened;
+    private static WeakReference<Activity> quietOwnerReference = new WeakReference<>(null);
+    private static WeakReference<Object> quietPageReference = new WeakReference<>(null);
 
     /**
      * Held while a comment sheet is open or the feed is waiting for a tap. Nothing is done with
@@ -66,6 +68,7 @@ public final class PausePlayback {
     private static WeakReference<Activity> panelActivityReference = new WeakReference<>(null);
     private static WeakReference<View> panelWatchedReference = new WeakReference<>(null);
     private static boolean panelHeld;
+    private static WeakReference<Object> panelPageReference = new WeakReference<>(null);
     private static int panelChecksLeft;
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static final long PANEL_CHECK_MILLIS = 250;
@@ -112,7 +115,11 @@ public final class PausePlayback {
      */
     public static void onCommentCellBound(View cell) {
         if (cell == null || !commentPauseWanted()) return;
-        cell.post(() -> holdForSheet(cell));
+        Activity owner = activityOf(cell);
+        WeakReference<Object> page = new WeakReference<>(FeedVisibility.playbackPage(owner));
+        cell.post(() -> {
+            if (samePage(page.get(), FeedVisibility.playbackPage(owner), owner)) holdForSheet(cell);
+        });
     }
 
     /**
@@ -137,7 +144,7 @@ public final class PausePlayback {
             // The sheet can have closed between the bind and this post. Quietening for a sheet
             // that has already gone would hang the listener on a view that will never detach
             // again, and the feed would stay quiet for the life of the process.
-            if (cell.getWindowToken() == null) return;
+            if (cell.getWindowToken() == null || !cell.isShown() || !ownsForeground(activityOf(cell))) return;
             View sheet = sheetWindowOf(cell);
             if (sheet == null) {
                 holdForPanel(cell);
@@ -145,7 +152,7 @@ public final class PausePlayback {
             }
             if (sheet == sheetReference.get()) return;
             sheetReference = new WeakReference<>(sheet);
-            quieten();
+            quieten(activityOf(cell));
             sheet.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
                 @Override public void onViewAttachedToWindow(View view) {
                 }
@@ -227,6 +234,7 @@ public final class PausePlayback {
         panelActivityReference = new WeakReference<>(activity);
         View watched = panelWatchedReference.get();
         if (watched == decor) return;
+        panelPageReference.clear();
         if (watched != null) watched.getViewTreeObserver().removeOnGlobalLayoutListener(PANEL_LAYOUT);
         decor.getViewTreeObserver().addOnGlobalLayoutListener(PANEL_LAYOUT);
         panelWatchedReference = new WeakReference<>(decor);
@@ -236,10 +244,17 @@ public final class PausePlayback {
     private static void syncPanel() {
         Activity activity = panelActivityReference.get();
         boolean wanted = commentPauseWanted();
-        boolean open = activity != null && wanted && panelOpen(activity);
+        boolean visible = activity != null && wanted && ownsForeground(activity) && panelOpen(activity);
+        Object page = FeedVisibility.playbackPage(activity);
+        Object expected = panelPageReference.get();
+        if (!visible) panelPageReference.clear();
+        else if (expected == null || samePage(expected, page, activity)) {
+            panelPageReference = new WeakReference<>(page);
+        }
+        boolean open = visible && panelPageReference.get() == page;
         if (open && !panelHeld && !SessionBudget.isLocked()) {
             panelHeld = true;
-            quieten();
+            quieten(activity);
             checkPanelSoon();
         } else if (!open && panelHeld) {
             panelHeld = false;
@@ -401,6 +416,8 @@ public final class PausePlayback {
             app.morphe.extension.tiktok.wellbeing.FeedLock.onAppBack();
         }
         try {
+            Activity quietOwner = quietOwnerReference.get();
+            if (quietOwner != null && quietOwner != activity) letGo();
             // The sheet the reader left open is the sheet they are looking at again, but only
             // if this is the screen it belongs to. These callbacks are registered for every
             // activity in the process, and a sheet left open on the feed while the reader is in
@@ -409,7 +426,7 @@ public final class PausePlayback {
             if (sheet != null && sheet.getWindowToken() != null
                     && activityOf(sheet) == activity
                     && commentPauseWanted() && !SessionBudget.isLocked()) {
-                quieten();
+                quieten(activity);
             }
             // The same for a sheet drawn into the activity, let go as the app went away. The
             // feed's own resume is where watching for that sheet starts: onCreate is too early to
@@ -426,7 +443,7 @@ public final class PausePlayback {
                 // If the app opens on another tab, the catcher's watch takes it down at once.
                 if (screenTimeAvailable() && Settings.PAUSE_FIRST_VIDEO.get() && !SessionBudget.isLocked()
                         && FeedVisibility.isOnFeed(activity)) {
-                    quieten();
+                    quieten(activity);
                     waitForATap(activity);
                     return;
                 }
@@ -437,7 +454,7 @@ public final class PausePlayback {
             // A hold is already covering the feed and already has the sound.
             if (SessionBudget.isLocked()) return;
             if (activity == null || !FeedVisibility.isOnFeed(activity)) return;
-            quieten();
+            quieten(activity);
             waitForATap(activity);
         } catch (Throwable error) {
             Logger.printException(() -> "Could not hold the feed on returning", error);
@@ -592,7 +609,13 @@ public final class PausePlayback {
     // ------------------------------------------------------------------ the sound itself
 
     @SuppressWarnings("deprecation")
-    private static void quieten() {
+    private static void quieten(Activity activity) {
+        Object page = FeedVisibility.playbackPage(activity);
+        if (quietOwnerReference.get() != activity || quietPageReference.get() != page) {
+            SessionPlaybackHold.releaseForSwitch(false);
+        }
+        quietOwnerReference = new WeakReference<>(activity);
+        quietPageReference = new WeakReference<>(page);
         SessionPlaybackHold.pauseForSwitch();
         if (quietened) return;
         // A muted feed holds no focus to take away, so the request would only pause the music
@@ -620,13 +643,43 @@ public final class PausePlayback {
         View sheet = sheetReference.get();
         if (catcherReference.get() != null || (sheet != null && sheet.getWindowToken() != null)
                 || panelHeld) return;
-        handBack(true);
+        Activity owner = quietOwnerReference.get();
+        Object page = quietPageReference.get();
+        handBack(ownsForeground(owner) && page != null
+                && samePage(page, FeedVisibility.playbackPage(owner), owner));
+    }
+
+    /** Native detail navigation must not carry the old page's comment hold to its player. */
+    public static void onPlaybackPageChanged() {
+        Activity owner = quietOwnerReference.get();
+        if (owner == null) return;
+        Object page = FeedVisibility.playbackPage(owner);
+        if (!samePage(quietPageReference.get(), page, owner)) letGo();
+        else quietPageReference = new WeakReference<>(page);
+    }
+
+    /** A cold Home page may obtain its first pager without a navigation. */
+    private static boolean samePage(Object expected, Object current, Activity activity) {
+        if (expected == current) return true;
+        if (activity == null || expected != activity || !(current instanceof View)) return false;
+        View home = FeedVisibility.homeTabView(activity);
+        return (home == null || home.isSelected())
+                && SessionPlaybackHold.switchPlayerNotReplaced();
+    }
+
+    /** The sheet or cover still belongs to the foreground native page. */
+    private static boolean ownsForeground(Activity activity) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) return false;
+        Activity visible = Utils.getVisibleActivity();
+        return visible == null || visible == activity;
     }
 
     /** With {@code resume} false the video is left as TikTok has it, which going away wants. */
     @SuppressWarnings("deprecation")
     private static void handBack(boolean resume) {
         SessionPlaybackHold.releaseForSwitch(resume);
+        quietOwnerReference.clear();
+        quietPageReference.clear();
         if (!quietened) return;
         quietened = false;
         AudioManager audio = audioManager();
@@ -651,7 +704,7 @@ public final class PausePlayback {
     }
 
     static void quietenForTests() {
-        quieten();
+        quieten(Utils.getVisibleActivity());
     }
 
     static View catcherForTests() {
@@ -663,6 +716,8 @@ public final class PausePlayback {
         // The hold's state is static and shared with every other suite in this sandbox.
         SessionPlaybackHold.releaseForSwitch(false);
         quietened = false;
+        quietOwnerReference.clear();
+        quietPageReference.clear();
         installed = false;
         STARTED.clear();
         wasAway = false;
@@ -674,6 +729,7 @@ public final class PausePlayback {
         if (watched != null) watched.getViewTreeObserver().removeOnGlobalLayoutListener(PANEL_LAYOUT);
         panelWatchedReference = new WeakReference<>(null);
         panelActivityReference = new WeakReference<>(null);
+        panelPageReference.clear();
         panelHeld = false;
         panelChecksLeft = 0;
     }

@@ -21,6 +21,7 @@ import app.morphe.extension.shared.settings.PausedProcess;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.UiCapture;
 import app.morphe.extension.tiktok.settings.SettingsPagesTest.PageActivity;
+import app.morphe.extension.tiktok.settings.preference.SettingsMenuPreference;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import app.morphe.extension.tiktok.settings.preference.categories.ExtensionPreferenceCategory;
@@ -157,7 +158,9 @@ public class PreviewControlsCaptureTest {
         TikTokPreferenceFragment home = new TikTokPreferenceFragment();
         activity.getFragmentManager().beginTransaction().replace(android.R.id.content, home).commit(); settle(activity);
         TikTokPreferenceFragment page = open(activity, home, "section_" + section);
-        assertEquals(section.toUpperCase(java.util.Locale.ROOT), page.getArguments().getString("morphe_settings_section"));
+        assertSame("opening a preview category replaced the main list", home, page);
+        assertTrue(((SettingsMenuPreference) page.findPreference("section_" + section)).isExpanded());
+        assertEquals(0, activity.getFragmentManager().getBackStackEntryCount());
         return page;
     }
     private static TikTokPreferenceFragment open(Activity activity, TikTokPreferenceFragment parent, String key) {

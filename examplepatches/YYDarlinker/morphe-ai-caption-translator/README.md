@@ -4,13 +4,7 @@
 
 [中文说明](docs/README.zh-CN.md) · [Add to Morphe](https://morphe.software/add-source?github=YYDarlinker/morphe-ai-caption-translator) · [Releases](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases) · [Report a problem](https://github.com/YYDarlinker/morphe-ai-caption-translator/issues)
 
-## What's new in 1.5.8
-
-- Keeps AI on/off, native CC and native language selection in their own roles, with stronger video/session ownership and re-entry handling.
-- Honors server retry deadlines, including date-form Retry-After, and prevents retired work or page/hole repair from starting requests outside the current permission and waiting rules.
-- Preserves failed configuration drafts and synchronizes settings that were actually saved; corrupted settings produce readable recovery errors without silently discarding credentials.
-- Protects valid source-cache files when a replacement fails, and makes failure decisions and diagnostic provenance easier to understand.
-- Removes the unused loopback server, isolates the glyph-transition state and adds reproducible verification and maintenance guidance. See the [verification scope](docs/COMPATIBILITY.md) for what was actually checked.
+<a id="ai-caption-translator"></a>
 
 ## What it does
 
@@ -32,7 +26,7 @@ You need a video with an available subtitle track and an API service that suppor
 | Original YouTube APK | stable target declarations: **21.20.405, 21.16.256**; experimental: **21.42.241, 21.41.525, 21.28.208, 21.23.492** | discrete list; stable labels come from metadata, not current candidate device certification |
 | Android | minSdk 28; **21.42.241, 21.41.525, 21.28.208** require minSdk 29 | use the exact APK's minSdk/ABI and signature; other variants are separate inputs |
 
-Public release remains **1.5.7**. The local **1.5.8 / local-1.5.8-m7b / candidate-02** has finite local composition evidence on **21.41.525-SECONDARY** and **21.28.208**, and is accepted for that local scope. On 2026-10-26 the user reported no issues after the manual phone checklist; a device export confirms the m7b build. The reported phone environment is Manager 2.2.0 / YouTube 21.20.405 / official 1.48.0. This is a finite user observation, with retained limits in the [first-round acceptance](docs/maintenance/reviews/M7-FINAL-ACCEPTANCE.md), not a third desktop composition, a full device matrix or official certification. The old recommendation remains a metadata choice. See [compatibility and verification boundaries](docs/COMPATIBILITY.md) and the [candidate installation checklist](docs/maintenance/M7b-DEVICE-ACCEPTANCE.md). Local diagnostic exports distinguish build expectations from `unknown` runtime official/Patcher provenance.
+See [Releases](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases) for downloads and changes, and [compatibility](docs/COMPATIBILITY.md) for checked combinations and limitations.
 
 ## Install
 

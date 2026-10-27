@@ -33,7 +33,8 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  *
  * <ul>
  *   <li>Each builder of the menu tells {@link #building} which story's menu it's building, then
- *       hands its labels through {@link #labels} before the menu shows them. With the switch on,
+ *       hands its labels through {@link #labels} ({@link #labelList} for your own highlights'
+ *       menu, a list) before the menu shows them. With the switch on,
  *       the menu gets Download at the end. A photo story with music, which Instagram serves as a
  *       video, gets Download as video and Download as photo instead, and a filmed video gets
  *       Download and Download as photo, which saves the still Instagram shows before it plays (#215).
@@ -137,6 +138,25 @@ public final class StoryDownload {
         CharSequence[] more = Arrays.copyOf(labels, labels.length + rows.length);
         System.arraycopy(rows, 0, more, labels.length, rows.length);
         return more;
+    }
+
+    /**
+     * The labels [labels] of a highlight's menu on your own profile, which Instagram builds as a
+     * list where other story menus build an array (#339). HushGram's rows go at its end, as
+     * {@link #labels} adds them. A list that has the rows already is left alone. Never throws.
+     */
+    public static void labelList(List<Object> labels) {
+        try {
+            HookStatus.invoked(FamilyNames.STORY_DOWNLOAD);
+            if (labels == null || !on()) return;
+            CharSequence[] more = labels(new CharSequence[0], rows(building.get()));
+            for (Object label : labels) {
+                if (label instanceof CharSequence && more[0].toString().contentEquals((CharSequence) label)) return;
+            }
+            labels.addAll(Arrays.asList(more));
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.STORY_DOWNLOAD, "story menu", t);
+        }
     }
 
     /**

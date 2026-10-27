@@ -50,6 +50,7 @@ import java.util.WeakHashMap;
 import app.morphe.extension.facebook.download.SavedFileActions;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.facebook.settings.SettingsEntry;
+import app.morphe.extension.facebook.settings.ShimmerTitle;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -1093,7 +1094,7 @@ public final class AppLock {
 
             TextView title = new TextView(activity);
             title.setText(L10n.t("Facebook is locked"));
-            title.setTextColor(Color.WHITE);
+            ShimmerTitle.wear(title, Color.BLACK);
             title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
             title.setGravity(Gravity.CENTER);
             title.setAccessibilityHeading(true);

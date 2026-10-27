@@ -69,7 +69,7 @@ public class PauseRecoveryTest {
         PatchFamily.inBuildForTests = null;
     }
 
-    @Test public void recoveryStaysFirstAndSupportStaysLastWhenTheFullBuildIsFiltered() throws Exception {
+    @Test public void recoveryStaysBelowSearchAndSupportStaysLastWhenTheFullBuildIsFiltered() throws Exception {
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
         try (ActivityController<Activity> host = Robolectric.buildActivity(Activity.class).setup().visible()) {
             HushgramPreferenceFragment page = DownloadSettingsTest.pageIn(host);
@@ -78,7 +78,7 @@ public class PauseRecoveryTest {
                 page.searchSettings("");
                 Preference status = statusCard(page);
                 page.searchSettings("zzzz no settings");
-                assertSame(status, page.getPreferenceScreen().getPreference(0));
+                assertSame(status, page.getPreferenceScreen().getPreference(2));
                 assertNull(page.findPreference(HushgramPreferenceFragment.SUPPORT_ROW_KEY));
                 page.searchSettings("coffee");
                 assertSame(status, statusCard(page));
@@ -236,7 +236,8 @@ public class PauseRecoveryTest {
 
     private static Preference statusCard(HushgramPreferenceFragment page) {
         android.preference.PreferenceScreen screen = page.getPreferenceScreen();
-        Preference status = screen.getPreference(0);
+        Preference status = screen.findPreference("hushgram_status");
+        assertNotNull(status);
         assertEquals("HushGram is paused", status.getTitle());
         Preference support = page.findPreference(HushgramPreferenceFragment.SUPPORT_ROW_KEY);
         assertNotNull(support);

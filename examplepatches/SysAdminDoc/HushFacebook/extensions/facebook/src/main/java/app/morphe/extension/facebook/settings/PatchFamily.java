@@ -107,7 +107,7 @@ public enum PatchFamily {
             Settings.HIDE_REEL_CHIPS, Settings.HIDE_REEL_FOLLOW_BUTTON, Settings.HIDE_REEL_SOCIAL_FOOTER,
             Settings.HIDE_REEL_THREADS_CARDS, Settings.REEL_CLEAN_MODE, Settings.PLAY_REELS_ONCE,
             Settings.ORIGINAL_AUDIO, Settings.HIDE_REEL_SEARCH_PILL, Settings.HIDE_REEL_COUNTS,
-            Settings.HIDE_REEL_SAVE_BUTTON, Settings.HIDE_REEL_SOUND_BUTTON, Settings.HIDE_REEL_AUDIO_LINE,
+            Settings.HIDE_REEL_SAVE_BUTTON, Settings.HIDE_REEL_WHATSAPP_BUTTON, Settings.HIDE_REEL_SOUND_BUTTON, Settings.HIDE_REEL_AUDIO_LINE,
             Settings.HIDE_SLOW_CONNECTION_MESSAGE, Settings.FEED_VIDEOS_ALONE, Settings.PLAY_FEED_REELS_WHOLE),
     REEL_PROMPTS(FamilyNames.REEL_PROMPTS, "reelPrompts", null,
             Settings.HIDE_REEL_PROMPTS),
@@ -136,13 +136,14 @@ public enum PatchFamily {
             Settings.LOAD_WHOLE_REPLY_THREADS, Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS,
             Settings.HIDE_SHOP_LINK_COMMENTS, Settings.HIDE_COMMENTS_WITH_WORDS,
             Settings.HIDE_INCOMING_COMMENT_TYPING, Settings.HIDE_NEW_COMMENTS_PILL,
-            Settings.HIDE_VIDEO_COMMENT_COMPOSER, Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES),
+            Settings.HIDE_VIDEO_COMMENT_COMPOSER, Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES,
+            Settings.HIDE_POST_COMMENT_PREVIEWS),
     FULL_HEIGHT_COMMENTS(FamilyNames.FULL_HEIGHT_COMMENTS, "fullHeightComments", null,
             Settings.OPEN_COMMENTS_FULL_HEIGHT),
     TAG_SUGGESTIONS(FamilyNames.TAG_SUGGESTIONS, "tagSuggestions", null,
             Settings.TAG_SUGGESTIONS_ONLY_AFTER_AT),
     TAP_TO_PLAY(FamilyNames.TAP_TO_PLAY, "tapToPlay", null,
-            Settings.TAP_TO_PLAY, Settings.TAP_TO_PLAY_REELS_AFTER_FIRST),
+            Settings.TAP_TO_PLAY, Settings.TAP_TO_PLAY_REELS_AFTER_FIRST, Settings.INLINE_FEED_VIDEO_CONTROLS),
     RESUME_LONG_VIDEOS(FamilyNames.RESUME_LONG_VIDEOS, "resumeLongVideos", null,
             Settings.RESUME_LONG_VIDEOS, Settings.RECENTLY_WATCHED),
     FRAME_STEP(FamilyNames.FRAME_STEP, "frameStep", null,
@@ -214,7 +215,8 @@ public enum PatchFamily {
             Settings.BOTTOM_TAB_BAR, Settings.TOP_TAB_BAR, Settings.TAB_BAR_SCROLL_AWAY, Settings.KEEP_TAB_BAR,
             Settings.KEEP_TOP_BAR,
             Settings.PHONE_LAYOUT_ON_BIG_SCREENS, Settings.TRANSLUCENT_BARS, Settings.HIDE_STATUS_BAR,
-            Settings.HIDE_MESSENGER_BUTTON, Settings.HIDE_MESSENGER_COUNT, Settings.HIDE_FACEBOOK_LOGO),
+            Settings.HIDE_MESSENGER_BUTTON, Settings.HIDE_MESSENGER_COUNT, Settings.HIDE_FACEBOOK_LOGO,
+            Settings.HIDE_CREATE_BUTTON),
     FORCE_DARK_MODE(FamilyNames.FORCE_DARK_MODE, "forceDarkMode", null,
             Settings.FORCE_DARK_MODE),
     MESSENGER_CARD(FamilyNames.MESSENGER_CARD, "messengerCard", null,
@@ -502,7 +504,7 @@ public enum PatchFamily {
         if (this == MARKETPLACE_ONLY) anyOn = Settings.MARKETPLACE_ONLY.savedValue() || Settings.EVENTS_ONLY.savedValue();
         if (this == REEL_DOWNLOAD) anyOn = Settings.DOWNLOAD_REELS.savedValue();
         if (this == VIDEO_DOWNLOAD) anyOn = Settings.DOWNLOAD_VIDEOS.savedValue() || Settings.OPEN_IN_ANOTHER_APP.savedValue();
-        if (this == TAP_TO_PLAY) anyOn = Settings.TAP_TO_PLAY.savedValue();
+        if (this == TAP_TO_PLAY) anyOn = Settings.TAP_TO_PLAY.savedValue() || Settings.INLINE_FEED_VIDEO_CONTROLS.savedValue();
         // The time switch starts on, and does nothing without the bar kept; Tap the bar to seek works alone.
         if (this == PROGRESS_BAR) anyOn = Settings.KEEP_PROGRESS_BAR.savedValue() || Settings.TAP_TO_SEEK.savedValue();
         if (this == PROMO_NOTIFICATIONS) {

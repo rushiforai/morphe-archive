@@ -447,6 +447,10 @@ public final class VerifyNuvioBeta8 {
     }
 
     private static void verifyMergeHooks() {
+        for (String name : List.of("C", "D", "A", "B"))
+            verifyMergeHook("Lcom/nuvio/tv/data/local/vb;", NuvioMergedProgressPatch::hookLocalOverlay, name);
+        for (String name : List.of("p", "q"))
+            verifyMergeHook("Lcom/nuvio/tv/data/local/mc;", NuvioMergedProgressPatch::hookLocalOverlay, name);
         verifyMergeHook("Lxa/s3;", NuvioMergedProgressPatch::hookHomePipeline, "b");
         verifyMergeHook("Lq8/l;", NuvioNativeSyncBanner::hookRoot, "invoke");
         verifyMergeHook("Lmb/a;", NuvioNativeSyncBanner::hookBanner, "b");

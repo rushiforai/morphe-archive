@@ -60,7 +60,7 @@ class RemoveScreenshotRestrictionSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = "com.flyersoft.moonreader",
-            version = "10.7",
+            version = "10.8",
             patchNames = setOf("Remove screenshot restriction"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
             filterByCompatibility = false,

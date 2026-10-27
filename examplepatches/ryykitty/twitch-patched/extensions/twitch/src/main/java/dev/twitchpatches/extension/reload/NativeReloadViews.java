@@ -32,7 +32,12 @@ public final class NativeReloadViews {
     }
 
     private static void bind(View root, View button, View volume, Object owner) {
-        if (bindings.containsKey(button)) return;
+        Binding previous = bindings.get(button);
+        if (previous != null) {
+            if (previous.matches(root, volume, owner)) { previous.refresh(); return; }
+            previous.onViewDetachedFromWindow(button);
+            button.removeOnAttachStateChangeListener(previous);
+        }
         Binding binding = new Binding(root, button, volume, owner);
         bindings.put(button, binding);
         button.setOnClickListener(binding);
@@ -63,6 +68,10 @@ public final class NativeReloadViews {
             this.volume = new WeakReference<>(volume);
             host = new ViewReloadHost(root, (NativeReloadOwner) owner);
             action = NativeReloadAction.create(host);
+        }
+
+        boolean matches(View root, View volume, Object owner) {
+            return this.root.get() == root && this.volume.get() == volume && host.owns(owner);
         }
 
         void refresh() {

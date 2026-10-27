@@ -28,12 +28,15 @@ internal fun ResourcePatchContext.prepareUiViewResources() {
         "player_control_overlay_widget" to mapOf("create_clip_button_compose_view" to "classic_controls_hide_clip",
             "media_route_button" to "classic_controls_hide_cast", "share_button" to "classic_controls_hide_share"),
         "profile_card_no_divider" to mapOf("subscribe_button" to "classic_support_hide_subscribe"),
-        "one_chat_layout" to mapOf("bits_button" to "classic_support_hide_bits"),
+        "follow_subscribe_button_view" to mapOf("sub_button_container" to "classic_support_hide_subscribe"),
+        "one_chat_layout" to mapOf("bits_button" to "classic_support_hide_bits",
+            "one_chat_hype_train_landscape_container" to "hide_hype_trains"),
         "player_metadata_view_extended" to mapOf("extended_subscribe_button_container" to "classic_support_hide_subscribe"),
         "bottom_player_control_overlay_widget" to mapOf("subscribe_button_container" to "classic_support_hide_subscribe"),
         "player_view" to mapOf("theatre_overlay_subscribe_button_container" to "classic_support_hide_subscribe"),
-        "chat_header" to mapOf("extension_button_container" to "hide_channel_extensions"),
-        "chat_view_delegate" to mapOf("leaderboards_extensions_container" to "hide_channel_extensions"),
+        "chat_header" to mapOf("extension_button_container" to "hide_channel_extensions", "leaderboards_icon" to "hide_leaderboards"),
+        "chat_view_delegate" to mapOf("leaderboards_extensions_container" to "hide_channel_extensions",
+            "leaderboards_container" to "hide_leaderboards"),
     )
     layouts.forEach { (name, controls) ->
         val file = get("res/layout/$name.xml")
@@ -43,6 +46,8 @@ internal fun ResourcePatchContext.prepareUiViewResources() {
     extensions.writeText(rewriteUiRoot(extensions.readText(), "hide_channel_extensions", "LinearLayout", uiViewTypes, "extension_entry_point_icons"))
     val icon = get("res/layout/extension_entry_point_single_icon.xml")
     icon.writeText(rewriteUiRoot(icon.readText(), "hide_channel_extensions", "FrameLayout", uiViewTypes, "extension_entry_point_single_icon"))
+    val train = get("res/layout/hype_train_container_layout.xml")
+    train.writeText(rewriteUiRoot(train.readText(), "hide_hype_trains", "FrameLayout", uiViewTypes, "hype_train_container_layout"))
 }
 
 internal fun rewriteUiLayout(source: String, controls: Map<String, String>, types: MutableMap<String, String>, name: String): String {

@@ -45,10 +45,12 @@ import app.hushtelegram.extension.shared.settings.Setting;
 import app.hushtelegram.extension.shared.settings.SettingsJson;
 import app.hushtelegram.extension.shared.settings.StringSetting;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloads;
+import app.hushtelegram.extension.telegram.misc.GalleryFolder;
 import app.hushtelegram.extension.telegram.misc.MessageFilters;
 import app.hushtelegram.extension.telegram.misc.OutsideTranslate;
 import app.hushtelegram.extension.telegram.misc.StickerSize;
 import app.hushtelegram.extension.telegram.misc.TitleEmoji;
+import app.hushtelegram.extension.telegram.misc.TranslateTarget;
 
 /**
  * HushTelegram's switches as a file, and back.
@@ -68,6 +70,8 @@ import app.hushtelegram.extension.telegram.misc.TitleEmoji;
  * <p>The release check stays out of the file: it puts the phone online, so it's switched on
  * from the phone's own screen, never by a file. So does Folders by chat type: flipping it makes or
  * removes folders on your account, and an import would flip it without doing either.
+ * The chats picked under Hide picked chats stay out too, though the switch goes in: they name the
+ * account and the chats someone chose to hide, and settings files get passed around to help others.
  *
  * <p>Call the file and preference work on a worker thread.
  */
@@ -117,6 +121,7 @@ public final class SettingsBackup {
             Settings.HIDE_KEYBOARD_ON_SCROLL,
             Settings.KEEP_VIDEOS_MUTED,
             Settings.VIDEO_EITHER_LANDSCAPE,
+            Settings.VIDEO_ONLY_FROM_BUTTON,
             Settings.SWIPE_BACK_ON_PROFILES,
             Settings.HIDE_PHONE_NUMBER,
             Settings.SHARE_NUMBER_UNTICKED,
@@ -128,6 +133,7 @@ public final class SettingsBackup {
             Settings.REACTION_EFFECTS_OFF,
             Settings.HIDE_FOLDER_COUNTERS,
             Settings.LAUNCH_FOLDER,
+            Settings.HIDDEN_CHATS,
             Settings.FORWARD_HIDE_SENDER,
             Settings.VOICE_MUSIC_PLAYER,
             Settings.SILENCE_NON_CONTACTS,
@@ -143,9 +149,11 @@ public final class SettingsBackup {
             Settings.MESSAGE_MENU_REPEAT,
             Settings.KEEP_DELETED_MESSAGES,
             Settings.RED_DELETED_LABEL,
+            Settings.KEEP_EDIT_HISTORY,
             Settings.ASK_BEFORE_STICKER,
             Settings.OUTSIDE_TRANSLATE,
             Settings.HIDE_CHANNEL_BUTTONS,
+            Settings.HIDE_CHANNEL_MUTE,
             Settings.HIDE_SEND_AS,
             Settings.HIDE_CONTACTS_TAB,
             Settings.COMPACT_TAB_BAR,
@@ -189,10 +197,12 @@ public final class SettingsBackup {
     static final List<IntegerSetting> NUMBERS = Collections.singletonList(Settings.STICKER_SIZE);
 
     /**
-     * The short texts a file carries as they're saved: today the emoji beside the chat list's
-     * title. A build from before them counts the name as unknown and leaves it out.
+     * The short texts a file carries as they're saved: the emoji beside the chat list's title, the
+     * gallery folder choice and the translation language. A build from before them counts the name
+     * as unknown and leaves it out.
      */
-    static final List<StringSetting> TEXTS = Collections.singletonList(Settings.TITLE_EMOJI);
+    static final List<StringSetting> TEXTS = Arrays.asList(Settings.TITLE_EMOJI, Settings.GALLERY_FOLDER,
+            Settings.TRANSLATE_TARGET);
 
     /**
      * Bounds for the parser, well past anything this class writes, so a file built to be
@@ -332,6 +342,16 @@ public final class SettingsBackup {
         /** Whether this file changes the text beside the chat list's title. */
         boolean titleEmojiChanges() {
             return changes().containsKey(Settings.TITLE_EMOJI);
+        }
+
+        /** Whether this file changes where Save to gallery puts photos and videos. */
+        boolean galleryFolderChanges() {
+            return changes().containsKey(Settings.GALLERY_FOLDER);
+        }
+
+        /** Whether this file changes the language the outside translate writes in. */
+        boolean translateTargetChanges() {
+            return changes().containsKey(Settings.TRANSLATE_TARGET);
         }
 
         /** For the settings page's saved state, so a preview outlives the page being rebuilt. */
@@ -541,7 +561,7 @@ public final class SettingsBackup {
             if (shortText != null) {
                 Object value = values.opt(name);
                 if (!(value instanceof String) || !allowed(shortText, (String) value)) {
-                    throw new Rejected(Reason.VALUE, "Not text the title can show: " + name);
+                    throw new Rejected(Reason.VALUE, "Not a value its row would save: " + name);
                 }
                 foundTexts.put(shortText, (String) value);
                 continue;
@@ -587,8 +607,10 @@ public final class SettingsBackup {
         return setting == Settings.STICKER_SIZE && StickerSize.percent(value) == value;
     }
 
-    /** Whether a short text is one its setting's editor would save: clean, and short enough. */
+    /** Whether a short text is one its setting's row would save: clean and short enough, or one of the choices. */
     static boolean allowed(StringSetting setting, String value) {
+        if (setting == Settings.GALLERY_FOLDER) return GalleryFolder.allowed(value);
+        if (setting == Settings.TRANSLATE_TARGET) return TranslateTarget.allowed(value);
         return setting == Settings.TITLE_EMOJI && TitleEmoji.allowed(value);
     }
 

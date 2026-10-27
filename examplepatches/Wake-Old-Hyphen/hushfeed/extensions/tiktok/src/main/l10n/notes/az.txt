@@ -1,5 +1,27 @@
 ## Unreleased
 
+* **Parametrlər:** Yeni keçid Hushfeed sətrini TikTok-un Parametrlər və məxfilik siyahısından çıxarır. Bundan sonra ayarları açmaq üçün Sənin üçün düyməsini basılı saxlayın (#264).
+* **Şərhlər:** Tam hündürlükdə şərhlər artıq saat və batareyanın üstünə çıxmır, status panelinin altında dayanır, TikTok-u açandan sonrakı ilk videoda da tam hündürlükdə açılır (#261).
+* **Lent:** Əsas lentin alt panelinə şüşə kapsul əlavə olunur: tablar arasında sürüşən linza, barmaqla sürüşdürmə jesti, istəyə görə titrəmə və Interfeys bölməsində bulanıqlıq, şüşə şəffaflığı, kapsul hündürlüyü və künclər üçün yeni parametrlər (#259).
+* **Yamaqlama:** Ayarları olan yamaqların indi başlanğıc dəyərlərini seçən Morphe seçimləri var, belə ki, quraşdırma istədiyiniz açarlar artıq açıq halda gələ bilər. @XEGARE-ə təşəkkürlər (#256).
+* **Parametrlər:** Kateqoriyalar əsas siyahıdakı sətirlərinin altında açılıb bağlanır. Axtarış idarəetmələri elə həmin siyahıda göstərir, açıq kateqoriyalar ekran dönəndə və yenidən başladanda açıq qalır.
+* **Parametrlər:** Böyük ana səhifə kartları yığcam, tam enli siyahı ilə əvəz edilib. Sürətli quruluşlar silinib.
+* **TikTok:** Hushfeed indi Morphe Manager 2.2.0 və ya daha yenisini, kompüterdə isə morphe-desktop 1.19.1 tələb edir.
+* **Yoxlamalar:** PineDrama üçün açılış, ayarların yerində açılıb bağlanması və geri qayıtma üzrə əsas yoxlama əlavə edilib. Tam uyğunluq yoxlaması tamamlanmayıb.
+* **Yoxlamalar:** Şəffaf alt panelin istifadə etdiyi hər LIVE önizləmə və dram yazısı dəstəklənən TikTok APK-sı ilə yoxlanılır.
+* **Lent:** Ölkə bayraqları və kodları sağdan sola yazılan adların yanında qalır (#258).
+* **Lent:** Şəffaf alt panel açıq olanda LIVE önizləmələrinin və mini dramların adı və "Baxmaq üçün toxunun" sətri tabların üstündə qalır (#250).
+* **Tor görünüşü:** Sıralama düyməsinin toxunma sahəsi ən azı 48 dp olur.
+* **Tor görünüşü:** Tor ayrıldıqda sıralama düyməsi gizlənir, tor qayıdanda yenidən görünür.
+* **Tor görünüşü:** Yeni sıralama yadda saxlanmasa, cari sıra dəyişmir.
+* **Tor görünüşü:** İlkin sıra seçildikdə cari torun sıralama menyusu əlçatan qalır (#180).
+* **Şərhlər:** Videonun yanındakı şərhlər düzən və yenidən qurma yoxlamalarında eyni eni istifadə edir (#253).
+* **Gələnlər:** Hekayəni əvvəl aç seçimi aktiv olduqda, təkrar istifadə edilən söhbət şəkli ilk toxunuşda cari müəllifin Hekayəsini açır (#233).
+* **Playback:** Keep the source video paused when a comment link opens another page. Leaving the tap-to-start cover for another tab also keeps its feed paused (#257).
+* **Diaqnostika:** Bildiriş hesabatları mesaj məzmununu daxil etmədən qeydiyyat və göstərilmə mərhələlərini sayır (#126, #222, #86).
+* **Ekran qeydi:** Android 14 və daha yeni versiyalarda TikTok ekran qeydi üçün son tətbiqlər siyahısında qalır.
+* **Yoxlamalar:** Avtomatik keçid auditi videolara ayrıca etiket vermədən yerli oynatmanı izləyir. Bitməyən videolar və izlənə bilməyən oynatma üçün nəticə qeyri-müəyyən qalır.
+* **TikTok:** Ayar axtarışında keçidi basılı saxlayın ki, onun idarəetməsi əsas siyahıda göstərilsin və vurğulansın (#248).
 * **Diaqnostika:** İlk kadr çağırışının qeydləri başlanğıc yoxlamaları üçün mənbə əlaqəsini və monoton vaxt nişanlarını saxlayır (#150).
 * **Qurma yoxlamaları:** Buraxılış yoxlamaları göstərilən hər paket üçün uyğun APK və tətbiqdaxili yoxlama sübutu tələb edir. Tətbiq gəzintisi quraşdırılmış qurmanı və yamaq seçimlərini yoxlayır.
 * **TikTok:** Recording recovery exports use bulk writes to avoid long waits when saving large files.

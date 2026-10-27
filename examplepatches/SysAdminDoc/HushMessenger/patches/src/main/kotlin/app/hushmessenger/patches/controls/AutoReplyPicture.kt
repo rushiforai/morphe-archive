@@ -109,8 +109,9 @@ private fun resolvePictureRecipe(byType: Map<String, ClassDef>): AutoReplyPictur
     }
 
     // The service's one reply send: a static call given the reply intent, the account, a helper, a text and the trigger name, and a flag.
+    // 584.1's armv7 build merges the handler into the service's abstract parent, so its supertypes count too.
     val service = byType[AUTO_REPLY_SERVICE] ?: return null
-    val replies = service.methods.flatMap { m ->
+    val replies = generateSequence(service) { byType[it.superclass] }.flatMap { it.methods }.toList().flatMap { m ->
         m.pictureCode().withIndex().filter { (_, insn) ->
             val p = (insn.pictureRef() as? MethodReference)?.pictureParams()
             insn.opcode in PICTURE_STATIC_CALLS && p != null && p.size == 6 && p[0] == PICTURE_INTENT && p[1] == FB_USER_SESSION &&

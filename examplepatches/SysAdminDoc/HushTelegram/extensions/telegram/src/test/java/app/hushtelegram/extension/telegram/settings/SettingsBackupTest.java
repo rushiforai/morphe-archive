@@ -207,13 +207,13 @@ public class SettingsBackupTest {
                 Collections.emptyList(), notSwitches);
         assertEquals(Arrays.asList(Settings.MESSAGE_FILTERS_GROUPS, Settings.MESSAGE_FILTERS_CHANNELS), SettingsBackup.FILTER_LISTS);
         assertEquals(Collections.singletonList(Settings.STICKER_SIZE), SettingsBackup.NUMBERS);
-        assertEquals(Collections.singletonList(Settings.TITLE_EMOJI), SettingsBackup.TEXTS);
+        assertEquals(Arrays.asList(Settings.TITLE_EMOJI, Settings.GALLERY_FOLDER, Settings.TRANSLATE_TARGET), SettingsBackup.TEXTS);
         assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_STORIES,
                         Settings.HIDE_RECOMMENDATIONS, Settings.HIDE_COMMERCE,
                         Settings.HIDE_PROMOTIONAL_BANNERS,
                         Settings.HIDE_SPONSORED_PROXY, Settings.HIDE_POPULAR_APPS, Settings.SEARCH_ONLY_MY_CHATS, Settings.SEARCH_STYLED_NAMES, Settings.HIDE_CONTACTS_BLOCK, Settings.HIDE_GREETING_STICKERS, Settings.DISABLE_CHAT_SWIPE, Settings.DISABLE_CHANNEL_PULL, Settings.DISABLE_TOPIC_PULL,
                         Settings.NORMAL_PASTE, Settings.SHOW_LOCAL_IDS, Settings.PROFILE_DATA_CENTER, Settings.DISABLE_DOUBLE_TAP_REACTIONS,
-                        Settings.QUIET_CONTACTS_NAG, Settings.HOLIDAY_LOOK, Settings.USE_SYSTEM_FONT, Settings.AMOLED_BLACK, Settings.HIDE_TRANSLATE_BAR, Settings.EXACT_NUMBERS, Settings.REVEAL_SPOILERS, Settings.HIDE_KEYBOARD_ON_SCROLL, Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.SWIPE_BACK_ON_PROFILES, Settings.HIDE_PHONE_NUMBER, Settings.SHARE_NUMBER_UNTICKED, Settings.MESSAGE_SECONDS, Settings.ALLOW_CHAT_BLUR, Settings.VOICE_ONE_AT_A_TIME, Settings.LOCKED_VOICE_GUARD, Settings.NO_HAPTICS, Settings.REACTION_EFFECTS_OFF, Settings.HIDE_FOLDER_COUNTERS, Settings.LAUNCH_FOLDER, Settings.FORWARD_HIDE_SENDER, Settings.VOICE_MUSIC_PLAYER, Settings.SILENCE_NON_CONTACTS, Settings.DISABLE_ARCHIVE_PULL, Settings.REAR_CAMERA_FIRST, Settings.HIDE_GALLERY_CAMERA_TILE, Settings.HIDE_STICKER_TIME, Settings.CHANGE_STICKER_SIZE, Settings.IGNORE_MUTED_MENTIONS, Settings.HIDE_BLOCKED_IN_GROUPS, Settings.HIDE_BY_KEYWORD, Settings.HIDE_FEATURES_AND_INVITE, Settings.MESSAGE_MENU_REPEAT, Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL, Settings.ASK_BEFORE_STICKER, Settings.OUTSIDE_TRANSLATE, Settings.HIDE_CHANNEL_BUTTONS, Settings.HIDE_SEND_AS, Settings.HIDE_CONTACTS_TAB, Settings.COMPACT_TAB_BAR, Settings.SIDE_MENU, Settings.HIDE_NEW_MESSAGE, Settings.FASTER_DOWNLOADS, Settings.DATA_SAVER_DOWNLOADS, Settings.SAVE_DOWNLOADS, Settings.SAVE_RESTRICTED_DOWNLOADS, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS, Settings.MESSAGE_MENU_QUICK_FORWARD,
+                        Settings.QUIET_CONTACTS_NAG, Settings.HOLIDAY_LOOK, Settings.USE_SYSTEM_FONT, Settings.AMOLED_BLACK, Settings.HIDE_TRANSLATE_BAR, Settings.EXACT_NUMBERS, Settings.REVEAL_SPOILERS, Settings.HIDE_KEYBOARD_ON_SCROLL, Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.SWIPE_BACK_ON_PROFILES, Settings.HIDE_PHONE_NUMBER, Settings.SHARE_NUMBER_UNTICKED, Settings.MESSAGE_SECONDS, Settings.ALLOW_CHAT_BLUR, Settings.VOICE_ONE_AT_A_TIME, Settings.LOCKED_VOICE_GUARD, Settings.NO_HAPTICS, Settings.REACTION_EFFECTS_OFF, Settings.HIDE_FOLDER_COUNTERS, Settings.LAUNCH_FOLDER, Settings.HIDDEN_CHATS, Settings.FORWARD_HIDE_SENDER, Settings.VOICE_MUSIC_PLAYER, Settings.SILENCE_NON_CONTACTS, Settings.DISABLE_ARCHIVE_PULL, Settings.REAR_CAMERA_FIRST, Settings.HIDE_GALLERY_CAMERA_TILE, Settings.HIDE_STICKER_TIME, Settings.CHANGE_STICKER_SIZE, Settings.IGNORE_MUTED_MENTIONS, Settings.HIDE_BLOCKED_IN_GROUPS, Settings.HIDE_BY_KEYWORD, Settings.HIDE_FEATURES_AND_INVITE, Settings.MESSAGE_MENU_REPEAT, Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL, Settings.KEEP_EDIT_HISTORY, Settings.ASK_BEFORE_STICKER, Settings.OUTSIDE_TRANSLATE, Settings.HIDE_CHANNEL_BUTTONS, Settings.HIDE_CHANNEL_MUTE, Settings.HIDE_SEND_AS, Settings.HIDE_CONTACTS_TAB, Settings.COMPACT_TAB_BAR, Settings.SIDE_MENU, Settings.HIDE_NEW_MESSAGE, Settings.FASTER_DOWNLOADS, Settings.DATA_SAVER_DOWNLOADS, Settings.SAVE_DOWNLOADS, Settings.SAVE_RESTRICTED_DOWNLOADS, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS, Settings.MESSAGE_MENU_QUICK_FORWARD,
                         Settings.DISABLE_ANALYTICS, Settings.DISABLE_CALL_DEBUG, Settings.DISABLE_DRAFT_PREVIEWS,
                         Settings.LOCAL_DRAFTS, Settings.LOCAL_SEARCH, Settings.GALLERY_CAMERA_ON_TAP,
                         Settings.OPEN_EXTERNAL_LINKS, Settings.MINI_APP_LOCATION_OFF, Settings.STRIP_LINK_TRACKING,
@@ -710,12 +710,80 @@ public class SettingsBackupTest {
         cleared.getJSONObject("settings").put(Settings.TITLE_EMOJI.key, "");
         assertEquals("", SettingsBackup.parse(cleared.toString()).texts.get(Settings.TITLE_EMOJI));
 
-        // A saved state is read back as strictly: text the title can't show is left out.
+        // A saved state is read back as strictly: text the title can't show is left out, and only
+        // the file's other texts, the gallery folder and the translation language, come back.
         Bundle state = snapshot.toBundle();
         state.getBundle("texts").putString(Settings.TITLE_EMOJI.key, tooLong.toString());
-        assertTrue(SettingsBackup.Snapshot.fromBundle(state).texts.isEmpty());
+        Set<StringSetting> others = new java.util.HashSet<>(Arrays.asList(Settings.GALLERY_FOLDER, Settings.TRANSLATE_TARGET));
+        assertEquals(others, SettingsBackup.Snapshot.fromBundle(state).texts.keySet());
         state.getBundle("texts").putInt(Settings.TITLE_EMOJI.key, 1);
-        assertTrue(SettingsBackup.Snapshot.fromBundle(state).texts.isEmpty());
+        assertEquals(others, SettingsBackup.Snapshot.fromBundle(state).texts.keySet());
+    }
+
+    /** The gallery folder goes out as its choice and comes back only as one, never as a path (#30). */
+    @Test
+    public void theGalleryFolderRoundTripsOnlyAsOneOfItsChoices() throws Exception {
+        String dcim = app.hushtelegram.extension.telegram.misc.GalleryFolder.DCIM;
+        Settings.GALLERY_FOLDER.save(dcim);
+        String file = SettingsBackup.create();
+        assertEquals(dcim, new JSONObject(file).getJSONObject("settings").get(Settings.GALLERY_FOLDER.key));
+
+        Settings.GALLERY_FOLDER.resetToDefault();
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals(0, snapshot.switchChanges());
+        assertEquals("it isn't a filter list", 0, snapshot.listChanges());
+        assertFalse(snapshot.titleEmojiChanges());
+        assertTrue(snapshot.galleryFolderChanges());
+        assertEquals(1, SettingsBackup.apply(SettingsBackup.Snapshot.fromBundle(snapshot.toBundle())));
+        assertEquals(dcim, Settings.GALLERY_FOLDER.savedValue());
+        assertEquals("a file read back is the file", file, SettingsBackup.create());
+
+        for (Object bad : new Object[]{"DCIM/Telegram/", "../../Android/data/", "/storage/emulated/0/DCIM", "Dcim", " dcim", 1, true,
+                JSONObject.NULL, new org.json.JSONArray()}) {
+            JSONObject wrong = new JSONObject(file);
+            wrong.getJSONObject("settings").put(Settings.GALLERY_FOLDER.key, bad);
+            assertEquals(String.valueOf(bad), SettingsBackup.Reason.VALUE, reasonFor(wrong.toString()));
+        }
+        // Empty is a choice: Telegram's own folders.
+        JSONObject telegrams = new JSONObject(file);
+        telegrams.getJSONObject("settings").put(Settings.GALLERY_FOLDER.key, "");
+        assertEquals("", SettingsBackup.parse(telegrams.toString()).texts.get(Settings.GALLERY_FOLDER));
+
+        Bundle state = snapshot.toBundle();
+        state.getBundle("texts").putString(Settings.GALLERY_FOLDER.key, "../DCIM");
+        assertFalse(SettingsBackup.Snapshot.fromBundle(state).texts.containsKey(Settings.GALLERY_FOLDER));
+    }
+
+    /** The translation language goes out as its code and comes back only as one of the codes (#35). */
+    @Test
+    public void theTranslationLanguageRoundTripsOnlyAsOneOfItsCodes() throws Exception {
+        Settings.TRANSLATE_TARGET.save("fa");
+        String file = SettingsBackup.create();
+        assertEquals("fa", new JSONObject(file).getJSONObject("settings").get(Settings.TRANSLATE_TARGET.key));
+
+        Settings.TRANSLATE_TARGET.resetToDefault();
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals(0, snapshot.switchChanges());
+        assertEquals("it isn't a filter list", 0, snapshot.listChanges());
+        assertFalse(snapshot.galleryFolderChanges());
+        assertTrue(snapshot.translateTargetChanges());
+        assertEquals(1, SettingsBackup.apply(SettingsBackup.Snapshot.fromBundle(snapshot.toBundle())));
+        assertEquals("fa", Settings.TRANSLATE_TARGET.savedValue());
+        assertEquals("a file read back is the file", file, SettingsBackup.create());
+
+        for (Object bad : new Object[]{"xx", "FA", " fa", "fa-IR", "../fa", 1, true, JSONObject.NULL, new org.json.JSONArray()}) {
+            JSONObject wrong = new JSONObject(file);
+            wrong.getJSONObject("settings").put(Settings.TRANSLATE_TARGET.key, bad);
+            assertEquals(String.valueOf(bad), SettingsBackup.Reason.VALUE, reasonFor(wrong.toString()));
+        }
+        // Empty is a choice: Telegram's language.
+        JSONObject telegrams = new JSONObject(file);
+        telegrams.getJSONObject("settings").put(Settings.TRANSLATE_TARGET.key, "");
+        assertEquals("", SettingsBackup.parse(telegrams.toString()).texts.get(Settings.TRANSLATE_TARGET));
+
+        Bundle state = snapshot.toBundle();
+        state.getBundle("texts").putString(Settings.TRANSLATE_TARGET.key, "xx");
+        assertFalse(SettingsBackup.Snapshot.fromBundle(state).texts.containsKey(Settings.TRANSLATE_TARGET));
     }
 
     // ---- Refusals ------------------------------------------------------------------------------
@@ -1107,6 +1175,53 @@ public class SettingsBackupTest {
             // import used to leave it off the restart row.
             assertEquals(Collections.singleton(Settings.TITLE_EMOJI.key), new TreeSet<>(AbstractPreferenceFragment.restartPending));
             assertEquals("Restart Telegram to apply this change", restartRow(page));
+        }
+    }
+
+    @Test
+    public void aFileThatChangesOnlyTheGalleryFolderSaysSoAndImportsIt() throws Exception {
+        Settings.GALLERY_FOLDER.save(app.hushtelegram.extension.telegram.misc.GalleryFolder.DCIM_APART);
+        String file = SettingsBackup.create();
+        Settings.GALLERY_FOLDER.resetToDefault();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            assertEquals("The gallery folder will change.\n\nGallery folder: Pictures/Telegram and Movies/Telegram (Telegram's own)"
+                    + " to DCIM/Telegram/Photos and DCIM/Telegram/Videos", String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported.", ShadowToast.getTextOfLatestToast());
+            assertEquals(app.hushtelegram.extension.telegram.misc.GalleryFolder.DCIM_APART, Settings.GALLERY_FOLDER.savedValue());
+            assertTrue("the row shows the imported folders", String.valueOf(page.findPreference(
+                    HushTelegramPreferenceFragment.GALLERY_FOLDER_ROW).getSummary()).contains("DCIM/Telegram/Photos"));
+            // Each save reads the choice, so nothing waits for a restart.
+            assertTrue(AbstractPreferenceFragment.restartPending.isEmpty());
+        }
+    }
+
+    @Test
+    public void aFileThatChangesOnlyTheTranslationLanguageSaysSoAndImportsIt() throws Exception {
+        Settings.TRANSLATE_TARGET.save("fa");
+        String file = SettingsBackup.create();
+        Settings.TRANSLATE_TARGET.resetToDefault();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            String message = String.valueOf(shadowOf(preview).getMessage());
+            assertTrue(message, message.startsWith("The translation language will change.\n\nTranslate into: Telegram's language to "));
+            assertTrue(message, message.endsWith("(Persian)"));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported.", ShadowToast.getTextOfLatestToast());
+            assertEquals("fa", Settings.TRANSLATE_TARGET.savedValue());
+            assertTrue("the row shows the imported language", String.valueOf(page.findPreference(
+                    TranslateTargetPicker.KEY).getSummary()).contains("(Persian)"));
+            // Each translation reads the choice, so nothing waits for a restart.
+            assertTrue(AbstractPreferenceFragment.restartPending.isEmpty());
         }
     }
 
@@ -1761,12 +1876,14 @@ public class SettingsBackupTest {
         }
     }
 
-    /** What the card at the top of the settings home page says, as it's drawn. */
+    /**
+     * What the status card says. The home list draws the card only while paused or a newer release
+     * is news, so with nothing paused the restart row (see {@link #restartRow}) is what shows a
+     * change that's owed, and the card's line stays right for when it is drawn.
+     */
     private static String overview(HushTelegramPreferenceFragment page) {
         while (page.navigation.back()) { }
-        android.widget.ListView list = page.getView().findViewById(android.R.id.list);
-        android.view.View card = page.navigation.getView(0, null, list);
-        return ((android.widget.TextView) card.findViewById(android.R.id.summary)).getText().toString();
+        return String.valueOf(page.getPreferenceScreen().getPreference(0).getSummary());
     }
 
     /** The restart row's title on the page showing, or null when the row isn't there. */

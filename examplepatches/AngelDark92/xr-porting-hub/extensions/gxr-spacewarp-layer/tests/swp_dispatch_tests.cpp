@@ -1,41 +1,37 @@
-// Host tests for the gxr-spacewarp dispatch + arrival learning (B1b tests half).
+// Host tests for the gxr-spacewarp dispatch (2026-10-26 half-rate revival).
 //
-// Compiles the PRODUCTION TUs (swp_dispatch.cpp + swp_egl.cpp — see the CMake
-// target) with:
-//   - estimator fakes implementing the shared interface contract (capturing args),
-//   - fake next-chain XR functions (passthrough recorders),
-//   - stubbed Android log / EGL / GLES3 (bodies here, recording calls),
-//   - the host-controllable monotonic clock of swp_egl (SwpEglTestSetNowNs).
-// The GOT-patch mechanism has its own TU (swp_hooks_tests.cpp).
-//
-// The round-robin arrival assumption from the shared brief (RE-SHARED-IMPL.md
-// component 4) is exercised explicitly: buffer reuse bumps the arrival epoch once
-// per decoded frame (recycled handles included, consecutive duplicates do not), and
-// a pool wider than the documented cap disables the learning (conservative
-// stand-down) instead of extrapolating blind.
+// Compiles the PRODUCTION dispatch TU with estimator fakes and fake next-chain
+// XR functions. Covers: late-frame ownership, the predicted-display-time
+// scheduler, synthetic-slot discard, phase-preserving failures, duplicate /
+// out-of-order timestamps, odd and array layouts, private-output substitution,
+// and teardown ordering.
 
+#include <algorithm>
+#include <array>
+#include <cmath>
 #include <cstdarg>
 #include <cstdint>
-#include <algorithm>
-#include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <map>
 #include <string>
 #include <vector>
 
+#define SWP_HAVE_ESTIMATOR 1
 #include "../src/swp_dispatch.cpp"
 
-#include <GLES3/gl3.h>  // (stub): bodies for the GL entries the table routes
+#include <GLES3/gl3.h>
 
-// swp_egl test hooks (host-only, defined in that TU).
 extern "C" {
 uint64_t SwpEglTestSetNowNs(uint64_t nowNs);
 void SwpEglResetArrivals();
-}  // extern "C"
+uint64_t SwpEglTestClockReads();
+void SwpEglTestResetClockReads();
+uint64_t SwpEglTestArrivalCount();
+void* SwpWrapEglCreateImageKHR(void*, void*, unsigned, void*, const int*);
+void SwpEglArrivalObserved(void* image, void* ctx, void* dpy, uint64_t monoNs);
+}
 
-// ---------------------------------------------------------------------------
-// Scaffolding.
-// ---------------------------------------------------------------------------
 static int g_checks = 0;
 static int g_failures = 0;
 #define CHECK(cond, label)                                                     \
@@ -47,7 +43,6 @@ static int g_failures = 0;
         }                                                                      \
     } while (0)
 
-// --- Android log stub body (records lines; swp_egl logs through the same) ---
 std::vector<std::string> g_logLines;
 extern "C" int __android_log_print(int, const char*, const char* format, ...) {
     char line[256];
@@ -59,88 +54,122 @@ extern "C" int __android_log_print(int, const char*, const char* format, ...) {
     return 1;
 }
 
-// --- GLES3 stub bodies (record calls) ---
+// --- GLES3 stubs -----------------------------------------------------------
+static int g_glCalls = 0;
+static int g_contextReads = 0;
 static GLuint g_nextTextureId = 500;
-// Deleted-name ledger: the stubs otherwise discard deletes, which would let a
-// "zeroed the id without deleting the name" regression pass silently.
 static std::vector<GLuint> g_deletedTextures;
 static std::vector<GLuint> g_deletedFbos;
-extern "C" GLuint glCreateShader(GLenum) { return ++g_nextTextureId; }
-extern "C" void glShaderSource(GLuint, GLsizei, const GLchar* const*, const GLint*) {}
-extern "C" void glCompileShader(GLuint) {}
-extern "C" void glGetShaderiv(GLuint, GLenum, GLint*) {}
-extern "C" void glGetShaderInfoLog(GLuint, GLsizei, GLsizei*, GLchar*) {}
-extern "C" void glDeleteShader(GLuint) {}
-extern "C" GLuint glCreateProgram() { return ++g_nextTextureId; }
-extern "C" void glAttachShader(GLuint, GLuint) {}
-extern "C" void glLinkProgram(GLuint) {}
-extern "C" void glGetProgramiv(GLuint, GLenum, GLint*) {}
-extern "C" void glGetProgramInfoLog(GLuint, GLsizei, GLsizei*, GLchar*) {}
-extern "C" void glDeleteProgram(GLuint) {}
-extern "C" GLint glGetUniformLocation(GLuint, const GLchar*) { return -1; }
-extern "C" void glUniform1i(GLint, GLint) {}
-extern "C" void glUniform2i(GLint, GLint, GLint) {}
-extern "C" void glUniform1f(GLint, GLfloat) {}
-extern "C" void glUseProgram(GLuint) {}
-extern "C" void glDrawArrays(GLenum, GLint, GLsizei) {}
-extern "C" void glViewport(GLint, GLint, GLsizei, GLsizei) {}
-extern "C" void glFlush() {}
-extern "C" GLenum glGetError() { return GL_NO_ERROR; }
-extern "C" void glGenFramebuffers(GLsizei n, GLuint* framebuffers) {
-    for (GLsizei i = 0; i < n; i++) framebuffers[i] = ++g_nextTextureId;
-}
-extern "C" void glDeleteFramebuffers(GLsizei n, const GLuint* framebuffers) {
-    for (GLsizei i = 0; i < n; i++) g_deletedFbos.push_back(framebuffers[i]);
-}
-extern "C" void glBindFramebuffer(GLenum, GLuint) {}
-extern "C" void glFramebufferTexture2D(GLenum, GLenum, GLenum, GLuint, GLint) {}
-extern "C" GLenum glCheckFramebufferStatus(GLenum) { return GL_FRAMEBUFFER_COMPLETE; }
-extern "C" void glGenTextures(GLsizei n, GLuint* textures) {
-    for (GLsizei i = 0; i < n; i++) textures[i] = ++g_nextTextureId;  // 501, 502 ...
-}
-extern "C" void glDeleteTextures(GLsizei n, const GLuint* textures) {
-    for (GLsizei i = 0; i < n; i++) g_deletedTextures.push_back(textures[i]);
-}
-extern "C" void glBindTexture(GLenum target, GLuint texture) {
-    (void)target;
-    (void)texture;
-}
-extern "C" void glActiveTexture(GLenum) {}
-extern "C" void glTexStorage2D(GLenum, GLsizei, GLenum, GLsizei, GLsizei) {}
-extern "C" void glTexParameteri(GLenum, GLenum, GLint) {}
-extern "C" const GLubyte* glGetString(GLenum) {
-    return reinterpret_cast<const GLubyte*>("gxr-stub-gl");
-}
-extern "C" void glGetIntegerv(GLenum, GLint*) {}
 static int g_blitCalls = 0;
-extern "C" void glBlitFramebuffer(GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint,
-                                  GLbitfield, GLenum) { ++g_blitCalls; }
-extern "C" GLboolean glIsEnabled(GLenum) { return GL_FALSE; }
-extern "C" void glEnable(GLenum) {}
-extern "C" void glDisable(GLenum) {}
-extern "C" void glColorMask(GLboolean, GLboolean, GLboolean, GLboolean) {}
-extern "C" void glGetBooleanv(GLenum, GLboolean*) {}
-// The fake swapchain images are SRGB8_ALPHA8, like the client video layers.
-extern "C" void glGetTexLevelParameteriv(GLenum, GLint, GLenum pname, GLint* params) {
+static std::vector<GLuint> g_captureSources;
+static int g_layerBlits = 0;
+extern "C" GLuint glCreateShader(GLenum) { ++g_glCalls; return ++g_nextTextureId; }
+extern "C" void glShaderSource(GLuint, GLsizei, const GLchar* const*, const GLint*) { ++g_glCalls; }
+extern "C" void glCompileShader(GLuint) { ++g_glCalls; }
+extern "C" void glGetShaderiv(GLuint, GLenum, GLint* params) { ++g_glCalls; if (params) *params = GL_TRUE; }
+extern "C" void glGetShaderInfoLog(GLuint, GLsizei, GLsizei* length, GLchar* log) { ++g_glCalls;
+    if (length) *length = 0;
+    if (log) log[0] = 0;
+}
+extern "C" void glDeleteShader(GLuint) { ++g_glCalls; }
+extern "C" GLuint glCreateProgram() { ++g_glCalls; return ++g_nextTextureId; }
+extern "C" void glAttachShader(GLuint, GLuint) { ++g_glCalls; }
+extern "C" void glLinkProgram(GLuint) { ++g_glCalls; }
+extern "C" void glGetProgramiv(GLuint, GLenum, GLint* params) { ++g_glCalls; if (params) *params = GL_TRUE; }
+extern "C" void glGetProgramInfoLog(GLuint, GLsizei, GLsizei* length, GLchar* log) { ++g_glCalls;
+    if (length) *length = 0;
+    if (log) log[0] = 0;
+}
+extern "C" void glDeleteProgram(GLuint) { ++g_glCalls; }
+extern "C" GLint glGetUniformLocation(GLuint, const GLchar*) { ++g_glCalls; return 0; }
+extern "C" void glUniform1i(GLint, GLint) { ++g_glCalls; }
+extern "C" void glUniform2i(GLint, GLint, GLint) { ++g_glCalls; }
+extern "C" void glUniform1f(GLint, GLfloat) { ++g_glCalls; }
+extern "C" void glUniform2f(GLint, GLfloat, GLfloat) { ++g_glCalls; }
+extern "C" void glUniform4f(GLint, GLfloat, GLfloat, GLfloat, GLfloat) { ++g_glCalls; }
+extern "C" void glUniformMatrix3fv(GLint, GLsizei, GLboolean, const GLfloat*) { ++g_glCalls; }
+extern "C" void glUseProgram(GLuint) { ++g_glCalls; }
+extern "C" void glDrawArrays(GLenum, GLint, GLsizei) { ++g_glCalls; }
+extern "C" void glViewport(GLint, GLint, GLsizei, GLsizei) { ++g_glCalls; }
+extern "C" void glFlush() { ++g_glCalls; }
+extern "C" GLenum glGetError() { ++g_glCalls; return GL_NO_ERROR; }
+extern "C" void glGenFramebuffers(GLsizei n, GLuint* ids) { ++g_glCalls;
+    for (GLsizei i = 0; i < n; i++) ids[i] = ++g_nextTextureId;
+}
+extern "C" void glDeleteFramebuffers(GLsizei n, const GLuint* ids) { ++g_glCalls;
+    for (GLsizei i = 0; i < n; i++) g_deletedFbos.push_back(ids[i]);
+}
+extern "C" void glBindFramebuffer(GLenum, GLuint) { ++g_glCalls; }
+extern "C" void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum, GLuint texture,
+                                        GLint) {
+    ++g_glCalls;
+    if (target == GL_READ_FRAMEBUFFER && attachment == GL_COLOR_ATTACHMENT0) {
+        g_captureSources.push_back(texture);
+    }
+}
+extern "C" void glFramebufferTextureLayer(GLenum, GLenum, GLuint, GLint, GLint) { ++g_glCalls; ++g_layerBlits; }
+extern "C" GLenum glCheckFramebufferStatus(GLenum) { ++g_glCalls; return GL_FRAMEBUFFER_COMPLETE; }
+extern "C" void glGenTextures(GLsizei n, GLuint* ids) { ++g_glCalls;
+    for (GLsizei i = 0; i < n; i++) ids[i] = ++g_nextTextureId;
+}
+extern "C" void glDeleteTextures(GLsizei n, const GLuint* ids) { ++g_glCalls;
+    for (GLsizei i = 0; i < n; i++) g_deletedTextures.push_back(ids[i]);
+}
+extern "C" void glBindTexture(GLenum, GLuint) { ++g_glCalls; }
+extern "C" void glActiveTexture(GLenum) { ++g_glCalls; }
+extern "C" void glTexStorage2D(GLenum, GLsizei, GLenum, GLsizei, GLsizei) { ++g_glCalls; }
+extern "C" void glTexSubImage2D(GLenum, GLint, GLint, GLint, GLsizei, GLsizei, GLenum, GLenum,
+                                const void*) { ++g_glCalls; }
+extern "C" void glReadPixels(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, void*) { ++g_glCalls; }
+extern "C" GLboolean glIsEnabled(GLenum) { ++g_glCalls; return GL_FALSE; }
+extern "C" void glEnable(GLenum) { ++g_glCalls; }
+extern "C" void glDisable(GLenum) { ++g_glCalls; }
+extern "C" void glColorMask(GLboolean, GLboolean, GLboolean, GLboolean) { ++g_glCalls; }
+extern "C" void glGetBooleanv(GLenum, GLboolean*) { ++g_glCalls; }
+extern "C" const GLubyte* glGetString(GLenum) { ++g_glCalls;
+    return reinterpret_cast<const GLubyte*>("OpenGL ES 3.2 gxr-stub");
+}
+extern "C" void glGetIntegerv(GLenum, GLint*) { ++g_glCalls; }
+extern "C" void glTexParameteri(GLenum, GLenum, GLint) { ++g_glCalls; }
+extern "C" void glGetTexLevelParameteriv(GLenum, GLint, GLenum pname, GLint* params) { ++g_glCalls;
     if (params) *params = pname == GL_TEXTURE_INTERNAL_FORMAT ? GL_SRGB8_ALPHA8 : 0;
 }
+extern "C" void glBlitFramebuffer(GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint,
+                                  GLbitfield, GLenum) { ++g_glCalls; ++g_blitCalls; }
+extern "C" void glGenSamplers(GLsizei n, GLuint* ids) { ++g_glCalls;
+    for (GLsizei i = 0; i < n; i++) ids[i] = ++g_nextTextureId;
+}
+extern "C" void glDeleteSamplers(GLsizei, const GLuint*) { ++g_glCalls; }
+extern "C" void glBindSampler(GLuint, GLuint) { ++g_glCalls; }
+extern "C" void glSamplerParameteri(GLuint, GLenum, GLint) { ++g_glCalls; }
+extern "C" void glGenQueries(GLsizei, GLuint*) { ++g_glCalls; }
+extern "C" void glDeleteQueries(GLsizei, const GLuint*) { ++g_glCalls; }
+extern "C" void glBeginQuery(GLenum, GLuint) { ++g_glCalls; }
+extern "C" void glEndQuery(GLenum) { ++g_glCalls; }
+extern "C" void glGetQueryObjectuiv(GLuint, GLenum, GLuint*) { ++g_glCalls; }
+extern "C" void glGetQueryiv(GLenum, GLenum, GLint* params) { ++g_glCalls; if (params) *params = 0; }
 
-// --- EGL stub body ---
 static void* g_currentCtx = reinterpret_cast<void*>(0xC0DE);
-extern "C" EGLContext eglGetCurrentContext() { return g_currentCtx; }
+extern "C" EGLContext eglGetCurrentContext() { ++g_contextReads; return g_currentCtx; }
 
-// --- Estimator fakes (exact shared-contract signatures; capture + controllable) ---
+// --- estimator fakes -------------------------------------------------------
 struct EstimatorCalls {
     bool initCalled = false;
+    int initCalls = 0;
+    int metricCalls = 0;
+    int initW = 0, initH = 0;
+    int alignCalls = 0;
     int generateCalls = 0;
     int extrapolateCalls = 0;
-    uint32_t lastPrevTexL = 0, lastCurrTexL = 0, lastPrevTexR = 0, lastCurrTexR = 0;
-    uint32_t lastMvTexL = 0, lastMvTexR = 0;
-    uint32_t lastSrcTexL = 0, lastSrcTexR = 0, lastDstTexL = 0, lastDstTexR = 0;
-    uint32_t firstDstTexL = 0, firstDstTexR = 0, firstSrcTexL = 0, firstSrcTexR = 0;
-    struct Pair { uint32_t srcL, srcR, dstL, dstR; };
-    std::vector<Pair> pairs;
-    float lastScale = 0.f;
+    uint32_t lastPrevTexL = 0, lastCurrTexL = 0;
+    uint32_t lastDstL = 0, lastDstR = 0;
+    int lastLayerL = -1, lastLayerR = -1;
+    uint32_t lastSrcL = 0, lastSrcR = 0;
+    float lastScale = 0.0f;
+    int lastDstX0 = 0, lastDstY0 = 0, lastDstX1 = 0, lastDstY1 = 0;
+    std::vector<std::array<int, 4>> dstOffsets;
+    std::vector<int> generateWidths;
+    std::vector<std::pair<int, int>> layers;
     bool initResult = true;
     bool generateResult = true;
     bool extrapolateResult = true;
@@ -149,1207 +178,1209 @@ struct EstimatorCalls {
 uint32_t g_estStatus = 0;
 
 extern "C" {
-bool SwpInit(const SwpInitInfo*) {
+bool SwpInit(const SwpInitInfo* info) {
     g_est.initCalled = true;
-    g_estStatus = 1u;  // init ok
+    ++g_est.initCalls;
+    g_est.initW = static_cast<int>(info->inputWidth);
+    g_est.initH = static_cast<int>(info->inputHeight);
+    g_estStatus = 1u;
     return g_est.initResult;
 }
 void SwpDestroy() { g_est.destroyCalls++; g_estStatus = 0; }
-bool SwpGenerateVectorsStereo(uint32_t prevTexL, uint32_t currTexL, uint32_t prevTexR,
-                              uint32_t currTexR, const float*, const float*, const float*,
-                              const float*, uint32_t mvTexL, uint32_t mvTexR) {
+bool SwpGenerateVectorsStereo(uint32_t, uint32_t, uint32_t, uint32_t, const float*, const float*,
+                              const float*, const float*, uint32_t, uint32_t) {
+    return false;
+}
+bool SwpGenerateVectorsStereoEx(uint32_t prevL, uint32_t currL, uint32_t prevR, uint32_t,
+                                const float*, const float*, const float*, const float*, uint32_t,
+                                uint32_t, uint32_t width, uint32_t, uint32_t, uint32_t) {
     g_est.generateCalls++;
-    g_est.lastPrevTexL = prevTexL;
-    g_est.lastCurrTexL = currTexL;
-    g_est.lastPrevTexR = prevTexR;
-    g_est.lastCurrTexR = currTexR;
-    g_est.lastMvTexL = mvTexL;
-    g_est.lastMvTexR = mvTexR;
-    g_estStatus = 2u;  // mv ok
+    g_est.lastPrevTexL = prevL;
+    g_est.lastCurrTexL = currL;
+    g_est.generateWidths.push_back(static_cast<int>(width));
+    g_estStatus = 2u;
     return g_est.generateResult;
 }
-bool SwpExtrapolateStereo(uint32_t mvTexL, uint32_t mvTexR, uint32_t srcTexL, uint32_t srcTexR,
-                          uint32_t dstTexL, uint32_t dstTexR, float scaleFactor) {
-    g_est.pairs.push_back({srcTexL, srcTexR, dstTexL, dstTexR});
-    if (g_est.extrapolateCalls == 0) {
-        g_est.firstDstTexL = dstTexL;
-        g_est.firstDstTexR = dstTexR;
-        g_est.firstSrcTexL = srcTexL;
-        g_est.firstSrcTexR = srcTexR;
-    }
+bool SwpExtrapolateStereo(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t, float) {
+    return false;
+}
+bool SwpExtrapolateStereoEx(uint32_t, uint32_t, uint32_t srcL, uint32_t srcR, uint32_t dstL,
+                            uint32_t dstR, int layerL, int layerR, int dstX0, int dstY0,
+                            int dstX1, int dstY1, float scale, uint32_t,
+                            uint32_t) {
     g_est.extrapolateCalls++;
-    g_est.lastMvTexL = mvTexL;
-    g_est.lastMvTexR = mvTexR;
-    g_est.lastSrcTexL = srcTexL;
-    g_est.lastSrcTexR = srcTexR;
-    g_est.lastDstTexL = dstTexL;
-    g_est.lastDstTexR = dstTexR;
-    g_est.lastScale = scaleFactor;
-    g_estStatus = 4u;  // extrap ok
+    g_est.lastSrcL = srcL;
+    g_est.lastSrcR = srcR;
+    g_est.lastDstL = dstL;
+    g_est.lastDstR = dstR;
+    g_est.lastLayerL = layerL;
+    g_est.lastLayerR = layerR;
+    g_est.layers.push_back({layerL, layerR});
+    g_est.lastScale = scale;
+    g_est.lastDstX0 = dstX0;
+    g_est.lastDstY0 = dstY0;
+    g_est.lastDstX1 = dstX1;
+    g_est.lastDstY1 = dstY1;
+    g_est.dstOffsets.push_back({dstX0, dstY0, dstX1, dstY1});
+    g_estStatus = 4u;
     return g_est.extrapolateResult;
 }
-uint32_t SwpLastStatus() { return g_estStatus; }
-const char* SwpLogTag = "GXRSwarp";
-
-// B1a's dispatch plumbing beyond the shared contract (swp_dispatch.cpp fills the
-// GL routing table + identity anchor per tick): fakes here capture the calls.
-int g_glTableCalls = 0;
-bool g_glTableResult = true;
-void* g_boundIdentityCtx = nullptr;
-int g_identityBindings = 0;
-u32 g_fakeMvW = 1024, g_fakeMvH = 1024;
-bool SwpSetGlTable(const SwpGlTable* table) {
-    g_glTableCalls++;
-    if (!g_glTableResult || !table) return false;
-    // The routed entries must be the layer's own bodies (non-null; the hooks too).
-    const void* entries[] = {
-        (const void*)table->glCreateShader, (const void*)table->glShaderSource,
-        (const void*)table->glCompileShader, (const void*)table->glGetShaderiv,
-        (const void*)table->glGetShaderInfoLog, (const void*)table->glDeleteShader,
-        (const void*)table->glCreateProgram, (const void*)table->glAttachShader,
-        (const void*)table->glLinkProgram, (const void*)table->glGetProgramiv,
-        (const void*)table->glGetProgramInfoLog, (const void*)table->glDeleteProgram,
-        (const void*)table->glGetUniformLocation, (const void*)table->glUniform1i,
-        (const void*)table->glUniform2i, (const void*)table->glUniform1f,
-        (const void*)table->glUseProgram, (const void*)table->glDrawArrays,
-        (const void*)table->glViewport, (const void*)table->glFlush,
-        (const void*)table->glGetError, (const void*)table->glGenFramebuffers,
-        (const void*)table->glDeleteFramebuffers, (const void*)table->glBindFramebuffer,
-        (const void*)table->glFramebufferTexture2D, (const void*)table->glCheckFramebufferStatus,
-        (const void*)table->glGenTextures, (const void*)table->glDeleteTextures,
-        (const void*)table->glBindTexture, (const void*)table->glActiveTexture,
-        (const void*)table->glTexStorage2D, (const void*)table->glTexParameteri,
-        (const void*)table->glGetString, (const void*)table->glGetIntegerv,
-        (const void*)table->glIsEnabled, (const void*)table->glEnable,
-        (const void*)table->glDisable, (const void*)table->glColorMask,
-        (const void*)table->glGetBooleanv,
-    };
-    for (const void* entry : entries) {
-        if (!entry) return false;
-    }
-    return table->getCurrentContext && table->nowMicros;
-}
-void SwpBindIdentityContext(void* currentCtx) {
-    g_identityBindings++;
-    g_boundIdentityCtx = currentCtx;
-}
-bool SwpResolvedMvSize(u32* outW, u32* outH) {
-    if (!outW || !outH) return false;
-    *outW = g_fakeMvW;
-    *outH = g_fakeMvH;
+bool SwpAlignHistoryStereo(uint32_t, uint32_t, uint32_t, uint32_t, const float*, const float*,
+                           const float*, const float*, const float*, const float*, const float*,
+                           const float*, uint32_t, uint32_t) {
+    g_est.alignCalls++;
+    g_estStatus |= 0x40u;
     return true;
 }
-}  // extern "C"
+u32 SwpLastStatus() { return g_estStatus; }
+const char* SwpLogTag = "GXRSwarp";
+int g_glTableCalls = 0;
+bool SwpSetGlTable(const SwpGlTable* table) {
+    ++g_glTableCalls;
+    return table && table->glCreateShader && table->glGenFramebuffers &&
+           table->glUniform4f && table->glUniformMatrix3fv && table->glFramebufferTextureLayer &&
+           table->glBlitFramebuffer && table->glBindSampler;
+}
+void SwpBindIdentityContext(void*) {}
+bool SwpResolvedMvSize(u32* w, u32* h) {
+    if (w) *w = 512;
+    if (h) *h = 512;
+    return true;
+}
+bool g_hooksArmResult = true;
+int g_hooksArmCalls = 0;
+bool SwpHooksArm() { ++g_hooksArmCalls; return g_hooksArmResult; }
+bool SwpHooksArmed() { return true; }
+u32 SwpLastStatus();
+unsigned long long SwpEstimatorFootprintBytes() { ++g_est.metricCalls; return 0; }
+bool SwpGpuTimingAvailable() { ++g_est.metricCalls; return false; }
+unsigned long long SwpLastGpuMicros() { ++g_est.metricCalls; return 0; }
+}
 
-// --- Fake hooks (the real GOT module has its own test TU) ---
-extern "C" {
-bool g_hooksArmResult = false;
-bool SwpHooksArm() { return g_hooksArmResult; }
-bool SwpHooksArmed() { return g_hooksArmResult; }
-}  // extern "C"
-
-// --- Bridge mock (brief 10: the host-published VTS carrier via swp_vts) ---
+// --- bridge mock -----------------------------------------------------------
 using BridgeFn = bool (*)(void*, uint32_t, void*, uint32_t);
 extern "C" {
 void SwpVtsTestSetTable(BridgeFn fn);
 void SwpVtsTestSetArmed(bool armed);
 void SwpVtsTestSetRoot(void* root);
 void SwpVtsTestPublish(uint32_t value);
-void SwpVtsTestSetHalfRateRetired(bool retired);
 void SwpVtsTestResetAll();
 void SwpVtsNoteEndFrame();
-}  // extern "C"
+void SwpVtsTestSetHalfRateRetired(bool retired);
+}
 static int g_mockBridgeReads = 0;
-static bool g_mockBridgePresent = false;  // stock session: the carrier is unpublished
-static uint32_t g_mockBridgeValue = 0;
+static bool g_mockBridgePresent = true;
+static uint32_t g_mockBridgeValue = 1;
 extern "C" bool BridgeMock(void*, uint32_t, void* out, uint32_t) {
-    g_mockBridgeReads++;
-    if (!g_mockBridgePresent) return false;  // never published this session
+    ++g_mockBridgeReads;
+    if (!g_mockBridgePresent) return false;
     if (out) *static_cast<uint32_t*>(out) = g_mockBridgeValue;
     return true;
 }
 
-// --- Fake next-chain XR functions (passthrough recorders) ---
+// --- fake next chain -------------------------------------------------------
+static const XrSession kSession = reinterpret_cast<XrSession>(0xA11);
+static const XrSwapchain kAppSwap = reinterpret_cast<XrSwapchain>(0xBEEF);
+static const XrSwapchain kAppSwapFov = reinterpret_cast<XrSwapchain>(0xF0F0);
+static const XrSwapchain kAppSwapUnd = reinterpret_cast<XrSwapchain>(0x0D0D);
+
 struct NextCalls {
-    int createSession = 0, destroySession = 0, beginFrame = 0, locateViews = 0, endFrame = 0;
-    int enumerate = 0, acquire = 0;
+    int createSession = 0, destroySession = 0, beginFrame = 0, waitFrame = 0, endFrame = 0;
+    int createSwapchain = 0, destroySwapchain = 0, enumerate = 0, acquire = 0, wait = 0,
+        release = 0;
     uint32_t lastLayerCount = 0;
-    const void* lastLayersPtr = nullptr;  // untouched layer-list passthrough evidence
+    const void* lastLayersPtr = nullptr;
+    int32_t lastViewOffsetX[2] = {0, 0};
+    int32_t lastViewOffsetY[2] = {0, 0};
+    int32_t lastViewWidth[2] = {0, 0};
+    std::vector<XrSwapchain> destroyedPrivate;
+    std::vector<char> destroyOrder;
+    bool sessionDestroyed = false;
 } g_next;
 
-static const XrSession kFakeSession = reinterpret_cast<XrSession>(0xA11);
-static uint64_t g_fakePredDispTime = 0;
-static const XrSwapchain kFakeSwapchain = reinterpret_cast<XrSwapchain>(0xBEEF);
-// Second video projection (foveated): its own swapchains and images, like the
-// client's separate per-component pairs.
-static const XrSwapchain kFakeSwapchainFov = reinterpret_cast<XrSwapchain>(0xF0F0);
-// 2.0.23/5002363 also submits an "underside" projection the client never
-// renders; its swapchains must never be warped.
-static const XrSwapchain kFakeSwapchainUnd = reinterpret_cast<XrSwapchain>(0x0D0D);
-static uint32_t g_swapchainImageIds[3] = {101, 102, 103};
-static uint32_t g_fovImageIds[3] = {201, 202, 203};
-static uint32_t g_undImageIds[3] = {301, 302, 303};
-static uint32_t g_acquiredIndex = 0;
+static std::map<XrSwapchain, XrSwapchainCreateInfo> g_createInfo;
+static std::map<XrSwapchain, std::vector<uint32_t>> g_images;
+static std::map<XrSwapchain, uint32_t> g_privateBase;
+static uint32_t g_nextSwapchainHandle = 0x1000;
+static XrSwapchain g_overrideAppHandle = XR_NULL_HANDLE;
+static int g_privateImageCount = 3;
+static int g_privateCreatesBeforeFailure = -1;
+static int g_privateEnumerationsBeforeFailure = -1;
+static int g_eglOriginalCalls = 0;
+static uint64_t g_fakePred = 100000;
+static uint64_t g_fakePeriod = 11111111;
+static XrResult g_waitResult = XR_SUCCESS;
+static uint32_t g_appAcquireIndex = 0;
+static std::map<XrSwapchain, uint32_t> g_privateAcquire;
 
-static XrResult XRAPI_PTR FakeCreateSession(XrInstance, const XrSessionCreateInfo*,
-                                            XrSession* session) {
-    g_next.createSession++;
-    *session = kFakeSession;
+static XrResult XRAPI_PTR FakeCreateSession(XrInstance, const XrSessionCreateInfo*, XrSession* s) {
+    ++g_next.createSession;
+    *s = kSession;
     return XR_SUCCESS;
 }
 static XrResult XRAPI_PTR FakeDestroySession(XrSession) {
-    g_next.destroySession++;
+    ++g_next.destroySession;
+    g_next.sessionDestroyed = true;
+    g_next.destroyOrder.push_back('S');
     return XR_SUCCESS;
 }
 static XrResult XRAPI_PTR FakeBeginFrame(XrSession, const XrFrameBeginInfo*) {
-    g_next.beginFrame++;
+    ++g_next.beginFrame;
     return XR_SUCCESS;
 }
-static XrResult XRAPI_PTR FakeLocateViews(XrSession, const XrViewLocateInfo*,
-                                          XrViewState* viewState, uint32_t viewCapacityInput,
-                                          uint32_t* viewCountOutput, XrView* views) {
-    g_next.locateViews++;
-    *viewCountOutput = viewCapacityInput > 1 ? 2 : 1;
-    for (uint32_t i = 0; i < *viewCountOutput; i++) {
-        views[i].type = XR_TYPE_VIEW;
-        views[i].pose.orientation.w = 1.0f;
-        views[i].pose.position.x = static_cast<float>(i);
-        views[i].fov.angleLeft = -1.2f;
-        views[i].fov.angleRight = 1.2f;
-        views[i].fov.angleUp = 1.0f;
-        views[i].fov.angleDown = -1.0f;
+static XrResult XRAPI_PTR FakeWaitFrame(XrSession, const XrFrameWaitInfo*, XrFrameState* state) {
+    ++g_next.waitFrame;
+    state->type = XR_TYPE_FRAME_STATE;
+    state->predictedDisplayTime = g_fakePred;
+    state->predictedDisplayPeriod = g_fakePeriod;
+    return XR_SUCCESS;
+}
+static XrResult XRAPI_PTR FakeLocateViews(XrSession, const XrViewLocateInfo*, XrViewState*,
+                                          uint32_t, uint32_t*, XrView*) {
+    return XR_SUCCESS;
+}
+static XrResult XRAPI_PTR FakeCreateSwapchain(XrSession, const XrSwapchainCreateInfo* info,
+                                              XrSwapchain* swapchain) {
+    ++g_next.createSwapchain;
+    if (g_overrideAppHandle == XR_NULL_HANDLE) {
+        if (g_privateCreatesBeforeFailure == 0) return XR_ERROR_VALIDATION_FAILURE;
+        if (g_privateCreatesBeforeFailure > 0) --g_privateCreatesBeforeFailure;
     }
-    viewState->type = XR_TYPE_VIEW_STATE;
-    viewState->viewStateFlags =
-        XR_VIEW_STATE_POSITION_VALID_BIT | XR_VIEW_STATE_ORIENTATION_VALID_BIT;
+    XrSwapchain handle = g_overrideAppHandle;
+    if (handle != XR_NULL_HANDLE) {
+        g_overrideAppHandle = XR_NULL_HANDLE;
+    } else {
+        handle = reinterpret_cast<XrSwapchain>(static_cast<uintptr_t>(++g_nextSwapchainHandle));
+    }
+    g_createInfo[handle] = *info;
+    g_images[handle].clear();
+    const int count = handle == kAppSwap || handle == kAppSwapFov || handle == kAppSwapUnd
+                          ? 3
+                          : g_privateImageCount;
+    for (int i = 0; i < count; ++i) {
+        uint32_t image = 0;
+        if (handle == kAppSwap || handle == kAppSwapFov || handle == kAppSwapUnd) {
+            image = static_cast<uint32_t>(100 + i);
+        } else {
+            if (!g_privateBase.count(handle)) {
+                g_privateBase[handle] = 2000u + static_cast<uint32_t>(g_privateBase.size()) * 8u;
+            }
+            image = g_privateBase[handle] + static_cast<uint32_t>(i);
+        }
+        g_images[handle].push_back(image);
+    }
+    *swapchain = handle;
     return XR_SUCCESS;
 }
-static XrResult XRAPI_PTR FakeEndFrame(XrSession, const XrFrameEndInfo* frameEndInfo) {
-    g_next.endFrame++;
-    if (frameEndInfo) {
-        g_next.lastLayerCount = frameEndInfo->layerCount;
-        g_next.lastLayersPtr = frameEndInfo->layers;
+static XrResult XRAPI_PTR FakeDestroySwapchain(XrSwapchain swapchain) {
+    ++g_next.destroySwapchain;
+    if (swapchain != kAppSwap && swapchain != kAppSwapFov && swapchain != kAppSwapUnd) {
+        g_next.destroyedPrivate.push_back(swapchain);
+        g_next.destroyOrder.push_back('P');
     }
     return XR_SUCCESS;
 }
-static XrResult XRAPI_PTR FakeEnumerateSwapchainImages(
-    XrSwapchain swapchain, uint32_t, uint32_t* countOutput, XrSwapchainImageBaseHeader* images) {
-    g_next.enumerate++;
-    const uint32_t* ids = swapchain == kFakeSwapchainFov
-                              ? g_fovImageIds
-                              : swapchain == kFakeSwapchainUnd ? g_undImageIds
-                                                               : g_swapchainImageIds;
-    *countOutput = 3;
+static XrResult XRAPI_PTR FakeEnumerate(XrSwapchain swapchain, uint32_t, uint32_t* countOutput,
+                                        XrSwapchainImageBaseHeader* images) {
+    ++g_next.enumerate;
+    if (g_privateBase.count(swapchain)) {
+        if (g_privateEnumerationsBeforeFailure == 0) return XR_ERROR_VALIDATION_FAILURE;
+        if (g_privateEnumerationsBeforeFailure > 0) --g_privateEnumerationsBeforeFailure;
+    }
     struct SwapchainImageGles {
         XrStructureType type;
         const void* next;
         uint32_t image;
         uint32_t pad;
     };
-    static_assert(sizeof(SwapchainImageGles) == 24, "GLES image stride");
+    const auto it = g_images.find(swapchain);
+    if (it == g_images.end()) return XR_ERROR_VALIDATION_FAILURE;
+    *countOutput = static_cast<uint32_t>(it->second.size());
+    if (!images) return XR_SUCCESS;
     auto* out = reinterpret_cast<SwapchainImageGles*>(images);
-    for (uint32_t i = 0; i < 3; i++) {
-        out[i].type = XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR;
-        out[i].next = nullptr;
-        out[i].image = ids[i];
+    for (size_t i = 0; i < it->second.size(); ++i) {
+        if (out[i].type != XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR || out[i].next != nullptr) {
+            return XR_ERROR_VALIDATION_FAILURE;
+        }
+    }
+    for (size_t i = 0; i < it->second.size(); ++i) {
+        out[i].image = it->second[i];
         out[i].pad = 0;
     }
     return XR_SUCCESS;
 }
-static XrResult XRAPI_PTR FakeAcquireSwapchainImage(XrSwapchain,
-                                                    const XrSwapchainImageAcquireInfo*,
-                                                    uint32_t* index) {
-    g_next.acquire++;
-    // The test controls the round-robin position; both eyes of one swapchain
-    // use the same index, like a per-view swapchain in the client.
-    *index = g_acquiredIndex;
+static XrResult XRAPI_PTR FakeAcquire(XrSwapchain swapchain, const XrSwapchainImageAcquireInfo*,
+                                      uint32_t* index) {
+    ++g_next.acquire;
+    if (swapchain == kAppSwap || swapchain == kAppSwapFov || swapchain == kAppSwapUnd) {
+        *index = g_appAcquireIndex;
+    } else {
+        uint32_t& v = g_privateAcquire[swapchain];
+        *index = v;
+        v = (v + 1) % static_cast<uint32_t>(g_images[swapchain].size());
+    }
     return XR_SUCCESS;
 }
-
-static XrResult StubGipa(XrInstance, const char*, PFN_xrVoidFunction* function) {
-    *function = nullptr;
+static XrResult XRAPI_PTR FakeWaitImage(XrSwapchain, const XrSwapchainImageWaitInfo*) {
+    ++g_next.wait;
+    return g_waitResult;
+}
+static XrResult XRAPI_PTR FakeReleaseImage(XrSwapchain, const XrSwapchainImageReleaseInfo*) {
+    ++g_next.release;
+    return XR_SUCCESS;
+}
+static XrResult XRAPI_PTR FakeEndFrame(XrSession, const XrFrameEndInfo* info) {
+    ++g_next.endFrame;
+    if (info) {
+        g_next.lastLayerCount = info->layerCount;
+        g_next.lastLayersPtr = info->layers;
+        for (uint32_t i = 0; i < info->layerCount; ++i) {
+            const auto* layer = info->layers[i];
+            if (!layer || layer->type != XR_TYPE_COMPOSITION_LAYER_PROJECTION) continue;
+            const auto* projection =
+                reinterpret_cast<const XrCompositionLayerProjection*>(layer);
+            for (uint32_t e = 0; e < projection->viewCount && e < 2; ++e) {
+                g_next.lastViewOffsetX[e] = projection->views[e].subImage.imageRect.offset.x;
+                g_next.lastViewOffsetY[e] = projection->views[e].subImage.imageRect.offset.y;
+                g_next.lastViewWidth[e] = projection->views[e].subImage.imageRect.extent.width;
+            }
+            break;
+        }
+    }
+    return XR_SUCCESS;
+}
+static XrResult StubGipa(XrInstance, const char*, PFN_xrVoidFunction* fn) {
+    *fn = nullptr;
     return XR_ERROR_FUNCTION_UNSUPPORTED;
 }
-
 static bool InstallNext() {
     return SwpDispatchSetNext(&StubGipa, &FakeCreateSession, &FakeDestroySession, &FakeBeginFrame,
-                              &FakeLocateViews, &FakeEndFrame, &FakeEnumerateSwapchainImages,
-                              &FakeAcquireSwapchainImage);
+                              &FakeWaitFrame, &FakeLocateViews, &FakeEndFrame,
+                              &FakeCreateSwapchain, &FakeDestroySwapchain, &FakeEnumerate,
+                              &FakeAcquire, &FakeWaitImage, &FakeReleaseImage);
 }
 
-// Build a session-create chain with the GLES binding (like the Steam Link client).
+// --- harness ---------------------------------------------------------------
 static XrSessionCreateInfo GlesSessionInfo() {
-    struct FakeBinding {
+    struct Binding {
         XrStructureType type;
         const void* next;
         void* display;
         void* config;
         void* context;
     };
-    static FakeBinding binding{};
+    static Binding binding{};
     binding.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_ES_ANDROID_KHR;
-    binding.next = nullptr;
     XrSessionCreateInfo info{};
     info.type = XR_TYPE_SESSION_CREATE_INFO;
     info.next = &binding;
     return info;
 }
 
-static void DriveEnumerate() {
+static XrSwapchainCreateInfo SwapInfo(uint32_t w, uint32_t h, uint32_t arraySize = 1) {
+    XrSwapchainCreateInfo info{};
+    info.type = XR_TYPE_SWAPCHAIN_CREATE_INFO;
+    info.width = w;
+    info.height = h;
+    info.format = GL_SRGB8_ALPHA8;
+    info.arraySize = arraySize;
+    info.mipCount = 1;
+    info.faceCount = 1;
+    info.sampleCount = 1;
+    info.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT |
+                      XR_SWAPCHAIN_USAGE_SAMPLED_BIT;
+    return info;
+}
+
+static void MakeSession() {
+    XrSessionCreateInfo info = GlesSessionInfo();
+    XrSession session = nullptr;
+    CHECK(XR_SUCCEEDED(SwpDispatchCreateSession((XrInstance)0x1, &info, &session)) &&
+              session == kSession,
+          "session create forwards");
+    SwpVtsTestPublish(g_mockBridgeValue);
+}
+
+static void CreateAppSwapchain(XrSwapchain handle, uint32_t w, uint32_t h, uint32_t arraySize = 1) {
+    // The fake returns its own handle; force the known app handle by mapping it
+    // after creation (the layer records create info by the returned handle).
+    XrSwapchainCreateInfo info = SwapInfo(w, h, arraySize);
+    g_overrideAppHandle = handle;
+    XrSwapchain created = XR_NULL_HANDLE;
+    CHECK(XR_SUCCEEDED(SwpDispatchCreateSwapchain(kSession, &info, &created)) &&
+              created == handle,
+          "app swapchain create forwards with the expected handle");
+    g_images[handle].clear();
+    for (int i = 0; i < 3; ++i) {
+        g_images[handle].push_back(handle == kAppSwapFov ? 200u + i
+                                     : handle == kAppSwapUnd ? 300u + i
+                                                             : 100u + i);
+    }
+    uint32_t count = 0;
+    std::vector<uint32_t> dummy(3);
     struct SwapchainImageGles {
         XrStructureType type;
         const void* next;
         uint32_t image;
         uint32_t pad;
     };
-    static SwapchainImageGles array[3];
-    static SwapchainImageGles fovArray[3];
-    for (uint32_t i = 0; i < 3; i++) {
-        array[i].type = fovArray[i].type = XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR;
-        array[i].next = fovArray[i].next = nullptr;
-        array[i].image = g_swapchainImageIds[i];
-        fovArray[i].image = g_fovImageIds[i];
-        array[i].pad = fovArray[i].pad = 0;
+    SwapchainImageGles images[3]{};
+    for (int i = 0; i < 3; ++i) {
+        images[i].type = XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR;
+        images[i].image = g_images[handle][i];
     }
-    uint32_t count = 0;
-    SwpDispatchEnumerateSwapchainImages(kFakeSwapchain, 3, &count,
-                                        reinterpret_cast<XrSwapchainImageBaseHeader*>(array));
-    // The foveated projection has its own swapchain pair (client layout).
-    SwpDispatchEnumerateSwapchainImages(kFakeSwapchainFov, 3, &count,
-                                        reinterpret_cast<XrSwapchainImageBaseHeader*>(fovArray));
+    CHECK(XR_SUCCEEDED(SwpDispatchEnumerateSwapchainImages(
+              handle, 3, &count, reinterpret_cast<XrSwapchainImageBaseHeader*>(images))),
+          "app swapchain enumeration forwards");
 }
 
-static void DriveEnumerateUnd() {
-    struct SwapchainImageGles {
-        XrStructureType type;
-        const void* next;
-        uint32_t image;
-        uint32_t pad;
-    };
-    static SwapchainImageGles array[3];
-    for (uint32_t i = 0; i < 3; i++) {
-        array[i].type = XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR;
-        array[i].next = nullptr;
-        array[i].image = g_undImageIds[i];
-        array[i].pad = 0;
-    }
-    uint32_t count = 0;
-    SwpDispatchEnumerateSwapchainImages(kFakeSwapchainUnd, 3, &count,
-                                        reinterpret_cast<XrSwapchainImageBaseHeader*>(array));
-}
-
-// Projection frame-end builder: the two video projections the client submits
-// (base + foveated, separate swapchain pairs) plus one overlay layer that MUST
-// stay untouched. This mirrors the audited 2.0.20/5001712 composition the layer
-// treats as [base, foveated].
-struct ProjLayers {
-    XrCompositionLayerProjection projection[3]{};
+struct Layers {
+    XrCompositionLayerProjection proj[3]{};
     XrCompositionLayerProjectionView views[3][2]{};
-    XrCompositionLayerQuad overlay{};
-    const XrCompositionLayerBaseHeader* layers[4] = {nullptr, nullptr, nullptr, nullptr};
+    const XrCompositionLayerBaseHeader* list[3] = {nullptr, nullptr, nullptr};
     XrFrameEndInfo info{};
+    XrSwapchain swaps[3] = {kAppSwap, kAppSwapFov, kAppSwapUnd};
+    uint32_t arrayIndex[3][2] = {{0, 0}, {0, 0}, {0, 0}};
+    int w[3] = {2048, 2048, 2048};
+    int h[3] = {2048, 2048, 2048};
+    int count = 2;
 };
 
-static void FillProjection(ProjLayers& out, int index, XrSwapchain swapchain) {
-    for (int eye = 0; eye < 2; eye++) {
-        auto& view = out.views[index][eye];
-        view.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
-        view.subImage.swapchain = swapchain;
-        view.subImage.imageArrayIndex = 0;
-        view.subImage.imageRect.offset.x = 0;
-        view.subImage.imageRect.offset.y = 0;
-        view.subImage.imageRect.extent.width = 2048;
-        view.subImage.imageRect.extent.height = 2048;
-        view.pose.orientation.w = 1.0f;
-        view.pose.position.x = static_cast<float>(eye);
-        view.fov.angleLeft = -1.2f;
-        view.fov.angleRight = 1.2f;
-        view.fov.angleUp = 1.0f;
-        view.fov.angleDown = -1.0f;
+static void BuildLayers(Layers& l, bool three = false) {
+    l.count = three ? 3 : 2;
+    const int first = three ? 1 : 0;
+    for (int i = 0; i < l.count; ++i) {
+        l.proj[i].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION;
+        l.proj[i].viewCount = 2;
+        l.proj[i].views = l.views[i];
+        l.list[i] = reinterpret_cast<const XrCompositionLayerBaseHeader*>(&l.proj[i]);
+        for (int e = 0; e < 2; ++e) {
+            auto& v = l.views[i][e];
+            v.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
+            v.subImage.swapchain = l.swaps[first + i];
+            v.subImage.imageArrayIndex = l.arrayIndex[i][e];
+            v.subImage.imageRect.offset.x = 0;
+            v.subImage.imageRect.offset.y = 0;
+            v.subImage.imageRect.extent.width = l.w[i];
+            v.subImage.imageRect.extent.height = l.h[i];
+            v.pose.orientation.w = 1.0f;
+            v.pose.position.x = static_cast<float>(e) * 0.03f;
+            v.fov.angleLeft = -1.2f;
+            v.fov.angleRight = 1.2f;
+            v.fov.angleUp = 1.0f;
+            v.fov.angleDown = -1.0f;
+        }
     }
-    out.projection[index].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION;
-    out.projection[index].space = reinterpret_cast<XrSpace>(0x5E3 + index);
-    out.projection[index].viewCount = 2;
-    out.projection[index].views = out.views[index];
+    l.info.type = XR_TYPE_FRAME_END_INFO;
+    l.info.displayTime = g_fakePred;
+    l.info.layerCount = static_cast<uint32_t>(l.count);
+    l.info.layers = l.list;
 }
 
-// Out-param on purpose: the layer-array entries point INTO this struct, so a
-// returned copy would leave dangling pointers (NRVO is not a contract).
-static void BuildProjectionLayers(ProjLayers& out, XrSwapchain swapchain) {
-    FillProjection(out, 0, swapchain);
-    FillProjection(out, 1, kFakeSwapchainFov);
-    out.overlay.type = (XrStructureType)0x7777;  // non-projection overlay: forwarded untouched
-    out.layers[0] = reinterpret_cast<const XrCompositionLayerBaseHeader*>(&out.projection[0]);
-    out.layers[1] = reinterpret_cast<const XrCompositionLayerBaseHeader*>(&out.projection[1]);
-    out.layers[2] = reinterpret_cast<const XrCompositionLayerBaseHeader*>(&out.overlay);
-    out.info.type = XR_TYPE_FRAME_END_INFO;
-    out.info.displayTime = g_fakePredDispTime;
-    out.info.layerCount = 3;
-    out.info.layers = out.layers;
+static void WaitSlot(uint64_t pred, uint64_t period = 11111111) {
+    g_fakePred = pred;
+    g_fakePeriod = period;
+    XrFrameState state{};
+    CHECK(XR_SUCCEEDED(SwpDispatchWaitFrame(kSession, nullptr, &state)), "wait frame forwards");
 }
 
-// 2.0.23/5002363 composition: [underside, base, foveated] + overlay.
-static void BuildProjectionLayers3(ProjLayers& out, XrSwapchain base, XrSwapchain fov,
-                                   XrSwapchain und) {
-    FillProjection(out, 0, und);
-    FillProjection(out, 1, base);
-    FillProjection(out, 2, fov);
-    out.overlay.type = (XrStructureType)0x7777;
-    out.layers[0] = reinterpret_cast<const XrCompositionLayerBaseHeader*>(&out.projection[0]);
-    out.layers[1] = reinterpret_cast<const XrCompositionLayerBaseHeader*>(&out.projection[1]);
-    out.layers[2] = reinterpret_cast<const XrCompositionLayerBaseHeader*>(&out.projection[2]);
-    out.layers[3] = reinterpret_cast<const XrCompositionLayerBaseHeader*>(&out.overlay);
-    out.info.type = XR_TYPE_FRAME_END_INFO;
-    out.info.displayTime = g_fakePredDispTime;
-    out.info.layerCount = 4;
-    out.info.layers = out.layers;
+static void AcquireSources(Layers& l, uint32_t index) {
+    g_appAcquireIndex = index;
+    const int first = l.count == 3 ? 1 : 0;
+    for (int i = 0; i < l.count; ++i) {
+        if (i == 0 && l.count == 3) {
+            uint32_t idx = 0;
+            SwpDispatchAcquireSwapchainImage(kAppSwapUnd, nullptr, &idx);
+            SwpDispatchWaitSwapchainImage(kAppSwapUnd, nullptr);
+            continue;
+        }
+        uint32_t idx = 0;
+        CHECK(XR_SUCCEEDED(SwpDispatchAcquireSwapchainImage(l.swaps[first + i], nullptr, &idx)),
+              "source acquire");
+        CHECK(XR_SUCCEEDED(SwpDispatchWaitSwapchainImage(l.swaps[first + i], nullptr)),
+              "source wait");
+    }
 }
 
-// One full tick: clock set outside; the tick records its endframe display time.
-static void AcquireBoth() {
-    uint32_t pending = 0;
-    CHECK(XR_SUCCEEDED(SwpDispatchAcquireSwapchainImage(kFakeSwapchain, nullptr, &pending)),
-          "acquire base swapchain forwards");
-    CHECK(XR_SUCCEEDED(SwpDispatchAcquireSwapchainImage(kFakeSwapchainFov, nullptr, &pending)),
-          "acquire foveated swapchain forwards");
+static void ReleaseSources(Layers& l) {
+    const int first = l.count == 3 ? 1 : 0;
+    for (int i = 0; i < l.count; ++i) {
+        if (i == 0 && l.count == 3) {
+            SwpDispatchReleaseSwapchainImage(kAppSwapUnd, nullptr);
+            continue;
+        }
+        CHECK(XR_SUCCEEDED(SwpDispatchReleaseSwapchainImage(l.swaps[first + i], nullptr)),
+              "source release");
+    }
 }
 
-static void Tick(uint64_t predDispTime) {
-    g_fakePredDispTime = predDispTime;
-    XrFrameBeginInfo beginInfo{};
-    beginInfo.type = XR_TYPE_FRAME_BEGIN_INFO;
-    CHECK(XR_SUCCEEDED(SwpDispatchBeginFrame(kFakeSession, &beginInfo)),
-          "begin frame forwards");
-    XrViewState viewState{};
-    viewState.type = XR_TYPE_VIEW_STATE;
-    XrView views[2]{};
-    uint32_t count = 0;
-    XrViewLocateInfo viewLocate{};
-    viewLocate.type = XR_TYPE_VIEW_LOCATE_INFO;
-    CHECK(XR_SUCCEEDED(SwpDispatchLocateViews(kFakeSession, &viewLocate, &viewState, 2, &count,
-                                              views)),
-          "locate views forwards");
-    AcquireBoth();
-    ProjLayers layers;
-    BuildProjectionLayers(layers, kFakeSwapchain);
-    layers.info.displayTime = predDispTime;  // the compositor deadline this tick
-    CHECK(XR_SUCCEEDED(SwpDispatchEndFrame(kFakeSession, &layers.info)), "end frame forwards");
+static void EndTick(Layers& l) {
+    l.info.displayTime = g_fakePred;
+    CHECK(XR_SUCCEEDED(SwpDispatchEndFrame(kSession, &l.info)), "end frame forwards");
 }
 
-// One full tick of the 2.0.23/5002363 composition: the client acquires all three
-// projections (including the underside it never draws) and submits four layers.
-static void Tick3(uint64_t predDispTime) {
-    g_fakePredDispTime = predDispTime;
-    XrFrameBeginInfo beginInfo{};
-    beginInfo.type = XR_TYPE_FRAME_BEGIN_INFO;
-    CHECK(XR_SUCCEEDED(SwpDispatchBeginFrame(kFakeSession, &beginInfo)), "3-proj begin frame");
-    XrViewState viewState{};
-    viewState.type = XR_TYPE_VIEW_STATE;
-    XrView views[2]{};
-    uint32_t count = 0;
-    XrViewLocateInfo viewLocate{};
-    viewLocate.type = XR_TYPE_VIEW_LOCATE_INFO;
-    CHECK(XR_SUCCEEDED(SwpDispatchLocateViews(kFakeSession, &viewLocate, &viewState, 2, &count,
-                                              views)),
-          "3-proj locate views");
-    uint32_t pending = 0;
-    CHECK(XR_SUCCEEDED(SwpDispatchAcquireSwapchainImage(kFakeSwapchainUnd, nullptr, &pending)),
-          "3-proj acquire underside forwards");
-    CHECK(XR_SUCCEEDED(SwpDispatchAcquireSwapchainImage(kFakeSwapchain, nullptr, &pending)),
-          "3-proj acquire base forwards");
-    CHECK(XR_SUCCEEDED(SwpDispatchAcquireSwapchainImage(kFakeSwapchainFov, nullptr, &pending)),
-          "3-proj acquire foveated forwards");
-    ProjLayers layers;
-    BuildProjectionLayers3(layers, kFakeSwapchain, kFakeSwapchainFov, kFakeSwapchainUnd);
-    layers.info.displayTime = predDispTime;
-    CHECK(XR_SUCCEEDED(SwpDispatchEndFrame(kFakeSession, &layers.info)), "3-proj end frame");
+static void FullTick(uint64_t pred, Layers& l, uint32_t acquireIndex, bool release = true,
+                     uint64_t period = 11111111) {
+    WaitSlot(pred, period);
+    AcquireSources(l, acquireIndex);
+    if (release) ReleaseSources(l);
+    EndTick(l);
+}
+
+static DispatchState* State() {
+    auto it = g_sessions.find(kSession);
+    return it == g_sessions.end() ? nullptr : &it->second;
 }
 
 static void ResetAll() {
-    // Counters accumulate across suites. Zeroing them here made the summary report
-    // only the last suite's checks and forced exit code 0 over earlier failures.
     g_logLines.clear();
     g_next = NextCalls{};
     g_est = EstimatorCalls{};
     g_estStatus = 0;
     g_nextTextureId = 500;
-    // Sessions, ownership counters and the reclaim queue are process-wide; leaving
-    // them set would strand an owner increment per suite and mask the dormant gate.
     g_sessions.clear();
     g_synthOwners.store(0);
+    g_armState.store(0);
+    g_armRetryEndframes.store(0);
+    g_hooksArmResult = true;
+    g_hooksArmCalls = 0;
+    g_dormantCleanupPending.store(false);
+    g_glCalls = 0;
+    g_contextReads = 0;
+    g_privateCreatesBeforeFailure = -1;
+    g_privateEnumerationsBeforeFailure = -1;
+    g_eglOriginalCalls = 0;
     g_deferred = DeferredReclaim{};
     g_deferredPending.store(false);
     g_leakedTextures.store(0);
     g_leakedFbos.store(0);
     g_deletedTextures.clear();
     g_deletedFbos.clear();
-    g_acquiredIndex = 0;
-    g_fakePredDispTime = 0;
-    g_glTableCalls = 0;
     g_blitCalls = 0;
-    g_glTableResult = true;
-    g_boundIdentityCtx = nullptr;
-    g_identityBindings = 0;
-    g_fakeMvW = 1024;
-    g_fakeMvH = 1024;
-    g_hooksArmResult = false;  // the dispatch-flow suite re-arms deliberately
-    g_glTableSet = false;      // same-TU internal: the estimator re-inits per suite
-    // Brief-10 bridge: the flow suites assume a live, PUBLISHED-ON carrier; the
-    // gating suite flips it explicitly (stock/unpublished is that suite's state).
+    g_captureSources.clear();
+    g_layerBlits = 0;
+    g_glTableSet = false;
+    g_glTableCalls = 0;
+    g_mockBridgeReads = 0;
+    g_mockBridgePresent = true;
+    g_mockBridgeValue = 1;
+    g_privateImageCount = 3;
+    g_privateAcquire.clear();
+    g_createInfo.clear();
+    g_images.clear();
+    g_privateBase.clear();
+    g_nextSwapchainHandle = 0x1000;
+    g_overrideAppHandle = XR_NULL_HANDLE;
+    g_waitResult = XR_SUCCESS;
+    g_appAcquireIndex = 0;
+    g_fakePred = 100000;
+    g_fakePeriod = 11111111;
+    g_currentCtx = reinterpret_cast<void*>(0xC0DE);
     SwpVtsTestResetAll();
     SwpVtsTestSetArmed(true);
     SwpVtsTestSetRoot(reinterpret_cast<void*>(0x5A1E));
     SwpVtsTestSetTable(&BridgeMock);
-    SwpVtsTestPublish(1);
-    g_mockBridgePresent = true;
-    g_mockBridgeValue = 1;
-    SwpVtsTestSetHalfRateRetired(true);  // production default: half rate retired
-    g_mockBridgeReads = 0;
-    SwpSetEnabled(true);
+    SwpVtsTestPublish(g_mockBridgeValue);
     SwpEglResetArrivals();
     SwpEglTestSetNowNs(0);
+    SwpEglTestResetClockReads();
+    SwpSetEnabled(true);
 }
 
-// ---------------------------------------------------------------------------
-// Suites.
-// ---------------------------------------------------------------------------
-static void CheckPoseMatrix() {
+static void CheckPureHelpers() {
     float mat[16];
-    const float pos0[3] = {0, 0, 0};
-    const float quatId[4] = {1, 0, 0, 0};
-    SwpPoseToViewMatrix(pos0, quatId, mat);
-    CHECK(mat[0] == 1 && mat[5] == 1 && mat[10] == 1 && mat[15] == 1 && mat[12] == 0 &&
-              mat[13] == 0 && mat[14] == 0,
-          "pose->view: identity orientation + zero position is the identity view");
-    // 90-degree yaw around Y (w = z = 0.7071): view row 0 carries world +Z to +X.
+    const float p[3] = {0, 0, 0};
+    const float q[4] = {1, 0, 0, 0};
+    SwpPoseToViewMatrix(p, q, mat);
+    CHECK(mat[0] == 1 && mat[5] == 1 && mat[10] == 1 && mat[15] == 1,
+          "pose matrix identity");
     const float half = 0.70710678f;
-    const float quatYaw[4] = {half, 0, half, 0};
-    SwpPoseToViewMatrix(pos0, quatYaw, mat);
-    // 0.70710678f squared rounds to just under 0.5 in float, so an exact
-    // comparison is toolchain-dependent; the tolerance is the assertion.
-    CHECK(std::fabs(mat[8] - 1.0f) < 1e-5f, "pose->view: yaw carries +Z into view +X");
-    // Position (1,0,0) under 90-degree yaw: translation column zeroes x and applies
-    // -R*p = -(0,0,-1)... the x-rotated basis maps p.x into -view.z: mat[14] = -(-1) = ...
-    const float pos1[3] = {1, 0, 0};
-    SwpPoseToViewMatrix(pos1, quatYaw, mat);
-    CHECK(std::fabs(mat[12]) < 1e-5f && std::fabs(mat[13]) < 1e-5f &&
-              std::fabs(mat[14] - 1.0f) < 1e-5f,
-          "pose->view: translation applied on the rotated basis");
+    const float yaw[4] = {half, 0.0f, half, 0.0f};  // +90 degrees about Y
+    SwpPoseToViewMatrix(p, yaw, mat);
+    CHECK(std::fabs(mat[2] - 1.0f) < 1e-5f && std::fabs(mat[8] + 1.0f) < 1e-5f,
+          "pose matrix uses the inverse (world->camera) rotation, not +90 as -90");
+    float scale = 0;
+    CHECK(SwpScaleFactorForMissedTick(3000, 1000, 2000, &scale) && scale == 2.0f,
+          "nominal one-slot scale is 2.0");
+    CHECK(!SwpScaleFactorForMissedTick(1000, 1000, 2000, &scale),
+          "pred before newest refuses");
+    CHECK(SwpClassifyTick(5, 5, true, false) == TickKind::Missed, "unchanged epoch is missed");
 }
 
-static void CheckScaleFactor() {
-    float scale = 0.f;
-    CHECK(SwpScaleFactorForMissedTick(3000, 1000, 2000, &scale) && scale > 1.99f &&
-              scale < 2.01f,
-          "scale factor: one skipped interval past newest -> 2.0 (shader applies 1-scale)");
-    CHECK(SwpScaleFactorForMissedTick(4000, 1000, 2000, &scale) && scale > 2.99f &&
-              scale < 3.01f,
-          "scale factor: two skipped intervals -> 3.0 (cap)");
-    CHECK(!SwpScaleFactorForMissedTick(1500, 1000, 2000, &scale),
-          "scale factor: pred earlier than the newest arrival stands down");
-    CHECK(!SwpScaleFactorForMissedTick(100000, 1000, 2000, &scale),
-          "scale factor: beyond the cap stands down");
-    CHECK(!SwpScaleFactorForMissedTick(3000, 2000, 2000, &scale),
-          "scale factor: non-increasing arrivals stand down");
-    CHECK(!SwpScaleFactorForMissedTick(0, 1000, 2000, &scale),
-          "scale factor: zero pred stands down");
-}
-
-static void CheckMonoToXr() {
-    uint64_t out = 0;
-    CHECK(SwpMonoToXrTime(2000, 20000, 1000, 10000, 1500, &out) && out == 15000,
-          "mono->xr: linear inside the anchor span");
-    CHECK(!SwpMonoToXrTime(2000, 20000, 1000, 10000, 999, &out),
-          "mono->xr: before the anchor span refuses");
-    CHECK(!SwpMonoToXrTime(2000, 20000, 1000, 10000, 2001, &out),
-          "mono->xr: after the anchor span refuses");
-    CHECK(!SwpMonoToXrTime(2000, 20000, 2000, 10000, 1500, &out),
-          "mono->xr: degenerate anchor refuses");
-}
-
-static void CheckClassify() {
-    CHECK(SwpClassifyTick(5, 0, false, false) == TickKind::Real,
-          "classify: first observed tick is real");
-    CHECK(SwpClassifyTick(5, 5, true, false) == TickKind::Missed,
-          "classify: unchanged epoch is a missed tick");
-    CHECK(SwpClassifyTick(6, 5, true, false) == TickKind::Real,
-          "classify: bumped epoch is a real tick");
-    CHECK(SwpClassifyTick(6, 5, true, true) == TickKind::Stalled,
-          "classify: disabled learning never extrapolates");
-}
-
-// RE-SHARED-IMPL.md component 4 assumption (round-robin buffers, maxImages 20):
-// one epoch bump per decoded frame — recycling a past handle (wrap-around) still
-// counts because the previous call's handle differs; consecutive duplicates do not;
-// a pool wider than the cap disables the learning (conservative) instead of
-// extrapolating blind.
-static void CheckArrivalLearning() {
-    ResetAll();
-    uint64_t epoch = 0;
-    void* ctx = nullptr;
-    void* dpy = nullptr;
-    for (int loop = 0; loop < 2; loop++) {
-        for (int i = 0; i < 20; i++) {
-            SwpEglArrivalObserved(reinterpret_cast<void*>(static_cast<uintptr_t>(10 + i)),
-                                  (void*)0xC0DE, (void*)0xD05, 1000 + static_cast<uint64_t>(i));
-        }
-    }
-    CHECK(SwpEglArrivalSnapshot(&epoch, &ctx, &dpy), "arrival snapshot after round-robin");
-    CHECK(epoch == 40, "arrival epoch: every decoded frame in a 20-image round-robin counts");
-    CHECK(ctx == (void*)0xC0DE, "arrival context captured");
-    CHECK(dpy == (void*)0xD05, "arrival display captured");
-    const uint64_t before = epoch;
-    SwpEglArrivalObserved((void*)25, (void*)0xC0DE, (void*)0xD05, 2000);
-    SwpEglArrivalObserved((void*)25, (void*)0xC0DE, (void*)0xD05, 2500);  // consecutive duplicate
-    SwpEglArrivalSnapshot(&epoch, &ctx, &dpy);
-    CHECK(epoch == before + 1, "arrival epoch: consecutive duplicate not an arrival");
-    uint64_t epochs[8] = {0};
-    uint64_t monos[8] = {0};
-    const int historyCount = SwpEglArrivalHistory(epochs, monos, 8);
-    // The duplicate above is not an arrival: it bumps neither the epoch nor the
-    // recorded timestamp, so the newest entry is still the 2000 ns one.
-    CHECK(historyCount == 8 && epochs[0] == epoch && monos[0] == 2000,
-          "arrival history: newest first (duplicates do not refresh the timestamp)");
-    for (int i = 0; i < 65; i++) {
-        SwpEglArrivalObserved(reinterpret_cast<void*>(static_cast<uintptr_t>(1000 + i)),
-                              (void*)0xC0DE, (void*)0xD05, 3000 + static_cast<uint64_t>(i));
-    }
-    CHECK(SwpEglLearningDisabled(), "arrival pool wider than the cap disables learning");
-}
-
-// Full missed-tick flow: real (vectors) -> missed (extrapolate) -> cap, with the
-// fake estimator + fake next chain; textures come from the passive observers.
-static void CheckDispatchFlow() {
+static void CheckLateFlow() {
     ResetAll();
     CHECK(InstallNext(), "next chain installs");
-    g_hooksArmResult = true;
-
-    XrSessionCreateInfo info = GlesSessionInfo();
-    XrSession session = nullptr;
-    CHECK(XR_SUCCEEDED(SwpDispatchCreateSession((XrInstance)0x1, &info, &session)) &&
-              session == kFakeSession && g_next.createSession == 1,
-          "session create forwards and tracks the handle");
-    // A new session restarts the carrier cache; the host republishes on its own
-    // cadence, so the harness models that with an explicit publish here.
-    SwpVtsTestPublish(1);
-
-    g_acquiredIndex = 1;
-    DriveEnumerate();  // swapchain 0xBEEF textures = {101, 102, 103}; pending index 1 -> 102
-    CHECK(g_next.enumerate == 2, "enumerate forwards for both video projections");
-
-    // Tick 1: one arrival before it -> REAL tick: history record only.
-    SwpEglTestSetNowNs(1000);   // BeginFrame#1 clock anchor (mono 1000, xr 100000)
-    SwpEglArrivalObserved((void*)10, (void*)0xC0DE, nullptr, 1100);  // inside tick-1 window
-    Tick(100000);
-    CHECK(g_next.endFrame == 1, "endframe forwards");
-    CHECK(g_est.initCalled, "estimator init on the first eligible tick");
-    CHECK(g_est.generateCalls == 0, "the first real tick only records history");
-    CHECK(!g_logLines.empty(), "init + mv allocation logs flow");
-    g_logLines.clear();
-
-    // Tick 2: fresh arrival + acquired index 2 -> REAL tick: vectors (102 -> 103).
-    g_fakePredDispTime = 200000;
-    SwpEglTestSetNowNs(2000);
-    g_acquiredIndex = 2;
-    ProjLayers layers2;
-    BuildProjectionLayers(layers2, kFakeSwapchain);
-    XrFrameBeginInfo begin2{};
-    begin2.type = XR_TYPE_FRAME_BEGIN_INFO;
-    CHECK(XR_SUCCEEDED(SwpDispatchBeginFrame(kFakeSession, &begin2)), "begin frame 2");
-    XrViewState viewState2{};
-    viewState2.type = XR_TYPE_VIEW_STATE;
-    XrView views2[2]{};
-    uint32_t count2 = 0;
-    XrViewLocateInfo viewLocate2{};
-    viewLocate2.type = XR_TYPE_VIEW_LOCATE_INFO;
-    CHECK(XR_SUCCEEDED(SwpDispatchLocateViews(kFakeSession, &viewLocate2, &viewState2, 2, &count2,
-                                              views2)),
-          "locate views 2");
-    SwpEglArrivalObserved((void*)11, (void*)0xC0DE, nullptr, 2100);  // fresh arrival
-    AcquireBoth();
-    CHECK(XR_SUCCEEDED(SwpDispatchEndFrame(kFakeSession, &layers2.info)), "end frame 2");
-    CHECK(g_est.generateCalls == 1, "vector generation on the second real tick");
-    CHECK(g_est.lastPrevTexL == 102 && g_est.lastCurrTexL == 103,
-          "vectors use prev=older, curr=newest textures");
-    CHECK(g_est.lastMvTexL != 0 && g_est.lastMvTexR != 0, "mv textures from the client context");
-    g_logLines.clear();
-
-    // Tick 3: no fresh arrival -> MISSED tick -> extrapolation into the pending dst.
-    g_fakePredDispTime = 300000;
-    SwpEglTestSetNowNs(3000);
-    g_acquiredIndex = 0;  // round-robin wrap: pending image index 0 -> texture 101
-    ProjLayers layers3;
-    BuildProjectionLayers(layers3, kFakeSwapchain);
-    XrFrameBeginInfo begin3{};
-    begin3.type = XR_TYPE_FRAME_BEGIN_INFO;
-    CHECK(XR_SUCCEEDED(SwpDispatchBeginFrame(kFakeSession, &begin3)), "begin frame 3");
-    XrViewState viewState3{};
-    viewState3.type = XR_TYPE_VIEW_STATE;
-    XrView views3[2]{};
-    uint32_t count3 = 0;
-    XrViewLocateInfo viewLocate3{};
-    viewLocate3.type = XR_TYPE_VIEW_LOCATE_INFO;
-    CHECK(XR_SUCCEEDED(SwpDispatchLocateViews(kFakeSession, &viewLocate3, &viewState3, 2, &count3,
-                                              views3)),
-          "locate views 3");
-    AcquireBoth();
-    CHECK(XR_SUCCEEDED(SwpDispatchEndFrame(kFakeSession, &layers3.info)), "end frame 3");
-    CHECK(g_est.extrapolateCalls == 2, "one extrapolation per selected projection on the missed tick");
-    {
-        std::vector<uint32_t> dstIds;
-        bool stagingOnly = g_est.pairs.size() == 2;
-        for (const auto& pair : g_est.pairs) {
-            const uint32_t dsts[2] = {pair.dstL, pair.dstR};
-            for (uint32_t id : dsts) {
-                if ((id >= 101 && id <= 103) || (id >= 201 && id <= 203)) stagingOnly = false;
-                dstIds.push_back(id);
-            }
-        }
-        std::sort(dstIds.begin(), dstIds.end());
-        stagingOnly = stagingOnly && dstIds.size() == 4 &&
-                      std::unique(dstIds.begin(), dstIds.end()) == dstIds.end();
-        CHECK(stagingOnly, "all four eye warps target distinct owned staging textures");
-    }
-    CHECK(g_blitCalls == 4, "both eyes of both projections are committed by blit");
-    CHECK(g_est.firstSrcTexL >= 101 && g_est.firstSrcTexL <= 103 &&
-              g_est.lastSrcTexL >= 201 && g_est.lastSrcTexL <= 203,
-          "each projection sources its own last presented pair");
-    CHECK(g_est.lastScale >= 1.5f && g_est.lastScale <= 2.5f,
-          "one skipped interval extrapolates by ~2.0 (shader applies 1-scale)");
-    CHECK(g_next.lastLayerCount == 3, "the layer list reaches the runtime untouched");
-    g_logLines.clear();
-
-    // Ticks 4-6: pass stock once more than 2 consecutive missed ticks.
-    uint64_t xr = 400000;
-    for (int tick = 0; tick < 2; tick++) {
-        SwpEglTestSetNowNs(4000 + tick * 1000);
-        Tick(xr);
-        xr += 100000;
-    }
-    const int extrapolated = g_est.extrapolateCalls;
-    CHECK(extrapolated == 4, "the second consecutive missed tick still extrapolates both projections");
-    Tick(xr);  // third consecutive missed tick: the cap passes stock
-    CHECK(g_est.extrapolateCalls == extrapolated,
-          "the consecutive cap passes stock without estimator calls");
-    bool capLogged = false;
-    for (const std::string& line : g_logLines) {
-        if (line.find("consecutive missed-tick cap") != std::string::npos) capLogged = true;
-    }
-    CHECK(capLogged, "the cap logs its (rate-limited) line");
-}
-
-static void CheckStandDowns() {
-    ResetAll();
-    CHECK(InstallNext(), "next chain installs (stand-down run)");
-
-    XrSessionCreateInfo info = GlesSessionInfo();
-    XrSession session = nullptr;
-    CHECK(XR_SUCCEEDED(SwpDispatchCreateSession((XrInstance)0x1, &info, &session)), "session create");
-    // The stand-down paths live on the enabled side of the gate; without a
-    // published carrier every tick would take the dormant fast path and these
-    // assertions would pass vacuously.
-    SwpVtsTestPublish(1);
-    g_acquiredIndex = 1;
-    DriveEnumerate();
-    // Context mismatch: the arrival's context differs from the current -> stand down.
+    MakeSession();
+    CreateAppSwapchain(kAppSwap, 2048, 2048);
+    CreateAppSwapchain(kAppSwapFov, 2048, 2048);
+    Layers l;
+    l.views[0][0].pose.orientation.w = 0.70710678f;
+    l.views[0][0].pose.orientation.y = 0.70710678f;
+    l.views[0][0].pose.position.z = 0.25f;
+    BuildLayers(l);
+    // BuildLayers rewrites the views; apply the nonidentity B pose afterwards.
+    l.views[0][0].pose.orientation.w = 0.70710678f;
+    l.views[0][0].pose.orientation.y = 0.70710678f;
+    l.views[0][0].pose.position.z = 0.25f;
     SwpEglTestSetNowNs(1000);
-    SwpEglArrivalObserved((void*)10, (void*)0xBADF, nullptr, 1100);
-    SwpEglTestSetNowNs(1200);
-    Tick(100000);
-    CHECK(g_est.generateCalls == 0 && g_est.extrapolateCalls == 0,
-          "context mismatch stands the tick down");
-
-    // Estimator init failure: session-wide stand-down (contract status 16).
-    g_est.initResult = false;
-    g_est.initCalled = false;
-    SwpEglResetArrivals();
-    SwpEglTestSetNowNs(2000);
-    SwpEglArrivalObserved((void*)20, (void*)0xC0DE, nullptr, 2100);
-    Tick(500000);
-    CHECK(g_est.generateCalls == 0 && g_est.extrapolateCalls == 0,
-          "failed estimator init stands the session down");
-    g_est.initResult = true;
-
-    // The ONE boolean enable entry: a disabled entry makes new sessions pass stock.
-    SwpSetEnabled(false);
-    XrSessionCreateInfo info2 = GlesSessionInfo();
-    XrSession session2 = nullptr;
-    CHECK(XR_SUCCEEDED(SwpDispatchCreateSession((XrInstance)0x1, &info2, &session2)),
-          "disabled-entry session create forwards");
-    SwpEglResetArrivals();
-    SwpEglTestSetNowNs(3000);
-    SwpEglArrivalObserved((void*)30, (void*)0xC0DE, nullptr, 3100);
-    g_acquiredIndex = 1;
-    Tick(700000);
-    CHECK(g_est.generateCalls == 0 && g_est.extrapolateCalls == 0,
-          "the entry flipped to disabled keeps new sessions stock");
-    // Re-enable applies to the NEXT session only.
-    SwpSetEnabled(true);
-    XrSessionCreateInfo info3 = GlesSessionInfo();
-    XrSession session3 = nullptr;
-    CHECK(XR_SUCCEEDED(SwpDispatchCreateSession((XrInstance)0x1, &info3, &session3)),
-          "re-enabled session create forwards");
-    SwpVtsTestPublish(1);  // the host republishes on its cadence for the new session
-    g_est.initCalled = false;
-    SwpEglResetArrivals();
-    SwpEglTestSetNowNs(4000);
-    SwpEglArrivalObserved((void*)40, (void*)0xC0DE, nullptr, 4100);
-    g_acquiredIndex = 1;
-    DriveEnumerate();  // a new session enumerates its own swapchains (client behaviour)
-    Tick(900000);
-    CHECK(g_est.initCalled, "the next session re-reads the enable entry and runs");
-}
-
-// 2.0.23/5002363 composition: [underside, base, foveated]. The underside layer is
-// never drawn by the client; the layer must select the LAST TWO projections and
-// never touch the underside swapchains even though the client acquires them.
-static void CheckThreeProjectionLayout() {
-    ResetAll();
-    CHECK(InstallNext(), "next chain installs (3-projection run)");
-    XrSessionCreateInfo info = GlesSessionInfo();
-    XrSession session = nullptr;
-    CHECK(XR_SUCCEEDED(SwpDispatchCreateSession((XrInstance)0x1, &info, &session)),
-          "3-proj session create");
-    SwpVtsTestPublish(1);
-    g_acquiredIndex = 1;
-    DriveEnumerate();
-    DriveEnumerateUnd();
-    SwpEglTestSetNowNs(1000);
-    SwpEglArrivalObserved((void*)10, (void*)0xC0DE, nullptr, 1100);
-    Tick3(100000);
-    CHECK(g_est.initCalled, "3-proj estimator init");
+    SwpEglArrivalObserved((void*)10, g_currentCtx, nullptr, 1100);
+    FullTick(100000, l, 1);
+    CHECK(g_est.initCalled && g_est.initW == 2048, "estimator init from the selected rect");
+    CHECK(g_next.endFrame == 1, "first endframe forwards");
 
     SwpEglTestSetNowNs(2000);
-    g_acquiredIndex = 2;
-    SwpEglArrivalObserved((void*)11, (void*)0xC0DE, nullptr, 2100);
-    Tick3(200000);
-    CHECK(g_est.generateCalls == 1, "3-proj vectors from the base slot");
+    SwpEglArrivalObserved((void*)11, g_currentCtx, nullptr, 2100);
+    FullTick(111111, l, 2);
+    CHECK(g_blitCalls >= 4, "capture copies both components/eyes into history");
+    CHECK(g_next.createSwapchain >= 4, "private swapchains are created for both components");
 
     SwpEglTestSetNowNs(3000);
-    g_acquiredIndex = 0;
-    Tick3(300000);  // missed: extrapolate both video projections
-    CHECK(g_est.extrapolateCalls == 2,
-          "3-proj layout extrapolates exactly the two video projections");
-    bool touchesUnderside = false;
-    bool mapsBaseAndFoveated = g_est.pairs.size() == 2;
-    for (const auto& pair : g_est.pairs) {
-        const uint32_t ids[4] = {pair.srcL, pair.srcR, pair.dstL, pair.dstR};
-        for (uint32_t id : ids) {
-            if (id >= 301 && id <= 303) touchesUnderside = true;
-        }
-    }
-    CHECK(!touchesUnderside, "the underside swapchains are never a warp source or destination");
-    if (mapsBaseAndFoveated) {
-        CHECK(g_est.pairs[0].srcL >= 101 && g_est.pairs[0].srcL <= 103,
-              "slot 0 is the base projection");
-        CHECK(g_est.pairs[1].srcL >= 201 && g_est.pairs[1].srcL <= 203,
-              "slot 1 is the foveated projection");
+    SwpEglArrivalObserved((void*)12, g_currentCtx, nullptr, 3100);
+    FullTick(122222, l, 0);
+    CHECK(g_est.alignCalls == 2, "A is rotation-aligned into B for both components");
+    CHECK(g_est.generateCalls == 2, "one estimation per distinct source pair");
+    DispatchState* s = State();
+    CHECK(s && s->warmed, "late mode warms after two distinct composites");
+    if (s && s->historyNewest >= 0) {
+        const XrPosef stored = s->history[s->historyNewest].pose[0][0];
+        CHECK(std::fabs(stored.orientation.w - 0.70710678f) < 1e-5f &&
+                  std::fabs(stored.orientation.y - 0.70710678f) < 1e-5f &&
+                  std::fabs(stored.position.z - 0.25f) < 1e-5f,
+              "history stores B's original pose without a sign inversion");
     } else {
-        CHECK(false, "the 3-projection layout produced two extrapolation calls");
+        CHECK(false, "history stores B's original pose without a sign inversion");
     }
-}
 
-// Brief-10 enable gating: ALL synthesis (MV-gen + extrapolation) only while the
-// bridge carrier reads enabled (published nonzero); unknown / never-published /
-// zero sessions stay stock while the observers keep running; a mid-session flip
-// to enabled never extrapolates from pre-enablement content (fresh-map rule).
-static void CheckBridgeGating() {
-    ResetAll();
-    CHECK(InstallNext(), "next chain installs (bridge gating run)");
-
-    // Stock session preset: armed + root captured + the publisher silent (the
-    // mock answers not-present); the carrier cache restarts UNKNOWN (no poll
-    // has run). This is the state every stock session is in.
-    SwpVtsTestResetAll();
-    SwpVtsTestSetArmed(true);
-    SwpVtsTestSetRoot(reinterpret_cast<void*>(0x5A1E));
-    SwpVtsTestSetTable(&BridgeMock);
-    g_mockBridgePresent = false;
-
-    // The (test) clock advances one unit per tick so the arrival-anchor ring
-    // stays live for the late conversions (the flow suite's same shape; the
-    // 8-entry ring survives because arrivals keep flowing in the flip phase).
-    uint64_t clock = 1000;
-    uint64_t pred = 100000;
-    auto GateTick = [&clock, &pred]() {
-        clock += 1000;
-        SwpEglTestSetNowNs(clock);
-        Tick(pred);
-        pred += 100000;
-    };
-
-    XrSessionCreateInfo info = GlesSessionInfo();
-    XrSession session = nullptr;
-    CHECK(XR_SUCCEEDED(SwpDispatchCreateSession((XrInstance)0x1, &info, &session)),
-          "stock-carrier session create forwards");
-    g_acquiredIndex = 1;
-    DriveEnumerate();
-    SwpEglTestSetNowNs(clock);
-    SwpEglArrivalObserved((void*)10, (void*)0xC0DE, nullptr, clock + 100);
-    GateTick();  // tick 1 = real (first observed epoch); the disabled gate is stock
-    CHECK(g_next.endFrame == 1, "stock-carrier endframe still forwards");
-    CHECK(!g_est.initCalled && g_est.generateCalls == 0 && g_est.extrapolateCalls == 0,
-          "an unpublished carrier holds ALL synthesis down from tick 1");
-
-    // Ticks 2..60 drive the 60-endframe cadence (missed ticks, all stock): the
-    // poll reads at tick 60, treats 'not present' as disabled, logs the fallback
-    // line ONCE for the session, and never touches the estimator.
-    for (int i = 1; i < 60; i++) GateTick();
-    CHECK(g_mockBridgeReads == 1, "the bridge poll ran once on the 60-endframe cadence");
-    CHECK(!g_est.initCalled && g_est.generateCalls == 0 && g_est.extrapolateCalls == 0,
-          "the never-published session stays stock through repeated polls");
-    bool notPresentLogged = false;
-    for (const std::string& line : g_logLines) {
-        if (line.find("carrier value not present") != std::string::npos) {
-            notPresentLogged = true;
-        }
-    }
-    CHECK(notPresentLogged, "the not-present fallback logged its one line");
-
-    // The host publishes nonzero: the flip lands via the NEXT cadence poll (60
-    // ticks later). Fresh epochs every other tick keep the anchor ring dense;
-    // the poll tick (missed, freshly allowed) must STILL not extrapolate (the
-    // fresh-map rule) while the estimator arms (init + MV allocation) in the
-    // allowed path.
-    g_mockBridgePresent = true;
-    for (int i = 0; i < 60; i++) {
-        if (i % 2 == 0) {
-            SwpEglArrivalObserved(reinterpret_cast<void*>(static_cast<uintptr_t>(20 + i)),
-                                  (void*)0xC0DE, nullptr, clock + 100);
-        }
-        GateTick();
-    }
-    CHECK(g_mockBridgeReads >= 2, "the flip landed via the cadence poll");
-    CHECK(!g_est.initCalled,
-          "the flip tick itself is still dormant (the fast path returned first)");
-    CHECK(g_est.generateCalls == 0,
-          "the pre-poll ticks were gated stock (no generation, no extrapolation)");
-    CHECK(g_est.extrapolateCalls == 0,
-          "fresh enablement never extrapolates from pre-enablement maps");
-
-    // First slow-path tick after the flip: the estimator arms, but the frame
-    // history is cold (the dormant fast path recorded nothing), so this tick only
-    // records. That 1-tick warm-up is the designed cost of paying nothing while
-    // the carrier is off.
-    g_acquiredIndex = 2;
-    SwpEglArrivalObserved((void*)40, (void*)0xC0DE, nullptr, clock + 100);
-    GateTick();
-    CHECK(g_est.initCalled, "estimator init stays in the allowed path");
-    CHECK(g_est.generateCalls == 0, "the cold-start tick only records history");
-    // The next real tick has a predecessor and generates the maps...
-    g_acquiredIndex = 1;
-    SwpEglArrivalObserved((void*)41, (void*)0xC0DE, nullptr, clock + 100);
-    GateTick();
-    CHECK(g_est.generateCalls == 1, "the second real tick generated the maps");
-    // ...and the next missed tick extrapolates into the pending dst textures.
-    g_acquiredIndex = 0;  // round-robin wrap: the missed tick's dst is texture 101
-    GateTick();
-    CHECK(g_est.extrapolateCalls == 2, "the next missed tick extrapolates both projections");
-    CHECK(g_est.firstDstTexL != g_est.firstSrcTexL &&
-              g_est.lastDstTexL != g_est.lastSrcTexL,
-          "the extrapolated tick warps into staging, not into its sources");
-    CHECK(g_est.firstSrcTexL >= 101 && g_est.firstSrcTexL <= 103 &&
-              g_est.lastSrcTexL >= 201 && g_est.lastSrcTexL <= 203,
-          "each projection sources its post-enablement presented pair");
-
-    // The per-session entry stays authoritative: entry off + carrier on = stock.
-    SwpSetEnabled(false);
-    XrSessionCreateInfo info2 = GlesSessionInfo();
-    XrSession session2 = nullptr;
-    CHECK(XR_SUCCEEDED(SwpDispatchCreateSession((XrInstance)0x1, &info2, &session2)),
-          "entry-off session create forwards");
-    SwpEglResetArrivals();
-    clock += 1000;
-    SwpEglTestSetNowNs(clock);
-    SwpEglArrivalObserved((void*)50, (void*)0xC0DE, nullptr, clock + 100);
-    g_acquiredIndex = 1;
-    const int generateCallsBefore = g_est.generateCalls;
-    const int extrapolateCallsBefore = g_est.extrapolateCalls;
-    pred += 100000;
-    Tick(pred);
-    CHECK(g_est.generateCalls == generateCallsBefore &&
-              g_est.extrapolateCalls == extrapolateCallsBefore,
-          "entry off + carrier on stays stock (the entry wins)");
-    SwpSetEnabled(true);
-}
-
-// Dormant fast path (Wave A): with the host carrier off/unpublished the layer must
-// forward every tick with no state at all — no clock anchors, no tick
-// classification, no frame history, no estimator or GL work — while still running
-// the 60-endframe carrier cadence so a host publish is observed.
-static void CheckDormantFastPath() {
-    ResetAll();
-    CHECK(InstallNext(), "next chain installs (dormant fast path run)");
-    SwpVtsTestResetAll();
-    SwpVtsTestSetArmed(true);
-    SwpVtsTestSetRoot(reinterpret_cast<void*>(0x5A1E));
-    SwpVtsTestSetTable(&BridgeMock);
-    g_mockBridgePresent = false;  // the host never publishes: ASW off
-    g_mockBridgeValue = 0;
-
-    XrSessionCreateInfo info = GlesSessionInfo();
-    XrSession session = nullptr;
-    CHECK(XR_SUCCEEDED(SwpDispatchCreateSession((XrInstance)0x1, &info, &session)),
-          "dormant session create forwards");
-    g_acquiredIndex = 1;
-    DriveEnumerate();
-    SwpEglArrivalObserved((void*)10, (void*)0xC0DE, nullptr, 100);
-
-    uint64_t clock = 1000;
-    uint64_t pred = 100000;
-    for (int i = 0; i < 600; i++) {
-        clock += 1000;
-        SwpEglTestSetNowNs(clock);
-        Tick(pred);
-        pred += 100000;
-    }
-    CHECK(g_next.endFrame == 600, "every dormant tick forwarded exactly once");
-    CHECK(g_next.lastLayerCount == 3 && g_next.lastLayersPtr != nullptr,
-          "the client layer list is forwarded untouched");
-    CHECK(!g_est.initCalled && g_est.generateCalls == 0 && g_est.extrapolateCalls == 0,
-          "600 dormant ticks reach neither the estimator nor GL");
-
-    auto it = g_sessions.find(kFakeSession);
-    CHECK(it != g_sessions.end(), "the dormant session still has its state");
-    if (it != g_sessions.end()) {
-        CHECK(it->second.slots[0].history.empty() && it->second.slots[1].history.empty(),
-              "dormant ticks record no frame history");
-        CHECK(!it->second.haveTickEpoch && it->second.pairCount == 0,
-              "no tick classification and no clock anchors while dormant");
-    }
-    CHECK(g_mockBridgeReads == 10, "the carrier cadence still ran once per 60 ticks");
-}
-
-static void CheckSessionTeardown() {
-    ResetAll();
-    CHECK(InstallNext(), "next chain installs (teardown run)");
-
-    XrSessionCreateInfo info = GlesSessionInfo();
-    XrSession session = nullptr;
-    CHECK(XR_SUCCEEDED(SwpDispatchCreateSession((XrInstance)0x1, &info, &session)), "session create");
-    SwpVtsTestPublish(1);  // the host republishes on its cadence for the new session
-    g_acquiredIndex = 1;
-    DriveEnumerate();
-    SwpEglTestSetNowNs(1000);
-    SwpEglArrivalObserved((void*)10, (void*)0xC0DE, nullptr, 1100);
-    SwpEglTestSetNowNs(1200);
-    Tick(100000);
-    CHECK(g_est.initCalled, "estimator initialized before teardown");
-    CHECK(XR_SUCCEEDED(SwpDispatchDestroySession(kFakeSession)), "destroy session forwards");
-    // After teardown, calls with the stale session: pure passthrough, no state.
-    g_est.initCalled = false;
-    ProjLayers layers2;
-    BuildProjectionLayers(layers2, kFakeSwapchain);
-    Tick(300000);
-    CHECK(g_est.generateCalls == 0 && g_est.extrapolateCalls == 0,
-          "no estimator activity for the torn-down session");
-    XrSessionCreateInfo info2 = GlesSessionInfo();
-    XrSession recreated = nullptr;
-    CHECK(XR_SUCCEEDED(SwpDispatchCreateSession((XrInstance)0x1, &info2, &recreated)),
-          "session handle may be reused after teardown");
-}
-
-// ---------------------------------------------------------------------------
-// B1 suites: enabled-only ownership and context-safe release. "Settled Off"
-// means the layer owns no GL name at all, not that it merely stopped using one.
-// ---------------------------------------------------------------------------
-
-// Drive one session until ASW owns its enabled-only set (mv pair, staging quad and
-// the copy FBOs). Returns the session state, or null when setup failed.
-static int CountId(const std::vector<GLuint>& ids, GLuint id) {
-    int n = 0;
-    for (GLuint value : ids) {
-        if (value == id) ++n;
-    }
-    return n;
-}
-
-static DispatchState* OwnSessionResources() {
-    ResetAll();
-    if (!InstallNext()) return nullptr;
-    XrSessionCreateInfo info = GlesSessionInfo();
-    XrSession session = nullptr;
-    if (!XR_SUCCEEDED(SwpDispatchCreateSession((XrInstance)0x1, &info, &session))) return nullptr;
-    SwpVtsTestPublish(1);  // a new session restarts the carrier cache: republish
-    g_acquiredIndex = 1;
-    DriveEnumerate();
-    SwpEglArrivalObserved((void*)10, (void*)0xC0DE, nullptr, 1100);
-    SwpEglTestSetNowNs(1000);
-    Tick(100000);
-    SwpEglArrivalObserved((void*)11, (void*)0xC0DE, nullptr, 2100);
-    SwpEglTestSetNowNs(2000);
-    g_acquiredIndex = 2;
-    Tick(200000);
-    g_acquiredIndex = 0;  // round-robin wrap: the missed tick synthesizes into 101
-    SwpEglTestSetNowNs(3000);
-    Tick(300000);
-    auto it = g_sessions.find(kFakeSession);
-    return it == g_sessions.end() ? nullptr : &it->second;
-}
-
-static void CheckOffReleasesOwnedResources() {
-    DispatchState* state = OwnSessionResources();
-    CHECK(state != nullptr, "off-release session owns state");
-    if (!state) return;
-    const uint32_t ownedBefore = state->liveTextures;
-    CHECK(ownedBefore >= 6, "the enabled state owns the mv pair plus the staging quad");
-    CHECK(g_est.initCalled && g_est.extrapolateCalls > 0, "synthesis ran while enabled");
-    const int destroysBefore = g_est.destroyCalls;
-    // Capture every owned name before the flip: the release must delete these ids,
-    // not merely zero the fields that point at them.
-    std::vector<GLuint> expectedTextures;
-    for (GLuint id : {state->mvTexL, state->mvTexR}) {
-        if (id) expectedTextures.push_back(id);
-    }
-    for (int s = 0; s < kMaxSlots; s++) {
-        for (int e = 0; e < 2; e++) {
-            if (state->staging[s][e]) expectedTextures.push_back(state->staging[s][e]);
-        }
-    }
-    std::vector<GLuint> expectedFbos;
-    if (state->copyReadFbo) expectedFbos.push_back(state->copyReadFbo);
-    if (state->copyDrawFbo) expectedFbos.push_back(state->copyDrawFbo);
-    CHECK(g_synthOwners.load() == 1, "the enabled session is the only ASW owner");
-
-    SwpVtsTestPublish(0);  // the host turns the carrier off
+    // No release/arrival: a missed tick synthesizes into private outputs.
     SwpEglTestSetNowNs(4000);
-    Tick(400000);
+    WaitSlot(133333);
+    AcquireSources(l, 1);
+    EndTick(l);
+    CHECK(g_est.extrapolateCalls == 2, "missed tick warps both components (one call per component/eye pair)");
+    CHECK(g_est.lastDstL >= 2000 && g_est.lastDstR >= 2000,
+          "synthetic output targets layer-owned private images");
+    CHECK(g_next.endFrame == 4, "synthetic endframe forwards once");
+    const void* stock = nullptr;
+    CHECK(g_next.lastLayersPtr != nullptr && g_next.lastLayerCount == 2,
+          "substituted layer list is forwarded");
+    (void)stock;
 
-    CHECK(state->liveTextures == 0, "settled Off owns zero textures");
-    CHECK(state->liveFbos == 0, "settled Off owns zero framebuffers");
-    CHECK(state->mvTexL == 0 && state->mvTexR == 0, "the mv pair is deleted, not merely zeroed");
-    CHECK(!state->staging[0][0] && !state->staging[1][1], "the staging quad is released");
-    CHECK(!state->estimatorInited, "the estimator is torn down on Off");
-    CHECK(g_est.destroyCalls > destroysBefore, "SwpDestroy ran while its own context was current");
-    CHECK(!state->ownsCounted, "the session is no longer in the ASW-owner set");
-    CHECK(g_synthOwners.load() == 0, "the owner count returns to zero on Off");
-    for (GLuint id : expectedTextures) {
-        CHECK(CountId(g_deletedTextures, id) == 1, "every owned texture is deleted exactly once");
+    // Three consecutive missed ticks: the cap falls back to stock.
+    const int before = g_est.extrapolateCalls;
+    for (int i = 0; i < 3; ++i) {
+        WaitSlot(144444 + static_cast<uint64_t>(i) * 11111);
+        AcquireSources(l, 2);
+        EndTick(l);
     }
-    for (GLuint id : expectedFbos) {
-        CHECK(CountId(g_deletedFbos, id) == 1, "every owned framebuffer is deleted exactly once");
-    }
-    CHECK(g_leakedTextures.load() == 0 && g_leakedFbos.load() == 0,
-          "the Off path leaks nothing");
-
-    SwpEglTestSetNowNs(5000);
-    Tick(500000);
-    CHECK(state->liveTextures == 0 && state->liveFbos == 0, "settled Off stays empty");
+    CHECK(g_est.extrapolateCalls <= before + 8, "consecutive missed ticks are capped");
 }
 
-static void CheckResizeRetiresOldSet() {
-    DispatchState* state = OwnSessionResources();
-    CHECK(state != nullptr, "resize session owns state");
-    if (!state) return;
-    const uint32_t owned = state->liveTextures;
-    CHECK(owned >= 6, "resize baseline owns the full set");
-    const uint32_t mvBefore = state->mvTexL;
-    for (int i = 0; i < 5; i++) {
-        state->inputW = 1;  // force the extent-change branch on the next tick
-        SwpEglTestSetNowNs(6000 + static_cast<uint64_t>(i) * 1000);
-        Tick(600000 + static_cast<uint64_t>(i) * 100000);
-        CHECK(state->liveTextures <= owned, "a layout change never accumulates owned textures");
-        CHECK(state->liveFbos == 0, "copy FBOs are released with the rest of the set");
-    }
-    CHECK(state->mvTexL != 0 && state->mvTexL != mvBefore, "the new extent owns a new mv pair");
-}
-
-static void CheckDestroyDefersWithoutContext() {
-    DispatchState* state = OwnSessionResources();
-    CHECK(state != nullptr, "destroy-defer session owns state");
-    if (!state) return;
-    CHECK(state->liveTextures >= 6, "destroy-defer baseline owns the full set");
-    const int destroysBefore = g_est.destroyCalls;
-    void* ownerCtx = g_currentCtx;
-    g_currentCtx = reinterpret_cast<void*>(0xBAD0);  // a foreign context is current
-
-    CHECK(XR_SUCCEEDED(SwpDispatchDestroySession(kFakeSession)),
-          "destroy forwards with a foreign context");
-    CHECK(g_deferredPending.load(), "owned names are queued instead of dropped");
-    CHECK(g_deferred.textureCount >= 6, "the queued set covers the mv pair and staging quad");
-    CHECK(g_est.destroyCalls == destroysBefore, "the estimator is not torn down from a foreign context");
-    std::vector<GLuint> queued;
-    for (uint32_t i = 0; i < g_deferred.textureCount; i++) queued.push_back(g_deferred.textures[i]);
-    const uint32_t queuedFbos = g_deferred.fboCount;
-
-    g_currentCtx = ownerCtx;
-    Tick(900000);  // any later frame on the creating context drains the queue
-    CHECK(!g_deferredPending.load(), "queued names are reclaimed on their creating context");
-    for (GLuint id : queued) {
-        CHECK(CountId(g_deletedTextures, id) == 1, "each queued texture is deleted exactly once");
-    }
-    CHECK(g_deletedFbos.size() >= queuedFbos, "queued framebuffers are deleted too");
-    CHECK(g_synthOwners.load() == 0, "the torn-down session left no owner behind");
-}
-
-static void CheckHundredOffCycles() {
-    DispatchState* state = OwnSessionResources();
-    CHECK(state != nullptr, "cycle session owns state");
-    if (!state) return;
-    for (int i = 0; i < 100; i++) {
-        SwpVtsTestPublish(0);
-        SwpEglTestSetNowNs(10000 + static_cast<uint64_t>(i) * 2000);
-        Tick(1000000 + static_cast<uint64_t>(i) * 200000);
-        CHECK(state->liveTextures == 0 && state->liveFbos == 0, "each Off cycle ends empty");
-        CHECK(g_synthOwners.load() == 0, "each Off cycle leaves no owner");
-        SwpVtsTestPublish(1);
-        SwpEglTestSetNowNs(11000 + static_cast<uint64_t>(i) * 2000);
-        // One stable arrival identity: the arrival pool disables learning for the
-        // session if new image handles keep appearing, which would stop allocation
-        // for reasons unrelated to this suite.
-        SwpEglArrivalObserved((void*)10, (void*)0xC0DE, nullptr,
-                              11500 + static_cast<uint64_t>(i) * 2000);
-        Tick(1100000 + static_cast<uint64_t>(i) * 200000);
-        CHECK(state->liveTextures == 2 && state->liveFbos == 0,
-              "each On cycle re-admits exactly the mv pair before history returns");
-        CHECK(g_synthOwners.load() == 1, "each On cycle registers exactly one owner");
-    }
-    CHECK(state->ownsCounted == (state->liveTextures + state->liveFbos > 0),
-          "the owner flag tracks the live set exactly");
-}
-
-static void CheckHalfRateRetired() {
+static void CheckHalfRateScheduler() {
     ResetAll();
-    // Drive the real poll (NoteEndFrame -> PollCarrierLogged) instead of the test
-    // preset: the preset applies the same mapping, so a deleted production gate
-    // would leave a preset-based assertion green.
-    g_mockBridgePresent = true;
     g_mockBridgeValue = 2;
-    for (int i = 0; i < 130; i++) SwpVtsNoteEndFrame();
-    CHECK(g_mockBridgeReads >= 2, "the carrier cadence actually polled the bridge");
-    CHECK(SwpVtsMode() == 1, "retired: a bridge carrier 2 reads as late frames only");
+    SwpVtsTestPublish(2);
+    CHECK(InstallNext(), "next chain installs (half rate)");
+    MakeSession();
+    CreateAppSwapchain(kAppSwap, 2048, 2048);
+    CreateAppSwapchain(kAppSwapFov, 2048, 2048);
+    Layers l;
+    BuildLayers(l);
 
-    SwpVtsTestSetHalfRateRetired(false);
-    for (int i = 0; i < 130; i++) SwpVtsNoteEndFrame();
-    CHECK(SwpVtsMode() == 2, "revival: carrier 2 reaches the half-rate code when un-retired");
+    uint64_t pred = 1000000;
+    SwpEglTestSetNowNs(1000);
+    for (int slot = 0; slot < 90; ++slot) {
+        SwpEglArrivalObserved(reinterpret_cast<void*>(static_cast<uintptr_t>(100 + slot)),
+                              g_currentCtx, nullptr, 1000 + static_cast<uint64_t>(slot) * 1000);
+        pred += 11111111;
+        FullTick(pred, l, static_cast<uint32_t>(slot % 3));
+    }
+    DispatchState* s = State();
+    CHECK(s != nullptr, "half-rate session state exists");
+    if (!s) return;
+    CHECK(s->selectedFrames >= 40, "half rate selects about 45 real slots/s");
+    CHECK(s->synthesizedFrames >= 40, "half rate synthesizes about 45 slots/s");
+    CHECK(s->discardedFrames >= s->synthesizedFrames, "fresh frames in synthetic slots are discarded");
+    CHECK(s->historyCount == kHistorySets, "A/B ring retains three distinct composites");
+    CHECK(g_est.lastDstL >= 2000, "synthetic output never targets a stock app image");
+    CHECK(s->fallbackFrames == 0, "warm half-rate run has no fallback");
+    CHECK(g_est.generateCalls <= static_cast<int>(s->selectedFrames) * 2,
+          "one estimation per selected-real pair, not per slot");
 
-    SwpVtsTestSetHalfRateRetired(true);
-    for (int i = 0; i < 130; i++) SwpVtsNoteEndFrame();
-    CHECK(SwpVtsMode() == 1, "retirement is restored for the next session");
+    // Duplicate predicted time does not advance the phase.
+    const int phase = s->schedPhase;
+    g_fakePred = pred;
+    XrFrameState dup{};
+    SwpDispatchWaitFrame(kSession, nullptr, &dup);
+    CHECK(s->schedPhase == phase, "duplicate predicted time preserves the phase");
 
-    g_mockBridgeValue = 7;
-    for (int i = 0; i < 130; i++) SwpVtsNoteEndFrame();
-    CHECK(SwpVtsMode() == 1, "undefined carrier values still read as late frames");
+    // A skipped display slot advances parity by the elapsed periods (three
+    // periods toggles once relative to one).
+    g_fakePred = pred + 3 * g_fakePeriod;
+    XrFrameState skipped{};
+    SwpDispatchWaitFrame(kSession, nullptr, &skipped);
+    CHECK(s->schedPhase == (phase ^ 1), "skipped display slots advance the phase");
+    pred = g_fakePred;
+
+    // A failed synthetic tick submits the original composite and leaves the
+    // next slot as selected-real (the phase already advanced at wait).
+    bool sawFailure = false;
+    for (int i = 0; i < 8 && !sawFailure; ++i) {
+        pred += 11111111;
+        WaitSlot(pred);
+        if (s->schedPhase == 1 && s->warmed) {
+            g_est.extrapolateResult = false;
+            AcquireSources(l, 0);
+            ReleaseSources(l);
+            EndTick(l);
+            CHECK(g_est.lastDstL >= 2000, "failure still attempted the private output");
+            CHECK(s->fallbackFrames > 0, "synthetic failure records a fallback");
+            sawFailure = true;
+        } else {
+            AcquireSources(l, 1);
+            ReleaseSources(l);
+            EndTick(l);
+        }
+    }
+    CHECK(sawFailure, "a synthetic slot was exercised for failure");
+    g_est.extrapolateResult = true;
+
+    // Teardown: private swapchains are destroyed before the parent session and
+    // all owned GL names are released on their creating context.
+    const size_t privateCount = s->privateSwapchains.size();
+    CHECK(privateCount >= 2, "both components own private swapchains");
+    CHECK(XR_SUCCEEDED(SwpDispatchDestroySession(kSession)), "destroy session forwards");
+    CHECK(g_next.destroySwapchain >= static_cast<int>(privateCount),
+          "private swapchains destroyed");
+    bool privateBeforeSession = true;
+    bool sawSession = false;
+    for (char c : g_next.destroyOrder) {
+        if (c == 'S') sawSession = true;
+        else if (sawSession) privateBeforeSession = false;
+    }
+    CHECK(sawSession && privateBeforeSession,
+          "private swapchains are destroyed before the parent session");
+    CHECK(g_next.destroySession == 1, "parent session destroyed once");
+    CHECK(g_synthOwners.load() == 0, "teardown releases the owner count");
+    CHECK(g_leakedTextures.load() == 0 && g_leakedFbos.load() == 0, "teardown leaks nothing");
+}
+
+static void CheckHalfRate72() {
+    ResetAll();
+    g_mockBridgeValue = 2;
+    SwpVtsTestPublish(2);
+    CHECK(InstallNext(), "next chain installs (72 Hz)");
+    MakeSession();
+    CreateAppSwapchain(kAppSwap, 1832, 1920);
+    CreateAppSwapchain(kAppSwapFov, 1832, 1920);
+    Layers l;
+    l.w[0] = l.w[1] = 1832;
+    l.h[0] = l.h[1] = 1920;
+    BuildLayers(l);
+
+    constexpr uint64_t kPeriod72 = 13888889ull;
+    uint64_t pred = 1000000;
+    SwpEglTestSetNowNs(1000);
+    for (int slot = 0; slot < 72; ++slot) {
+        SwpEglArrivalObserved(reinterpret_cast<void*>(static_cast<uintptr_t>(500 + slot)),
+                              g_currentCtx, nullptr, 1000 + static_cast<uint64_t>(slot) * 1000);
+        pred += kPeriod72;
+        FullTick(pred, l, static_cast<uint32_t>(slot % 3), true, kPeriod72);
+    }
+    DispatchState* s = State();
+    CHECK(s != nullptr, "72 Hz session state exists");
+    if (!s) return;
+    CHECK(s->selectedFrames >= 32, "72 Hz half rate selects about 36 real slots/s");
+    CHECK(s->synthesizedFrames >= 32, "72 Hz half rate synthesizes about 36 slots/s");
+    CHECK(g_est.lastDstL >= 2000, "72 Hz synthetic output is a private image");
+    CHECK(s->fallbackFrames == 0, "72 Hz warm run has no fallback");
+}
+
+static void CheckOddAndArrayLayout() {    ResetAll();
+    g_mockBridgeValue = 2;
+    SwpVtsTestPublish(2);
+    CHECK(InstallNext(), "next chain installs (odd/array)");
+    MakeSession();
+    CreateAppSwapchain(kAppSwap, 2204, 2352, 2);
+    CreateAppSwapchain(kAppSwapFov, 1024, 1024);
+    Layers l;
+    l.w[0] = 2204;
+    l.h[0] = 2352;
+    l.w[1] = 1024;
+    l.h[1] = 1024;
+    l.arrayIndex[0][0] = 0;
+    l.arrayIndex[0][1] = 1;
+    BuildLayers(l);
+
+    uint64_t pred = 1000000;
+    for (int i = 0; i < 6; ++i) {
+        pred += 11111111;
+        SwpEglArrivalObserved(reinterpret_cast<void*>(static_cast<uintptr_t>(200 + i)),
+                              g_currentCtx, nullptr, 1000 + i * 1000);
+        FullTick(pred, l, static_cast<uint32_t>(i % 3));
+    }
+    CHECK(g_est.initW == 2352 && g_est.initH == 2352,
+          "estimator allocates a square maximum pyramid covering every component geometry");
+    bool sawDifferent = false;
+    for (int width : g_est.generateWidths) {
+        if (width == 1024) sawDifferent = true;
+    }
+    CHECK(sawDifferent, "per-component geometry reaches the estimator independently");
+    CHECK(g_est.lastDstL >= 2000, "array layout renders into a private image");
+    bool sawLayerOne = false;
+    for (const auto& entry : g_est.layers) {
+        if (entry.first == 1 || entry.second == 1) sawLayerOne = true;
+    }
+    CHECK(sawLayerOne, "array layer index is forwarded to the output render");
+    CHECK(g_layerBlits > 0, "array-layer capture uses a layer attachment");
+}
+
+static void CheckPackedStereoOffsets() {
+    ResetAll();
+    g_mockBridgeValue = 2;
+    SwpVtsTestPublish(2);
+    CHECK(InstallNext(), "next chain installs (packed stereo)");
+    MakeSession();
+    CreateAppSwapchain(kAppSwap, 4096, 1024);
+    CreateAppSwapchain(kAppSwapFov, 2048, 1024);
+    Layers l;
+    l.w[0] = 2048;
+    l.h[0] = 1024;
+    l.w[1] = 2048;
+    l.h[1] = 1024;
+    BuildLayers(l);
+    // Packed left/right in one non-array source texture.
+    l.views[0][1].subImage.imageRect.offset.x = 2048;
+    uint64_t pred = 1000000;
+    for (int i = 0; i < 8; ++i) {
+        pred += 11111111;
+        SwpEglArrivalObserved(reinterpret_cast<void*>(static_cast<uintptr_t>(800 + i)),
+                              g_currentCtx, nullptr, 1000 + i * 1000);
+        FullTick(pred, l, static_cast<uint32_t>(i % 3));
+    }
+    bool packedOffsetRendered = false;
+    for (const auto& off : g_est.dstOffsets) {
+        if (off[0] == 0 && off[2] == 2048) packedOffsetRendered = true;
+    }
+    CHECK(packedOffsetRendered,
+          "packed 2D stereo renders each eye at its own destination rect offset");
+    DispatchState* s = State();
+    CHECK(s && s->synthesizedFrames > 0, "packed stereo reached a synthetic slot");
+    if (s) {
+        CHECK(s->privateSwapchains.size() == 2,
+              "packed left/right share one private output while the other component keeps its own");
+    }
+}
+
+static void CheckPrivateImageCounts() {
+    for (int count : {2, 3, 4}) {
+        ResetAll();
+        g_privateImageCount = count;
+        CHECK(InstallNext(), "next chain installs (image count)");
+        MakeSession();
+        CreateAppSwapchain(kAppSwap, 1024, 1024);
+        CreateAppSwapchain(kAppSwapFov, 1024, 1024);
+        Layers l;
+        BuildLayers(l);
+        uint64_t pred = 1000000;
+        for (int i = 0; i < 3; ++i) {
+            pred += 11111111;
+            SwpEglArrivalObserved(reinterpret_cast<void*>(static_cast<uintptr_t>(700 + i)),
+                                  g_currentCtx, nullptr, 1000 + i * 1000);
+            FullTick(pred, l, static_cast<uint32_t>(i % count));
+        }
+        DispatchState* s = State();
+        CHECK(s != nullptr, "image-count session state exists");
+        if (s) {
+            bool sizesMatch = !s->privateSwapchains.empty();
+            for (const auto& entry : s->privateSwapchains) {
+                if (entry.second.textures.size() != static_cast<size_t>(count)) sizesMatch = false;
+            }
+            CHECK(sizesMatch, "actual runtime image count is tracked, not assumed");
+        }
+        CHECK(XR_SUCCEEDED(SwpDispatchDestroySession(kSession)), "image-count teardown forwards");
+        CHECK(g_synthOwners.load() == 0, "image-count teardown releases owned resources");
+    }
+}
+
+static void CheckPartialCapturePoisoning() {
+    ResetAll();
+    CHECK(InstallNext(), "next chain installs (partial capture)");
+    MakeSession();
+    CreateAppSwapchain(kAppSwap, 1024, 1024);
+    CreateAppSwapchain(kAppSwapFov, 1024, 1024);
+    Layers l;
+    BuildLayers(l);
+    SwpEglTestSetNowNs(1000);
+    SwpEglArrivalObserved((void*)10, g_currentCtx, nullptr, 1100);
+    FullTick(100000, l, 1);
+    SwpEglTestSetNowNs(2000);
+    SwpEglArrivalObserved((void*)11, g_currentCtx, nullptr, 2100);
+    FullTick(111111, l, 2);
+    DispatchState* s = State();
+    CHECK(s && s->historyCount == 1, "partial-capture baseline has one complete composite");
+    if (!s) return;
+    const int writeSet = (s->historyNewest + 1) % kHistorySets;
+    s->history[writeSet].tex[1][1] = 0;  // simulate one component never reaching history
+    const uint64_t selectedBefore = s->selectedFrames;
+    const uint64_t fallbackBefore = s->fallbackFrames;
+    SwpEglTestSetNowNs(3000);
+    SwpEglArrivalObserved((void*)12, g_currentCtx, nullptr, 3100);
+    FullTick(122222, l, 0);
+    CHECK(s->selectedFrames == selectedBefore,
+          "an incomplete stereo capture never becomes a selected composite");
+    CHECK(s->historyCount == 1, "the previous complete composite remains the only history");
+    CHECK(s->fallbackFrames > fallbackBefore, "the partial capture records a fallback");
+    CHECK(!s->captureValid, "a poisoned capture cannot look complete");
+    CHECK(XR_SUCCEEDED(SwpDispatchDestroySession(kSession)), "partial-capture teardown forwards");
+}
+
+static void CheckHostileGLStateAndTimeout() {
+    ResetAll();
+    g_mockBridgeValue = 2;
+    SwpVtsTestPublish(2);
+    CHECK(InstallNext(), "next chain installs (timeout)");
+    MakeSession();
+    CreateAppSwapchain(kAppSwap, 2048, 2048);
+    CreateAppSwapchain(kAppSwapFov, 2048, 2048);
+    Layers l;
+    BuildLayers(l);
+    uint64_t pred = 1000000;
+    for (int i = 0; i < 4; ++i) {
+        pred += 11111111;
+        SwpEglArrivalObserved(reinterpret_cast<void*>(static_cast<uintptr_t>(300 + i)),
+                              g_currentCtx, nullptr, 1000 + i * 1000);
+        FullTick(pred, l, static_cast<uint32_t>(i % 3));
+    }
+    // Reach a synthetic slot, then make the private wait time out. The layer
+    // must NOT release an image whose wait has not succeeded. It retains the
+    // bounded acquisition and drains it on a later tick.
+    DispatchState* s = State();
+    bool syntheticPending = false;
+    for (int i = 0; i < 10 && s && !syntheticPending; ++i) {
+        pred += 11111111;
+        WaitSlot(pred);
+        if (s->schedPhase == 1 && s->warmed) {
+            syntheticPending = true;
+            break;
+        }
+        AcquireSources(l, static_cast<uint32_t>(i % 3));
+        ReleaseSources(l);
+        EndTick(l);
+    }
+    CHECK(syntheticPending, "a synthetic slot was reached for timeout injection");
+    if (!syntheticPending) return;
+    g_waitResult = XR_SUCCESS;
+    AcquireSources(l, 0);
+    ReleaseSources(l);
+    const int releasesBefore = g_next.release;
+    g_waitResult = XR_TIMEOUT_EXPIRED;
+    EndTick(l);
+    CHECK(g_next.endFrame >= 5, "timeout endframe forwards exactly once");
+    CHECK(g_next.release == releasesBefore,
+          "a timed-out private acquisition is not released before a successful wait");
+    CHECK(s && s->pendingOutputCount == 1, "the timed-out acquisition stays bounded and pending");
+    g_waitResult = XR_SUCCESS;
+    pred += 11111111;
+    WaitSlot(pred);
+    AcquireSources(l, 1);
+    ReleaseSources(l);
+    EndTick(l);
+    CHECK(s && s->pendingOutputCount == 0, "the pending acquisition is drained on a later tick");
+    CHECK(g_next.release > releasesBefore, "the drained acquisition is released after its wait");
+}
+
+static void* FakeEglCreate(void*, void*, unsigned, void* buffer, const int*) {
+    ++g_eglOriginalCalls;
+    return buffer;
+}
+
+static void CheckDormantLazyArmCadence() {
+    ResetAll();
+    g_hooksArmResult = false;
+    g_mockBridgeValue = 0;
+    CHECK(InstallNext(), "next chain installs (dormant lazy arm)");
+    MakeSession();
+    CHECK(g_hooksArmCalls == 1 && g_armState.load() == 0,
+          "session creation attempts immediate hook discovery once");
+    for (int i = 0; i < 59; ++i) {
+        SwpDispatchBeginFrame(kSession, nullptr);
+        SwpDispatchEndFrame(kSession, nullptr);
+    }
+    CHECK(g_hooksArmCalls == 1 && g_mockBridgeReads == 0,
+          "dormant BeginFrame and the first 59 EndFrames perform no discovery retry");
+    g_hooksArmResult = true;  // scene library becomes available after creation
+    SwpDispatchEndFrame(kSession, nullptr);
+    CHECK(g_hooksArmCalls == 2 && g_armState.load() == 1 && g_mockBridgeReads == 1,
+          "lazy discovery retries at frame 60 before the independent control poll");
+    for (int i = 0; i < 120; ++i) {
+        SwpDispatchBeginFrame(kSession, nullptr);
+        SwpDispatchEndFrame(kSession, nullptr);
+    }
+    CHECK(g_hooksArmCalls == 2 && g_mockBridgeReads == 3,
+          "successful lazy arming stops discovery while control polling continues");
+}
+
+static void CheckDormantFailureCleanup() {
+    // Both failures occur after the estimator is live, before any counted GL
+    // history exists. Enumeration fails on the second private output so the
+    // first fully owned private swapchain must also be torn down by Off.
+    for (bool enumerateFailure : {false, true}) {
+        ResetAll();
+        CHECK(InstallNext(), "next chain installs (partial initialization Off)");
+        MakeSession();
+        CreateAppSwapchain(kAppSwap, 1024, 1024);
+        CreateAppSwapchain(kAppSwapFov, 1024, 1024);
+        Layers l;
+        BuildLayers(l);
+        if (enumerateFailure) g_privateEnumerationsBeforeFailure = 2;
+        else g_privateCreatesBeforeFailure = 0;
+        FullTick(100000, l, 0);
+        DispatchState* state = State();
+        CHECK(state && state->estimatorInited && g_synthOwners.load() == 0,
+              "partial initialization owns an estimator without counted history textures");
+        CHECK(g_dormantCleanupPending.load(), "partial initialization marks dormant cleanup");
+        if (!state) return;
+        const size_t ownedPrivate = state->privateSwapchains.size();
+        CHECK(ownedPrivate == (enumerateFailure ? 1u : 0u),
+              "failure fixture reaches the intended private ownership boundary");
+        const int destroyed = g_next.destroySwapchain;
+        const int estimatorDestroyed = g_est.destroyCalls;
+        g_mockBridgeValue = 0;
+        SwpVtsTestPublish(0);
+        // A foreign context cannot destroy the estimator; retain the dirty
+        // marker until the creating context returns.
+        void* owner = g_currentCtx;
+        g_currentCtx = reinterpret_cast<void*>(0xBAD);
+        EndTick(l);
+        CHECK(state->estimatorInited && g_est.destroyCalls == estimatorDestroyed &&
+                  g_dormantCleanupPending.load(),
+              "Off retains estimator cleanup until its owner context returns");
+        g_currentCtx = owner;
+        EndTick(l);
+        CHECK(!state->estimatorInited && !state->estimatorNeedsDestroy &&
+                  g_est.destroyCalls == estimatorDestroyed + 1,
+              "Off destroys the partial estimator on its owner context exactly once");
+        CHECK(state->privateSwapchains.empty() &&
+                  g_next.destroySwapchain == destroyed + static_cast<int>(ownedPrivate),
+              "Off destroys every successfully owned private output after partial failure");
+        CHECK(!g_dormantCleanupPending.load() && !state->dormantCleanupPending,
+              "partial initialization cleanup settles the dormant fast path");
+        CHECK(!state->haveLayout && state->pairCount == 0 && !state->schedInit,
+              "Off clears layout, scheduler and clock history");
+        g_privateCreatesBeforeFailure = -1;
+        g_privateEnumerationsBeforeFailure = -1;
+        SwpVtsTestPublish(1);
+        g_mockBridgeValue = 1;
+        FullTick(200000, l, 1);
+        CHECK(state->resourcesReady && state->estimatorInited &&
+                  state->privateSwapchains.size() == 2 && g_synthOwners.load() == 1,
+              "hot enable retries partial initialization using retained app descriptors");
+        // The admission EndFrame invalidates the previous scheduler as part of
+        // rebuilding the layout. The next WaitFrame establishes its fresh
+        // epoch; verify real capture/estimation recovery over the next pair.
+        const int blitsBefore = g_blitCalls;
+        const int vectorsBefore = g_est.generateCalls;
+        for (int i = 0; i < 2; ++i) {
+            SwpEglArrivalObserved(reinterpret_cast<void*>(uintptr_t(100 + i)),
+                                  g_currentCtx, nullptr, 1000 + i * 1000);
+            FullTick(211111 + i * 11111, l, (i + 2) % 3);
+        }
+        CHECK(state->schedInit && state->historyCount >= 2 && state->warmed &&
+                  g_blitCalls >= blitsBefore + 8 && g_est.generateCalls > vectorsBefore,
+              "hot enable rearms scheduling and resumes stereo capture plus estimation");
+    }
+}
+
+static void CheckSettledOffAndHotEnable() {
+    ResetAll();
+    CHECK(InstallNext(), "next chain installs (settled Off)");
+    MakeSession();
+    CreateAppSwapchain(kAppSwap, 1024, 1024);
+    CreateAppSwapchain(kAppSwapFov, 1024, 1024);
+    Layers l;
+    BuildLayers(l);
+    for (int i = 0; i < 4; ++i) {
+        SwpEglArrivalObserved(reinterpret_cast<void*>(uintptr_t(10 + i)), g_currentCtx,
+                              nullptr, 1000 + i * 1000);
+        FullTick(100000 + i * 11111, l, i % 3);
+    }
+    DispatchState* state = State();
+    CHECK(state && state->resourcesReady, "enabled baseline owns synthesis resources");
+    if (!state) return;
+    // Inject a bounded private acquisition to ensure Off drops its record by
+    // destroying the private swapchain, without issuing another GPU wait.
+    state->pendingOutputCount = 1;
+    state->pendingOutputs[0].swapchain = state->privateSwapchains.begin()->second.handle;
+    const int waitBefore = g_next.wait;
+    g_mockBridgeValue = 0;
+    SwpVtsTestPublish(0);
+    EndTick(l);
+    CHECK(state->pendingOutputCount == 0 && g_next.wait == waitBefore,
+          "Off destroys pending private outputs without retrying their image waits");
+    CHECK(g_synthOwners.load() == 0 && !g_dormantCleanupPending.load(),
+          "Off releases full synthesis ownership and settles");
+    CHECK(SwpEglTestArrivalCount() == 0, "Off clears global decoded-arrival history");
+    const int glBefore = g_glCalls, contextsBefore = g_contextReads;
+    const int blitsBefore = g_blitCalls, createsBefore = g_next.createSwapchain;
+    const int initBefore = g_est.initCalls, destroyBefore = g_est.destroyCalls;
+    const int metricsBefore = g_est.metricCalls, vectorsBefore = g_est.generateCalls;
+    const int alignBefore = g_est.alignCalls, synthBefore = g_est.extrapolateCalls;
+    const int readsBefore = g_mockBridgeReads;
+    const int endBefore = g_next.endFrame, acquireBefore = g_next.acquire;
+    const int releaseBefore = g_next.release;
+    const int beginBefore = g_next.beginFrame;
+    SwpEglSetOriginal(reinterpret_cast<void*>(&FakeEglCreate));
+    SwpEglTestResetClockReads();
+    for (int i = 0; i < 120; ++i) {
+        CHECK(SwpWrapEglCreateImageKHR(nullptr, g_currentCtx, 0,
+                  reinterpret_cast<void*>(uintptr_t(100 + i)), nullptr) ==
+                  reinterpret_cast<void*>(uintptr_t(100 + i)),
+              "Off EGL wrapper preserves the original result");
+        SwpDispatchBeginFrame(kSession, nullptr);
+        FullTick(200000 + i * 11111, l, i % 3);
+        SwpDispatchLocateViews(kSession, nullptr, nullptr, 0, nullptr, nullptr);
+    }
+    CHECK(g_glCalls == glBefore && g_contextReads == contextsBefore && g_blitCalls == blitsBefore,
+          "settled Off performs no GL calls, context queries or captures");
+    CHECK(g_est.initCalls == initBefore && g_est.destroyCalls == destroyBefore &&
+              g_est.metricCalls == metricsBefore && g_est.generateCalls == vectorsBefore &&
+              g_est.alignCalls == alignBefore && g_est.extrapolateCalls == synthBefore,
+          "settled Off performs no estimator work or queries");
+    CHECK(g_next.createSwapchain == createsBefore && state->privateSwapchains.empty(),
+          "settled Off creates no private outputs");
+    bool queuesEmpty = true;
+    for (const auto& entry : state->appSwapchains) {
+        queuesEmpty &= entry.second.acquiredQueue.empty() && entry.second.waitedQueue.empty();
+    }
+    CHECK(queuesEmpty && state->pairCount == 0 && !state->schedInit,
+          "settled Off balances app image ownership without scheduler or clock bookkeeping");
+    CHECK(SwpEglTestClockReads() == 0 && SwpEglTestArrivalCount() == 0,
+          "settled Off samples no clocks and records no decoded arrivals");
+    CHECK(g_mockBridgeReads == readsBefore + 2,
+          "settled Off retains exactly one control poll per 60 endframes");
+    CHECK(g_next.endFrame == endBefore + 120 && g_next.beginFrame == beginBefore + 120 &&
+              g_next.acquire == acquireBefore + 240 && g_next.release == releaseBefore + 240 &&
+              g_eglOriginalCalls == 120,
+          "settled Off forwards every original XR and EGL call");
     g_mockBridgeValue = 1;
+    for (int i = 0; i < 60; ++i) EndTick(l);
+    CHECK(SwpVtsMode() == 1, "fixed control polling discovers hot enable while Off");
+    SwpEglArrivalObserved((void*)1000, g_currentCtx, nullptr, 10000);
+    for (int i = 0; i < 4; ++i) {
+        SwpEglArrivalObserved(reinterpret_cast<void*>(uintptr_t(1001 + i)), g_currentCtx,
+                              nullptr, 11000 + i * 1000);
+        FullTick(2000000 + i * 11111, l, i % 3);
+    }
+    CHECK(state->resourcesReady && state->estimatorInited && state->historyCount >= 2 &&
+              g_blitCalls > blitsBefore,
+          "hot enable rebuilds resources and resumes valid pre-release captures");
+    SwpEglSetOriginal(nullptr);
+}
+
+static void CheckPipelinedOwnershipAcrossOff() {
+    // Cover both images already owned when cleanup runs and images acquired
+    // during settled Off. A/B/C are distinct runtime image indices 0/1/2.
+    for (bool acquiredBeforeCleanup : {false, true}) {
+        ResetAll();
+        CHECK(InstallNext(), "next chain installs (pipelined Off ownership)");
+        MakeSession();
+        CreateAppSwapchain(kAppSwap, 1024, 1024);
+        CreateAppSwapchain(kAppSwapFov, 1024, 1024);
+        Layers l;
+        BuildLayers(l);
+        FullTick(100000, l, 0);
+        DispatchState* state = State();
+        CHECK(state && state->resourcesReady, "pipelined baseline admits the layout");
+        if (!state) return;
+        auto acquire = [](uint32_t image) {
+            g_appAcquireIndex = image;
+            uint32_t returned = 99;
+            CHECK(SwpDispatchAcquireSwapchainImage(kAppSwap, nullptr, &returned) == XR_SUCCESS &&
+                      returned == image, "pipelined acquisition forwards its actual image index");
+        };
+        auto acquireAB = [&]() {
+            acquire(0);
+            CHECK(SwpDispatchWaitSwapchainImage(kAppSwap, nullptr) == XR_SUCCESS,
+                  "oldest A wait succeeds");
+            acquire(1);
+        };
+        if (acquiredBeforeCleanup) acquireAB();
+        g_mockBridgeValue = 0;
+        SwpVtsTestPublish(0);
+        EndTick(l);
+        const int offGlCalls = g_glCalls, offBlits = g_blitCalls;
+        const int offVectors = g_est.generateCalls;
+        if (!acquiredBeforeCleanup) acquireAB();
+        AppSwapchain& app = state->appSwapchains.at(kAppSwap);
+        CHECK(!app.waitedQueue.empty() && app.waitedQueue.front() == 0 &&
+                  !app.acquiredQueue.empty() && app.acquiredQueue.front() == 1,
+              "Off and cleanup preserve waited A and older acquired B");
+        const int releasesBefore = g_next.release;
+        CHECK(SwpDispatchReleaseSwapchainImage(kAppSwap, nullptr) == XR_SUCCESS,
+              "Off release of A forwards");
+        EndTick(l);  // B remains outstanding across a settled Off EndFrame.
+        CHECK(app.waitedQueue.empty() && !app.acquiredQueue.empty() &&
+                  app.acquiredQueue.front() == 1,
+              "Off release consumes A and retains B across EndFrame");
+        CHECK(g_glCalls == offGlCalls && g_blitCalls == offBlits &&
+                  g_est.generateCalls == offVectors,
+              "Off FIFO bookkeeping performs no GL capture or estimation");
+        g_mockBridgeValue = 1;
+        SwpVtsTestPublish(1);
+        EndTick(l);  // Rebuild the private layout while B is still acquired.
+        WaitSlot(300000);
+        acquire(2);  // C is newer than B, and has not been waited.
+        CHECK(SwpDispatchWaitSwapchainImage(kAppSwap, nullptr) == XR_SUCCESS,
+              "enabled wait completes the older B acquisition");
+        CHECK(!app.waitedQueue.empty() && app.waitedQueue.front() == 1 &&
+                  !app.acquiredQueue.empty() && app.acquiredQueue.front() == 2,
+              "hot enable attributes the successful wait to B rather than newer C");
+        g_captureSources.clear();
+        CHECK(SwpDispatchReleaseSwapchainImage(kAppSwap, nullptr) == XR_SUCCESS,
+              "enabled B release forwards");
+        CHECK(g_captureSources.size() == 2 && g_captureSources[0] == 101 &&
+                  g_captureSources[1] == 101,
+              "enabled release captures older waited B in both eyes, never un-waited C");
+        CHECK(app.waitedQueue.empty() && !app.acquiredQueue.empty() &&
+                  app.acquiredQueue.front() == 2,
+              "B release leaves C owned and still awaiting its wait");
+        EndTick(l);
+        WaitSlot(311111);
+        g_waitResult = XR_TIMEOUT_EXPIRED;
+        CHECK(SwpDispatchWaitSwapchainImage(kAppSwap, nullptr) == XR_TIMEOUT_EXPIRED &&
+                  app.waitedQueue.empty() && !app.acquiredQueue.empty() &&
+                  app.acquiredQueue.front() == 2,
+              "a positive timeout status does not make C releasable");
+        g_waitResult = XR_SESSION_LOSS_PENDING;
+        CHECK(SwpDispatchWaitSwapchainImage(kAppSwap, nullptr) == XR_SESSION_LOSS_PENDING &&
+                  app.acquiredQueue.empty() && !app.waitedQueue.empty() &&
+                  app.waitedQueue.front() == 2,
+              "session-loss-pending completion still makes successfully waited C releasable");
+        g_waitResult = XR_SUCCESS;
+        g_captureSources.clear();
+        CHECK(SwpDispatchReleaseSwapchainImage(kAppSwap, nullptr) == XR_SUCCESS,
+              "third C release forwards");
+        CHECK(g_captureSources.size() == 2 && g_captureSources[0] == 102 &&
+                  g_captureSources[1] == 102 && app.acquiredQueue.empty() &&
+                  app.waitedQueue.empty() && g_next.release == releasesBefore + 3,
+              "third release captures C once per eye and balances app FIFO ownership");
+    }
 }
 
 int main() {
-    CheckPoseMatrix();
-    CheckScaleFactor();
-    CheckMonoToXr();
-    CheckClassify();
-    CheckArrivalLearning();
-    CheckDispatchFlow();
-    CheckThreeProjectionLayout();
-    CheckBridgeGating();
-    CheckDormantFastPath();
-    CheckStandDowns();
-    CheckSessionTeardown();
-    CheckOffReleasesOwnedResources();
-    CheckResizeRetiresOldSet();
-    CheckDestroyDefersWithoutContext();
-    CheckHundredOffCycles();
-    CheckHalfRateRetired();
+    CheckPipelinedOwnershipAcrossOff();
+    CheckDormantLazyArmCadence();
+    CheckDormantFailureCleanup();
+    CheckSettledOffAndHotEnable();
+    CheckPureHelpers();
+    CheckLateFlow();
+    CheckHalfRateScheduler();
+    CheckHalfRate72();
+    CheckOddAndArrayLayout();
+    CheckPackedStereoOffsets();
+    CheckPrivateImageCounts();
+    CheckPartialCapturePoisoning();
+    CheckHostileGLStateAndTimeout();
     std::printf("gxr-spacewarp dispatch host tests: %d checks, %d failures\n", g_checks,
                 g_failures);
     return g_failures == 0 ? 0 : 1;

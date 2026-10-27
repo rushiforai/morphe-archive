@@ -14,7 +14,7 @@ icysymmetra/tiktok-patches-for-morphe, which is built on Morphe, which hard
 forked ReVanced. Its fix for re-signed builds and its Open links in external
 browser patch are rewritten from Andrew Liang's patches, by way of
 Hushfacebook. A few settings screen helpers (the way back to the page Restart
-now was tapped on, Report a problem and Quick setups) come from HushPinterest,
+now was tapped on and Report a problem) come from HushPinterest,
 the Pinterest member of the family, which is built on Hushfeed as well. The
 notices below are reproduced from those projects. Morphe requires its text to
 be carried in derivative works and shown to the person using the software, so

@@ -103,6 +103,15 @@ jobs:
           test -n "$URL" && test "$URL" != null
           curl -fL --retry 3 "$URL" -o morphe-desktop.jar
 
+      - name: Download latest stable Morphe extras
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASE_JSON="$(curl -fsSL -H 'Accept: application/vnd.github+json' https://api.github.com/repos/MorpheApp/morphe-patches/releases/latest)"
+          URL="$(printf '%s' "$RELEASE_JSON" | jq -r '.assets[] | select(.name | endswith(".mpp")) | .browser_download_url' | head -n 1)"
+          test -n "$URL" && test "$URL" != null
+          curl -fL --retry 3 "$URL" -o morphe-extra-patches.mpp
+
       - name: Apply full 46.7.3 catalog once
         id: patch_full
         shell: bash
@@ -110,25 +119,54 @@ jobs:
           JAVA_TOOL_OPTIONS: -Xmx6g
         run: |
           set +e
-          PATCH_NAMES="$(python3 - <<'PY'
+          java -jar morphe-desktop.jar options-create --patches "$MPP" --patches morphe-extra-patches.mpp --out morphe-full-options.json --filter-package-name com.zhiliaoapp.musically
+          options_code=$?
+          if [ "$options_code" -ne 0 ]; then echo "exit_code=$options_code" >> "$GITHUB_OUTPUT"; exit 0; fi
+          python3 - <<'PY'
           import json
-          data = json.load(open('patches-list.json'))
-          for patch in data.get('patches') or []:
-              versions = (patch.get('compatiblePackages') or {}).get('com.zhiliaoapp.musically') or []
-              if '46.7.3' in versions:
-                  print(patch['name'])
+          import os
+          from pathlib import Path
+          path = Path('morphe-full-options.json')
+          data = json.loads(path.read_text())
+          assert isinstance(data, list), 'Unexpected Morphe options format'
+          tiktok = extras = None
+          tiktok_filename = Path(os.environ['MPP']).name
+          for bundle in data:
+              source = str((bundle.get('meta') or {}).get('source') or '')
+              filename = Path(source).name
+              if filename == tiktok_filename:
+                  tiktok = bundle
+              elif filename == 'morphe-extra-patches.mpp':
+                  extras = bundle
+          assert tiktok is not None and extras is not None, (
+              'Both patch bundles must appear in options: '
+              f'expected {tiktok_filename!r} and morphe-extra-patches.mpp; '
+              f'found {[str((bundle.get("meta") or {}).get("source")) for bundle in data]}'
+          )
+          expected = {p['name'] for p in json.loads(Path('patches-list.json').read_text())['patches'] if '46.7.3' in (p.get('compatiblePackages') or {}).get('com.zhiliaoapp.musically', [])}
+          tiktok_patches = tiktok.get('patches') or {}
+          assert expected == set(tiktok_patches), f'TikTok patch catalog mismatch: {sorted(expected ^ set(tiktok_patches))}'
+          for name, config in tiktok_patches.items():
+              config['enabled'] = True
+          required_extras = {'Change installer source', 'Disable Play Store updates'}
+          extras_patches = extras.get('patches') or {}
+          assert required_extras <= set(extras_patches), f'Missing Morphe extras: {sorted(required_extras - set(extras_patches))}'
+          for name, config in extras_patches.items():
+              config['enabled'] = name in required_extras
+              if name == 'Change installer source':
+                  config.setdefault('options', {})['packageInstallerName'] = 'com.android.vending'
+          path.write_text(json.dumps(data, indent=2) + '\n')
+          print(f'Explicitly enabled {len(tiktok_patches)} TikTok patches and 2 Morphe extras')
           PY
-          )"
-          args=()
-          while IFS= read -r name; do
-            [ -n "$name" ] && args+=(-e "$name")
-          done <<< "$PATCH_NAMES"
+          config_code=$?
+          if [ "$config_code" -ne 0 ]; then echo "exit_code=$config_code" >> "$GITHUB_OUTPUT"; exit 0; fi
           java -jar morphe-desktop.jar patch \
             -p "$MPP" \
+            -p morphe-extra-patches.mpp \
+            --options-file morphe-full-options.json \
             --continue-on-error \
             --unsigned \
             --result-file morphe-full-result.json \
-            "${args[@]}" \
             -o /tmp/tiktok-full-patched.apk \
             tiktok-46.7.3.apk 2>&1 | tee morphe-full.log
           code=${PIPESTATUS[0]}
@@ -167,10 +205,12 @@ jobs:
               failures.append("full catalog: morphe-full-result.json was not produced")
           else:
               data = json.loads(path.read_text())
-              applied = {item.get("name") for item in (data.get("appliedPatches") or [])}
+              applied = {item if isinstance(item, str) else item.get("name") for item in (data.get("appliedPatches") or [])}
               failed = data.get("failedPatches") or []
               missing = sorted(expected - applied)
-              unexpected = sorted(applied - expected)
+              extras = {"Change installer source", "Disable Play Store updates"}
+              unexpected = sorted(applied - expected - extras)
+              missing_extras = sorted(extras - applied)
               print(f"full catalog: applied={len(applied)} expected={len(expected)} failed={len(failed)}")
               if failed:
                   failures.append(f"full catalog: failed patches: {failed}")
@@ -178,6 +218,8 @@ jobs:
                   failures.append(f"full catalog: compatible patches not applied: {missing}")
               if unexpected:
                   failures.append(f"full catalog: unexpected applied patches: {unexpected}")
+              if missing_extras:
+                  failures.append(f"full catalog: stable Morphe extras not applied: {missing_extras}")
               if not expected:
                   failures.append("full catalog: generated metadata selected no 46.7.3 patches")
 

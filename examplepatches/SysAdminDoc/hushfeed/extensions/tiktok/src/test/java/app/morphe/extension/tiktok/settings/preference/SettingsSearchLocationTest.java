@@ -208,8 +208,10 @@ public class SettingsSearchLocationTest {
             assertNotEquals(AccessibilityNodeInfo.ACTION_LONG_CLICK, action.getId());
         assertTrue(row.performAccessibilityAction(AccessibilityNodeInfo.ACTION_CLICK, null));
         settle();
-        assertNotSame(search, page());
-        assertEquals("PRIVACY", page().getArguments().getString("morphe_settings_section"));
+        assertSame(search, page());
+        assertTrue(((SettingsMenuPreference) page().findPreference("section_privacy")).isExpanded());
+        assertTrue(page().findPreference("action_search_settings") instanceof SettingsSearchEntryPreference);
+        assertEquals(0, owner.get().getFragmentManager().getBackStackEntryCount());
     }
 
     @Test
@@ -236,44 +238,35 @@ public class SettingsSearchLocationTest {
     }
 
     @Test
-    public void backRestoresTheExactQueryResultOrderAndScrollOffset() throws Exception {
+    public void locatingAScrolledResultClosesSearchOnTheSameMainList() throws Exception {
         TikTokPreferenceFragment search = search("  hide  ");
-        List<String> order = resultOrder(search);
         ListView list = list(search);
         assertTrue(list.getCount() > 30);
         list.setSelectionFromTop(20, -17);
         settle();
-        int first = list.getFirstVisiblePosition(), top = list.getChildAt(0).getTop();
         holdFirstSwitch(list);
         settle();
-        assertNotSame(search, page());
-        assertTrue(owner.get().getFragmentManager().popBackStackImmediate());
-        settle();
         assertSame(search, page());
-        assertEquals("  hide  ", input(search).getQuery());
-        assertEquals(order, resultOrder(search));
-        assertEquals(first, list(search).getFirstVisiblePosition());
-        assertEquals(top, list(search).getChildAt(0).getTop());
+        assertTrue(search.findPreference("action_search_settings") instanceof SettingsSearchEntryPreference);
+        assertEquals(0, owner.get().getFragmentManager().getBackStackEntryCount());
+        assertFalse(owner.get().isFinishing());
     }
 
     @Test
-    public void recreationOverTheOriginKeepsTheSearchPositionForBack() throws Exception {
+    public void recreationKeepsTheInlineSearchQueryResultsAndScrollOffset() throws Exception {
         TikTokPreferenceFragment search = search("hide");
         List<String> order = resultOrder(search);
         ListView list = list(search);
         list.setSelectionFromTop(15, -11);
         settle();
         int first = list.getFirstVisiblePosition(), top = list.getChildAt(0).getTop();
-        holdFirstSwitch(list);
-        settle();
         owner.recreate();
-        settle();
-        assertTrue(owner.get().getFragmentManager().popBackStackImmediate());
         settle();
         assertEquals("hide", input(page()).getQuery());
         assertEquals(order, resultOrder(page()));
         assertEquals(first, list(page()).getFirstVisiblePosition());
         assertEquals(top, list(page()).getChildAt(0).getTop());
+        assertEquals(0, owner.get().getFragmentManager().getBackStackEntryCount());
     }
 
     @Test
@@ -294,7 +287,7 @@ public class SettingsSearchLocationTest {
         assertEquals(
                 L10n.t(
                         owner.get(),
-                        "This setting isn't available on this page. Go back and search again."),
+                        "This setting isn't available. Search for another setting."),
                 notice.getText().toString());
         assertFalse(Settings.BLOCK_ADVERTISING_ID.get());
     }
@@ -454,10 +447,7 @@ public class SettingsSearchLocationTest {
                             android.app.Fragment fragment,
                             Bundle state) {
                         if (!(fragment instanceof TikTokPreferenceFragment)
-                                || fragment.getView() == null
-                                || fragment.getArguments() == null
-                                || fragment.getArguments().getString("morphe_settings_target_key")
-                                        == null) return;
+                                || fragment.getView() == null) return;
                         ListView list = fragment.getView().findViewById(android.R.id.list);
                         list.getViewTreeObserver()
                                 .addOnPreDrawListener(
@@ -550,8 +540,10 @@ public class SettingsSearchLocationTest {
     }
 
     private Preference assertOrigin(TikTokPreferenceFragment search, String key) {
-        assertNotSame(search, page());
-        assertEquals("PRIVACY", page().getArguments().getString("morphe_settings_section"));
+        assertSame("locating the setting replaced the main fragment", search, page());
+        assertTrue(((SettingsMenuPreference) page().findPreference("section_privacy")).isExpanded());
+        assertTrue(page().findPreference("action_search_settings") instanceof SettingsSearchEntryPreference);
+        assertEquals(0, owner.get().getFragmentManager().getBackStackEntryCount());
         Preference original = page().findPreference(key);
         assertNotNull(original);
         assertTrue(original instanceof SwitchPreference);

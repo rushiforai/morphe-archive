@@ -198,11 +198,14 @@ public class BuildDetailsPreferenceTest {
         var owner = Robolectric.buildActivity(SettingsActivity.class, new Intent("morphe_settings").putExtra("morphe", true))
                 .setup().visible();
         settle(owner.get());
-        Preference about = page(owner.get()).findPreference("hub_about");
+        TikTokPreferenceFragment home = page(owner.get());
+        Preference about = home.findPreference("hub_about");
         assertNotNull("the home menu has no About Hushfeed route", about);
         assertTrue(about.getOnPreferenceClickListener().onPreferenceClick(about));
         settle(owner.get());
-        assertEquals("ABOUT", page(owner.get()).getArguments().getString("morphe_settings_hub"));
+        assertSame("About replaced the main settings list", home, page(owner.get()));
+        assertTrue(((SettingsMenuPreference) about).isExpanded());
+        assertEquals(0, owner.get().getFragmentManager().getBackStackEntryCount());
         return owner;
     }
 

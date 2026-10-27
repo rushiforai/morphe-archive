@@ -937,7 +937,7 @@ public class DownloadSettingsTest {
                 int titleId = list.getContext().getResources().getIdentifier("alertTitle", "id", "android");
                 TextView title = list.findViewById(titleId);
                 assertEquals("Download quality", String.valueOf(title.getText()));
-                assertEquals(ScreenColors.DEFAULT.title, title.getCurrentTextColor());
+                assertTrue("dialog titles wear HushGram's gradient", ShimmerTitle.wears(title));
                 assertEquals(DownloadQuality.values().length, list.getListView().getAdapter().getCount());
             } finally {
                 row.getDialog().dismiss();
