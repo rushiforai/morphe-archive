@@ -1,0 +1,113 @@
+name: Notify new repos
+
+on:
+  workflow_run:
+    # "Fetch Morphe Repos" both refreshes the index on its daily schedule and can be
+    # run by hand, so the notification follows whatever that run published. Running
+    # this on push instead would see repos.txt mid-refresh, before the scripts layer
+    # in exactly the repos that reach the published index.
+    workflows: ["Fetch Morphe Repos"]
+    types: [completed]
+
+concurrency:
+  group: notify-new-repos
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  # The published index. A repo counts as new once it is in here, which covers both
+  # fresh discovery and a repo being imported into repos.txt by another workflow.
+  INDEX_FILE: docs/data.json
+
+jobs:
+  notify:
+    # Only the run that actually published something is worth reporting on.
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Compare the index against the last notification
+        id: diff
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os, subprocess, sys
+
+          INDEX_FILE = os.environ["INDEX_FILE"]
+          STATE_FILE = ".github/new-repos-baseline.json"
+
+          def repo_set(payload):
+              return {
+                  source.get("repo")
+                  for app in (payload.get("apps") or [])
+                  for source in (app.get("sources") or [])
+                  if source.get("repo")
+              }
+
+          current = repo_set(json.load(open(INDEX_FILE, encoding="utf-8")))
+
+          if os.path.exists(STATE_FILE):
+              previous = repo_set(json.load(open(STATE_FILE, encoding="utf-8")))
+          else:
+              # First run: adopt the index as the baseline and stay quiet, so turning
+              # this on does not announce every repo that already existed.
+              previous = current
+
+          new = sorted(current - previous)
+          with open("new-repos.txt", "w", encoding="utf-8") as handle:
+              handle.write("\n".join(new))
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"count={len(new)}\n")
+
+          print(f"{len(previous)} repos known, {len(current)} in the index, {len(new)} new.")
+          for repo in new:
+              print(f"  + {repo}")
+          PY
+
+      - name: Open and merge a PR for the new repos
+        if: steps.diff.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          COUNT="${{ steps.diff.outputs.count }}"
+          BRANCH="notify/new-repos"
+          SUBJECT="$COUNT new patch repo(s) in the index"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # A commit on main would notify nobody: GitHub does not send commit activity
+          # to people watching a repository. A pull request is a notification they can
+          # subscribe to, which is the whole point of opening one to merge immediately.
+          git checkout -B "$BRANCH"
+          cp "$INDEX_FILE" .github/new-repos-baseline.json
+          git add .github/new-repos-baseline.json
+          git commit -m "chore(data): record $COUNT new patch repo(s) [skip ci]"
+          git push --force origin "$BRANCH"
+
+          BODY="$(printf 'The published index gained %s repo(s) since the last notification:\n\n```\n%s\n```\n\nThe baseline is updated in this PR, so the next notification reports only repos added after it. Opened and merged so repository watchers get a single notification per batch.\n' "$COUNT" "$(cat new-repos.txt)")"
+
+          PR_URL="$(gh pr create --base main --head "$BRANCH" --title "$SUBJECT" --body "$BODY")"
+          echo "Opened $PR_URL"
+
+          # If the token is not allowed to merge its own PR, leave it open: an open PR
+          # still notifies, and a maintainer can merge it when convenient.
+          gh pr merge "$PR_URL" --squash --delete-branch \
+            || echo "::warning::Opened the PR but could not merge it automatically; merge it by hand."
