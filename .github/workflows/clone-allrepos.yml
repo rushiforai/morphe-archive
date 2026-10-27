@@ -101,7 +101,28 @@ jobs:
           git add -A -- "$DEST_DIR"
           if ! git diff --cached --quiet; then
             git commit -m "chore(data): refresh ${DEST_DIR} from repos.txt [skip ci]"
-            git push origin main
+            # The remote can move while this job runs: the nightly schedule and a
+            # manual dispatch both land here, and so does any other commit. A bare
+            # push then fails with "fetch first" and the whole run's data is lost,
+            # so rebase onto whatever arrived and try again.
+            pushed=0
+            for attempt in 1 2 3 4 5; do
+              if git push origin main; then
+                pushed=1
+                break
+              fi
+              echo "Push rejected (attempt $attempt). Rebasing onto the latest main and retrying."
+              # The data here is generated, so a rebase of two competing data
+              # commits would conflict on repos.txt and the JSON. Prefer the files
+              # this run just generated: they came from the same sources, later.
+              git pull --rebase --autostash -X theirs origin main
+              sleep $((attempt * 5))
+            done
+
+            if [ "$pushed" -ne 1 ]; then
+              echo "::error::Could not push after 5 attempts; leaving the data uncommitted."
+              exit 1
+            fi
           else
             echo "No changes detected. Skipping commit."
           fi
