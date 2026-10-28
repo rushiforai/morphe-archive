@@ -3331,14 +3331,6 @@
                 "updatedAt": 1792988406123
             },
             {
-                "name": "gboard-extended-search",
-                "source": "https://raw.githubusercontent.com/markpaul099/gboard-extended-search/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 460,
-                "createdAt": 1792988406501,
-                "updatedAt": 1792988406501
-            },
-            {
                 "name": "VK-IM",
                 "source": "https://raw.githubusercontent.com/oviron/VK-IM/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -3369,6 +3361,30 @@
                 "sortOrder": 464,
                 "createdAt": 1792988410525,
                 "updatedAt": 1792988410525
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/Saurabh825/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 465,
+                "createdAt": 1793161010400,
+                "updatedAt": 1793161010400
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/Trimpsuz/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 466,
+                "createdAt": 1793161012160,
+                "updatedAt": 1793161012160
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/v1rtu0s/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 467,
+                "createdAt": 1793161013048,
+                "updatedAt": 1793161013048
             }
         ]
     }
