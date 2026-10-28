@@ -197,6 +197,28 @@ val lichessPuzzlesPatch = bytecodePatch(
         name("converterMethod", converter.name)
         name("daoField", repository.fields.single { it.type == daoInsert.definingClass }.name)
         name("daoInsert", daoInsert.name)
+        // Chess.com's own guest puzzles (a signed-out user has them) share the guest queue with ours
+        // and come first, oldest first: a session clears the queue with the puzzle database's own
+        // "delete every puzzle of a source" before it stores its first Lichess puzzles.
+        var clear: Pair<String, String>? = null
+        classDefForEach { classDef ->
+            if (clear != null) return@classDefForEach
+            classDef.methods.firstOrNull { method ->
+                method.returnType == "V" && method.parameterTypes.map(CharSequence::toString) == listOf(SOURCE) &&
+                    method.implementation?.instructions?.any { instruction ->
+                        ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string ==
+                            "DELETE FROM tactics_problem WHERE source = ?"
+                    } == true
+            }?.let { clear = classDef.type to it.name }
+        }
+        val (clearClass, clearMethod) = clear ?: throw PatchException("The puzzle database's clear was not found")
+        // The repository's field holding that database: a type the class or one it extends implements.
+        val clearTypes = generateSequence(clearClass) { type -> classDefByOrNull { it.type == type }?.superclass }
+            .flatMap { type -> sequenceOf(type) + (classDefByOrNull { it.type == type }?.interfaces?.asSequence() ?: emptySequence()) }
+            .toSet()
+        name("puzzleDbField", repository.fields.singleOrNull { it.type in clearTypes }?.name
+            ?: throw PatchException("The repository's puzzle database was not found"))
+        name("puzzleDbClear", clearMethod)
         // The puzzle screen's guest puzzles: the refill above is only called by Home for real guests.
         val guestPuzzles = repository.methods.singleOrNull { method ->
             method.parameterTypes.isEmpty() && method.returnType != "V" &&
@@ -313,9 +335,11 @@ val lichessPuzzlesPatch = bytecodePatch(
             """,
             ExternalLabel("morphe_no_session", getInstruction(0)),
         )
-        // Wait for the background Lichess insert instead of ending the guest flow.
+        // Once a guest has started guest mode, an empty guest queue ends chess.com's guest flow with
+        // its sign-up wall. During a session it counts as never started, so the screen waits for the
+        // Lichess puzzles stored in the background. The guest refill, its other reader, is skipped.
         mutableClassDefBy(GUEST_STORE).methods.single { it.parameterTypes.isEmpty() && it.returnType == "Z" }
-            .whileSession("const/4 v0, 0x1\nreturn v0")
+            .whileSession("const/4 v0, 0x0\nreturn v0")
         val regularMode = enumField(MODE, "REGULAR")
         mutableClassDefBy(MODE).methods.single { it.parameterTypes.isEmpty() && it.returnType == "Z" }
             .whileSession("const/4 v0, 0x0\nreturn v0")

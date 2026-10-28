@@ -144,7 +144,8 @@ private const val HELPER = "hushfacebookDownloadButton"
 val downloadReelPatch = bytecodePatch(
     name = "Download any reel",
     description = "Adds a Download button beside every reel and a Download row to its More menu, so you can keep " +
-        "reels on your phone. Videos save at the quality you set, best by default. On by default. Turn it off in " +
+        "reels on your phone. Videos save at the quality you set, best by default. The More menu also gets Copy " +
+        "caption, which copies the reel's whole caption. On by default. Turn either off in " +
         "Hushfacebook settings > Reels and Watch.",
     default = true,
 ) {
@@ -541,6 +542,15 @@ val downloadReelPatch = bytecodePatch(
         // main screen, show no button above (#18). Every reel's More sheet comes from one builder,
         // so a Download row goes there too. The fixture tests hold it on every declared build; on
         // another one the sidebar button is still worth having, so a miss here is a warning.
+        //
+        // Copy caption goes in first, so it runs after the Download row and lands below it (#240).
+        // It needs the caption render too; either miss leaves the rest working, so each is a warning.
+        try {
+            rememberCaptions(PATCH)
+            addCaptionRow(PATCH, moreSheet(PATCH))
+        } catch (exception: PatchException) {
+            patchLog.warning("${exception.message}, so reels get no Copy caption row in their More sheet.")
+        }
         try {
             addDownloadRow(
                 patch = PATCH,

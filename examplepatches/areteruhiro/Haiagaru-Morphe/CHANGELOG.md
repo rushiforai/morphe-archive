@@ -1,3 +1,385 @@
+# Haiagaru 1.15.0
+
+XのGIFと通常GIFの自動再生を、使い方に合わせて設定できるようにしました。
+
+## 変更内容
+
+- 「X MP4 GIFを自動再生する（開いた後）」を追加しました。通常のGIF・動画の自動再生とは別に切り替えられます。初期値はオンです。
+- XのGIFを代替プレーヤーへ切り替えると、自動再生が止まってしまう問題を修正しました。
+- 「GIFを開かずにスレ内で自動再生する」を追加しました。通常のGIFリンク、X投稿のGIF、XのGIF動画への直接リンクが対象です。初期値はオフです。
+- スレ内の同時再生数を1〜8件、通常GIFの取得サイズ上限を1〜64MiBから指定できます。初期値は2件・8MiBです。
+- スレ内再生はレスごとに最初のGIFが対象です。画面外や他のアプリへ移動した場合は停止し、設定をオフにすると再生処理を解放します。
+- 新しい設定はHaiagaru設定の共有・バックアップにも含まれます。
+
+設定は「Haiagaru設定 → 画像・動画 → 画像・GIF・動画ビューアの操作設定」から変更できます。スレ内再生は通信量や電池消費が増えます。長時間・多数同時再生時の性能や、スクロール中の表示位置には引き続き改善の余地があります。
+
+通常GIFとXのGIFで再生・非表示時の停止・設定オフ時の解放を確認しています。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### ✨ New Features
+
+* add independent X GIF autoplay and configurable inline animation limits ([d010a24](https://github.com/areteruhiro/Haiagaru-Morphe/commit/d010a2431a82110b8c76e7abc38b2887484428c1))
+
+# Haiagaru 1.14.3
+
+画像の回転操作を︙メニューにまとめた場合、メニューを選んでも回転しないことがある問題を修正しました。
+
+- ︙メニューから回転処理を直接実行するようにしました。
+- 画面上の回転ボタンへの切り替え、回転操作のオン・オフは引き続き利用できます。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* execute image rotation directly from native overflow menu ([7875f97](https://github.com/areteruhiro/Haiagaru-Morphe/commit/7875f9709c07ebcf3aee97b54b32771dea50639c))
+
+# Haiagaru 1.14.2
+
+スレ内のメディア移動と、動画・GIFビューアの操作を改善しました。
+
+## 変更内容
+
+- レスのサムネイルから標準画像ビューアを開いた場合も、読み込み済みのスレ全体の画像・GIF・動画へ移動できるよう修正しました。左右だけでなく上下スワイプでも前後へ移動できます。番号と総数も同じ一覧に合わせます。ChMateで設定した「戻る」ジェスチャーは、メディアの左右移動より優先します。
+- 動画ビューアのミュートと再生速度をシークバー付近へ移動しました。
+- 動画・GIF専用ビューアの︙メニューを右上へ揃えました。「戻る」と「︙」はそれぞれ右上・左上・右下・左下から位置を選べます。同じ位置でも重ならないよう配置します。XのGIFが動画として開く場合も同じ設定が適用されます。
+- 横長動画などの余白でもタップ・長押し・左右スワイプを使えるようにしました。動画ビューアの設定からオフにできます。初期値はオンです。
+- 標準画像ビューアの回転操作を、︙メニューと画面上のボタンから選べるようにしました。「画像の回転操作を︙メニューにまとめる」をオフにすると画面上へ表示します。
+- ワッチョイ上4桁検索で、検索画面の起動時にクラッシュする問題を修正しました。全文・下4桁検索も同じ起動処理に揃えました。
+
+スレ全体への移動には「サムネイルからスレ全体の画像・GIF・動画へ左右移動」をオンにしてください。対象は読み込み済みのスレ内のメディアです。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* allow vertical swipes through full thread media gallery ([9626b06](https://github.com/areteruhiro/Haiagaru-Morphe/commit/9626b061e3d6bc68f9b50407319aa192fee3ae5c))
+* configure viewer control corners and preserve native back gestures ([641f6da](https://github.com/areteruhiro/Haiagaru-Morphe/commit/641f6da6652ec380c3d5be8d605b74e24e0748c6))
+* preserve full thread gallery from thumbnails and refine video controls ([f0398be](https://github.com/areteruhiro/Haiagaru-Morphe/commit/f0398be882e8a89c09b9f6b428b2f92dae4986a9))
+
+# Haiagaru 1.14.2-dev.1
+
+サムネイルからスレ全体のメディアへ移動する修正と、動画ビューアの操作まわりをまとめたプレリリースです。
+
+## 変更内容
+
+- 一部の版で、レスのサムネイルから標準画像ビューアを開くと、そのレスの画像だけが移動対象になる問題を修正しました。スレ全体への移動をオンにすると、別のレスの画像・GIF・動画へも移動できます。
+- 動画ビューアのミュートと再生速度を、シークバー付近へ移動しました。
+- 横長動画などの上下・左右の余白でも、タップや長押し、左右スワイプで操作できるようにしました。動画ビューアの設定からオフにできます。初期値はオンです。
+
+スレ全体への移動には「サムネイルからスレ全体の画像・GIF・動画へ左右移動」をオンにしてください。対象は読み込み済みのスレ内のメディアです。
+
+今回の修正では、実際のサムネイルから別レスの動画へ移動するところまで確認しています。226でのサムネイル操作と、動画コントロール・余白操作の最終確認は引き続き行います。気になる動作があればお知らせください。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* preserve full thread gallery from thumbnails and refine video controls ([f0398be](https://github.com/areteruhiro/Haiagaru-Morphe/commit/f0398be882e8a89c09b9f6b428b2f92dae4986a9))
+
+# Haiagaru 1.14.1
+
+スレ全体の画像・GIF・動画を左右に移動するとき、ビューアの件数が「1/1」「1/2」のように小さく表示される問題を修正しました。
+
+## 変更内容
+
+- 標準画像・標準GIFビューアの表示を、左右移動と同じ一覧に合わせました。「現在開いているメディアの番号／スレ全体の件数」が表示されます。
+- 標準ビューア内で画像を切り替えた後や、専用GIF・動画ビューアと行き来した場合も、全体の番号と件数を引き継ぎます。
+
+スレ全体への移動には「サムネイルからスレ全体の画像・GIF・動画へ左右移動」をオンにしてください。対象は読み込み済みのスレ内のメディアです。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* show full thread gallery position in native media counters ([2723f20](https://github.com/areteruhiro/Haiagaru-Morphe/commit/2723f200e03a0fbe4b46ec89c0b22a0207eb7f0c))
+
+# Haiagaru 1.14.0
+
+全板検索の対象板を選べるようにし、ワッチョイ検索の板選択やビューアの動作を修正しました。広告だけの超軽量構成にも、基本操作でのクラッシュ対策を追加しています。
+
+## 変更内容
+
+- ワッチョイ全文・上4桁・下4桁検索で、板一覧の取得を待たされることや、選択のオン・オフがすぐ表示に反映されない問題を修正しました。取得済みの一覧を再利用し、画面内で再取得もできます。
+- HOMEの全板検索に、登録済みの外部板・bbspinkの結果を追加できるようにしました（初期オフ）。設定の「探す・過去ログ」で、板名・URLで絞り込みながら検索対象を選べます。
+- 標準の画像・GIFビューアと、Haiagaru専用のGIF・動画ビューアで、読み込み済みのスレ全体のメディアへ左右に移動できるよう修正しました。標準ビューア内で画像を切り替えた後も、表示中の画像から移動します。
+- 「サムネイルからスレ全体の画像・GIF・動画へ左右移動」をオンにした場合は、同じレス内の左右移動の設定より優先します。この設定の初期値はオフです。
+- XやWebサイトのリンクカードを表示しているとき、アプリを終了して開き直すと表示位置が上にずれる問題を修正しました。レス番号を指定して開く操作や、新着位置への移動、ユーザーのスクロールを優先します。
+- 「広告だけの超軽量構成」にも、投稿・画像アップロード・UPLIFTでの0除算などによるクラッシュ対策を追加しました。
+- 「取得済みのスレから検索」の画面に並び順を追加しました。標準・スレ作成日時が新しい順・古い順を選べます。アーカイブ一覧とは別に保存し、設定の共有・バックアップにも含めます。
+
+投稿・画像アップロード・UPLIFTは、パッチの適用と原因となる計算処理を確認しています。各サービスへの実送信・ログインは今回の確認に含めていません。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### ✨ New Features
+
+* search selected external boards and fix viewer and board selection state ([557cc6c](https://github.com/areteruhiro/Haiagaru-Morphe/commit/557cc6c57a88e472d7c7e2bffa1ec63772e40608))
+* sort cached thread search results by creation date ([4dc452b](https://github.com/areteruhiro/Haiagaru-Morphe/commit/4dc452b7658eb244f9f503715ba3d1e1b76bade2))
+
+# Haiagaru 1.14.0-dev.1
+
+「取得済みのスレから検索」の結果を、スレの作成日時で並べ替えられるようにしました。
+
+## 変更内容
+
+- 検索画面に「並び順」を追加しました。「標準の並び順」「スレ作成日時：新しい順」「スレ作成日時：古い順」をその場で選べます。
+- アーカイブ一覧の設定とは別に、検索結果の並び順を保存します。取得済みスレとアーカイブのどちらを検索する場合にも使えます。
+- レスの投稿日時ではなく、スレの作成日時を使います。同じ作成日時の結果は元の順番を保ち、作成日時が分からない結果は末尾に表示します。検索条件・件数・開く対象は変更しません。
+
+初期設定は標準の並び順です。選んだ順番は次回の検索にも使われ、設定の共有・バックアップにも含まれます。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### ✨ New Features
+
+* sort cached thread search results by creation date ([4dc452b](https://github.com/areteruhiro/Haiagaru-Morphe/commit/4dc452b7658eb244f9f503715ba3d1e1b76bade2))
+
 # Haiagaru 1.13.0
 
 正式版1.12.2からの更新です。メディアの表示・移動、板別Cookie、認証画面、追加画面のタブ操作を改善しました。

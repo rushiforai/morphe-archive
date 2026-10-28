@@ -93,7 +93,22 @@ public class ReelMidCardsTest {
         assertTrue(line, line.contains("Kinds: "));
         assertTrue(line, line.contains("mid-card THREADS_MIDCARD 1"));
         assertTrue(line, line.contains("mid-card PYML_MIDCARD 1"));
-        assertTrue(line, line.contains(ReelMidCards.NOT_A_MID_CARD + " 1"));
+        assertTrue(line, line.contains(ReelMidCards.NOT_A_MID_CARD + " Object 1"));
+    }
+
+    /** Every item that isn't a mid-card is counted by its class, so a report tells two kinds of reel item apart. */
+    @Test
+    public void otherItemsAreCountedByTheirClass() {
+        Settings.HIDE_REEL_THREADS_CARDS.save(true);
+        Section section = section(new Object(), new StringBuilder("photo"), new Object());
+
+        ReelMidCardsForTests.withoutThreadsCards(Collections.singletonList(section));
+
+        String line = line();
+        assertNotNull(FeedFilterCounters.report().toString(), line);
+        assertTrue(line, line.contains(ReelMidCards.NOT_A_MID_CARD + " Object 2"));
+        assertTrue(line, line.contains(ReelMidCards.NOT_A_MID_CARD + " StringBuilder 1"));
+        assertEquals("3 items, none removed", 3, section.items.size());
     }
 
     /** A section that held only the card goes off the page, so the screen doesn't show an empty one. */

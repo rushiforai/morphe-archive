@@ -235,9 +235,21 @@ public final class VideoMenuItem {
          * save. A photo post answers neither and keeps Facebook's own menu.
          */
         boolean offered() {
-            return typed || RenditionPicker.isHttpUrl(hd) || RenditionPicker.isHttpUrl(sd)
-                || PlayerSources.byId(id) != null;
+            return offers(typed, hd, sd, id);
         }
+    }
+
+    /**
+     * Whether [media] holds a video the item is offered for, read without what the file name
+     * needs, for a check that runs each time a post's row is built.
+     */
+    static boolean holdsVideo(Object media) {
+        return media != null && offers(VIDEO_TYPE.equals(typeName(media)), cachedString(media, HD_PLAYABLE_URL),
+            cachedString(media, PLAYABLE_URL), cachedString(media, ID));
+    }
+
+    private static boolean offers(boolean typed, String hd, String sd, String id) {
+        return typed || RenditionPicker.isHttpUrl(hd) || RenditionPicker.isHttpUrl(sd) || PlayerSources.byId(id) != null;
     }
 
     // ---------------------------------------------------------------- reflection

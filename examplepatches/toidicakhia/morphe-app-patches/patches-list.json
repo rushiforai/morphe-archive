@@ -1,7 +1,167 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.1.0",
+  "version": "1.3.0",
   "patches": [
+    {
+      "name": "Bypass SSL pinning",
+      "description": "Bypasses EZVIZ certificate pinning and hostname checks so a debugging proxy can read its HTTPS traffic. Also trusts user-installed certificates. Not selected by default.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.ezviz",
+          "name": "EZVIZ",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#00A0E9",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "7.6.1.0824",
+              "versionCodes": {
+                "ARM64_V8A": 1961,
+                "ARMEABI_V7A": 1961,
+                "X86_64": 1961,
+                "X86": 1961
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable Analytics / Telemetry",
+      "description": "Disables all Cloudflare telemetry by no-oping the analytics bundle builder and the Firebase event dispatchers.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.cloudflare.onedotonedotonedotone",
+          "name": "1.1.1.1",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#F48120",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "6.38.11",
+              "versionCodes": {
+                "ARM64_V8A": 5703,
+                "ARMEABI_V7A": 5703,
+                "X86_64": 5703,
+                "X86": 5703
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable SSL Pinning",
+      "description": "Bypasses OkHttp certificate pinning on Cloudflare API calls to allow TLS traffic inspection.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.cloudflare.onedotonedotonedotone",
+          "name": "1.1.1.1",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#F48120",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "6.38.11",
+              "versionCodes": {
+                "ARM64_V8A": 5703,
+                "ARMEABI_V7A": 5703,
+                "X86_64": 5703,
+                "X86": 5703
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Ads",
+      "description": "Removes banner, splash and hot open-screen ads.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.ezviz",
+          "name": "EZVIZ",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#00A0E9",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "7.6.1.0824",
+              "versionCodes": {
+                "ARM64_V8A": 1961,
+                "ARMEABI_V7A": 1961,
+                "X86_64": 1961,
+                "X86": 1961
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Spoof WARP+ Unlimited UI",
+      "description": "Forces WarpPlusState to UNLIMITED on every AccountData instance by intercepting the primary constructor before the account type field is written.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.cloudflare.onedotonedotonedotone",
+          "name": "1.1.1.1",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#F48120",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "6.38.11",
+              "versionCodes": {
+                "ARM64_V8A": 5703,
+                "ARMEABI_V7A": 5703,
+                "X86_64": 5703,
+                "X86": 5703
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
     {
       "name": "Unlock Premium",
       "description": "Unlocks all premium features.",

@@ -25,7 +25,9 @@
 ### YouTube
 
 - **Danmaku comments**：通常のコメント、ライブチャット、チャットのリプレイを、ニコニコ動画のように動画の上に流します。API キーは使いません。NG ワード、文字サイズ、速さなどは YouTube の設定画面から変えられます。
-- **Ambient light**：動画の周りの黒い帯を、映像の色でやわらかく照らします（PC 版の拡張機能「Ambient light for YouTube」と同じ考え方です）。
+- **Ambient light**：動画の周りの黒い帯を、映像の色でやわらかく照らします（PC 版の拡張機能「Ambient light for YouTube」と同じ考え方です）。背景に動画の映像そのものを映す、画面の下に行くほど暗くする、場面が変わったら光を広げる、といった見せ方も選べます。
+
+どちらも、プレーヤーの設定メニューにスイッチ付きの行が加わります。行をタップするとオン・オフ、長押しすると動画を見ながら文字サイズや明るさなどを変えられるシートが開きます。
 
 ### Twitch
 
@@ -33,7 +35,7 @@
 - **Chat enhancements**：7TV / BetterTTV / FrankerFaceZ のエモート、追加バッジ、代名詞、NG ワード、非表示ユーザー、ハイライト、送信時刻、文字サイズ、過去チャットの取得、表示したメッセージの検索。
 - **Player enhancements**：再生速度、シーク幅、スリープタイマー、再生統計、VOD のチャット同期とチャプター、明るさ・音量のジェスチャー、横画面のチャット幅、ミニプレイヤーの大きさ、ホーム画面の整理など。
 - **Show deleted messages**：削除されたメッセージを読めるまま残します。
-- **Block ads**：広告をまとめて止めます（31.6.0・31.7.0）。再生前・途中・VOD の動画広告、音声広告、PbyP、バナーやフィードの表示広告を止め、配信に埋め込まれた広告は、広告が入ったときだけ Twitch から広告のない再生リストを取り直して差し替えます。外部のサーバーは使いません（配信プロキシを設定した場合は予備として使います）。差し替えられなかった広告は黒い画面で隠して消音します。
+- **Block ads**：広告をまとめて止めます（31.7.0・31.8.0）。再生前・途中・VOD の動画広告、音声広告、PbyP、バナーやフィードの表示広告を止め、配信に埋め込まれた広告は、広告が入ったときだけ Twitch から広告のない再生リストを取り直して差し替えます。外部のサーバーは使いません（配信プロキシを設定した場合は予備として使います）。差し替えられなかった広告は黒い画面で隠して消音します。
 - **Auto claim channel points**：受け取れるボーナスを自動で受け取ります。
 - **Fix notifications** / **Fix login**：再署名したアプリで通知やログインがうまくいかないときの対策です（Fix login は必要なときだけ選んでください）。
 
@@ -75,11 +77,11 @@
 
 | アプリ | パッケージ名 | 対応バージョン |
 | --- | --- | --- |
-| YouTube | `com.google.android.youtube` | 21.20.405, 21.42.241, 21.42.243 |
-| Twitch | `tv.twitch.android.app` | 30.7.2, 31.6.0, 31.7.0（Block ads は 31.6.0・31.7.0。30.7.2 は Android 12 以下の端末用） |
-| Reddit | `com.reddit.frontpage` | 2026.24.0, 2026.42.0 |
+| YouTube | `com.google.android.youtube` | 21.20.405, 21.42.241, 21.43.523 |
+| Twitch | `tv.twitch.android.app` | 30.7.2, 31.7.0, 31.8.0（Block ads は 31.7.0・31.8.0。30.7.2 は Android 12 以下の端末用） |
+| Reddit | `com.reddit.frontpage` | 2026.24.0, 2026.42.0, 2026.43.0 |
 | SmartNews | `jp.gocro.smartnews.android` | 26.10.20, 26.10.30（どちらも Google Play 版の APKM も可） |
-| Pinterest | `com.pinterest` | 14.40.0, 14.41.0 |
+| Pinterest | `com.pinterest` | 14.41.0, 14.42.0 |
 | pixiv | `jp.pxv.android` | 6.200.0, 6.201.0 |
 | Google News | `com.google.android.apps.magazines` | 5.168.0.982359681, 5.170.0.999208975 |
 | Sankaku | `com.sankakucomplex.channel.black` | 4.27, 4.28 |

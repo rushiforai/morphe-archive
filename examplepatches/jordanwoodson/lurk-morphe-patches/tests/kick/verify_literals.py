@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
-"""Check that Kick's literal-buffer edits change only the literals they mean to.
+"""Check that Kick's edits outside function bytecode change only the literals and strings they mean to.
 
 Usage (with hermes-dec installed in this Python environment):
     python tests/kick/verify_literals.py stock.bundle patched.apk
     python tests/kick/verify_literals.py stock.bundle manifest.json
 
 Hermes keeps array and object literal values in one shared buffer, and two literals can read the same
-bytes. For every edit outside function bytecode, this decodes all functions, finds each array or object
-literal whose values cover an edited byte, and requires those to be exactly the literals EXPECTED for
-the edit's setting. It then applies each value the setting can take and re-parses those literals: tags,
-count and length must stay the same, and string values must be valid string IDs. It reads files only.
+bytes. For every edit in that buffer, this decodes all functions, finds each array or object literal whose
+values cover an edited byte, and requires those to be exactly the literals EXPECTED for the edit's setting.
+It then applies each value the setting can take and re-parses those literals: tags, count and length must
+stay the same, and string values must be valid string IDs.
+
+Edits in the string table or string storage rewrite strings. Hermes packs strings into each other, so for
+each setting this decodes every string of the stock bundle and of the bundle with the setting on, and
+requires the strings that differ to be exactly STRINGS for the setting, none of them an identifier (a
+property name). Any other edit outside function bytecode fails. It reads files only.
 """
 import argparse
 from dataclasses import dataclass
@@ -51,6 +56,9 @@ class Literal:
 
 # Per setting, what the literals reading its edited bytes must be.
 EXPECTED = {
+    # Lurk in account menu: the account menu's developer settings row, whose href becomes Lurk's link.
+    "lurk_menu_entry": lambda found: len(found) == 1 and found[0].kind == "object" and
+        found[0].function == "AccountScreen" and found[0].keys == ("href", "icon", "label", "testID", "gaEvent"),
     # PlayerConfig.controls.skip.scale: the `vod` and `live-vod` arrays, [10, 10, 10] each.
     "vod_skip_seconds": lambda found: len(found) == 2 and len({item.function for item in found}) == 1 and
         all(item.kind == "array" and len(item.keys) == 3 for item in found),
@@ -60,21 +68,70 @@ EXPECTED = {
 }
 
 
+# Per setting, the strings its edits rewrite: stock text to the text with the setting on.
+STRINGS = {
+    "lurk_menu_entry": {"Account-Menu-Dev-Settings": "Lurk", "Enter valid JSON.": "lurk://settings"},
+}
+
+
 def u(data, offset, size):
     return int.from_bytes(data[offset:offset + size], "little")
 
 
+def align(value):
+    return (value + 3) & ~3
+
+
+def tables(data):
+    """File offsets from the header, as HermesBundle computes them: string kinds, string table, overflow table,
+    string storage and the literal value buffer."""
+    kinds = align(128 + u(data, 40, 4) * 12)
+    table = align(align(kinds + u(data, 44, 4) * 4) + u(data, 48, 4) * 4)
+    overflow = align(table + u(data, 52, 4) * 4)
+    storage = align(overflow + u(data, 56, 4) * 8)
+    return kinds, table, overflow, storage, align(storage + u(data, 60, 4))
+
+
 def literal_start(data):
     """The literal value buffer's file offset, computed from the header as HermesBundle does."""
-    def align(value):
-        return (value + 3) & ~3
-    cursor = 128 + u(data, 40, 4) * 12
-    cursor = align(cursor) + u(data, 44, 4) * 4
-    cursor = align(cursor) + u(data, 48, 4) * 4
-    cursor = align(cursor) + u(data, 52, 4) * 4
-    cursor = align(cursor) + u(data, 56, 4) * 8
-    cursor = align(cursor) + u(data, 60, 4)
-    return align(cursor)
+    return tables(data)[4]
+
+
+def strings(data):
+    """Every string's text, and whether it is an identifier, decoded from the string table."""
+    kinds, table, overflow, storage, _ = tables(data)
+    identifier = []
+    for run in range(u(data, 44, 4)):
+        entry = u(data, kinds + run * 4, 4)
+        identifier += [bool(entry >> 31)] * (entry & 0x7fffffff)
+    texts = []
+    for index in range(u(data, 52, 4)):
+        entry = u(data, table + index * 4, 4)
+        wide, offset, length = entry & 1, (entry >> 1) & 0x7fffff, entry >> 24
+        if length == 255:
+            offset, length = u(data, overflow + offset * 8, 4), u(data, overflow + offset * 8 + 4, 4)
+        raw = data[storage + offset:storage + offset + length * (2 if wide else 1)]
+        texts.append(raw.decode("utf-16-le" if wide else "latin-1"))
+    assert len(identifier) == len(texts), "string kinds don't cover the string table"
+    return texts, identifier
+
+
+def verify_strings(stock, edits):
+    """Each setting's string edits change exactly its STRINGS, none of them an identifier."""
+    before, identifier = strings(stock)
+    for key in sorted({edit["key"] for edit in edits}):
+        assert key in STRINGS, f"{key}: no expected strings recorded"
+        edited = bytearray(stock)
+        for edit in edits:
+            if edit["key"] == key:
+                value = bytes.fromhex(edit["replacement"])
+                edited[edit["offset"]:edit["offset"] + len(value)] = value
+        after, _ = strings(bytes(edited))
+        changed = {index for index, (old, new) in enumerate(zip(before, after)) if old != new}
+        assert {before[index]: after[index] for index in changed} == STRINGS[key], \
+            f"{key}: unexpected strings changed: {[(before[i], after[i]) for i in sorted(changed)][:10]}"
+        assert not any(identifier[index] for index in changed), f"{key}: an identifier changed"
+        print(f"  {key}: strings " + ", ".join(f"{old!r} -> {new!r}" for old, new in STRINGS[key].items()))
 
 
 def parse(values, start, count):
@@ -131,10 +188,18 @@ def verify(stock, manifest):
     values = reader.literal_values
     assert stock[start:start + len(values)] == values, "Literal buffer offset differs from hermes-dec's"
     in_code = [(header.offset, header.offset + header.bytecodeSizeInBytes) for header in reader.function_headers]
-    data_edits = [edit for edit in manifest["edits"]
-                  if not any(low <= edit["offset"] < high for low, high in in_code)]
+    outside = [edit for edit in manifest["edits"]
+               if not any(low <= edit["offset"] < high for low, high in in_code)]
+    _, table, _, storage, _ = tables(stock)
+    string_ranges = [(table, table + u(stock, 52, 4) * 4), (storage, storage + u(stock, 60, 4))]
+    string_edits = [edit for edit in outside if any(low <= edit["offset"] and
+                    edit["offset"] + len(edit["original"]) // 2 <= high for low, high in string_ranges)]
+    if string_edits:
+        assert all("replacement" in edit for edit in string_edits), "a string edit is not a switch"
+        verify_strings(stock, string_edits)
+    data_edits = [edit for edit in outside if edit not in string_edits]
     if not data_edits:
-        print("PASS: no literal edits in this manifest")
+        print(f"PASS: no literal edits in this manifest; {len(string_edits)} string edits")
         return
     found = literals(reader, stock, values)
     assert len(found) > 50000, "too few literal instructions decoded"

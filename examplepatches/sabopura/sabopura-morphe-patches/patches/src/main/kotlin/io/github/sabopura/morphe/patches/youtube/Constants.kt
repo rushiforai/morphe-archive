@@ -28,9 +28,9 @@ internal object Constants {
                 description = "Official Morphe patches' newest target; danmaku fetched and drawn in sync with playback and the see-through watch page shown on the dedicated Android API 36 emulator.",
             ),
             AppTarget(
-                version = "21.42.243",
+                version = "21.43.523",
                 minSdk = 29,
-                description = "Media-time hook re-anchored on the progress constructor; danmaku fetched and drawn in sync with playback and the see-through watch page shown on the dedicated Android API 36 emulator.",
+                description = "Applied without changes; danmaku fetched and drawn in sync with playback and the see-through watch page shown on the dedicated Android API 36 emulator.",
             ),
         ),
     )

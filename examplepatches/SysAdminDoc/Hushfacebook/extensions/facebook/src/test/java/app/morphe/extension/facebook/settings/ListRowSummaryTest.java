@@ -63,22 +63,22 @@ public class ListRowSummaryTest {
     }
 
     @Test
-    public void theAccentRowGreysOutAndSaysWhoPicksTheColorsWhenMaterialYouIsInTheBuild() {
+    public void theAccentRowPicksTheWallpapersStandInWhenMaterialYouIsInTheBuild() {
         Settings.ACCENT_COLOR.save(app.morphe.extension.facebook.theme.AccentColor.Preset.TEAL);
-        ValueRows.AccentRow taken = HushfacebookPreferenceFragment.accentRow(context(), true);
-        assertEquals(false, taken.isEnabled());
-        assertEquals("Material You theme is in this build and picks Facebook's colors, so this has no effect.",
-                String.valueOf(taken.getSummary()));
-        taken.setValue("PINK");
-        taken.setEnabled(true);
-        assertEquals(false, taken.isEnabled());
-        assertEquals("Material You theme is in this build and picks Facebook's colors, so this has no effect.",
-                String.valueOf(taken.getSummary()));
+        ValueRows.AccentRow withMaterialYou = HushfacebookPreferenceFragment.accentRow(context(), true);
+        assertEquals(true, withMaterialYou.isEnabled());
+        assertEquals("Material You uses Teal in place of your wallpaper's accent. Restart Facebook to see the change.",
+                String.valueOf(withMaterialYou.getSummary()));
+        assertEquals("Wallpaper accent", String.valueOf(withMaterialYou.getEntries()[0]));
+        withMaterialYou.setValue("FACEBOOK");
+        assertEquals("Material You uses your wallpaper's accent. Pick a color to use it instead.",
+                String.valueOf(withMaterialYou.getSummary()));
 
-        ValueRows.AccentRow free = HushfacebookPreferenceFragment.accentRow(context(), false);
-        assertEquals(true, free.isEnabled());
-        assertEquals(HushfacebookPreferenceFragment.accentSummary(app.morphe.extension.facebook.theme.AccentColor.Preset.TEAL),
-                String.valueOf(free.getSummary()));
+        ValueRows.AccentRow alone = HushfacebookPreferenceFragment.accentRow(context(), false);
+        assertEquals(true, alone.isEnabled());
+        assertEquals("Facebook blue", String.valueOf(alone.getEntries()[0]));
+        assertEquals("Links, buttons, switches and the selected tab use Teal instead of Facebook's blue. Restart Facebook "
+                + "to see the change.", String.valueOf(alone.getSummary()));
     }
 
     @Test

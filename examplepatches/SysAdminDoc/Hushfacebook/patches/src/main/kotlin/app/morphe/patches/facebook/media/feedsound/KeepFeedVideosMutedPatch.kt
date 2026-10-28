@@ -54,7 +54,7 @@ val keepFeedVideosMutedPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Keep feed videos muted",
     description = "Feed videos start with the sound off every time you open Facebook, and only a tap on a " +
-        "video's speaker or the volume up key turns it on. Starts off. Turn it on in Hushfacebook settings > Playback.",
+        "video's speaker or the volume up key turns it on. Starts off. Turn it on in Hushfacebook settings > Video and audio.",
 ) {
     category("Playback")
     dependsOn(settingsPatch, facebookExtensionPatch)

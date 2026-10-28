@@ -751,7 +751,11 @@ Hide Balance from the menu your profile's top right button opens. Your coins and
 "Hide the Check sources banner TikTok puts on videos it marks as unverified, and the warnings it shows when you share one.",隐藏 TikTok 在其标记为未经验证的视频上放置的“检查来源”横幅，以及在您共享视频时显示的警告.
 "Hide the Check your sources banner TikTok puts across the top of some videos, and the prompt it shows when you share one.",隐藏某些视频顶部的“检查来源”横幅 TikTok 以及共享视频时显示的提示.
 Hide the Clear display controls,隐藏清除显示控件
+Keep the progress bar,保留进度条
+"Hide the Clear display controls leaves the progress bar in sight, so you can still see and drag it.",隐藏清除显示控件时保留进度条，你仍然可以看到并拖动它.
 Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.,隐藏附有注释的视频上显示的脚注横幅 TikTok。视频及其评论保持原样.
+Hide the LIVE row on Following,隐藏“正在关注”的 LIVE 行
+"Hide the row of LIVE and story circles across the top of the Following feed, and the pill that counts them. For You is left as it is.",隐藏“正在关注”标签页顶部的 LIVE 和快拍圆圈行，以及统计它们数量的胶囊. “为你”保持不变.
 Hide the Full screen button,隐藏全屏按钮
 Hide the Full screen button over videos. Playback and automatic rotation keep working as before.,隐藏视频上的全屏按钮。播放和自动旋转继续像以前一样工作.
 Hide the Inbox search button,隐藏收件箱搜索按钮
@@ -966,6 +970,7 @@ Licenses,许可证
 Lift text length limits,解除文本长度限制
 Like,喜欢
 Like the video,喜欢视频
+Like or unlike the video,喜欢或取消喜欢视频
 Liked videos,喜欢的视频
 Likes aren't available for this video,此视频无法点赞
 Likes range,喜欢范围
@@ -1454,7 +1459,8 @@ Saved videos put back,保存的视频放回
 Saved. Restart TikTok to apply this.,已保存。重新启动 TikTok 以应用此操作.
 Saves TikTok's latest crash report on this phone so it can go in the diagnostic report.,在此手机上保存 TikTok 的最新崩溃报告，以便将其纳入诊断报告中.
 "Saves subtitle (SRT) files with the video. They go to Movies on Android 11 and newer, Download on Android 10, and your video folder on older versions. On Android 11 and newer with Save details on, the video moves to Download or Documents and the subtitles stay in Movies.",与视频一起保存字幕 (SRT) 文件。他们会在 Android 11 及更高版本上转到“电影”，在 Android 10 上转到“下载”，在旧版本上会转到您的视频文件夹。在 Android 11 及更高版本上，如果打开“保存详细信息”，视频将移至“下载”或“文档”，而字幕仍保留在“电影”中.
-"Saves the caption, creator, link and post date in a text file next to the video. On Android 10 and later, the pair goes in Download or Documents under the same folder name. Applies to saves made by Hushfeed.",将标题、创建者、链接和发布日期保存在视频旁边的文本文件中。在 Android 10 及更高版本上，该对将进入同一文件夹名称下的“下载”或“文档”。适用于 Hushfeed 进行的保存.
+"Saves the caption, creator, link and post date in a text file next to the video, or one file for a photo post's original photos. On Android 10 and later, they go in Download or Documents under the same folder name. Applies to saves made by Hushfeed.",将标题、创建者、链接和发布日期保存在视频旁边的文本文件中，图片帖子的原图则共用一个文件。在 Android 10 及更高版本上，它们会进入同一文件夹名称下的“下载”或“文档”。适用于 Hushfeed 进行的保存.
+"The photos saved, but their details file couldn't be written. Check your storage and save the post again to get it.",照片已保存，但无法写入它们的详情文件。请检查存储空间，然后重新保存该帖子以获取它.
 Saves the details file in JSON format instead of plain text. Useful if another tool will read it.,以 JSON 格式而不是纯文本格式保存详细信息文件。如果其他工具可以读取它，则很有用.
 Saves your Hushfeed settings and Feature Gate Lab rules to a file.,将 Hushfeed 设置和功能门实验室规则保存到文件中.
 Saving,节省
@@ -1560,6 +1566,8 @@ Show TikTok's feed buttons,显示 TikTok 的信息流按钮
 Show TikTok's own progress bar on videos where it's normally hidden.,在通常隐藏的视频上显示 TikTok 自己的进度条.
 Show a LIVE under the status bar,在状态栏下显示 LIVE
 Show a progress bar while a video saves.,保存视频时显示进度条.
+Skip the Share to sheet after a save,保存后跳过分享面板
+TikTok opens a Share to sheet a few seconds after it saves a video. This stops it. The share button and the saved notice stay as they are.,TikTok 保存视频几秒后会打开分享面板。开启后就不再打开。分享按钮和已保存提示保持不变.
 Show a verified badge on your own profile on this phone. Other people see your real status.,在此手机上您自己的个人资料中显示经过验证的徽章。别人看到你的真实状态.
 Show a video preview thumbnail while dragging the progress bar.,拖动进度条时显示视频预览缩略图.
 Show chosen counts on your own profile on this phone. Other people see the real counts.,在这部手机上显示您自己的个人资料中选择的计数。其他人看到了真正的数字.
@@ -1687,6 +1695,8 @@ Speed,速度
 Speed menu choices,速度菜单选项
 "Speed up this video, double tap again to undo",加快该视频的速度，再次双击即可撤消
 Speed while you hold the video,按住视频时速度
+Slide to change the hold speed,滑动更改按住时的速度
+"While you hold a video, slide left or right to change its speed, and a bubble shows it. Letting go goes back to normal. A pull-down lock keeps the speed you slid to.",按住视频时向左或向右滑动可更改速度，气泡会显示当前速度。松手后恢复正常。下拉锁定会保留你滑到的速度.
 Spin the music disc,旋转音乐光盘
 Split comment minimum width,分割评论最小宽度
 Start each new video at your default. A manual choice lasts until the video changes.,以默认值开始每个新视频。手动选择将持续到视频发生变化为止.
@@ -2111,6 +2121,7 @@ Value: %1$s to %2$s,值：%1$s 至 %2$s
 Verified accounts,已验证帐户
 Version %1$s,版本%1$s
 Version %1$s for TikTok %2$s,TikTok %2$s 的版本 %1$s
+Version %1$s for PineDrama %2$s,PineDrama %2$s 的版本 %1$s
 "Version, changes and licenses",版本、变更和许可
 Video,视频
 Video (MP4),视频 (MP4)
@@ -2245,6 +2256,8 @@ Least viewed first,播放最少的在前
 Most liked first,点赞最多的在前
 Least liked first,点赞最少的在前
 "Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.",对个人资料或喜欢网格排序，置顶视频仍排在最前。选择排序后，网格会自动继续加载，最多 300 个视频，让排序覆盖的不只是第一屏。网格顶部角落的按钮可直接更改排序.
+Sort loaded videos on Liked grids,对“喜欢”网格中已加载的视频排序
+Same as profile grids,与个人资料网格相同
 Sort this grid,排序此网格
 Blur the video behind the bar,模糊栏后面的视频
 "Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.",在主信息流上，模糊玻璃条后面的那部分视频，让它看起来像磨砂玻璃。需要液态玻璃外观和 Android 12 及以上版本.
@@ -2275,3 +2288,31 @@ Some recording files remain. Try deleting them again.,仍有录制文件未删�
 This setting isn't available. Search for another setting.,此设置不可用. 请搜索其他设置.
 Hide the Hushfeed row,隐藏 Hushfeed 入口
 "Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.",从 TikTok 的“设置和隐私”中移除 Hushfeed。要打开这些设置，请长按信息流顶部的“为你”，如果已开启“长按 Home 进行 Hushfeed 设置”，也可以长按 Home.
+Open the search page,打开搜索页面
+TikTok's search page couldn't be opened. Restart TikTok and try again.,无法打开 TikTok 的搜索页面。请重启 TikTok 后再试.
+Fold the search into a button,将搜索收起为按钮
+"Shows a search button at the top left of the comments instead of the box, so the comments get that room back. Tap it to search, and tap it again to put the box away. Search within comments must be on.",在评论左上角显示一个搜索按钮来代替搜索框，把这块空间还给评论。点按它即可搜索，再点按一次即可收起搜索框。必须打开“在评论中搜索”.
+Put the comment search away,收起评论搜索
+Tap @names in bios,点按简介中的 @用户名
+An @username in a profile's bio opens that profile when you tap it. The rest of the bio still translates on a tap.,点按主页简介中的 @用户名即可打开该用户的主页。点按简介的其他部分仍会翻译.
+autoplay auto play,自动播放
+picture in picture PiP,画中画 PiP
+search suggestions,搜索建议
+AI chat,AI 聊天
+AI Tako,AI Tako
+save photos,保存照片
+Lock the feed at set times,在设定时间锁定信息流
+"The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.",信息流会在这些时间按手机时钟自动锁定。像这样填写日期和时间：Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00。不写日期表示每天。结束早于开始的时间段会跨过午夜.
+Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.,无法读取 %1$s。请像 Mon-Fri 21:00-07:00 这样填写日期和时间.
+%1$s starts and ends at the same time. Give it a different end time.,%1$s 的开始和结束时间相同。请换一个结束时间.
+Locked all week,整周锁定
+"Locked now, until %1$s",现已锁定，直到 %1$s
+Next lock starts %1$s,下次锁定开始于 %1$s
+"The feed is locked until %1$s. Messages, profiles and search still work.",信息流锁定到 %1$s。私信、个人主页和搜索仍可使用.
+Save only on Wi-Fi,仅在 Wi-Fi 下保存
+"Saves wait for Wi-Fi or another network that isn't metered, for up to 30 minutes, and stop if you leave it. Saving a frame still works anywhere.",保存会等待 Wi-Fi 或其他不计流量的网络，最多 30 分钟，离开该网络就会停止。保存画面在任何网络下都可以.
+Waiting for Wi-Fi,正在等待 Wi-Fi
+The last one is still waiting for Wi-Fi,上一个还在等待 Wi-Fi
+Stopped waiting for Wi-Fi after 30 minutes. Save it again when you're on Wi-Fi.,等待 Wi-Fi 30 分钟后已停止。连上 Wi-Fi 后再保存一次.
+Saved %1$s of %2$s. The rest stopped when you left Wi-Fi. Save again on Wi-Fi.,已保存 %1$s 个，共 %2$s 个。其余的在你离开 Wi-Fi 时停止了。请在 Wi-Fi 下再保存一次.
+The save stopped when you left Wi-Fi. Save it again on Wi-Fi.,你离开 Wi-Fi 时保存停止了。请在 Wi-Fi 下再保存一次.

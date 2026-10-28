@@ -1,5 +1,5 @@
 {
-  "version": "v0.79.0",
+  "version": "v0.80.0",
   "appNames": {
     "com.zhiliaoapp.musically": "TikTok",
     "com.ss.android.ttmd.video": "PineDrama"
@@ -310,6 +310,15 @@
           "required": false,
           "type": "kotlin.String",
           "default": "3",
+          "values": null
+        },
+        {
+          "key": "download_unmetered_only",
+          "title": "Default: download unmetered only",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
           "values": null
         },
         {
@@ -800,6 +809,15 @@
           "type": "kotlin.String",
           "default": "off",
           "values": null
+        },
+        {
+          "key": "liked_grid_sort",
+          "title": "Default: liked grid sort",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "profile",
+          "values": null
         }
       ]
     },
@@ -1238,6 +1256,15 @@
           "required": false,
           "type": "kotlin.Boolean",
           "default": false,
+          "values": null
+        },
+        {
+          "key": "feed_lock_hours",
+          "title": "Default: feed lock hours",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
           "values": null
         },
         {
@@ -2071,6 +2098,15 @@
           "values": null
         },
         {
+          "key": "comment_search_folded",
+          "title": "Default: comment search folded",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "comment_links",
           "title": "Default: comment links",
           "description": null,
@@ -2278,7 +2314,7 @@
     },
     {
       "name": "Copy bio and IDs",
-      "description": "Lets you long-press a bio to copy it, and adds share sheet buttons that copy a username, user ID or video ID. On by default. Turn it off in Hushfeed settings > App.",
+      "description": "Lets you long-press a bio to copy it, makes the @names in a bio open those profiles on a tap, and adds share sheet buttons that copy a username, user ID or video ID. On by default. Turn it off in Hushfeed settings > App.",
       "category": "Interaction",
       "use": true,
       "dependencies": [
@@ -2331,6 +2367,15 @@
           "required": false,
           "type": "kotlin.Boolean",
           "default": false,
+          "values": null
+        },
+        {
+          "key": "bio_mention_links",
+          "title": "Default: bio mention links",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
           "values": null
         }
       ]
@@ -3274,6 +3319,15 @@
           "values": null
         },
         {
+          "key": "download_unmetered_only",
+          "title": "Default: download unmetered only",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "download_sticker_format",
           "title": "Default: download sticker format",
           "description": null,
@@ -3343,6 +3397,15 @@
           "required": false,
           "type": "kotlin.Boolean",
           "default": true,
+          "values": null
+        },
+        {
+          "key": "skip_post_download_share_sheet",
+          "title": "Default: skip post download share sheet",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
           "values": null
         }
       ]
@@ -6420,6 +6483,15 @@
           "values": null
         },
         {
+          "key": "hide_following_live_row",
+          "title": "Default: hide following live row",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "hide_detail_comment_bar",
           "title": "Default: hide detail comment bar",
           "description": null,
@@ -6431,6 +6503,15 @@
         {
           "key": "hide_clear_display_controls",
           "title": "Default: hide clear display controls",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "keep_clear_display_seek_bar",
+          "title": "Default: keep clear display seek bar",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",
@@ -8949,6 +9030,15 @@
           "required": false,
           "type": "kotlin.String",
           "default": "2",
+          "values": null
+        },
+        {
+          "key": "hold_speed_slide",
+          "title": "Default: hold speed slide",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
           "values": null
         },
         {

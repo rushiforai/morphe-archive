@@ -110,7 +110,7 @@ The top bar with search and Messenger stays put while you scroll down, instead o
 # context: switch title under Appearance, after Keep the top bar on screen; a big screen is a tablet or the inner screen of a folding phone, and the phone layout is the one Facebook shows on a normal phone
 Phone layout on big screens	Bố cục điện thoại trên màn hình lớn
 # context: description of that switch; on a big screen Facebook keeps the tab bar at the top in a wider layout, so the tab bar switches above it do nothing there
-A tablet or an unfolded phone gets the layout Facebook uses on a phone, so the tab bar switches above work on the big screen too. Facebook's wider big screen layout goes away. Off by default, since it hasn't been tried on a big screen yet. Restart Facebook to see the change.	Máy tính bảng hoặc điện thoại gập khi mở ra sẽ dùng bố cục Facebook dành cho điện thoại, nên các công tắc thanh tab ở trên cũng hoạt động trên màn hình lớn. Bố cục rộng hơn dành cho màn hình lớn của Facebook sẽ mất đi. Mặc định tắt vì chưa được thử trên màn hình lớn. Khởi động lại Facebook để thấy thay đổi.
+A tablet or an unfolded phone gets the layout Facebook uses on a phone, so the tab bar choices above work on the big screen too. Facebook's wider big screen layout goes away. Off by default, since it hasn't been tried on a big screen yet. Restart Facebook to see the change.	Máy tính bảng hoặc điện thoại gập khi mở ra sẽ dùng bố cục Facebook dành cho điện thoại, nên các tùy chọn thanh tab ở trên cũng hoạt động trên màn hình lớn. Bố cục rộng hơn dành cho màn hình lớn của Facebook sẽ mất đi. Mặc định tắt vì chưa được thử trên màn hình lớn. Khởi động lại Facebook để thấy thay đổi.
 # context: switch title under Appearance, after Phone layout on big screens; it makes Facebook's top bar (search and Messenger) and its tab bar partly transparent
 See-through bars	Thanh trong suốt
 # context: description of that switch; the feed is the list of posts on Home, and blurred means frosted like glass
@@ -191,7 +191,7 @@ Reels show up in four places, and each one has its own control.	Reels xuất hi�
 Reels in the feed	Reels trên bảng tin
 In News feed, Hide Reels in the feed blocks the rows of reels between posts.	Trong Bảng tin, Ẩn Reels trên bảng tin chặn các hàng reel giữa các bài viết.
 Reels that play by themselves	Reels tự phát
-In Playback, Tap to play blocks autoplay, so reels and other videos wait for your tap.	Trong Phát lại, Nhấn để phát chặn tự động phát, nên reel và video khác chờ bạn nhấn.
+In Video and audio, Tap to play blocks autoplay, so reels and other videos wait for your tap.	Trong Video và âm thanh, Nhấn để phát chặn tự động phát, nên reel và video khác chờ bạn nhấn.
 The Reels tab	Tab Reels
 # context: map line without the patch; %1$s is the patch's English name in Morphe Manager
 Facebook's own setting blocks it. Open Settings, Tab bar, Customize the bar and choose Hide next to Reels, which some accounts call Video. If neither is listed, choose the %1$s patch in Morphe Manager and patch again.	Cài đặt riêng của Facebook có thể chặn tab này. Mở Cài đặt, Thanh tab, Tùy chỉnh thanh rồi chọn Ẩn cạnh Reels (một số tài khoản gọi là Video). Nếu không thấy cả hai, hãy chọn bản vá %1$s trong Morphe Manager và vá lại.
@@ -357,7 +357,6 @@ Stops sending Facebook your list of watched reels. It uses the list to rank your
 # context: switch title under Reels and Watch; the Reels tab shows the most recently posted reels before older ones
 Newest reels first	Reel mới nhất trước
 # context: summary of that switch; "loaded" means the reels the app has already downloaded in the background, "placed" means reels already lined up as the next ones
-The Reels tab plays the newest posted of the reels Facebook has loaded for you first, instead of its own pick. It can't fetch newer ones, and reels already placed stay put. Off by default, since it hasn't been tried on a real account yet.	Tab Reels phát trước những reel được đăng gần đây nhất trong số reel Facebook đã tải sẵn cho bạn, thay vì theo lựa chọn của Facebook. Tính năng này không tải được reel mới hơn, và những reel đã xếp hàng sẽ giữ nguyên chỗ. Mặc định tắt vì chưa được thử trên tài khoản thật.
 # context: what stays in while Hushfacebook is paused, shown before the patch's name in brackets; the patch raises the app's version number so Google Play never offers an update
 Meta's apps can install beside this one	Ứng dụng của Meta có thể cài cùng ứng dụng này
 Messenger, Facebook Lite, Business Suite and Workplace can install next to this Facebook. Their shared permissions no longer clash.	Messenger, Facebook Lite, Business Suite và Workplace có thể cài cạnh Facebook này. Các quyền dùng chung không còn xung đột.
@@ -464,7 +463,6 @@ Hide Meta AI in search	Ẩn Meta AI trong tìm kiếm
 # context: summary of that switch; Meta AI and Ask Meta AI are Meta's own names, as Facebook shows them
 Search no longer shows Meta AI answers or Ask Meta AI prompts, or sends your search to Meta AI. Results for people, groups, pages and posts stay.	Tìm kiếm không còn hiện câu trả lời của Meta AI hay lời nhắc Hỏi Meta AI, và không gửi nội dung tìm kiếm cho Meta AI. Kết quả về người, nhóm, trang và bài viết vẫn giữ nguyên.
 # context: settings section heading for the Default comment order switch and its list
-Comments	Bình luận
 # context: switch title; on, a post's comments open in the order chosen in the list below it
 Default comment order	Thứ tự bình luận mặc định
 # context: summary of that switch; a link to a comment is one from a notification, say
@@ -477,6 +475,8 @@ Hides Meta AI's summary at the top of comments and the comment summary under a p
 Hide comments under posts	Ẩn bình luận dưới bài viết
 # context: summary of that switch; Comment is the post's Comment button
 Feed posts stop showing a few comments under their buttons. Tap Comment to read them all.	Bài viết trên bảng tin không còn hiện bình luận dưới các nút. Nhấn Bình luận để đọc tất cả.
+Hide dislike on comments	Ẩn nút không thích ở bình luận
+Takes the thumbs-down off comments. Like and Reply stay.	Bỏ nút ngón cái hướng xuống khỏi bình luận. Thích và Trả lời vẫn giữ nguyên.
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	Chỉ Thích
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -538,6 +538,24 @@ Hides ads between posts on someone's profile or a Page. Their own posts stay.	�
 Hide profile notes	Ẩn ghi chú trên trang cá nhân
 # context: summary of that switch
 Hides the note bubble that sits on profile pictures. Applies the next time you open a profile.	Ẩn bong bóng ghi chú trên ảnh đại diện. Áp dụng vào lần tới bạn mở một trang cá nhân.
+# context: switch title under News feed; Save is Facebook's own button that keeps a post in your saved items
+Save button under posts	Nút Lưu dưới bài viết
+# context: summary of that switch; Like, Comment and Share are the buttons under a post
+Adds Facebook's own Save button next to Like, Comment and Share under posts. A saved post shows its bookmark filled in.	Thêm nút Lưu của chính Facebook bên cạnh Thích, Bình luận và Chia sẻ dưới bài viết. Bài viết đã lưu sẽ hiện dấu trang được tô đầy.
+# context: switch title under News feed; a button that saves a post's video or photos to the phone
+Download button under posts	Nút Tải xuống dưới bài viết
+# context: summary of that switch; Downloads is the name of Hushfacebook's settings page for saving media
+Adds a Download button under posts with a video or photos. It saves the video, the photo, or every photo of an album, using the Downloads settings.	Thêm nút Tải xuống dưới các bài viết có video hoặc ảnh. Nút này lưu video, ảnh hoặc mọi ảnh trong album theo cài đặt Tải xuống.
+# context: switch title under News feed; Like is Facebook's own button under a post
+Hide Like under posts	Ẩn Thích dưới bài viết
+# context: switch title under News feed; Comment is Facebook's own button under a post
+Hide Comment under posts	Ẩn Bình luận dưới bài viết
+# context: switch title under News feed; Share is Facebook's own button under a post
+Hide Share under posts	Ẩn Chia sẻ dưới bài viết
+# context: switch title under News feed; Send is Facebook's own button under a post that sends it in a chat
+Hide Send under posts	Ẩn Gửi dưới bài viết
+# context: summary shared by those four switches
+Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	Bỏ nút này khỏi hàng dưới bài viết trong bảng tin. Các nút khác vẫn còn, và bài viết bị ẩn hết nút sẽ không hiện hàng nút.
 # context: what stays in while Hushfacebook is paused, followed by the patch name in brackets; the row in Facebook's own Menu that opens Hushfacebook settings
 # context: a short message when the Hushfacebook row in Facebook's Menu couldn't open the settings
 Hushfacebook settings can't open here. Long-press the Facebook logo instead.	Không thể mở cài đặt Hushfacebook ở đây. Hãy nhấn giữ logo Facebook.
@@ -745,7 +763,6 @@ Active. Events, Notifications and Profile/Menu stay. Find Hushfacebook settings 
 # context: Settings overview, category navigation and search.
 Ads, suggestions and word filters	Quảng cáo, gợi ý và bộ lọc từ
 Cleaner reels and video controls	Reel gọn hơn và điều khiển video
-Tap to play, quality and resume	Nhấn để phát, chất lượng và phát tiếp
 Quality, format and file names	Chất lượng, định dạng và tên tệp
 No matching settings	Không có cài đặt phù hợp
 %1$d setting found	Tìm thấy %1$d cài đặt
@@ -837,7 +854,7 @@ Videos play at the lowest quality Facebook offers for each.	Video phát ở ch�
 Videos play at the best quality up to %1$s that Facebook offers for each, or the closest above.	Video phát ở chất lượng tốt nhất đến %1$s mà Facebook cung cấp cho từng video, hoặc mức gần nhất cao hơn.
 Videos play at the highest quality Facebook offers for each.	Video phát ở chất lượng cao nhất Facebook cung cấp cho từng video.
 Facebook will pick the quality videos play at.	Facebook sẽ chọn chất lượng phát video.
-Playback quality will be set to %1$s.	Chất lượng phát sẽ được đặt thành %1$s.
+Default quality will be set to %1$s.	Chất lượng mặc định sẽ được đặt thành %1$s.
 # context: import preview and toast sentence when a settings file sets the Reels quality to follow the playback quality
 Reels will play at the same quality as other videos.	Reel sẽ phát ở cùng chất lượng với video khác.
 # context: import preview and toast sentence; %1$s is a Reels quality choice such as Up to 720p
@@ -944,6 +961,8 @@ Hides the row of Meta AI questions under some posts. The post, its link card and
 Keep post dates	Giữ ngày đăng bài
 # context: description of that switch; the rotating details are the texts Facebook's newer post header takes turns showing on that line
 Shows the post's date under the poster's name instead of Facebook's rotating details, which can go blank on some phones.	Hiện ngày đăng dưới tên người đăng thay cho thông tin luân phiên của Facebook, vốn có thể trống trên một số điện thoại.
+Show full post text	Hiện toàn bộ nội dung bài viết
+Posts in the feed show all of their text, so there's no See more to tap.	Bài viết trong bảng feed hiện toàn bộ nội dung, nên không cần nhấn Xem thêm.
 # context: switch title under News feed; the Feeds header is the row at the top of the Feeds tab with Feeds, the menu and search, and the filters under it, All, Favorites, Friends, Groups and Pages
 Hide the Feeds header	Ẩn đầu trang Bảng feed
 # context: description of that switch; the Feeds tab is where Facebook lists posts by those filters, and the title row is the one with the tab's name
@@ -966,6 +985,16 @@ Couldn't open an app for this link	Không mở được ứng dụng nào cho li
 Video link	Liên kết video
 # context: Toast after a long press on the reel button copied its link
 Link copied	Đã sao chép liên kết
+# context: row title in a reel's three-dot More menu; the caption is the text under the reel
+Copy caption	Sao chép chú thích
+# context: Clipboard label of a copied reel caption
+Reel caption	Chú thích reel
+# context: Toast after Copy caption copied a reel's caption
+Caption copied	Đã sao chép chú thích
+# context: switch title under Saving reels on the Reels and Watch page
+Copy reel captions	Sao chép chú thích reel
+# context: summary of that switch; More is the reel's three-dot menu, See more is the link that opens a long caption
+A reel's More menu gets Copy caption, which copies the whole caption, even the part behind See more.	Menu Khác của reel có thêm Sao chép chú thích, sao chép toàn bộ chú thích, kể cả phần ẩn sau Xem thêm.
 # context: Toast when a reel's link can't be built
 Couldn't find this reel's link	Không tìm thấy liên kết của reel này
 # context: Toast when a feed video's link can't be built
@@ -1178,16 +1207,16 @@ With Block Instant Games ads on, a game's rewarded ad counts as watched. No ad p
 Reels quality	Chất lượng reel
 # context: title of the list that picks the quality video stories start at
 Stories quality	Chất lượng tin
-# context: first choice in the Reels and Stories quality lists: follow the Playback quality row; use this language's name for that row
-Same as Playback quality	Giống Chất lượng phát
+# context: first choice in the Reels and Stories quality lists: follow the Default quality row
+Same as default	Giống mặc định
 # context: summary of the Reels quality list when it follows the Playback quality row
-Reels follow the Playback quality row.	Reel theo dòng Chất lượng phát.
+Reels follow the Default quality row.	Reel theo dòng Chất lượng mặc định.
 # context: summary of the Stories quality list when it follows the Playback quality row
-Video stories follow the Playback quality row.	Tin video theo dòng Chất lượng phát.
+Video stories follow the Default quality row.	Tin video theo dòng Chất lượng mặc định.
 # context: summary of the Reels quality list when it has a quality of its own; %1$s is that choice, such as Highest or Up to 720p
-%1$s for reels, whatever Playback quality is set to.	%1$s cho reel, bất kể Chất lượng phát đặt ở mức nào.
+%1$s for reels, whatever Default quality is set to.	%1$s cho reel, bất kể Chất lượng mặc định đặt ở mức nào.
 # context: summary of the Stories quality list when it has a quality of its own; %1$s is that choice, such as Highest or Up to 720p
-%1$s for video stories, whatever Playback quality is set to.	%1$s cho tin video, bất kể Chất lượng phát đặt ở mức nào.
+%1$s for video stories, whatever Default quality is set to.	%1$s cho tin video, bất kể Chất lượng mặc định đặt ở mức nào.
 # context: title of the row naming a folder inside the save folder that video saves go in
 Video subfolder	Thư mục con cho video
 # context: title of the row naming a folder inside the save folder that photo saves go in
@@ -1278,6 +1307,8 @@ Hides short posts shown as big text on a colored background.	Ẩn bài viết ng
 Hide reposts	Ẩn bài viết được chia sẻ lại
 # context: summary of the Hide reposts switch; a caption is what the sharer wrote above the shared post
 Hides posts that share another post, with or without a caption. Original posts stay. Off by default, since it hasn't been tried on a real feed yet.	Ẩn bài viết chia sẻ lại bài viết khác, dù có lời bình hay không. Bài viết gốc vẫn giữ nguyên. Mặc định tắt vì chưa được thử trên bảng tin thật.
+Hide posts from Pages	Ẩn bài viết từ Trang
+Hides posts written by Pages, the ones you follow too. Posts from friends and groups stay, and so does a friend's share of a Page's post.	Ẩn bài viết do Trang đăng, kể cả Trang bạn theo dõi. Bài viết của bạn bè và nhóm vẫn còn, bài viết của Trang do bạn bè chia sẻ cũng vậy.
 # context: switch title in Privacy: asks for the phone's own screen lock before Facebook shows
 Lock Facebook	Khóa Facebook
 Save crashes to Downloads	Lưu sự cố vào thư mục Download
@@ -1349,12 +1380,16 @@ Red	Đỏ
 Indigo	Chàm
 # context: Accent color choice, a yellow-orange
 Amber	Hổ phách
-# context: summary of the Accent color row, greyed out because the Material You theme patch is in the build
-Material You theme is in this build and picks Facebook's colors, so this has no effect.	Bản dựng này có Giao diện Material You và giao diện đó chọn màu cho Facebook, nên mục này không có tác dụng.
+# context: summary of the Accent color row at Facebook blue while the Material You theme patch is in the build
+Material You uses your wallpaper's accent. Pick a color to use it instead.	Material You dùng màu nhấn của hình nền. Chọn một màu để dùng màu đó thay thế.
+# context: summary of the Accent color row while the Material You theme patch is in the build; %1$s is a color name such as Teal
+Material You uses %1$s in place of your wallpaper's accent. Restart Facebook to see the change.	Material You dùng màu %1$s thay cho màu nhấn của hình nền. Khởi động lại Facebook để thấy thay đổi.
+# context: the Accent color list's first choice while the Material You theme patch is in the build: keep the phone's own wallpaper color
+Wallpaper accent	Màu nhấn của hình nền
 # context: summary of the Accent color row at its default
 Links, buttons, switches and the selected tab keep Facebook's blue.	Liên kết, nút, công tắc và tab đang chọn giữ màu xanh của Facebook.
 # context: summary of the Accent color row; %1$s is a color name such as Teal
-Links, buttons, switches and the selected tab use %1$s instead of Facebook's blue. Restart Facebook to see the change. If the Material You theme is added, it takes over.	Liên kết, nút, công tắc và tab đang chọn dùng màu %1$s thay cho màu xanh của Facebook. Khởi động lại Facebook để thấy thay đổi. Nếu có thêm Giao diện Material You, giao diện đó sẽ được ưu tiên.
+Links, buttons, switches and the selected tab use %1$s instead of Facebook's blue. Restart Facebook to see the change.	Liên kết, nút, công tắc và tab đang chọn dùng màu %1$s thay cho màu xanh của Facebook. Khởi động lại Facebook để thấy thay đổi.
 # context: what a settings import changes: Facebook goes back to its own blue
 Facebook will keep its own blue.	Facebook sẽ giữ màu xanh của riêng mình.
 # context: what a settings import changes; %1$s is a color name such as Teal
@@ -1692,6 +1727,14 @@ Takes the numbers away from under a reel's Like, Comment and Share icons. The ic
 # context: Reels and Watch switch for the dedicated WhatsApp sidebar button, independent of the Share menu
 Hide WhatsApp on reels	Ẩn WhatsApp trên reel
 Hides the WhatsApp button beside reels and videos. WhatsApp stays in the Share menu. A change shows from the next video.	Ẩn nút WhatsApp bên cạnh reel và video. WhatsApp vẫn có trong menu Chia sẻ. Thay đổi có hiệu lực từ video tiếp theo.
+# context: switch title under Reels and Watch; Like is Facebook's own label for that button down a reel's right side, so use Facebook's wording in your language
+Hide Like on reels	Ẩn nút Thích trên reel
+# context: switch title under Reels and Watch; Comment is Facebook's own label for that button down a reel's right side, so use Facebook's wording in your language
+Hide Comment on reels	Ẩn nút Bình luận trên reel
+# context: switch title under Reels and Watch; Share is Facebook's own label for that button down a reel's right side, so use Facebook's wording in your language
+Hide Share on reels	Ẩn nút Chia sẻ trên reel
+# context: summary shared by the Like, Comment and Share switches on reels
+Takes this button off the side of reels. The buttons above it move down. A change shows from the next reel.	Bỏ nút này khỏi cạnh bên của reel. Các nút phía trên sẽ dịch xuống. Thay đổi có hiệu lực từ reel tiếp theo.
 # context: switch title under Reels and Watch; Save is Facebook's own label for the bookmark button down a reel's right side, so use Facebook's wording in your language
 Hide Save on reels	Ẩn nút Lưu trên reel
 # context: summary of that switch; the buttons under it are Download and More
@@ -1938,3 +1981,108 @@ Saving, playback and anonymous viewing	Lưu, phát và xem ẩn danh
 Sorting, replies and reactions	Sắp xếp, trả lời và cảm xúc
 Expanded	Đã mở rộng
 Collapsed	Đã thu gọn
+Ads and suggestions	Quảng cáo và gợi ý
+Feed layout	Bố cục bảng feed
+Content filters	Bộ lọc nội dung
+Reels tab and ads	Tab Thước phim và quảng cáo
+On reels and videos	Trên thước phim và video
+Video controls	Điều khiển video
+Saving reels	Lưu thước phim
+Autoplay and resume	Tự phát và phát tiếp
+Video quality	Chất lượng video
+Sound	Âm thanh
+Controls and picture-in-picture	Điều khiển và hình trong hình
+Tab bar	Thanh tab
+Top bar	Thanh trên cùng
+Tabs to hide	Tab cần ẩn
+Dots and counts	Chấm và số đếm
+Text and emoji	Chữ và emoji
+Colors and theme	Màu sắc và giao diện
+Screen and motion	Màn hình và chuyển động
+App icon and header	Biểu tượng ứng dụng và tiêu đề
+Backup and restore	Sao lưu và khôi phục
+Troubleshooting	Khắc phục sự cố
+Help and restart	Trợ giúp và khởi động lại
+Support the project	Ủng hộ dự án
+Video and audio	Video và âm thanh
+Comments and writing	Bình luận và viết
+Tabs and navigation	Tab và điều hướng
+Links and sharing	Liên kết và chia sẻ
+Chats and Messenger	Đoạn chat và Messenger
+Built-in changes	Thay đổi tích hợp sẵn
+Autoplay, quality and sound	Tự phát, chất lượng và âm thanh
+Tab bar, top bar, hidden tabs and dots	Thanh tab, thanh trên cùng, tab ẩn và dấu chấm
+Default quality	Chất lượng mặc định
+Tab bar position	Vị trí thanh tab
+Tab bar while scrolling	Thanh tab khi cuộn
+At the bottom	Ở dưới cùng
+At the top	Ở trên cùng
+Hides while scrolling	Ẩn khi cuộn
+Stays on screen	Luôn trên màn hình
+Facebook decides where the tab bar goes on your account. Restart Facebook after you change this.	Facebook quyết định vị trí thanh tab trên tài khoản của bạn. Hãy khởi động lại Facebook sau khi đổi mục này.
+Facebook decides whether the bottom tab bar slides away as you scroll. Restart Facebook after you change this.	Facebook quyết định thanh tab dưới cùng có trượt đi khi bạn cuộn hay không. Hãy khởi động lại Facebook sau khi đổi mục này.
+# context: heading above a text field under a word list being edited, where a person types text to test the lists on
+Try the lists on some text	Thử các danh sách trên một đoạn văn bản
+# context: hint inside that test field
+Text of a post	Nội dung một bài viết
+# context: line under the test field when the Words to hide list is empty
+The hide list is empty, so no post would be hidden.	"Từ cần ẩn" đang trống, nên không bài viết nào bị ẩn.
+# context: line under the test field before anything is typed in it
+Type or paste a post's text to see what these lists would do with it. It isn't saved.	Gõ hoặc dán nội dung một bài viết để xem các danh sách này sẽ làm gì với nó. Nội dung không được lưu.
+# context: line under the test field: the lists would hide a post with the typed text
+A post with this text would be hidden.	Bài viết có nội dung này sẽ bị ẩn.
+# context: line under the test field: the Words that keep a post list matches the typed text
+A post with this text would stay, because the keep list matches it.	Bài viết có nội dung này sẽ được giữ lại, vì "Từ giữ lại bài viết" khớp với nó.
+# context: line under the test field: the lists' patterns (regular expressions) ran out of time on the typed text, and such a post stays
+A post with this text would stay, because the patterns took too long on it.	Bài viết có nội dung này sẽ được giữ lại, vì các mẫu xử lý nó quá lâu.
+# context: line under the test field: no word, phrase or pattern of either list matches the typed text
+A post with this text would stay. Nothing on either list matches it.	Bài viết có nội dung này sẽ được giữ lại. Không có gì trong hai danh sách khớp.
+# context: added after one of those lines when the typed text was too long; %1$d is how many characters were read
+Only the first %1$d characters were checked.	Chỉ %1$d ký tự đầu tiên được kiểm tra.
+Save on	Lưu vào
+Phone storage	Bộ nhớ điện thoại
+SD card that isn't in the phone	Thẻ SD không có trong điện thoại
+Videos and photos are saved on the phone's storage.	Video và ảnh được lưu vào bộ nhớ điện thoại.
+Videos and photos are saved on the phone's storage. Put in an SD card to save on it instead.	Video và ảnh được lưu vào bộ nhớ điện thoại. Lắp thẻ SD để lưu vào thẻ.
+The SD card you picked isn't in the phone, so videos and photos are saved on the phone's storage until it's back.	Thẻ SD bạn đã chọn không có trong điện thoại, nên video và ảnh được lưu vào bộ nhớ điện thoại cho đến khi thẻ được lắp lại.
+Videos and photos are saved on %1$s, in the same folders. Saves you already have stay where they are.	Video và ảnh được lưu vào %1$s, trong cùng các thư mục. Những gì đã lưu vẫn ở nguyên chỗ cũ.
+Pause reels while comments are open	Tạm dừng reel khi đang mở bình luận
+A reel stops while you read its comments and plays on from the same spot when you close them.	Reel dừng lại khi bạn đọc bình luận và phát tiếp từ đúng chỗ đó khi bạn đóng bình luận.
+Sort loaded reels	Sắp xếp reel đã tải
+The Reels tab plays the reels Facebook has loaded for you in the order picked below, instead of its own pick. It can't fetch more, and reels already placed stay put. Off by default, since it hasn't been tried on a real account yet.	Tab Reels phát các reel Facebook đã tải sẵn cho bạn theo thứ tự chọn bên dưới, thay vì theo lựa chọn của Facebook. Tính năng này không tải thêm được reel, và những reel đã xếp hàng sẽ giữ nguyên chỗ. Mặc định tắt vì chưa được thử trên tài khoản thật.
+Reels order	Thứ tự reel
+Most liked	Nhiều cảm xúc nhất
+Of the reels Facebook has loaded, the ones with the most reactions play first.	Trong số reel Facebook đã tải, những reel có nhiều cảm xúc nhất được phát trước.
+Of the reels Facebook has loaded, the newest posted play first.	Trong số reel Facebook đã tải, những reel đăng gần đây nhất được phát trước.
+Reels order will be set to %1$s.	Thứ tự reel sẽ được đặt thành %1$s.
+Cast button on feed videos	Nút truyền trên video bảng tin
+Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	Thêm nút truyền vào video trên bảng tin. Nút này chuyển video sang ứng dụng truyền bạn có, như Web Video Caster, để phát lên TV. Facebook không còn tính năng truyền riêng nữa.
+Cast this video	Truyền video này
+# context: title of the row that holds a color code for the count badges on the tabs
+Badge color	Màu huy hiệu
+# context: title of the row that holds a color code for the Facebook logo at the top of Home
+Logo color	Màu logo
+# context: dialog message of the Logo color row; keep #RRGGBB and #2ECC71 as they are
+A color code (#RRGGBB) for the Facebook logo at the top of Home, like #2ECC71. Leave it blank for Facebook's blue.	Mã màu (#RRGGBB) cho logo Facebook ở đầu Trang chủ, ví dụ #2ECC71. Để trống để dùng màu xanh của Facebook.
+# context: dialog message of the Badge color row; keep #RRGGBB and #2ECC71 as they are
+A color code (#RRGGBB) for the count badges on the tabs, like #2ECC71. Leave it blank for Facebook's red.	Mã màu (#RRGGBB) cho huy hiệu số trên các tab, ví dụ #2ECC71. Để trống để dùng màu đỏ của Facebook.
+# context: summary of the Logo color row while it's blank
+The Facebook logo keeps its blue. Type a color code to change it.	Logo Facebook giữ màu xanh. Nhập mã màu để thay đổi.
+# context: summary of the Badge color row while it's blank
+Badges keep Facebook's red. Type a color code to change it.	Huy hiệu giữ màu đỏ của Facebook. Nhập mã màu để thay đổi.
+# context: summary of the Logo color row; %1$s is a color code like #2ECC71
+The Facebook logo at the top of Home is %1$s. Restart Facebook to see the change.	Logo Facebook ở đầu Trang chủ có màu %1$s. Khởi động lại Facebook để thấy thay đổi.
+# context: summary of the Badge color row; %1$s is a color code like #2ECC71
+Count badges on the tabs are %1$s. Restart Facebook to see the change.	Huy hiệu số trên các tab có màu %1$s. Khởi động lại Facebook để thấy thay đổi.
+# context: shown when Save is tapped on the Badge or Logo color row with text that isn't a color code; %1$s is what was typed; keep #RRGGBB and #2ECC71 as they are
+"%1$s" isn't a color. Type a six-digit color code (#RRGGBB), like #2ECC71, or leave it blank for Facebook's own.	“%1$s” không phải là màu. Hãy nhập mã màu sáu chữ số (#RRGGBB), ví dụ #2ECC71, hoặc để trống để dùng màu của Facebook.
+# context: shown when Save is tapped on the Badge or Logo color row with a see-through color; %1$s is what was typed; keep #RRGGBB and #2ECC71 as they are
+%1$s is see-through. Type a solid six-digit color code (#RRGGBB), like #2ECC71.	%1$s trong suốt. Hãy nhập mã màu đặc sáu chữ số (#RRGGBB), ví dụ #2ECC71.
+# context: import preview sentence: the file sets the Badge color row back to blank; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, badges will be Facebook's red.	Nếu Facebook đã vá có Màu huy hiệu và logo, huy hiệu sẽ có màu đỏ của Facebook.
+# context: import preview sentence: the file sets the Logo color row back to blank; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, the logo will be Facebook's blue.	Nếu Facebook đã vá có Màu huy hiệu và logo, logo sẽ có màu xanh của Facebook.
+# context: import preview sentence: the file sets the Badge color row; %1$s is a color code like #2ECC71; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, badges will be %1$s.	Nếu Facebook đã vá có Màu huy hiệu và logo, huy hiệu sẽ có màu %1$s.
+# context: import preview sentence: the file sets the Logo color row; %1$s is a color code like #2ECC71; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, the logo will be %1$s.	Nếu Facebook đã vá có Màu huy hiệu và logo, logo sẽ có màu %1$s.

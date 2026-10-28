@@ -18,6 +18,9 @@ instructions fail the run. Covered, when the APK has them:
   buffer, for each choice.
 - Hide mature-content warning: the preferences selector state => state.isOver18 returns true when on, the stored
   value when off.
+- Lurk in account menu: AccountScreen's developer settings row, run from its role check for an account without
+  staff roles, is drawn when on as an AccountMenuItem labelled "Lurk" whose href is Lurk's link, one expo-router
+  hands to Linking.openURL; when off nothing is drawn, as in stock.
 This doesn't run React Native; the device and the on-screen result are checked separately (docs/kick.md).
 """
 import argparse
@@ -25,6 +28,7 @@ import ast
 from io import BytesIO
 import json
 from pathlib import Path
+import re
 import struct
 import sys
 from zipfile import is_zipfile, ZipFile
@@ -339,6 +343,66 @@ def mature(bundle):
         check(returns(bundle, header, on, params=(state,)) is True, f"on: the selector returns true over a stored {stored}")
 
 
+def lurk_menu(bundle):
+    """Lurk in account menu: the developer settings row of AccountScreen, from its role check to the element."""
+    key = "lurk_menu_entry"
+    header = bundle.named("AccountScreen")
+    stock = bundle.code(header, bundle.stock)
+    order = sorted(stock)
+    rows = []
+    for position in order:
+        i = stock[position]
+        if i.inst.name not in ("NewObjectWithBuffer", "NewObjectWithBufferLong"):
+            continue
+        keys = [k.strip("'\"") for k in bundle.reader.object_shape_keys[i.arg2]]
+        if keys != ["href", "icon", "label", "testID", "gaEvent"]:
+            continue
+        values = bundle.stock[bundle.literal_start + i.arg3:bundle.literal_start + len(bundle.reader.literal_values)]
+        if bundle.literal(unpack_slp_array(values, 5, 99).to_strings(bundle.strings)[0]) == "/dev-settings":
+            rows.append(position)
+    check(len(rows) == 1, "one developer settings row in AccountScreen")
+    index = order.index(rows[0])
+    guards = [p for p in order[max(0, index - 12):index] if stock[p].inst.name == "JmpFalse"]
+    check(len(guards) == 1, "one role check before the row")
+    guard = stock[guards[0]]
+    tested, skip = guard.arg2, guard.original_pos + guard.arg1
+    translate = next(stock[p] for p in order[index:index + 4] if stock[p].inst.name == "Call2")
+
+    def jsx(this, kind, props):
+        return {"type": kind, "props": props}
+
+    class Module(dict):
+        def get(self, name, default=None):
+            return jsx if name in ("jsx", "jsxs") else name
+
+    class Environment:
+        def __getitem__(self, slot):
+            return Module()
+
+    for value in ("true", "false"):
+        data = bundle.state({key: value})
+        edited = Bundle(data, data, bundle.manifest)
+        registers = {n: Environment() for n in range(256)}
+        registers[translate.arg2] = lambda this, message: "t:" + message
+        registers[tested] = False  # An account without staff roles.
+        _, r = edited.run(edited.named("AccountScreen"), data, registers=registers, start=guard.original_pos,
+                          stop={skip})
+        element = r[tested]
+        if value == "false":
+            check(element is False, "off: no row for an account without staff roles, as in stock")
+            continue
+        row = element["props"]["children"]
+        props = row["props"]
+        check(element["type"] == "Fragment" and row["type"] == "AccountMenuItem", "on: an AccountMenuItem is drawn")
+        check(props["label"] == "Lurk" and props["testID"] == "Lurk", "on: labelled Lurk, not translated")
+        check(props["href"] == "lurk://settings" and EXTERNAL_LINK.match(props["href"]) is not None,
+              "on: its href is lurk://settings, an external link for expo-router (Linking.openURL)")
+
+
+# expo-router's hasUrlProtocolPrefix, which shouldLinkExternally checks first.
+EXTERNAL_LINK = re.compile(r"^([\w\d_+.-]+:)?//")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("stock", type=Path)
@@ -379,6 +443,9 @@ def main():
     if "hide_mature_warning" in keys:
         mature(bundle)
         covered.append("Hide mature-content warning")
+    if "lurk_menu_entry" in keys:
+        lurk_menu(bundle)
+        covered.append("Lurk in account menu")
     assert covered, "the APK has none of the Interface patches this checks"
     print("PASS: executed " + ", ".join(dict.fromkeys(covered)))
 

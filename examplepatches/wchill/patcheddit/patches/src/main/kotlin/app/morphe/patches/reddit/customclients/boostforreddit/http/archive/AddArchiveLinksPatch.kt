@@ -3,68 +3,80 @@
  * https://github.com/wchill/patcheddit
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
+ * Modifications Copyright 2026 brealorg.
+ * Adapted from https://github.com/brealorg/breal-morphe-patches (0226c2e).
  */
 
 package app.morphe.patches.reddit.customclients.boostforreddit.http.archive
 
+import app.morphe.patches.reddit.customclients.boostforreddit.bindings.BoostApi
+
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.smali.ExternalLabel
-import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
-import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
+import app.morphe.patches.reddit.customclients.AppCompatibility
+import app.morphe.patches.reddit.customclients.ExtensionPatches
+import app.morphe.patches.all.misc.PatchCategory
+import app.morphe.patches.reddit.customclients.boostforreddit.wrapHook
+import app.morphe.util.getReference
+import app.morphe.util.indexOfFirstInstructionOrThrow
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-
-internal val SETTINGS_UTILS_EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/boostforreddit/utils/SettingsUtils;"
-
+internal val SETTINGS_UTILS_EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/boost/utils/SettingsUtils;"
 
 @Suppress("unused")
 val addArchiveLinks = bytecodePatch(
-    name="Add archive links to context menu",
+    name = "Add archive links to context menu",
+    description = "Adds 'Open with Wayback Machine' and 'Open with Archive.is' to the link context menu.",
     default = true
 ) {
-    dependsOn(sharedExtensionPatch)
-    compatibleWith(*BoostCompatible)
+    category(PatchCategory.LINKS)
+    dependsOn(ExtensionPatches.Boost)
+    compatibleWith(*AppCompatibility.Boost)
     execute {
-        linkBuildContextMenuFingerprint.method.apply {
-            val index = linkBuildContextMenuFingerprint.instructionMatches.last().index
+        LinkBuildContextMenuFingerprint.method.apply {
+            val index = indexOfFirstInstructionOrThrow {
+                getReference<MethodReference>()?.toString() ==
+                    BoostApi.BoostMenuView.setMenuOptions.toString()
+            }
+            val listRegister = getInstruction<FiveRegisterInstruction>(index).registerD
             addInstructions(
                 index,
                 """
-                invoke-static       {v0}, $SETTINGS_UTILS_EXTENSION_CLASS_DESCRIPTOR->addMenuOptions(Ljava/util/List;)V
+                invoke-static {v$listRegister}, $SETTINGS_UTILS_EXTENSION_CLASS_DESCRIPTOR->addMenuOptions(Ljava/util/List;)V
                 """
             )
         }
 
-        onClickContextMenuFingerprint.method.apply {
-            val index = onClickContextMenuFingerprint.instructionMatches.last().index
-            val openLinkDialogName = "Lcom/rubenmayayo/reddit/ui/customviews/t;"
-            val navigationName = "Lcom/rubenmayayo/reddit/ui/activities/i;"
-            val openUriName = "d0"
-            addInstructionsWithLabels(
-                index,
-                """
-                const/16            v1, 101
-                if-eq               v0, v1, :wayback
-                const/16            v1, 102
-                if-eq               v0, v1, :archive
-                goto                :continue
-                :wayback
-                const-string        v0, "https://web.archive.org/web/"
-                goto                :action
-                :archive
-                const-string        v0, "https://archive.is/"
-                :action
-                iget-object         p1, p0, $openLinkDialogName->a:Landroid/content/Context;
-                iget-object         v1, p0, $openLinkDialogName->c:Ljava/lang/String;
-                invoke-virtual      {v0, v1}, Ljava/lang/String;->concat(Ljava/lang/String;)Ljava/lang/String;
-                move-result-object  v0
-                invoke-static       {p1, v0}, $navigationName->$openUriName(Landroid/content/Context;Ljava/lang/String;)V
+        OnClickContextMenuFingerprint.wrapHook(
+            before = """
+                iget v0, p1, ${BoostApi.MenuOption.id}
+                const/16 v1, 101
+                if-eq v0, v1, :morphe_wayback
+                const/16 v1, 102
+                if-eq v0, v1, :morphe_archive
+                goto :morphe_native_context_menu
+                :morphe_wayback
+                const-string v2, "https://web.archive.org/web/"
+                goto :morphe_open_archive
+                :morphe_archive
+                const-string v2, "https://archive.is/"
+                :morphe_open_archive
+                iget-object v0, p0, ${BoostApi.LinkMenuListener.linkMenu}
+                iget-object v1, v0, ${BoostApi.LinkMenu.context}
+                iget-object v0, v0, ${BoostApi.LinkMenu.url}
+                invoke-virtual {v2, v0}, Ljava/lang/String;->concat(Ljava/lang/String;)Ljava/lang/String;
+                move-result-object v0
+                invoke-static {v1, v0}, ${BoostApi.Navigation.openUrl}
+                iget-object v0, p0, ${BoostApi.LinkMenuListener.linkMenu}
+                iget-object v0, v0, ${BoostApi.LinkMenu.dialog}
+                if-eqz v0, :morphe_archive_menu_closed
+                invoke-virtual {v0}, ${BoostApi.MaterialDialog.dismiss}
+                :morphe_archive_menu_closed
                 return-void
-                """,
-                ExternalLabel("continue", getInstruction(index))
-            )
-        }
+                :morphe_native_context_menu
+            """,
+        )
     }
 }

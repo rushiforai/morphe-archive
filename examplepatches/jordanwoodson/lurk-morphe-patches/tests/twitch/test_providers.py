@@ -50,7 +50,8 @@ if __name__ == '__main__':
         'twitch/TwitchBadges.java', 'twitch/TwitchPronouns.java'],
         Path(__file__).with_name('TwitchProvidersProbe.java').read_text(),
         sys.argv[1:] or ['unicode', 'multiline', 'queued-disable', 'badges-disable', 'pronouns-disable', 'rn-dispose', 'rn-native-demand', 'rn-badges-dispose',
-            'rn-pronouns-dispose', 'rn-frame-passive', 'rn-passive', 'cache-bound', 'demand-reacquire', 'queue-rejection'], extra=PLATFORM)
+            'rn-pronouns-dispose', 'rn-frame-passive', 'rn-passive', 'cache-bound', 'demand-reacquire', 'queue-rejection',
+            'describe'], extra=PLATFORM)
 
     # Completion ordering uses tokenized HTTP bodies and a drawing boundary; cache/scheduling code is production.
     completion=dict(PLATFORM)

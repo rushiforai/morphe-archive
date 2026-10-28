@@ -1392,6 +1392,7 @@ Value to return	Возвращаемое значение
 Verified accounts	Верифицированные аккаунты
 Version %1$s	Версия %1$s
 Version %1$s for TikTok %2$s	Версия %1$s для TikTok %2$s
+Version %1$s for PineDrama %2$s	Версия %1$s для PineDrama %2$s
 Video	Видео
 Video (MP4)	Видео (MP4)
 Video destination	Папка для видео
@@ -1518,6 +1519,8 @@ Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll
 Hide the unread badges on the bottom tabs	Скрывать значки непрочитанного на нижних вкладках
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Скрывать красные счётчики и точки на всех нижних вкладках, включая «Входящие» и «Профиль», а также всплывающий значок над «Входящими» с числом новых лайков, подписчиков, комментариев и тех, кто в LIVE. Сами входящие по-прежнему показывают, что пришло.
 Speed while you hold the video	Скорость при удержании видео
+Slide to change the hold speed	Смена скорости удержания свайпом
+While you hold a video, slide left or right to change its speed, and a bubble shows it. Letting go goes back to normal. A pull-down lock keeps the speed you slid to.	Удерживая видео, проведите влево или вправо, чтобы изменить скорость. Её показывает пузырь. Когда отпустите, скорость станет обычной. Блокировка свайпом вниз сохраняет выбранную скорость.
 Hide mini dramas	Скрывать мини-драмы
 Hide TikTok's short drama episodes and the cards that promote them.	Скрывать короткие драма-эпизоды TikTok и карточки, которые их продвигают.
 Mini dramas	Мини-драмы
@@ -1603,7 +1606,8 @@ This preset doesn't match the installed gates. Nothing changed.	Эта пред�
 About overrides	О переопределениях
 Use {creator}, {date} and {video_id} to build the name. Start with {creator}/ to put each creator in a folder. The file ending is added for you.	Составьте имя из {creator}, {date} и {video_id}. Начните с {creator}/, чтобы класть каждого автора в отдельную папку. Расширение файла добавляется само.
 Save details beside the video	Сохранять детали рядом с видео
-Saves the caption, creator, link and post date in a text file next to the video. On Android 10 and later, the pair goes in Download or Documents under the same folder name. Applies to saves made by Hushfeed.	Сохраняет описание, автора, ссылку и дату публикации в текстовом файле рядом с видео. На Android 10 и новее эта пара попадает в Download или Documents под тем же именем папки. Действует для сохранений, сделанных Hushfeed.
+Saves the caption, creator, link and post date in a text file next to the video, or one file for a photo post's original photos. On Android 10 and later, they go in Download or Documents under the same folder name. Applies to saves made by Hushfeed.	Сохраняет описание, автора, ссылку и дату публикации в текстовом файле рядом с видео или в одном файле для оригинальных фото фотопоста. На Android 10 и новее они попадают в Download или Documents под тем же именем папки. Действует для сохранений, сделанных Hushfeed.
+The photos saved, but their details file couldn't be written. Check your storage and save the post again to get it.	Фото сохранены, но файл с их данными записать не удалось. Проверьте память и сохраните публикацию ещё раз, чтобы получить его.
 Check for already-saved videos	Проверять уже сохранённые видео
 Forget saved videos	Забыть сохранённые видео
 Undo forgetting saved videos	Отменить забывание сохранённых видео
@@ -1630,6 +1634,8 @@ The video was saved, but its record couldn't be updated. A later save may make a
 The already-saved check failed. Try again.	Проверка уже сохранённых не удалась. Повторите попытку.
 Show download progress	Показывать прогресс скачивания
 Show a progress bar while a video saves.	Показывать полосу прогресса во время сохранения видео.
+Skip the Share to sheet after a save	Не открывать меню «Поделиться» после сохранения
+TikTok opens a Share to sheet a few seconds after it saves a video. This stops it. The share button and the saved notice stay as they are.	Через несколько секунд после сохранения видео TikTok открывает меню «Поделиться». Эта настройка его отключает. Кнопка «Поделиться» и уведомление о сохранении остаются как есть.
 Saving video	Видео сохраняется
 Waiting to save video	Видео ожидает сохранения
 Saving video: %1$s	Видео сохраняется: %1$s
@@ -1706,6 +1712,8 @@ LIVE followers range	Диапазон подписчиков авторов LIVE
 Show only LIVEs from creators with this many followers.	Показывать только трансляции авторов с таким количеством подписчиков.
 Hide the comment bar on opened videos	Скрывать строку комментария в открытых видео
 Hide the Clear display controls	Скрывать кнопки чистого вида
+Keep the progress bar	Оставить полосу прогресса
+Hide the Clear display controls leaves the progress bar in sight, so you can still see and drag it.	Скрывать кнопки чистого вида оставляет полосу прогресса на экране, так что её по-прежнему видно и можно перетаскивать.
 While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display, or pinch the screen.	В чистом виде также скрывать полосу прогресса, кнопку закрытия и кнопки паузы и скорости внизу. По нижнему краю по-прежнему можно провести пальцем, чтобы перемотать видео. Чтобы выйти из чистого вида, нажмите на видео и удерживайте, затем выберите «Восстановить экран» или сведите пальцы на экране.
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Убирать строку для ввода комментария под видео, открытыми из профиля, по хештегу, со страницы звука или из поиска, чтобы видео занимало экран до самого низа. Кнопка комментариев справа по-прежнему открывает комментарии.
 Build details	Сведения о сборке
@@ -2093,6 +2101,7 @@ Username last changed	Имя пользователя изменено
 Display name last changed	Отображаемое имя изменено
 Private account	Закрытый аккаунт
 Like the video	Лайкнуть видео
+Like or unlike the video	Лайкнуть видео или убрать лайк
 Liked videos	Понравившиеся видео
 Public	Открыты
 Copy	Копировать
@@ -2118,6 +2127,8 @@ Hide TikTok's wind-down screens	Скрывать экраны отдыха TikTo
 Stops the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. Works only on accounts TikTok knows belong to adults. Teen accounts, and ones a parent links with Family Pairing, keep them. With Leave when TikTok says time is up on, the daily limit screen still shows so that switch can work.	Отключает вечернюю паузу перед сном, дыхательное упражнение и экран дневного лимита, которые TikTok накладывает на ленту. Работает только на аккаунтах, о которых TikTok знает, что они взрослые. Аккаунты подростков и те, что родитель связал через Family Pairing, сохраняют их. При включённом «Выходить, когда TikTok сообщает об окончании времени» экран дневного лимита всё равно показывается, чтобы этот переключатель мог сработать.
 Hide Footnotes	Скрывать Footnotes
 Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.	Скрывать баннер Footnotes, который TikTok показывает на видео с прикреплённой заметкой. Само видео и комментарии не меняются.
+Hide the LIVE row on Following	Скрывать ряд LIVE в «Подписках»
+Hide the row of LIVE and story circles across the top of the Following feed, and the pill that counts them. For You is left as it is.	Скрывать ряд кружков LIVE и историй вверху вкладки «Подписки» и плашку с их числом. Рекомендации не меняются.
 Hide Bulletin board	Скрывать Bulletin board
 The Bulletin board rows TikTok adds to the Inbox leave the list. Chats and the other rows stay where they are.	Строки Bulletin board, которые TikTok добавляет во Входящие, исчезают из списка. Чаты и остальные строки остаются на месте.
 Hide the group chat prompt	Скрывать приглашение в групповой чат
@@ -2446,6 +2457,8 @@ Least viewed first	Сначала наименее просматриваемы�
 Most liked first	Сначала с наибольшим числом лайков
 Least liked first	Сначала с наименьшим числом лайков
 Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Сортирует сетку профиля или раздела «Понравившиеся», закреплённые видео остаются первыми. Пока выбран порядок, сетка сама подгружает до 300 видео, чтобы порядок охватывал больше первого экрана. Кнопка в верхнем углу сетки меняет порядок прямо там.
+Sort loaded videos on Liked grids	Сортировать загруженные видео в сетках «Понравилось»
+Same as profile grids	Как в сетках профиля
 Sort this grid	Сортировка этой сетки
 Blur the video behind the bar	Размывать видео за панелью
 Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.	Размывает в основной ленте часть видео за стеклянной панелью, чтобы она выглядела как матовое стекло. Нужен «Эффект жидкого стекла» и Android 12 или новее.
@@ -2480,3 +2493,31 @@ Collapsed	Свернуто
 This setting isn't available. Search for another setting.	Эта настройка недоступна. Найдите другую настройку.
 Hide the Hushfeed row	Скрыть строку Hushfeed
 Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.	Убирает Hushfeed из раздела «Настройки и конфиденциальность» TikTok. Чтобы открыть эти настройки, удерживайте «Рекомендации» вверху ленты или «Главная», если включено «Долгое нажатие на Главная открывает настройки Hushfeed».
+Open the search page	Открыть страницу поиска
+TikTok's search page couldn't be opened. Restart TikTok and try again.	Не удалось открыть страницу поиска TikTok. Перезапустите TikTok и попробуйте снова.
+Fold the search into a button	Свернуть поиск в кнопку
+Shows a search button at the top left of the comments instead of the box, so the comments get that room back. Tap it to search, and tap it again to put the box away. Search within comments must be on.	Показывает кнопку поиска слева вверху комментариев вместо поля, и комментариям возвращается это место. Нажмите её, чтобы искать, и нажмите ещё раз, чтобы убрать поле. «Поиск по комментариям» должен быть включён.
+Put the comment search away	Убрать поиск по комментариям
+Tap @names in bios	Нажимать на @имена в био
+An @username in a profile's bio opens that profile when you tap it. The rest of the bio still translates on a tap.	@имя пользователя в био профиля открывает этот профиль по нажатию. Остальная часть био по-прежнему переводится по нажатию.
+autoplay auto play	автовоспроизведение автозапуск
+picture in picture PiP	картинка в картинке PiP
+search suggestions	подсказки поиска
+AI chat	чат ИИ
+AI Tako	ИИ Tako
+save photos	сохранить фото
+Lock the feed at set times	Блокировать ленту по расписанию
+The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.	Лента блокируется сама в эти часы, по часам телефона. Пишите дни и часы так: Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Без дней значит каждый день. Время, которое заканчивается раньше, чем начинается, переходит через полночь.
+Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.	Не удалось прочитать %1$s. Пишите дни и часы так: Mon-Fri 21:00-07:00.
+%1$s starts and ends at the same time. Give it a different end time.	%1$s начинается и заканчивается в одно время. Укажите другое время окончания.
+Locked all week	Заблокировано всю неделю
+Locked now, until %1$s	Заблокировано сейчас, до %1$s
+Next lock starts %1$s	Следующая блокировка начнётся %1$s
+The feed is locked until %1$s. Messages, profiles and search still work.	Лента заблокирована до %1$s. Сообщения, профили и поиск работают как обычно.
+Save only on Wi-Fi	Сохранять только по Wi-Fi
+Saves wait for Wi-Fi or another network that isn't metered, for up to 30 minutes, and stop if you leave it. Saving a frame still works anywhere.	Сохранения ждут Wi-Fi или другую безлимитную сеть до 30 минут и останавливаются, если вы из неё выйдете. Сохранение кадра работает везде.
+Waiting for Wi-Fi	Ожидание Wi-Fi
+The last one is still waiting for Wi-Fi	Последнее всё ещё ждёт Wi-Fi
+Stopped waiting for Wi-Fi after 30 minutes. Save it again when you're on Wi-Fi.	Ожидание Wi-Fi прекращено через 30 минут. Сохраните снова, когда будете в сети Wi-Fi.
+Saved %1$s of %2$s. The rest stopped when you left Wi-Fi. Save again on Wi-Fi.	Сохранено %1$s из %2$s. Остальное остановилось, когда вы вышли из Wi-Fi. Сохраните снова по Wi-Fi.
+The save stopped when you left Wi-Fi. Save it again on Wi-Fi.	Сохранение остановилось, когда вы вышли из Wi-Fi. Сохраните снова по Wi-Fi.

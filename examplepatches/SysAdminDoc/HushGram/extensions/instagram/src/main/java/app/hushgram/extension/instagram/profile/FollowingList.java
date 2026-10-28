@@ -36,7 +36,8 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * <p>Every row of a follow list goes through one binder, which hands the row's account and view to
  * a static call that fills in the username, the name line under it and the follow button. The patch
  * calls {@link #row} right after that, with the binder, the row's view and its account. The mark
- * goes after the name on the name line, or takes that line on its own for an account with no name.
+ * goes before the name on the name line, so a long name is what the line's end cuts short (#351),
+ * or takes that line on its own for an account with no name.
  *
  * <p>Only your own Following list is marked: the binder's list has to be one of Instagram's two
  * kinds of Following list, and its owner the account signed in. Followers, someone else's Following
@@ -368,13 +369,13 @@ public final class FollowingList {
     }
 
     /**
-     * Puts [label] after the name, or on the hidden name line of an account with no name, which it
+     * Puts [label] before the name, or on the hidden name line of an account with no name, which it
      * then shows. Whatever goes wrong partway puts the line back as it was.
      */
     private static void mark(TextView subtitle, String label) {
         CharSequence before = subtitle.getText();
         int visibility = subtitle.getVisibility();
-        CharSequence wrote = visibility == View.VISIBLE ? FriendshipStatus.joined(before, label) : label;
+        CharSequence wrote = visibility == View.VISIBLE ? ahead(label, before) : label;
         try {
             subtitle.setText(wrote);
             if (visibility != View.VISIBLE) subtitle.setVisibility(View.VISIBLE);
@@ -387,6 +388,15 @@ public final class FollowingList {
             marked.put(subtitle, new Mark(before, wrote, visibility));
         }
         Logger.printDebug(() -> "Following list: marked an account that doesn't follow you");
+    }
+
+    /**
+     * [label] ahead of [name]. Instagram cuts a long name line short at its end, which hid a mark
+     * written after the name (#351).
+     */
+    static CharSequence ahead(String label, @Nullable CharSequence name) {
+        if (name == null || name.length() == 0) return label;
+        return label + FriendshipStatus.SEPARATOR + name;
     }
 
     /**

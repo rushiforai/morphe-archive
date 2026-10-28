@@ -18,7 +18,7 @@ github.com/ginDoki19/GinArena-patch
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.4.1](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v2.4.2](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.4.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
 <summary>📦 1DM&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -43,9 +43,9 @@ github.com/ginDoki19/GinArena-patch
 
 **🎯 Supported versions:**
 
-| 3.3.1 | 3.4.0 | 3.4.1 |
-| :---: | :---: | :---: |
-| Standalone APK (arm64-v8a / armeabi-v7a, nodpi, Android 7.0+), build 2001003541 | Standalone APK (arm64-v8a / armeabi-v7a, Android 7.0+), build 2001003550 | Standalone APK (arm64-v8a / armeabi-v7a, Android 7.0+), build 2001003551 |
+| 3.4.1 |
+| :---: |
+| Standalone APK (arm64-v8a / armeabi-v7a, Android 7.0+), build 2001003551 |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -360,7 +360,7 @@ server-compatible experience on **PlayZ TV 2.3.1** across phones, tablets, and A
 
 ---
 
-## 📦 MX Player (3.4.1 / 3.4.0 / 3.3.1)
+## 📦 MX Player (3.4.1, build 2001003551)
 
 <details>
 <summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
@@ -418,21 +418,19 @@ it? Skip it — nothing else changes.
 
 ### Target app & downloads (MX Player)
 
-> **Important:** Download the **standalone `.apk` file** (~104–106 MB), **not** a `.xapk` or
+> **Important:** Download the **standalone `.apk` file** (~111 MB), **not** a `.xapk` or
 > `.apkm` split bundle. APKPure, Uptodown, and APKMirror all distribute the exact same official
-> Amazon Mobile LLC signed standalone APK for each version below.
+> Amazon Mobile LLC signed standalone APK below.
 
 | Field | Value |
 | --- | --- |
 | Package | `com.mxtech.videoplayer.ad` |
-| Supported versions | **3.4.1** (`2001003551`), **3.4.0** (`2001003550`), **3.3.1** (`2001003541`) — standalone universal APK (`arm64-v8a` + `armeabi-v7a`, Android 7.0+) |
-| Stock APK — **APKPure** | [Latest 3.4.1 APK](https://apkpure.com/mx-player-app/com.mxtech.videoplayer.ad) · [All versions (`3.4.1` / `3.4.0` / `3.3.1`)](https://apkpure.com/mx-player-app/com.mxtech.videoplayer.ad/versions) *(choose the **APK** download, not `XAPK`)* |
-| Stock APK — **Uptodown** | [MX Player versions (`apk 3.4.1` / `3.4.0` / `3.3.1`)](https://mx-player.en.uptodown.com/android/versions) *(choose the **`apk`** variant)* |
-| Stock APK — **APKMirror** | [MX Player 3.3.1 standalone `nodpi` APK](https://www.apkmirror.com/apk/amazon-mobile-llc/mx-player/mx-player-3-3-1-release/) · [All APKMirror releases](https://www.apkmirror.com/apk/amazon-mobile-llc/mx-player/) *(choose the **`APK`** variant, not `BUNDLE`)* |
+| Version | **3.4.1** (versionCode 2001003551) — standalone universal APK (`arm64-v8a` + `armeabi-v7a`, Android 7.0+) |
+| Stock APK — **APKPure** | [Latest 3.4.1 APK](https://apkpure.com/mx-player-app/com.mxtech.videoplayer.ad) · [Version history (`3.4.1`)](https://apkpure.com/mx-player-app/com.mxtech.videoplayer.ad/versions) *(choose the **APK** download, not `XAPK`)* |
+| Stock APK — **Uptodown** | [MX Player versions (`apk 3.4.1`)](https://mx-player.en.uptodown.com/android/versions) *(choose the **`apk`** variant)* |
+| Stock APK — **APKMirror** | [MX Player releases on APKMirror](https://www.apkmirror.com/apk/amazon-mobile-llc/mx-player/) *(choose the **`3.4.1` `APK`** variant, not `BUNDLE`)* |
 | Signing certificate SHA-256 | `0d9b4c778672e753d45aba4f10df31e1d10bf75b1245469131ef01b82f0f91b6` |
 | `3.4.1` APK SHA-256 | `db775bd81460e31bd21602cf0b842bc3e2fd769b0bd23250e70036cc4cf95bf4` |
-| `3.4.0` APK SHA-256 | `944a106935bc9772d593d217b1aab566e21e484bf4c50cbf1ff40bf996266414` |
-| `3.3.1` APK SHA-256 | `2f08db23038af69115d79280cb56362080866c2cf169734ab02ea076404e6fdb` |
 | Optional **Custom Codec v3.1.0** | [GitHub — `iDNA420/MX-FFmpeg` `v3.1.0_r1` (`aio-v3.1.0_r1.zip` recommended)](https://github.com/iDNA420/MX-FFmpeg/releases/tag/v3.1.0_r1) (`SHA-256: ebb0bd5db0f855caca6167747987a229836d7cc0062a2d5c23dbf91d057c617b`) — keep it as a `.zip` and select it inside the **Custom codec** patch option in Morphe Manager |
 
 ---
@@ -452,7 +450,7 @@ short readable build labels and validate the package name, file type, version, `
 1. Add this repository as a remote patch source using the link at the top of this README.
 2. Download the official stock **1DM 20.0 APKM**, **CRICFy TV 7.3 APK**, **CricZ TV 7.3 APK**,
    **PlayZ TV 2.3.1 APK**, or
-   **MX Player 3.4.1 / 3.4.0 / 3.3.1 standalone APK** above onto your device.
+   **MX Player 3.4.1 standalone APK** above onto your device.
 3. Uninstall the stock app first if it is already installed (re-signing changes the APK signature).
 4. In Morphe Manager, choose **Select from storage**, pick the downloaded stock `.apkm` / `.apk`
    file (rather than an already-patched installed app), configure options if desired (for MX
@@ -467,7 +465,7 @@ short readable build labels and validate the package name, file type, version, `
 > patch your saved/patched APK again. Re-download the exact stock file from the links above and
 > patch it from the beginning.
 >
-> **New in v2.4.0:** adds **MX Player (`3.4.1` / `3.4.0` / `3.3.1`)** support — turns MX Player
+> **New in v2.4.x:** adds **MX Player (`3.4.1`)** support — turns MX Player
 > into a clean, ad-free local video and music player with 1-tap offline & online **Classic Themes**
 > (16 Light + 16 Dark Slate swatches) and a tidier **Me** tab, plus optional patches to hide the
 > bottom navigation bar and bundle the **v3.1.0 Custom Codec** (`aio-v3.1.0_r1.zip`) directly into

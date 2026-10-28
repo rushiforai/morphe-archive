@@ -44,21 +44,22 @@ final class SecurePopupProbe {
                 throw new IllegalStateException("host decor did not receive FLAG_SECURE");
             }
 
-            Class<?> propertiesClass = loader.loadClass("X.011c");
+            String[] names = composeNames(activity.getPackageName());
+            Class<?> propertiesClass = loader.loadClass(names[0]);
             Constructor<?> propertiesConstructor = propertiesClass.getConstructor(
                     boolean.class, boolean.class, boolean.class, int.class);
             Object properties = propertiesConstructor.newInstance(false, true, true, 0);
 
-            Class<?> densityClass = loader.loadClass("X.01oI");
+            Class<?> densityClass = loader.loadClass(names[1]);
             Object density = Proxy.newProxyInstance(loader, new Class<?>[]{densityClass},
                     (proxy, method, arguments) -> densityResult(
                             activity.getResources().getDisplayMetrics().density,
                             proxy, method, arguments));
-            Class<?> positionClass = loader.loadClass("X.011a");
+            Class<?> positionClass = loader.loadClass(names[2]);
             Object position = Proxy.newProxyInstance(loader, new Class<?>[]{positionClass},
                     (proxy, method, arguments) -> method.getReturnType() == long.class ? 0L : null);
             Class<?> functionClass = loader.loadClass("kotlin.jvm.functions.Function0");
-            Class<?> popupClass = loader.loadClass("X.01tG");
+            Class<?> popupClass = loader.loadClass(names[3]);
             Constructor<?> popupConstructor = popupClass.getConstructor(
                     functionClass, propertiesClass, String.class, View.class,
                     densityClass, positionClass, UUID.class);
@@ -107,6 +108,18 @@ final class SecurePopupProbe {
             manager = null;
             popup = null;
         }
+    }
+
+    /**
+     * Compose's PopupProperties, Density, PopupPositionProvider and PopupLayout as each app's R8
+     * named them (TikTok 47.5.3, PineDrama 47.5.3). PineDrama's PopupLayout takes the same
+     * constructor and its properties the same (ZZZI) one.
+     */
+    private static String[] composeNames(String hostPackage) {
+        if ("com.ss.android.ttmd.video".equals(hostPackage)) {
+            return new String[]{"X.GWO", "X.Fnj", "X.Ges", "X.GcV"};
+        }
+        return new String[]{"X.011c", "X.01oI", "X.011a", "X.01tG"};
     }
 
     private static int dp(Activity activity, int value) {

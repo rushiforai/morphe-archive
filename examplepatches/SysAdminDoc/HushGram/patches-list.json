@@ -1931,7 +1931,7 @@
     },
     {
       "name": "Hide suggested stories",
-      "description": "Removes stories from accounts you don't follow from the row at the top of Home. More switches hide rewinds and memories, or the whole row. Starts on. Turn it off in HushGram settings > Stories.",
+      "description": "Removes stories from accounts you don't follow from the row at the top of Home. More switches hide rewinds and memories, keep only verified or unverified accounts, or hide the whole row. Starts on. Turn it off in HushGram settings > Stories.",
       "category": "Stories",
       "use": true,
       "dependencies": [
@@ -2718,6 +2718,46 @@
       "options": []
     },
     {
+      "name": "Keep your place in Home",
+      "description": "Coming back to Instagram leaves Home on the post you were on, however long you were away, instead of reloading it and jumping to the top. Starts off. Turn it on in HushGram settings > Feed.",
+      "category": "Feed",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "452.1.0.53.64"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Lock your messages",
       "description": "Covers your inbox and chats, all of Instagram, or just the single chats you pick under Locked chats, until your fingerprint, face or screen lock says it's you. Message notifications only say that a message came. Chats you pick under Hidden chats leave your inbox and their notifications don't post. Starts off. Turn it on in HushGram settings > Messages.",
       "category": "Messages",
@@ -2959,7 +2999,7 @@
     },
     {
       "name": "Pick the app icon",
-      "description": "Lets you pick the icon Instagram shows on your home screen: Instagram's own, HushGram's, or Instagram's glyph on black or on plum. The new icon shows once you leave Instagram, and you may need to add it to your home screen again from the app drawer. Starts on Instagram's own. Pick one in HushGram settings > Layout.",
+      "description": "Lets you pick the icon Instagram shows on your home screen: Instagram's own, HushGram's, or Instagram's glyph on black, on plum, or in black on white. The new icon shows once you leave Instagram, and you may need to add it to your home screen again from the app drawer. Starts on Instagram's own. Pick one in HushGram settings > Layout.",
       "category": "Interface",
       "use": true,
       "dependencies": [
@@ -3322,7 +3362,7 @@
     },
     {
       "name": "Rounded post corners",
-      "description": "Rounds the corners of a post's photo, video and carousel pages in Home and Following, at a small or large size. Stories, profiles, Explore and Reels stay as Instagram draws them. Starts off. Turn it on in HushGram settings > Feed.",
+      "description": "Rounds the corners of a post's photo, video and carousel pages in Home and Following, and of reels if you like, at a small or large size. Stories, profiles and Explore stay as Instagram draws them. Starts off. Turn it on in HushGram settings > Feed.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -3523,6 +3563,46 @@
     {
       "name": "See who a story mentions",
       "description": "Adds a small label in a story's header showing how many accounts it mentions. Tap it for a list and tap an account to open their profile. Starts off. Turn it on in HushGram settings > Stories.",
+      "category": "Stories",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "452.1.0.53.64"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Seek bar on stories",
+      "description": "Shows a bar near the bottom of a video story that you can drag to jump to any point in the video. Photos don't get one. Starts off. Turn it on in HushGram settings > Stories.",
       "category": "Stories",
       "use": true,
       "dependencies": [
@@ -4001,6 +4081,46 @@
       "options": []
     },
     {
+      "name": "Start reels with sound",
+      "description": "A reel you open from a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count. Starts off. Turn it on in HushGram settings > Playback.",
+      "category": "Playback",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "452.1.0.53.64"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Start stories with sound",
       "description": "Opens stories with their sound on, the same as tapping Instagram's speaker. Your phone's ringer and volume still count. Starts off. Turn it on in HushGram settings > Stories.",
       "category": "Stories",
@@ -4401,6 +4521,46 @@
       "options": []
     },
     {
+      "name": "Swipe through a chat's reels",
+      "description": "Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Starts off. Turn it on in HushGram settings > Messages.",
+      "category": "Messages",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "452.1.0.53.64"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Tab bar layout",
       "description": "Lets you keep the newer tab bar, where you swipe between every tab, or the classic one, instead of the one Instagram picks for your account. Starts on Instagram's choice. Pick one in HushGram settings > Tab bar.",
       "category": "Interface",
@@ -4484,6 +4644,46 @@
       "name": "Tap to play",
       "description": "Makes videos, reels and stories wait for your tap instead of starting by themselves, like Instagram does when it saves mobile data. A choice under the switch can leave Reels out or hold only Reels. Starts off. Turn it on in HushGram settings > Playback.",
       "category": "Playback",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "452.1.0.53.64"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "452.1.0.53.64",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 385811006,
+                "ARMEABI_V7A": 385811005,
+                "X86": 385811007,
+                "X86_64": 385811008
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Thicker story progress bar",
+      "description": "Draws the progress bar along the top of a story twice or three times as thick. Its segments and timing stay as they were. Starts off. Turn it on in HushGram settings > Stories.",
+      "category": "Stories",
       "use": true,
       "dependencies": [
         "BytecodePatch",

@@ -1296,6 +1296,7 @@ Value to return	Valor devolvido
 Verified accounts	Contas verificadas
 Version %1$s	Versão %1$s
 Version %1$s for TikTok %2$s	Versão %1$s para TikTok %2$s
+Version %1$s for PineDrama %2$s	Versão %1$s para PineDrama %2$s
 Video	Vídeo
 Video (MP4)	Vídeo (MP4)
 Video destination	Destino dos vídeos
@@ -1398,6 +1399,8 @@ Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll
 Hide the unread badges on the bottom tabs	Esconder os selos de não lidos nas abas inferiores
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Esconde os contadores e pontos vermelhos de todas as abas inferiores, incluindo Caixa de entrada e Perfil, e o balão sobre a Caixa de entrada que conta novas curtidas, seguidores, comentários e quem está em LIVE. A caixa de entrada continua mostrando o que chegou.
 Speed while you hold the video	Velocidade enquanto você segura o vídeo
+Slide to change the hold speed	Deslize para mudar a velocidade ao segurar
+While you hold a video, slide left or right to change its speed, and a bubble shows it. Letting go goes back to normal. A pull-down lock keeps the speed you slid to.	Enquanto você segura um vídeo, deslize para a esquerda ou para a direita para mudar a velocidade. Uma bolha mostra a velocidade. Ao soltar, volta ao normal. O bloqueio puxando para baixo mantém a velocidade escolhida.
 Hide mini dramas	Esconder minidramas
 Hide TikTok's short drama episodes and the cards that promote them.	Esconder os episódios de dramas curtos do TikTok e os cartões que os promovem.
 Mini dramas	Minidramas
@@ -1465,7 +1468,8 @@ This preset doesn't match the installed gates. Nothing changed.	Esta predefiniç
 About overrides	Sobre as substituições
 Use {creator}, {date} and {video_id} to build the name. Start with {creator}/ to put each creator in a folder. The file ending is added for you.	Use {creator}, {date} e {video_id} para montar o nome. Comece com {creator}/ para colocar cada criador em uma pasta. A extensão do arquivo é adicionada automaticamente.
 Save details beside the video	Salvar detalhes junto ao vídeo
-Saves the caption, creator, link and post date in a text file next to the video. On Android 10 and later, the pair goes in Download or Documents under the same folder name. Applies to saves made by Hushfeed.	Salva a legenda, o criador, o link e a data de publicação em um arquivo de texto ao lado do vídeo. No Android 10 e posteriores, o par vai para Download ou Documents com o mesmo nome de pasta. Vale para os salvamentos feitos pelo Hushfeed.
+Saves the caption, creator, link and post date in a text file next to the video, or one file for a photo post's original photos. On Android 10 and later, they go in Download or Documents under the same folder name. Applies to saves made by Hushfeed.	Salva a legenda, o criador, o link e a data de publicação em um arquivo de texto ao lado do vídeo, ou em um único arquivo para as fotos originais de uma publicação de fotos. No Android 10 e posteriores, eles vão para Download ou Documents com o mesmo nome de pasta. Vale para os salvamentos feitos pelo Hushfeed.
+The photos saved, but their details file couldn't be written. Check your storage and save the post again to get it.	As fotos foram salvas, mas não foi possível gravar o arquivo de detalhes delas. Verifique o armazenamento e salve a publicação de novo para obtê-lo.
 Check for already-saved videos	Verificar vídeos já salvos
 Forget saved videos	Esquecer os vídeos salvos
 Undo forgetting saved videos	Desfazer o esquecimento dos vídeos salvos
@@ -1492,6 +1496,8 @@ The video was saved, but its record couldn't be updated. A later save may make a
 The already-saved check failed. Try again.	Falha ao verificar os vídeos já salvos. Tente novamente.
 Show download progress	Mostrar progresso do download
 Show a progress bar while a video saves.	Mostra uma barra de progresso enquanto um vídeo é salvo.
+Skip the Share to sheet after a save	Pular a folha de compartilhamento após salvar
+TikTok opens a Share to sheet a few seconds after it saves a video. This stops it. The share button and the saved notice stay as they are.	O TikTok abre uma folha de compartilhamento alguns segundos depois de salvar um vídeo. Isto impede que ela abra. O botão de compartilhar e o aviso de salvamento continuam como estão.
 Saving video	Salvando vídeo
 Waiting to save video	Aguardando para salvar o vídeo
 Saving video: %1$s	Salvando vídeo: %1$s
@@ -1568,6 +1574,8 @@ LIVE followers range	Faixa de seguidores da LIVE
 Show only LIVEs from creators with this many followers.	Mostrar só LIVEs de criadores com essa quantidade de seguidores.
 Hide the comment bar on opened videos	Esconder a barra de comentários nos vídeos abertos
 Hide the Clear display controls	Esconder os controles da tela limpa
+Keep the progress bar	Manter a barra de progresso
+Hide the Clear display controls leaves the progress bar in sight, so you can still see and drag it.	Esconder os controles da tela limpa deixa a barra de progresso à vista, então você ainda pode vê-la e arrastá-la.
 While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display, or pinch the screen.	Com a tela limpa ativada, esconde também a barra de progresso, o botão de fechar e os botões de pausa e velocidade na parte de baixo. Você ainda pode arrastar pela borda de baixo para avançar ou voltar no vídeo. Para sair da tela limpa, toque e segure o vídeo e toque em Restaurar tela, ou faça um gesto de pinça na tela.
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Tire a barra para adicionar comentário dos vídeos que você abre por um perfil, uma hashtag, um som ou pela pesquisa, para o vídeo ocupar a tela até embaixo. O botão de comentários à direita continua abrindo os comentários.
 Build details	Detalhes da compilação
@@ -1925,6 +1933,7 @@ Username last changed	Última troca do nome de usuário
 Display name last changed	Última troca do nome de exibição
 Private account	Conta privada
 Like the video	Curtir o vídeo
+Like or unlike the video	Curtir ou descurtir o vídeo
 Liked videos	Vídeos curtidos
 Public	Públicos
 Copy	Copiar
@@ -1950,6 +1959,8 @@ Hide TikTok's wind-down screens	Ocultar as telas de desaceleração do TikTok
 Stops the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. Works only on accounts TikTok knows belong to adults. Teen accounts, and ones a parent links with Family Pairing, keep them. With Leave when TikTok says time is up on, the daily limit screen still shows so that switch can work.	Impede a pausa para dormir, o exercício de respiração e a tela de limite diário que o TikTok coloca sobre o feed. Só funciona em contas que o TikTok sabe que são de adultos. Contas de adolescentes, e as que um responsável vincula com o Family Pairing, continuam com eles. Com Sair quando o TikTok disser que o tempo acabou ligado, a tela de limite diário ainda aparece para que essa chave possa agir.
 Hide Footnotes	Esconder o Footnotes
 Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.	Esconder o banner do Footnotes que o TikTok mostra em um vídeo com uma nota anexada. O vídeo e os comentários ficam como estão.
+Hide the LIVE row on Following	Esconder a fileira LIVE em Seguindo
+Hide the row of LIVE and story circles across the top of the Following feed, and the pill that counts them. For You is left as it is.	Esconder a fileira de círculos de LIVE e stories no topo da aba Seguindo, e a pílula que conta eles. Para você continua como está.
 Hide Bulletin board	Esconder o Bulletin board
 The Bulletin board rows TikTok adds to the Inbox leave the list. Chats and the other rows stay where they are.	As linhas do Bulletin board que o TikTok adiciona à caixa de entrada saem da lista. Os chats e as outras linhas ficam onde estão.
 Hide the group chat prompt	Esconder o convite para o chat em grupo
@@ -2269,6 +2280,8 @@ Least viewed first	Menos vistos primeiro
 Most liked first	Mais curtidos primeiro
 Least liked first	Menos curtidos primeiro
 Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Ordena uma grade de perfil ou de Curtidos, com os vídeos fixados na frente. Enquanto uma ordem estiver escolhida, a grade continua carregando sozinha até 300 vídeos, assim a ordem cobre mais que a primeira tela. Um botão no canto superior da grade muda a ordem ali mesmo.
+Sort loaded videos on Liked grids	Ordenar os vídeos carregados nas grades de curtidas
+Same as profile grids	Igual às grades de perfil
 Sort this grid	Ordenar esta grade
 Blur the video behind the bar	Desfocar o vídeo atrás da barra
 Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.	Desfoca no feed principal a parte do vídeo que fica atrás da pílula de vidro, para parecer vidro fosco. Precisa de Visual de vidro líquido e do Android 12 ou mais recente.
@@ -2310,3 +2323,24 @@ Shows a search button at the top left of the comments instead of the box, so the
 Put the comment search away	Guardar a busca nos comentários
 Tap @names in bios	Tocar em @nomes nas bios
 An @username in a profile's bio opens that profile when you tap it. The rest of the bio still translates on a tap.	Um @usuário na bio de um perfil abre esse perfil quando você toca nele. O resto da bio continua sendo traduzido com um toque.
+autoplay auto play	reprodução automática autoplay
+picture in picture PiP	picture-in-picture PiP
+search suggestions	sugestões de pesquisa
+AI chat	chat de IA
+AI Tako	IA Tako
+save photos	salvar fotos
+Lock the feed at set times	Bloquear o feed em horários definidos
+The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.	O feed se bloqueia sozinho nesses horários, pelo relógio do seu celular. Escreva dias e horários como Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Deixe os dias de fora para valer todos os dias. Um horário que termina antes de começar passa da meia-noite.
+Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.	Não foi possível ler %1$s. Escreva dias e horários como Mon-Fri 21:00-07:00.
+%1$s starts and ends at the same time. Give it a different end time.	%1$s começa e termina no mesmo horário. Dê outro horário de término.
+Locked all week	Bloqueado a semana toda
+Locked now, until %1$s	Bloqueado agora, até %1$s
+Next lock starts %1$s	O próximo bloqueio começa %1$s
+The feed is locked until %1$s. Messages, profiles and search still work.	O feed está bloqueado até %1$s. Mensagens, perfis e busca continuam funcionando.
+Save only on Wi-Fi	Salvar só no Wi-Fi
+Saves wait for Wi-Fi or another network that isn't metered, for up to 30 minutes, and stop if you leave it. Saving a frame still works anywhere.	Os salvamentos esperam até 30 minutos por Wi-Fi ou outra rede sem limite de dados, e param se você sair dela. Salvar um quadro funciona em qualquer rede.
+Waiting for Wi-Fi	Esperando Wi-Fi
+The last one is still waiting for Wi-Fi	O anterior ainda está esperando Wi-Fi
+Stopped waiting for Wi-Fi after 30 minutes. Save it again when you're on Wi-Fi.	Parou de esperar o Wi-Fi depois de 30 minutos. Salve de novo quando estiver no Wi-Fi.
+Saved %1$s of %2$s. The rest stopped when you left Wi-Fi. Save again on Wi-Fi.	%1$s de %2$s salvos. O resto parou quando você saiu do Wi-Fi. Salve de novo no Wi-Fi.
+The save stopped when you left Wi-Fi. Save it again on Wi-Fi.	O salvamento parou quando você saiu do Wi-Fi. Salve de novo no Wi-Fi.

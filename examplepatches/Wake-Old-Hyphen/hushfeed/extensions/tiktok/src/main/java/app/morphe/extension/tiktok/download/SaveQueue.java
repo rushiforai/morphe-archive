@@ -107,6 +107,8 @@ public final class SaveQueue {
     static String detail(Context context, MediaJobScheduler.Job job, int ahead) {
         SaveProgress progress = job.progress;
         String status = progress != null ? progress.statusText() : null;
+        // Waiting for Wi-Fi isn't a place in line: no worker frees it, the network does.
+        if (job.parked()) return status != null ? status : L10n.t(context, "Waiting for Wi-Fi");
         if (job.waiting() && ahead > 0) {
             String line = L10n.quantity(context, ahead,
                     "Starts after one other save", "Starts after %1$s other saves");
@@ -126,5 +128,10 @@ public final class SaveQueue {
     /** Saves at once as it's saved now: a waiting save starts at once if the new number has room. */
     public static void applyLimit() {
         MediaJobScheduler.applyLimit();
+    }
+
+    /** Save only on Wi-Fi as it's saved now: turned off, the saves waiting for Wi-Fi start. */
+    public static void networkSettingChanged() {
+        SaveNetwork.changed();
     }
 }

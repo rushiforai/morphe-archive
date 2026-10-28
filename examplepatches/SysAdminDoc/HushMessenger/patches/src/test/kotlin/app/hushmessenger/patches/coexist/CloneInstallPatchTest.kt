@@ -195,6 +195,47 @@ private fun stringPool() = fixtureMethod(POOL, """
     .end packed-switch
 """.trimIndent(), 1, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
 
+private const val DEDUP_URIS_OWNER = "LX/6TB;-><clinit>()V"
+private const val DEDUP_MATCHER = "$DEDUP_PROVIDER-><init>(LX/0Xe;)V"
+private const val PARSE = "Landroid/net/Uri;->parse(Ljava/lang/String;)Landroid/net/Uri;"
+private const val ADD_URI = "Landroid/content/UriMatcher;->addURI(Ljava/lang/String;Ljava/lang/String;I)V"
+
+/** 346817024's push dedup URIs, cut down to the Facebook app's first and Messenger's two. */
+private fun dedupUris(body: String = DEDUP_URIS_BODY, id: String = DEDUP_URIS_OWNER) =
+    fixtureMethod(id, body, 2, AccessFlags.STATIC.value or AccessFlags.CONSTRUCTOR.value)
+
+private val DEDUP_URIS_BODY = """
+    const-string v0, "content://com.facebook.katana.ClientMessagePushDedupInfoProvider/mutestatus"
+    invoke-static {v0}, $PARSE
+    move-result-object v0
+    sput-object v0, LX/6TB;->A03:Landroid/net/Uri;
+    const-string v1, "${DEDUP_URIS[0]}"
+    invoke-static {v1}, $PARSE
+    move-result-object v1
+    sput-object v1, LX/6TB;->A05:Landroid/net/Uri;
+    const-string v1, "${DEDUP_URIS[1]}"
+    invoke-static {v1}, $PARSE
+    move-result-object v1
+    sput-object v1, LX/6TB;->A06:Landroid/net/Uri;
+    return-void
+""".trimIndent()
+
+/** The push dedup provider's constructor: one matcher for the Facebook app's authority and Messenger's. */
+private fun dedupMatcher(id: String = DEDUP_MATCHER) = fixtureMethod(id, """
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+    new-instance v5, Landroid/content/UriMatcher;
+    const/4 v0, -0x1
+    invoke-direct {v5, v0}, Landroid/content/UriMatcher;-><init>(I)V
+    const-string v4, "com.facebook.katana.ClientMessagePushDedupInfoProvider"
+    const-string v1, "/mutestatus"
+    const/4 v0, 0x1
+    invoke-virtual {v5, v4, v1, v0}, $ADD_URI
+    const-string v2, "$DEDUP_AUTHORITY"
+    invoke-virtual {v5, v2, v1, v0}, $ADD_URI
+    iput-object v5, p0, $DEDUP_PROVIDER->A01:Landroid/content/UriMatcher;
+    return-void
+""".trimIndent(), 8, AccessFlags.PUBLIC.value or AccessFlags.CONSTRUCTOR.value)
+
 /**
  * 346013440's story link button cut down: Messenger's name from the pool, checked as installed, a store page when it
  * isn't, and otherwise the link sent to it.
@@ -477,6 +518,42 @@ class CloneInstallPatchTest {
         }
     }
 
+    @Test fun theCloneWritesItsPushMuteListToItsOwnProvider() {
+        val uris = dedupUris()
+        val matcher = dedupMatcher()
+        assertEquals(setOf("$DEDUP_URIS_OWNER@4", "$DEDUP_URIS_OWNER@8", "$DEDUP_MATCHER@8"),
+            findDedupSites(listOf(fixtureClass("LX/6TB;", listOf(uris)), fixtureClass(DEDUP_PROVIDER, listOf(matcher)))))
+        val urisBefore = uris.code()
+        val matcherBefore = matcher.code()
+        applyCloneSites(backupLookup(), attachmentCheck(), COPY, dedup = listOf(uris to 4, uris to 8, matcher to 8))
+
+        assertEquals(1 to "content://$COPY.ClientMessagePushDedupInfoProvider/mutestatus", uris.loads(4))
+        assertEquals(1 to "content://$COPY.ClientMessagePushDedupInfoProvider/userfriendship", uris.loads(8))
+        assertEquals(2 to "$COPY.ClientMessagePushDedupInfoProvider", matcher.loads(8))
+        // The Facebook app's URI and authority stay, and nothing else moves.
+        assertEquals(urisBefore.filterIndexed { i, _ -> i != 4 && i != 8 }, uris.code().filterIndexed { i, _ -> i != 4 && i != 8 })
+        assertEquals(matcherBefore.filterIndexed { i, _ -> i != 8 }, matcher.code().filterIndexed { i, _ -> i != 8 })
+        assertEquals(Opcode.CONST_STRING_JUMBO, matcher.code()[8].opcode)
+    }
+
+    @Test fun aChangedPushDedupSiteStopsThePatchBeforeAnythingChanges() {
+        for (sites in listOf<() -> List<Pair<MutableMethod, Int>>>(
+            // The provider no longer matches Messenger's authority, or a URI moved.
+            { dedupUris().let { listOf(it to 4, it to 8) } },
+            { dedupUris().let { listOf(it to 4, it to 9, dedupMatcher() to 8) } },
+            { dedupUris().let { listOf(it to 4, it to 4, dedupMatcher() to 8) } },
+            { dedupUris().let { listOf(it to 4, it to 8, dedupMatcher("LX/Abc;-><init>(LX/0Xe;)V") to 8) } },
+            { dedupUris(id = "LX/6TB;->A00()V").let { listOf(it to 4, it to 8, dedupMatcher() to 8) } },
+            { listOf(dedupUris() to 4, dedupUris(id = "LX/6TC;-><clinit>()V") to 8, dedupMatcher() to 8) },
+        ).map { it() }) {
+            val lookup = backupLookup()
+            val methods = (listOf(lookup) + sites.map { it.first }).distinct()
+            val before = methods.map { it.code() }
+            assertFailsWith<PatchException> { applyCloneSites(lookup, attachmentCheck(), COPY, dedup = sites) }
+            assertEquals(before, methods.map { it.code() })
+        }
+    }
+
     @Test fun eachBuildFamilyHasItsOwnPinnedSites() {
         val families = MessengerTarget.VERSION_CODES.map { expectedCloneSitesFor(it.toString()) }.toSet()
         assertEquals(4, families.size)
@@ -573,7 +650,17 @@ class CloneInstallPatchTest {
             val (at, register) = lookup.backupLookupSite(pools)
             val before = lookup.code()
             val sitesBefore = sites.map { it.first }.distinct().associateWith { it.code() }
-            applyCloneSites(lookup, check, CLONE_DEFAULT_PACKAGE, sites, pools)
+            // Messenger's two push dedup URIs and its provider's match for its own authority.
+            val dedupIds = findDedupSites(classes)
+            assertEquals(3, dedupIds.size, code)
+            val dedupMethods = dedupIds.map { it.substringBefore('@') }.distinct().associateWith { id ->
+                MutableMethod(classes.single { it.type == id.substringBefore("->") }.methods.single { it.hookId() == id })
+            }
+            val dedup = dedupIds.map { dedupMethods.getValue(it.substringBefore('@')) to it.substringAfter('@').toInt() }
+            applyCloneSites(lookup, check, CLONE_DEFAULT_PACKAGE, sites, pools, dedup)
+            assertTrue(findDedupSites(dedupMethods.values.map { fixtureClass(it.definingClass, listOf(it)) }).isEmpty(), code)
+            assertEquals((DEDUP_URIS + DEDUP_AUTHORITY).map { it.replace(DEDUP_AUTHORITY, "$CLONE_DEFAULT_PACKAGE.ClientMessagePushDedupInfoProvider") }.sorted(),
+                dedup.map { (method, i) -> method.loads(i).second }.sorted(), code)
             assertEquals(register to "com.facebook.orca", lookup.loads(at), code)
             assertEquals(before.shape(), lookup.code().filterIndexed { i, _ -> i != at }.shape(), code)
             assertEquals(1, check.code().count { (it as? ReferenceInstruction)?.reference.let { r -> r is StringReference && r.string == "$CLONE_DEFAULT_PACKAGE$TAM_SUFFIX" } }, code)

@@ -139,6 +139,17 @@ public abstract class NativeSettingsActivity extends Activity {
             activity.onPreferencesCreated(this);
         }
 
+        @Override
+        public void onViewCreated(View view, Bundle savedInstanceState) {
+            super.onViewCreated(view, savedInstanceState);
+            // YouTube's own settings screens have no lines between the rows.
+            View list = view.findViewById(android.R.id.list);
+            if (list instanceof android.widget.ListView) {
+                ((android.widget.ListView) list).setDivider(null);
+                ((android.widget.ListView) list).setDividerHeight(0);
+            }
+        }
+
         private final SharedPreferences.OnSharedPreferenceChangeListener changeListener =
                 (sharedPreferences, key) -> {
                     NativeSettingsActivity activity = (NativeSettingsActivity) getActivity();

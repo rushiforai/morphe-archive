@@ -15,16 +15,16 @@ For Android Auto visibility, install with Morphe Manager's **Install as Play Sto
 KingInstaller as a fallback).
 
 > GPLv3 · Not affiliated with Waze. Targets the Waze versions in the patch list below.
-> Twenty rows are **off by default** - *Allow high refresh rate*, *Disable Play Store updates*,
+> Nineteen rows are **off by default** - *Allow high refresh rate*, *Disable Play Store updates*,
 > *Skip sign-in*, *Theme*, *AMOLED Dark Mode For UI*, *Bigger speedometer & limit sign*, the four
-> **Android Auto** rows, the eight **Experimental** rows, and *Report speed limit* and *Speed-limit sign style*.
+> **Android Auto** rows, the seven **Experimental** rows, and *Report speed limit* and *Speed-limit sign style*.
 
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.30.41](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.41)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;30 patches total
+> **[v0.30.42](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.42)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;29 patches total
 <details open>
-<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;30 patches</summary>
+<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;29 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -42,7 +42,6 @@ KingInstaller as a fallback).
 | [Cameras & hazards](#cameras-hazards) | Shows every camera and road hazard, with switches for the extra kinds. | • Average-speed zones<br>• Camera chime below the limit<br>• The other camera types<br>• Crosswalk hazards |
 | [Car alerts as notifications](#car-alerts-as-notifications) | Shows car alerts as notifications. |  |
 | [Car map zoom](#car-map-zoom) | Zooms the map on the car screen. | • Car map zoom |
-| [Car screen fits its window](#car-screen-fits-its-window) | Fits the car screen to its window, not the full display. |  |
 | [Car trip screen text](#car-trip-screen-text) | Adds arrival time and time left to the car trip bar. |  |
 | [Disable Play Store updates](#disable-play-store-updates) | Stops the Play Store updating Waze. |  |
 | [Enable police & enforcement alerts](#enable-police-enforcement-alerts) | Turns police and enforcement alerts on. |  |

@@ -35,6 +35,8 @@ public class TreeJNI {
     private boolean valid = true;
     public int booleanReads;
     public int treeReads;
+    public int debugReads;
+    private String debug;
 
     /**
      * Whether one of the file name's readers asked the tree after it was released. On a phone that
@@ -102,6 +104,19 @@ public class TreeJNI {
     public TreeJNI number(String field, int value) {
         numbers.put(field.hashCode(), value);
         return this;
+    }
+
+    /** Sets what {@link #toExpensiveHumanReadableDebugString} answers, as a Bloks-drawn card spells itself out. */
+    public TreeJNI debugString(String value) {
+        debug = value;
+        return this;
+    }
+
+    /** Facebook's is abstract here and native on Pando's tree, so it's counted as a native read. */
+    public String toExpensiveHumanReadableDebugString() {
+        nativeRead();
+        debugReads++;
+        return debug;
     }
 
     /** A tree whose native side is gone, as after Facebook releases it. */

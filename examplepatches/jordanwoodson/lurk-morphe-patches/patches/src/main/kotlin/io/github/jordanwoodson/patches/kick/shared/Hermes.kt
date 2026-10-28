@@ -27,6 +27,17 @@ import java.security.MessageDigest
 internal class HermesBundle(input: ByteArray) {
     private val bytes = input.copyOf()
     private val strings: List<String>
+    /** The small string table (one 32-bit entry per string: UTF-16 flag, storage offset, length) and the storage. */
+    private val stringTable: Int
+    private val stringStorage: Int
+    private val stringStorageSize: Int
+    /** Per string: its storage offset and byte length, whether its table entry holds them (not the overflow table). */
+    private val stringOffsets: IntArray
+    private val stringByteLengths: IntArray
+    private val stringSmall: BooleanArray
+    private val stringWide: BooleanArray
+    /** Per string: whether it is an identifier (a property name), from the string-kind runs. */
+    private val identifiers: BooleanArray
     /** Every function, by ID. Selection goes through [function], [functionUsing] and [sequence]. */
     val functions: List<HermesFunction>
     /** File offset of the literal value buffer, where array and object literals keep their values. */
@@ -55,19 +66,37 @@ internal class HermesBundle(input: ByteArray) {
         ensure(functionCount in 1..bytes.size / 12, "invalid function count")
         ensure(stringCount in 1..bytes.size / 4, "invalid string count")
         var cursor = checkedEnd(128, functionCount, 12)
-        cursor = checkedEnd(align(cursor), u32(44), 4) // String-kind runs.
+        val kindTable = align(cursor)
+        cursor = checkedEnd(kindTable, u32(44), 4) // String-kind runs.
         cursor = checkedEnd(align(cursor), u32(48), 4) // Identifier hashes.
-        val stringTable = align(cursor)
+        stringTable = align(cursor)
         cursor = checkedEnd(stringTable, stringCount, 4)
         val overflowTable = align(cursor)
         cursor = checkedEnd(overflowTable, overflowCount, 8)
-        val stringStorage = align(cursor)
+        stringStorage = align(cursor)
+        this.stringStorageSize = stringStorageSize
         cursor = checkedEnd(stringStorage, stringStorageSize, 1)
+        // Each run is a count (low 31 bits) of strings of one kind, identifiers with the top bit set.
+        identifiers = BooleanArray(stringCount)
+        var kindCursor = 0
+        for (run in 0 until u32(44)) {
+            val entry = u32Bits(kindTable + run * 4)
+            val count = (entry and 0x7fffffff).toInt()
+            ensure(kindCursor + count <= stringCount, "string kinds overrun the string table")
+            if (entry and 0x80000000L != 0L) identifiers.fill(true, kindCursor, kindCursor + count)
+            kindCursor += count
+        }
+        ensure(kindCursor == stringCount, "string kinds don't cover the string table")
+        stringOffsets = IntArray(stringCount)
+        stringByteLengths = IntArray(stringCount)
+        stringSmall = BooleanArray(stringCount)
+        stringWide = BooleanArray(stringCount)
         strings = List(stringCount) { index ->
             val entry = u32Bits(stringTable + index * 4)
             val utf16 = entry and 1L != 0L
             var offset = ((entry ushr 1) and 0x7fffff).toInt()
             var length = (entry ushr 24).toInt()
+            stringSmall[index] = length != 255
             if (length == 255) {
                 ensure(offset < overflowCount, "string overflow index outside table")
                 length = u32(overflowTable + offset * 8 + 4)
@@ -75,6 +104,9 @@ internal class HermesBundle(input: ByteArray) {
             }
             val byteLength = length.toLong() * if (utf16) 2 else 1
             ensure(offset.toLong() + byteLength <= stringStorageSize, "string outside storage")
+            stringOffsets[index] = offset
+            stringByteLengths[index] = byteLength.toInt()
+            stringWide[index] = utf16
             String(bytes, stringStorage + offset, byteLength.toInt(),
                 if (utf16) StandardCharsets.UTF_16LE else StandardCharsets.ISO_8859_1)
         }
@@ -464,6 +496,138 @@ internal class HermesBundle(input: ByteArray) {
             copies, defaultValue))
     }
 
+    /**
+     * A switch edit inside the literal value buffer, [offset] bytes from its start: while [key] is on, the literals
+     * read [after] instead of [before]. The literals reading the edited bytes must be exactly [readers].
+     */
+    fun dataSwitch(offset: Int, key: String, before: ByteArray, after: ByteArray, readers: Collection<HermesLiteral>,
+                   defaultEnabled: Boolean = true): HermesEdit {
+        ensure(before.isNotEmpty() && before.size == after.size, "edit must preserve literal length")
+        onlyReaders(offset, before.size, readers, key)
+        return record(HermesEdit(key, literal(offset, before), before.copyOf(), after.copyOf(), defaultEnabled, DATA))
+    }
+
+    /**
+     * The values of [literal] in slot order: each one's type tag (4 long string, 5 short string, 3 number, 7
+     * integer, others without bytes), its value (a string ID for strings) and where its bytes are, as a
+     * value-buffer offset and width.
+     */
+    fun literalValues(literal: HermesLiteral): List<HermesLiteralValue> {
+        val values = mutableListOf<HermesLiteralValue>()
+        var cursor = literal.start
+        while (cursor < literal.end) {
+            val tag = u8(literalStart + cursor++)
+            val run = if (tag and 0x80 != 0) ((tag and 0x0f) shl 8) or u8(literalStart + cursor++) else tag and 0x0f
+            val type = (tag ushr 4) and 7
+            val width = intArrayOf(0, 0, 0, 8, 4, 2, 0, 4)[type]
+            repeat(run) {
+                val value = when (width) {
+                    2 -> u8(literalStart + cursor).toLong() or (u8(literalStart + cursor + 1).toLong() shl 8)
+                    4 -> u32Bits(literalStart + cursor)
+                    else -> 0L
+                }
+                values += HermesLiteralValue(type, value, cursor, width)
+                cursor += width
+            }
+        }
+        ensure(cursor == literal.end, "literal values overrun")
+        return values
+    }
+
+    /** The text of string [id]. */
+    fun string(id: Int): String = strings.getOrNull(id) ?: fail("string $id outside the table")
+
+    /**
+     * Every instruction, in every function, that loads string [id] with LoadConstString, as (function, instruction).
+     * Functions sharing one body are listed once.
+     */
+    fun stringLoads(id: Int): List<Pair<HermesFunction, HermesInstruction>> {
+        val seen = HashSet<Int>()
+        return functions.filter { it.body.isNotEmpty() && seen.add(it.offset) }.flatMap { function ->
+            instructions(function).filter { it.stringLoaded() == id }.map { function to it }
+        }
+    }
+
+    /**
+     * Rewrites string [id] to [text] while [key] is on: its first bytes in the string storage and the length in its
+     * string table entry, two equal-length edits. [text] must be ASCII and no longer than the string. Every use of
+     * the string reads the new text, so only one that nothing else uses can be rewritten: no property name
+     * (identifier), no function name, object key or string switch case, no storage byte shared with another
+     * string (Hermes packs strings into each other), loaded by exactly [loads] and read by exactly [readers].
+     */
+    fun rewriteString(id: Int, text: String, key: String, loads: Collection<Pair<HermesFunction, HermesInstruction>>,
+                      readers: Collection<HermesLiteral>, defaultEnabled: Boolean = true) {
+        val original = string(id)
+        val label = "string \"$original\""
+        ensure(text.isNotEmpty() && text.length <= original.length && text.all { it.code in 0x20..0x7e },
+            "$label can't hold \"$text\"")
+        ensure(!identifiers[id] && stringSmall[id] && !stringWide[id], "$label is not a short one-byte literal string")
+        val start = stringOffsets[id]
+        val end = start + stringByteLengths[id]
+        ensure(stringOffsets.indices.none { other ->
+            other != id && stringOffsets[other] < end && start < stringOffsets[other] + stringByteLengths[other]
+        }, "$label shares storage with another string")
+        ensure(functions.none { it.name == original }, "$label names a function")
+        ensure((0 until shapeCount).none { shape -> id in shapeKeyIds(shape) }, "$label is an object key")
+        ensure(functions.filter { it.body.isNotEmpty() }.none { function ->
+            instructions(function).any { it.opcode == STRING_SWITCH && id in stringSwitchCases(function, it) }
+        }, "$label is a string switch case")
+        fun position(load: Pair<HermesFunction, HermesInstruction>) = load.first.offset + load.second.offset
+        ensure(stringLoads(id).map(::position).toSet() == loads.map(::position).toSet(), "$label is loaded elsewhere")
+        val read = literals.filter { literal ->
+            literalValues(literal).any { it.type in setOf(4, 5) && it.value == id.toLong() }
+        }.map { it.function.offset + it.instruction.offset }.toSet()
+        ensure(read == readers.map { it.function.offset + it.instruction.offset }.toSet(), "$label is read by other literals")
+        val entry = stringTable + id * 4 + 3
+        record(HermesEdit(key, entry, byteArrayOf(bytes[entry]), byteArrayOf(text.length.toByte()), defaultEnabled, DATA))
+        val storage = stringStorage + start
+        record(HermesEdit(key, storage, bytes.copyOfRange(storage, storage + text.length),
+            text.toByteArray(StandardCharsets.ISO_8859_1), defaultEnabled, DATA))
+    }
+
+    /** The string IDs of the keys of object [shape]. */
+    private fun shapeKeyIds(shape: Int): List<Int> {
+        var cursor = keyStart + u32(shapeTable + shape * 8)
+        val count = u32(shapeTable + shape * 8 + 4)
+        val ids = mutableListOf<Int>()
+        var items = 0
+        while (items < count) {
+            ensure(cursor < keyStart + keySize, "object keys outside the key buffer")
+            val tag = u8(cursor++)
+            val run = if (tag and 0x80 != 0) ((tag and 0x0f) shl 8) or u8(cursor++) else tag and 0x0f
+            val type = (tag ushr 4) and 7
+            val width = intArrayOf(0, 0, 0, 8, 4, 2, 1, 4)[type]
+            repeat(run) {
+                when (type) {
+                    4 -> ids += u32(cursor)
+                    5 -> ids += u8(cursor) or (u8(cursor + 1) shl 8)
+                    6 -> ids += u8(cursor)
+                }
+                cursor += width
+            }
+            items += run
+        }
+        return ids
+    }
+
+    /** The string IDs of a StringSwitchImm's cases, from its (string ID, offset) jump table. */
+    private fun stringSwitchCases(function: HermesFunction, switch: HermesInstruction): List<Int> {
+        val start = align(function.offset + switch.offset + switch.u32(6))
+        return (0 until switch.u32(14)).map { case -> u32(start + case * 8) }
+    }
+
+    /**
+     * Replaces the consecutive instructions [run] of [function] with [after], of the same total length. The usual
+     * branch checks apply: nothing may jump into the replaced bytes past their first instruction.
+     */
+    fun replaceInstructions(function: HermesFunction, key: String, run: List<HermesInstruction>, after: ByteArray,
+                            defaultEnabled: Boolean = true): HermesEdit {
+        ensure(run.isNotEmpty() && run.zipWithNext().all { (a, b) -> a.offset + a.bytes.size == b.offset },
+            "instructions to replace are not consecutive")
+        val before = run.fold(ByteArray(0)) { all, instruction -> all + instruction.bytes }
+        return add(function, key, run.first().offset, before, after, defaultEnabled)
+    }
+
     private fun onlyReaders(offset: Int, length: Int, readers: Collection<HermesLiteral>, key: String) {
         ensure(readers.isNotEmpty(), "$key names no literal readers")
         fun HermesLiteral.position() = function.offset + instruction.offset
@@ -582,7 +746,14 @@ internal class HermesBundle(input: ByteArray) {
     }
 
     private fun dataWindows(): List<IntRange> {
-        val literals = literalStart until literalStart + literalSize
+        // Data edits are literal values or strings (table entries and storage); a window stays in its edit's region.
+        val regions = listOf(
+            literalStart until literalStart + literalSize,
+            stringTable until stringTable + strings.size * 4,
+            stringStorage until stringStorage + stringStorageSize,
+        )
+        fun region(window: IntRange) = regions.singleOrNull { window.first in it && window.last in it }
+            ?: fail("data edit outside the literal buffer and string tables")
         var windows = changes.filter { it.functionId == DATA }.sortedBy { it.offset }
             .map { it.offset until it.offset + it.original.size }
         while (true) {
@@ -597,9 +768,10 @@ internal class HermesBundle(input: ByteArray) {
             val ambiguous = windows.indexOfFirst { bytes.positions(bytes.copyOfRange(it.first, it.last + 1)).size != 1 }
             if (ambiguous < 0) return windows
             val window = windows[ambiguous]
-            ensure(window.last - window.first < 256, "no unique window around literal ${window.first - literalStart}")
+            ensure(window.last - window.first < 256, "no unique window around data edit at ${window.first}")
+            val bounds = region(window)
             windows = windows.toMutableList().also {
-                it[ambiguous] = maxOf(literals.first, window.first - 8)..minOf(literals.last, window.last + 8)
+                it[ambiguous] = maxOf(bounds.first, window.first - 8)..minOf(bounds.last, window.last + 8)
             }
         }
     }
@@ -660,7 +832,7 @@ internal class HermesBundle(input: ByteArray) {
     companion object {
         const val SOURCE_SHA256 = "e338915440ec701c0612b57e1e459a8e855c6a2f70ba440ffbb25b2c53964129"
 
-        /** [HermesEdit.functionId] of an edit in the literal value buffer. */
+        /** [HermesEdit.functionId] of an edit outside function bytecode: a literal value or a string. */
         const val DATA = -1
 
         /**
@@ -707,6 +879,8 @@ internal object HermesOp {
     const val CALL3 = 0x6f
     const val RET = 0x76
     const val LOAD_CONST_UINT8 = 0x8b
+    const val LOAD_CONST_STRING = 0x90
+    const val LOAD_CONST_STRING_LONG_INDEX = 0x91
     const val LOAD_CONST_UNDEFINED = 0x93
     const val LOAD_CONST_NULL = 0x94
     const val LOAD_CONST_TRUE = 0x95
@@ -722,6 +896,9 @@ internal object HermesOp {
 /** An array or object literal [instruction] in [function], whose values occupy value-buffer bytes [start, end). */
 internal class HermesLiteral(val function: HermesFunction, val instruction: HermesInstruction, val keys: List<String?>?,
     val start: Int, val end: Int)
+
+/** One value of a literal: its type tag, its value (a string ID for strings), and its bytes' value-buffer offset and width. */
+internal data class HermesLiteralValue(val type: Int, val value: Long, val offset: Int, val width: Int)
 
 internal data class HermesFunction(val id: Int, val name: String, val offset: Int, val body: ByteArray,
     val frameSize: Int, val numberRegisters: Int, val nonPointerRegisters: Int, val flags: Int) {

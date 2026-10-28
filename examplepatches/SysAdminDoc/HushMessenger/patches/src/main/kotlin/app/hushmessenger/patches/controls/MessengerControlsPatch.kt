@@ -88,6 +88,7 @@ internal val settingsExtension = bytecodePatch(description = "Load HushMessenger
         followShortcutWrites(classes)
         mutableClassDefBy(HOST_SCREENS).methods.single { it.hookId() == ORIGINAL_BUILD }
             .writeOriginalBuild(originalBuild(packageMetadata.versionName, packageMetadata.versionCode))
+        resolveLogoutRoute(classes, mutableClassDefBy(HOST_SCREENS).methods.singleOrNull { it.hookId() == LOGOUT_ROUTE })
     }
     finalize {
         discoveredControls = emptyMap()
@@ -170,6 +171,7 @@ internal fun MutableMethod.validateHook(hook: String) {
         PHONE_ID_SYNC -> validatePhoneIdSync()
         STORY_HOLD -> validateStoryHold()
         SHARE_STORY -> validateShareStory()
+        AVATAR_SHAPE -> validateAvatarShape()
         QUIET_CALL_RING -> validateQuietCallRing()
         QUIET_CALL_NOTIFICATION -> validateQuietCallNotification()
         TEXT_STYLE -> validateTextStyleField()
@@ -249,6 +251,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             PHONE_ID_SYNC -> method.injectPhoneIdSync()
             STORY_HOLD -> method.injectStoryHold()
             SHARE_STORY -> method.injectShareStory()
+            AVATAR_SHAPE -> method.injectAvatarShape()
             QUIET_CALL_RING -> method.injectQuietCallRing()
             QUIET_CALL_NOTIFICATION -> method.injectQuietCallNotification()
             TEXT_STYLE -> method.injectTextStyleField()
@@ -522,6 +525,9 @@ val markReadButtonPatch = controlPatch("mark_read_button", "Mark as read button"
 val keepUnsentPatch = controlPatch("keep_unsent", "Keep unsent messages", "Keeps messages on screen after someone unsends them, in chats where it works. Encrypted chats aren't supported, and group chats aren't tested.", "Privacy", "keep_unsent", "unsent_indicator", "delta_unsent")
 @Suppress("unused")
 val unlockAppIconsPatch = controlPatch("app_icons", "Unlock app icons", "Lets you pick any icon in Messenger's App icon setting without a subscription. Messenger still decides whether that setting shows for your account.", "Theme")
+@Suppress("unused")
+val avatarShapePatch = controlPatch("avatar_shape", "Square profile pictures",
+    "Shows profile pictures as squares instead of circles, or as rounded squares with Round the corners on. Restart Messenger after changing it.", "Theme")
 @Suppress("unused")
 val customFontPatch = controlPatch("custom_font", "Use your own font",
     "Shows Messenger's text in your phone's font instead of Meta's, or in a .ttf or .otf file you pick in HushMessenger settings. Emoji don't change. Restart Messenger after changing it.",

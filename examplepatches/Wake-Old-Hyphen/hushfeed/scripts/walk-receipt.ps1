@@ -11,15 +11,28 @@
     Schema 2 retains the verified native build and observed installed package/version/APK hash.
     Publish supplies the expected source APK, commit and exact patch/options selection, and checks
     them against that identity and the actual bundle manifest. Schema 1 remains historical only.
-    The implemented whole-app profile covers global TikTok; other apps need their own profile.
+    Each declared package is walked on its own with its own profile ($WalkProfilePackages), and
+    publish needs one passing receipt per package.
 #>
 
 # The phones release walks run on, by ro.product.model. An emulator passes by its serial.
 # Only the S22: TikTok on the S25 (SM-S938B) is a personal account, and Hushfeed is never
 # walked there.
 $WalkReceiptPhones = @('SM-S908U1')
+# Each whole-app walk profile and the one package it walks (walk-app.ps1 -Package picks it).
+$WalkProfilePackages = [ordered]@{
+    'tiktok-whole-app-v1' = 'com.zhiliaoapp.musically'
+    'pinedrama-whole-app-v1' = 'com.ss.android.ttmd.video'
+}
 . (Join-Path (Split-Path -Parent $PSScriptRoot) 'audit/evidence.ps1')
 . (Join-Path $PSScriptRoot 'release-receipt.ps1')
+
+function Get-WalkProfileName([string]$Package) {
+    foreach ($entry in $WalkProfilePackages.GetEnumerator()) {
+        if ($entry.Value -ceq $Package) { return [string]$entry.Key }
+    }
+    return $null
+}
 
 function New-WalkReceipt {
     <#
@@ -41,10 +54,12 @@ function New-WalkReceipt {
         [Parameter(Mandatory = $true)][DateTimeOffset]$Finished,
         [int]$Screens,
         [int]$Crashes,
-        [string[]]$Problems = @()
+        [string[]]$Problems = @(),
+        [string]$WalkProfile = 'tiktok-whole-app-v1'
     )
+    if (-not $WalkProfilePackages.Contains($WalkProfile)) { throw "There's no whole-app walk profile named $WalkProfile." }
     return [ordered]@{
-        schema = 2; profile = 'tiktok-whole-app-v1'; result = $Result; full = $Full
+        schema = 2; profile = $WalkProfile; result = $Result; full = $Full
         serial = $Serial; device = $Device; emulator = $Serial.StartsWith('emulator-', [StringComparison]::Ordinal)
         appVersion = $AppVersion; bundleSha256 = $BundleSha256.ToLowerInvariant(); installedApkSha256 = $InstalledApkSha256
         installed = [ordered]@{
@@ -87,7 +102,8 @@ function Test-WalkReceipt {
     try { $read = Read-WalkReceipt -Path $Path; $receipt = $read.Receipt }
     catch { return Fail "the walk receipt doesn't read as JSON: $($_.Exception.Message)" }
     if ($read.Historical) { return Fail 'the schema 1 walk is historical and cannot authorize a new publication' }
-    if ($receipt.profile -isnot [string] -or $receipt.profile -cne 'tiktok-whole-app-v1') { return Fail 'the walk has no implemented whole-app profile' }
+    if ($receipt.profile -isnot [string] -or -not $WalkProfilePackages.Contains($receipt.profile)) { return Fail 'the walk has no implemented whole-app profile' }
+    $walkedPackage = [string]$WalkProfilePackages[$receipt.profile]
     if ($receipt.result -isnot [string] -or $receipt.result -cne 'PASS') {
         return Fail "the walk ended $(if ($receipt.result -is [string] -and $receipt.result) { $receipt.result } else { 'with no result' }), not PASS"
     }
@@ -122,7 +138,7 @@ function Test-WalkReceipt {
         foreach ($field in @('package','versionName','versionCode','sha256')) {
             if ($installed.$field -isnot [string]) { return Fail 'the walk has malformed installed APK facts' }
         }
-        if ($null -eq $installed -or [string]$installed.package -cne 'com.zhiliaoapp.musically' -or
+        if ($null -eq $installed -or [string]$installed.package -cne $walkedPackage -or
                 [string]$installed.package -cne [string]$ExpectedSourceApk.package -or
                 [string]$installed.versionName -cne [string]$ExpectedSourceApk.versionName -or
                 [string]$installed.versionName -cne [string]$receipt.appVersion -or
@@ -151,18 +167,35 @@ function Test-WalkReceipt {
     return [pscustomobject]@{ Valid = $true; Reason = $null; Receipt = $receipt }
 }
 
-function Get-WalkPublicationProblem($Target) {
-    # This single-walk stage cannot stand in for missing package/version profiles.
+function Get-WalkPublicationProblem($Targets) {
+    # -Targets is Get-DeclaredPatchTargets: every declared package needs a walk profile, and each
+    # walk covers one version, so a package declaring two can't be backed by one walk.
     try {
-        if ($null -eq $Target -or [string]$Target.PackageName -cne 'com.zhiliaoapp.musically') {
-            return 'The current whole-app walk stage only has a global TikTok profile.'
-        }
-        if (@($Target.OtherPackages).Count -gt 0) {
-            return 'Publication needs separate native walks for every declared package; another package has no implemented walk profile.'
-        }
-        if (@($Target.PackageVersions).Count -ne 1) {
-            return 'Publication needs separate native walks for every declared target version.'
+        $declared = @($Targets | Where-Object { $null -ne $_ })
+        if ($declared.Count -eq 0) { return 'The publication target has no declared packages to walk.' }
+        foreach ($target in $declared) {
+            if (-not (Get-WalkProfileName ([string]$target.PackageName))) {
+                return "Publication needs a native walk of every declared package, and $($target.PackageName) has no whole-app walk profile."
+            }
+            if (@($target.PackageVersions).Count -ne 1) {
+                return "Publication needs separate native walks for every declared version of $($target.PackageName)."
+            }
         }
         return $null
     } catch { return 'The publication target has no complete native walk coverage declaration.' }
+}
+
+function Find-WalkReceiptPath {
+    <#
+    .SYNOPSIS
+        Of -Paths, the one walk receipt whose profile walks -Package, or $null when none or more
+        than one does.
+    #>
+    param([string[]]$Paths = @(), [Parameter(Mandatory = $true)][string]$Package)
+    $found = @(foreach ($path in $Paths) {
+            try { $walkProfile = [string](Read-WalkReceipt -Path $path).Receipt.profile } catch { continue }
+            if ($WalkProfilePackages.Contains($walkProfile) -and [string]$WalkProfilePackages[$walkProfile] -ceq $Package) { $path }
+        })
+    if ($found.Count -eq 1) { return $found[0] }
+    return $null
 }

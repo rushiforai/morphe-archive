@@ -3,6 +3,8 @@
  * https://github.com/wchill/patcheddit
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
+ * Modifications Copyright 2026 brealorg.
+ * Adapted from https://github.com/brealorg/breal-morphe-patches (0226c2e).
  */
 
 package app.morphe.patches.reddit.customclients
@@ -11,11 +13,23 @@ import app.morphe.patcher.patch.BytecodePatchBuilder
 import app.morphe.patcher.patch.Option
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.stringOption
+import app.morphe.patches.all.misc.PatchCategory
+import java.util.Base64
+
+private const val REDREADER_CLIENT_ID_BASE64 = "eUgwYVRuSkV0NnFVZ0duODM1QjR2Zw=="
+private const val REDREADER_REDIRECT_URI = "redreader://rr_oauth_redir"
+private const val REDREADER_USER_AGENT = "org.quantumbadger.redreader/1.27"
+
+internal fun applyDefaultClientId(option: Option<String>) {
+    if (option.value.isNullOrBlank()) {
+        option.value = Base64.getDecoder().decode(REDREADER_CLIENT_ID_BASE64).toString(Charsets.UTF_8)
+    }
+}
 
 /**
  * Base class for patches that spoof the Reddit client.
  *
- * @param block The patch block. It is called with the client ID option and redirect URI option.
+ * @param block The patch block. It receives client ID, redirect URI and user agent options.
  */
 fun spoofClientPatch(
     name: String,
@@ -30,42 +44,44 @@ fun spoofClientPatch(
     description = description,
     default = true
 ) {
+    category(PatchCategory.LOGIN)
     val clientIdOption = stringOption(
         "client-id",
         null,
         null,
         "OAuth client ID",
-        "The Reddit OAuth client ID. Refer to Patcheddit documentation for more " +
-                "information on what to put here.",
-        true,
+        "The Reddit OAuth client ID. Leave empty to use the RedReader 1.27 default. " +
+                "Custom values must contain exactly 22 letters, digits, underscores or hyphens.",
+        false,
         validator = { value ->
-            if (value.isNullOrBlank()) {
-                return@stringOption false
-            }
-            if (!value.matches(Regex("^[\\w-]{22}$"))) {
-                return@stringOption false
-            }
-            true
+            value.isNullOrBlank() || value.matches(Regex("^[\\w-]{22}$"))
         }
     )
     val redirectUriOption = stringOption(
         "redirect-uri",
-        "redreader://rr_oauth_redir",
+        REDREADER_REDIRECT_URI,
         null,
         "Redirect URI",
         "The Reddit OAuth redirect URI. Refer to Patcheddit documentation for more " +
-                "information on what to put here. Default value is RedReader's redirect URI.",
+                "information on what to put here. Default value is RedReader 1.27's redirect URI.",
         true,
     )
     val userAgentOption = stringOption(
         "user-agent",
-        "org.quantumbadger.redreader/1.25.1",
+        REDREADER_USER_AGENT,
         null,
         "User agent",
         "The app's user agent. Refer to Patcheddit documentation for more information " +
-                "on what to put here. Default value is RedReader's user agent.",
+                "on what to put here. Default value is RedReader 1.27's user agent.",
         true
     )
+
+    // Resolve before client-specific dependencies without exposing the ID in option metadata.
+    dependsOn(bytecodePatch(default = false) {
+        execute {
+            applyDefaultClientId(clientIdOption)
+        }
+    })
 
     block(
         clientIdOption, redirectUriOption, userAgentOption

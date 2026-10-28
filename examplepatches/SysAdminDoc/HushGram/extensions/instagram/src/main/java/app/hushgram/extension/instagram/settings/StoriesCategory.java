@@ -7,10 +7,13 @@
 package app.hushgram.extension.instagram.settings;
 
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.category;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.onFlip;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.storyBarRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.storyRingColorRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.storyRingRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.storyTimeModeRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.toggle;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.trayBadgeRow;
 
 import android.content.Context;
 import android.preference.Preference;
@@ -21,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import app.hushgram.extension.instagram.stories.StoryProgressBar;
 import app.hushgram.extension.shared.L10n;
 
 /** Builds the Stories category of HushGram settings. */
@@ -58,6 +62,10 @@ final class StoriesCategory {
             stories.add(toggle(context, Settings.HIDE_ADD_YOURS_CARDS, L10n.t("Hide Add Yours cards between stories"),
                     L10n.t("Leaves out the Add Yours cards, like Popular Add Yours and Join a trending Add Yours, "
                             + "that Instagram puts between the stories you tap through. The stories themselves stay.")));
+            stories.add(toggle(context, Settings.FILTER_TRAY_BY_BADGE, L10n.t("Filter the Stories tray by verified accounts"),
+                    L10n.t("The row of stories at the top of Home keeps only the accounts the choice below names, "
+                            + "by Instagram's verified badge. Your own story stays. Turn it off to see every story.")));
+            stories.add(trayBadgeRow(context));
         }
         if (build.contains(PatchFamily.STORY_RING)) {
             stories.add(toggle(context, Settings.STORY_RING, L10n.t("Story ring size"),
@@ -66,6 +74,17 @@ final class StoriesCategory {
                             + "change.")));
             stories.add(storyRingRow(context));
             stories.add(storyRingColorRow(context));
+        }
+        if (build.contains(PatchFamily.STORY_PROGRESS_BAR)) {
+            stories.add(onFlip(toggle(context, Settings.THICKER_STORY_BAR, L10n.t("Thicker story progress bar"),
+                    L10n.t("Draws the bar along the top of a story as thick as the choice below. Its segments "
+                            + "and timing stay as they were.")), StoryProgressBar::switchChanged));
+            stories.add(storyBarRow(context));
+        }
+        if (build.contains(PatchFamily.STORY_SEEK_BAR)) {
+            stories.add(toggle(context, Settings.STORY_SEEK_BAR, L10n.t("Seek bar on stories"),
+                    L10n.t("Shows a bar near the bottom of a video story. Drag it to jump to any point in the "
+                            + "video. Photos don't get one.")));
         }
         if (build.contains(PatchFamily.STORY_AUTO_ADVANCE)) {
             stories.add(toggle(context, Settings.BLOCK_STORY_AUTO_ADVANCE, L10n.t("Stop Story auto-advance"),

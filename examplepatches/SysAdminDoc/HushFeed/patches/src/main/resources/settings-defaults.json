@@ -15,6 +15,7 @@
       "download_without_sound",
       "download_progress",
       "download_saves_at_once",
+      "download_unmetered_only",
       "download_details",
       "download_details_json",
       "download_tags",
@@ -50,7 +51,8 @@
       "publish_date_short_date",
       "publish_date_on_grid",
       "video_length_on_grid",
-      "profile_grid_sort"
+      "profile_grid_sort",
+      "liked_grid_sort"
     ],
     "Always upload in HD": [
       "always_upload_hd"
@@ -80,6 +82,7 @@
       "session_budget_ramp",
       "session_budget_finish_video",
       "feed_lock",
+      "feed_lock_hours",
       "shared_video_alone",
       "session_budget_cue",
       "session_budget_notice_minutes",
@@ -187,6 +190,7 @@
     "Downloads": [
       "keep_photos_as_sent",
       "download_saves_at_once",
+      "download_unmetered_only",
       "download_sticker_format",
       "download_video_path",
       "download_photo_path",
@@ -194,7 +198,8 @@
       "download_video_filename_template",
       "download_photo_filename_template",
       "download_comment_media_filename_template",
-      "down_watermark"
+      "down_watermark",
+      "skip_post_download_share_sheet"
     ],
     "Drop the animated image cache": [
       "drop_animated_image_cache"
@@ -391,8 +396,10 @@
       "hide_feed_action_bar",
       "hide_feed_surveys",
       "hide_footnotes",
+      "hide_following_live_row",
       "hide_detail_comment_bar",
       "hide_clear_display_controls",
+      "keep_clear_display_seek_bar",
       "fade_controls_opacity",
       "fade_in_clear_display",
       "see_through_bottom_bar",
@@ -545,6 +552,7 @@
       "default_speed",
       "custom_speeds",
       "hold_speed",
+      "hold_speed_slide",
       "remembered_speed_v2"
     ],
     "Prefer H.264 playback": [
@@ -1473,6 +1481,12 @@
       "type": "boolean",
       "default": false
     },
+    "download_unmetered_only": {
+      "field": "DOWNLOAD_UNMETERED_ONLY",
+      "key": "download_unmetered_only",
+      "type": "boolean",
+      "default": false
+    },
     "download_video_filename_template": {
       "field": "DOWNLOAD_VIDEO_FILENAME_TEMPLATE",
       "key": "download_video_filename_template",
@@ -1612,6 +1626,12 @@
       "key": "feed_lock",
       "type": "boolean",
       "default": false
+    },
+    "feed_lock_hours": {
+      "field": "FEED_LOCK_HOURS",
+      "key": "feed_lock_hours",
+      "type": "string",
+      "default": ""
     },
     "feed_mute_button": {
       "field": "FEED_MUTE_BUTTON",
@@ -1978,6 +1998,12 @@
     "hide_follower_notifications": {
       "field": "HIDE_FOLLOWER_NOTIFICATIONS",
       "key": "hide_follower_notifications",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_following_live_row": {
+      "field": "HIDE_FOLLOWING_LIVE_ROW",
+      "key": "hide_following_live_row",
       "type": "boolean",
       "default": false
     },
@@ -2443,6 +2469,12 @@
       "type": "string",
       "default": "2"
     },
+    "hold_speed_slide": {
+      "field": "HOLD_SPEED_SLIDE",
+      "key": "hold_speed_slide",
+      "type": "boolean",
+      "default": false
+    },
     "home_tab_opens_settings": {
       "field": "HOME_TAB_OPENS_SETTINGS",
       "key": "home_tab_opens_settings",
@@ -2482,6 +2514,12 @@
     "keep_captions_clear_display": {
       "field": "KEEP_CAPTIONS_CLEAR_DISPLAY",
       "key": "keep_captions_clear_display",
+      "type": "boolean",
+      "default": false
+    },
+    "keep_clear_display_seek_bar": {
+      "field": "KEEP_CLEAR_DISPLAY_SEEK_BAR",
+      "key": "keep_clear_display_seek_bar",
       "type": "boolean",
       "default": false
     },
@@ -2544,6 +2582,12 @@
       "key": "lift_length_limits",
       "type": "boolean",
       "default": false
+    },
+    "liked_grid_sort": {
+      "field": "LIKED_GRID_SORT",
+      "key": "liked_grid_sort",
+      "type": "string",
+      "default": "profile"
     },
     "limit_background_traffic": {
       "field": "LIMIT_BACKGROUND_TRAFFIC",
@@ -3512,6 +3556,12 @@
     "skip_passkey_sign_in": {
       "field": "SKIP_PASSKEY_SIGN_IN",
       "key": "skip_passkey_sign_in",
+      "type": "boolean",
+      "default": false
+    },
+    "skip_post_download_share_sheet": {
+      "field": "SKIP_POST_DOWNLOAD_SHARE_SHEET",
+      "key": "skip_post_download_share_sheet",
       "type": "boolean",
       "default": false
     },

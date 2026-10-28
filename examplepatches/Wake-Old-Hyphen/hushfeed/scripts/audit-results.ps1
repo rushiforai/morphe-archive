@@ -1,12 +1,14 @@
 <#
 .SYNOPSIS
-    Whether the device audit still backs a release of the declared TikTok versions.
+    Whether the device audit still backs a release of a declared package's versions.
 
 .DESCRIPTION
     Dot-sourced by build-release-receipt.ps1, which writes what it finds into the receipt, and by
     release/release.ps1, whose publish stage refuses a release the audit doesn't back.
 
-    audit/results/tiktok-<version>.json is what audit/run-audit.ps1 left for a declared version.
+    audit/results/<prefix>-<version>.json is what audit/run-audit.ps1 left for a declared version,
+    held to that package's own catalog (audit/catalog.json for TikTok, audit/catalog-pinedrama.json
+    for PineDrama; Get-AuditPackageProfile in audit/evidence.ps1 names them).
     Its stored qualification was worked out against the run's evidence folder, which stays on the
     machine that ran it, so that half is taken as recorded. Catalog definition hashes are checked
     again. The versioned global executable-input digest also has to match each check's own build
@@ -46,13 +48,18 @@ function Test-AuditResults {
     }
     catch { return Fail "Cannot qualify executable inputs: $($_.Exception.Message)" }
 
-    $entries = Get-Content -LiteralPath (Join-Path $Root 'audit/catalog.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    $packageProfile = Get-AuditPackageProfile $PackageName
+    if ($null -eq $packageProfile) { return Fail "$PackageName has no audit profile, so it can't be audited on a device" }
+    $catalogName = $packageProfile.Catalog
+    $catalogPath = Join-Path $Root $catalogName
+    if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) { return Fail "there's no $catalogName for $($packageProfile.Label)" }
+    $entries = Get-Content -LiteralPath $catalogPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $facts = [Collections.Generic.List[object]]::new()
     foreach ($version in $PackageVersions) {
-        $relative = "audit/results/tiktok-$version.json"
+        $relative = "audit/results/$($packageProfile.ResultsPrefix)-$version.json"
         $path = Join-Path $Root $relative
         if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
-            return Fail "there's no $relative, so TikTok $version was never audited on a device"
+            return Fail "there's no $relative, so $($packageProfile.Label) $version was never audited on a device"
         }
         try { $run = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json }
         catch { return Fail "$relative doesn't read as JSON: $($_.Exception.Message)" }
@@ -91,7 +98,7 @@ function Test-AuditResults {
             if ($changed.Count) { $parts += "changed since the run: $($changed -join ', ')" }
             if ($missing.Count) { $parts += "never run: $($missing -join ', ')" }
             if ($removed.Count) { $parts += "no longer in the catalog: $($removed -join ', ')" }
-            return Fail ("$relative no longer matches audit/catalog.json ($($parts -join '; ')). " +
+            return Fail ("$relative no longer matches $catalogName ($($parts -join '; ')). " +
                 'Rerun those checks with audit/run-audit.ps1 -Only on the audited APK so they merge into the results.')
         }
 

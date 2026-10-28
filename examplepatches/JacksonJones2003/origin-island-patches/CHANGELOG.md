@@ -1,3 +1,38 @@
+## [1.9.1](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.9.0...v1.9.1) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* **LastWave:** play the song Android Auto prepares from a voice search ([63296ba](https://github.com/JacksonJones2003/origin-island-patches/commit/63296bad0ca8e11bcf3c01e2ea9a8e1d4a7567cb))
+
+## [1.9.0](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.8.0...v1.9.0) (2026-10-27)
+
+### ✨ New Features
+
+* **LastWave:** show lyrics on the music card ([168d977](https://github.com/JacksonJones2003/origin-island-patches/commit/168d97789d2c1e2e18adfbde1204e2600b990ac6))
+* **YouTube Music:** run the lyrics in the player a little ahead of the song ([a5cf441](https://github.com/JacksonJones2003/origin-island-patches/commit/a5cf441e3090c3aa040ace1289a69194950b173d))
+
+## [1.8.0](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.7.0...v1.8.0) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* **LastWave:** let the app reach the likes of the card ([f99ee94](https://github.com/JacksonJones2003/origin-island-patches/commit/f99ee94d8efbeb630b57b2c83df7866c9ebf9d03))
+
+### ✨ New Features
+
+* **LastWave:** like songs from the heart of the music card ([0902a9b](https://github.com/JacksonJones2003/origin-island-patches/commit/0902a9bad3a0550348db7db78abbe3c621985f73))
+
+## [1.7.0](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.6.0...v1.7.0) (2026-10-27)
+
+### ✨ New Features
+
+* Add Origin Island music card patch for LastWave ([7d2bc10](https://github.com/JacksonJones2003/origin-island-patches/commit/7d2bc103870dac3edb2815db2f6a9e3cb558fa93))
+
+## [1.6.0](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.5.0...v1.6.0) (2026-10-27)
+
+### ✨ New Features
+
+* Show the lyrics between the cover and the title in the player ([06429bd](https://github.com/JacksonJones2003/origin-island-patches/commit/06429bd70ed8c533fb6b5bd3346065e9ffb5409f))
+
 ## [1.5.0](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.4.0...v1.5.0) (2026-10-21)
 
 ### ✨ New Features

@@ -266,14 +266,15 @@ details and validation follow.
 | Chat text size | Yes | Kick's size; Compact chat, off | Chat text from 12 to 24 px; less space between messages. |
 | Chat keywords | Yes | Off; mentions on, vibration off, lists empty | Tints messages that mention you or contain highlight words, optionally vibrating; hides blocked words and users. |
 | Anonymous chat | Yes | Off | The chat page opens without the sign-in token and the account, as when signed out; sending chat messages is refused. |
+| Lurk in account menu | Yes | On, kept while paused (Advanced) | A Lurk row in the account menu (signed in) that opens Lurk settings. |
 
 The second batch follows one switch policy, the same in all three apps: every patch whose
 effect can be decided at run time has a Lurk setting that turns it fully off, and a new
 patch with a switch is selected by default while its switch starts off, so a freshly
 patched app behaves like stock until you turn something on. The exceptions start on:
-lockout protection (Block update prompts), nags (Hide rating prompt), local privacy (Don't
-save searches), and features that match what the same patch does by default on Twitch
-(Show deleted messages, Background audio).
+lockout protection (Block update prompts, and Lurk in account menu, a way back into the Lurk
+screen), nags (Hide rating prompt), local privacy (Don't save searches), and features that match
+what the same patch does by default on Twitch (Show deleted messages, Background audio).
 
 There is no cookie-notice or Premium-unlock patch: no corresponding Kick feature
 was established. The VOD patch does not promise removal of ads already stitched
@@ -281,10 +282,19 @@ into the source stream. Its generator still completes with an object, allowing
 both the VOD and live-rewind consumers to use their existing original-URL fallback.
 Live playback authorization and media URLs remain unchanged.
 
-Long-press the launcher icon and select **Lurk settings**. Settings show only the
+The Lurk settings screen opens from Kick's account menu (tap your profile picture while signed
+in) › **Lurk**, from the launcher icon (long-press › **Lurk settings**) and from Android's App info
+page for Kick (› **Additional settings in the app**). Signed out, Kick has no account menu: it
+sends `/account` to the login screen, so the other two are the ways in. Settings show only the
 patches included in that APK. Hermes and SDK-startup switches require a restart;
 the screen offers a restart action. The quality height is a patch-time option;
 its runtime switch restores Kick's default when disabled.
+
+The settings activity isn't exported. The settings patch adds an exported `activity-alias` of it
+that answers only `android.intent.action.APPLICATION_PREFERENCES`, which App info links to, and the
+activity reads nothing from the intent that starts it. The launcher shortcut is pushed back to the
+top of Kick's shortcuts at every start on Android 11 and newer; some launchers (often on older
+Android versions) show no app shortcuts at all, which is what the other two ways in are for.
 
 Hermes patches disable Expo OTA updates, including the controller path that reads
 the update database. Native-only combinations leave Expo enabled. Repatch with a
@@ -751,6 +761,53 @@ elements and borders) stays. `MainActivity.onCreate` also sets the window backgr
 seen during transitions, to black. The splash screen, drawn before any app code runs,
 stays Kick's `#090A0B`, and colours hardcoded in components stay as they are.
 
+### Lurk in account menu
+
+Kick's account menu (`AccountScreen`, the screen your profile picture opens) is React Native, so a
+new row can't be added the way Rumble's is: Hermes edits keep their length, and nothing can be
+inserted. The menu already ends with a row nobody but Kick staff sees: `AccountMenuItem` with
+`href: '/dev-settings'`, icon `terminal`, label `t('account.items.settings.message')` ("Developer
+settings") and `testID: 'Account-Menu-Dev-Settings'`, drawn only when the account's roles include a
+staff role. The patch turns that row into the Lurk row:
+
+- the role check's `JmpFalse` becomes a `Mov` of the tested register onto itself, so the row is
+  drawn for every signed-in account;
+- `LoadConstString key; Call2 t(key)` for the label becomes `LoadConstStringLongIndex` of the row's
+  testID string and a `Mov` of that register onto itself, so the label skips the translation;
+- the href's string ID in the literal buffer becomes the ID of a string that reads `lurk://settings`.
+
+Hermes has no spare string, and strings can't be added, so two are rewritten in the string table
+(`HermesBundle.rewriteString`: the first bytes in the string storage and the length byte of the
+string's table entry). The row's own testID becomes "Lurk", which the label now loads too, and "Enter
+valid JSON." becomes `lurk://settings`; that message belongs to the value check of the developer
+feature-flag screen, which only the replaced row opened. A string can only be rewritten when it is no
+identifier (property name), function name, object key or string-switch case, shares no storage byte
+with another string (Hermes packs strings into each other: `'/dev-settings'` is the end of a route
+file's name, so the href's own string can't be changed), and is loaded and read exactly where the
+patch expects.
+
+Tapping the row runs expo-router's `Link`: `lurk://settings` has a URL scheme, so expo-router hands it
+to `Linking.openURL` instead of navigating. The patch hooks the start of React Native's
+`IntentModule.openURL`: `Settings.openLink` opens Lurk settings for exactly that link and the promise
+resolves with true; any other link goes on to Android as before. No activity declares the `lurk`
+scheme, so other apps can't use it and nothing else in Kick opens it.
+
+The patch is separate from the hidden settings patch because of what Hermes edits cost: like every
+JavaScript patch it turns off Kick's over-the-air JavaScript updates, and putting it in the settings
+patch would turn them off for native-only selections too. It is selected by default (the default
+selection already edits Kick's JavaScript) and its switch starts on and stays on while Lurk is
+paused, as it is a way back into the screen; turning it off takes a restart, after which the row is
+Kick's staff-only row again.
+
+Checked: `bin/test-kick-hermes` runs the edited `AccountScreen` code from the role check for an
+account without staff roles (`verify_interface.py`): on, it draws an `AccountMenuItem` labelled Lurk
+with href `lurk://settings`, which expo-router's external-link test accepts; off, nothing, as in stock.
+`verify_literals.py` decodes every string with the switch on and off: exactly the two strings change.
+`bin/test-kick` runs Kick's real, patched `IntentModule.openURL` on ART (`SettingsLinkProbe`): Lurk's
+link starts the settings activity and resolves the promise; another link reaches React Native's own
+code. On the emulator the patched Kick starts and runs, and the switch shows under Advanced. The row
+itself on screen needs a signed-in account and wasn't checked.
+
 ### Chat page script
 
 The switches that change chat lines (Ignore chat clears, Hide sub and gift messages, Hide host
@@ -1028,6 +1085,12 @@ The edit helpers, all equal-length and fail-closed:
   choice. Hermes shares value bytes between literals, so each edit
   names the literals allowed to read its bytes and fails if any other literal does. Their
   replacement window is grown until its original bytes are unique in the bundle.
+- `dataSwitch`: a literal-buffer edit like `dataChoice`, as a switch; the same reader check.
+- `rewriteString`: makes a string read a shorter ASCII text while a switch is on (its storage bytes
+  and the length in its table entry). Refused unless the string is no identifier, function name,
+  object key or string-switch case, shares no storage byte with another string, and is loaded and
+  read only where the patch says. `verify_literals.py` decodes every string with each switch on and
+  requires exactly the expected ones to change. See Lurk in account menu.
 - `functionUsing`: selects an anonymous function by the properties it reads and the
   strings it loads, rather than by bytes that embed build-local string IDs.
 - Edits only one patch needs live in that patch: Disable autoplay rewrites
@@ -1091,7 +1154,9 @@ version bump edits them in `Hermes.kt` and `Constants.kt` only.
   unknown value); SHA checks.
 - `tests/kick/verify_literals.py`: for literal-buffer edits, decodes every function and
   requires that only the intended array/object literals read the edited bytes, and that
-  every choice value keeps each literal's tags, count and length. `test_hermes.py` runs it.
+  every choice value keeps each literal's tags, count and length. For string-table edits it
+  decodes every string with each switch on and requires exactly the expected strings to change,
+  none of them an identifier. `test_hermes.py` runs it.
 - `bin/test-kick`: first checks with `tests/verify_extension_calls.py` that Kick's code
   calls every extension method in `tests/kick/expected-hooks.txt` (the default selection's
   hooks), so an injected call Morphe dropped fails the run; then executes the injected Java
@@ -1099,7 +1164,8 @@ version bump edits them in `Hermes.kt` and `Constants.kt` only.
   bytes of each choice value, exact stock restoration and the reuse of the private copy;
   invokes the two Insider job guards and checks synchronous completion without SDK dispatch. A second probe,
   `PlayerProbe`, runs the player view's hooks in a fresh process with Kick's real player classes and a stand-in IVS
-  player (Show video stats, Mute stitched live ads).
+  player (Show video stats, Mute stitched live ads). A third, `SettingsLinkProbe`, calls React Native's
+  patched `IntentModule.openURL` with Lurk's link and another one (Lurk in account menu).
   Hand-written invokes in the Kick patches either use `/range`, copy a parameter into low
   locals first (Datadog's `initialize`, whose promise is `v11` today) or call
   `requireLowRegisters`, so a later Kick version with more locals fails at patch time instead
@@ -1147,7 +1213,8 @@ patches enabled. The final combined asset has 25 edits across 20 functions and s
 independent Hermes switches; the native sharing/analytics switches are separate.
 The visible Hide Clips switch and Restart Kick action were exercised: the process
 restarted, its private bundle matched the selected bytes exactly, and Browse's Clips
-tab returned. The launcher shortcut points to the non-exported settings activity.
+tab returned. The launcher shortcut points to the non-exported settings activity; App info reaches
+it through the alias, which answers only APPLICATION_PREFERENCES.
 
 These tests do not establish zero telemetry from the first process instruction.
 Firebase's content provider initializes before the application collection hook, so

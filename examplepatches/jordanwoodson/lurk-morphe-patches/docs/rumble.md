@@ -234,7 +234,8 @@ depend on jurisdiction, because both entry points that can display one are disab
 ## Lurk settings
 
 Every Rumble patch that changes code can be switched off and on in the app, without patching again:
-Settings > App info > **Lurk**, or long-press the launcher icon > **Lurk settings**. The screen lists
+Settings > App info > **Lurk**, long-press the launcher icon > **Lurk settings**, or Android's App info
+page for Rumble > **Additional settings in the app**. The screen lists
 only the patches that were included. Each switch starts at the patch's default (or its patch option)
 and keeps the user's choice from then on, including across updates. Reset to defaults forgets those
 choices.
@@ -300,7 +301,11 @@ How it works:
 - `rumble/settings/SettingsPatch.kt` is a hidden patch the others depend on. It merges
   `extensions/shared.mpe`, adds the extension's `SettingsActivity` to the manifest (with its own task
   affinity, so the launcher shortcut never opens inside Rumble's picture-in-picture task), and calls
-  `Settings.init(context)` first thing in `RumbleApplication.onCreate()`.
+  `Settings.init(context)` first thing in `RumbleApplication.onCreate()`. The activity isn't exported;
+  an exported `activity-alias` of it answers only `android.intent.action.APPLICATION_PREFERENCES`, the
+  action Android's App info page links to, and the activity reads nothing from the intent that starts it.
+  `Settings.init` pushes the launcher shortcut back to the top of Rumble's shortcuts at every start on
+  Android 11 and newer (shared with Twitch, whose whisper shortcuts would otherwise bury it).
 - The Lurk row is a fourth `RowItemWithArrowView` after Send Feedback in the `AppInfoSection`
   composable, drawn by a static method the patch adds next to it with the same arguments as Rumble's
   rows. Its onClick is a `kotlin.jvm.functions.Function0` the extension makes with a `Proxy`, since
@@ -323,6 +328,8 @@ and Change app name applied (Gradle still can't reach GitHub Packages):
 
 - The Lurk row appears after Send feedback and opens the screen in Rumble's task; Back returns to Settings.
 - The launcher shortcut opens it full screen, also while a video plays in picture-in-picture.
+- App info > Additional settings in the app opens it (checked on 3.21.0 when the alias was added, with
+  the Lurk row still opening it after Send feedback).
 - Hide Shorts off + Restart Rumble: the Shorts tab and Home row come back. On + restart: hidden again.
 - The same walk-through (fresh launch, the featured video for 35 s, three scrolls) through the logging
   proxy: with Block ads and Disable analytics on, only Rumble's own hosts and `graph.facebook.com`.

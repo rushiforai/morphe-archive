@@ -206,7 +206,9 @@ public final class AppPatch {
         if (baseUrl == null) throw new IllegalStateException("no base URL field on Retrofit");
         String apiBase = String.valueOf(baseUrl.get(retrofit));
 
-        MovieBoxSource source = new MovieBoxSource(loader, client, apiBase);
+        BuildTag buildTag = BuildTag.fromInstalledApp();
+        Object taggedClient = withBuildTagInterceptor(loader, client, buildTag);
+        MovieBoxSource source = new MovieBoxSource(loader, taggedClient, apiBase, buildTag);
         DashServer server = null;
         if (isMainProcess()) {
             try {
@@ -218,7 +220,7 @@ public final class AppPatch {
         boolean routeDownloads = !isMainProcess() || server != null;
         try {
             if (server != null) server.start();
-            Object wrapped = addInterceptor(client,
+            Object wrapped = addInterceptor(taggedClient,
                     interceptor(loader, source, routeDownloads, readHiddenHomeTabs()));
             clientField.set(instance, wrapped);
             try {
@@ -300,6 +302,21 @@ public final class AppPatch {
             }
         }
         return null;
+    }
+
+    private static Object withBuildTagInterceptor(ClassLoader loader, Object client, BuildTag buildTag)
+            throws Exception {
+        if (buildTag == null) return client;
+        Class<?> interceptorClass = Class.forName(OKHTTP_INTERCEPTOR, false, loader);
+        Object proxy = Proxy.newProxyInstance(loader, new Class<?>[]{interceptorClass},
+                new BuildTagInterceptor(buildTag));
+        Object builder = client.getClass().getMethod("newBuilder").invoke(client);
+        Object interceptors = builder.getClass().getMethod("interceptors").invoke(builder);
+        int last = (Integer) interceptors.getClass().getMethod("size").invoke(interceptors) - 1;
+        interceptors.getClass().getMethod("add", int.class, Object.class)
+                .invoke(interceptors, Math.max(last, 0), proxy);
+        Log.i(TAG, "build tag interceptor installed");
+        return builder.getClass().getMethod("build").invoke(builder);
     }
 
     private static Object addInterceptor(Object client, Object proxy) throws Exception {
@@ -455,12 +472,13 @@ public final class AppPatch {
         private final ExecutorService directFileSizeLookups = Executors.newCachedThreadPool();
         private final Map<String, Boolean> handedOff = newLruMap(RESOURCE_RETENTION);
         private final Map<String, FutureTask<DashFile>> files = newLruMap(FILE_RETENTION);
-        private final CloudFrontPlayInfoClient cloudFrontPlayInfoClient = new CloudFrontPlayInfoClient();
+        private final CloudFrontPlayInfoClient cloudFrontPlayInfoClient;
 
-        MovieBoxSource(ClassLoader loader, Object client, String apiBase) {
+        MovieBoxSource(ClassLoader loader, Object client, String apiBase, BuildTag buildTag) {
             this.loader = loader;
             this.client = client;
             this.apiBase = apiBase.endsWith("/") ? apiBase : apiBase + "/";
+            this.cloudFrontPlayInfoClient = new CloudFrontPlayInfoClient(buildTag);
         }
 
         SignedResource observePlayInfo(String requestUrl, String body, String apiHost) {

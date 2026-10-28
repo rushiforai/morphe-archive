@@ -71,6 +71,8 @@ public class SaveFolderTest {
     public void tearDown() {
         Settings.SAVE_FOLDER.resetToDefault();
         Settings.SAVE_TO.resetToDefault();
+        Settings.SAVE_STORAGE.resetToDefault();
+        SaveStorage.cardsForTests = null;
         Settings.VIDEO_SUBFOLDER.resetToDefault();
         Settings.PHOTO_SUBFOLDER.resetToDefault();
         MediaDownload.policyForTests = null;
@@ -356,6 +358,93 @@ public class SaveFolderTest {
             photo.abandon();
             id += 2;
         }
+    }
+
+    /**
+     * With an SD card picked (#274), each Save to choice goes through that card's collection, under
+     * the same folders as on the phone, and the toast names the card first.
+     */
+    @Test
+    public void aPickedCardTakesEachTopFolderThroughItsOwnCollection() throws IOException {
+        SaveProgressTest.Gallery gallery = gallery();
+        SaveStorage.cardsForTests = Arrays.asList(new SaveStorage.Card("0123-4567", "Other card"),
+                new SaveStorage.Card("1a2b-3c4d", "SanDisk SD card"));
+        Settings.SAVE_FOLDER.save("Clips");
+        Settings.SAVE_STORAGE.save("1a2b-3c4d");
+        Map<SaveTo, String[]> paths = new LinkedHashMap<>();
+        paths.put(SaveTo.MOVIES_AND_PICTURES, new String[]{"Movies/Clips", "Pictures/Clips"});
+        paths.put(SaveTo.DCIM, new String[]{"DCIM/Clips", "DCIM/Clips"});
+        paths.put(SaveTo.DOWNLOAD, new String[]{"Download/Clips", "Download/Clips"});
+        Map<SaveTo, Uri[]> collections = new LinkedHashMap<>();
+        collections.put(SaveTo.MOVIES_AND_PICTURES, new Uri[]{
+                Uri.parse("content://media/1a2b-3c4d/video/media"), Uri.parse("content://media/1a2b-3c4d/images/media")});
+        collections.put(SaveTo.DCIM, collections.get(SaveTo.MOVIES_AND_PICTURES));
+        collections.put(SaveTo.DOWNLOAD, new Uri[]{
+                Uri.parse("content://media/1a2b-3c4d/downloads"), Uri.parse("content://media/1a2b-3c4d/downloads")});
+
+        long id = 1;
+        for (SaveTo to : SaveTo.values()) {
+            Settings.SAVE_TO.save(to);
+            Uri[] expected = collections.get(to);
+            assertEquals(to + " video collection", expected[0], to.collection(true, "1a2b-3c4d"));
+            assertEquals(to + " photo collection", expected[1], to.collection(false, "1a2b-3c4d"));
+            writable(ContentUris.withAppendedId(expected[0], id));
+            writable(ContentUris.withAppendedId(expected[1], id + 1));
+
+            MediaStoreWriter video = new MediaStoreWriter(context, true);
+            video.open("video/mp4").close();
+            MediaStoreWriter photo = new MediaStoreWriter(context, false);
+            photo.open("image/jpeg").close();
+
+            assertEquals(to + " video", ContentUris.withAppendedId(expected[0], id), gallery.inserts.get((int) id - 1));
+            assertEquals(to + " photo", ContentUris.withAppendedId(expected[1], id + 1), gallery.inserts.get((int) id));
+            assertEquals(paths.get(to)[0], pathOf(gallery.rows.get(id)));
+            assertEquals("SanDisk SD card/" + paths.get(to)[0], video.savedLocation());
+            assertEquals(paths.get(to)[1], pathOf(gallery.rows.get(id + 1)));
+            assertEquals("SanDisk SD card/" + paths.get(to)[1], photo.savedLocation());
+            video.abandon();
+            photo.abandon();
+            id += 2;
+        }
+    }
+
+    /**
+     * A picked card that's out of the phone never fails a save: it goes to the phone's storage
+     * exactly as with nothing picked, and the log says why.
+     */
+    @Test
+    public void aMissingCardSavesOnThePhone() throws IOException {
+        SaveProgressTest.Gallery gallery = gallery();
+        SaveStorage.cardsForTests = Arrays.asList(new SaveStorage.Card("0123-4567", "Other card"));
+        Settings.SAVE_STORAGE.save("1a2b-3c4d");
+        writable(gallery.videoUri(1));
+
+        MediaStoreWriter video = new MediaStoreWriter(context, true);
+        video.open("video/mp4").close();
+
+        assertEquals(gallery.videoUri(1), gallery.inserts.get(0));
+        assertEquals("Movies/Facebook", pathOf(gallery.rows.get(1L)));
+        assertEquals("Movies/Facebook", video.savedLocation());
+        assertTrue(LogBufferManager.buildExportText().contains("the picked SD card isn't in the phone"));
+        video.abandon();
+    }
+
+    /** Which card a saved value names, if any is in the phone. */
+    @Test
+    public void aSavedValuePicksOnlyACardInThePhone() {
+        java.util.List<SaveStorage.Card> cards = Arrays.asList(new SaveStorage.Card("0123-4567", "A"),
+                new SaveStorage.Card("1a2b-3c4d", "B"));
+        assertEquals(null, SaveStorage.pick(null, cards));
+        assertEquals(null, SaveStorage.pick("", cards));
+        assertEquals(null, SaveStorage.pick("9999-0000", cards));
+        assertEquals(null, SaveStorage.pick("1A2B-3C4D", cards));
+        assertEquals("B", SaveStorage.pick("1a2b-3c4d", cards).label);
+        assertEquals(null, SaveStorage.pick("1a2b-3c4d", java.util.Collections.emptyList()));
+        assertEquals(SaveTo.DOWNLOAD.collection(true), SaveTo.DOWNLOAD.collection(true, null));
+        assertEquals(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, SaveTo.DCIM.collection(false, null));
+        // Robolectric's phone has no card, and asking never throws.
+        SaveStorage.cardsForTests = null;
+        assertTrue(SaveStorage.cards(context).isEmpty());
     }
 
     /**

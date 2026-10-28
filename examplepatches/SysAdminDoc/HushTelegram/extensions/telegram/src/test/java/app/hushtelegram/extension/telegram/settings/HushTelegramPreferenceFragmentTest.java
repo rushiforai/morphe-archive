@@ -623,6 +623,14 @@ public class HushTelegramPreferenceFragmentTest {
             assertFalse(Settings.LAUNCH_FOLDER.key,
                     ((SwitchPreference) page.findPreference(Settings.LAUNCH_FOLDER.key)).isChecked());
             assertEquals("Folder to open", String.valueOf(page.findPreference(HushTelegramPreferenceFragment.LAUNCH_FOLDER_ROW).getTitle()));
+            assertEquals("Hide All Chats", String.valueOf(page.findPreference(Settings.HIDE_ALL_CHATS.key).getTitle()));
+            assertEquals("The folder tabs leave out All Chats, so the chat list opens on the folder picked above or your "
+                    + "first one. Archived Chats moves to the chat list's menu, and to the side menu when that's on. Tabs "
+                    + "can't be dragged into a new order while this is on. Restart Telegram to see the change.",
+                    String.valueOf(page.findPreference(Settings.HIDE_ALL_CHATS.key).getSummary()));
+            // All Chats stays until the switch is turned on.
+            assertFalse(Settings.HIDE_ALL_CHATS.key,
+                    ((SwitchPreference) page.findPreference(Settings.HIDE_ALL_CHATS.key)).isChecked());
             assertEquals("Hide picked chats", String.valueOf(page.findPreference(Settings.HIDDEN_CHATS.key).getTitle()));
             assertEquals("The chats you pick below leave All Chats, your folders and archived chats. They keep their messages "
                     + "and notifications, search still finds them, and nothing changes on your other devices. Each account "
@@ -1259,6 +1267,53 @@ public class HushTelegramPreferenceFragmentTest {
     }
 
     /**
+     * Save downloaded files brings the storage folder switch under the gallery folder row when its
+     * target went in (#7). Its summary says whether Android gives Telegram All files access, and
+     * turning it on without that opens Android's page for it.
+     */
+    @Test
+    public void theStorageFolderSwitchSaysWhetherAllFilesAccessIsOnAndOpensIt() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SAVE_DOWNLOADS);
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.GALLERY_FOLDER);
+        app.hushtelegram.extension.telegram.misc.StorageFolderTest.allFilesAccess(false);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            assertNull("a build without the target has no row", pageOf(controller).findPreference(Settings.STORAGE_FOLDER.key));
+        }
+        PatchFamily.capabilitiesForTests = null;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = new ArrayList<>();
+            collect(pageOf(controller).getPreferenceScreen(), rows);
+            SwitchPreference storage = (SwitchPreference) rows.get(indexOfKey(rows, HushTelegramPreferenceFragment.GALLERY_FOLDER_ROW) + 1);
+            assertEquals(Settings.STORAGE_FOLDER.key, storage.getKey());
+            assertEquals("Playback", String.valueOf(storage.getParent().getTitle()));
+            assertEquals("Keep Telegram's files in internal storage", String.valueOf(storage.getTitle()));
+            assertFalse(storage.isChecked());
+            assertEquals("New photos, videos and files Telegram downloads go to Internal storage/Telegram, where file managers"
+                    + " and other apps can open them, instead of Android/data. Files downloaded before stay in Android/data."
+                    + " Needs All files access and a restart.\nAll files access is off, so Telegram's files stay in Android/data."
+                    + " Turning this on opens the setting.", String.valueOf(storage.getSummary()));
+
+            assertTrue(storage.getOnPreferenceChangeListener().onPreferenceChange(storage, true));
+            android.content.Intent opened = shadowOf(controller.get()).getNextStartedActivity();
+            assertEquals(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, opened.getAction());
+            assertEquals("package:" + controller.get().getPackageName(), String.valueOf(opened.getData()));
+            assertTrue("turning it off opens nothing", storage.getOnPreferenceChangeListener().onPreferenceChange(storage, false));
+            assertNull(shadowOf(controller.get()).getNextStartedActivity());
+
+            app.hushtelegram.extension.telegram.misc.StorageFolderTest.allFilesAccess(true);
+            try {
+                assertTrue(HushTelegramPreferenceFragment.storageFolderSummary(true).endsWith("\nAll files access is on."));
+                assertTrue(storage.getOnPreferenceChangeListener().onPreferenceChange(storage, true));
+                assertNull("with access there's nothing to open", shadowOf(controller.get()).getNextStartedActivity());
+            } finally {
+                app.hushtelegram.extension.telegram.misc.StorageFolderTest.allFilesAccess(false);
+            }
+        } finally {
+            Settings.STORAGE_FOLDER.resetToDefault();
+        }
+    }
+
+    /**
      * Translate with an outside service brings a Translate into row under the service (#35). A tap
      * lists Telegram's language and then every language Google's web translate knows, the search
      * finds one by any of its names, and a pick saves it at once and closes the list.
@@ -1353,6 +1408,7 @@ public class HushTelegramPreferenceFragmentTest {
             HushTelegramPreferenceFragment page = pageOf(controller);
             assertNull("a build without the target has no switch", page.findPreference(Settings.LAUNCH_FOLDER.key));
             assertNull("or row", page.findPreference(HushTelegramPreferenceFragment.LAUNCH_FOLDER_ROW));
+            assertNull("or Hide All Chats", page.findPreference(Settings.HIDE_ALL_CHATS.key));
         }
         PatchFamily.capabilitiesForTests = null;
         LaunchFolderForTests.signedIn(1000, "Work", "Friends");
@@ -1363,6 +1419,8 @@ public class HushTelegramPreferenceFragmentTest {
             Preference folder = rows.get(toggle + 1);
             assertEquals(HushTelegramPreferenceFragment.LAUNCH_FOLDER_ROW, folder.getKey());
             assertSame(rows.get(toggle).getParent(), folder.getParent());
+            // Hide All Chats right under the row, since it opens on that pick.
+            assertEquals(Settings.HIDE_ALL_CHATS.key, rows.get(toggle + 2).getKey());
             assertFalse("it stores nothing itself", folder.isPersistent());
             assertEquals("All Chats", String.valueOf(folder.getSummary()));
 

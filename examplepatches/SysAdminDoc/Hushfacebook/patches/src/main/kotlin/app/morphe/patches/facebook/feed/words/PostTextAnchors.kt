@@ -6,6 +6,8 @@ package app.morphe.patches.facebook.feed.words
 
 import app.morphe.patches.facebook.feed.BASE_MODEL_WITH_TREE
 import app.morphe.patches.facebook.feed.GRAPHQL_STORY
+import app.morphe.patches.facebook.feed.aidetected.GRAPHQL_STORY_ATTACHMENT
+import app.morphe.patches.facebook.feed.aidetected.isModelListAccessor
 import app.morphe.patches.facebook.feed.storyModelAccessors
 import app.morphe.patches.facebook.feed.treeFieldKey
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -52,6 +54,23 @@ internal const val STORY_TYPE = "Story"
 
 /** Kept literal. The label GraphQLStory.toString gives the text of its message. */
 internal const val MESSAGE_TEXT_LABEL = "message.text"
+
+/**
+ * Where a link card's headline is on 584 (2026-10-27, #255): Facebook's headline reader
+ * (`LX/7KC;->A00`, behind the card's bold line in `LX/7KD;->A01`) takes the `link_title` (0x46b9d1d3)
+ * of the first of the attachment's `action_links` (0x6de93070) as `StoryActionLink` (0x0bb0e195),
+ * read as the renamed `LX/45D;` through `GraphQLStoryAttachment.A06()`, and falls back on the
+ * attachment's own `title` only when that's empty. Its other reader takes `title_with_entities`
+ * (0x10c04173). The extension reads both of those by key; only the list's accessor needs a stub,
+ * because the class the list is read as is renamed every build.
+ */
+internal const val ACTION_LINKS_FIELD = "action_links"
+internal const val ACTION_LINK_TYPE = "StoryActionLink"
+
+/** Every accessor [attachment] declares of its action links. The patch wants exactly one. */
+internal fun actionLinksAccessors(attachment: ClassDef): List<Method> = attachment.methods.filter {
+    isModelListAccessor(it, GRAPHQL_STORY_ATTACHMENT, ACTION_LINKS_FIELD, ACTION_LINK_TYPE)
+}
 
 private fun Method.body(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 

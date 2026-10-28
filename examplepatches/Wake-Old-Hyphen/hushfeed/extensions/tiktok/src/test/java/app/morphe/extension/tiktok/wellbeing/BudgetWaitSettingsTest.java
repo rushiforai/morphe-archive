@@ -319,6 +319,48 @@ public class BudgetWaitSettingsTest {
         assertFalse("the feed lock stayed on past the day", Settings.FEED_LOCK.savedValue());
     }
 
+    @Test public void feedLockHoursThatDropAMinuteWaitAndMoreHoursApplyAtOnce() {
+        Settings.FEED_LOCK_HOURS.save("Mon-Fri 21:00-07:00");
+        PreferenceScreen screen = screenTimeRows();
+        Preference hours = screen.findPreference(Settings.FEED_LOCK_HOURS.key);
+        assertNotNull("the hours row is not on the page", hours);
+        Preference.OnPreferenceChangeListener listener = hours.getOnPreferenceChangeListener();
+
+        assertFalse("fewer hours were let through", listener.onPreferenceChange(hours, "Mon-Fri 22:00-07:00"));
+        assertEquals("Mon-Fri 21:00-07:00", Settings.FEED_LOCK_HOURS.get());
+        assertEquals("Mon-Fri 22:00-07:00", BudgetChanges.waiting(Settings.FEED_LOCK_HOURS));
+        String applies = SessionLockOverlay.timeLabel(at(2026, Calendar.SEPTEMBER, 8, 4, 0));
+        assertTrue("the row does not say what waits: " + hours.getSummary(), hours.getSummary().toString()
+                .contains("Changes to Mon-Fri 22:00-07:00 at " + applies));
+
+        assertTrue("more hours waited", listener.onPreferenceChange(hours, "Mon-Fri 20:00-08:00"));
+        assertNull("the wait outlived a stricter choice", BudgetChanges.waiting(Settings.FEED_LOCK_HOURS));
+
+        // Clearing them loosens too, and applies as the day starts over.
+        assertFalse(listener.onPreferenceChange(hours, ""));
+        now.set(at(2026, Calendar.SEPTEMBER, 8, 4, 1));
+        BudgetChanges.applyDue(now.get());
+        assertEquals("", Settings.FEED_LOCK_HOURS.savedValue());
+    }
+
+    @Test public void aLockedDayRefusesFewerFeedLockHoursButTakesMore() {
+        Settings.FEED_LOCK_HOURS.save("22:00-06:00");
+        Settings.SESSION_BUDGET_LOCK.save(true);
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        SessionBudget.noteVideo("only");
+        assertTrue(SessionBudget.claimNotice());
+        assertTrue("the fixture's day never locked", SessionBudget.lockedToday());
+        PreferenceScreen screen = screenTimeRows();
+        Preference hours = screen.findPreference(Settings.FEED_LOCK_HOURS.key);
+
+        assertTrue("a locked day refused more hours", hours.getOnPreferenceChangeListener()
+                .onPreferenceChange(hours, "21:00-06:00"));
+        assertFalse("a locked day let hours go", hours.getOnPreferenceChangeListener()
+                .onPreferenceChange(hours, "23:00-06:00"));
+        assertEquals("22:00-06:00", Settings.FEED_LOCK_HOURS.get());
+        assertNull("a refused change was kept", BudgetChanges.waiting(Settings.FEED_LOCK_HOURS));
+    }
+
     @Test public void aLockedDayRefusesTurningTheFeedLockOffButNotOn() {
         Settings.SESSION_BUDGET_MINUTES.save(1);
         Settings.SESSION_BUDGET_LOCK.save(true);

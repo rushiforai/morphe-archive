@@ -77,6 +77,10 @@ final class SideMenuPanel extends FrameLayout {
     final View scrim;
     final LinearLayout menu;
     final TextView name;
+    /** The Archived Chats row once it's added, where it goes and what it says. */
+    TextView archive;
+    private int archiveAt;
+    private String archiveLabel;
     private final int touchSlop;
     private final int flingSpeed;
     private float progress;
@@ -136,11 +140,33 @@ final class SideMenuPanel extends FrameLayout {
         menu.addView(accounts);
         menu.addView(divider());
         String[] labels = SideMenu.rowLabels();
-        String[] icons = {"msg_openprofile", "msg_message", "msg_contacts", "msg_calls", "msg_saved", "msg_settings_old", "msg_settings"};
+        String[] icons = {"msg_openprofile", "msg_message", "msg_contacts", "msg_calls", "msg_saved", "msg_settings_old", "msg_archive", "msg_settings"};
         for (SideMenu.Row each : SideMenu.Row.values()) {
             if (each == SideMenu.Row.HUSH) menu.addView(divider());
+            if (each == SideMenu.Row.ARCHIVE) {
+                // Added the first time the menu opens with All Chats hidden, which a later build can bring.
+                archiveAt = menu.getChildCount();
+                archiveLabel = labels[each.ordinal()];
+                continue;
+            }
             menu.addView(row(labels[each.ordinal()], icons[each.ordinal()], each));
         }
+    }
+
+    /** Shows the Archived Chats row while a chat list is built without All Chats, adding it the first time. */
+    private void showArchive() {
+        boolean shown;
+        try {
+            shown = LaunchFolder.archiveShown();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_FOLDER_COUNTERS, "side menu archive", failure);
+            shown = false;
+        }
+        if (shown && archive == null) {
+            archive = row(archiveLabel, "msg_archive", SideMenu.Row.ARCHIVE);
+            menu.addView(archive, archiveAt);
+        }
+        if (archive != null) archive.setVisibility(shown ? VISIBLE : GONE);
     }
 
     /**
@@ -198,6 +224,7 @@ final class SideMenuPanel extends FrameLayout {
         }
         name.setText(self == null ? "" : self);
         name.setVisibility(self == null || self.isEmpty() ? GONE : VISIBLE);
+        showArchive();
         paint(colorsFor(activity, (View) getParent()));
         View parent = (View) getParent();
         int width = parent == null ? 0 : parent.getWidth();

@@ -631,6 +631,18 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/PostDownloadButton.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/PostSaveButton.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/actionrow/ActionRowAnchors.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/actionrow/PostActionButtonsPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Save and Download buttons in the row under a post. In Facebook 584 the row's button types come from the one static method answering a List that loads XFBUFIButtonWithFallbackOptions, and its class builds one button from a type enum, the row's state and a Map in the static method whose cases load \"Save\". Every list the type method returns goes through the extension, which adds the enum's SAVE constant while its switch is on. The row method seals its lists of buttons with a static call taking a List and answering an ImmutableList, the last argument of a constructor taking only ImmutableLists; before each seal a generated helper reads the post from the state the way Save's case reads it, asks the extension for a Download button, and builds it with the constructors Save's case uses: the icon from the icon enum's DOWNLOAD and the style enum's OUTLINE, the two texts, the label taking a String and a Function1, the tag, and the button."
+    },
+    {
+      "paths": [
         "patches/src/main/kotlin/app/morphe/patches/facebook/feed/suggested/ProfileSuggestionAnchors.kt"
       ],
       "origin": "original",
@@ -823,6 +835,15 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: keeping the date on post headers. In Facebook 577 and 580 one method, the render of the post header subtitle that names itself FDSPostHeaderSubtitle, loads both in_cycling_experiment and subtitle_cycling_text_count. It works out whether the header rotates its subtitle, logs that boolean as in_cycling_experiment through String.valueOf right after the call that answers it, and then branches on it between a component that rotates the subtitle plugins' texts and the one line with the date. The patch finds that method by the two strings, checks the log's shape, and hands the answer to the extension at the log's own label, which answers no while the switch is on."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/posttext/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: showing a post's whole text in the feed. In Facebook 584 one method takes a Spannable and a CharacterStyle, returns a Spannable, and reads the post line limit key (0x32d58eae). It calls a static helper that answers the cut text as a SpannableString, or null when the text fits, and branches on that answer right away. The patch finds that method by its shape and the key, checks there's one such call followed by its move-result and the null check, and hands the answer to the extension, which answers null while the switch is on so the whole text goes out."
     },
     {
       "paths": [
@@ -1085,6 +1106,33 @@
     },
     {
       "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/appicons/LauncherIconStyle.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the Icon style option of Hushfacebook settings for issue #278, after the idea of Hushfeed's two plain app icons. No artwork ships. The resource patch reads the application icon from the manifest, finds its one adaptive-icon configuration and the themed-icon vector its monochrome layer names, and writes a solid background color and a one-color copy of that vector inline into the adaptive icon. The monochrome layer stays."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/SaveStorage.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #274: lists the SD cards Android's StorageManager and MediaStore both report as mounted, picks the one the Save on setting names, and falls back to the phone's storage while it's out of the phone."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/PauseUnderComments.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #266: pauses the reel playing on screen when a comment sheet opens, through Tap to play's player bridge, holds the reel's own restarts while the sheet is up, and plays it on once the sheet's views leave the window."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/HeaderPicture.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/HeaderText.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/misc/headertext/HomeHeaderTextPatch.kt"
@@ -1203,6 +1251,16 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: a Download row in a reel's More sheet, for accounts whose reels lack the sidebar Download any reel puts its button in. The sheet builder is found by the Clear mode row id it holds, the row constructor, click interface and icon wrap by their shapes, and the download icon by the enum constant Facebook's own download row reads; the builder's first call adds the row through a helper that looks up the reel's player and hands it to the same save the sidebar button uses. A private, bounded missing-sidebar diagnostic for Facebook 582 reads component paths around count nodes after a verified reel start with Debug logging and downloads on. Known sidebar hooks suppress the read, and no screen text, count values, resource ids or URLs reach its report."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/ReelCaption.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/reel/ReelCaptionRow.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 584: a Copy caption row in a reel's More sheet. The reel caption's render is found by the component name it gives its text and the tap lambda whose kept Kotlin names give the caption and the reel's type; right after the render builds that lambda, a helper added to its class reads the reel and the whole caption off it and hands them to the extension, which keeps a bounded set of captions by video id. The sheet builder's first call adds the row through a helper, drawn with the copy icon Facebook's own icon enum names, only for a reel whose caption was seen. The tap copies the text to the clipboard."
     },
     {
       "paths": [
@@ -1333,6 +1391,16 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: Turn off auto-translation. Posts: the one getter of the post translatability model's translation_type (a no-argument BaseModelWithTree method returning the enum whose static setup names AUTO_TRANSLATION and SEE_TRANSLATION, reading the field's key with getCachedEnum) hands its answer to the extension, which turns AUTO_TRANSLATION into SEE_TRANSLATION while the switch is on, so the feed picks its See translation plugin over its auto-translate one. Reels: the two reads of the caption's translatable flag in the class that records FbShortsViewerFooterComponent.updateAutoTranslateTriggered go through the extension, which answers false while the switch is on, so the footer never asks for a caption translation."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/MarkColors.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/layout/theme/MarkColorsPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Badge and logo colors. It hooks the themes' FDS colour resolvers (each resolver on FDSColors and the view code's theme resolver) with its own target, after theirs, and the extension swaps the colour of the NOTIFICATION_BADGE token for the Badge color row's code and of FB_WORDMARK and FB_LOGO for the Logo color row's, keeping Facebook's alpha. Every other token, a blank row and Pause leave Facebook's colour. The patch refuses to apply when the FDS token enum lacks any of the three names."
     },
     {
       "paths": [

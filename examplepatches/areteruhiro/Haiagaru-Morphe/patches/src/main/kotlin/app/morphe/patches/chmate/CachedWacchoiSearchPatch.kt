@@ -14,6 +14,26 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 
 internal fun BytecodePatchContext.patchCachedWacchoiSearch(version: String) {
     if(version !in setOf("0.8.10.191 dev", "0.8.10.226 dev", "0.8.10.242 dev")) return
+    if(version=="0.8.10.191 dev"){
+        val callback=mutableClassDefBy("Ljp/syoboi/a2chMate/fragment/SearchFragment\$1;")
+        val update=callback.methods.single{it.name=="c"&&it.parameterTypes==listOf("Ljava/lang/Object;")}
+        val code=update.implementation!!.instructions.toList()
+        val site=code.withIndex().single{
+            val ref=(it.value as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.name=="notifyDataSetChanged"
+        }
+        val receiver=(site.value as com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction).registerC
+        update.addInstructionsWithLabels(site.index,"invoke-static/range {v$receiver .. v$receiver}, Lapp/morphe/extension/chmate/CachedSearchOrder;->beforeLegacyNotify(Ljava/lang/Object;)V")
+    }else{
+        val type=if(version=="0.8.10.226 dev")"Lo/createDirectorydefault;" else "Lo/isAfterLast;"
+        val ui=mutableClassDefBy(if(version=="0.8.10.226 dev")"Lo/deprecated_read;" else "Lo/RDh4;")
+        val render=ui.methods.single{it.parameterTypes.firstOrNull()==type&&it.returnType=="V"}
+        render.addInstructionsWithLabels(0,"""
+            invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/CachedSearchOrder;->project(Ljava/lang/Object;)Ljava/lang/Object;
+            move-result-object p0
+            check-cast p0, $type
+        """.trimIndent())
+    }
     val fragment = mutableClassDefBy(when(version) {
         "0.8.10.242 dev" -> "Lo/GNk49;"
         "0.8.10.226 dev" -> "Lo/setUtf8okio;"

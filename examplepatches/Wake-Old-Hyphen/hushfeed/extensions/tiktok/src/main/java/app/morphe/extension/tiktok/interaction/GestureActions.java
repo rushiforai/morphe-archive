@@ -8,7 +8,9 @@ package app.morphe.extension.tiktok.interaction;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.view.MotionEvent;
@@ -35,6 +37,7 @@ import app.morphe.extension.tiktok.speed.PlaybackSpeedPatch;
 import app.morphe.extension.tiktok.wellbeing.SleepTimer;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -237,10 +240,11 @@ public final class GestureActions {
     /** Whether this Long press choice gives the press to an action of Hushfeed's, not TikTok's. */
     public static boolean takesLongPress(String action) {
         return "nothing".equals(action) || "comments".equals(action) || "like".equals(action)
-                || "original_sound".equals(action) || "copy_link".equals(action)
+                || "like_toggle".equals(action) || "original_sound".equals(action) || "copy_link".equals(action)
                 || "copy_sound_link".equals(action) || "youtube_music".equals(action)
                 || "sleep_timer".equals(action) || "save_frame".equals(action)
-                || "save_cover".equals(action) || "clear_display".equals(action);
+                || "save_cover".equals(action) || "clear_display".equals(action)
+                || "open_search".equals(action);
     }
 
     /**
@@ -350,6 +354,10 @@ public final class GestureActions {
             likeOnScreenVideo();
             return true;
         }
+        if ("like_toggle".equals(action)) {
+            toggleOnScreenLike();
+            return true;
+        }
         if ("copy_link".equals(action)) {
             copyVideoLink(onScreenAweme());
             return true;
@@ -411,9 +419,38 @@ public final class GestureActions {
                     : L10n.f("Playing at %1$sx", PlaybackSpeedPatch.speedLabel(speed)));
             return true;
         }
+        if ("open_search".equals(action)) {
+            // Posted, like the sleep timer, so the page opens after the gesture is done with the touch.
+            Utils.runOnMainThread(() -> openSearchPage(Utils.getVisibleActivity()));
+            return true;
+        }
         if (!"comments".equals(action)) return false;
         openOnScreenComments();
         return true;
+    }
+
+    /**
+     * TikTok's own link for its home screen Search shortcut, which opens the empty search page
+     * with the keyboard up. It goes through TikTok's router like any of its links, so it still
+     * works with Hide feed search button on, where there is no button left to press (#251).
+     */
+    static final String SEARCH_PAGE_URI = "snssdk1233://search?enter_from=home_screen_icon&enter_method=enter"
+            + "&enter_blank_page=1&enter_from_sub=app_outside&set_hint_by_sug_word=1";
+
+    static boolean openSearchPage(Context context) {
+        if (context == null) context = Utils.getContext();
+        if (context == null) return false;
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(SEARCH_PAGE_URI))
+                .setPackage(context.getPackageName());
+        if (!(context instanceof Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            context.startActivity(intent);
+            return true;
+        } catch (RuntimeException failure) {
+            Logger.printException(() -> "Could not open the search page", failure);
+            Utils.showToastShort(L10n.t("TikTok's search page couldn't be opened. Restart TikTok and try again."));
+            return false;
+        }
     }
 
     /** The page for the post's sound, or null when the post carries only its own audio. */
@@ -543,14 +580,44 @@ public final class GestureActions {
      * the comments.
      */
     static boolean likeVisibleVideo(String playingId) {
+        Object heart = heartOnScreen(playingId);
+        return heart != null && pressLike(heart);
+    }
+
+    private static Object heartOnScreen(String playingId) {
         OnScreen screen = onScreen(playingId);
         View button = screen.view;
         if (button == null && !screen.feedInFront) {
             Map.Entry<Object, CommentControl> bound = boundButton(playingId, true);
             if (bound != null) button = bound.getValue().view.get();
         }
-        Object heart = button == null ? null : heartBeside(button);
-        return heart != null && pressLike(heart);
+        return button == null ? null : heartBeside(button);
+    }
+
+    /**
+     * Like or unlike, a Double tap choice only (#248). The same video and heart as
+     * {@link #likeOnScreenVideo}, pressed through the heart's click instead, so a liked video
+     * loses its like. TikTok's own double tap stays like-only, and so does the Like choice.
+     */
+    static void toggleOnScreenLike() {
+        String playing = Reflect.string(CurrentVideoAuthor.getAweme(), "getAid", "aid");
+        if (!toggleVisibleLike(playing)) {
+            Utils.showToastShort(L10n.t("Likes aren't available for this video"));
+        }
+    }
+
+    static boolean toggleVisibleLike(String playingId) {
+        Object heart = heartOnScreen(playingId);
+        if (heart == null) return false;
+        Method click = heartClick(heart);
+        if (click == null) return false;
+        try {
+            click.invoke(heart, (Object) null);
+            return true;
+        } catch (ReflectiveOperationException | RuntimeException exception) {
+            Logger.printException(() -> "Could not press the heart from the feed gesture", exception);
+            return false;
+        }
     }
 
     /**
@@ -786,14 +853,27 @@ public final class GestureActions {
         return abilityPress(owner, LIKE_ABILITY, LIKE_FAMILY);
     }
 
-    private static Method abilityPress(Object owner, String abilityName, String family) {
+    /** The Hook status family the heart's click reports under. */
+    static final String HEART_CLICK_FAMILY = "heart click";
+
+    /**
+     * The heart's click on the same ability: its one method that takes a String and returns
+     * nothing (Rt0 on 47.5.3). TikTok's own tap on the heart runs it, and a null String is the
+     * tap's "click_like", so it likes a video that isn't liked and takes the like off one that is,
+     * through the handler Confirm likes guards.
+     */
+    static Method heartClick(Object owner) {
+        return abilityPress(owner, LIKE_ABILITY, HEART_CLICK_FAMILY, String.class);
+    }
+
+    private static Method abilityPress(Object owner, String abilityName, String family, Class<?>... parameters) {
         if (owner == null) return null;
         for (Class<?> type = owner.getClass(); type != null; type = type.getSuperclass()) {
             for (Class<?> ability : type.getInterfaces()) {
                 if (!abilityName.equals(ability.getName())) continue;
                 Method found = null;
                 for (Method candidate : ability.getDeclaredMethods()) {
-                    if (candidate.getParameterTypes().length != 0
+                    if (!Arrays.equals(candidate.getParameterTypes(), parameters)
                             || candidate.getReturnType() != void.class) {
                         continue;
                     }

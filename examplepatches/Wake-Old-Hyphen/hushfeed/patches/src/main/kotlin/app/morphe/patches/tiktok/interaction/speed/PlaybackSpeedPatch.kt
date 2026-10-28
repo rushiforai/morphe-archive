@@ -90,6 +90,40 @@ internal fun liveSpeedBridgeBody(
 /** The live speed change's hook site and the two extension stubs it fills in. */
 private class LiveSpeedSites(val progress: MutableMethod, val setter: MutableMethod, val aweme: MutableMethod)
 
+private const val HOLD_HUD = "Lapp/morphe/extension/tiktok/speed/HoldSpeedHud;"
+
+/**
+ * Where the hold gesture's press or release gets past its own guard: the method opens by reading
+ * the component's "held" flag and returning when it is already in the state the call is for, and
+ * then writes the flag. The index after that write is where a hook runs once per real press or
+ * release.
+ */
+internal fun Method.holdGuardEnd(what: String): Int {
+    val instructions = implementationOrPatchException("Playback speed").instructions.toList()
+    val guard = instructions.firstOrNull()?.takeIf { it.opcode == Opcode.IGET_BOOLEAN }
+        ?.getReference<FieldReference>()?.takeIf { it.definingClass == definingClass }
+        ?: throw PatchException("Playback speed: $what no longer opens on its held flag.")
+    val write = instructions.indexOfFirst {
+        it.opcode == Opcode.IPUT_BOOLEAN && it.getReference<FieldReference>() == guard
+    }
+    if (write < 0) throw PatchException("Playback speed: $what no longer writes its held flag.")
+    return write + 1
+}
+
+/**
+ * The hold gesture's own apply call, the one its press plays the hold speed with: the press's
+ * only (F)V call on its own class.
+ */
+internal fun Method.holdApplyCall(): MethodReference =
+    implementationOrPatchException("Playback speed").instructions.filter {
+        it.opcode == Opcode.INVOKE_VIRTUAL
+    }.mapNotNull { it.getReference<MethodReference>() }.filter {
+        it.definingClass == definingClass && it.parameterTypes == listOf("F") && it.returnType == "V"
+    }.distinctBy { it.toString() }.singleOrPatchException("Playback speed: the hold gesture's apply call")
+
+/** Slide to change the hold speed: the touch listener, the apply call and the extension stub. */
+private class HoldHudSites(val touch: MutableMethod, val apply: MethodReference, val stub: MutableMethod)
+
 /** The body of the bridge that answers which video a PlayerController has, for the same getter. */
 internal fun liveAwemeBridgeBody(controller: String, awemeGetter: MethodReference): String = """
     check-cast p0, $controller
@@ -146,6 +180,37 @@ val playbackSpeedPatch = bytecodePatch(
         } catch (problem: Exception) {
             if (packageMetadata.buildName in declaredVersions()) throw problem
             println("[Playback speed] Left out the live speed change on ${packageMetadata.buildName}: ${problem.message}")
+            null
+        }
+
+        // Slide to change the hold speed (#248) is the same kind of add-on, and it needs the live
+        // change's progress hook, which tells it when the video on screen changes.
+        val holdHud = try {
+            checkNotNull(live) { "Playback speed: the live speed change it builds on was left out." }
+            val press = EdgeSpeedupPressFingerprint.method
+            press.holdGuardEnd("the hold gesture's press")
+            EdgeSpeedupReleaseFingerprint.method.holdGuardEnd("the hold gesture's release")
+            val apply = press.holdApplyCall()
+            val component = mutableClassDefBy(press.definingClass)
+            check(
+                AccessFlags.PUBLIC.isSet(component.accessFlags) && component.methods.any {
+                    it.name == apply.name && it.parameterTypes == apply.parameterTypes && AccessFlags.PUBLIC.isSet(it.accessFlags)
+                },
+            ) { "Playback speed: the hold gesture's apply call is not public, so the extension cannot make it." }
+            val touch = EdgeSpeedupTouchFingerprint.method
+            check(!AccessFlags.STATIC.isSet(touch.accessFlags)) {
+                "Playback speed: the hold gesture's onTouch became static, so p2 is not the event."
+            }
+            val stub = mutableClassDefBy(HOLD_HUD).methods.filter { it.name == "applyNative" }
+                .singleOrPatchException("Playback speed: extension applyNative bridge")
+            check(
+                AccessFlags.STATIC.isSet(stub.accessFlags) && stub.returnType == "V" &&
+                    stub.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;", "F"),
+            ) { "Playback speed: the extension's applyNative stub is not static (Object, float)V." }
+            HoldHudSites(touch, apply, stub)
+        } catch (problem: Exception) {
+            if (packageMetadata.buildName in declaredVersions()) throw problem
+            println("[Playback speed] Left out sliding the hold speed on ${packageMetadata.buildName}: ${problem.message}")
             null
         }
 
@@ -378,6 +443,33 @@ val playbackSpeedPatch = bytecodePatch(
         release.routeThroughHoldSpeed(release.holdSpeedLiterals("the hold gesture's release method"))
         rewordHoldSpeedToasts(release)
         rewordHoldSpeedBanners(HoldBannerReceiverFingerprint.method)
+
+        // Slide to change the hold speed: the press and release tell the extension a hold began
+        // and ended (past their guards, so once each), the touch listener hands it the finger's
+        // moves, and its stub plays a slid speed through the gesture's own apply call.
+        if (holdHud != null) {
+            holdHud.stub.addInstructions(0, """
+                check-cast p0, ${press.definingClass}
+                invoke-virtual {p0, p1}, ${holdHud.apply}
+                return-void
+            """)
+            press.addInstruction(
+                press.holdGuardEnd("the hold gesture's press"),
+                "invoke-static/range {p0 .. p0}, $HOLD_HUD->onHoldPress(Ljava/lang/Object;)V",
+            )
+            release.addInstruction(
+                release.holdGuardEnd("the hold gesture's release"),
+                "invoke-static {}, $HOLD_HUD->onHoldRelease()V",
+            )
+            holdHud.touch.addInstruction(
+                0,
+                "invoke-static/range {p2 .. p2}, $HOLD_HUD->onHoldTouch(Landroid/view/MotionEvent;)V",
+            )
+            SettingsStatusLoadFingerprint.method.addInstruction(
+                0,
+                "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableHoldSpeedSlide()V",
+            )
+        }
 
         SettingsStatusLoadFingerprint.method.addInstruction(0,
             "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enablePlaybackSpeed()V")

@@ -6,6 +6,7 @@
  */
 package app.morphe.extension.tiktok.download;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -73,12 +74,14 @@ final class MediaTransport {
                 boolean identityEncoding
         ) throws IOException {
             if (deadline == null) deadline = MediaBudget.deadline();
+            boolean gated = gated();
             MediaBudget.awaitRetry(deadline);
             Target current = target(value);
             Set<String> visited = new HashSet<>();
             int redirects = 0;
             while (true) {
                 MediaBudget.awaitRetry(deadline);
+                if (gated) checkNetwork(true);
                 if (!visited.add(current.identity)) {
                     throw new IOException("Media redirect loop refused");
                 }
@@ -136,7 +139,7 @@ final class MediaTransport {
                     int statusCode = connection.getResponseCode();
                     MediaBudget.recordRetryAfter(connection.getHeaderField("Retry-After"), deadline);
                     connected = true;
-                    return new Response(connection, statusCode, target.url);
+                    return new Response(connection, statusCode, target.url, gated());
                 } catch (MediaBudget.StopException stop) {
                     throw stop;
                 } catch (IOException error) {
@@ -151,16 +154,35 @@ final class MediaTransport {
         }
     }
 
+    /**
+     * Save only on Wi-Fi governs this thread's transfers: a network save runs on it and the
+     * setting is on. A share link, a LIVE or a frame save is never held back.
+     */
+    static boolean gated() {
+        return MediaJobScheduler.currentFetchesNetwork() && SaveNetwork.strict();
+    }
+
+    /** Refuses a transfer on a metered or unknown network, which ends a save of several files. */
+    static void checkNetwork(boolean fresh) throws MediaBudget.StopException {
+        if (!(fresh ? SaveNetwork.unmeteredNow() : SaveNetwork.unmetered())) {
+            throw new MediaBudget.StopException("The network is metered or unknown",
+                    MediaBudget.StopException.Reason.NETWORK);
+        }
+    }
+
     static final class Response implements AutoCloseable {
         private final HttpURLConnection connection;
         private boolean closed;
         final int statusCode;
         final URL url;
+        /** Its body stops at the next read once the network turns metered. */
+        private final boolean gated;
 
-        private Response(HttpURLConnection connection, int statusCode, URL url) {
+        private Response(HttpURLConnection connection, int statusCode, URL url, boolean gated) {
             this.connection = connection;
             this.statusCode = statusCode;
             this.url = url;
+            this.gated = gated;
         }
 
         String header(String name) {
@@ -168,7 +190,8 @@ final class MediaTransport {
         }
 
         InputStream inputStream() throws IOException {
-            return connection.getInputStream();
+            InputStream body = connection.getInputStream();
+            return gated ? new GatedStream(body) : body;
         }
 
         String contentType() {
@@ -180,6 +203,28 @@ final class MediaTransport {
                 closed = true;
                 connection.disconnect();
             }
+        }
+    }
+
+    /** A body that checks the network before each read, which is a cached answer and costs nothing. */
+    static final class GatedStream extends FilterInputStream {
+        GatedStream(InputStream body) {
+            super(body);
+        }
+
+        @Override public int read() throws IOException {
+            checkNetwork(false);
+            return super.read();
+        }
+
+        @Override public int read(byte[] buffer, int offset, int length) throws IOException {
+            checkNetwork(false);
+            return super.read(buffer, offset, length);
+        }
+
+        @Override public long skip(long count) throws IOException {
+            checkNetwork(false);
+            return super.skip(count);
         }
     }
 

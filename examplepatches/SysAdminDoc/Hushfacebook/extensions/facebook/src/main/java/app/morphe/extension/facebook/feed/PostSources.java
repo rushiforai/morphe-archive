@@ -42,6 +42,9 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * leads to. Each id, name and url is read with the kept {@code getCachedString(int)}, which checks
  * the native tree is still there, so a released model reads as nothing rather than crashing.
  *
+ * <p>The same authors tell Hide posts from Pages whether a Page wrote a post, by the type name each
+ * one answers ({@link #authorKind}).
+ *
  * <p>Nothing here keeps, logs or reports a name, an id or a link. The report counts rules by number.
  */
 public final class PostSources {
@@ -66,6 +69,13 @@ public final class PostSources {
     static final int ID_KEY = "id".hashCode();
     static final int NAME_KEY = "name".hashCode();
     static final int URL_KEY = "url".hashCode();
+
+    /** The GraphQL type a Page answers {@code getTypeName()} with, and the kind Hide posts from Pages hides. */
+    static final String PAGE = "Page";
+    /** The kind of a story with an empty author list. */
+    static final String NO_AUTHORS = "no authors";
+    /** The kind of an author whose type can't be read, which counts as a person. */
+    static final String UNKNOWN_AUTHOR = "unknown author";
 
     static final StoryFlag.Accessor ACTORS = PostSources::actors;
     static final StoryFlag.Accessor ATTACHMENTS = PostSources::attachments;
@@ -469,6 +479,39 @@ public final class PostSources {
             }
         }
         return found;
+    }
+
+    /**
+     * What kind of author wrote a feed unit, for Hide posts from Pages: {@link #PAGE} when every one
+     * of the story's own authors answers that type, otherwise the first other author's type
+     * ({@link #UNKNOWN_AUTHOR} when it can't be read), {@link #NO_AUTHORS}, or why nothing was read.
+     * The post a share wraps isn't read. Never throws.
+     */
+    static String authorKind(@Nullable Object feedUnit, StoryFlag.Accessor actors) {
+        if (feedUnit == null) return Outcome.NO_UNIT.reason;
+        PostText.Members members = PostText.members();
+        if (members.story == null || members.treeModel == null) return Outcome.NO_READER.reason;
+        if (!members.story.isInstance(feedUnit)) return Outcome.NOT_A_STORY.reason;
+        Object authors;
+        try {
+            authors = actors.model(feedUnit);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.POST_WORDS, "author accessor", failure);
+            return Outcome.READ_FAILED.reason;
+        }
+        if (authors == StoryFlag.NOT_PATCHED) {
+            HookStatus.missingMember(FamilyNames.POST_WORDS, "method", StoryFlag.STORY_CLASS,
+                    "the " + ACTORS_FIELD + " accessor");
+            return Outcome.NO_ACCESSOR.reason;
+        }
+        boolean any = false;
+        for (Object author : items(authors)) {
+            if (!members.treeModel.isInstance(author)) continue;
+            any = true;
+            String type = FeedFilter.typeName(author);
+            if (!PAGE.equals(type)) return type == null || type.isEmpty() ? UNKNOWN_AUTHOR : type;
+        }
+        return any ? PAGE : NO_AUTHORS;
     }
 
     /** Adds [story]'s author ids and names and its link hosts to [found]. */

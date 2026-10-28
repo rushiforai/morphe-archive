@@ -15,10 +15,11 @@
       build      From the pushed, clean release commit: the bundle (timestamp pinned, classes.dex
                  present), the receipt over every declared fixture and the device audit, and
                  SHA256SUMS.txt, into build/release-assets/<version>. Refuses when a declared
-                 TikTok version has no audit/results file or a check changed since its run.
-      publish    Refuses unless -Walk names the walk-receipt.json of a full, passing whole-app
-                 walk of this exact bundle on a release phone or an emulator, and unless the
-                 device audit still matches the catalog. Then notes from the whole CHANGELOG
+                 version has no audit/results file or a check changed since its run.
+      publish    Refuses unless -Walk names a walk-receipt.json for every declared package
+                 (comma-separated), each a full, passing whole-app walk of this exact bundle on a
+                 release phone or an emulator, and unless each package's device audit still
+                 matches its catalog. Then notes from the whole CHANGELOG
                  section and a lightweight tag. Download and compare all three assets from a
                  draft before publishing it.
       index      patches-bundle.json, the README intro and counts, the bug form and the repository
@@ -30,7 +31,7 @@
 
 .EXAMPLE
     scripts/release/release.ps1 -Stage prepare -Version 0.70.0
-    scripts/release/release.ps1 -Stage publish -Version 0.70.0 -Intro intro.md -Checked checked.md -Walk <walk folder>/walk-receipt.json
+    scripts/release/release.ps1 -Stage publish -Version 0.70.0 -Intro intro.md -Checked checked.md -Walk <tiktok walk>/walk-receipt.json,<pinedrama walk>/walk-receipt.json
     scripts/release/release.ps1 -Stage index -Version 0.70.0 -ReadmeSummary readme.txt -BundleSummary bundle.txt -DeviceLine "..."
 #>
 [CmdletBinding()]
@@ -40,7 +41,8 @@ param(
     [string]$Date,
     [string]$Intro,
     [string]$Checked,
-    # publish: the walk-receipt.json a whole-app walk of this exact bundle left.
+    # publish: the walk-receipt.json each declared package's whole-app walk of this exact bundle
+    # left, comma-separated.
     [string]$Walk,
     # Exact source APKs for every declared package/version when building release provenance.
     [string[]]$Fixture = @(),
@@ -587,35 +589,48 @@ switch ($Stage) {
         $receipt = Get-Content -LiteralPath (Join-Path $assets $receiptName) -Raw | ConvertFrom-Json
         if ([int]$receipt.schemaVersion -ne (Get-ReleaseReceiptSchemaVersion)) { throw 'Historical receipts cannot authorize a new publication.' }
         if ($receipt.source.commit -and $receipt.source.commit -ne $head) { throw "The receipt is for $($receipt.source.commit), HEAD is $head." }
-        # Nothing goes public until the whole app has been walked with this exact bundle.
-        if (-not $Walk) { throw '-Walk names the walk-receipt.json a whole-app walk of this bundle left on a release phone or an emulator.' }
-        $target = Get-PatchTarget -PatchList (Get-Content -LiteralPath (Join-Path $root 'patches-list.json') -Raw | ConvertFrom-Json)
-        $coverageProblem = Get-WalkPublicationProblem $target
+        # Nothing goes public until the whole app of every declared package has been walked with
+        # this exact bundle: one receipt per package, comma-separated (an array doesn't survive -File).
+        if (-not $Walk) { throw '-Walk names the walk-receipt.json files the whole-app walks of this bundle left, one per declared package, comma-separated.' }
+        $walkPaths = @($Walk -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+        $declaredTargets = @(Get-DeclaredPatchTargets -PatchList (Get-Content -LiteralPath (Join-Path $root 'patches-list.json') -Raw | ConvertFrom-Json))
+        $coverageProblem = Get-WalkPublicationProblem $declaredTargets
         if ($coverageProblem) { throw $coverageProblem }
-        $walkTargets = @($receipt.targets | Where-Object {
-            $_.source.package -ceq $target.PackageName -and $_.source.versionName -cin @($target.PackageVersions) -and -not $_.source.forced
-        })
-        if ($walkTargets.Count -ne 1) { throw 'Publication needs one explicit qualified target per walk; this receipt has no unambiguous walk target.' }
-        $walked = Test-WalkReceipt -Path $Walk -BundlePath (Join-Path $assets $bundleName) `
-            -ExpectedSourceApk $walkTargets[0].source -ExpectedCommit $head `
-            -ExpectedPatches @($walkTargets[0].selection.patches) -ExpectedOptions @($walkTargets[0].selection.options)
-        if (-not $walked.Valid) {
-            throw ("The whole-app walk doesn't back $bundleName, so nothing was published: $($walked.Reason). " +
-                'Patch an APK from this bundle, walk the whole app on a release phone or an emulator, and pass its walk-receipt.json as -Walk.')
+        if ($walkPaths.Count -ne $declaredTargets.Count) {
+            throw "-Walk names $($walkPaths.Count) walk receipts, and this bundle declares $($declaredTargets.Count) packages that each need their own."
         }
-        Step "walked on $($walked.Receipt.device): $($walked.Receipt.screens) screens, no crash"
-        # Nor while the device audit of a declared TikTok version is missing or older than the
-        # catalog, and the receipt has to name the results this commit carries.
-        $audited = Test-AuditResults -Root $root -PackageName $target.PackageName -PackageVersions @($target.PackageVersions) -Head $head
-        if (-not $audited.Valid) { throw "The device audit doesn't back this release, so nothing was published: $($audited.Reason)" }
-        foreach ($fact in $audited.Facts) {
-            $recorded = @(@($receipt.audit) | Where-Object { $null -ne $_ -and $_.package -ceq $fact.package -and $_.appVersion -ceq $fact.appVersion })
-            if ($recorded.Count -ne 1 -or $recorded[0].sha256 -cne $fact.sha256) {
-                throw "$receiptName doesn't name this commit's $($fact.results). Run -Stage build again."
+        foreach ($declared in $declaredTargets) {
+            $label = (Get-AuditPackageProfile $declared.PackageName).Label
+            $walkTargets = @($receipt.targets | Where-Object {
+                $_.source.package -ceq $declared.PackageName -and $_.source.versionName -cin @($declared.PackageVersions) -and -not $_.source.forced
+            })
+            if ($walkTargets.Count -ne 1) { throw "Publication needs one explicit qualified target per walk; this receipt has no unambiguous $label target." }
+            $walkPath = Find-WalkReceiptPath -Paths $walkPaths -Package $declared.PackageName
+            if (-not $walkPath) { throw "-Walk has no single walk receipt for $label ($($declared.PackageName))." }
+            $walked = Test-WalkReceipt -Path $walkPath -BundlePath (Join-Path $assets $bundleName) `
+                -ExpectedSourceApk $walkTargets[0].source -ExpectedCommit $head `
+                -ExpectedPatches @($walkTargets[0].selection.patches) -ExpectedOptions @($walkTargets[0].selection.options)
+            if (-not $walked.Valid) {
+                throw ("The $label whole-app walk doesn't back $bundleName, so nothing was published: $($walked.Reason). " +
+                    'Patch an APK from this bundle, walk the whole app on a release phone or an emulator, and pass its walk-receipt.json in -Walk.')
             }
-            $s = $fact.summary
-            Step ("audited TikTok $($fact.appVersion): $($s.pass) pass, $($s.fail) fail, $($s.review) review, " +
-                "$($s.inconclusive) inconclusive, $($fact.commitsSince) commits before this release")
+            Step "walked $label on $($walked.Receipt.device): $($walked.Receipt.screens) screens, no crash"
+        }
+        # Nor while the device audit of a declared version is missing or older than its catalog,
+        # and the receipt has to name the results this commit carries.
+        foreach ($declared in $declaredTargets) {
+            $label = (Get-AuditPackageProfile $declared.PackageName).Label
+            $audited = Test-AuditResults -Root $root -PackageName $declared.PackageName -PackageVersions @($declared.PackageVersions) -Head $head
+            if (-not $audited.Valid) { throw "The $label device audit doesn't back this release, so nothing was published: $($audited.Reason)" }
+            foreach ($fact in $audited.Facts) {
+                $recorded = @(@($receipt.audit) | Where-Object { $null -ne $_ -and $_.package -ceq $fact.package -and $_.appVersion -ceq $fact.appVersion })
+                if ($recorded.Count -ne 1 -or $recorded[0].sha256 -cne $fact.sha256) {
+                    throw "$receiptName doesn't name this commit's $($fact.results). Run -Stage build again."
+                }
+                $s = $fact.summary
+                Step ("audited $label $($fact.appVersion): $($s.pass) pass, $($s.fail) fail, $($s.review) review, " +
+                    "$($s.inconclusive) inconclusive, $($fact.commitsSince) commits before this release")
+            }
         }
         $notes = Join-Path $assets 'notes.md'
         Invoke-Native 'release notes' { py -3.13 (Join-Path $root 'tools/release_text.py') github-notes --version $Version --intro $Intro --checked $Checked --out $notes }

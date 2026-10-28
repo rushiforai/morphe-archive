@@ -426,10 +426,10 @@ public class PatchFamilyTest {
                 "Block background ad prefetch: no switch, stays in while paused: No ads downloaded in advance",
                 "not in this build: Hide suggested and promoted posts, Hide Stories tray, Hide Reels in the feed, "
                         + "Block background-return feed refresh, Hide AI-detected posts, Hide posts by words, Hide "
-                        + "post prompts, Hide seen posts, Hide Meta AI questions under posts, Keep post dates, Turn "
+                        + "post prompts, Hide seen posts, Hide Meta AI questions under posts, Keep post dates, Show full post text, Turn "
                         + "off auto-translation, Hide the Feeds header, Hide sponsored stories, Hide suggested "
                         + "stories, Stop Story auto-advance, View stories anonymously, Upload Stories in HD, Longer music on photo stories, Pinch to zoom, Hide sponsored search results, "
-                        + "Hide sponsored profile posts, Hide profile notes, Hide sponsored Marketplace listings, Block Instant Games "
+                        + "Hide sponsored profile posts, Hide profile notes, Post action buttons, Hide sponsored Marketplace listings, Block Instant Games "
                         + "ads, Hide affiliate product links, Clean up Reels, Hide reel interest prompts, Don't send "
                         + "reel watch history, Newest reels first, Turn off double tap to like, Double tap to skip, Tap shows the controls, Open comments with a gesture, Keep the reel speed, Hold a reel for 2x, "
                         + "Default comment order, Hide Meta AI comment summaries, Comment sheet options, Open comments "
@@ -445,14 +445,14 @@ public class PatchFamilyTest {
                         + "Don't save search history, Hold back analytics uploads, Allow screenshots, Block screenshot detection, Hide typing indicator, "
                         + "Hide read receipts, Send chat photos and videos at original quality, Block promotional "
                         + "notifications, Block ad telemetry, Disable Audience Network, AMOLED black theme, Material "
-                        + "You theme, Accent color, Restore screens on re-signed builds, Start on x86 devices, "
+                        + "You theme, Accent color, Badge and logo colors, Restore screens on re-signed builds, Start on x86 devices, "
                         + "Install beside Meta's apps, Disable Play Store updates, Hushfacebook in the Menu",
                 "left out of Manager's default selection: Hide suggested and promoted posts, Hide Stories tray, Hide "
                         + "Reels in the feed, Block background-return feed refresh, Hide AI-detected posts, Hide "
                         + "posts by words, Hide post prompts, Hide seen posts, Hide Meta AI questions under posts, "
-                        + "Keep post dates, Turn off auto-translation, Hide the Feeds header, Hide sponsored stories, "
+                        + "Keep post dates, Show full post text, Turn off auto-translation, Hide the Feeds header, Hide sponsored stories, "
                         + "Hide suggested stories, Stop Story auto-advance, View stories anonymously, Upload Stories in HD, Longer music on photo stories, Pinch to zoom, Hide sponsored "
-                        + "search results, Hide sponsored profile posts, Hide profile notes, Hide sponsored Marketplace listings, Block "
+                        + "search results, Hide sponsored profile posts, Hide profile notes, Post action buttons, Hide sponsored Marketplace listings, Block "
                         + "Instant Games ads, Hide affiliate product links, Clean up Reels, Hide reel interest "
                         + "prompts, Don't send reel watch history, Newest reels first, Turn off double tap to like, Double tap to skip, Tap shows the controls, Open comments with a gesture, Keep the reel speed, "
                         + "Hold a reel for 2x, Default comment order, Hide Meta AI comment summaries, Comment sheet "
@@ -468,7 +468,7 @@ public class PatchFamilyTest {
                         + "Meta AI in search, Don't save search history, Hold back analytics uploads, Allow screenshots, Block screenshot detection, Hide "
                         + "typing indicator, Hide read receipts, Send chat photos and videos at original quality, "
                         + "Block promotional notifications, Block ad telemetry, Disable Audience Network, Accent "
-                        + "color, Restore screens on re-signed builds, Start on x86 devices, Install beside Meta's "
+                        + "color, Badge and logo colors, Restore screens on re-signed builds, Start on x86 devices, Install beside Meta's "
                         + "apps, Hushfacebook in the Menu"),
                 running);
         // Clean up Reels' switches all start off, and the report names each one.
@@ -478,7 +478,8 @@ public class PatchFamilyTest {
                         + "hushfacebook_reel_clean_mode=off, hushfacebook_play_reels_once=off, "
                         + "hushfacebook_original_audio=off, hushfacebook_hide_reel_search_pill=off, "
                         + "hushfacebook_hide_reel_counts=off, hushfacebook_hide_reel_save_button=off, "
-                        + "hushfacebook_hide_reel_whatsapp_button=off, "
+                        + "hushfacebook_hide_reel_whatsapp_button=off, hushfacebook_hide_reel_like_button=off, "
+                        + "hushfacebook_hide_reel_comment_button=off, hushfacebook_hide_reel_share_button=off, "
                         + "hushfacebook_hide_reel_sound_button=off, hushfacebook_hide_reel_audio_line=off, "
                         + "hushfacebook_hide_slow_connection_message=off, hushfacebook_feed_videos_alone=off, "
                         + "hushfacebook_play_feed_reels_whole=off)",
@@ -502,15 +503,24 @@ public class PatchFamilyTest {
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.AMOLED_THEME), true).get(0));
         Settings.AMOLED_FLAT_CARDS.resetToDefault();
         // The reel button has a switch now, so the report says what it's set to.
-        assertEquals("Download any reel: on (hushfacebook_download_reels=on, hushfacebook_show_reel_download_button=on)",
+        assertEquals("Download any reel: on (hushfacebook_download_reels=on, hushfacebook_show_reel_download_button=on, "
+                        + "hushfacebook_copy_reel_caption=on)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DOWNLOAD), false).get(0));
         Settings.SHOW_REEL_DOWNLOAD_BUTTON.save(false);
-        assertEquals("Download any reel: on (hushfacebook_download_reels=on, hushfacebook_show_reel_download_button=off)",
+        assertEquals("Download any reel: on (hushfacebook_download_reels=on, hushfacebook_show_reel_download_button=off, "
+                        + "hushfacebook_copy_reel_caption=on)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DOWNLOAD), false).get(0));
         Settings.SHOW_REEL_DOWNLOAD_BUTTON.resetToDefault();
+        // Copy caption saves nothing, so with downloads off it still keeps the patch on (#240).
         Settings.DOWNLOAD_REELS.save(false);
-        assertEquals("Download any reel: disabled by its switch (hushfacebook_download_reels=off, hushfacebook_show_reel_download_button=on)",
+        assertEquals("Download any reel: on (hushfacebook_download_reels=off, hushfacebook_show_reel_download_button=on, "
+                        + "hushfacebook_copy_reel_caption=on)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DOWNLOAD), false).get(0));
+        Settings.COPY_REEL_CAPTION.save(false);
+        assertEquals("Download any reel: disabled by its switch (hushfacebook_download_reels=off, "
+                        + "hushfacebook_show_reel_download_button=on, hushfacebook_copy_reel_caption=off)",
+                PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DOWNLOAD), false).get(0));
+        Settings.COPY_REEL_CAPTION.resetToDefault();
         Settings.DOWNLOAD_REELS.resetToDefault();
         // So has the video menu's item, and a pause takes it out whole.
         // Its copied-link offer is an option of that item: on alone, it doesn't turn the patch on.

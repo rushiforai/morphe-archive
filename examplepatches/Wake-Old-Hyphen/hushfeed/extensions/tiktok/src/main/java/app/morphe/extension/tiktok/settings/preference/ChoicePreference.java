@@ -57,6 +57,11 @@ public final class ChoicePreference extends ListPreference {
         return this;
     }
 
+    /** Opens the list of choices, for a search that found this row by one of its labels. */
+    void openChoices() {
+        if (getDialog() == null || !getDialog().isShowing()) showDialog(null);
+    }
+
     @Override protected void showDialog(android.os.Bundle state) {
         super.showDialog(state);
         SettingsUi.styleStandardAlertDialog((android.app.AlertDialog) getDialog());

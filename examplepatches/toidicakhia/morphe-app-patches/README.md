@@ -23,7 +23,40 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/toidicakhia/morphe-app-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.3.0](https://github.com/toidicakhia/morphe-app-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+<details open>
+<summary>📦 EZVIZ&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 7.6.1.0824 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Bypass SSL pinning](#bypass-ssl-pinning) | Bypasses EZVIZ certificate pinning and hostname checks so a debugging proxy can read its HTTPS traffic. Also trusts user-installed certificates. Not selected by default. |  |
+| [Remove Ads](#remove-ads) | Removes banner, splash and hot open-screen ads. |  |
+
+</details>
+
+<details open>
+<summary>📦 1.1.1.1&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 6.38.11 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable Analytics / Telemetry](#disable-analytics-telemetry) | Disables all Cloudflare telemetry by no-oping the analytics bundle builder and the Firebase event dispatchers. |  |
+| [Disable SSL Pinning](#disable-ssl-pinning) | Bypasses OkHttp certificate pinning on Cloudflare API calls to allow TLS traffic inspection. |  |
+| [Spoof WARP+ Unlimited UI](#spoof-warp-unlimited-ui) | Forces WarpPlusState to UNLIMITED on every AccountData instance by intercepting the primary constructor before the account type field is written. |  |
+
+</details>
+
 <details open>
 <summary>📦 NetMonster&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>

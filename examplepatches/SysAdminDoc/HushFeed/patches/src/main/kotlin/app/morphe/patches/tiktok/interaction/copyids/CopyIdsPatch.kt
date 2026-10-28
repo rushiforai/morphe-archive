@@ -96,9 +96,9 @@ internal fun ClassDef.sharePackageField(): Field? = fields.singleOrNull {
 @Suppress("unused")
 val copyIdsPatch = bytecodePatch(
     name = "Copy bio and IDs",
-    description = "Lets you long-press a bio to copy it, and adds share sheet buttons that " +
-        "copy a username, user ID or video ID. On by default. Turn it off in Hushfeed settings > " +
-        "App.",
+    description = "Lets you long-press a bio to copy it, makes the @names in a bio open those " +
+        "profiles on a tap, and adds share sheet buttons that copy a username, user ID or video " +
+        "ID. On by default. Turn it off in Hushfeed settings > App.",
     default = true,
 ) {
     category("Interaction")

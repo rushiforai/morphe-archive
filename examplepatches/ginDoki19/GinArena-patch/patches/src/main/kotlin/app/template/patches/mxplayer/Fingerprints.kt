@@ -2,8 +2,15 @@ package app.template.patches.mxplayer
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.string
+import com.android.tools.smali.dexlib2.AccessFlags
 
 internal const val BH_CLASS = "Lcom/ddx/axx/axx/axx/BH;"
+internal const val MX_APP_CLASS = "Lcom/mxtech/videoplayer/ad/App;"
+internal const val APP_OPEN_AD_MANAGER_CLASS = "Lcom/mxtech/videoplayer/ad/online/ad/appopen/AppOpenAdManager;"
+internal const val SKIN_RESOURCE_PACK_HELPER_CLASS = "Lcom/mxtech/videoplayer/ad/online/theme/SkinResourcePackHelper;"
+internal const val IN_APP_PUSH_CLASS = "Lcom/mxtech/videoplayer/ad/push/a;"
+internal const val SUBSCRIPTION_GROUP_CACHE_CLASS = "Lcom/mxtech/videoplayer/ad/subscriptions/ui/GetGroupDetailsWithCache;"
+internal const val CONST_CLASS = "Lcom/mxtech/videoplayer/ad/utils/Const;"
 internal const val MEDIA_LIST_FRAGMENT_CLASS = "Lcom/mxtech/videoplayer/list/MediaListFragment;"
 internal const val AD_MEDIA_LIST_FRAGMENT_CLASS = "Lcom/mxtech/videoplayer/ad/a;"
 internal const val LOCAL_TILES_MANAGER_CLASS = "Lcom/mxtech/videoplayer/ad/local/tiles/LocalTilesManager;"
@@ -27,6 +34,13 @@ internal const val DECODER_PREFS_CODEC_LISTENER_CLASS = "Lcom/mxtech/videoplayer
 
 internal object BhClinitFingerprint : Fingerprint(
     definingClass = BH_CLASS,
+    name = "<clinit>",
+    returnType = "V",
+    parameters = emptyList(),
+)
+
+internal object ConstClinitFingerprint : Fingerprint(
+    definingClass = CONST_CLASS,
     name = "<clinit>",
     returnType = "V",
     parameters = emptyList(),
@@ -158,6 +172,15 @@ internal object ActivityScreenInitFingerprint : Fingerprint(
     name = "<init>",
     returnType = "V",
     parameters = emptyList(),
+)
+
+internal object PlaybackStarPlayTelemetryFingerprint : Fingerprint(
+    name = "run",
+    returnType = "V",
+    parameters = emptyList(),
+    filters = listOf(
+        string("localStarPlaySP"),
+    ),
 )
 
 // endregion
@@ -388,6 +411,179 @@ internal object DecoderPrefsCodecResetFingerprint : Fingerprint(
     name = "onClick",
     returnType = "V",
     parameters = listOf("Landroid/content/DialogInterface;", "I"),
+)
+
+// endregion
+
+// region 7. Cold-Start, Theme-Switch & Runtime Smoothness Optimizations (3.4.1)
+
+internal object AppOpenAdManagerPrepareFingerprint : Fingerprint(
+    definingClass = APP_OPEN_AD_MANAGER_CLASS,
+    name = "p",
+    returnType = "V",
+    parameters = emptyList(),
+)
+
+internal object SkinResourcePackCheckFingerprint : Fingerprint(
+    definingClass = SKIN_RESOURCE_PACK_HELPER_CLASS,
+    name = "a",
+    returnType = "V",
+    parameters = emptyList(),
+)
+
+internal object GdprForeignCheckFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    name = "a",
+    returnType = "Z",
+    parameters = emptyList(),
+    custom = { _, classDef ->
+        classDef.sourceFile == "GdprUtil.java" && '$' !in classDef.type
+    },
+)
+
+internal object OttViewPreinflateEnqueueFingerprint : Fingerprint(
+    name = "a",
+    returnType = "V",
+    custom = { method, classDef ->
+        classDef.sourceFile == "DefaultMultiTypeViewCache.java" &&
+            "Landroid/os/Handler\$Callback;" in classDef.interfaces &&
+            method.parameterTypes.size == 1
+    },
+)
+
+internal object AnrWatchDogRunFingerprint : Fingerprint(
+    name = "run",
+    returnType = "V",
+    parameters = emptyList(),
+    custom = { _, classDef ->
+        classDef.sourceFile == "ANRWatchDog.java" && '$' !in classDef.type
+    },
+)
+
+internal object AmxpMetricInitFingerprint : Fingerprint(
+    name = "c",
+    returnType = "V",
+    parameters = listOf("Landroid/app/Application;"),
+    custom = { _, classDef ->
+        classDef.sourceFile == "AMXPMetricInitializer.kt" && '$' !in classDef.type
+    },
+)
+
+internal object AmxpMetricEmitterClinitFingerprint : Fingerprint(
+    name = "<clinit>",
+    returnType = "V",
+    parameters = emptyList(),
+    custom = { _, classDef ->
+        classDef.sourceFile == "AMXPMetricEmitter.kt" && '$' !in classDef.type
+    },
+)
+
+internal object FeatureMan2InitFingerprint : Fingerprint(
+    name = "name",
+    returnType = "Ljava/lang/String;",
+    parameters = emptyList(),
+    filters = listOf(
+        string("FeatureMan2"),
+    ),
+    custom = { _, classDef ->
+        classDef.sourceFile == "FeatureManagerInitializer.kt" && '$' !in classDef.type
+    },
+)
+
+internal object TrackerInitializerFingerprint : Fingerprint(
+    name = "c",
+    returnType = "V",
+    parameters = listOf("Landroid/app/Application;"),
+    custom = { _, classDef ->
+        classDef.sourceFile == "TrackerInitializer.kt" && '$' !in classDef.type
+    },
+)
+
+internal object MxAppInitTrackingFingerprint : Fingerprint(
+    definingClass = MX_APP_CLASS,
+    name = "X",
+    returnType = "V",
+    parameters = emptyList(),
+)
+
+internal object TrackingUtilClinitFingerprint : Fingerprint(
+    name = "<clinit>",
+    returnType = "V",
+    parameters = emptyList(),
+    custom = { _, classDef ->
+        classDef.sourceFile == "TrackingUtil.java" &&
+            !classDef.type.startsWith("Lcom/mxplay/") &&
+            '$' !in classDef.type
+    },
+)
+
+internal object InAppPushRunFingerprint : Fingerprint(
+    definingClass = IN_APP_PUSH_CLASS,
+    name = "run",
+    returnType = "V",
+    parameters = emptyList(),
+)
+
+internal object SubscriptionGroupFetchFingerprint : Fingerprint(
+    definingClass = SUBSCRIPTION_GROUP_CACHE_CLASS,
+    name = "a",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;"),
+)
+
+internal object ComScoreClinitFingerprint : Fingerprint(
+    name = "<clinit>",
+    returnType = "V",
+    parameters = emptyList(),
+    custom = { _, classDef ->
+        classDef.sourceFile == "ComScore.kt" && '$' !in classDef.type
+    },
+)
+
+internal object AppAttachBaseContextFingerprint : Fingerprint(
+    definingClass = MX_APP_CLASS,
+    name = "attachBaseContext",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
+    filters = listOf(
+        string("mx_seal_lock"),
+    ),
+)
+
+internal object CleverTapLifecycleCallbackFingerprint : Fingerprint(
+    name = "onActivityCreated",
+    returnType = "V",
+    parameters = listOf("Landroid/app/Activity;", "Landroid/os/Bundle;"),
+    filters = listOf(
+        string("CTPushNotificationReceiver"),
+    ),
+    custom = { _, classDef ->
+        classDef.sourceFile == "ActivityLifecycleCallback.java"
+    },
+)
+
+internal object TrackingLifecycleCallbackFingerprint : Fingerprint(
+    name = "onActivityStopped",
+    returnType = "V",
+    parameters = listOf("Landroid/app/Activity;"),
+    filters = listOf(
+        string("trackIsActivity"),
+    ),
+    custom = { _, classDef ->
+        classDef.sourceFile == "TrackingConst.java" &&
+            "Landroid/app/Application\$ActivityLifecycleCallbacks;" in classDef.interfaces
+    },
+)
+
+internal object AdInitializerCallbackFingerprint : Fingerprint(
+    name = "a",
+    returnType = "V",
+    parameters = emptyList(),
+    custom = { _, classDef ->
+        classDef.sourceFile == "AdInitializer.kt" &&
+            '$' !in classDef.type &&
+            classDef.interfaces.size == 1
+    },
 )
 
 // endregion

@@ -7,6 +7,7 @@ package app.morphe.patches.facebook.layout.theme
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -133,7 +134,7 @@ internal var plainTokens: Set<String> = emptySet()
 internal var integerReadAttributeIds: Set<Int> = emptySet()
 
 /** The token enum FDSColors resolves, and its constants. */
-private fun BytecodePatchContext.fdsTokens(): Pair<ClassDef, TokenConstants> {
+internal fun BytecodePatchContext.fdsTokens(): Pair<ClassDef, TokenConstants> {
     val tokenType = fdsColourSource(classDefBy(fdsColors()))!!.parameterTypes[1].toString()
     val tokenClass = classDefBy(tokenType)
     return tokenClass to tokenConstants(tokenClass.methods.single { it.name == "<clinit>" }, tokenType)
@@ -162,7 +163,9 @@ internal val fdsTokenAttributesPatch = bytecodePatch {
 
     execute {
         val (tokenClass, constants) = fdsTokens()
-        plainTokens = dataReadTokens({ visit -> classDefForEach { visit(it) } }, constants, tokenAttributeField(tokenClass)).tokens
+        plainTokens = dataReadTokens({ visit -> classDefForEach { visit(it) } }, constants, tokenAttributeField(tokenClass)) { names, visit ->
+            classDefForEachReferencing(names = names) { visit(it) }
+        }.tokens
         integerReadAttributeIds = integerReadAttributes { visit -> classDefForEach { visit(it) } }.attributes
     }
 }
@@ -240,7 +243,17 @@ internal fun tokenAttributeField(tokenClass: ClassDef): String {
 }
 
 private const val RESOLVE_ATTRIBUTE = "Landroid/content/res/Resources\$Theme;->resolveAttribute(ILandroid/util/TypedValue;Z)Z"
+private const val RESOLVE_ATTRIBUTE_NAME = "resolveAttribute"
 private const val TYPED_VALUE = "Landroid/util/TypedValue;"
+
+/**
+ * Whether this calls [RESOLVE_ATTRIBUTE]. The name goes first: writing every reference of the app out
+ * as text to compare was most of this scan's time on a phone (#236).
+ */
+private fun Instruction.resolvesAttribute(): Boolean {
+    val call = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+    return call.name == RESOLVE_ATTRIBUTE_NAME && call.key() == RESOLVE_ATTRIBUTE
+}
 
 /** Where a register's value came from, as far as a look back up the method goes. */
 private sealed interface Origin {
@@ -279,12 +292,15 @@ internal class DataReadScan(
  * on each path to the call, so both arms of a branch) is a token's literal, a token constant's
  * [attributeField], or a parameter, which makes the method a helper whose callers are looked at the
  * same way, a token constant passed in included, and a helper's helpers after them until no new one
- * turns up. [forEachClass] walks every class, once per round.
+ * turns up. [forEachClass] walks every class, once per round. [forEachNaming], when given, walks only
+ * the classes that may call a method of one of the names it gets (the reference index), which is
+ * every class this scan can find anything in (#236).
  */
 internal fun dataReadTokens(
     forEachClass: ((ClassDef) -> Unit) -> Unit,
     constants: TokenConstants,
     attributeField: String,
+    forEachNaming: (Collection<String>, (ClassDef) -> Unit) -> Unit = { _, visit -> forEachClass(visit) },
 ): DataReadScan {
     val byAttribute = constants.attributes.entries.associate { (name, attribute) -> attribute to name }
     val readers = sortedMapOf<String, MutableSet<String>>()
@@ -313,18 +329,18 @@ internal fun dataReadTokens(
         }
     }
 
-    forEachClass { classDef ->
-        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@forEachClass
+    forEachNaming(listOf(RESOLVE_ATTRIBUTE_NAME)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@forEachNaming
         for (method in classDef.methods) {
             val instructions = method.implementation?.instructions ?: continue
-            val calls = instructions.count { (it as? ReferenceInstruction)?.reference?.toString() == RESOLVE_ATTRIBUTE }
+            val calls = instructions.count { it.resolvesAttribute() }
             if (calls == 0) continue
             val read = reads(instructions, calls)
             if (read == Read.TYPE) continue
             val flow = Flow(method)
             val key = method.key()
             for ((index, instruction) in flow.instructions.withIndex()) {
-                if ((instruction as? ReferenceInstruction)?.reference?.toString() != RESOLVE_ATTRIBUTE) continue
+                if (!instruction.resolvesAttribute()) continue
                 note(origins(flow, index, instruction.arguments()[1], constants, attributeField), read, key, index)
             }
         }
@@ -335,8 +351,9 @@ internal fun dataReadTokens(
         val round = fresh
         fresh = mutableMapOf()
         val roundTypes = round.keys.map { it.substringBefore("->") }.toSet()
-        forEachClass { classDef ->
-            if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@forEachClass
+        val roundNames = round.keys.map { it.substringAfter("->").substringBefore('(') }.toSet()
+        forEachNaming(roundNames) { classDef ->
+            if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@forEachNaming
             for (method in classDef.methods) {
                 val instructions = method.implementation?.instructions ?: continue
                 var flow: Flow? = null

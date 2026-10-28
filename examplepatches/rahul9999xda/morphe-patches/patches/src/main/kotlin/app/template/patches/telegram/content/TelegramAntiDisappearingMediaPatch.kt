@@ -58,7 +58,7 @@ private val needDrawBluredPreviewFingerprint = Fingerprint(
 )
 
 /**
- * Telegram/Web 13.1.1 and Telegram Plus 13.0.3.0 expose SecretMediaViewer's
+ * Telegram/Web 13.1.1 and Telegram Plus 13.1.1.0 expose SecretMediaViewer's
  * close routine through obfuscated methods. Earlier versions of this patch
  * attempted to identify the close routine by matching every Runnable field read
  * in SecretMediaViewer.e(ZZ)Z / its Plus equivalent.

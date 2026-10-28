@@ -161,6 +161,14 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
             ));
             addPreference(new TogglePreference(
                     context,
+                    "Fold the search into a button",
+                    "Shows a search button at the top left of the comments instead of the box, "
+                            + "so the comments get that room back. Tap it to search, and tap it "
+                            + "again to put the box away. Search within comments must be on.",
+                    Settings.COMMENT_SEARCH_FOLDED
+            ));
+            addPreference(new TogglePreference(
+                    context,
                     "Export comments",
                     "Adds Export CSV and Export JSON buttons under the search box, so Search "
                             + "within comments must be on. They save the comments and replies "

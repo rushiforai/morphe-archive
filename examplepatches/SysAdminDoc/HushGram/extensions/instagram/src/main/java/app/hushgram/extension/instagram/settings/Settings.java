@@ -19,9 +19,11 @@ import app.hushgram.extension.instagram.download.SaveFolder;
 import app.hushgram.extension.instagram.media.PlaybackQuality;
 import app.hushgram.extension.instagram.media.TapToPlayScope;
 import app.hushgram.extension.instagram.profile.ProfileTabs;
+import app.hushgram.extension.instagram.stories.StoryBarThickness;
 import app.hushgram.extension.instagram.stories.StoryRingColor;
 import app.hushgram.extension.instagram.stories.StoryRingSize;
 import app.hushgram.extension.instagram.stories.StoryTimeMode;
+import app.hushgram.extension.instagram.stories.TrayBadge;
 import app.hushgram.extension.shared.settings.BaseSettings;
 import app.hushgram.extension.shared.settings.BooleanSetting;
 import app.hushgram.extension.shared.settings.EnumSetting;
@@ -225,6 +227,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_back_leaves_home", FALSE);
 
     /**
+     * Coming back to Instagram leaves Home where it was, however long you were away, instead of
+     * reloading the feed and scrolling to the top after 30 seconds
+     * ({@link app.hushgram.extension.instagram.feed.HomePlace}). Off to start.
+     */
+    public static final BooleanSetting KEEP_HOME_PLACE =
+            new BooleanSetting("hushgram_keep_home_position", FALSE);
+
+    /**
      * A story plays again from the start when it ends, instead of the viewer moving on
      * ({@link app.hushgram.extension.instagram.stories.StoryLoop}). While it's on it wins over
      * {@link #BLOCK_STORY_AUTO_ADVANCE}. Off to start.
@@ -313,10 +323,26 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting ROUNDED_POST_CORNERS =
             new BooleanSetting("hushgram_rounded_post_corners", FALSE);
 
-    /** Under {@link #ROUNDED_POST_CORNERS}: how round the corners are. Small to start. */
+    /**
+     * A reel's video in the Reels tab and wherever a reel opens full screen is cut at rounded corners
+     * ({@link app.hushgram.extension.instagram.feed.ReelCorners}, #362), with the seek bar, captions and
+     * buttons left whole. Part of the Rounded post corners patch. Off to start.
+     */
+    public static final BooleanSetting ROUNDED_REEL_CORNERS =
+            new BooleanSetting("hushgram_rounded_reel_corners", FALSE);
+
+    /** Under {@link #ROUNDED_POST_CORNERS} and {@link #ROUNDED_REEL_CORNERS}: how round the corners are. Small to start. */
     public static final EnumSetting<app.hushgram.extension.instagram.feed.CornerSize> ROUNDED_CORNER_SIZE =
             new EnumSetting<>("hushgram_rounded_corner_size", app.hushgram.extension.instagram.feed.CornerSize.SMALL,
-                    parent(ROUNDED_POST_CORNERS));
+                    parentsAny(ROUNDED_POST_CORNERS, ROUNDED_REEL_CORNERS));
+
+    /**
+     * A feed carousel's page sits inset with the next page's edge showing at the right
+     * ({@link app.hushgram.extension.instagram.feed.CarouselPeek}, #361). Part of the Rounded post
+     * corners patch. Off to start.
+     */
+    public static final BooleanSetting PEEK_CAROUSEL_PAGES =
+            new BooleanSetting("hushgram_peek_carousel_pages", FALSE);
 
     /**
      * The stories you watch, which Instagram posts to media/seen/ to put you on their viewer lists.
@@ -497,6 +523,13 @@ public class Settings extends BaseSettings {
      * ({@link app.hushgram.extension.instagram.direct.KeepInChat}). Off to start.
      */
     public static final BooleanSetting KEEP_IN_CHAT = new BooleanSetting("hushgram_keep_in_chat", FALSE);
+
+    /**
+     * Swiping up on a reel opened from a chat goes to the next reel shared in that chat, by
+     * Instagram's own chat reels test ({@link app.hushgram.extension.instagram.direct.ChatReels}, #350).
+     * Off to start.
+     */
+    public static final BooleanSetting SWIPE_CHAT_REELS = new BooleanSetting("hushgram_swipe_chat_reels", FALSE);
 
     /**
      * A call started from a chat waits for a question first
@@ -711,6 +744,18 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_add_yours_cards", FALSE);
 
     /**
+     * The row of stories at the top of Home keeps only the stories {@link #TRAY_BADGE} names, by
+     * the owner's verified badge ({@link app.hushgram.extension.instagram.stories.StoriesTray#filter},
+     * #340). Your own story stays. Off to start, which is every story.
+     */
+    public static final BooleanSetting FILTER_TRAY_BY_BADGE =
+            new BooleanSetting("hushgram_filter_tray_by_badge", FALSE);
+
+    /** Under {@link #FILTER_TRAY_BY_BADGE}: which stories stay. Accounts without the badge to start. */
+    public static final EnumSetting<TrayBadge> TRAY_BADGE =
+            new EnumSetting<>("hushgram_tray_badge", TrayBadge.UNVERIFIED, parent(FILTER_TRAY_BY_BADGE));
+
+    /**
      * The rings in the stories row at the top of Home are drawn at the size in
      * {@link #STORY_RING_SCALE}, and the ring of a story that hasn't been watched in the color in
      * {@link #STORY_RING_COLOR} ({@link app.hushgram.extension.instagram.stories.StoryRing}). The
@@ -736,6 +781,26 @@ public class Settings extends BaseSettings {
      */
     public static final EnumSetting<StoryRingColor> STORY_RING_COLOR =
             new EnumSetting<>("hushgram_story_ring_color", StoryRingColor.INSTAGRAM, true, parent(STORY_RING));
+
+    /**
+     * The progress bar along the top of a story is drawn {@link #STORY_BAR_THICKNESS} times as thick
+     * ({@link app.hushgram.extension.instagram.stories.StoryProgressBar}, #360). Nothing Instagram
+     * stores is written, so off or paused, the bar is Instagram's again at once. Off to start.
+     */
+    public static final BooleanSetting THICKER_STORY_BAR =
+            new BooleanSetting("hushgram_thicker_story_bar", FALSE);
+
+    /** Under {@link #THICKER_STORY_BAR}: how much thicker the bar is. Twice to start. */
+    public static final EnumSetting<StoryBarThickness> STORY_BAR_THICKNESS =
+            new EnumSetting<>("hushgram_story_bar_thickness", StoryBarThickness.TWICE, parent(THICKER_STORY_BAR));
+
+    /**
+     * A seek bar over the bottom of a video story, which moves the video when dragged
+     * ({@link app.hushgram.extension.instagram.stories.StorySeekBar}, #355). Nothing Instagram stores
+     * is written, so off or paused, the bar hides at once. Off to start.
+     */
+    public static final BooleanSetting STORY_SEEK_BAR =
+            new BooleanSetting("hushgram_story_seek_bar", FALSE);
 
     /**
      * Home opening on the Following feed, with Instagram's For you and Following picker at its top,
@@ -990,12 +1055,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_glass_tab_bar_haptics", TRUE, true, parent(GLASS_TAB_BAR));
 
     /**
-     * Under {@link #GLASS_TAB_BAR}: scrolling a list down slides the pill off the bottom of the screen, and
-     * scrolling up, reaching the top, changing tab or pressing Back brings it back
-     * ({@link app.hushgram.extension.instagram.misc.GlassTabBar}). Off to start.
+     * Scrolling a list down slides the tab bar off the bottom of the screen, and scrolling up, reaching the
+     * top, changing tab or pressing Back brings it back. The glass pill
+     * ({@link app.hushgram.extension.instagram.misc.GlassTabBar}) or, with {@link #GLASS_TAB_BAR} off,
+     * Instagram's own bar, whose room the screens take while it's away (#343), so it isn't under the glass
+     * switch. Off to start.
      */
     public static final BooleanSetting GLASS_TAB_BAR_HIDE_ON_SCROLL =
-            new BooleanSetting("hushgram_glass_tab_bar_hide_on_scroll", FALSE, true, parent(GLASS_TAB_BAR));
+            new BooleanSetting("hushgram_glass_tab_bar_hide_on_scroll", FALSE, true);
 
     /**
      * A finger put on the tab bar and slid sideways carries a highlight, and lifting it opens the tab under
@@ -1162,7 +1229,8 @@ public class Settings extends BaseSettings {
 
     /**
      * The icon on the home screen and in the app drawer: Instagram's own, HushGram's, or Instagram's
-     * glyph on black or on plum ({@link app.hushgram.extension.instagram.misc.AppIcon}, #284). It
+     * glyph on black, on plum or in black on white ({@link app.hushgram.extension.instagram.misc.AppIcon},
+     * #284, #353). It
      * changes when Instagram next goes to the background. Starts on Instagram's own.
      */
     public static final EnumSetting<app.hushgram.extension.instagram.misc.AppIconChoice> APP_ICON =
@@ -2197,6 +2265,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_keep_reels_muted", FALSE);
 
     /**
+     * A reel opened from a post on Home starts with its sound on, through Instagram's own audio
+     * state, when the phone's ringer is on and its volume is up, and Home is muted again on the way
+     * back ({@link app.hushgram.extension.instagram.reels.ReelSound}). Off to start.
+     */
+    public static final BooleanSetting START_REELS_WITH_SOUND =
+            new BooleanSetting("hushgram_start_reels_with_sound", FALSE);
+
+    /**
      * A video or reel over two minutes left partway picks up there the next time a player starts
      * it ({@link app.hushgram.extension.instagram.media.ResumePlayback}). Starts off: it keeps the
      * IDs of the videos you left partway, for 30 days, in the app's own storage.
@@ -2299,6 +2375,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SAVE_FOLDER_PER_ACCOUNT =
             new BooleanSetting("hushgram_save_folder_per_account", FALSE);
+
+    /**
+     * The folder picked with Android's folder picker that every save goes to in place of Movies
+     * and Pictures, as the picker's tree address, or empty for none (#333).
+     * {@link app.hushgram.extension.instagram.download.SaveTree} keeps
+     * the grant that goes with it, which is this phone's alone, so a settings export leaves it out.
+     */
+    public static final StringSetting SAVE_TREE = new StringSetting("hushgram_save_tree", "");
 
     /**
      * Every save, photo or video, is named for the account that posted it and when it was posted,

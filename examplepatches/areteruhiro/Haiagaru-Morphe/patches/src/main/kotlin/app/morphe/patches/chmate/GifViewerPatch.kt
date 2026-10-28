@@ -11,6 +11,8 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 
 /** Direct links and native image thumbnails both open the GIF player. */
 internal val gifViewerRoutingPatch = bytecodePatch {
@@ -47,6 +49,42 @@ internal val gifViewerRoutingPatch = bytecodePatch {
                 return-object v0
             """.trimIndent())
         })
+        if(packageMetadata.versionName=="0.8.10.191 dev"){
+            // 191's real response thumbnail launcher constructs its own Intent
+            // instead of calling RM_. Capture that Intent before ActivityCompat
+            // starts the viewer, while the source thread still owns the window.
+            val launcher=owner.methods.single { it.name=="d" && it.parameterTypes==listOf("Landroid/app/Activity;","Landroid/view/View;","Ljava/util/ArrayList;","I","I") && it.returnType=="V" }
+            val site=launcher.implementation!!.instructions.withIndex().single { (_,instruction)->
+                val ref=(instruction as? ReferenceInstruction)?.reference as? MethodReference
+                ref?.returnType=="V"&&ref.parameterTypes==listOf("Landroid/app/Activity;","Landroid/content/Intent;","I","Landroid/os/Bundle;")
+            }
+            val call=site.value as FiveRegisterInstruction
+            check(call.registerCount==4&&site.value.opcode==Opcode.INVOKE_STATIC){"191 thumbnail launch arguments changed"}
+            val ref=(site.value as ReferenceInstruction).reference
+            launcher.replaceInstruction(site.index,"invoke-static {v${call.registerD}, v${call.registerC}}, Lapp/morphe/extension/chmate/MediaViewerNavigation;->prepareNativeIntent(Landroid/content/Intent;Landroid/content/Context;)V")
+            launcher.addInstructions(site.index+1,"invoke-static {v${call.registerC}, v${call.registerD}, v${call.registerE}, v${call.registerF}}, $ref")
+        }
+        if(packageMetadata.versionName=="0.8.10.242 dev"){
+            // The Compose viewer owns a screen-local ViewModelStore. Register
+            // its fully constructed model without changing SavedStateHandle state.
+            val model=mutableClassDefBy("Ljp/syoboi/a2chMate/activity/ImagesViewerViewModel;")
+            val constructor=model.methods.single { it.name=="<init>" && it.parameterTypes==listOf("Lo/isUserConsentSet;","Landroid/content/Context;") }
+            val returns=constructor.implementation!!.instructions.mapIndexedNotNull { index,instruction -> if(instruction.opcode==Opcode.RETURN_VOID)index else null }
+            check(returns.isNotEmpty()) { "Native Compose media model constructor changed" }
+            returns.asReversed().forEach { index -> constructor.addInstructions(index,"invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/MediaViewerNavigation;->registerNativeModel(Ljava/lang/Object;)V") }
+        }
+        val counterOwner=if(packageMetadata.versionName=="0.8.10.242 dev")mutableClassDefBy("Lo/VN10;") else owner
+        val counterMethod=counterOwner.methods.single {
+            it.name==when(packageMetadata.versionName){"0.8.10.191 dev"->"d";"0.8.10.226 dev"->"a";else->"e"} &&
+                it.parameterTypes==(if(packageMetadata.versionName=="0.8.10.242 dev")listOf("I","Z") else listOf("I")) && it.returnType=="V"
+        }
+        val counterSite=counterMethod.implementation!!.instructions.withIndex().first { (_,instruction)->
+            val reference=(instruction as? ReferenceInstruction)?.reference as? MethodReference
+            reference?.definingClass=="Landroid/widget/TextView;"&&reference.name=="setText"&&reference.parameterTypes==listOf("Ljava/lang/CharSequence;")
+        }
+        val counterCall=counterSite.value as FiveRegisterInstruction
+        check(counterCall.registerCount==2){"Native media counter arguments changed"}
+        counterMethod.replaceInstruction(counterSite.index,"invoke-static {v${counterCall.registerC}, v${counterCall.registerD}}, Lapp/morphe/extension/chmate/MediaViewerNavigation;->setNativeCounter(Landroid/widget/TextView;Ljava/lang/CharSequence;)V")
         val originalTouch=owner.methods.singleOrNull { it.name == "dispatchTouchEvent" && it.parameterTypes == listOf("Landroid/view/MotionEvent;") }
         val fallback=if(originalTouch!=null){
             val delegate=MutableMethod(ImmutableMethod(owner.type,"haiagaruNativeMediaTouch",originalTouch.parameters,

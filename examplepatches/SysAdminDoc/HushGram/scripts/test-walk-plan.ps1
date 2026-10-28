@@ -195,9 +195,9 @@ try {
         }
     }
     Assert-PlanTest (@($defaults | Where-Object kind -CEQ 'settings').Count -eq 23) 'Default patches must require all 23 headings.'
-    Assert-PlanTest (@($all | Where-Object { $_.kind -ceq 'settings' -and $_.page }).Count -eq 22) 'Exactly 22 settings pages are expected.'
+    Assert-PlanTest (@($all | Where-Object { $_.kind -ceq 'settings' -and $_.page }).Count -eq 23) 'Exactly 23 settings pages are expected.'
     $pause = $all | Where-Object id -CEQ 'settings-pause'
-    Assert-PlanTest ($pause.page -is [bool] -and -not $pause.page -and $pause.title -ceq 'Pause and diagnostics') 'Pause must remain a root section.'
+    Assert-PlanTest ($pause.page -is [bool] -and $pause.page -and $pause.title -ceq 'Pause and diagnostics') 'Pause must fold like the other categories.'
     Assert-PlanTest (@(Get-WalkRequiredDestinations -CatalogPath $catalogPath -SelectedPatches @()).Count -eq 5) 'A build without settings should require only native destinations.'
     $privacy = $policy.categories | Where-Object id -CEQ 'settings-privacy'
     $ghost = $privacy.when.conditions[1]
@@ -448,8 +448,8 @@ try {
     Assert-PlanContent $overview (Get-SettingsPlanDocument $overview) $true 'Settings root with Search scrolled offscreen'
     Assert-PlanContent $section (Get-SettingsPlanDocument $section) $true 'Long-list settings section'
     Assert-PlanContent $section (Get-SettingsPlanDocument $section -Page) $true 'Category page toolbar'
-    Assert-PlanContent $pause (Get-SettingsPlanDocument $pause) $true 'Root Pause section'
-    Assert-PlanContent $pause (Get-SettingsPlanDocument $pause -Page) $false 'Pause cannot become a page'
+    Assert-PlanContent $pause (Get-SettingsPlanDocument $pause) $true 'Open Pause section on the overview'
+    Assert-PlanContent $pause (Get-SettingsPlanDocument $pause -Page) $true 'Pause category toolbar'
     foreach($destination in @($section,$overview)) {
         $document=Get-SettingsPlanDocument $destination
         $fragment=$document.CreateDocumentFragment(); $fragment.InnerXml=Get-PlanNode -Text 'Screen unavailable'

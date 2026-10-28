@@ -42,6 +42,7 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.loadPatchesFromJar
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import java.io.File
@@ -124,11 +125,7 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
         )
     }
 
-    val gsonBuilder = GsonBuilder()
-        .serializeNulls()
-        .disableHtmlEscaping()
-        .setPrettyPrinting()
-        .create()
+    val gsonBuilder = catalogGson()
 
     val jsonObject = JsonObject()
     jsonObject.addProperty("version", "v$version")
@@ -139,6 +136,15 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
         gsonBuilder.toJson(jsonObject)
     )
 }
+
+// The catalog's writer, on its own so PatchListGsonTest can hold a Gson update to the same output:
+// keys in insertion order, nulls written out, and text (HTML characters, non-ASCII, surrogate
+// pairs) left as it is rather than escaped.
+internal fun catalogGson(): Gson = GsonBuilder()
+    .serializeNulls()
+    .disableHtmlEscaping()
+    .setPrettyPrinting()
+    .create()
 
 // Patcher 2.0 hides compatiblePackages and keeps the mapping behind it internal, so this is that
 // mapping again: Manager 1.x still reads the field, and dropping it would empty every patch's

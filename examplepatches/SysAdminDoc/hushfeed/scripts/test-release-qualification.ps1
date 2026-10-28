@@ -90,7 +90,7 @@ try {
     function Test-WalkReceipt { param($Path,$BundlePath,$ExpectedSourceApk,$ExpectedCommit,[string[]]$ExpectedPatches,[string[]]$ExpectedOptions)
         [pscustomobject]@{Source=$ExpectedSourceApk;Commit=$ExpectedCommit;Patches=@($ExpectedPatches);Options=@($ExpectedOptions)} }
     $walkTargets=@($base.targets[0]);$walkTargets[0].selection.options=@('Alpha|mode=exact')
-    $Walk='synthetic-walk.json';$assets=$work;$bundleName='patches-0.79.0.mpp';$head=$fixture.Commit
+    $walkPath='synthetic-walk.json';$assets=$work;$bundleName='patches-0.79.0.mpp';$head=$fixture.Commit
     $expectation=& ([scriptblock]::Create($walkCall[0].Extent.Text))
     Assert-Matrix ((Get-ReleaseIdentityHash $expectation.Patches) -ceq (Get-ReleaseIdentityHash @($walkTargets[0].selection.patches)) -and
         (Get-ReleaseIdentityHash $expectation.Options) -ceq (Get-ReleaseIdentityHash @('Alpha|mode=exact'))) 'Publish discarded the qualified nondefault patch/options selection.'

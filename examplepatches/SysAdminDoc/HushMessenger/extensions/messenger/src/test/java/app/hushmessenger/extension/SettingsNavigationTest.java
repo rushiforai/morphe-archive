@@ -39,12 +39,15 @@ public class SettingsNavigationTest {
             assertTrue(info.isHeading());
             assertEquals(android.widget.Button.class.getName(), info.getClassName().toString());
             assertTrue(info.getActionList().contains(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_EXPAND));
-            assertEquals("Collapsed", header.getStateDescription().toString());
+            assertFalse(info.getActionList().contains(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_COLLAPSE));
+            // TalkBack speaks the state from these actions, so a state description of our own would say it twice.
+            assertNull(info.getStateDescription());
             header.performClick();
             assertTrue(root.findViewWithTag("people").isShown());
-            assertEquals("Expanded", header.getStateDescription().toString());
-            assertTrue(header.createAccessibilityNodeInfo().getActionList()
-                .contains(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_COLLAPSE));
+            info = header.createAccessibilityNodeInfo();
+            assertTrue(info.getActionList().contains(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_COLLAPSE));
+            assertFalse(info.getActionList().contains(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_EXPAND));
+            assertNull(info.getStateDescription());
             // Opening a section is a view choice, not a setting: nothing reaches the saved choices.
             assertEquals(java.util.Map.of(), Settings.preferences.getAll());
             // A screen reader's collapse action closes it again.

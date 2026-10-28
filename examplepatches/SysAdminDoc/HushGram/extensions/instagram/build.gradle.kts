@@ -421,6 +421,16 @@ tasks.register("verifyAndroidBoundaries") {
                 "backLeavesHomeAloneStillGetsFeed[28]", "backLeavesHomeAloneStillGetsFeed[37]",
                 "backLeavesHomeSwitchStartsOffUnderFeedAndHonorsPause[28]",
                 "backLeavesHomeSwitchStartsOffUnderFeedAndHonorsPause[37]"),
+            "app.hushgram.extension.instagram.feed.HomePlaceTest" to listOf(
+                "withTheSwitchOnEveryReturnIsAQuickOneAndCounted[28]", "withTheSwitchOnEveryReturnIsAQuickOneAndCounted[37]",
+                "offPausedAndUnreadyKeepInstagramsTime[28]", "offPausedAndUnreadyKeepInstagramsTime[37]",
+                "aThrowingSwitchKeepsInstagramsTimeAndIsReported[28]", "aThrowingSwitchKeepsInstagramsTimeAndIsReported[37]",
+                "aChangeAppliesAtTheNextReturn[28]", "aChangeAppliesAtTheNextReturn[37]"),
+            "app.hushgram.extension.instagram.settings.HomePlaceSettingsTest" to listOf(
+                "missingPatchHasNoHomePlaceSwitch[28]", "missingPatchHasNoHomePlaceSwitch[37]",
+                "homePlaceAloneStillGetsFeed[28]", "homePlaceAloneStillGetsFeed[37]",
+                "homePlaceSwitchStartsOffUnderFeedAndHonorsPause[28]",
+                "homePlaceSwitchStartsOffUnderFeedAndHonorsPause[37]"),
             "app.hushgram.extension.instagram.feed.HomeLikedPostsTest" to listOf(
                 "theSwitchStartsOffAndOffReadsNothing[28]", "theSwitchStartsOffAndOffReadsNothing[37]",
                 "onTakesOutOnlyLikedPosts[28]", "onTakesOutOnlyLikedPosts[37]",

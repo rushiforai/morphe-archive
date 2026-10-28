@@ -17,6 +17,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import app.morphe.util.getReference
 import app.morphe.patcher.patch.bytecodePatch
 import app.crimera.patches.shared.declaredParameterRegister
@@ -43,10 +44,10 @@ object SelfStoryAddStoryButtonFingerprint : Fingerprint(
     strings = listOf("ReelOptionsOverflowHelper"),
 )
 
-// The method is obfuscated but this is where the onclick call executes.
-internal object OnCLickStoryButtonFingerprint : Fingerprint(
-    returnType = "V",
-    strings = listOf("explore_viewer", "friendships/mute_friend_reel/%s/", "[INTERNAL] Pause Playback"),
+// The request muting a friend's stories. The other-people story menu's click handler sent it itself
+// up to 452; from 453 it calls the method holding it.
+internal object MuteFriendReelFingerprint : Fingerprint(
+    strings = listOf("friendships/mute_friend_reel/%s/"),
 )
 
 internal object SelfStoryOnCLickStoryButtonFingerprint : Fingerprint(
@@ -112,10 +113,26 @@ val handleStoryButtonPatch =
                 )
             }
 
-            val onClickFingerprints = listOf(SelfStoryOnCLickStoryButtonFingerprint, OnCLickStoryButtonFingerprint)
-            onClickFingerprints.forEach { fingerprint ->
-                fingerprint.method.apply {
-                    val classDef = fingerprint.classDef
+            // The click handlers of the self-story and the other-people story menus, both in the
+            // story options class. The latter is the one there with the debug options that mutes a
+            // friend's stories, directly or through the method holding the request.
+            val menuClass = SelfStoryOnCLickStoryButtonFingerprint.classDef
+            val mute = MuteFriendReelFingerprint.method
+            val onClick = mutableClassDefBy(menuClass).methods.single { method ->
+                method.returnType == "V" && method.implementation?.instructions?.let { instructions ->
+                    instructions.any { it.getReference<StringReference>()?.string == "[INTERNAL] Pause Playback" } &&
+                        instructions.any { instruction ->
+                            instruction.getReference<StringReference>()?.string == "friendships/mute_friend_reel/%s/" ||
+                                instruction.getReference<MethodReference>()?.let {
+                                    it.definingClass == mute.definingClass && it.name == mute.name &&
+                                        it.parameterTypes == mute.parameterTypes && it.returnType == mute.returnType
+                                } == true
+                        }
+                } == true
+            }
+            listOf(SelfStoryOnCLickStoryButtonFingerprint.method to "self story", onClick to "story").forEach { (handler, label) ->
+                handler.apply {
+                    val classDef = menuClass
                     val reelItemClassName = "Lcom/instagram/model/reels/ReelItem;"
                     val appActivity = "Landroid/app/Activity;"
                     val charSequence = "Ljava/lang/CharSequence;"
@@ -133,7 +150,7 @@ val handleStoryButtonPatch =
 
                     // v0 to v3 are free at the first instruction, provided the method has four locals.
                     if (parameterRegisterStart(this) < 4) {
-                        throw PatchException("${fingerprint.javaClass.simpleName} has fewer than four locals")
+                        throw PatchException("The $label menu click handler has fewer than four locals")
                     }
                     addInstructionsWithLabels(
                         0,

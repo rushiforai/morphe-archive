@@ -42,7 +42,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * video's player when it first asks within {@link #WINDOW_MS} of a Warion step or of the reels viewer
  * opening from a feed, while a Warion viewer that opened within that time of one is open, or while a
  * full-screen player screen created within that time of one is in front. It gets no more reels (its
- * seed video alone, in the data source's case) then and on every later ask. One held for a Warion
+ * seed video alone, in the data source's case, unless the video is a feed's ordinary video rather
+ * than a reel) then and on every later ask. One held for a Warion
  * viewer is decided again on its first ask after that viewer closes. One that first asked from the
  * main screen with no viewer open, the Reels and Video tabs' among them, keeps Facebook's answer, and
  * so does one asking in a viewer or player screen no feed video opened: the Watch page on a screen of
@@ -100,6 +101,12 @@ public final class FeedVideoAlone {
 
     /** When the last feed video tap that no player has used yet came, or NONE. */
     private static final AtomicLong TAPPED_AT = new AtomicLong(NONE);
+
+    /**
+     * When a feed's ordinary video, not a reel, last opened the reels viewer and no data source has
+     * asked its seed check for it yet, or NONE.
+     */
+    private static final AtomicLong PLAIN_OPENED_AT = new AtomicLong(NONE);
 
     /**
      * When a feed video last opened, or NONE once something else opened since. Unlike TAPPED_AT no
@@ -255,6 +262,7 @@ public final class FeedVideoAlone {
             String where = origin.toString();
             boolean feed = fromFeed(where);
             feedOpened(feed);
+            if (feed && plainVideo(where)) PLAIN_OPENED_AT.set(now());
             Logger.printDebug(() -> feed
                     ? "Feed videos on their own: a feed video is opening the reels viewer from " + where
                     : "Feed videos on their own: the reels viewer is opening from " + where + ", not a feed");
@@ -268,12 +276,27 @@ public final class FeedVideoAlone {
         long at = feed ? now() : NONE;
         TAPPED_AT.set(at);
         FEED_OPENED_AT.set(at);
+        PLAIN_OPENED_AT.set(NONE);
     }
 
     /** Whether [origin], a player origin as text, names a feed's surface. */
     static boolean fromFeed(String origin) {
         int cut = origin.indexOf("::");
         return FEED_SURFACES.contains(cut < 0 ? origin : origin.substring(0, cut));
+    }
+
+    /**
+     * Whether [origin], a player origin as text, is an ordinary video posted in a feed rather than a
+     * reel: "user_timeline::feed_story" for a page's video post and "group::multimedia_post" for a
+     * group's (584 emulator 2026-10-27, the viewer stood empty 1.4-2.3 s with the yes against 0.1-0.7
+     * s without), where a feed reel reads "newsfeed::fb_shorts_native_in_feed_unit" or
+     * "group::fb_shorts_reshare_feed_unit".
+     */
+    static boolean plainVideo(String origin) {
+        int cut = origin.indexOf("::");
+        if (cut < 0) return false;
+        String sub = origin.substring(cut + 2);
+        return sub.equals("feed_story") || sub.equals("multimedia_post");
     }
 
     /**
@@ -332,12 +355,44 @@ public final class FeedVideoAlone {
     /**
      * Injection point, first thing in a reels data source's answer to whether it shows its seed video
      * alone, which skips both the reels Facebook would add after it and every later fetch more. True
-     * answers yes. Never throws.
+     * answers yes. The data source of a feed's ordinary video keeps Facebook's answer: the yes also
+     * skips the first page that brings that video to the viewer, which then stands empty for up to a
+     * second longer (#237, 584 emulator 2026-10-27), and no reels follow such a video anyway, its feed's
+     * fetch more being held and its list showing no loading page. Never throws.
      *
      * @param source the data source asking.
      */
     public static boolean seedOnly(@Nullable Object source) {
+        if (plainVideoSource(source)) return false;
         return alone(source, "seed video only", "reels data source");
+    }
+
+    /**
+     * Whether [source] first asks its seed check for a feed's ordinary video that just opened the
+     * reels viewer. Then and on every later ask it keeps Facebook's answer, and the tap is left for
+     * the viewer's feed.
+     */
+    private static boolean plainVideoSource(@Nullable Object source) {
+        try {
+            HookStatus.invoked(FAMILY);
+            long opened = PLAIN_OPENED_AT.get();
+            if (source == null || opened == NONE || now() - opened > WINDOW_MS || !on()) return false;
+            synchronized (FEEDS) {
+                for (Feed seen : FEEDS) {
+                    if (seen.feed.get() == source) return false;
+                }
+                if (!PLAIN_OPENED_AT.compareAndSet(opened, NONE)) return false;
+                FEEDS.add(new Feed(source, false, null));
+            }
+            HookStatus.bound(FAMILY, "seed video only");
+            String id = source.getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(source));
+            Logger.printDebug(() -> "Feed videos on their own: reels data source " + id
+                    + " belongs to a feed's video, not a reel, and keeps Facebook's answer so the video shows at once");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "seed video only", failure);
+            return false;
+        }
     }
 
     /**
@@ -475,6 +530,7 @@ public final class FeedVideoAlone {
         }
         TAPPED_AT.set(NONE);
         FEED_OPENED_AT.set(NONE);
+        PLAIN_OPENED_AT.set(NONE);
         feedPlayer = new WeakReference<>(null);
         clockForTests = null;
         loadingPageLogged = new WeakReference<>(null);

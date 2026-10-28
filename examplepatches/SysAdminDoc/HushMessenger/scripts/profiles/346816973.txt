@@ -53,6 +53,11 @@ hook app_icons LX/6Tj;->A02(Lcom/facebook/auth/usersession/FbUserSession;)Z
 hook app_icons LX/6Tj;->A03(Lcom/facebook/auth/usersession/FbUserSession;)Z
 hook attribution_uploads Lcom/facebook/attribution/LatStatusJob;->A00(Lcom/facebook/attribution/LatStatusJob;Lcom/facebook/auth/usersession/FbUserSession;)V
 hook auto_reply Lcom/facebook/messaging/notify/type/NewMessageNotification;-><init>(Lcom/facebook/messaging/accountswitch/model/MessengerAccountType;Lcom/facebook/messaging/model/messages/Message;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/8LQ;LX/8aG;Lcom/facebook/messaging/push/flags/ServerMessageAlertFlags;Lcom/facebook/push/constants/PushProperty;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ZZZZZZZ)V
+hook avatar_shape LX/2rR;->A09(Landroid/content/Context;Landroid/graphics/Path;Landroid/graphics/drawable/Drawable;Lcom/facebook/auth/usersession/FbUserSession;LX/2q4;LX/2re;LX/2sY;FIIZZ)V
+hook avatar_shape LX/2rR;->A0E(Z)V
+hook avatar_shape LX/2sY;->draw(Landroid/graphics/Canvas;)V
+hook avatar_shape LX/4uP;-><init>([FFZZZ)V
+hook avatar_shape LX/Ioi;->A04(LX/LSY;LX/4gu;)V
 hook avatar_stickers LX/NP9;->A01(LX/NP9;)Z
 hook avatar_tabs Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A6e(LX/AZT;)V
 hook browser Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0K(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z

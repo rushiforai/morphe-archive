@@ -47,7 +47,10 @@ final class OverlayPanels {
         if (tint == null) {
             return;
         }
-        tintPanels(root, inputView, tint);
+        if (tintPanels(root, inputView, tint)) {
+            // The strip below the keyboard copies these panels, so repaint it.
+            inputView.invalidate();
+        }
     }
 
     /** The toolbar's background, when the keyboard is see-through. */
@@ -61,9 +64,10 @@ final class OverlayPanels {
         return background;
     }
 
-    private static void tintPanels(View view, View inputView, Drawable tint) {
+    /** Returns whether any panel was tinted. */
+    private static boolean tintPanels(View view, View inputView, Drawable tint) {
         if (view == inputView || view.getVisibility() != View.VISIBLE) {
-            return;
+            return false;
         }
         Object tag = view.getTag();
         if (tag instanceof String && ((String) tag).contains(BODY_AREA_TAG)
@@ -75,15 +79,18 @@ final class OverlayPanels {
                 copy.setAlpha(tint.getAlpha());
                 view.setBackground(copy);
                 TINTED.put(view, copy);
+                return true;
             }
-            return;
+            return false;
         }
+        boolean tinted = false;
         if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
             for (int index = 0; index < group.getChildCount(); index++) {
-                tintPanels(group.getChildAt(index), inputView, tint);
+                tinted |= tintPanels(group.getChildAt(index), inputView, tint);
             }
         }
+        return tinted;
     }
 
     private static View find(View view, String tagPart) {

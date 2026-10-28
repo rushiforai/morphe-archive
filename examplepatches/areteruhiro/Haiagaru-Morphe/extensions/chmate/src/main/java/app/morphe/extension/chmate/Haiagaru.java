@@ -4230,8 +4230,14 @@ public final class Haiagaru {
             String version = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionName;
             if ("0.8.10.191 dev".equals(version) || "0.8.10.226 dev".equals(version)) {
                 imageRotationButton = addSwitch(layout, activity,
-                        text("画像ビューアの回転ボタン", "Image viewer rotation button"),
+                        text("画像ビューアの回転操作", "Image viewer rotation"),
                         preferences.getBoolean("imageViewerRotationButton", true));
+                Switch rotationInMenu = addSwitch(layout, activity,
+                        text("画像の回転操作を︙メニューにまとめる（オフなら画面上に表示）",
+                                "Put image rotation in overflow menu (off: show on screen)"),
+                        preferences.getBoolean(ImageViewerRotationButton.MENU_KEY, true));
+                rotationInMenu.setOnCheckedChangeListener((button, checked) ->
+                        preferences.edit().putBoolean(ImageViewerRotationButton.MENU_KEY, checked).apply());
             }
         } catch (Exception error) { Log.w(LOG_TAG, "Rotation setting version check failed", error); }
         final Switch imageRotationButtonSetting = imageRotationButton;
@@ -4562,6 +4568,7 @@ public final class Haiagaru {
         layout.addView(responseArchive);
         ArchiveOrigins.addSettings(layout, activity);
         RelatedThreads.addSettings(layout, activity);
+        GlobalTitleSearch.addSettings(layout, activity);
         EditText archiveRouteTemplatesValue = null;
         try {
             archiveRouteTemplatesValue = addArchiveRouteControl(

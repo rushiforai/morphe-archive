@@ -98,18 +98,6 @@ object Constants {
         signatures = setOf(MXPLAYER_SIGNER_SHA256),
         targets = listOf(
             AppTarget(
-                version = "3.3.1",
-                versionCode = 2001003541,
-                minSdk = 24,
-                description = "Standalone APK (arm64-v8a / armeabi-v7a, nodpi, Android 7.0+), build 2001003541"
-            ),
-            AppTarget(
-                version = "3.4.0",
-                versionCode = 2001003550,
-                minSdk = 24,
-                description = "Standalone APK (arm64-v8a / armeabi-v7a, Android 7.0+), build 2001003550"
-            ),
-            AppTarget(
                 version = "3.4.1",
                 versionCode = 2001003551,
                 minSdk = 24,

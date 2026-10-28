@@ -11,12 +11,15 @@ import android.graphics.RectF;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.PixelCopy;
 import android.view.SurfaceView;
+import android.view.Choreographer;
 import android.view.TextureView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 
 import java.lang.ref.WeakReference;
@@ -39,7 +42,14 @@ final class AmbientLightView extends View {
     /** No media-time report for this long: the clock is silent, not necessarily paused. */
     private static final long CLOCK_SILENT_MS = 2_000L;
     private static final long SILENT_CAPTURE_INTERVAL_MS = 66L;
+    /** A picture that has not moved for this many captures is sampled more slowly... */
+    private static final int STILL_FRAMES_BEFORE_SLOWDOWN = 30;
+    /** ...at this interval, until the next capture that moved. */
+    private static final long STILL_CAPTURE_INTERVAL_MS = 200L;
+    /** A mean colour change this large between two captures is a scene cut. */
+    private static final int CUT_DIFFERENCE = 24;
 
+    private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static HandlerThread workerThread;
     private static Handler worker;
 
@@ -81,6 +91,9 @@ final class AmbientLightView extends View {
     private int[] candidateBounds;
     private int candidateCount;
     private int staticFrames;
+    /** Consecutive captures whose picture barely changed (worker writes, main thread reads). */
+    private volatile int stillFrames;
+    private boolean loggedStill;
     private int lastSampleWidth;
     private boolean accumulatedValid;
     private int[] pageGlowPixels = new int[0];
@@ -101,6 +114,24 @@ final class AmbientLightView extends View {
     private float targetAlpha;
     private long lastAlphaUptime;
     private int colorFilterGeneration = -1;
+
+    // The bars' light on surfaces between the video and the window (see LightLayers).
+    private LightLayers barLayers;
+    private boolean barsOnSurface;
+    private boolean barFrameScheduled;
+    private final Choreographer.FrameCallback barFrame = frameTimeNanos -> renderBars();
+    private final java.util.List<Rect> barRects = new java.util.ArrayList<>();
+    private final java.util.List<Rect> rectPool = new java.util.ArrayList<>();
+    private final Rect barClip = new Rect();
+    private final int[] windowLocation = new int[2];
+    private Bitmap barBitmap;
+    private final LightLayers.Painter barPainter = canvas -> {
+        updateColorFilter();
+        paint.setAlpha(Math.round(alpha * 255));
+        drawRectF.set(windowLocation[0], windowLocation[1],
+                windowLocation[0] + getWidth(), windowLocation[1] + getHeight());
+        canvas.drawBitmap(barBitmap, null, drawRectF, paint);
+    };
 
     AmbientLightView(Context context) {
         super(context);
@@ -182,6 +213,8 @@ final class AmbientLightView extends View {
         super.onDetachedFromWindow();
         removeCallbacks(tick);
         loopScheduled = false;
+        // Not while the parent is still removing this view.
+        MAIN.post(this::releaseBars);
         AmbientPageGlowView page = pageRef.get();
         if (page != null) page.setActive(false);
     }
@@ -212,6 +245,15 @@ final class AmbientLightView extends View {
         long now = SystemClock.uptimeMillis();
         long interval = 1000L / Math.max(1, AmbientLightSettings.getFrameRate());
         if (clockSilent) interval = Math.max(interval, SILENT_CAPTURE_INTERVAL_MS);
+        // A still picture (slides, a paused-looking stream) needs no 30 samples a second; the
+        // first capture that moves returns to the full rate.
+        boolean still = stillFrames >= STILL_FRAMES_BEFORE_SLOWDOWN;
+        if (still) interval = Math.max(interval, STILL_CAPTURE_INTERVAL_MS);
+        if (still != loggedStill && Log.isLoggable(TAG, Log.DEBUG)) {
+            loggedStill = still;
+            Log.d(TAG, still ? "Still picture: sampling every " + STILL_CAPTURE_INTERVAL_MS + " ms"
+                    : "Picture moves again: full sampling rate");
+        }
         if (consecutiveFailures >= MAX_FAILURES_BEFORE_BACKOFF) interval = Math.max(interval, 1_000L);
 
         if (!copyInFlight && now - lastCaptureUptime >= interval
@@ -267,6 +309,9 @@ final class AmbientLightView extends View {
         pageActive = false;
         // Muted inline previews in feeds use the same player; they get no light.
         if (Views.isInlinePreview(this)) return false;
+        // In picture-in-picture the window is the video itself: there is nothing to light.
+        android.app.Activity activity = Views.findActivity(getContext());
+        if (activity != null && activity.isInPictureInPictureMode()) return false;
         View root = getRootView();
         int shortSide = Math.min(root.getWidth(), root.getHeight());
         if (getWidth() < shortSide * 0.5f) return false; // miniplayer / dragging
@@ -379,7 +424,7 @@ final class AmbientLightView extends View {
             synchronized (frameLock) {
                 frontBitmap = null;
             }
-            postInvalidateOnAnimation();
+            requestDraw();
         }
     }
 
@@ -411,6 +456,12 @@ final class AmbientLightView extends View {
             int difference = AmbientMath.meanDifference(samplePixels, previousSample, sampleLength);
             System.arraycopy(samplePixels, 0, previousSample, 0, sampleLength);
             staticFrames = difference == 0 ? staticFrames + 1 : 0;
+            stillFrames = difference <= 1 ? stillFrames + 1 : 0;
+            // A scene cut skips the smoothing so the new colours arrive at once, carried
+            // out from the player by the wave look.
+            boolean cut = AmbientLightSettings.isSceneWaveEnabled() && frameReady
+                    && difference >= CUT_DIFFERENCE;
+            if (cut) pageValid = false;
             if ((accumulatedValid || !geometry.bars) && (pageValid || geometry.page == null)
                     && frameReady && staticFrames > 30) {
                 post(() -> consecutiveFailures = 0);
@@ -428,7 +479,9 @@ final class AmbientLightView extends View {
             }
 
             AmbientLightController.statusCapture = 1;
-            if (geometry.page != null) processPageGlow(geometry, bounds);
+            if (geometry.page != null) {
+                processPageGlow(geometry, bounds, cut, capturePixels, copyWidth, copyHeight);
+            }
             if (!geometry.bars) {
                 frameReady = true;
                 post(() -> consecutiveFailures = 0);
@@ -493,14 +546,15 @@ final class AmbientLightView extends View {
             }
             frameReady = true;
             post(() -> consecutiveFailures = 0);
-            postInvalidateOnAnimation();
+            requestDraw();
         } catch (Throwable throwable) {
             Log.w(TAG, "Ambient frame processing failed", throwable);
         }
     }
 
     /** Worker thread: light leaking out of the player over the surrounding page. */
-    private void processPageGlow(Geometry geometry, int[] bounds) {
+    private void processPageGlow(Geometry geometry, int[] bounds, boolean cut,
+                                 int[] picture, int pictureWidth, int pictureHeight) {
         int quality = geometry.quality;
         int glowWidth = quality == AmbientLightSettings.QUALITY_LOW ? 40
                 : quality == AmbientLightSettings.QUALITY_HIGH ? 80 : 56;
@@ -530,13 +584,22 @@ final class AmbientLightView extends View {
                 player.left * scaleX, player.top * scaleY,
                 player.right * scaleX, player.bottom * scaleY
         };
-        // The page light is wider and softer than the in-player bar light.
-        float spread = theater ? 0.15f : 0.35f + AmbientLightSettings.getSpread() / 100f;
-        AmbientMath.composeGlow(samplePixels, geometry.sampleWidth, bounds,
-                pageGlowPixels, glowWidth, glowHeight, glowVideo, spread);
-        int radius = theater ? Math.max(2, glowWidth / 14)
-                : Math.max(1, Math.round((0.3f + AmbientLightSettings.getBlur() / 100f)
-                * glowWidth / 6f));
+        boolean pictureBackdrop = AmbientLightSettings.isPictureBackdropEnabled();
+        int radius;
+        if (pictureBackdrop) {
+            // The picture itself fills the screen, seen through frosted glass.
+            AmbientMath.cover(picture, pictureWidth, pictureHeight, pageGlowPixels, glowWidth,
+                    glowHeight);
+            radius = Math.max(2, glowWidth / 24);
+        } else {
+            // The page light is wider and softer than the in-player bar light.
+            float spread = theater ? 0.15f : 0.35f + AmbientLightSettings.getSpread() / 100f;
+            AmbientMath.composeGlow(samplePixels, geometry.sampleWidth, bounds,
+                    pageGlowPixels, glowWidth, glowHeight, glowVideo, spread);
+            radius = theater ? Math.max(2, glowWidth / 14)
+                    : Math.max(1, Math.round((0.3f + AmbientLightSettings.getBlur() / 100f)
+                    * glowWidth / 6f));
+        }
         AmbientMath.blur(pageGlowPixels, glowWidth, glowHeight, radius, pageScratch);
         AmbientMath.blendInto(pageAccumulated, pageGlowPixels,
                 AmbientLightSettings.getSmoothing() / 100f, !pageValid);
@@ -548,12 +611,17 @@ final class AmbientLightView extends View {
                 ? AmbientMath.farthestDistance(glowWidth, glowHeight, glowPlayer)
                 : (glowPlayer[3] - glowPlayer[1]) * profile.reach;
         int average = AmbientMath.averageColor(samplePixels, geometry.sampleWidth, bounds);
-        AmbientMath.applyPageFalloff(pageOutput, glowWidth, glowHeight, glowPlayer, falloff,
-                profile.strength, profile.floor, average, profile.averageMix);
-        AmbientMath.toneLight(pageOutput, profile.gain, profile.lumaCap);
+        if (pictureBackdrop) {
+            AmbientMath.scaleBrightness(pageOutput, length, 0.8f);
+            AmbientMath.frost(pageOutput, length, 0.1f);
+        } else {
+            AmbientMath.applyPageFalloff(pageOutput, glowWidth, glowHeight, glowPlayer, falloff,
+                    profile.strength, profile.floor, average, profile.averageMix);
+            AmbientMath.toneLight(pageOutput, profile.gain, profile.lumaCap);
+        }
         Bitmap bitmap = geometry.page.obtainBackBuffer(glowWidth, glowHeight);
         bitmap.setPixels(pageOutput, 0, glowWidth, 0, 0, glowWidth, glowHeight);
-        geometry.page.publish(bitmap, player, geometry.pageWidth, geometry.pageHeight);
+        geometry.page.publish(bitmap, player, geometry.pageWidth, geometry.pageHeight, cut);
     }
 
     /** Accepts a new letterbox estimate only after it repeats, ignoring dark scenes. */
@@ -577,20 +645,114 @@ final class AmbientLightView extends View {
         if (targetAlpha != value) {
             targetAlpha = value;
             lastAlphaUptime = AnimationUtils.currentAnimationTimeMillis();
-            postInvalidateOnAnimation();
+            requestDraw();
         }
+    }
+
+    /**
+     * Light on the player's bars outside the picture goes to surfaces between the video and
+     * YouTube's window, so a light frame does not redraw the player. Filled burned-in bars lie
+     * inside the picture where the danmaku surface is, and are still drawn by this view.
+     */
+    private boolean wantsBarSurfaces() {
+        return barsActive && !AmbientLightSettings.shouldFillBars() && isAttachedToWindow()
+                && getParent() instanceof ViewGroup;
+    }
+
+    /** The next frame of the bars' light: on the surfaces once they show, else on this view. */
+    private void requestDraw() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            post(this::requestDraw);
+            return;
+        }
+        if (wantsBarSurfaces()) {
+            if (!barFrameScheduled) {
+                barFrameScheduled = true;
+                Choreographer.getInstance().postFrameCallback(barFrame);
+            }
+            if (barsOnSurface) return;
+        } else {
+            releaseBars();
+        }
+        postInvalidateOnAnimation();
+    }
+
+    /** Main thread: one frame of the bars' light on the surfaces. */
+    private void renderBars() {
+        barFrameScheduled = false;
+        if (!wantsBarSurfaces()) {
+            releaseBars();
+            return;
+        }
+        stepAlpha(AnimationUtils.currentAnimationTimeMillis());
+        Bitmap bitmap;
+        synchronized (frameLock) {
+            bitmap = frontBitmap;
+            if (bitmap != null && (frameViewWidth != getWidth() || frameViewHeight != getHeight())) {
+                bitmap = null;
+            }
+            barClip.set(frameClip);
+        }
+        if (bitmap == null) return;
+        barBitmap = bitmap;
+        getLocationInWindow(windowLocation);
+        rectPool.addAll(barRects);
+        barRects.clear();
+        int left = windowLocation[0];
+        int top = windowLocation[1];
+        barClip.offset(left, top);
+        addBarRect(left, top, left + getWidth(), barClip.top);
+        addBarRect(left, barClip.bottom, left + getWidth(), top + getHeight());
+        addBarRect(left, barClip.top, barClip.left, barClip.bottom);
+        addBarRect(barClip.right, barClip.top, left + getWidth(), barClip.bottom);
+        if (barLayers == null) barLayers = new LightLayers(true, this::requestDraw, this::onBarsLost);
+        ViewGroup parent = (ViewGroup) getParent();
+        // Right above the video, below this view and YouTube's controls.
+        if (barLayers.render(parent, parent.indexOfChild(this), barRects, barPainter)
+                && !barsOnSurface) {
+            barsOnSurface = true;
+            invalidate();
+        }
+    }
+
+    private void addBarRect(int left, int top, int right, int bottom) {
+        if (right - left < 2 || bottom - top < 2) return;
+        Rect rect = rectPool.isEmpty() ? new Rect() : rectPool.remove(rectPool.size() - 1);
+        rect.set(left, top, right, bottom);
+        barRects.add(rect);
+    }
+
+    private void onBarsLost() {
+        if (!barsOnSurface) return;
+        barsOnSurface = false;
+        invalidate();
+    }
+
+    private void releaseBars() {
+        if (barLayers == null) return;
+        barLayers.release();
+        barLayers = null;
+        if (barsOnSurface) {
+            barsOnSurface = false;
+            invalidate();
+        }
+    }
+
+    /** Fades towards the target strength; asks for another frame while it moves. */
+    private void stepAlpha(long now) {
+        if (alpha == targetAlpha) return;
+        float step = (now - lastAlphaUptime) / (float) FADE_DURATION_MS;
+        alpha = targetAlpha > alpha ? Math.min(targetAlpha, alpha + step)
+                : Math.max(targetAlpha, alpha - step);
+        lastAlphaUptime = now;
+        if (alpha != targetAlpha) requestDraw();
     }
 
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        long now = AnimationUtils.currentAnimationTimeMillis();
-        if (alpha != targetAlpha) {
-            float step = (now - lastAlphaUptime) / (float) FADE_DURATION_MS;
-            alpha = targetAlpha > alpha ? Math.min(targetAlpha, alpha + step)
-                    : Math.max(targetAlpha, alpha - step);
-            lastAlphaUptime = now;
-            if (alpha != targetAlpha) postInvalidateOnAnimation();
-        }
+        // The bars' light is on its surfaces.
+        if (barsOnSurface) return;
+        stepAlpha(AnimationUtils.currentAnimationTimeMillis());
         if (alpha <= 0f) return;
         Bitmap bitmap;
         synchronized (frameLock) {

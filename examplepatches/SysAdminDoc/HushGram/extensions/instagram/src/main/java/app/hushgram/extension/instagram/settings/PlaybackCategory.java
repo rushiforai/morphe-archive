@@ -29,6 +29,7 @@ final class PlaybackCategory {
     static void add(HushgramPreferenceFragment page, PreferenceScreen screen, Context context, Set<PatchFamily> build) {
         if (build.contains(PatchFamily.HDR_BOOST) || build.contains(PatchFamily.TAP_TO_PLAY)
                 || build.contains(PatchFamily.RESUME_LONG_VIDEOS) || build.contains(PatchFamily.REEL_TAP_AND_VOLUME)
+                || build.contains(PatchFamily.REEL_SOUND)
                 || build.contains(PatchFamily.PLAYBACK_QUALITY) || build.contains(PatchFamily.DATA_SAVER)) {
             PreferenceCategory playback = category(screen, L10n.t("Playback"), SettingsIcons.PLAYBACK,
                     L10n.t("Media quality, auto-play and controls."));
@@ -46,6 +47,11 @@ final class PlaybackCategory {
                 playback.addPreference(reelTapChoiceRow(context));
                 playback.addPreference(toggle(context, Settings.KEEP_REELS_MUTED, L10n.t("Keep reels muted on the volume keys"),
                         L10n.t("Volume up still raises the phone's volume, but a muted reel stays muted until you unmute it.")));
+            }
+            if (build.contains(PatchFamily.REEL_SOUND)) {
+                playback.addPreference(toggle(context, Settings.START_REELS_WITH_SOUND, L10n.t("Start reels with sound"),
+                        L10n.t("A reel you tap open from a post on Home plays with sound, and Home is muted again when "
+                                + "you go back. Your phone's ringer and volume still count.")));
             }
             if (build.contains(PatchFamily.RESUME_LONG_VIDEOS)) {
                 playback.addPreference(toggle(context, Settings.RESUME_LONG_VIDEOS, L10n.t("Resume long videos"),

@@ -1,6 +1,9 @@
 import importlib.util
+import io
+import struct
 import sys
 import unittest
+import zipfile
 from pathlib import Path
 from unittest import mock
 
@@ -14,6 +17,90 @@ SPEC.loader.exec_module(sync_upstream)
 
 
 class SyncUpstreamTests(unittest.TestCase):
+    def test_dev1498_vot_sheet_keeps_upstream_titles_and_dual_fine_sliders(self):
+        ours = (sync_upstream.ROOT / sync_upstream.VOT_BOTTOM_SHEET_PATH).read_text(encoding="utf-8")
+        start = "    private static LinearLayout makeSliderRow("
+        end = "    private static int secondaryColor("
+        slider = ours[ours.index(start):ours.index(end)]
+        # Valid for both the old stable and already published dev.8 source.
+        theirs = (
+            "import android.content.Context;\n"
+            "import android.widget.ScrollView;\n"
+            "import java.util.List;\n"
+            "import app.morphe.extension.shared.Utils;\n"
+            "import app.morphe.extension.shared.settings.preference.CustomDialogListPreference;\n"
+            "SheetBottomDialog.createTitle(context, title, fg);\n"
+            + "SheetBottomDialog.createSliderRow(context, setting);\n" * 3
+            + end + "int fg) { return fg; }\n"
+        )
+        result = sync_upstream.merge_dev1498_vot_sheet(ours, theirs)
+        self.assertIn(slider, result)
+        self.assertIn("SheetBottomDialog.createTitle(context, title, fg);", result)
+        self.assertEqual(result.count("makeSliderRow(context, setting);"), 3)
+        self.assertIn("import java.util.function.IntConsumer;", result)
+        self.assertNotIn("private interface IntConsumer", result)
+        self.assertIn("setting.get() + 1", result)
+        self.assertIn("Settings.VOT_MAX_SPEECH_RATE ? 1 : 5", result)
+        for invalid in (theirs.replace("createSliderRow", "changed"), theirs + end):
+            with self.subTest(invalid=invalid), self.assertRaises(sync_upstream.SyncError):
+                sync_upstream.merge_dev1498_vot_sheet(ours, invalid)
+
+    def test_dev1498_vot_sheet_unknown_blobs_remain_unresolved(self):
+        for stage in range(3):
+            blobs = list(sync_upstream.DEV1498_VOT_SHEET_CONFLICT_BLOBS)
+            blobs[stage] = "unknown"
+            with (
+                self.subTest(stage=stage),
+                mock.patch.object(sync_upstream, "unresolved_paths", return_value=[sync_upstream.VOT_BOTTOM_SHEET_PATH]),
+                mock.patch.object(sync_upstream, "output_of", side_effect=blobs),
+                mock.patch.object(sync_upstream, "run") as run,
+            ):
+                sync_upstream.resolve_dev1498_vot_sheet_conflict()
+                run.assert_not_called()
+
+    @staticmethod
+    def event_dex_fixture(descriptor):
+        # Minimal DEX header/tables containing one type and one reflective string.
+        strings = [descriptor, b"kotlin.Unit"]
+        dex = bytearray(112 + 4 * len(strings) + 4)
+        dex[:8] = b"dex\n035\0"
+        struct.pack_into("<4I", dex, 56, len(strings), 112, 1, 120)
+        struct.pack_into("<I", dex, 120, 0)
+        for index, value in enumerate(strings):
+            struct.pack_into("<I", dex, 112 + 4 * index, len(dex))
+            dex.extend(bytes([len(value)]) + value + b"\0")
+        return bytes(dex)
+
+    def test_java_only_extension_rejects_crash_types_in_raw_and_nested_dex(self):
+        for descriptor in (b"Ljava/util/function/Consumer;", b"Lkotlin/Unit;", b"Lkotlin/jvm/functions/Function1;"):
+            dex = self.event_dex_fixture(descriptor)
+            zipped = io.BytesIO()
+            with zipfile.ZipFile(zipped, "w") as archive:
+                archive.writestr("classes.dex", dex)
+            for extension in (dex, zipped.getvalue()):
+                with self.subTest(descriptor=descriptor, zipped=extension is not dex):
+                    if descriptor.startswith(b"Lkotlin/"):
+                        with self.assertRaisesRegex(sync_upstream.SyncError, "links missing Kotlin type"):
+                            sync_upstream.validate_java_only_player_events(extension)
+                    else:
+                        sync_upstream.validate_java_only_player_events(extension)
+
+    def test_java_only_extension_rejects_missing_or_malformed_dex(self):
+        empty_zip = io.BytesIO()
+        with zipfile.ZipFile(empty_zip, "w"):
+            pass
+        for extension in (b"not dex", b"dex\n035\0", empty_zip.getvalue(), self.event_dex_fixture(b"Lkotlin/Unit;")[:-1]):
+            with self.subTest(extension=extension[:8]), self.assertRaises(sync_upstream.SyncError):
+                sync_upstream.validate_java_only_player_events(extension)
+
+    def test_prepare_build_runs_kotlin_free_event_compatibility_tests(self):
+        with mock.patch.object(sync_upstream, "run") as run, mock.patch.object(sync_upstream, "gradle_environment", return_value={}):
+            sync_upstream.build_and_generate("owner/repo", "dev")
+        args = run.call_args_list[0].args
+        self.assertIn(":patches:buildAndroid", args)
+        self.assertIn(":extensions:youtube:testDebugUnitTest", args)
+        self.assertIn("*YandexPlayerEventsTest", args)
+
     def test_stable148_settings_keep_both_insertions_and_other_merged_changes(self):
         dual = (
             "    // Dual VoT - Yandex engine. Keep every key independent from the official\n"

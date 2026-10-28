@@ -93,12 +93,19 @@ public final class FeedLock {
     private static final Pattern DETAIL_PATH = Pattern.compile("/detail/[0-9]{1,20}/?");
 
     /**
-     * Whether the switch is on. Paused, the setting answers its unpatched value, off. It also
+     * Whether the lock applies now: the switch is on, or the reader's weekly hours have started
+     * ({@link FeedSchedule}). Paused, both answer their unpatched values, off and empty. It also
      * needs the hooks its row's page stands on: without them a switch left on by a restored
      * backup or a repatch would cover the feed with nothing in the app to turn it off.
      */
     public static boolean isOn() {
-        return SettingsStatus.blockAuthorEnabled && Settings.FEED_LOCK.get();
+        return SettingsStatus.blockAuthorEnabled
+                && (Settings.FEED_LOCK.get() || FeedSchedule.coversNow());
+    }
+
+    /** Whether the lock applies now only because its weekly hours have started. */
+    static boolean onByHoursOnly() {
+        return SettingsStatus.blockAuthorEnabled && !Settings.FEED_LOCK.get() && FeedSchedule.coversNow();
     }
 
     /** Whether the lock wants the feed covered right now: on, and no link video to let through. */

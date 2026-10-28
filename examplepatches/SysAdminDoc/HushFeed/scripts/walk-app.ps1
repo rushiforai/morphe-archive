@@ -1,15 +1,19 @@
 <#
 .SYNOPSIS
-    Walks the whole patched TikTok on a release phone or an emulator and writes the
-    walk-receipt.json that release.ps1's publish stage needs.
+    Walks the whole patched TikTok or PineDrama on a release phone or an emulator and writes the
+    walk-receipt.json that release.ps1's publish stage needs, one per app the bundle declares.
 
 .DESCRIPTION
-    Patches TikTok from the bundle being released with patch-for-device.ps1 and installs it (or,
-    with -AuditBuild, walks the build already installed from that receipt), then opens every
-    screen the patches reach: For You and Following with swipes, the comment and share sheets,
-    search, the Friends, Inbox and Profile tabs, Inbox's Activity page, and every Hushfeed
-    settings section expanded and scrolled to its end, then collapsed, plus Search settings. After each step TikTok has to still
-    be the foreground app on the same process. Logcat's crash lines for TikTok decide the rest.
+    Patches -Package's app from the bundle being released with patch-for-device.ps1 and installs
+    it (or, with -AuditBuild, walks the build already installed from that receipt), then opens
+    every screen the patches reach. On TikTok that's For You and Following with swipes, the
+    comment and share sheets, search, the Friends, Inbox and Profile tabs and Inbox's Activity
+    page. On PineDrama it's Short Video, Following and Drama, the same sheets and search, and the
+    Discover, Rewards, Inbox and Profile tabs. Both then expand every Hushfeed settings section,
+    scroll it to its end and collapse it, plus Search settings. Hushfeed opens from Profile's
+    menu, or from a long press on Home when an app's menu has no Hushfeed row. After each step
+    the app has to still be the foreground app on the same process. Logcat's crash lines for it
+    decide the rest.
 
     The walk only opens screens or inline sections and closes them without changing controls. Every tap targets a node from a dump
     taken after the last swipe, sheet or Back, and Test-WalkTapAllowed refuses anything labeled
@@ -18,19 +22,27 @@
     dumpsys) and dumps again.
 
     TikTok shows the language picked in its own settings whatever the phone or per-app locale
-    says, so the walk finds TikTok's screens through $WalkLabels (English and Italian today) and
-    Hushfeed's through its own translation tables.
+    says, so the walk finds the app's screens through its profile's labels (walk-app-core.ps1;
+    TikTok's in English and Italian, PineDrama's in English) and Hushfeed's through its own
+    translation tables.
 
-    The receipt is PASS only when every planned screen was reached, TikTok never crashed, died or
-    left the foreground, and the installed APK is the one patched from -Bundle.
+    The receipt is PASS only when every planned screen was reached, the app never crashed, died
+    or left the foreground, and the installed APK is the one patched from -Bundle.
 
 .EXAMPLE
     ./scripts/walk-app.ps1 -Serial $env:HUSHFEED_DEVICE_SERIAL -Bundle build/release-assets/0.78.0/patches-0.78.0.mpp `
         -PatchArgs @{ Apk = 'C:/fixtures/tiktok.apk'; Keystore = 'C:/keys/device.keystore'; KeyAlias = 'Morphe' }
+
+.EXAMPLE
+    ./scripts/walk-app.ps1 -Serial $env:HUSHFEED_DEVICE_SERIAL -Package com.ss.android.ttmd.video `
+        -Bundle build/release-assets/0.80.0/patches-0.80.0.mpp -Out build/walk-pinedrama/walk-receipt.json `
+        -PatchArgs @{ Apk = 'C:/fixtures/pinedrama.apk'; Keystore = 'C:/keys/device.keystore'; KeyAlias = 'Morphe' }
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string]$Serial,
+    # The app to walk, one of the packages in walk-app-core.ps1's $WalkProfiles.
+    [string]$Package = 'com.zhiliaoapp.musically',
     # The bundle the receipt vouches for. Publish holds the receipt to the staged copy in
     # build/release-assets, so pass that one when walking a release.
     [string]$Bundle,
@@ -56,6 +68,13 @@ $root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot 'device-lease.ps1')
 . (Join-Path $PSScriptRoot 'walk-receipt.ps1')
 . (Join-Path $PSScriptRoot 'walk-app-core.ps1')
+
+$appProfile = Get-WalkProfile $Package
+$WalkPackage = $appProfile.Package
+$WalkLabels = $appProfile.Labels
+$appName = $appProfile.App
+$receiptProfile = Get-WalkProfileName $WalkPackage
+if (-not $receiptProfile) { throw "walk-receipt.ps1 has no receipt profile for $WalkPackage." }
 
 if (-not $LeaseDir) { throw '-LeaseDir or HUSHFEED_DEVICE_LEASE_DIR names the shared device lease folder.' }
 if (-not $ChatIdentity) { throw '-ChatIdentity or HUSHFEED_CHAT_IDENTITY names who is driving the phone.' }
@@ -90,7 +109,7 @@ if (-not $adb) { throw 'No adb found. Put it on the PATH or install the platform
 
 if (-not $AuditBuild) {
     $patch = @{} + $PatchArgs
-    $patch.Serial = $Serial; $patch.LeaseDir = $LeaseDir; $patch.ChatIdentity = $ChatIdentity
+    $patch.Serial = $Serial; $patch.LeaseDir = $LeaseDir; $patch.ChatIdentity = $ChatIdentity; $patch.Package = $WalkPackage
     if (-not $patch.ContainsKey('OutDir')) { $patch.OutDir = Join-Path $work 'apk' }
     Write-WalkLog "patching and installing from $releaseBundle"
     & (Join-Path $PSScriptRoot 'patch-for-device.ps1') @patch
@@ -145,7 +164,7 @@ function Get-WalkInstalledIdentity {
     }
     $hash = ((Invoke-WalkAdb shell sha256sum $paths[0].Substring(8)) -join '').Trim().Split(' ')[0].ToLowerInvariant()
     if ($hash -cnotmatch '^[a-f0-9]{64}$') { throw 'The installed APK hash could not be read.' }
-    $facts = ConvertFrom-WalkPackageDump -Text ((Invoke-WalkAdb shell dumpsys package $WalkPackage) -join [string][char]10)
+    $facts = ConvertFrom-WalkPackageDump -Text ((Invoke-WalkAdb shell dumpsys package $WalkPackage) -join [string][char]10) -ExpectedPackage $WalkPackage
     $facts | Add-Member -NotePropertyName sha256 -NotePropertyValue $hash
     return $facts
 }
@@ -158,9 +177,9 @@ function Test-WalkAlive([string]$Step) {
     Update-DeviceLease -Lease $script:lease -LeaseMinutes 30
     $now = Get-WalkPid
     $top = Get-WalkForeground
-    if (-not $now) { $faults.Add("TikTok's process was gone after $Step"); return $false }
-    if ($now -ne $script:appPid) { $faults.Add("TikTok's process changed from $($script:appPid) to $now during $Step"); $script:appPid = $now; return $false }
-    if (-not $top.StartsWith("$WalkPackage/", [StringComparison]::Ordinal)) { $faults.Add("TikTok left the foreground during $Step ($top was on top)"); return $false }
+    if (-not $now) { $faults.Add("$appName's process was gone after $Step"); return $false }
+    if ($now -ne $script:appPid) { $faults.Add("$appName's process changed from $($script:appPid) to $now during $Step"); $script:appPid = $now; return $false }
+    if (-not $top.StartsWith("$WalkPackage/", [StringComparison]::Ordinal)) { $faults.Add("$appName left the foreground during $Step ($top was on top)"); return $false }
     return $true
 }
 
@@ -265,7 +284,7 @@ function Complete-WalkScreen([string]$Name) {
         Save-WalkShot $Name
         Write-WalkLog "reached $Name"
     } else {
-        Write-WalkLog "lost TikTok at $Name"
+        Write-WalkLog "lost $appName at $Name"
     }
 }
 
@@ -348,13 +367,48 @@ function Invoke-WalkScrollToEnd([string]$Name, [int]$Width, [int]$Height, [strin
     return $false
 }
 
+function Test-WalkHushfeedHome([string]$HubLabel, [string]$Name) {
+    $hub = Get-WalkScreen $Name
+    return [bool]@(Find-UiNode -Nodes $hub -Label $HubLabel -Id 'title')
+}
+
+# Opens Hushfeed's home: Profile's menu > Settings and privacy > Hushfeed first, then a long press
+# on Home (HomeTabSettingsShortcut) when that route has no Hushfeed row.
+function Open-WalkHushfeed([string]$HubLabel, [int]$Width, [int]$Height) {
+    $nodes = Get-WalkScreen 'profile'
+    $menu = @(Find-UiNode -Nodes $nodes -Label $WalkLabels.ProfileMenu | Where-Object { $_.Top -lt $Height * 0.15 }) | Select-Object -First 1
+    if (-not $menu) { Write-WalkLog 'no Profile menu button' }
+    else {
+        Invoke-WalkTap $menu 'Profile menu' 2500
+        $sheet = Get-WalkScreen 'profile menu'
+        $settings = @(Find-UiNode -Nodes $sheet -Label $WalkLabels.SettingsAndPrivacy) | Select-Object -First 1
+        if (-not $settings) { Write-WalkLog 'no Settings and privacy in the profile menu' }
+        else {
+            Invoke-WalkTap $settings 'Settings and privacy' 3000
+            $row = Find-WalkRow '^Hushfeed$' $Width $Height 'settings and privacy'
+            if (-not $row) { Write-WalkLog 'no Hushfeed row in Settings and privacy' }
+            else {
+                Invoke-WalkTap $row 'Hushfeed' 3000
+                if (Test-WalkHushfeedHome $HubLabel 'hushfeed home') { return $true }
+                Write-WalkLog 'the Hushfeed row opened no Hushfeed home'
+            }
+        }
+    }
+    $nodes = Restore-WalkTabs 'the settings route' $Height
+    $homeNav = Find-WalkNav $nodes $WalkLabels.Home $Height
+    if (-not $homeNav) { Write-WalkLog 'no Home tab to long press'; return $false }
+    if (-not (Test-WalkTapAllowed -Node $homeNav)) { throw "Refused to long press '$($homeNav.Text)$($homeNav.Desc)'." }
+    Write-WalkLog "long press Home at $($homeNav.X),$($homeNav.Y)"
+    Invoke-WalkAdb shell input swipe $homeNav.X $homeNav.Y $homeNav.X $homeNav.Y 1000 | Out-Null
+    Start-Sleep -Seconds 3
+    if (Test-WalkHushfeedHome $HubLabel 'hushfeed home from Home') { return $true }
+    Write-WalkLog "Home's long press opened no Hushfeed home"
+    return $false
+}
+
 $hushfeedPages = @('Feed filter', 'Feed tabs', 'Feed screen', 'Playback', 'Screen time', 'Comments', 'Downloads',
     'Share sheet', 'Inbox', 'Privacy', 'Region', 'App', 'Diagnostics', 'Backup and restore', 'About Hushfeed')
-foreach ($screen in @('launch', 'feed: For You', 'sheet: comments', 'sheet: share', 'feed: Following', 'search',
-        'tab: Friends', 'tab: Inbox', 'inbox: Activity', 'tab: Profile', 'settings: Hushfeed', 'settings: Search settings')) {
-    $planned.Add($screen)
-}
-foreach ($page in $hushfeedPages) { $planned.Add("settings: $page") }
+foreach ($screen in Get-WalkPlannedScreens -AppProfile $appProfile -HushfeedPages $hushfeedPages) { $planned.Add($screen) }
 
 $started = [DateTimeOffset]::UtcNow
 $device = ''; $appVersion = ''; $installedSha256 = ''; $installedPackage = ''; $installedVersionCode = ''
@@ -372,7 +426,7 @@ try {
             throw "The installed app $field does not match the verified walked build."
         }
     }
-    Write-WalkLog "$device, TikTok $appVersion, APK $installedSha256"
+    Write-WalkLog "$device, $appName $appVersion, APK $installedSha256"
 
     Invoke-WalkAdb shell am force-stop $WalkPackage | Out-Null
     # Other sessions read this phone's logs too, so the walk reads only what follows its start
@@ -382,35 +436,40 @@ try {
     Invoke-WalkAdb shell monkey -p $WalkPackage -c android.intent.category.LAUNCHER 1 | Out-Null
     $script:appPid = ''
     for ($i = 0; $i -lt 20 -and -not $script:appPid; $i++) { Start-Sleep -Seconds 1; $script:appPid = Get-WalkPid }
-    if (-not $script:appPid) { throw 'TikTok did not start.' }
+    if (-not $script:appPid) { throw "$appName did not start." }
     Start-Sleep -Seconds 8
     if (-not (Get-WalkForeground).StartsWith("$WalkPackage/", [StringComparison]::Ordinal)) {
-        $focus = ((Invoke-WalkAdb shell 'dumpsys window | grep -m1 mCurrentFocus') -join '').Trim()
-        throw "TikTok isn't in front after launch ($focus). If the phone is locked, unlock $Serial and run the walk again."
+        $focus = ((Invoke-WalkAdb shell 'dumpsys window | grep mCurrentFocus=Window') -join ' ').Trim()
+        throw "$appName isn't in front after launch ($focus). If the phone is locked, unlock $Serial and run the walk again."
     }
 
     $feed = @(); $W = 0; $H = 0
-    for ($i = 0; $i -lt 5 -and -not $feed; $i++) {
+    for ($i = 0; $i -lt 8 -and -not $feed; $i++) {
         $nodes = Get-WalkScreen 'launch' -AllowPause
         if ($nodes) {
             $W = ($nodes | Measure-Object -Property Right -Maximum).Maximum
             $H = ($nodes | Measure-Object -Property Bottom -Maximum).Maximum
         }
-        if ($nodes -and (Find-WalkNav $nodes $WalkLabels.Home $H)) { $feed = $nodes } else { Start-Sleep -Seconds 2 }
+        if ($nodes -and (Find-WalkNav $nodes $WalkLabels.Home $H)) { $feed = $nodes; break }
+        # A fresh install can open on a sign-in sheet or an age question first. Close the sheet
+        # and answer the age question; nothing here signs in or touches an account.
+        $gate = @(Find-UiNode -Nodes $nodes -Label $WalkLaunchGateLabel) | Select-Object -First 1
+        if ($gate) { Invoke-WalkTap $gate "launch gate '$($gate.Text)$($gate.Desc)'" 2500 } else { Start-Sleep -Seconds 2 }
     }
-    if (-not $feed) { throw "TikTok's bottom tabs never showed after launch." }
+    if (-not $feed) { throw "$appName's bottom tabs never showed after launch." }
     Complete-WalkScreen 'launch'
 
-    # For You, with swipes.
-    $forYou = @(Find-UiNode -Nodes $feed -Label $WalkLabels.ForYou | Where-Object { $_.Top -lt $H * 0.15 }) | Select-Object -First 1
-    if ($forYou -and -not $forYou.Selected) { Invoke-WalkTap $forYou 'For You' 3000 }
+    # The main feed, with swipes.
+    $mainName = $appProfile.MainFeedName
+    $main = @(Find-UiNode -Nodes $feed -Label $WalkLabels[$appProfile.MainFeed] | Where-Object { $_.Top -lt $H * 0.15 }) | Select-Object -First 1
+    if ($main -and -not $main.Selected) { Invoke-WalkTap $main $mainName 3000 }
     $alive = $true
     for ($i = 0; $i -lt 5 -and $alive; $i++) {
         Invoke-WalkSwipe $W $H
         Start-Sleep -Milliseconds 1500
-        $alive = Test-WalkAlive "For You swipe $($i + 1)"
+        $alive = Test-WalkAlive "$mainName swipe $($i + 1)"
     }
-    if ($alive) { Complete-WalkScreen 'feed: For You' }
+    if ($alive) { Complete-WalkScreen "feed: $mainName" }
 
     # The comment and share sheets, opened and closed with Back.
     foreach ($sheet in @(@{ Name = 'sheet: comments'; Button = $WalkLabels.CommentsButton; Marker = $WalkLabels.CommentsSheet },
@@ -426,17 +485,18 @@ try {
         $null = Restore-WalkTabs $sheet.Name $H
     }
 
-    # Following, then back to For You.
-    $nodes = Get-WalkScreen 'before Following' -AllowPause
-    $following = @(Find-UiNode -Nodes $nodes -Label $WalkLabels.Following | Where-Object { $_.Top -lt $H * 0.15 }) | Select-Object -First 1
-    if ($following) {
-        Invoke-WalkTap $following 'Following' 3000
-        $alive = Test-WalkAlive 'Following'
-        for ($i = 0; $i -lt 2 -and $alive; $i++) { Invoke-WalkSwipe $W $H; Start-Sleep -Milliseconds 1500; $alive = Test-WalkAlive "Following swipe $($i + 1)" }
-        if ($alive) { Complete-WalkScreen 'feed: Following' }
-        $nodes = Get-WalkScreen 'after Following' -AllowPause
-        $forYou = @(Find-UiNode -Nodes $nodes -Label $WalkLabels.ForYou | Where-Object { $_.Top -lt $H * 0.15 }) | Select-Object -First 1
-        if ($forYou) { Invoke-WalkTap $forYou 'For You' 2500 }
+    # The other top feeds (Following, and PineDrama's Drama), each then back to the main feed.
+    foreach ($other in $appProfile.OtherFeeds) {
+        $nodes = Get-WalkScreen "before $other" -AllowPause
+        $tabNode = @(Find-UiNode -Nodes $nodes -Label $WalkLabels[$other] | Where-Object { $_.Top -lt $H * 0.15 }) | Select-Object -First 1
+        if (-not $tabNode) { Write-WalkLog "no $other feed tab"; continue }
+        Invoke-WalkTap $tabNode $other 3000
+        $alive = Test-WalkAlive $other
+        for ($i = 0; $i -lt 2 -and $alive; $i++) { Invoke-WalkSwipe $W $H; Start-Sleep -Milliseconds 1500; $alive = Test-WalkAlive "$other swipe $($i + 1)" }
+        if ($alive) { Complete-WalkScreen "feed: $other" }
+        $nodes = Restore-WalkTabs $other $H
+        $main = @(Find-UiNode -Nodes $nodes -Label $WalkLabels[$appProfile.MainFeed] | Where-Object { $_.Top -lt $H * 0.15 }) | Select-Object -First 1
+        if ($main) { Invoke-WalkTap $main $mainName 2500 }
     }
 
     # Search with a harmless query.
@@ -455,15 +515,15 @@ try {
         $null = Restore-WalkTabs 'search' $H
     }
 
-    # The other tabs, Inbox's Activity page, and Profile.
-    foreach ($tab in 'Friends', 'Inbox', 'Profile') {
-        $nodes = Get-WalkScreen "before $tab" -AllowPause
+    # The other tabs, TikTok Inbox's Activity page, and Profile.
+    foreach ($tab in $appProfile.Tabs) {
+        $nodes = Restore-WalkTabs "before $tab" $H
         $nav = Find-WalkNav $nodes $WalkLabels[$tab] $H
         if (-not $nav) { Write-WalkLog "no $tab tab"; continue }
         Invoke-WalkTap $nav $tab 3500
         $page = Get-WalkScreen "tab $tab" -AllowPause
         if ($page) { Complete-WalkScreen "tab: $tab" }
-        if ($tab -eq 'Inbox') {
+        if ($tab -eq 'Inbox' -and $appProfile.Activity) {
             $activity = @(Find-UiNode -Nodes $page -Label $WalkLabels.ActivityRow | Where-Object { $_.Top -gt $H * 0.1 -and $_.Bottom -lt $H * 0.9 }) | Select-Object -First 1
             if (-not $activity) { Write-WalkLog 'no Activity row in Inbox' }
             if ($activity) {
@@ -478,66 +538,47 @@ try {
     }
 
     # Hushfeed settings: expand and collapse each section on the same main page.
-    $nodes = Get-WalkScreen 'profile'
-    $menu = @(Find-UiNode -Nodes $nodes -Label $WalkLabels.ProfileMenu | Where-Object { $_.Top -lt $H * 0.15 }) | Select-Object -First 1
-    if (-not $menu) { Write-WalkLog 'no Profile menu button' }
-    if ($menu) {
-        Invoke-WalkTap $menu 'Profile menu' 2500
-        $sheet = Get-WalkScreen 'profile menu'
-        $settings = @(Find-UiNode -Nodes $sheet -Label $WalkLabels.SettingsAndPrivacy) | Select-Object -First 1
-        if (-not $settings) { Write-WalkLog 'no Settings and privacy in the profile menu' }
-        if ($settings) {
-            Invoke-WalkTap $settings 'Settings and privacy' 3000
-            $row = Find-WalkRow '^Hushfeed$' $W $H 'settings and privacy'
-            if (-not $row) { Write-WalkLog 'no Hushfeed row in Settings and privacy' }
-            if ($row) {
-                Invoke-WalkTap $row 'Hushfeed' 3000
-                $searchLabel = Get-WalkTitleLabel 'Search settings' $translations
-                $hub = Get-WalkScreen 'hushfeed home'
-                if (-not @(Find-UiNode -Nodes $hub -Label $searchLabel -Id 'title')) { Write-WalkLog "the Hushfeed row opened no Hushfeed home" }
-                else {
-                    Complete-WalkScreen 'settings: Hushfeed'
-                    $boundaryTitles = @($hushfeedPages) + @('Feature Gate Lab', 'Hushfeed', 'Report a problem', 'Support Hushfeed')
-                    $boundaryLabel = (@($boundaryTitles | ForEach-Object { Get-WalkTitleLabel $_ $translations }) -join '|')
-                    foreach ($title in $hushfeedPages) {
-                        $label = Get-WalkTitleLabel $title $translations
-                        $closed = Get-WalkSectionView $label $W $H "closed $title"
-                        if (-not $closed) { Write-WalkLog "no row for $title"; continue }
-                        if (-not $closed.Next -or $closed.Next -cnotmatch $boundaryLabel) { $faults.Add("$title was not collapsed before the walk"); break }
-                        Invoke-WalkTap $closed.Row "expand $title" 2500 $label
-                        $expanded = Get-WalkSectionView $label $W $H "expanded $title"
-                        if (-not $expanded -or -not $expanded.Next -or $expanded.Next -ceq $closed.Next -or
-                                $expanded.Next -cmatch $boundaryLabel) { $faults.Add("$title showed no inline controls"); break }
-                        # The exact following row is the boundary. About also has a child named Hushfeed.
-                        $stopLabel = '(?-i)^' + [regex]::Escape($closed.Next) + '$'
-                        if (-not (Invoke-WalkScrollToEnd $title $W $H $stopLabel $label)) { $faults.Add("$title did not reach its final controls"); break }
-                        Save-WalkShot "$title expanded"
-                        $row = Find-WalkRow $label $W $H "collapse $title" 'title'
-                        if (-not $row) { $faults.Add("$title lost its inline header"); break }
-                        Invoke-WalkTap $row "collapse $title" 2000 $label
-                        $collapsed = Get-WalkSectionView $label $W $H "collapsed $title"
-                        if (-not $collapsed -or $collapsed.Next -cne $closed.Next) { $faults.Add("$title did not hide its inline controls"); break }
-                        Complete-WalkScreen "settings: $title"
-                    }
-                    $row = Find-WalkRow $searchLabel $W $H 'home for search' 'title'
-                    if ($row) {
-                        Invoke-WalkTap $row 'Search settings' 2500 $searchLabel
-                        # English words stay searchable beside a translation, so "pause" finds
-                        # the pause rows in any language; they read "pause" or "pausa".
-                        Invoke-WalkAdb shell input text 'pause' | Out-Null
-                        Start-Sleep -Seconds 2
-                        $results = Get-WalkScreen 'settings search'
-                        if (@(Find-UiNode -Nodes $results -Label '(?i)paus' | Where-Object { $_.Class -notmatch 'EditText' })) { Complete-WalkScreen 'settings: Search settings' }
-                        else { Write-WalkLog "settings search for 'pause' found nothing" }
-                        Close-WalkKeyboard
-                        Invoke-WalkBack 'Search settings'
-                    }
-                }
-            }
+    $searchLabel = Get-WalkTitleLabel 'Search settings' $translations
+    if (Open-WalkHushfeed $searchLabel $W $H) {
+        Complete-WalkScreen 'settings: Hushfeed'
+        $boundaryTitles = @($hushfeedPages) + @('Feature Gate Lab', 'Hushfeed', 'Report a problem', 'Support Hushfeed')
+        $boundaryLabel = (@($boundaryTitles | ForEach-Object { Get-WalkTitleLabel $_ $translations }) -join '|')
+        foreach ($title in $hushfeedPages) {
+            $label = Get-WalkTitleLabel $title $translations
+            $closed = Get-WalkSectionView $label $W $H "closed $title"
+            if (-not $closed) { Write-WalkLog "no row for $title"; continue }
+            if (-not $closed.Next -or $closed.Next -cnotmatch $boundaryLabel) { $faults.Add("$title was not collapsed before the walk"); break }
+            Invoke-WalkTap $closed.Row "expand $title" 2500 $label
+            $expanded = Get-WalkSectionView $label $W $H "expanded $title"
+            if (-not $expanded -or -not $expanded.Next -or $expanded.Next -ceq $closed.Next -or
+                    $expanded.Next -cmatch $boundaryLabel) { $faults.Add("$title showed no inline controls"); break }
+            # The exact following row is the boundary. About also has a child named Hushfeed.
+            $stopLabel = '(?-i)^' + [regex]::Escape($closed.Next) + '$'
+            if (-not (Invoke-WalkScrollToEnd $title $W $H $stopLabel $label)) { $faults.Add("$title did not reach its final controls"); break }
+            Save-WalkShot "$title expanded"
+            $row = Find-WalkRow $label $W $H "collapse $title" 'title'
+            if (-not $row) { $faults.Add("$title lost its inline header"); break }
+            Invoke-WalkTap $row "collapse $title" 2000 $label
+            $collapsed = Get-WalkSectionView $label $W $H "collapsed $title"
+            if (-not $collapsed -or $collapsed.Next -cne $closed.Next) { $faults.Add("$title did not hide its inline controls"); break }
+            Complete-WalkScreen "settings: $title"
+        }
+        $row = Find-WalkRow $searchLabel $W $H 'home for search' 'title'
+        if ($row) {
+            Invoke-WalkTap $row 'Search settings' 2500 $searchLabel
+            # English words stay searchable beside a translation, so "pause" finds
+            # the pause rows in any language; they read "pause" or "pausa".
+            Invoke-WalkAdb shell input text 'pause' | Out-Null
+            Start-Sleep -Seconds 2
+            $results = Get-WalkScreen 'settings search'
+            if (@(Find-UiNode -Nodes $results -Label '(?i)paus' | Where-Object { $_.Class -notmatch 'EditText' })) { Complete-WalkScreen 'settings: Search settings' }
+            else { Write-WalkLog "settings search for 'pause' found nothing" }
+            Close-WalkKeyboard
+            Invoke-WalkBack 'Search settings'
         }
     }
 
-    # Back to the feed for the last look at TikTok's health.
+    # Back to the feed for the last look at the app's health.
     $nodes = Restore-WalkTabs 'settings' $H
     $nav = Find-WalkNav $nodes $WalkLabels.Home $H
     if ($nav) { Invoke-WalkTap $nav 'Home' 3000 }
@@ -552,7 +593,7 @@ try {
     $logcat = @(Invoke-WalkAdb logcat -d -b crash -t "$logSince.000") +
         @(Invoke-WalkAdb logcat -d -b main -b system -t "$logSince.000" -s 'AndroidRuntime:E' 'ActivityManager:E' 'libc:F' 'DEBUG:F')
     Set-Content -LiteralPath (Join-Path $work 'logcat-crashes.txt') -Value $logcat -Encoding UTF8
-    $crashes = @(Get-WalkCrashes -Lines $logcat)
+    $crashes = @(Get-WalkCrashes -Lines $logcat -Package $WalkPackage)
 } catch {
     $faults.Add("the walk stopped: $($_.Exception.Message)")
     Write-WalkLog "stopped: $($_.Exception.Message)"
@@ -565,7 +606,7 @@ try {
 
 $verdict = Get-WalkVerdict -Planned $planned -Reached $reached -Crashes $crashes -Faults $faults
 if (-not $device) { $device = 'unknown' }
-$receipt = New-WalkReceipt -Result $verdict.Result -Full $verdict.Full -Serial $Serial -Device $device -AppVersion $appVersion `
+$receipt = New-WalkReceipt -WalkProfile $receiptProfile -Result $verdict.Result -Full $verdict.Full -Serial $Serial -Device $device -AppVersion $appVersion `
     -InstalledPackage $installedPackage -InstalledVersionCode $installedVersionCode -NativeBuild $walkBuild `
     -BundleSha256 $bundleSha256 -InstalledApkSha256 $installedSha256 -Started $started -Finished ([DateTimeOffset]::UtcNow) `
     -Screens $reached.Count -Crashes $crashes.Count -Problems $verdict.Problems

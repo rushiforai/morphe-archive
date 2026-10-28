@@ -57,6 +57,13 @@ internal const val FACEBOOK_BACKUP_PREFS = "fbautobackupprefs"
 internal const val TAM_AUTHORITY = "$ORIGINAL.tam-attachment"
 internal const val TAM_SUFFIX = ".tam-attachment"
 internal const val FACEBOOK_TAM_AUTHORITY = "com.facebook.katana.tam-attachment"
+/**
+ * Messenger's push dedup provider. Messenger writes its mute list and friendships there through hard-coded URIs and
+ * matches them against this authority, so a clone wrote to the original's provider and crashed on its permission.
+ */
+internal const val DEDUP_AUTHORITY = "$ORIGINAL.ClientMessagePushDedupInfoProvider"
+internal const val DEDUP_PROVIDER = "Lcom/facebook/messaging/push/dedup/provider/ClientMessagePushDedupInfoProvider\$Impl;"
+internal val DEDUP_URIS = listOf("content://$DEDUP_AUTHORITY/mutestatus", "content://$DEDUP_AUTHORITY/userfriendship")
 /** Install beside Meta apps' names for the two permissions every patched Meta app declares. */
 private const val SHARED_PREFIX = "app.hushfacebook."
 private const val SETTINGS_SCREENS = "app.hushmessenger.extension.Settings"
@@ -345,6 +352,37 @@ internal fun Method.attachmentSite(): Pair<Int, Int> {
     return at to register(at, "the authority")
 }
 
+/** The push dedup provider's authority or one of its URIs, when [this] loads one. */
+private fun Instruction.dedupString(): String? {
+    if (opcode != Opcode.CONST_STRING && opcode != Opcode.CONST_STRING_JUMBO) return null
+    val string = ((this as ReferenceInstruction).reference as StringReference).string
+    return string.takeIf { it == DEDUP_AUTHORITY || it in DEDUP_URIS }
+}
+
+/** Every load of the push dedup provider's authority or URIs, by method and index. */
+internal fun findDedupSites(classes: Iterable<ClassDef>): Set<String> = classes.flatMap { it.methods }.flatMap { method ->
+    val code = method.implementation?.instructions?.toList() ?: return@flatMap emptyList()
+    code.indices.filter { code[it].dedupString() != null }.map { "${method.hookId()}@$it" }
+}.toSet()
+
+/**
+ * Where each dedup site loads its string, the register it lands in and the string. The provider registers the authority
+ * once in its constructor, and one static initializer builds both URIs. Anything else stops the patch.
+ */
+internal fun dedupLoads(sites: List<Pair<MutableMethod, Int>>): List<Triple<Int, Int, String>> {
+    val loads = sites.map { (method, at) ->
+        val string = method.implementation?.instructions?.elementAtOrNull(at)?.dedupString()
+            ?: fail("${method.hookId()}@$at no longer loads the push dedup provider")
+        Triple(at, method.register(at, "the push dedup provider"), string)
+    }
+    if (loads.map { it.third }.sorted() != (DEDUP_URIS + DEDUP_AUTHORITY).sorted()) fail("Messenger names its push dedup provider somewhere new")
+    val owner = sites.zip(loads).associate { (site, load) -> load.third to site.first.hookId() }
+    if (!owner.getValue(DEDUP_AUTHORITY).startsWith("$DEDUP_PROVIDER-><init>(") ||
+        DEDUP_URIS.map { owner.getValue(it) }.toSet().singleOrNull()?.endsWith("-><clinit>()V") != true
+    ) fail("Messenger names its push dedup provider somewhere new")
+    return loads
+}
+
 /**
  * Every instruction that can read what [register] holds right after [load], following branches, switch cases and catch
  * handlers until something overwrites it.
@@ -416,6 +454,7 @@ internal fun Method.selfIntentSite(call: Int, pools: Set<String>): Pair<Int, Int
  * Ported from the auto-restore crash fix: the lookup sees Messenger's name and keeps Messenger's backup preferences,
  * and the attachment check accepts the clone's own provider in place of Messenger's. Each setPackage call that sends
  * Messenger to itself sends to the clone instead, so the clone's own receivers and screens get its broadcasts and links.
+ * The push dedup URIs and the provider's own match for them name the clone's provider, which it's allowed to write.
  */
 internal fun applyCloneSites(
     lookup: MutableMethod,
@@ -423,6 +462,7 @@ internal fun applyCloneSites(
     newPackage: String,
     selfIntents: List<Pair<MutableMethod, Int>> = emptyList(),
     pools: Set<String> = emptySet(),
+    dedup: List<Pair<MutableMethod, Int>> = emptyList(),
 ) {
     if (!isClonePackage(newPackage)) fail("$newPackage can't be used as a package name")
     if (selfIntents.map { (method, call) -> method.hookId() to call }.toSet().size != selfIntents.size) fail("an intent site is listed twice")
@@ -430,12 +470,17 @@ internal fun applyCloneSites(
     val (lookupAt, lookupRegister) = lookup.backupLookupSite(pools)
     val (checkAt, checkRegister) = check.attachmentSite()
     val loads = selfIntents.map { (method, call) -> method to method.selfIntentSite(call, pools) }
+    val dedupLoads = if (dedup.isEmpty()) emptyList() else dedup.map { it.first }.zip(dedupLoads(dedup))
     lookup.addInstruction(lookupAt, "const-string/jumbo v$lookupRegister, \"$ORIGINAL\"")
     check.replaceInstruction(checkAt, "const-string/jumbo v$checkRegister, \"$newPackage$TAM_SUFFIX\"")
     // In place of the constant, or of the pool lookup's result, so labels stay put. Last first, as a longer instruction
     // can move the padding before a switch table.
     for ((method, site) in loads.sortedByDescending { it.second.first }) {
         method.replaceInstruction(site.first, "const-string/jumbo v${site.second}, \"$newPackage\"")
+    }
+    val cloneAuthority = cloneName(DEDUP_AUTHORITY, newPackage)!!
+    for ((method, site) in dedupLoads.sortedByDescending { it.second.first }) {
+        method.replaceInstruction(site.first, "const-string/jumbo v${site.second}, \"${site.third.replace(DEDUP_AUTHORITY, cloneAuthority)}\"")
     }
 }
 
@@ -503,8 +548,13 @@ val cloneInstallPatch = bytecodePatch(
         val methods = expected.map { it.substringBefore('@') }.distinct()
             .associateWith { id -> mutableClassDefBy(id.substringBefore("->")).methods.single { it.hookId() == id } }
         val (calls, checks) = expected.partition { '@' in it }
+        val dedup = findDedupSites(classes).map { site ->
+            val id = site.substringBefore('@')
+            mutableClassDefBy(id.substringBefore("->")).methods.single { it.hookId() == id } to site.substringAfter('@').toInt()
+        }
+        if (dedup.isEmpty()) fail("Messenger no longer names its push dedup provider")
         applyCloneSites(methods.getValue(checks.single { it.endsWith("-><init>()V") }), methods.getValue(checks.single { it.endsWith(ATTACHMENT_CHECK) }),
-            target, calls.map { methods.getValue(it.substringBefore('@')) to it.substringAfter('@').toInt() }, pools)
+            target, calls.map { methods.getValue(it.substringBefore('@')) to it.substringAfter('@').toInt() }, pools, dedup)
         requestClone(target, label)
     }
 }

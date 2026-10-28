@@ -83,13 +83,25 @@ updates, wait for a Lurk release that lists the new version.
 ## Lurk settings
 
 Patched apps get a **Lurk** settings screen that turns included patches off and on without
-patching again. Long-press the app icon › **Lurk settings**; Rumble also has Settings › App info ›
-Lurk. It has:
+patching again. Ways in:
+
+- **Inside the app**: Twitch's Settings › **Lurk**, after Privacy Notice (signed out, Settings is
+  the gear on the Log In tab). Rumble's Settings › App info › **Lurk**. Kick's account menu (tap
+  your profile picture) › **Lurk**, from the Lurk in account menu patch; signed out, Kick has no
+  such menu, so use one of the ways below.
+- **Long-press the app icon** › **Lurk settings**. Lurk puts this shortcut back at the top every
+  time the app starts, so the app's own shortcuts can't push it off the menu. Some launchers show
+  no app shortcuts at all.
+- **Android's App info page** for the app (long-press the icon › App info, or Settings › Apps) ›
+  **Additional settings in the app** (on some phones a gear icon).
+
+The screen has:
 
 - **Search** across every setting, with switches you can flip right in the results.
 - **Pause Lurk**: every switch off from the next start, to see whether Lurk causes a problem. Your
-  settings are kept, and lockout protection (Block update prompts) stays on. If the app stops three
-  times in a row within a minute of starting, Lurk pauses itself and says so on the screen.
+  settings are kept, and lockout protection (Block update prompts, Kick's Lurk row) stays on. If
+  the app stops three times in a row within a minute of starting, Lurk pauses itself and says so
+  on the screen.
 - **Restart** bar: settings the app reads at startup (Kick's and Twitch's JavaScript ones, for
   example) apply after a restart, which the bar at the top does for you.
 - **Export settings** and **Import settings**: a JSON file through the system file picker.
@@ -144,9 +156,9 @@ switch that starts off; the full list says which, and where to turn it on.
 | Hide Shorts *(off)* | Removes Shorts from the bottom bar, Home, My Feed, channels, categories and search. Shorts links still open. |
 
 <!-- PATCHES_START -->
-> **[v1.14.4](https://github.com/jordanwoodson/lurk-morphe-patches/releases/tag/v1.14.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;127 patches total
+> **[v1.15.0](https://github.com/jordanwoodson/lurk-morphe-patches/releases/tag/v1.15.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;130 patches total
 <details>
-<summary><img src="assets/kick-icon-round.webp" width="28" height="28" align="center" alt="">&nbsp;&nbsp;<b>Kick</b>&nbsp;&nbsp;•&nbsp;&nbsp;35 patches</summary>
+<summary><img src="assets/kick-icon-round.webp" width="28" height="28" align="center" alt="">&nbsp;&nbsp;<b>Kick</b>&nbsp;&nbsp;•&nbsp;&nbsp;36 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -181,6 +193,7 @@ switch that starts off; the full list says which, and where to turn it on.
 | Hide rating prompt | Stops Kick from asking you to rate the app. On by default. Turn it off in Lurk settings > Interface. Like every patch that changes Kick's JavaScript, it turns off Kick's over-the-air JavaScript updates, so Kick's code fixes arrive only when you patch a newer version. |  |
 | Hide subscription upsells | Hides channel Subscribe and Gift a Sub buttons and the leaderboard gift-subscription prompt. Keeps the existing subscribed indicator. Starts off. Turn it on in Lurk settings > Interface. Like every patch that changes Kick's JavaScript, it turns off Kick's over-the-air JavaScript updates, so Kick's code fixes arrive only when you patch a newer version. |  |
 | Lurk icon | Replaces Kick's launcher icon with Lurk artwork, including Android's themed icon. |  |
+| Lurk in account menu | Adds a Lurk row to Kick's account menu (tap your profile picture while signed in), which opens Lurk settings. Pause Lurk leaves it on. Turn it off in Lurk settings > Advanced. Like every patch that changes Kick's JavaScript, it turns off Kick's over-the-air JavaScript updates, so Kick's code fixes arrive only when you patch a newer version. |  |
 | Mute stitched live ads | Experimental: ads could not be observed signed out. While Kick's player reports an ad break stitched into a live stream, mutes the player and covers the video with black and a small "Ad break", then restores both when the break's time is up, it ends, or another stream loads. The ad still plays for its full length and can't be skipped; this only silences and hides it. It acts on the ad signals Kick's player can get: an ad cue or ad break from Amazon IVS, or an ad of a MediaTailor session, which Kick only starts with Disable analytics off. None arrived in signed-out sessions, so this was checked only with made-up ad signals fed to Kick's own player code. Starts off. Turn it on in Lurk settings > Playback. |  |
 | Normal latency | Adds a switch that turns off low-latency mode for live streams: a few seconds more delay, fewer rebuffers on weak connections. Starts off. Turn it on in Lurk settings > Playback. |  |
 | Remove tracking permissions | Removes advertising ID, ad attribution and Google Play install-referrer permissions. Other identifiers and analytics require separate controls. |  |
@@ -249,7 +262,7 @@ switch that starts off; the full list says which, and where to turn it on.
 </details>
 
 <details>
-<summary><img src="assets/twitch-icon-round.webp" width="28" height="28" align="center" alt="">&nbsp;&nbsp;<b>Twitch</b>&nbsp;&nbsp;•&nbsp;&nbsp;52 patches</summary>
+<summary><img src="assets/twitch-icon-round.webp" width="28" height="28" align="center" alt="">&nbsp;&nbsp;<b>Twitch</b>&nbsp;&nbsp;•&nbsp;&nbsp;54 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -269,7 +282,7 @@ switch that starts off; the full list says which, and where to turn it on.
 | Block cookie notice | Hides Twitch's automatic cookie consent notice without accepting it or changing saved vendor consent. Manual consent settings stay available. Use Disable analytics to block tracking. |  |
 | Block display ads | Blocks the ad requests that Block client ads doesn't cover: stream display ads (squeezeback and lower third), audio ads, multi-format ad pods, the Following headliner, feed display and video ads and brand surveys, in both the native and React Native parts of the app. Each request gets the failure or no-ad answer Twitch already handles. Sponsorship and paid-promotion labels are kept. Ads stitched into the stream by the server still play. |  |
 | Change app name | Changes the name shown under Twitch's launcher icon and in Android's settings. | • App name |
-| Chat appearance | Adds chat look settings: text size, alternating row backgrounds, plain /me messages, and the width and background opacity of the landscape chat panel. Each keeps Twitch's look until changed in Lurk settings. Native and React Native live chat and history, plus native VOD chat replay. |  |
+| Chat appearance | Adds chat look settings: text, emote and badge size, message spacing, alternating row backgrounds, plain /me messages, and the width and background opacity of the landscape chat panel. Each keeps Twitch's look until changed in Lurk settings. Native live chat, chat history and VOD chat replay; React Native chat gets the text size, row backgrounds, /me style and landscape panel only. |  |
 | Chat keywords | Highlights chat messages that mention you or contain your highlight words with a tinted background, optionally with a vibration, and hides messages with blocked words or from blocked users. Mentions are on by default; the word and user lists start empty and are set in Lurk settings. Native and React Native live chat and history, plus native VOD chat replay. |  |
 | Chat overlay | Adds a switch that scrolls live chat messages right to left across the top of the video in landscape (danmaku), as plain white text with the sender's name. Off until turned on in Lurk settings, with choices for speed and number of lines. Native live channels only: not React Native chat, VODs or chat replay. The overlay never takes touches. |  |
 | Chat timestamps | Shows the time each live chat message was sent in front of it, the way Twitch already shows it on chat history, in 24-hour or 12-hour format. Whispers are unchanged. |  |
@@ -281,6 +294,8 @@ switch that starts off; the full list says which, and where to turn it on.
 | Default video quality | Starts playback at the selected rendition when available, with Source as the default. Saved player choices, including Auto, take priority. Unavailable renditions use Twitch's fallback. A lower rendition for metered networks (mobile data, or Wi-Fi marked as metered) can be chosen in Lurk settings > Playback > On mobile data; it's the same as on Wi-Fi until then. | • Default rendition |
 | Disable analytics | Stops Twitch's native and React Native Spade event uploads, denies local analytics SDK consent, enables Branch's limited tracking mode, blocks Crashlytics uploads, Nielsen audience pings and Sprig surveys, and prevents Sentry initialization. Watch progress, viewing statistics and rewards may stop updating. Restart Twitch after changing this setting. Playback requests still run. |  |
 | Disable autoplay | Stops the next recommended video and React Native feed clip from playing automatically, and defaults feed previews to Never. Manual Play and saved feed preview choices keep working. | • Feed previews<br>• Next video |
+| Emote and badge info | Adds a switch that shows a small sheet when you tap an emote or a badge in native chat, chat history or VOD chat replay: the image larger, its name, where it comes from (Twitch, 7TV, BetterTTV, FrankerFaceZ, Chatterino; channel or global; who made it, when the service's list says) and a Copy name button. Signed in, Twitch emotes keep Twitch's own emote card; usernames and long presses keep what Twitch does. Native chat only; React Native chat is unchanged. Starts off. Turn it on in Lurk settings > Chat. |  |
+| Fill screen | Zooms streams and videos to fill the screen in landscape, the strip beside the camera cutout included, cropping their top and bottom instead of showing black bars at the sides, on phones taller than 16:9. The player's buttons and the stream's details stay clear of the cutout. Vertical videos, the player next to the chat and picture-in-picture keep their bars. Works in the native theatre and in the React Native one Twitch can use while Use native player is off. Starts off. Turn it on in Lurk settings > Playback. |  |
 | Fix notifications | Lets the patched app register for push notifications. Firebase only accepts Twitch's original package name and signing certificate, and refuses the re-signed app, so its registration requests send the original ones, which are what unpatched Twitch sends. Registration was checked; delivering a notification needs an account and wasn't. On by default; the switch is in Lurk settings > Interface and applies after a restart. |  |
 | Fix stuck start screen | Opens Twitch when its start screen is still waiting after 5 seconds. Twitch waits for Branch's link lookup before it routes, and when that never answers, it stays on a blank start screen until it's closed, unpatched Twitch included. On by default; the switch is in Lurk settings > Interface. |  |
 | Force ExoPlayer | Adds a switch that plays live channels and videos with the ExoPlayer backend Twitch still ships instead of Amazon IVS. Off until turned on in Lurk settings. Clips, encrypted streams and React Native players stay on IVS. Lurk patches that hook IVS, such as Normal latency, Mute stitched ads and Show video stats, don't act on ExoPlayer. |  |

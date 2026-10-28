@@ -1,3 +1,12 @@
+## [1.17.0](https://github.com/rahul9999xda/morphe-patches/compare/v1.16.0...v1.17.0) (2026-10-28)
+### 🐛 Bug Fixes
+
+* **telegram:** audit patches and fingerprints for 13.1.1 ([6aa7bf7](https://github.com/rahul9999xda/morphe-patches/commit/6aa7bf713aaad012619b0e1d131c3783304cdd03))
+
+## [1.17.0-dev1](https://github.com/rahul9999xda/morphe-patches/compare/v1.16.0...v1.17.0-dev1) (2026-10-28)
+### 🐛 Bug Fixes
+
+* **telegram:** audit patches and fingerprints for 13.1.1 ([6aa7bf7](https://github.com/rahul9999xda/morphe-patches/commit/6aa7bf713aaad012619b0e1d131c3783304cdd03))
 ## [1.16.0](https://github.com/rahul9999xda/morphe-patches/compare/v1.15.0...v1.16.0) (2026-10-25)
 ### 🔧 Improvements
 

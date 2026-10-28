@@ -22,3 +22,4 @@ plugins {
 
 include(":extensions:syncforreddit")
 include(":extensions:syncforreddit:stubs")
+include(":extensions:niagara")

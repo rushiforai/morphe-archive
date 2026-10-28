@@ -13,10 +13,13 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.Build;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.util.TypedValue;
+import android.view.Choreographer;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.AnimationUtils;
 
@@ -60,7 +63,25 @@ final class AmbientPageGlowView extends View {
     private final RectF destination = new RectF();
     private final Rect hole = new Rect();
     private final Object frameLock = new Object();
-    private final Runnable restoreCheck = this::postInvalidateOnAnimation;
+    private final Runnable restoreCheck = this::requestFrame;
+    /** Theater light on its own surfaces underneath the window (see {@link LightLayers}). */
+    private LightLayers pageLayers;
+    private final java.util.List<Rect> pageRects = new java.util.ArrayList<>();
+    private final java.util.List<Rect> rectPool = new java.util.ArrayList<>();
+    private final Rect playerRect = new Rect();
+    private final LightLayers.Painter pagePainter = canvas -> {
+        paintLight(canvas, 0, 0, getWidth());
+        paintOutsidePage(canvas);
+    };
+    /** True once that surface shows a frame; the page background is then left transparent. */
+    private boolean surfaceShowing;
+    private boolean surfaceFrameScheduled;
+    private final Choreographer.FrameCallback surfaceFrame = frameTimeNanos -> renderSurface();
+    /** The page is only drawn when YouTube redraws it; keep it see-through on those frames. */
+    private final ViewTreeObserver.OnPreDrawListener preDrawListener = () -> {
+        if (surfaceShowing) SeeThroughPage.keep();
+        return true;
+    };
     private final ViewTreeObserver.OnScrollChangedListener scrollListener =
             this::onScrollChanged;
     /** Scrolls count as the user's only this long after they touched the page. */
@@ -122,6 +143,19 @@ final class AmbientPageGlowView extends View {
     private volatile float frameFloor = 1f;
     /** Strength of the page-coloured veil that keeps text readable over the light. */
     private float guard;
+    // Scene-cut wave and breathing while paused (see AmbientLightSettings).
+    private static final long WAVE_MS = 700L;
+    private static final long BREATH_PERIOD_MS = 5_000L;
+    private Bitmap waveFrom;
+    private long waveStartUptime;
+    private long waveDurationMs;
+    /** 0 = the wave just started, 1 = done; computed once per frame. */
+    private float waveProgress = 1f;
+    private float breath = 1f;
+    private final Runnable breathFrame = this::requestFrame;
+    private final Paint wavePaint = new Paint();
+    private final Paint falloffPaint = new Paint();
+    private int falloffKey;
     /** White text needs the light below this luma; black text needs it above the other. */
     private static final float DARK_PAGE_MAX_LUMA = 0.5f;
     private static final float LIGHT_PAGE_MIN_LUMA = 0.6f;
@@ -167,7 +201,7 @@ final class AmbientPageGlowView extends View {
     }
 
     /** Worker thread: publishes a frame computed for a page of {@code width x height}. */
-    void publish(Bitmap bitmap, Rect playerHole, int width, int height) {
+    void publish(Bitmap bitmap, Rect playerHole, int width, int height, boolean cut) {
         // Brightest and darkest areas of the light, for the readability guard of the
         // see-through page. Sampled here on the worker thread.
         // Percentiles rather than extremes: one bright spot next to the player must not
@@ -187,13 +221,19 @@ final class AmbientPageGlowView extends View {
             frameFloor = lumas[count * 15 / 100] / 255f;
         }
         synchronized (frameLock) {
+            if (cut && frontBitmap != null && AmbientLightSettings.isSceneWaveEnabled()) {
+                // The old light stays behind while the new one spreads out from the player.
+                waveFrom = frontBitmap.copy(Bitmap.Config.ARGB_8888, false);
+                waveStartUptime = SystemClock.uptimeMillis();
+                waveDurationMs = WAVE_MS;
+            }
             backBitmap = frontBitmap;
             frontBitmap = bitmap;
             frameHole.set(playerHole);
             frameWidth = width;
             frameHeight = height;
         }
-        postInvalidateOnAnimation();
+        requestFrame();
     }
 
     /**
@@ -201,7 +241,7 @@ final class AmbientPageGlowView extends View {
      * calm-down after scrolling must end even when nothing else redraws this view.
      */
     void onTick() {
-        if (interactionFactor < 1f || alpha != targetAlpha) postInvalidateOnAnimation();
+        if (interactionFactor < 1f || alpha != targetAlpha) requestFrame();
     }
 
     void setActive(boolean active) {
@@ -209,7 +249,7 @@ final class AmbientPageGlowView extends View {
         if (targetAlpha != value) {
             targetAlpha = value;
             lastAlphaUptime = AnimationUtils.currentAnimationTimeMillis();
-            postInvalidateOnAnimation();
+            requestFrame();
             updateSeeThrough();
         }
     }
@@ -217,7 +257,7 @@ final class AmbientPageGlowView extends View {
     void onSettingsChanged() {
         colorFilterGeneration = -1;
         darkTheme = null;
-        postInvalidateOnAnimation();
+        requestFrame();
         updateSeeThrough();
     }
 
@@ -246,11 +286,160 @@ final class AmbientPageGlowView extends View {
             isDarkTheme();
         }
         SeeThroughPage.update(this, host, playerRef.get(), wanted, backgroundColour);
+        SeeThroughPage.suppressCinematic(getRootView(), playerRef.get(),
+                host != null && host.isAttachedToWindow() && targetAlpha > 0f);
         if (behindPage != wanted) {
             behindPage = wanted;
             pageDirty = true;
             invalidate();
         }
+        syncSurface();
+    }
+
+    /** True while the light surface shows the light and the page background stays clear. */
+    boolean lightOnSurface() {
+        return surfaceShowing;
+    }
+
+    /** Adds the light layers while the page is see-through and removes them afterwards. */
+    private void syncSurface() {
+        if (behindPage && isAttachedToWindow() && getRootView() instanceof ViewGroup) {
+            if (pageLayers == null) {
+                pageLayers = new LightLayers(false, this::requestFrame, this::onSurfaceLost);
+            }
+            // Runs about once a second, like the page's own rescan.
+            View host = hostRef.get();
+            if (surfaceShowing && host != null) SeeThroughPage.clearAroundPage(host);
+            requestFrame();
+        } else if (pageLayers != null) {
+            boolean wasShowing = surfaceShowing;
+            surfaceShowing = false;
+            pageLayers.release();
+            pageLayers = null;
+            SeeThroughPage.restoreAroundPage();
+            View host = hostRef.get();
+            if (wasShowing && host != null) host.invalidate();
+        }
+    }
+
+    /**
+     * A surface lost its buffer (the app went to the background): the page paints the light
+     * itself again until the surfaces show a new frame, so it never shows a hole.
+     */
+    private void onSurfaceLost() {
+        if (!surfaceShowing) return;
+        surfaceShowing = false;
+        View host = hostRef.get();
+        if (host != null) host.invalidate();
+        invalidate();
+    }
+
+    /** The next light frame: on the light surfaces once they show, else by redrawing views. */
+    private void requestFrame() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            post(this::requestFrame);
+            return;
+        }
+        if (pageLayers != null && behindPage) {
+            if (!surfaceFrameScheduled) {
+                surfaceFrameScheduled = true;
+                Choreographer.getInstance().postFrameCallback(surfaceFrame);
+            }
+            if (surfaceShowing) return;
+        }
+        postInvalidateOnAnimation();
+    }
+
+    /** Main thread: one frame of the theater light on the light surfaces. */
+    private void renderSurface() {
+        surfaceFrameScheduled = false;
+        LightLayers layers = pageLayers;
+        View root = getRootView();
+        if (layers == null || !behindPage || !(root instanceof ViewGroup)) return;
+        advanceAnimations(AnimationUtils.currentAnimationTimeMillis());
+        advanceLooks();
+        updateGuard();
+        // First children of the window: each punches out only the window background.
+        if (!layers.render((ViewGroup) root, 0, pageRects(), pagePainter)) return;
+        if (!surfaceShowing) {
+            surfaceShowing = true;
+            View host = hostRef.get();
+            if (host != null) {
+                SeeThroughPage.clearAroundPage(host);
+                host.invalidate();
+            }
+        }
+    }
+
+    /**
+     * Everything but the player, in window coordinates, split where the light changes: the
+     * strip above the player, the sides of the player, the page below it and the navigation
+     * bar strip outside the page. No rectangle covers the video.
+     */
+    private java.util.List<Rect> pageRects() {
+        rectPool.addAll(pageRects);
+        pageRects.clear();
+        int width = getWidth();
+        int height = getHeight();
+        View player = playerRef.get();
+        playerRect.setEmpty();
+        if (player != null && player.isShown() && player.getWidth() > 0) {
+            player.getLocationInWindow(hostLocation);
+            playerRect.set(hostLocation[0], hostLocation[1],
+                    hostLocation[0] + player.getWidth(), hostLocation[1] + player.getHeight());
+            if (!playerRect.intersect(0, 0, width, height)) playerRect.setEmpty();
+        }
+        int pageBottom = height;
+        View host = hostRef.get();
+        if (host != null && host.isAttachedToWindow()) {
+            host.getLocationInWindow(hostLocation);
+            pageBottom = Math.max(0, Math.min(height, hostLocation[1] + host.getHeight()));
+        }
+        if (playerRect.isEmpty()) {
+            addRect(0, 0, width, pageBottom);
+        } else {
+            addRect(0, 0, width, playerRect.top);
+            addRect(0, playerRect.top, playerRect.left, playerRect.bottom);
+            addRect(playerRect.right, playerRect.top, width, playerRect.bottom);
+            addRect(0, playerRect.bottom, width, pageBottom);
+        }
+        addRect(0, Math.max(pageBottom, playerRect.bottom), width, height);
+        return pageRects;
+    }
+
+    private void addRect(int left, int top, int right, int bottom) {
+        if (right <= left || bottom <= top) return;
+        Rect rect = rectPool.isEmpty() ? new Rect() : rectPool.remove(rectPool.size() - 1);
+        rect.set(left, top, right, bottom);
+        pageRects.add(rect);
+    }
+
+    /**
+     * Outside the watch page (the navigation bar strip) the light has always been drawn as it
+     * is, without the page colour and readability guard of the page itself.
+     */
+    private void paintOutsidePage(Canvas canvas) {
+        View host = hostRef.get();
+        if (host == null || !host.isAttachedToWindow()) return;
+        Bitmap bitmap;
+        synchronized (frameLock) {
+            bitmap = frontBitmap;
+            if (bitmap == null || frameWidth != getWidth() || frameHeight != getHeight()) return;
+        }
+        host.getLocationInWindow(hostLocation);
+        hostRect.set(hostLocation[0], hostLocation[1], hostLocation[0] + host.getWidth(),
+                hostLocation[1] + host.getHeight());
+        int save = canvas.save();
+        canvas.clipOutRect(hostRect);
+        canvas.drawColor(backgroundColour | 0xFF000000);
+        float visibility = alpha * interactionFactor * breath;
+        if (visibility > 0f) {
+            coverPaint.setAlpha(Math.round(255 * visibility));
+            destination.set(0, 0, getWidth(), getHeight());
+            canvas.drawBitmap(bitmap, null, destination, coverPaint);
+            if (AmbientLightSettings.isFalloffEnabled()) drawFalloff(canvas);
+        }
+        canvas.restoreToCount(save);
     }
 
     /**
@@ -258,31 +447,42 @@ final class AmbientPageGlowView extends View {
      * top of it at the current strength. The canvas is in the host's coordinates.
      */
     void drawBehindPage(Canvas canvas, View host) {
+        if (surfaceShowing) {
+            // Punch through to the light surface, also clearing whatever YouTube painted
+            // under the page (a 44 % black scrim, for one). This never changes, so the page
+            // is not redrawn for new light frames.
+            canvas.drawColor(0, PorterDuff.Mode.CLEAR);
+            return;
+        }
+        advanceLooks();
+        updateGuard();
+        host.getLocationInWindow(hostLocation);
+        paintLight(canvas, hostLocation[0], hostLocation[1], host.getWidth());
+    }
+
+    /** The page colour and the light over it, for a canvas whose origin is (x, y) in the window. */
+    private void paintLight(Canvas canvas, int x, int y, int width) {
         canvas.drawColor(backgroundColour | 0xFF000000);
         Bitmap bitmap;
         synchronized (frameLock) {
             bitmap = frontBitmap;
             if (bitmap == null || frameWidth != getWidth() || frameHeight != getHeight()) return;
         }
-        float visibility = alpha * interactionFactor;
+        float visibility = alpha * interactionFactor * breath;
         if (visibility <= 0f) return;
         updatePaints();
-        host.getLocationInWindow(hostLocation);
         int save = canvas.save();
-        canvas.translate(-hostLocation[0], -hostLocation[1]);
+        canvas.translate(-x, -y);
         destination.set(0, 0, getWidth(), getHeight());
         coverPaint.setAlpha(Math.round(255 * visibility));
-        canvas.drawBitmap(bitmap, null, destination, coverPaint);
+        if (waveProgress < 1f) {
+            drawWave(canvas, bitmap);
+        } else {
+            canvas.drawBitmap(bitmap, null, destination, coverPaint);
+        }
+        if (AmbientLightSettings.isFalloffEnabled()) drawFalloff(canvas);
         canvas.restoreToCount(save);
-        // Readability guard: YouTube's text is white on a dark page and black on a light
-        // one, so a light that is too bright (or too dark) is pulled towards black (or
-        // white) just enough. It eases in and out so scene cuts do not make it pump.
         boolean dark = backgroundLuma < 0.5f;
-        float wanted = dark
-                ? (framePeak <= DARK_PAGE_MAX_LUMA ? 0f : 1f - DARK_PAGE_MAX_LUMA / framePeak)
-                : (frameFloor >= LIGHT_PAGE_MIN_LUMA ? 0f
-                        : 1f - (1f - LIGHT_PAGE_MIN_LUMA) / (1f - frameFloor));
-        guard += (wanted - guard) * 0.12f;
         int guardAlpha = Math.round(255 * guard * visibility);
         if (guardAlpha > 0) {
             canvas.drawColor((guardAlpha << 24) | (dark ? 0x000000 : 0xFFFFFF));
@@ -291,11 +491,11 @@ final class AmbientPageGlowView extends View {
         // YouTube keeps that strip black, and so does this.
         int stripBottom;
         synchronized (frameLock) {
-            stripBottom = frameHole.top - hostLocation[1];
+            stripBottom = frameHole.top - y;
         }
         if (!dark && stripBottom > 0) {
             int strip = canvas.save();
-            canvas.clipRect(0, 0, host.getWidth(), stripBottom);
+            canvas.clipRect(0, 0, width, stripBottom);
             canvas.drawColor(0xFF000000);
             canvas.restoreToCount(strip);
         }
@@ -303,10 +503,97 @@ final class AmbientPageGlowView extends View {
                 ? "シアター：背景そのものを透明化" : "theater: transparent page background";
     }
 
+    /**
+     * Readability guard: YouTube's text is white on a dark page and black on a light one, so
+     * a light that is too bright (or too dark) is pulled towards black (or white) just enough.
+     * It eases in and out so scene cuts do not make it pump. Once per frame.
+     */
+    private void updateGuard() {
+        boolean dark = backgroundLuma < 0.5f;
+        float wanted = dark
+                ? (framePeak <= DARK_PAGE_MAX_LUMA ? 0f : 1f - DARK_PAGE_MAX_LUMA / framePeak)
+                : (frameFloor >= LIGHT_PAGE_MIN_LUMA ? 0f
+                        : 1f - (1f - LIGHT_PAGE_MIN_LUMA) / (1f - frameFloor));
+        guard += (wanted - guard) * 0.12f;
+    }
+
+    /** On a scene cut the new light spreads from the bottom of the player over the old one. */
+    private void drawWave(Canvas canvas, Bitmap bitmap) {
+        Rect hole;
+        Bitmap from;
+        synchronized (frameLock) {
+            hole = new Rect(frameHole);
+            from = waveFrom;
+        }
+        if (from != null) canvas.drawBitmap(from, null, destination, coverPaint);
+        float cx = hole.exactCenterX();
+        float cy = hole.bottom;
+        float far = (float) Math.hypot(Math.max(cx, getWidth() - cx),
+                Math.max(cy, getHeight() - cy));
+        float eased = 1f - (float) Math.pow(1f - waveProgress, 3);
+        float radius = Math.max(1f, far * 1.15f * eased);
+        int layer = canvas.saveLayer(destination, null);
+        canvas.drawBitmap(bitmap, null, destination, coverPaint);
+        wavePaint.setShader(new android.graphics.RadialGradient(cx, cy, radius,
+                new int[]{0xFF000000, 0xFF000000, 0x00000000}, new float[]{0f, 0.75f, 1f},
+                android.graphics.Shader.TileMode.CLAMP));
+        wavePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
+        canvas.drawRect(destination, wavePaint);
+        canvas.restoreToCount(layer);
+    }
+
+    /** The light is strongest just below the player and fades towards the bottom. */
+    private void drawFalloff(Canvas canvas) {
+        int top;
+        synchronized (frameLock) {
+            top = frameHole.bottom;
+        }
+        int key = top * 31 + getHeight() * 7 + backgroundColour;
+        if (key != falloffKey) {
+            falloffKey = key;
+            int colour = backgroundColour & 0xFFFFFF;
+            falloffPaint.setShader(new android.graphics.LinearGradient(0, top, 0, getHeight(),
+                    new int[]{colour, 0x4D000000 | colour, 0xB3000000 | colour,
+                            0xF2000000 | colour},
+                    new float[]{0f, 0.25f, 0.6f, 1f}, android.graphics.Shader.TileMode.CLAMP));
+        }
+        canvas.drawRect(0, top, getWidth(), getHeight(), falloffPaint);
+    }
+
+    /** Steps the looks that move by themselves: the wave and the breathing while paused. */
+    private void advanceLooks() {
+        long now = SystemClock.uptimeMillis();
+        long start;
+        long duration;
+        synchronized (frameLock) {
+            start = waveStartUptime;
+            duration = waveDurationMs;
+        }
+        float progress = duration <= 0 ? 1f : Math.min(1f, (now - start) / (float) duration);
+        if (progress >= 1f && waveProgress < 1f) {
+            synchronized (frameLock) {
+                waveFrom = null;
+            }
+        }
+        waveProgress = progress;
+        if (progress < 1f) requestFrame();
+        boolean breathing = AmbientLightSettings.isBreatheEnabled() && targetAlpha > 0f
+                && !PlayerHooks.isPlaybackAdvancing();
+        breath = breathing
+                ? 0.85f + 0.15f * (float) Math.cos(2 * Math.PI * (now % BREATH_PERIOD_MS)
+                        / BREATH_PERIOD_MS)
+                : 1f;
+        if (breathing) {
+            removeCallbacks(breathFrame);
+            postDelayed(breathFrame, 50L);
+        }
+    }
+
     @Override protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         getViewTreeObserver().addOnScrollChangedListener(scrollListener);
         getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);
+        getViewTreeObserver().addOnPreDrawListener(preDrawListener);
     }
 
     @Override protected void onDetachedFromWindow() {
@@ -315,8 +602,12 @@ final class AmbientPageGlowView extends View {
         if (observer.isAlive()) {
             observer.removeOnScrollChangedListener(scrollListener);
             observer.removeOnGlobalLayoutListener(layoutListener);
+            observer.removeOnPreDrawListener(preDrawListener);
         }
         removeCallbacks(restoreCheck);
+        if (surfaceFrameScheduled) Choreographer.getInstance().removeFrameCallback(surfaceFrame);
+        surfaceFrameScheduled = false;
+        syncSurface();
     }
 
     /**
@@ -347,16 +638,17 @@ final class AmbientPageGlowView extends View {
         if (SystemClock.uptimeMillis() - lastPageTouchUptime <= TOUCH_SCROLL_WINDOW_MS) {
             onUserInteraction();
         } else {
-            // The theater fallback still has to follow the page.
+            // The theater fallback still has to follow the page; the light surface does not
+            // move with the page.
             pageDirty = true;
-            if (alpha > 0f) invalidate();
+            if (alpha > 0f && !surfaceShowing) requestFrame();
         }
     }
 
     private void onUserInteraction() {
         // The theater page copy must follow scrolling immediately.
         pageDirty = true;
-        if (alpha > 0f) invalidate();
+        if (alpha > 0f) requestFrame();
         if (!AmbientLightSettings.isInteractionDimEnabled() || alpha <= 0f && targetAlpha <= 0f) {
             return;
         }
@@ -373,25 +665,31 @@ final class AmbientPageGlowView extends View {
         darkTheme = null;
     }
 
-    @Override protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        long now = AnimationUtils.currentAnimationTimeMillis();
+    /** Steps the fade and the interaction dimming, asking for frames while they move. */
+    private void advanceAnimations(long now) {
         if (alpha != targetAlpha) {
             float step = (now - lastAlphaUptime) / (float) FADE_DURATION_MS;
             alpha = targetAlpha > alpha ? Math.min(targetAlpha, alpha + step)
                     : Math.max(targetAlpha, alpha - step);
             lastAlphaUptime = now;
-            if (alpha != targetAlpha) postInvalidateOnAnimation();
+            if (alpha != targetAlpha) requestFrame();
         }
         updateInteractionFactor(now);
-        View host = behindPage ? hostRef.get() : null;
-        if (behindPage) SeeThroughPage.keep();
         lastDrawUptime = SystemClock.uptimeMillis();
         shownAlpha = alpha;
         shownFactor = interactionFactor;
         shownInteractionUptime = lastInteractionUptime;
         // Diagnostics text is only built while someone looks at it.
         if (AmbientLightController.diagnosticsShown()) updateDebugState();
+    }
+
+    @Override protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        // The light surface draws the light; this view has nothing to add then.
+        if (surfaceShowing) return;
+        advanceAnimations(AnimationUtils.currentAnimationTimeMillis());
+        View host = behindPage ? hostRef.get() : null;
+        SeeThroughPage.keep();
         // The light itself is painted by the watch page's background; this view keeps the
         // timing and covers what lies outside the watch page (the navigation bar strip).
         if (host != null) host.invalidate();
@@ -531,7 +829,7 @@ final class AmbientPageGlowView extends View {
             interactionFactor = Math.min(target,
                     interactionFactor + range * elapsed / (float) RESTORE_DURATION_MS);
         }
-        if (interactionFactor != target) postInvalidateOnAnimation();
+        if (interactionFactor != target) requestFrame();
     }
 
     private boolean isDarkTheme() {

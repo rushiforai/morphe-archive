@@ -5,6 +5,7 @@
 package app.morphe.extension.tiktok.speed;
 
 import android.text.TextUtils;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import app.morphe.extension.shared.Logger;
@@ -44,6 +45,8 @@ public final class PlaybackSpeedPatch {
     private static final Pattern STANDALONE_TWO = Pattern.compile("(?<![\\p{Nd}.,])2(?![\\p{Nd}.,])");
     /** The hold banner's labels and the text TikTok gave each, kept while the view lives. */
     private static final Map<TextView, CharSequence> BANNER_TEXT = new WeakHashMap<>();
+    /** The hold banner's parts hidden for the slide bubble, so only those are shown again. */
+    private static final Map<View, Boolean> BANNER_CLEARED = new WeakHashMap<>();
     private static volatile float loggedHoldSpeed = Float.NaN;
 
     private static volatile float rememberedSpeed = 1.0f;
@@ -164,6 +167,13 @@ public final class PlaybackSpeedPatch {
         OnScreen known = onScreen;
         if (known != null && known.controller.get() == controller && aid.equals(known.aid)) return;
         onScreen = new OnScreen(controller, aid);
+        HoldSpeedHud.onScreenVideo(aid);
+    }
+
+    /** The id of the video the progress report last named, or "" before any report. */
+    static String onScreenVideoId() {
+        OnScreen known = onScreen;
+        return known == null ? "" : known.aid;
     }
 
     /** Replaced with a call to the verified native getter of the video a PlayerController has. */
@@ -419,9 +429,12 @@ public final class PlaybackSpeedPatch {
     /**
      * The speed the hold gesture plays at and its pull-down lock keeps (upstream #52). TikTok
      * writes it as a literal 2x in the gesture, in its banner's "already at that speed" check
-     * and in the lock's telemetry; each of those literals comes through here.
+     * and in the lock's telemetry; each of those literals comes through here. A speed slid to
+     * during the hold (#248) stands over the row's, so the lock keeps what the bubble showed.
      */
     public static float holdSpeed(float nativeSpeed) {
+        float slid = HoldSpeedHud.slidSpeed();
+        if (!Float.isNaN(slid)) return slid;
         float chosen = chosenHoldSpeed();
         if (Float.isNaN(chosen)) return nativeSpeed;
         if (Float.compare(chosen, nativeSpeed) != 0 && Float.compare(chosen, loggedHoldSpeed) != 0) {
@@ -438,10 +451,12 @@ public final class PlaybackSpeedPatch {
      * TikTok's own words for the hold carry its fixed number: "Speed: 2x", "Pull down to lock
      * 2x speed", "Locked at 2× speed". With another hold speed chosen, the one standalone 2 in
      * such a text becomes that speed, whatever the language puts around it. A text with no 2 in
-     * it ("Back to normal speed") or with more than one is left as TikTok wrote it.
+     * it ("Back to normal speed") or with more than one is left as TikTok wrote it. A speed slid
+     * to during the hold names itself, so "Locked at 2.5× speed" follows the slide.
      */
     public static String holdSpeedText(String text) {
-        return rewordSpeedNumber(text, chosenHoldSpeed());
+        float slid = HoldSpeedHud.slidSpeed();
+        return rewordSpeedNumber(text, Float.isNaN(slid) ? chosenHoldSpeed() : slid);
     }
 
     /**
@@ -492,9 +507,22 @@ public final class PlaybackSpeedPatch {
     /**
      * The banner TikTok shows during a hold when the lock is off, a label it builds once with
      * "Speed: 2x" in it. It is shown and hidden from here, and each time the label is set from
-     * the text TikTok gave it, so a changed row or a pause shows up at the next hold.
+     * the text TikTok gave it, so a changed row or a pause shows up at the next hold. With Slide
+     * to change the hold speed on, the bubble says the speed instead, so the banner's parts are
+     * hidden. The banner itself can't be: TikTok fades its alpha in and sets it visible right after
+     * this runs.
      */
     public static void holdSpeedBanner(ViewGroup banner) {
+        boolean clear = HoldSpeedHud.enabled();
+        for (int i = 0; i < banner.getChildCount(); i++) {
+            View part = banner.getChildAt(i);
+            if (clear && part.getVisibility() == View.VISIBLE) {
+                part.setVisibility(View.INVISIBLE);
+                BANNER_CLEARED.put(part, Boolean.TRUE);
+            } else if (!clear && BANNER_CLEARED.remove(part) != null) {
+                part.setVisibility(View.VISIBLE);
+            }
+        }
         for (int i = 0; i < banner.getChildCount(); i++) {
             if (!(banner.getChildAt(i) instanceof TextView)) continue;
             TextView label = (TextView) banner.getChildAt(i);

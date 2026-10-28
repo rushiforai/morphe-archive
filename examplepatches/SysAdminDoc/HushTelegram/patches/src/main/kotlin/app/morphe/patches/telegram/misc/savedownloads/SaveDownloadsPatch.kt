@@ -83,17 +83,26 @@ val saveDownloadsPatch = bytecodePatch(
     default = true,
 ) {
     category("Playback")
-    dependsOn(settingsPatch, telegramExtensionPatch)
+    dependsOn(settingsPatch, telegramExtensionPatch, storageFolderManifestPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {
         val callback = resolveSaveDownloads()
         val account = delegateAccount(callback)
         requireGalleryFolderRuntime()
         val gallery = resolveGalleryFolder()
+        requireStorageFolderRuntime()
+        val storage = resolveStorageFolder()
         // Assembled on copies first, so a refusal leaves the app untouched.
         insertSaveDownloadsHook(MutableMethod(ImmutableMethod.of(callback)), account)
         if (gallery.missing == null) gallery.rehearse()
+        if (storage.missing == null) storage.rehearse()
         insertSaveDownloadsHook(callback, account)
+        if (storage.missing == null) {
+            storage.apply()
+            enableCapability("storageFolder")
+        } else {
+            patchLog.warning("Save downloaded files: ${storage.missing}. The patch goes on without the storage folder.")
+        }
         writeSaveDownloadsStubs()
         if (gallery.missing == null) {
             gallery.apply()

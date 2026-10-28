@@ -14,10 +14,12 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import os
 import re
 import shutil
+import struct
 import subprocess
 import sys
 import zipfile
@@ -988,6 +990,56 @@ def resolve_youtube_junit_conflict() -> None:
     run("git", "add", "--", path)
 
 
+VOT_BOTTOM_SHEET_PATH = (
+    "extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/"
+    "voiceovertranslation/VOTBottomSheet.java"
+)
+DEV1498_VOT_SHEET_CONFLICT_BLOBS = (
+    "343b5d24071358d62120ec679ca95c38bebdc4d0",
+    "95a3652b7060d4a1103eaa592da044c53e2d71ad",
+    "2c208095800b07b2bce4a5036a3fe536229d68d0",
+)
+
+
+def merge_dev1498_vot_sheet(ours: str, theirs: str) -> str:
+    """Keep the new shared title API and the fork's fine volume controls."""
+    start = "    private static LinearLayout makeSliderRow("
+    end = "    private static int secondaryColor("
+    if ours.count(start) != 1 or ours.count(end) != 1 or theirs.count(end) != 1:
+        raise SyncError("Unexpected dev.8 VOT slider helpers")
+    slider = ours[ours.index(start):ours.index(end)]
+    if "makeValueStepButton" not in slider or "setting.get() - 1" not in slider:
+        raise SyncError("Missing Dual fine volume controls")
+    if theirs.count("SheetBottomDialog.createSliderRow(context,") != 3:
+        raise SyncError("Unexpected dev.8 shared slider calls")
+    result = theirs.replace("SheetBottomDialog.createSliderRow(context,", "makeSliderRow(context,")
+    for declaration, anchor in (
+        ("android.widget.SeekBar", "android.widget.ScrollView"),
+        ("java.util.function.IntConsumer", "java.util.List"),
+        ("app.morphe.extension.shared.settings.IntegerSetting", "app.morphe.extension.shared.Utils"),
+        ("app.morphe.extension.shared.settings.preference.SeekBarPreference", "app.morphe.extension.shared.settings.preference.CustomDialogListPreference"),
+        ("app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig", "app.morphe.extension.shared.settings.preference.SeekBarPreference"),
+    ):
+        line = f"import {declaration};\n"
+        if line not in result:
+            result = result.replace(f"import {anchor};\n", f"import {anchor};\n" + line, 1)
+    return result.replace(end, slider + end, 1)
+
+
+def resolve_dev1498_vot_sheet_conflict() -> None:
+    path = VOT_BOTTOM_SHEET_PATH
+    if path not in unresolved_paths():
+        return
+    blobs = tuple(output_of("git", "rev-parse", f":{stage}:{path}") for stage in (1, 2, 3))
+    if blobs != DEV1498_VOT_SHEET_CONFLICT_BLOBS:
+        return  # Unknown source must still stop publication.
+    ours = run("git", "show", f":2:{path}", capture=True).stdout
+    theirs = run("git", "show", f":3:{path}", capture=True).stdout
+    result = merge_dev1498_vot_sheet(ours, theirs)
+    (ROOT / path).write_text(result, encoding="utf-8", newline="")
+    run("git", "add", "--", path)
+
+
 def merge_ref(
     ref: str,
     project_preference: str,
@@ -1031,6 +1083,7 @@ def merge_ref(
     resolve_dev148_settings_conflict()
     resolve_stable148_settings_conflict()
     resolve_youtube_junit_conflict()
+    resolve_dev1498_vot_sheet_conflict()
 
     remaining = unresolved_paths()
     if remaining:
@@ -1222,6 +1275,8 @@ def build_and_generate(repository: str, branch: str) -> None:
         gradlew,
         ":patches:buildAndroid",
         "generatePatchesList",
+        ":extensions:youtube:testDebugUnitTest",
+        "--tests", "*YandexPlayerEventsTest",
         "--no-daemon",
         env=gradle_environment(),
     )
@@ -1274,6 +1329,9 @@ def validate_candidate(version: str) -> Path:
             manifest_raw = archive.read("META-INF/MANIFEST.MF").decode("utf-8")
         except KeyError as error:
             raise SyncError("Patch bundle has no META-INF/MANIFEST.MF") from error
+        properties = (ROOT / "gradle.properties").read_text(encoding="utf-8")
+        if re.search(r"(?m)^android\.builtInKotlin\s*=\s*false\s*$", properties):
+            validate_java_only_player_events(archive.read("extensions/youtube.mpe"))
     manifest = parse_manifest(manifest_raw)
     if manifest.get("Version") != version:
         raise SyncError(
@@ -1288,6 +1346,42 @@ def validate_candidate(version: str) -> Path:
     validate_manager_local_datetime(metadata.get("created_at"))
 
     return artifact
+
+
+def validate_java_only_player_events(extension: bytes) -> None:
+    """Reject the hard Kotlin types that crashed dev.7, allowing reflective names."""
+    if extension.startswith(b"PK"):
+        with zipfile.ZipFile(io.BytesIO(extension)) as archive:
+            dex_files = [archive.read(name) for name in archive.namelist() if name.endswith(".dex")]
+    else:
+        dex_files = [extension]
+    if not dex_files:
+        raise SyncError("YouTube extension contains no DEX")
+    forbidden = {b"Lkotlin/Unit;", b"Lkotlin/jvm/functions/Function1;"}
+    for dex in dex_files:
+        try:
+            if not dex.startswith(b"dex\n") or len(dex) < 112:
+                raise ValueError("Missing DEX header")
+            string_count, strings_offset, type_count, types_offset = struct.unpack_from("<4I", dex, 56)
+            for i in range(type_count):
+                string_index, = struct.unpack_from("<I", dex, types_offset + 4 * i)
+                if string_index >= string_count:
+                    raise ValueError("Invalid DEX type string index")
+                offset, = struct.unpack_from("<I", dex, strings_offset + 4 * string_index)
+                # Skip the unsigned LEB128 UTF-16 length before the MUTF-8 string.
+                for _ in range(5):
+                    length_byte = dex[offset]
+                    offset += 1
+                    if not length_byte & 128:
+                        break
+                else:
+                    raise ValueError("Invalid DEX string length")
+                descriptor = dex[offset:dex.index(b"\0", offset)]
+                if descriptor in forbidden:
+                    raise SyncError("Java-only YouTube extension links missing Kotlin type: "
+                                    + descriptor.decode("ascii"))
+        except (IndexError, ValueError, struct.error) as error:
+            raise SyncError("Cannot validate YouTube DEX type table") from error
 
 
 def configure_git_identity() -> None:

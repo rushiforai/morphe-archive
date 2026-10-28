@@ -1,3 +1,9 @@
+## [0.30.42](https://github.com/Forsigh/waze-patches/compare/v0.30.41...v0.30.42) (2026-10-27)
+
+### Fixes
+
+* Removed **Car screen fits its window**: the row sized the car screen from the app window instead of the map pane, so the map centred on the whole display and got cropped at the media panel. Waze's stock sizing was already right.
+
 ## [0.30.41](https://github.com/Forsigh/waze-patches/compare/v0.30.4...v0.30.41) (2026-10-25)
 
 ### Android Auto

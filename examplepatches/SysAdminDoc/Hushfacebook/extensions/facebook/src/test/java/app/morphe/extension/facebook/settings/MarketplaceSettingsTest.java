@@ -31,6 +31,7 @@ import app.morphe.extension.facebook.navigation.MarketplaceOnlyForTests;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.Setting;
 
 import org.junit.After;
@@ -160,33 +161,108 @@ public class MarketplaceSettingsTest {
 
     @Test
     public void aSwitchAnotherOverridesNamesTheSwitchToTurnOff() throws Exception {
-        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.START_TAB, PatchFamily.MARKETPLACE_ONLY, PatchFamily.BOTTOM_TAB_BAR);
         Settings.MARKETPLACE_ONLY.save(true);
-        Settings.BOTTOM_TAB_BAR.save(true);
-        Settings.TAB_BAR_SCROLL_AWAY.save(true);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             HushfacebookPreferenceFragment page = open(controller.get());
             Preference events = page.findPreference(Settings.EVENTS_ONLY.key);
             assertFalse(events.isEnabled());
             assertTrue(plain(events),
                     plain(events).endsWith("Turn off Marketplace only to use this."));
-            Preference top = page.findPreference(Settings.TOP_TAB_BAR.key);
-            assertFalse(top.isEnabled());
-            assertTrue(plain(top),
-                    plain(top).endsWith("Turn off Tab bar at the bottom to use this."));
-            Preference keep = page.findPreference(Settings.KEEP_TAB_BAR.key);
-            assertFalse(keep.isEnabled());
-            assertTrue(plain(keep), plain(keep)
-                    .endsWith("Turn off " + SwitchLabels.title(Settings.TAB_BAR_SCROLL_AWAY) + " to use this."));
 
-            Setting.saveAll(Map.of(Settings.BOTTOM_TAB_BAR, false));
+            Setting.saveAll(Map.of(Settings.MARKETPLACE_ONLY, false));
             page.refreshSwitches();
             ShadowLooper.idleMainLooper();
-            assertTrue(top.isEnabled());
-            assertFalse(plain(top), plain(top).contains("Turn off"));
+            assertTrue(events.isEnabled());
+            assertFalse(plain(events), plain(events).contains("Turn off"));
+        }
+    }
+
+    /**
+     * The two tab bar pairs are one row of three choices each. An older file with both switches
+     * on still reads the way it always worked, and a choice saves both switches at once.
+     */
+    @Test
+    public void eachTabBarPairIsOneChoiceThatSavesBothSwitchesAndOwesARestart() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.BOTTOM_TAB_BAR);
+        Setting.saveAll(Map.of(Settings.BOTTOM_TAB_BAR, true, Settings.TOP_TAB_BAR, true,
+                Settings.TAB_BAR_SCROLL_AWAY, true, Settings.KEEP_TAB_BAR, true));
+        HushfacebookPreferenceFragment.restartPending.clear();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushfacebookPreferenceFragment page = open(controller.get());
+            for (BooleanSetting merged : new BooleanSetting[]{Settings.BOTTOM_TAB_BAR, Settings.TOP_TAB_BAR,
+                    Settings.TAB_BAR_SCROLL_AWAY, Settings.KEEP_TAB_BAR}) {
+                assertNull(merged.key + " kept a row of its own", page.findPreference(merged.key));
+            }
+            Preference position = page.findPreference(TabBarChoices.POSITION_ROW);
+            Preference scrolling = page.findPreference(TabBarChoices.SCROLLING_ROW);
+            assertEquals("Tab bar position", String.valueOf(position.getTitle()));
+            assertEquals("Tab bar while scrolling", String.valueOf(scrolling.getTitle()));
+            // Bottom over Top and Hide over Keep, as the switches always worked.
+            assertEquals(TabBarChoices.FIRST, TabBarChoices.Pair.POSITION.choice());
+            assertEquals(TabBarChoices.Pair.POSITION.summary(TabBarChoices.FIRST), position.getSummary());
+            assertEquals(TabBarChoices.Pair.SCROLLING.summary(TabBarChoices.FIRST), scrolling.getSummary());
+            // Search and the guides still find the row by the switches' own names and keys.
+            List<CharSequence> aliases = List.of(SettingsRows.aliases(position));
+            assertTrue(aliases.toString(), aliases.contains(SwitchLabels.title(Settings.TOP_TAB_BAR)));
+            assertEquals(TabBarChoices.Pair.POSITION, TabBarChoices.Pair.forKey(Settings.TOP_TAB_BAR.key));
+            assertEquals(TabBarChoices.Pair.SCROLLING, TabBarChoices.Pair.forKey(Settings.KEEP_TAB_BAR.key));
+            assertNull(TabBarChoices.Pair.forKey(Settings.EVENTS_ONLY.key));
+
+            assertTrue(position.getOnPreferenceClickListener().onPreferenceClick(position));
+            ShadowLooper.idleMainLooper();
+            android.app.AlertDialog chooser = (android.app.AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            assertEquals(3, chooser.getListView().getAdapter().getCount());
+            assertEquals("As Facebook has it", String.valueOf(chooser.getListView().getAdapter().getItem(0)));
+            org.robolectric.Shadows.shadowOf(chooser).clickOnItem(TabBarChoices.SECOND);
+            ShadowLooper.idleMainLooper();
+            assertFalse(Settings.BOTTOM_TAB_BAR.savedValue());
+            assertTrue(Settings.TOP_TAB_BAR.savedValue());
+            assertEquals(TabBarChoices.Pair.POSITION.summary(TabBarChoices.SECOND), position.getSummary());
+            assertTrue(HushfacebookPreferenceFragment.restartPending.contains(Settings.BOTTOM_TAB_BAR.key));
+
+            assertTrue(TabBarChoices.save(page, TabBarChoices.Pair.SCROLLING, TabBarChoices.FACEBOOK));
+            assertFalse(Settings.TAB_BAR_SCROLL_AWAY.savedValue());
+            assertFalse(Settings.KEEP_TAB_BAR.savedValue());
+            assertEquals(TabBarChoices.FACEBOOK, TabBarChoices.Pair.SCROLLING.choice());
+            assertTrue(HushfacebookPreferenceFragment.restartPending.contains(Settings.KEEP_TAB_BAR.key));
         } finally {
+            HushfacebookPreferenceFragment.restartPending.clear();
             Settings.BOTTOM_TAB_BAR.resetToDefault();
+            Settings.TOP_TAB_BAR.resetToDefault();
             Settings.TAB_BAR_SCROLL_AWAY.resetToDefault();
+            Settings.KEEP_TAB_BAR.resetToDefault();
+        }
+    }
+
+    @Test
+    public void backToDefaultsPutsEachTabBarChoiceBackAndOwesARestart() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.BOTTOM_TAB_BAR);
+        Setting.saveAll(Map.of(Settings.BOTTOM_TAB_BAR, false, Settings.TOP_TAB_BAR, true,
+                Settings.TAB_BAR_SCROLL_AWAY, false, Settings.KEEP_TAB_BAR, true));
+        HushfacebookPreferenceFragment.restartPending.clear();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushfacebookPreferenceFragment page = open(controller.get());
+            // The pairs have no switch rows, so Back to defaults reaches them through their choice rows.
+            assertTrue(page.applyQuickSetup(QuickSetupKeys.defaults()) >= 2);
+            ShadowLooper.idleMainLooper();
+            for (BooleanSetting setting : new BooleanSetting[]{Settings.BOTTOM_TAB_BAR, Settings.TOP_TAB_BAR,
+                    Settings.TAB_BAR_SCROLL_AWAY, Settings.KEEP_TAB_BAR}) {
+                assertEquals(setting.key, setting.defaultValue, setting.savedValue());
+            }
+            assertEquals(TabBarChoices.Pair.POSITION.summary(TabBarChoices.Pair.POSITION.choice()),
+                    page.findPreference(TabBarChoices.POSITION_ROW).getSummary());
+            assertEquals(TabBarChoices.Pair.SCROLLING.summary(TabBarChoices.Pair.SCROLLING.choice()),
+                    page.findPreference(TabBarChoices.SCROLLING_ROW).getSummary());
+            assertTrue(HushfacebookPreferenceFragment.restartPending.contains(Settings.TOP_TAB_BAR.key));
+            assertTrue(HushfacebookPreferenceFragment.restartPending.contains(Settings.KEEP_TAB_BAR.key));
+            // Already back where they started, so a second run changes nothing.
+            assertEquals(0, TabBarChoices.apply(page, QuickSetupKeys.defaults()));
+        } finally {
+            HushfacebookPreferenceFragment.restartPending.clear();
+            Settings.BOTTOM_TAB_BAR.resetToDefault();
+            Settings.TOP_TAB_BAR.resetToDefault();
+            Settings.TAB_BAR_SCROLL_AWAY.resetToDefault();
+            Settings.KEEP_TAB_BAR.resetToDefault();
         }
     }
 

@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.TELEGRAM_COMPATIBILITY
 import app.template.patches.shared.Constants.TELEGRAM_PLUS_COMPATIBILITY
 import app.template.patches.shared.Constants.TELEGRAM_WEB_COMPATIBILITY
+import app.template.patches.telegram.PlusUpdateButtonUpdateFingerprint
 import app.template.patches.telegram.signature.telegramSpoofDependency
 
 private val sharedConfigIsAppUpdateAvailableFingerprint = Fingerprint(
@@ -24,14 +25,6 @@ private val sharedConfigSetNewAppVersionAvailableFingerprint = Fingerprint(
 private val messagesControllerCheckPromoInfoInternalFingerprint = Fingerprint(
     definingClass = "Lorg/telegram/messenger/MessagesController;",
     name = "checkPromoInfoInternal",
-    returnType = "V",
-    parameters = listOf("Z"),
-)
-
-/** Retained UI fallback: Plus 13.0.3.0 declares UpdateButton.update(Z)V. */
-private val plusUpdateButtonUpdateFingerprint = Fingerprint(
-    definingClass = "Lorg/telegram/ui/Components/UpdateButton;",
-    name = "update",
     returnType = "V",
     parameters = listOf("Z"),
 )
@@ -68,8 +61,8 @@ val telegramDisableAutoUpdatePatch = bytecodePatch(
         }.addInstructions(0, "return-void")
 
         // The three SharedConfig/MessagesController targets have local method bodies in all
-        // three audited APKs (Telegram/Web 13.1.1 and Plus 13.0.3.0). Keep the verified Plus
+        // three audited APKs (Telegram/Web 13.1.1 and Plus 13.1.1.0). Keep the verified Plus
         // UpdateButton hook as an additional fallback for Plus UI flows reaching the prompt.
-        plusUpdateButtonUpdateFingerprint.methodOrNull?.addInstructions(0, "return-void")
+        PlusUpdateButtonUpdateFingerprint.methodOrNull?.addInstructions(0, "return-void")
     }
 }

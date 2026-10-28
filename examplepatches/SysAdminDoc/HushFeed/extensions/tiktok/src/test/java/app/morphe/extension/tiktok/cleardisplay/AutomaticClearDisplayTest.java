@@ -601,6 +601,41 @@ public class AutomaticClearDisplayTest {
         assertFalse("the page's controls stayed away", RememberClearDisplayPatch.isCarryingClear());
     }
 
+    /**
+     * Backing out of a cleared video page posts no exit, so the live state still says cleared as
+     * the next page opens, and TikTok's top bar showed over its first frames (Favorites, S22
+     * 2026-10-27, #84). The new page counts as uncleared until a clear lands on it, it goes, or
+     * its limit passes.
+     */
+    @Test public void aPageOpenedAfterAClearedOneIsUnclearedUntilItsOwnClearLands() {
+        SettingsStatus.automaticClearDisplayEnabled = true;
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("liked", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+        assertFalse(RememberClearDisplayPatch.isPageUncleared());
+
+        try (var page = Robolectric.buildActivity(android.app.Activity.class).setup()) {
+            RememberClearDisplayPatch.onPageOpened(page.get());
+            assertTrue("the last page's clear stood in for this one's",
+                    RememberClearDisplayPatch.isPageUncleared());
+            assertTrue(RememberClearDisplayPatch.isCarryingClear());
+            RememberClearDisplayPatch.firstFrame("favorite", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+            assertFalse("its own clear landed", RememberClearDisplayPatch.isPageUncleared());
+
+            RememberClearDisplayPatch.onPageOpened(page.get());
+            RememberClearDisplayPatch.onPageLeft(page.get());
+            assertFalse("the page went", RememberClearDisplayPatch.isPageUncleared());
+        }
+        RememberClearDisplayPatch.onPageOpened(null);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(RememberClearDisplayPatch.PAGE_LIMIT_MS));
+        assertFalse("a page that never clears keeps its top bar after the limit",
+                RememberClearDisplayPatch.isPageUncleared());
+    }
+
     /** With a delay the controls show first anyway, so a new page carries nothing. */
     @Test public void aPageOpenedWithADelayCarriesNothing() {
         SettingsStatus.automaticClearDisplayEnabled = true;

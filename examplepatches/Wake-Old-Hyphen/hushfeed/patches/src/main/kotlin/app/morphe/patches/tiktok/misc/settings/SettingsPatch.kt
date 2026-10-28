@@ -39,7 +39,11 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val SETTINGS_EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/settings/TikTokActivityHook;"
-private const val SHOW_SETTINGS_ROW_METHOD = "$SETTINGS_EXTENSION_CLASS_DESCRIPTOR->showSettingsRow()Z"
+private const val ADD_SETTINGS_ROW_FIRST_METHOD =
+    "$SETTINGS_EXTENSION_CLASS_DESCRIPTOR->addSettingsRowFirst(Ljava/util/List;Ljava/lang/Object;)V"
+private const val ADD_SETTINGS_ROW_LAST_METHOD =
+    "$SETTINGS_EXTENSION_CLASS_DESCRIPTOR->addSettingsRowLast(Ljava/util/List;Ljava/lang/Object;)V"
+private val JAVA_LIST_TYPES = setOf("Ljava/util/List;", "Ljava/util/ArrayList;", "Ljava/util/AbstractList;")
 private const val OPEN_DEBUG_CELL_VM_DESCRIPTOR =
     "Lcom/ss/android/ugc/aweme/setting/ui/rvmpcompose/group/support/cells/OpenDebugCellVM;"
 private const val AD_WEB_MORE_ACTION_SERVICE_DESCRIPTOR =
@@ -60,12 +64,12 @@ private data class OpenDebugTargets(
  *
  * TikTok 47.0.3 can already include that singleton in the support group. Removing it first avoids
  * duplicate Compose keys, which otherwise leave the later, natively sorted row on screen. With
- * Hide the Hushfeed row on (#264) the row is only removed, so it shows nowhere in the list.
+ * Hide the Hushfeed row on (#264) the extension leaves it out, so it shows nowhere in the list.
+ * The insert stays branch-free: an if-eqz here crashed ART's JIT compiling this method.
  */
 internal fun settingsRowMoveToFrontInstructions(
     copyRegister: Int,
     valueRegister: Int,
-    indexRegister: Int,
     listRegister: Int,
     openDebugField: FieldReference,
 ): String =
@@ -75,12 +79,7 @@ internal fun settingsRowMoveToFrontInstructions(
         invoke-direct {v$copyRegister, v$valueRegister}, Ljava/util/ArrayList;-><init>(Ljava/util/Collection;)V
         sget-object v$valueRegister, ${openDebugField.definingClass}->OPEN_DEBUG:${openDebugField.type}
         invoke-virtual {v$copyRegister, v$valueRegister}, Ljava/util/ArrayList;->remove(Ljava/lang/Object;)Z
-        invoke-static {}, $SHOW_SETTINGS_ROW_METHOD
-        move-result v$indexRegister
-        if-eqz v$indexRegister, :hushfeed_row_hidden
-        const/4 v$indexRegister, 0x0
-        invoke-virtual {v$copyRegister, v$indexRegister, v$valueRegister}, Ljava/util/ArrayList;->add(ILjava/lang/Object;)V
-        :hushfeed_row_hidden
+        invoke-static {v$copyRegister, v$valueRegister}, $ADD_SETTINGS_ROW_FIRST_METHOD
         move-object v$listRegister, v$copyRegister
     """
 
@@ -510,25 +509,23 @@ val settingsPatch = bytecodePatch(
             val listRegister = (composeRowsMethod.getInstruction(sortedListIndex + 1) as? OneRegisterInstruction)
                 ?.registerA ?: return false
 
-            // v0, v1 and v2 were free here on 46.2.3 and nothing said so. The list this
-            // rebuilds is 41 registers deep, and all three are read by the injected code, so
-            // they have to be found rather than assumed. All three are named by plain invokes,
-            // which reach v15 and no further.
+            // v0 and v1 were free here on 46.2.3 and nothing said so. The list this rebuilds
+            // is 41 registers deep, and both are read by the injected code, so they have to be
+            // found rather than assumed. Both are named by plain invokes, which reach v15 and
+            // no further.
             val registers = composeRowsMethod.getFreeRegisterProvider(
                 sortedListIndex + 2,
-                3,
+                2,
                 listOf(listRegister),
             )
             val copyRegister = registers.getFreeRegister4Bit()
             val valueRegister = registers.getFreeRegister4Bit()
-            val indexRegister = registers.getFreeRegister4Bit()
 
             composeRowsMethod.addInstructions(
                 sortedListIndex + 2,
                 settingsRowMoveToFrontInstructions(
                     copyRegister,
                     valueRegister,
-                    indexRegister,
                     listRegister,
                     openDebugField,
                 ),
@@ -548,17 +545,17 @@ val settingsPatch = bytecodePatch(
                 val addReference = addInstruction.reference as MethodReference
                 val listRegister = addInstruction.registerC
                 val itemRegister = addInstruction.registerD
+                // The extension adds through java.util.List, so a TikTok-owned list type here
+                // has to fail the patch rather than the app.
+                if (addReference.definingClass !in JAVA_LIST_TYPES) {
+                    throw PatchException("Settings rows are a ${addReference.definingClass}, not a java.util list")
+                }
 
                 addInstructions(
                     sectionHeaderSgetIndex + 2,
                     """
-                        invoke-static {}, $SHOW_SETTINGS_ROW_METHOD
-                        move-result v$itemRegister
-                        if-eqz v$itemRegister, :hushfeed_row_hidden
                         sget-object v$itemRegister, ${sectionHeaderField.definingClass}->OPEN_DEBUG:${sectionHeaderField.type}
-                        invoke-virtual { v$listRegister, v$itemRegister }, $addReference
-                        :hushfeed_row_hidden
-                        nop
+                        invoke-static { v$listRegister, v$itemRegister }, $ADD_SETTINGS_ROW_LAST_METHOD
                     """,
                 )
             }

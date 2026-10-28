@@ -27,6 +27,7 @@ public final class ReadingPosition {
     static final String ENABLED = "readingPositionRecovery";
     private static final WeakHashMap<Object, Session> SESSIONS = new WeakHashMap<>();
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
+    private static final String PROCESS=java.util.UUID.randomUUID().toString();
     private static final java.util.Map<String, int[]> LAYOUT_ANCHORS = new java.util.HashMap<>();
     private static long layoutDeadline;
     private static Anchor pausedAnchor;
@@ -153,6 +154,9 @@ public final class ReadingPosition {
         final Runnable delayedSave = this::save;
         String inspectedKey, written;
         boolean closed, restoring;
+        Anchor coldPreview;
+        long coldPreviewUntil;
+        final long opened=android.os.SystemClock.uptimeMillis();
 
         Session(Object fragment, Activity activity, View list) throws Exception {
             this.fragment = new WeakReference<>(fragment); this.activity = activity; this.list = list;
@@ -223,7 +227,18 @@ public final class ReadingPosition {
             nextInspection = now + 250;
             try {
                 Anchor current = anchor();
-                if (current == null || current.key.equals(inspectedKey)) return true;
+                if(current==null)return true;
+                if(coldPreview!=null){
+                    if(now>coldPreviewUntil||XPostPreviewPosition.hasUserInteraction(list)){coldPreview=null;onScrollChanged();}
+                    else if(current.key.equals(coldPreview.key)){
+                        list.postInvalidateDelayed(250);
+                        Object owner=fragment.get();
+                        if(owner!=null&&(current.number!=coldPreview.number||Math.abs(current.offset-coldPreview.offset)>2)
+                                &&FilterPosition.jumpToResponse(owner,coldPreview.number,coldPreview.offset)){restoring=true;return false;}
+                        return true;
+                    }else coldPreview=null;
+                }
+                if(current.key.equals(inspectedKey))return true;
                 if (android.os.SystemClock.uptimeMillis() > layoutDeadline) LAYOUT_ANCHORS.clear();
                 int[] layout = LAYOUT_ANCHORS.get(current.key);
                 if (layout != null) {
@@ -239,6 +254,23 @@ public final class ReadingPosition {
                 JSONObject saved = null;
                 try { saved = new JSONObject(new String(storage.readFully(), StandardCharsets.UTF_8)); }
                 catch (java.io.FileNotFoundException ignored) { }
+                boolean previews=Haiagaru.xPostPreviewEnabled()||Haiagaru.siteCardsEnabled();
+                if(saved!=null&&previews&&!current.explicit&&saved.optInt("number")>1
+                        &&current.key.equals(saved.optString("thread"))
+                        &&!PROCESS.equals(saved.optString("process"))
+                        &&!XPostPreviewPosition.hasUserInteraction(list)){
+                    // Let native unread restoration and first measurement finish.
+                    // Do not overwrite the previous process anchor with a cold row-1 frame.
+                    if(now<opened+1500){list.postInvalidateDelayed(250);return true;}
+                    // A later native unread/end target takes precedence over the old viewport.
+                    if(current.number>saved.optInt("number")){inspectedKey=current.key;onScrollChanged();return true;}
+                    int target=saved.getInt("number");Object owner=fragment.get();
+                    if(owner!=null&&FilterPosition.jumpToResponse(owner,target,saved.optInt("offset"))){
+                        coldPreview=new Anchor(current.key,current.url,false,target,saved.optInt("offset"),null);
+                        coldPreviewUntil=now+2500;inspectedKey=current.key;restoring=true;list.postInvalidateDelayed(250);return false;
+                    }
+                    if(now<opened+5000){list.postInvalidateDelayed(250);return true;}
+                }
                 if (saved != null && !current.explicit && current.number == 1
                         && saved.optLong("installed") != installed && saved.optInt("number") > 1
                         && current.key.equals(saved.optString("thread"))) {
@@ -260,13 +292,13 @@ public final class ReadingPosition {
         }
 
         @Override public void onScrollChanged() {
-            if (closed || restoring) return;
+            if (closed || restoring || coldPreview!=null) return;
             MAIN.removeCallbacks(delayedSave);
             MAIN.postDelayed(delayedSave, 400);
         }
 
         void save() {
-            if (closed || restoring) return;
+            if (closed || restoring || coldPreview!=null) return;
             MAIN.removeCallbacks(delayedSave);
             try {
                 Anchor current = anchor();
@@ -274,7 +306,7 @@ public final class ReadingPosition {
                 String signature = current.key + ":" + current.number + ":" + current.offset;
                 if (signature.equals(written)) return;
                 JSONObject data = new JSONObject().put("thread", current.key).put("number", current.number)
-                        .put("offset", current.offset).put("installed", installed);
+                        .put("offset", current.offset).put("installed", installed).put("process",PROCESS);
                 AtomicFile storage = new AtomicFile(file(current.key));
                 FileOutputStream output = storage.startWrite();
                 try { output.write(data.toString().getBytes(StandardCharsets.UTF_8)); storage.finishWrite(output); }

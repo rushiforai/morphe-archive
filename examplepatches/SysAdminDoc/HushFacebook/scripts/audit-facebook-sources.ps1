@@ -275,8 +275,16 @@ function ConvertFrom-SourceJson {
     # -AsHashtable is for a document whose keys differ only by case, which a plain parse refuses.
     param([string]$Text, [string]$What, [switch]$AsHashtable)
     try {
-        if ($AsHashtable -and (Get-Command ConvertFrom-Json).Parameters.ContainsKey('AsHashtable')) {
-            return , ($Text | ConvertFrom-Json -AsHashtable)
+        if ($AsHashtable) {
+            if ((Get-Command ConvertFrom-Json).Parameters.ContainsKey('AsHashtable')) {
+                return , ($Text | ConvertFrom-Json -AsHashtable)
+            }
+            # Windows PowerShell has no -AsHashtable, and the pre-push hook falls back to it when
+            # pwsh is off git's PATH. Its JavaScriptSerializer keeps keys case-sensitive.
+            Add-Type -AssemblyName System.Web.Extensions
+            $serializer = New-Object System.Web.Script.Serialization.JavaScriptSerializer
+            $serializer.MaxJsonLength = [int]::MaxValue
+            return , $serializer.DeserializeObject($Text)
         }
         return , ($Text | ConvertFrom-Json)
     } catch {

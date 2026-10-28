@@ -43,7 +43,7 @@ val defaultPlaybackQualityPatch = bytecodePatch(
     name = "Default playback quality",
     description = "Plays videos, reels and video stories at the quality you choose, such as Data saver or up to " +
         "720p, instead of what Facebook picks. Lower saves data, higher looks sharper. Starts off. Turn it on " +
-        "and pick a quality in Hushfacebook settings > Playback.",
+        "and pick a quality in Hushfacebook settings > Video and audio.",
 ) {
     category("Playback")
     dependsOn(settingsPatch)

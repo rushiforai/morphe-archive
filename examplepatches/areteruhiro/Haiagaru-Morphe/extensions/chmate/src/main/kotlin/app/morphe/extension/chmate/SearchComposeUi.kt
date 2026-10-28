@@ -154,6 +154,9 @@ private fun SearchScreen(a: HissiWacchoiSearchController, showTopBar: Boolean, e
     val fullWacchoi = a.isFullWacchoiSearch()
     val running = a.stopButton.isEnabled
     val editing = enabled && !running
+    val boardLabel = a.boardToggle.text.toString().replace("▲", "").replace("▼", "")
+    val fromDate = a.fromInput.text.toString()
+    val toDate = a.toInput.text.toString()
     val results = (0 until a.resultsLayout.childCount).map { a.resultsLayout.getChildAt(it) }
     val errors = buildList {
         a.fourInput.error?.let { add(it.toString()) }
@@ -268,16 +271,16 @@ private fun SearchScreen(a: HissiWacchoiSearchController, showTopBar: Boolean, e
                     RelativeSearchDays(a, editing, changed)
                     OutlinedButton(onClick = { boardPicker = true; a.loadBoardsOnDemand() }, enabled = editing,
                         modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-                        Text(a.boardToggle.text.toString().replace("▲", "").replace("▼", ""))
+                        Text(boardLabel)
                     }
                     if (a.boardStatus.error != null) Text(a.boardStatus.error.toString(), color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(12.dp))
                     Row(Modifier.padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(onClick = { dateField = "from" }, enabled = editing, modifier = Modifier.weight(1f)) {
-                            Text("開始 ${displayDate(a.fromInput.text.toString())}")
+                            Text("開始 ${displayDate(fromDate)}")
                         }
                         OutlinedButton(onClick = { dateField = "to" }, enabled = editing, modifier = Modifier.weight(1f)) {
-                            Text("終了 ${displayDate(a.toInput.text.toString())}")
+                            Text("終了 ${displayDate(toDate)}")
                         }
                     }
                     if (a.fromInput.error != null) Text(a.fromInput.error.toString(), color = MaterialTheme.colorScheme.error,
@@ -343,20 +346,27 @@ private fun SearchScreen(a: HissiWacchoiSearchController, showTopBar: Boolean, e
             })
         }) { insets -> Box(Modifier.fillMaxSize().padding(insets)) { SearchOptionsSheet(a, prefs, toggleValues, changed) } }
     }
-    if (boardPicker) ModalBottomSheet(onDismissRequest = { boardPicker = false }) {
-        LazyColumn(Modifier.fillMaxWidth().imePadding(), contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            item { Text("検索する板", style = MaterialTheme.typography.headlineSmall) }
-            item { BoundTextField(a.boardFilter, "板名・カテゴリで絞り込み", changed = changed) }
-            item { Text(a.boardStatus.text.toString(), style = MaterialTheme.typography.bodySmall) }
-            val actions = a.boardSection.getChildAt(2) as ViewGroup
-            items((0 until actions.childCount).map { actions.getChildAt(it) }) { button ->
-                TextButton(onClick = { button.performClick(); changed() }) { Text((button as NativeButton).text.toString()) }
+    if (boardPicker) {
+        // Snapshot native bindings in this revision scope. The lazy content lambda
+        // can otherwise be reused with stale checked/status values.
+        val boardRows = settingsRows(a.boardChoices)
+        val boardStatus = a.boardStatus.text.toString()
+        ModalBottomSheet(onDismissRequest = { boardPicker = false }) {
+            LazyColumn(Modifier.fillMaxWidth().imePadding(), contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                item { Text("検索する板", style = MaterialTheme.typography.headlineSmall) }
+                item { BoundTextField(a.boardFilter, "板名・カテゴリで絞り込み", changed = changed) }
+                item { Text(boardStatus, style = MaterialTheme.typography.bodySmall) }
+                item { TextButton(onClick = { a.reloadTemplateBoards(); changed() }) { Text("板一覧を再取得") } }
+                val actions = a.boardSection.getChildAt(2) as ViewGroup
+                items((0 until actions.childCount).map { actions.getChildAt(it) }) { button ->
+                    TextButton(onClick = { button.performClick(); changed() }) { Text((button as NativeButton).text.toString()) }
+                }
+                items(boardRows, key = { (it.control as android.widget.CheckBox).tag.toString() }) { option ->
+                    BoundSettingRow(option, changed)
+                }
+                item { Button(onClick = { boardPicker = false }, Modifier.fillMaxWidth()) { Text("選択を完了") } }
             }
-            items(settingsRows(a.boardChoices), key = { (it.control as android.widget.CheckBox).tag.toString() }) { option ->
-                BoundSettingRow(option, changed)
-            }
-            item { Button(onClick = { boardPicker = false }, Modifier.fillMaxWidth()) { Text("選択を完了") } }
         }
     }
     if (dateField.isNotEmpty()) {

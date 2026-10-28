@@ -1045,6 +1045,7 @@ private fun BytecodePatchContext.patchConsumedPopupMenu191() {
 private fun BytecodePatchContext.patchQuickFilterToolbar(version: String) {
     patchExtraQuickFilters(version)
     patchCachedWacchoiSearch(version)
+    patchGlobalTitleSearch(version)
     patchQuickFilterPosition(version)
     if (version == "0.8.10.191 dev") {
         val toolbarModelType = "Lo/r8lambdaElkXfNt4VbdvffL9Z700R6oMDo;"
@@ -3492,6 +3493,23 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchImageViewerRotati
             invoke-static {v1, v0}, Lapp/morphe/extension/chmate/ImageViewerRotationButton;->install(Landroid/app/Activity;Ljava/lang/String;)V
         """.trimIndent())
     }
+    val prepareMenu = mutableClassDefBy(activityType).methods.single {
+        it.name == "onPrepareOptionsMenu" && it.parameterTypes == listOf("Landroid/view/Menu;") && it.returnType == "Z"
+    }
+    // A void entry call preserves every native local, return and menu command.
+    prepareMenu.addInstructionsWithLabels(0,
+        "invoke-static/range {p0 .. p1}, Lapp/morphe/extension/chmate/ImageViewerRotationButton;->prepareMenu(Landroid/app/Activity;Landroid/view/Menu;)V")
+    val select = mutableClassDefBy(activityType).methods.single {
+        it.name == "onOptionsItemSelected" && it.parameterTypes == listOf("Landroid/view/MenuItem;") && it.returnType == "Z"
+    }
+    val first = select.implementation!!.instructions.first()
+    select.addInstructionsWithLabels(0, """
+        invoke-static/range {p0 .. p1}, Lapp/morphe/extension/chmate/ImageViewerRotationButton;->handleMenu(Landroid/app/Activity;Landroid/view/MenuItem;)Z
+        move-result v0
+        if-eqz v0, :native_rotation_menu
+        const/4 v0, 0x1
+        return v0
+    """.trimIndent(), ExternalLabel("native_rotation_menu", first))
     println("Image viewer rotation button: $versionName -> $targetImageView")
 }
 
@@ -4094,7 +4112,7 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyTalkDatLoad
  * state immediately after the Talk client instance is constructed, before its
  * authentication method is invoked.
  */
-private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyTalkAuthIntegrity() {
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyTalkAuthIntegrity(includeSessionRecovery: Boolean = true) {
     val method = mutableClassDefBy("Lo/setAdLoadFailureInfo;").methods.single { method ->
         method.name == "c"
             && method.returnType == "Ljava/lang/String;"
@@ -4151,6 +4169,8 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyTalkAuthInt
             else -> error("ChMate legacy Talk authenticator registers were not found")
         }
     }
+
+    if (!includeSessionRecovery) return
 
     val postMethod = mutableClassDefBy("Lo/getLabel;").methods.single { candidate ->
         candidate.name == "b"
@@ -8347,7 +8367,7 @@ private fun BytecodePatchContext.isAdsOnlyBuild(): Boolean {
 @Suppress("unused")
 val haiagaruAdsOnlyPatch = bytecodePatch(
     name = "Haiagaru 広告だけの超軽量構成（検証用）",
-    description = "Haiagaru本体を外して選択してください。広告・広告枠除去、5ch.net→5ch.io変換、板一覧の初期URL、再署名導入の起動対策を適用します。検索・追加設定・フィルター等は組み込みません。検証中です。",
+    description = "Haiagaru本体を外して選択してください。広告・広告枠除去、5ch.net→5ch.io変換、板一覧の初期URL、起動・投稿・画像アップロード・UPLIFTの再署名によるクラッシュ対策を適用します。検索・追加設定・フィルター等は組み込みません。検証中です。",
     default = false,
 ) {
     compatibleWith(chMateCompatibility)
@@ -8426,6 +8446,29 @@ val haiagaruAdsOnlyPatch = bytecodePatch(
         patchDistributedIntegrityComparisons(
             includeAllObfuscatedClasses = packageMetadata.versionName == "0.8.10.191 dev"
         )
+        // Small crash safeguards only. Do not pull settings, upload services,
+        // network workers, or full Haiagaru runtime into the lightweight build.
+        when(packageMetadata.versionName){
+            "0.8.10.191 dev" -> {
+                patchLegacyImageUploadTempName()
+                patchLegacyTalkAuthIntegrity(includeSessionRecovery = false)
+            }
+            "0.8.10.226 dev" -> {
+                patchPreIoTalkPostIntegrity()
+                patchPreIoImageUploadIntegrityTrap("Lo/fWG1;")
+                patchUpliftIntegrityComparison("Lo/OpenJSSEPlatformCompanion;","d","Lo/OpenJSSEPlatformCompanion\$IconCompatParcelizer;")
+                patchUpliftIntegrityComparison("Lo/OpenJSSEPlatformCompanion;","j","[Ljava/lang/Object;",returnType="Ljava/lang/Object;")
+                patchUpliftTokenExpiryArithmetic("Lo/OpenJSSEPlatformCompanion;","d","Lo/OpenJSSEPlatformCompanion\$IconCompatParcelizer;",653820)
+            }
+            "0.8.10.242 dev" -> {
+                patchTalk242AuthenticationAndTokenCalls()
+                patchModernTalkIntegrityPrimitives("Lo/GoogleApiSettingsBuilder;", "normalizeIntegrityState242")
+                patchUpliftPostingIntegrity242()
+                patchUpliftLoginIntegrity242()
+                patchImageUploadIntegrity242()
+            }
+
+        }
         patchCommonAdSdkInitialization()
 
         buildList {

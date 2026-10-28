@@ -1,6 +1,8 @@
 package app.morphe.extension.tiktok.feed;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import app.morphe.extension.shared.Utils;
@@ -45,6 +47,15 @@ public class UnverifiedNoticesTest {
     @Test public void skippingContentWarningsAloneKeepsTheNotices() {
         Settings.HIDE_SENSITIVE_WARNINGS.save(true);
         assertFalse(SensitiveWarnings.hideUnverifiedNotices());
+    }
+
+    /** A shared video's chat card keeps its caution label unless the switch is on (#258). */
+    @Test public void onTheChatCardLabelsReadAsUnset() {
+        assertEquals("Caution", SensitiveWarnings.chatCardLabel("Caution"));
+        Settings.HIDE_UNVERIFIED_NOTICES.save(true);
+        assertNull(SensitiveWarnings.chatCardLabel("Caution"));
+        setPaused(true);
+        assertEquals("Caution", SensitiveWarnings.chatCardLabel("Caution"));
     }
 
     @Test public void pausedTheNoticesShow() {

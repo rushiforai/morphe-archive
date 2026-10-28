@@ -86,7 +86,8 @@ public class AppIconSettingsTest {
 
         List<String> entries = new ArrayList<>();
         for (CharSequence entry : row.getEntries()) entries.add(entry.toString());
-        assertEquals(Arrays.asList("Instagram's own", "HushGram", "Instagram on black", "Instagram on plum"), entries);
+        assertEquals(Arrays.asList("Instagram's own", "HushGram", "Instagram on black", "Instagram on plum",
+                "Instagram in black on white"), entries);
         assertEquals(AppIconChoice.INSTAGRAM, Settings.APP_ICON.get());
         assertEquals("INSTAGRAM", row.getValue());
         assertTrue(row.getSummary().toString(), row.getSummary().toString().startsWith("Instagram's own. "));
@@ -96,6 +97,10 @@ public class AppIconSettingsTest {
         assertEquals(AppIconChoice.PLUM, Settings.APP_ICON.savedValue());
         assertEquals("Instagram on plum. It shows once you leave Instagram. If the icon is gone from your home screen, "
                 + "add it again from the app drawer.", row.getSummary().toString());
+        row.setValue("LIGHT");
+        ShadowLooper.idleMainLooper();
+        assertEquals(AppIconChoice.LIGHT, Settings.APP_ICON.savedValue());
+        assertTrue(row.getSummary().toString(), row.getSummary().toString().startsWith("Instagram in black on white. "));
 
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.APP_ICON.key));
     }

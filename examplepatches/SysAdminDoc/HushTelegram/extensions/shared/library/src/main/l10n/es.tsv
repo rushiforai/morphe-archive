@@ -884,6 +884,12 @@ Open a folder at launch	Abrir una carpeta al iniciar
 The chat list opens on the folder you pick below instead of All Chats. Each account keeps its own pick, and the folder order doesn't change. If that folder is gone, renamed or locked, All Chats opens as usual.	La lista de chats se abre en la carpeta que elijas abajo en lugar de Todos los chats. Cada cuenta guarda su propia elección y el orden de las carpetas no cambia. Si esa carpeta ya no está, cambió de nombre o está bloqueada, se abre Todos los chats como siempre.
 # context: Row under Open a folder at launch. Its summary is the picked folder's name, and a tap lists All Chats and the account's folders to pick from
 Folder to open	Carpeta que se abre
+# context: Switch on the Chat list page under Open a folder at launch, off by default, and it restarts Telegram. All Chats is Telegram's name for the first folder tab (FilterAllChats): use Telegram's translation
+Hide All Chats	Ocultar Todos los chats
+# context: Summary of Hide All Chats. All Chats (FilterAllChats) and Archived Chats (ArchivedChats) are Telegram's names: use Telegram's translations. The side menu is HushTelegram's menu that slides in from the left
+The folder tabs leave out All Chats, so the chat list opens on the folder picked above or your first one. Archived Chats moves to the chat list's menu, and to the side menu when that's on. Tabs can't be dragged into a new order while this is on. Restart Telegram to see the change.	Las pestañas de carpetas dejan fuera Todos los chats, así que la lista de chats se abre en la carpeta elegida arriba o en la primera. Chats archivados pasa al menú de la lista de chats y, si está activado, al menú lateral. Mientras esto esté activado, las pestañas no se pueden arrastrar a otro orden. Reinicia Telegram para ver el cambio.
+# context: Toast when someone starts dragging folder tabs while Hide All Chats is on. Keep it to two short lines
+Turn off Hide All Chats to drag tabs	Desactiva Ocultar Todos los chats para mover pestañas
 # context: Telegram's own name for the folder tab with every chat (FilterAllChats). Use Telegram's translation
 All Chats	Todos los chats
 # context: Toast when Folder to open is tapped and the account has no chat folders
@@ -894,6 +900,8 @@ Couldn't save the folder. Try again in a moment.	No se pudo guardar la carpeta. 
 Couldn't read your folders.	No se pudieron leer tus carpetas.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that opens the chat list on a picked folder
 which folder the chat list opens on	carpeta en la que se abre la lista de chats
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that hides the All Chats tab. All Chats is Telegram's name for the first folder tab (FilterAllChats): use the same name as the Hide All Chats switch
+the All Chats tab	la pestaña Todos los chats
 # context: Switch on the Chat list page under Hide folder tab counters, off by default. With it on, the chats the user ticks in Chats to hide stop showing in the chat list
 Hide picked chats	Ocultar chats elegidos
 # context: Summary of Hide picked chats. All Chats is Telegram's own name for the first folder tab and Archived Chats Telegram's name for the archive (ArchivedChats): use Telegram's translations. The app badge is the unread count on the app's icon
@@ -949,3 +957,15 @@ The translation language will change.	Cambiará el idioma de traducción.
 # context: A screen reader's state for a settings section heading that opens and closes in place.
 Expanded	Desplegado
 Collapsed	Plegado
+# context: Switch title under Save downloaded files. It moves the folder Telegram keeps its own downloads in from Android/data to the phone's main storage.
+Keep Telegram's files in internal storage	Guardar los archivos de Telegram en el almacenamiento interno
+# context: Summary under that switch. Internal storage/Telegram and Android/data are folder paths: translate Internal storage as Android's Files app does, keep Telegram and Android/data as they are. All files access is Android's name for the special app access page.
+New photos, videos and files Telegram downloads go to Internal storage/Telegram, where file managers and other apps can open them, instead of Android/data. Files downloaded before stay in Android/data. Needs All files access and a restart.	Las fotos, los videos y los archivos nuevos que descarga Telegram van a Almacenamiento interno/Telegram, donde los administradores de archivos y otras apps pueden abrirlos, en lugar de Android/data. Los archivos descargados antes se quedan en Android/data. Necesita Acceso a todos los archivos y reiniciar.
+# context: Second line of that summary when Android has given Telegram All files access.
+All files access is on.	El acceso a todos los archivos está activado.
+# context: Second line of that summary when Android hasn't given Telegram All files access. Android/data is a folder path, keep it as it is.
+All files access is off, so Telegram's files stay in Android/data. Turning this on opens the setting.	El acceso a todos los archivos está desactivado, así que los archivos de Telegram se quedan en Android/data. Al activar esto se abre el ajuste.
+# context: Toast when Android's All files access page couldn't be opened. Keep it short: a toast shows two short lines.
+Couldn't open All files access.	No se pudo abrir el acceso.
+# context: Noun phrase in a status line. It names the part of Save downloaded files that keeps Telegram's own folder in the phone's main storage.
+Telegram's own files in internal storage	archivos propios de Telegram en el almacenamiento interno

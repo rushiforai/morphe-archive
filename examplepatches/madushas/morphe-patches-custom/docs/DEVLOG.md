@@ -736,3 +736,77 @@ Release: v0.5.4 published + GitHub asset verified (dexed, contains both new patc
   not a zip; verify with `strings`, not unzip).
 - v0.5.5 deleted + recreated with the correct 1,108,448-byte asset; verified:
   classes.dex present, extension.mpe contains SoulHistoryActivity (6 hits).
+
+## 2026-10-27 — 0.5.5 fix #3 (device-verified): deep links need a HOST
+- User: Chat buttons still dead after fix #2. Live device debug (screencap + am
+  start with fake ids): pdb://chat/… and pdb://u/… → router's BLANK fallback
+  screen. Root cause: u8c.R routes on PATH SEGMENTS (segments[0]=="chat"/"u"),
+  so a host-less URI puts the route in the URI AUTHORITY and never matches.
+  The app's own links carry a host (pdb://pdb.app/chat_notify/...).
+- Correct forms (verified live: pdb://pdb.app/u/{id} opens a real profile):
+  chat → pdb://pdb.app/chat/{channelType}:{channelId}
+  profile → pdb://pdb.app/u/{id}
+- Fixed PdbTools.openChat, PdbUi.showSoulHistory rows, SoulHistoryActivity rows.
+  (Direct channel-create via API still deliberately avoided; fallback = profile.)
+- Same-version redeploy v0.5.5 (deleted+recreated); GitHub asset verified:
+  classes.dex present, extension.mpe contains the host-form links. Commit 0330d7a.
+- Device-debug notes for future: uiautomator dump fails on this app ("could not
+  get idle state" — RN/Compose animation loop); use screencap + read instead.
+  Non-exported extension activities can't be am-start'ed from shell (SecurityException).
+
+## 2026-10-28 — v0.5.6: dark-mode injected screens, soul-only history, profile Chat menu
+- User device feedback round 2: (1) history screen light in dark mode, (2) thought-
+  bubble users polluting history, (3) profile has no chat CTA, (4) more patch ideas.
+- Dark mode: the app's appearance pref is MMKV "dark_mode" (-1 system/1 light/2
+  dark, ij6 appearance picker → AppCompatDelegate, which plain activities ignore).
+  PdbUi.isNight() reads the pref via new PdbMmkv.getNumberAnyStore (int-or-long
+  search across stores), falls back to system uiMode; palette helpers
+  pageBg/cardBg/mainText/subText + themedCard; SoulHistoryActivity + PdbExtras
+  rebuilt on them. PdbUi.color(null-name) hardened (NPE guard).
+- Soul-only history: decorateName now records "seen" ONLY for the soul-card user
+  class, learned from the like hook (PdbUi.soulClass persisted in MMKV
+  "morphe_soul_class"); likes always recorded. Before the first like, no seen
+  rows (bootstraps on first swipe-like).
+- Profile Chat entry (ProfileChatEntryPatch): stock scf (profile detail) has NO
+  chat CTA — chats exist only via server-created channels (matches/bubbles/
+  wonder). Added honestly: "Chat" item in the profile ⋯ overflow menu
+  (scf.onClick, cra(id 0x4d0f0001, icon ic_menu_group_chat, flags 0x1fe0)) +
+  branch in m9f.onClick case-3 → PdbTools.openChat(ctx, faf.getId()) — channel
+  exists → real chat; else profile fallback (no fake channel creation).
+  openChat(Activity→Context). Verified in smali: both injections clean (the
+  patcher folded our label into the existing :cond_c chain).
+- Inline-smali lambdas note: morphe's indexOfFirstInstruction filter is a
+  RECEIVER lambda (use `this`, not an explicit param) — cost 2 compile rounds.
+- pdbbuild re-stripped the dex again (generatePatchesList after buildAndroid) —
+  caught by pdbrelease --check before publish this time; buildAndroid re-run last.
+- Released v0.5.6 (32 patches): GitHub asset verified (dex + extension contains
+  morphe_soul_class/dark_mode). Commit bc44929.
+
+## 2026-10-28 (later) — standard release notes (Manager changelog), pdbrelease upgrade
+- User: our releases "look dumb" vs hushgram/morphe-patches in the Manager. Verified:
+  the official bundles put a SEMANTIC-RELEASE-STYLE MARKDOWN CHANGELOG into
+  patches-bundle.json "description" ("## [1.48.0](compare-url) (date)" +
+  "### 🐛 Bug Fixes" / "### ✨ New Features" with commit links) — the Manager renders
+  that description as the source's release notes. Ours was a one-line description.
+- tools/pdbrelease now: gen_notes() builds the same shape from git history since the
+  previous v* tag (feat→✨ / fix→🐛 / perf→⚡ / other→🧹, release:/chore commits
+  skipped, sha links), writes notes-<ver>.md, --prepare injects it into the bundle
+  description + created_at, --publish uses --notes-file for the GitHub release,
+  --check warns when the description lacks the version header.
+- v0.5.6 re-released with hand-written notes (the feature work had been squashed into
+  the release commit — future discipline: feat:/fix: commits BEFORE --prepare, so the
+  generated changelog is real). GitHub asset dex-verified; raw bundle.json now
+  carries the version changelog. Commit 7215831.
+
+## 2026-10-28 (final) — morphe-patching skill created (system-wide)
+- ~/.agents/skills/morphe-patching/ : SKILL.md (workflow + trap table) +
+  references/{recon,patching-cookbook,build-release,device-testing,traffic-inspection}.md
+- Captures the full pipeline from this repo's history: recon → fingerprints/injection
+  (register rules, escaping, rename+wrapper, hermes, extension lib) → build ordering →
+  device testing (PII redaction, uiautomator idle failures) → release (Manager
+  resolution chain, dex verification, semantic-release changelog) → MITM recipe →
+  honesty rules (client vs server gates).
+- Registered and live in the agent's available skills (verified by the harness).
+- Release-notes standardization (same day): pdbrelease generates semantic-release
+  changelogs into patches-bundle.json description + --notes-file for GitHub;
+  v0.5.6 re-released with proper notes (asset dex-verified).

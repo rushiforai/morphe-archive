@@ -191,6 +191,8 @@ public class SeeThroughBottomBarTest {
             float density = activity.getResources().getDisplayMetrics().density;
             floating.setBounds(0, 0, 1080, 150);
             assertEquals(standardPill(density), pill.getBounds());
+            android.view.ViewGroup parent = (android.view.ViewGroup) scene.bar.getParent();
+            assertFalse("the bar's parent clips the pill's top", parent.getClipChildren());
 
             VideoOverlayHider.applyTo(activity);
             assertSame("a pass swapped the pill for a new one", floating, scene.bar.getBackground());
@@ -199,6 +201,7 @@ public class SeeThroughBottomBarTest {
             VideoOverlayHider.applyTo(activity);
             assertTrue(scene.bar.getBackground() instanceof ColorDrawable);
             assertEquals(Color.TRANSPARENT, ((ColorDrawable) scene.bar.getBackground()).getColor());
+            assertTrue("the parent kept drawing past its children with no pill", parent.getClipChildren());
 
             Settings.FLOATING_BOTTOM_BAR.save(true);
             VideoOverlayHider.applyTo(activity);
@@ -294,10 +297,10 @@ public class SeeThroughBottomBarTest {
         return Arrays.asList(view.getPaddingLeft(), view.getPaddingTop(), view.getPaddingRight(), view.getPaddingBottom());
     }
 
-    /** The standard pill on a 1080 x 150 bar: HushGram's side margins and a hairline above and under. */
+    /** The standard pill on a 1080 x 150 bar: HushGram's side margins, 4dp above the top and a hairline under. */
     private static Rect standardPill(float density) {
         int side = SeeThroughBottomBar.sidePx(1080, density);
-        return new Rect(side, Math.round(density), 1080 - side, 150 - Math.round(density));
+        return new Rect(side, -Math.round(4 * density), 1080 - side, 150 - Math.round(density));
     }
 
     /**
@@ -486,7 +489,9 @@ public class SeeThroughBottomBarTest {
 
             Settings.HIDE_BOTTOM_TAB_LABELS.save(false);
             bar.getViewTreeObserver().dispatchOnPreDraw();
-            assertEquals("the tab stayed moved with the names back", 0f, tab.getTranslationY(), 0f);
+            assertEquals("with the names back the tab, not its icon, sits in the pill's middle",
+                    lens.pillRect.exactCenterY(), tab.getTop() + tab.getTranslationY() + 75f, 1f);
+            assertTrue("the tab didn't go up with the pill", tab.getTranslationY() < 0f);
         } finally {
             Settings.HIDE_BOTTOM_TAB_LABELS.save(false);
         }
@@ -504,11 +509,44 @@ public class SeeThroughBottomBarTest {
 
         Rect out = new Rect();
         SeeThroughBottomBar.pillBounds(new Rect(0, 0, 1080, 150), 2.8125f, false, out);
-        assertEquals(new Rect(54, 3, 1026, 147), out);
+        assertEquals("the pill stands 4dp above the bar", new Rect(54, -11, 1026, 147), out);
         SeeThroughBottomBar.pillBounds(new Rect(0, 0, 1080, 150), 2.8125f, true, out);
-        assertEquals("a compact pill is 4dp slimmer each side", new Rect(54, 14, 1026, 136), out);
-        SeeThroughBottomBar.pillBounds(new Rect(0, 0, 1080, 90), 2f, true, out);
+        assertEquals("a compact pill is 2dp slimmer each side", new Rect(54, -5, 1026, 141), out);
+        SeeThroughBottomBar.pillBounds(new Rect(0, 0, 1080, 80), 2f, true, out);
         assertEquals("a compact pill stays 40dp tall", 80, out.height());
+    }
+
+    /**
+     * The S22's bar (1080 x 138 at density 3, 2026-10-27): the Home icon's roof (20 px into the
+     * bar) and its name's foot (117 px) touched the lens, the roof poking over it in Compact. The
+     * taller pill, the tabs centered on it and the thinner lens inset leave room on both.
+     */
+    @Test
+    public void theHomeTabClearsTheLensOnTheS22sBar() {
+        float density = 3f;
+        int roof = 20, foot = 117, barHeight = 138;
+        for (boolean compact : new boolean[] {false, true}) {
+            Rect pill = new Rect();
+            SeeThroughBottomBar.pillBounds(new Rect(0, 0, 1080, barHeight), density, compact, pill);
+            android.graphics.RectF lens = new android.graphics.RectF();
+            assertTrue(SeeThroughBottomBar.lensSpan(new android.graphics.RectF(0, 0, 216, barHeight), pill, 5,
+                    density, lens));
+            float shift = Math.round(pill.exactCenterY() - barHeight / 2f);
+            String which = compact ? "compact" : "standard";
+            assertTrue(which + ": the roof touches the lens, " + (roof + shift - lens.top),
+                    roof + shift - lens.top >= 3 * density);
+            assertTrue(which + ": the name touches the lens, " + (lens.bottom - foot - shift),
+                    lens.bottom - foot - shift >= 3 * density);
+        }
+    }
+
+    /** The feed's layers go up by the pill's rise in step with the room their cell reached. */
+    @Test
+    public void theLiftCarriesThePillsRiseInStep() {
+        assertEquals(150f, VideoOverlayHider.withRise(138f, 138f, 12), 0f);
+        assertEquals("half the room, half the rise", 75f, VideoOverlayHider.withRise(69f, 138f, 12), 0f);
+        assertEquals("no pill, no rise", 69f, VideoOverlayHider.withRise(69f, 138f, 0), 0f);
+        assertEquals("a strip with no height of its own", 50f, VideoOverlayHider.withRise(50f, 0f, 12), 0f);
     }
 
     /** The choices' values: HushGram's corners, opacity steps and blur strengths. */
@@ -659,7 +697,8 @@ public class SeeThroughBottomBarTest {
             // The first tab: the lens keeps inside the pill's rounded end.
             select(bar, 0);
             lens.draw(canvas);
-            assertEquals(pill.left + inset, lens.lensBounds().left, 0.001f);
+            assertEquals(lensAt(bar, 0).left, lens.lensBounds().left, 0.001f);
+            assertTrue("the lens ran into the pill's end", lens.lensBounds().left >= pill.left + inset - 0.001f);
 
             // No tab selected: the glass alone.
             select(bar, -1);
@@ -712,7 +751,6 @@ public class SeeThroughBottomBarTest {
     public void aNewLensSlidesOnFromWhereTheBarsLastLensWas() {
         animatorScale(1f);
         float density = context.getResources().getDisplayMetrics().density;
-        float inset = SeeThroughBottomBar.LENS_INSET_DP * density;
         SeeThroughBottomBar.GlassLensBackground first = new SeeThroughBottomBar.GlassLensBackground(density);
         LinearLayout bar = tabBar(context, first);
         android.graphics.Canvas canvas = new android.graphics.Canvas(
@@ -740,9 +778,8 @@ public class SeeThroughBottomBarTest {
         bar.setBackground(third);
         third.setBounds(0, 0, 1080, 150);
         third.draw(canvas);
-        Rect pill = third.getDrawable().getBounds();
         assertEquals("a lens back after a while slid in from an old spot",
-                pill.left + inset, third.lensBounds().left, 0.001f);
+                lensAt(bar, 0).left, third.lensBounds().left, 0.001f);
     }
 
     /**
@@ -811,7 +848,6 @@ public class SeeThroughBottomBarTest {
     public void aSlideCarriesOnPastAStalledMainThread() {
         animatorScale(1f);
         float density = context.getResources().getDisplayMetrics().density;
-        float inset = SeeThroughBottomBar.LENS_INSET_DP * density;
         SeeThroughBottomBar.GlassLensBackground lens = new SeeThroughBottomBar.GlassLensBackground(density);
         LinearLayout bar = tabBar(context, lens);
         android.graphics.Canvas canvas = new android.graphics.Canvas(
@@ -838,7 +874,7 @@ public class SeeThroughBottomBarTest {
                 .idleFor(java.time.Duration.ofMillis(SeeThroughBottomBar.LENS_MEMORY_MS + 10));
         lens.draw(canvas);
         assertEquals("a slide resumed after the bar was out of sight",
-                lens.getDrawable().getBounds().left + inset, lens.lensBounds().left, 0.001f);
+                lensAt(bar, 0).left, lens.lensBounds().left, 0.001f);
     }
 
     @Test
@@ -925,6 +961,7 @@ public class SeeThroughBottomBarTest {
     }
 
     private static final int STRIP_ID = 0x7f0a0c24;
+    private static final int SEEK_BAR_ID = 0x7f0a0c2f;
     private static final int COLUMN_ID = 0x7f0a0c25;
     private static final int LAYER_ID = 0x7f0a0c26;
 
@@ -940,6 +977,7 @@ public class SeeThroughBottomBarTest {
         VideoOverlayHider.resolveForTests("47.5.3:cmy", STRIP_ID);
         VideoOverlayHider.resolveForTests("viewpager_container", COLUMN_ID);
         VideoOverlayHider.resolveForTests("widget_container", LAYER_ID);
+        VideoOverlayHider.resolveForTests("video_seek_bar", SEEK_BAR_ID);
         Settings.SEE_THROUGH_BOTTOM_BAR.save(true);
         try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
             Activity activity = controller.get();
@@ -967,6 +1005,12 @@ public class SeeThroughBottomBarTest {
             bar.setBackgroundColor(Color.BLACK);
             root.addView(bar, new FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT, 138, android.view.Gravity.BOTTOM));
+            View seekBar = new View(activity);
+            seekBar.setId(SEEK_BAR_ID);
+            FrameLayout.LayoutParams seekAt = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT, 79, android.view.Gravity.BOTTOM);
+            seekAt.bottomMargin = 101;
+            root.addView(seekBar, seekAt);
             activity.setContentView(root);
             layOut(root);
             assertEquals(1882, anchor.getTop() + cell.getTop());
@@ -988,11 +1032,30 @@ public class SeeThroughBottomBarTest {
             assertEquals(View.GONE, strip.getVisibility());
             assertEquals(Color.TRANSPARENT, ((ColorDrawable) bar.getBackground()).getColor());
 
+            // A floating pill stands above the bar, and the caption ends on its top instead.
+            Settings.FLOATING_BOTTOM_BAR.save(true);
+            VideoOverlayHider.applyTo(activity);
+            VideoOverlayHider.applyTo(activity);
+            int rise = SeeThroughBottomBar.riseOver(bar);
+            assertEquals(Math.round(4 * activity.getResources().getDisplayMetrics().density), rise);
+            assertEquals("the caption ends on the pill's top", 2043f - rise,
+                    anchor.getBottom() + layer.getTranslationY(), 0f);
+            assertEquals("the progress line rides on the pill's top",
+                    -(rise + Math.round(4 * activity.getResources().getDisplayMetrics().density)),
+                    seekBar.getTranslationY(), 0f);
+            Settings.FLOATING_BOTTOM_BAR.save(false);
+            VideoOverlayHider.applyTo(activity);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals("the rise outlived the pill", -138f, layer.getTranslationY(), 0f);
+            assertEquals("the progress line stayed up without the pill", 0f, seekBar.getTranslationY(), 0f);
+
             Settings.SEE_THROUGH_BOTTOM_BAR.save(false);
             VideoOverlayHider.applyTo(activity);
             assertEquals(View.VISIBLE, strip.getVisibility());
             assertEquals(0f, layer.getTranslationY(), 0f);
         } finally {
+            Settings.FLOATING_BOTTOM_BAR.save(false);
+            VideoOverlayHider.resolveForTests("video_seek_bar", 0);
             VideoOverlayHider.resolveForTests("47.5.3:cmy", 0);
             VideoOverlayHider.resolveForTests("viewpager_container", 0);
             VideoOverlayHider.resolveForTests("widget_container", 0);
@@ -1139,6 +1202,90 @@ public class SeeThroughBottomBarTest {
             VideoOverlayHider.resolveForTests("viewpager_container", 0);
             VideoOverlayHider.resolveForTests("widget_container", 0);
             VideoOverlayHider.resolveForTests("tv_drama_tips", 0);
+        }
+    }
+
+    private static final int SWIPE_HINT_ID = 0x7f0a95f2;
+
+    /**
+     * A suggested account card in For You (#261, S22 2026-10-27): the page has no cell id and its
+     * "Swipe up to skip" line sits on the page's bottom edge inside one full-size layout, so that
+     * layout goes up by the strip's height. A card whose line TikTok left gone stays put.
+     */
+    @Test
+    public void aCardsSwipeHintGoesUpWithTheRoom() {
+        VideoOverlayHider.resolveForTests("47.5.3:cmy", STRIP_ID);
+        VideoOverlayHider.resolveForTests("viewpager_container", COLUMN_ID);
+        VideoOverlayHider.resolveForTests("widget_container", LAYER_ID);
+        VideoOverlayHider.resolveForTests("tv_swipe_up", SWIPE_HINT_ID);
+        Settings.SEE_THROUGH_BOTTOM_BAR.save(true);
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout root = new FrameLayout(activity);
+            LinearLayout column = new LinearLayout(activity);
+            column.setId(COLUMN_ID);
+            column.setOrientation(LinearLayout.VERTICAL);
+            StackedPager pager = new StackedPager(activity);
+            column.addView(pager, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+            View strip = new View(activity);
+            strip.setId(STRIP_ID);
+            column.addView(strip, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 138));
+            FrameLayout cell = new FrameLayout(activity);
+            cell.setId(CELL_ID);
+            FrameLayout layer = new FrameLayout(activity);
+            layer.setId(LAYER_ID);
+            cell.addView(layer);
+            View cellHint = new View(activity);
+            cellHint.setId(SWIPE_HINT_ID);
+            cell.addView(cellHint);
+            pager.addView(cell);
+            FrameLayout[] cards = new FrameLayout[2];
+            View[] hints = new View[2];
+            for (int i = 0; i < 2; i++) {
+                FrameLayout page = new FrameLayout(activity);
+                cards[i] = new FrameLayout(activity);
+                page.addView(cards[i]);
+                hints[i] = new View(activity);
+                hints[i].setId(SWIPE_HINT_ID);
+                cards[i].addView(hints[i], new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT, 51, android.view.Gravity.BOTTOM));
+                pager.addView(page);
+            }
+            hints[1].setVisibility(View.GONE);
+            root.addView(column);
+            View bar = new FrameLayout(activity);
+            bar.setId(BAR_ID);
+            bar.setBackgroundColor(Color.BLACK);
+            root.addView(bar, new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT, 138, android.view.Gravity.BOTTOM));
+            activity.setContentView(root);
+            layOut(root);
+            VideoOverlayHider.applyTo(activity);
+            layOut(root);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, strip.getVisibility());
+            assertEquals(-138f, layer.getTranslationY(), 0f);
+            assertEquals("the swipe hint went under the bar with the room", -138f, cards[0].getTranslationY(), 0f);
+            assertEquals("a card with no hint shown stays put", 0f, cards[1].getTranslationY(), 0f);
+            assertEquals("a video cell holding the line moves by its layers only", 0f, cell.getTranslationY(), 0f);
+
+            hints[0].setVisibility(View.GONE);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals("the card goes back once its line is gone", 0f, cards[0].getTranslationY(), 0f);
+            hints[0].setVisibility(View.VISIBLE);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(-138f, cards[0].getTranslationY(), 0f);
+
+            Settings.SEE_THROUGH_BOTTOM_BAR.save(false);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(0f, cards[0].getTranslationY(), 0f);
+            assertEquals(0f, layer.getTranslationY(), 0f);
+        } finally {
+            VideoOverlayHider.resolveForTests("47.5.3:cmy", 0);
+            VideoOverlayHider.resolveForTests("viewpager_container", 0);
+            VideoOverlayHider.resolveForTests("widget_container", 0);
+            VideoOverlayHider.resolveForTests("tv_swipe_up", 0);
         }
     }
 

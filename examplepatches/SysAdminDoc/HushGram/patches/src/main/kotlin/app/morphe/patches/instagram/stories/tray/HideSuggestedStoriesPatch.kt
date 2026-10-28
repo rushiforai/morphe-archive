@@ -8,18 +8,21 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.instagram.download.pandoGetter
 import app.morphe.patches.instagram.feed.requireOneKindField
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.classesCalling
 import app.morphe.patches.instagram.misc.extension.classesHolding
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
+import app.morphe.patches.instagram.misc.extension.patchLog
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.flags.FlagLoad
 import app.morphe.patches.instagram.misc.flags.answerFlagLoads
 import app.morphe.patches.instagram.misc.flags.findFlagLoads
 import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
+import app.morphe.patches.instagram.stories.seen.userIdGetter
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -93,7 +96,8 @@ internal val MADE_REELS = listOf(
 val hideSuggestedStoriesPatch = bytecodePatch(
     name = "Hide suggested stories",
     description = "Removes stories from accounts you don't follow from the row at the top of Home. More switches " +
-        "hide rewinds and memories, or the whole row. Starts on. Turn it off in HushGram settings > Stories.",
+        "hide rewinds and memories, keep only verified or unverified accounts, or hide the whole row. Starts on. " +
+        "Turn it off in HushGram settings > Stories.",
 ) {
     category("Stories")
     dependsOn(settingsPatch, instagramExtensionPatch)
@@ -106,7 +110,9 @@ val hideSuggestedStoriesPatch = bytecodePatch(
         val parse = findTrayItemParse()
         val netegoCheck = findStoryNetegoCheck()
         val midcards = findStoryMidcards()
+        val owner = findTrayOwnerOrWarn()
         hookTrayParser(parse, findTrayRemaining(parse.site))
+        owner?.let { fillTrayOwnerStubs(it) }
         hideMusicCard()
         hideStorySuggestions(netegoCheck)
         hideStoryMidcards(midcards)
@@ -349,6 +355,72 @@ internal fun BytecodePatchContext.filterTrayItems(parse: TrayItemParse) {
             move-result-object v$item
         """,
     )
+}
+
+private const val TRAY_USER = "Lcom/instagram/user/model/User;"
+private const val STORIES_TRAY = "$EXTENSION_PACKAGE/stories/StoriesTray;"
+
+/**
+ * What Filter the Stories tray by verified accounts reads (#340): [owner], the tray item
+ * interface's getter of the account whose story it is, and that User's [verified] getter (the
+ * `is_verified` field) and [id] getter. All public, so the extension's stubs can call them.
+ */
+internal class TrayOwner(val owner: Method, val verified: Method, val id: Method)
+
+/**
+ * Finds [TrayOwner]: the one no-argument User getter [TRAY_ITEM_INTF] declares (452.1's Dy7, which
+ * both tray item classes answer), User's Boolean getter of `is_verified`, and its id getter.
+ */
+internal fun BytecodePatchContext.findTrayOwner(): TrayOwner {
+    val items = classDefByOrNull(TRAY_ITEM_INTF) ?: refuse("$TRAY_ITEM_INTF isn't present")
+    if (!AccessFlags.PUBLIC.isSet(items.accessFlags)) refuse("$TRAY_ITEM_INTF isn't public")
+    val owners = items.methods.filter { it.parameterTypes.isEmpty() && it.returnType == TRAY_USER }
+    val owner = owners.singleOrNull() ?: refuse("expected $TRAY_ITEM_INTF to declare one User getter, found ${owners.size}")
+    val user = classDefByOrNull(TRAY_USER) ?: refuse("the User model isn't present")
+    val verified = pandoGetter(PATCH, TRAY_USER, "is_verified", "Ljava/lang/Boolean;")
+    if (!AccessFlags.PUBLIC.isSet(user.accessFlags) || !AccessFlags.PUBLIC.isSet(verified.accessFlags)) {
+        refuse("$TRAY_USER->${verified.name} isn't public, so the extension can't reach it")
+    }
+    return TrayOwner(owner, verified, userIdGetter(::refuse))
+}
+
+/** [findTrayOwner], or null with a warning: the patch goes in, and the verified filter keeps every story. */
+internal fun BytecodePatchContext.findTrayOwnerOrWarn(): TrayOwner? = try {
+    findTrayOwner()
+} catch (moved: PatchException) {
+    patchLog.warning("${moved.message}. Hide suggested stories goes in without Filter the Stories tray by verified accounts.")
+    null
+}
+
+/** Writes StoriesTray's trayOwner, userVerified and userId stubs to call [found]'s getters. */
+internal fun BytecodePatchContext.fillTrayOwnerStubs(found: TrayOwner) {
+    val tray = mutableClassDefBy(STORIES_TRAY)
+    val reads = listOf(
+        Triple("trayOwner", TRAY_ITEM_INTF, found.owner),
+        Triple("userVerified", TRAY_USER, found.verified),
+        Triple("userId", TRAY_USER, found.id),
+    )
+    // Every stub is checked before any is written.
+    val stubs = reads.map { (name, _, getter) ->
+        tray.methods.singleOrNull {
+            it.name == name && AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == getter.returnType.let { type ->
+                if (type == TRAY_USER) "Ljava/lang/Object;" else type
+            } && it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;")
+        } ?: refuse("$STORIES_TRAY has no static $name(Object)")
+    }
+    for ((stub, read) in stubs.zip(reads)) {
+        val (_, type, getter) = read
+        val invoke = if (type == TRAY_ITEM_INTF) "invoke-interface" else "invoke-virtual"
+        stub.addInstructions(
+            0,
+            """
+                check-cast p0, $type
+                $invoke { p0 }, $type->${getter.name}()${getter.returnType}
+                move-result-object p0
+                return-object p0
+            """,
+        )
+    }
 }
 
 private fun BytecodePatchContext.mutableMethod(site: MethodSite) = mutableClassDefBy(site.type).methods.single {

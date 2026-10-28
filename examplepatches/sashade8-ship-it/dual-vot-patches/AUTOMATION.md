@@ -34,6 +34,10 @@ An update is rejected when:
 - a required Dual VoT source file is missing;
 - either translation patch is absent from generated metadata;
 - the `.mpp` manifest, version, size, or checksum is inconsistent;
+- the Yandex player-event compatibility tests fail, including execution without
+  Kotlin classes;
+- a Java-only YouTube extension's compiled DEX links `kotlin.Unit` or
+  `kotlin.jvm.functions.Function1`, which are absent from that runtime;
 - the remote branch changes while the candidate is building.
 
 On failure, the previous published bundle remains available and the workflow

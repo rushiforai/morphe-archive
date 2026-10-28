@@ -17,16 +17,16 @@ import app.crimera.utils.cacheFieldOrNull
 import app.crimera.utils.changeStringAt
 import app.crimera.utils.classNameToExtension
 import app.crimera.utils.fieldExtractor
+import app.crimera.utils.liveTreeGetter
 import app.crimera.utils.methodExtractor
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstruction
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import app.morphe.library.instagram.patches.instagramExtensionPatch
@@ -96,18 +96,27 @@ val mediaDataEntity =
                     ?: throw PatchException("Could not identify the video variants getter")
             GetVideoVariantsV1ExtensionFingerprint.changeFirstString(videoVariantsGetter.name)
 
-            // Extracting method is video used in media class. piko took the getter the asl session
-            // logger calls after "is_video"; from 452 the logger computes it in a lambda. The getter
-            // hands the media to a helper that reads its tree field -1749461646 and that tree's media
-            // type, field 1939875509; no other media getter's helper reads both.
-            val isVideoGetter = classDefBy(MEDIA_CLASS_NAME).methods.singleOrNull { getter ->
-                getter.returnType == "Z" && getter.parameterTypes.isEmpty() &&
-                    getter.implementation?.instructions
-                        ?.singleOrNull { it.opcode == Opcode.INVOKE_STATIC }
-                        ?.getReference<MethodReference>()
-                        ?.let { helper -> readsMediaType(helper) } == true
-            } ?: throw PatchException("Could not identify the media is video getter")
-            IsVideoExtensionFingerprint.changeFirstString(isVideoGetter.name)
+            // Extracting method is video used in media class: the boolean a media logger computes
+            // right before it logs "is_video" (piko's anchor). Up to 452 that is the media getter
+            // itself; from 453 the logger calls the getter's static helper inline, and the getter is
+            // the one media method that calls that helper.
+            val isVideoCall = MediaIsVideoLoggerFingerprint.method.instructions.toList().let { instructions ->
+                val label = instructions.indexOfFirst { it.getReference<StringReference>()?.string == "is_video" }
+                instructions.take(label).lastOrNull { instruction ->
+                    instruction.opcode in setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_STATIC) &&
+                        instruction.getReference<MethodReference>()?.returnType == "Z"
+                }?.getReference<MethodReference>()
+            } ?: throw PatchException("The media logger computes no boolean before is_video")
+            val isVideoGetter =
+                if (isVideoCall.definingClass == MEDIA_CLASS_NAME) {
+                    isVideoCall.name
+                } else {
+                    classDefBy(MEDIA_CLASS_NAME).methods.singleOrNull { getter ->
+                        getter.returnType == "Z" && getter.parameterTypes.isEmpty() &&
+                            getter.implementation?.instructions?.any { it.getReference<MethodReference>() == isVideoCall } == true
+                    }?.name ?: throw PatchException("Could not identify the media is video getter")
+                }
+            IsVideoExtensionFingerprint.changeFirstString(isVideoGetter)
 
             // Extraction of the carousel media list getter.
             EditMediaInfoFragmentMediaSizeFingerprint.method.apply {
@@ -134,24 +143,21 @@ val mediaDataEntity =
                     ?: throw PatchException("Could not identify the media user getter")
             GetUserDataWithoutUserSessionExtensionFingerprint.changeFirstString(userGetter.name)
 
-            // Extraction of description
-            val commentObjectClassName: String
-            CommentToStringFingerprint.apply {
-                commentObjectClassName = classDef.type
-                method.apply {
-                    val getCommentTextFieldName = instructions.last { it.opcode == Opcode.IGET_OBJECT }.fieldExtractor().name
-                    GetDescriptionTextExtensionFingerprint.changeStringAt(1, getCommentTextFieldName)
-                }
-            }
-
-            val getCommentDataFromMediaMethodName =
-                classDefBy(MEDIAEXT_CLASS_NAME)
-                    .methods
-                    .first {
-                        it.returnType ==
-                            commentObjectClassName
-                    }.name
-            GetDescriptionTextExtensionFingerprint.changeFirstString(getCommentDataFromMediaMethodName)
+            // Extraction of description: the media's "caption" tree and that tree's "text". piko went
+            // through a comment class found by its toString and a media helper returning it; 453
+            // dropped both, while the caption's json keys hold.
+            val captionGetter =
+                mediaModelGetter("caption") { it.startsWith("L") && it != "Ljava/lang/String;" }
+                    ?: throw PatchException("Could not identify the media caption getter")
+            // The caption type is an interface; the getters reading its json keys are on the classes
+            // implementing it, under the interface's method names.
+            val captionTypes = mutableListOf(captionGetter.returnType)
+            classDefForEach { classDef -> if (captionGetter.returnType in classDef.interfaces) captionTypes += classDef.type }
+            val captionTextGetter =
+                captionTypes.firstNotNullOfOrNull { type -> liveTreeGetter(type, "text") { it == "Ljava/lang/String;" } }
+                    ?: throw PatchException("Could not identify the caption text getter")
+            GetDescriptionTextExtensionFingerprint.changeFirstString(captionGetter.name)
+            GetDescriptionTextExtensionFingerprint.changeStringAt(1, captionTextGetter.name)
 
             // Extraction of trackInfo. Up to 451 a media helper built a container from the MusicInfo
             // of either of the media's two music models; 452 dropped it. The extension follows the
@@ -234,11 +240,9 @@ val mediaDataEntity =
         }
     }
 
-/** Whether [helper] reads a media's tree field -1749461646 and then that tree's media type. */
-private fun BytecodePatchContext.readsMediaType(helper: MethodReference): Boolean {
-    val implementation = classDefByOrNull(helper.definingClass)?.methods?.firstOrNull { method ->
-        method.name == helper.name && method.parameterTypes == helper.parameterTypes
-    }?.implementation ?: return false
-    val literals = implementation.instructions.mapNotNull { (it as? WideLiteralInstruction)?.wideLiteral }.toSet()
-    return literals.containsAll(listOf(-1749461646L, 1939875509L))
-}
+/** A media logger that logs whether a media is a video, under the key "is_video". */
+private object MediaIsVideoLoggerFingerprint : Fingerprint(
+    parameters = listOf("Lcom/instagram/feed/media/Media;"),
+    returnType = "V",
+    strings = listOf("is_carousel", "is_video"),
+)

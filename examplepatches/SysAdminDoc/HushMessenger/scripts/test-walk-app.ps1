@@ -192,6 +192,11 @@ try {
         '<node text="Restore now" class="android.widget.Button" content-desc="Restore now" enabled="true" bounds="[45,2023][1035,2158]" /></hierarchy>'
     Assert-WalkApp (Test-WalkRestorePrompt $restorePrompt) 'The restore prompt should read as the restore prompt.'
     Assert-WalkApp (-not (Test-WalkRestorePrompt (Get-WalkFixtureXml 'inbox')) -and -not (Test-WalkRestorePrompt '')) 'Other screens should not read as the restore prompt.'
+    # The inbox once past the prompt, as the API 32 emulator dumped it: a "Restore chat history" banner with its own button.
+    $banner = '<node text="Restore chat history. Restore now " class="android.view.ViewGroup" content-desc="Restore chat history. Restore now " enabled="true" bounds="[113,232][1038,438]" />' +
+        '<node text="Restore now" class="android.widget.Button" content-desc="" enabled="true" bounds="[703,256][922,338]" />'
+    Assert-WalkApp (-not (Test-WalkRestorePrompt (Get-WalkFixtureXml 'inbox' $banner))) 'The inbox with its restore banner should not read as the restore prompt.'
+    Assert-WalkApp (Test-WalkRestorePrompt ('<hierarchy>' + $banner + '</hierarchy>')) 'A Restore now button away from the inbox should still read as the restore prompt.'
     $close = Find-WalkNodeCenter -Xml $restorePrompt -Text 'Close' -Described
     Assert-WalkApp ($close[0] -eq 78 -and $close[1] -eq 154) "Close should be found by its description ($($close -join ','))."
     Assert-WalkApp ($null -eq (Find-WalkNodeCenter -Xml $restorePrompt -Text 'Close')) 'Close has no text, so a text lookup should not find it.'

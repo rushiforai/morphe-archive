@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import app.morphe.extension.facebook.media.PauseUnderComments;
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.Logger;
@@ -153,6 +154,8 @@ public final class FullHeightComments {
      * without one is left as it is.
      */
     public static void watchHeader(@Nullable View content, int headerId, boolean overVideo) {
+        // Pause reels while comments are open has its own switch and reads this sheet either way (#266).
+        PauseUnderComments.sheetOpened(content);
         try {
             HookStatus.invoked(FAMILY);
             HookStatus.bound(FAMILY, HEADER);

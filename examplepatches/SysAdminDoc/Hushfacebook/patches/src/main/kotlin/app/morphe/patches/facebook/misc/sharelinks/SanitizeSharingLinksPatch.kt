@@ -56,7 +56,7 @@ val sanitizeSharingLinksPatch = bytecodePatch(
     description = "Takes Facebook's tracking tags off links you share or copy, so you share a clean link. A " +
         "facebook.com/share/ link is made for one share, so Facebook can still trace that kind back to you, and " +
         "a switch that starts off shares the post's own link in its place. On by default. Both are in " +
-        "Hushfacebook settings > Links.",
+        "Hushfacebook settings > Links and sharing.",
     default = true,
 ) {
     category("Privacy")

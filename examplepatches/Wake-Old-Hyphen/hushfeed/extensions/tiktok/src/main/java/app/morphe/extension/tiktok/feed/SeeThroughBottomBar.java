@@ -69,10 +69,16 @@ final class SeeThroughBottomBar {
      */
     static final float PILL_SIDE_SHARE = 0.05f;
     static final int PILL_MIN_SIDE_DP = 16, PILL_MAX_WIDTH_DP = 420;
-    /** The clear space above and under the pill, in dp: a hairline, so the pill is as tall as the bar. */
+    /** The clear space under the pill, in dp: a hairline. */
     static final int PILL_GAP_DP = 1;
+    /**
+     * How far the pill stands above the bar's top, in dp. Within the bar's own 46dp the Home icon's
+     * roof and its name touched the lens (S22, 2026-10-27), so the pill reaches over the feed a
+     * little and the feed's caption goes up by as much ({@link #riseOver}).
+     */
+    static final int PILL_RISE_DP = 4;
     /** How much slimmer a compact pill is on each side, and the shortest one is drawn, in dp. */
-    static final int COMPACT_INSET_DP = 4, MIN_PILL_DP = 40;
+    static final int COMPACT_INSET_DP = 2, MIN_PILL_DP = 40;
     /** How far the first and last tabs' slots stay in from the pill's ends, in dp. */
     static final int TAB_INNER_DP = 7;
 
@@ -85,19 +91,45 @@ final class SeeThroughBottomBar {
     }
 
     /**
-     * The pill inside a bar with {@code bar} bounds, put in {@code out}: in from the sides by
-     * {@link #sidePx}, a hairline in from the top and the bottom, and for a {@code compact} pill
-     * {@link #COMPACT_INSET_DP} more, less if that would leave it shorter than {@link #MIN_PILL_DP}.
+     * The pill over a bar with {@code bar} bounds, put in {@code out}: in from the sides by
+     * {@link #sidePx}, {@link #PILL_RISE_DP} above the top, a hairline in from the bottom, and for
+     * a {@code compact} pill {@link #COMPACT_INSET_DP} in from both, less if that would leave it
+     * shorter than {@link #MIN_PILL_DP}.
      */
     static void pillBounds(Rect bar, float density, boolean compact, Rect out) {
         int side = sidePx(bar.width(), density);
         int gap = Math.round(PILL_GAP_DP * density);
+        int rise = Math.round(PILL_RISE_DP * density);
         int inset = 0;
         if (compact) {
-            int room = (bar.height() - 2 * gap - Math.round(MIN_PILL_DP * density)) / 2;
+            int room = (bar.height() + rise - gap - Math.round(MIN_PILL_DP * density)) / 2;
             inset = Math.max(0, Math.min(Math.round(COMPACT_INSET_DP * density), room));
         }
-        out.set(bar.left + side, bar.top + gap + inset, bar.right - side, bar.bottom - gap - inset);
+        out.set(bar.left + side, bar.top - rise + inset, bar.right - side, bar.bottom - gap - inset);
+    }
+
+    /** The gap kept between the feed's progress line and the pill's top, in dp. */
+    static final int SEEK_BAR_CLEAR_DP = 4;
+
+    /**
+     * How far the feed's progress line goes up with the pill {@code rise} px above the bar: past
+     * the rise by {@link #SEEK_BAR_CLEAR_DP}, so it doesn't ride on the pill's rim (S22,
+     * 2026-10-27). Nothing without a pill.
+     */
+    static int seekBarLift(int rise, float density) {
+        return rise <= 0 ? 0 : rise + Math.round(SEEK_BAR_CLEAR_DP * density);
+    }
+
+    /**
+     * How far the pill {@code bar}'s background draws reaches above the bar, 0 without a pill.
+     * Worked out from the bar's size, so it holds before the pill's first draw.
+     */
+    static int riseOver(View bar) {
+        if (bar == null || !(bar.getBackground() instanceof FloatingBackground) || bar.getHeight() <= 0) return 0;
+        Rect pill = new Rect();
+        pillBounds(new Rect(0, 0, bar.getWidth(), bar.getHeight()), ((FloatingBackground) bar.getBackground()).density,
+                "compact".equals(Settings.GLASS_BAR_HEIGHT.get()), pill);
+        return Math.max(0, -pill.top);
     }
 
     /**
@@ -151,9 +183,10 @@ final class SeeThroughBottomBar {
      * their middles. They move by translation, so nothing is laid out again and each tab's taps
      * move with it. A tab TikTok offset itself keeps its offset.
      *
-     * <p>With Hide the bottom tab names the name under each icon is gone, but TikTok keeps the
-     * icon where it sat above the name, so the icons rode high in the pill with the empty room
-     * under them. Each tab then also moves up or down so its icon sits in the pill's middle.
+     * <p>The pill stands above the bar ({@link #PILL_RISE_DP}), so each tab also moves up to sit
+     * in the pill's middle. With Hide the bottom tab names the name under each icon is gone, but
+     * TikTok keeps the icon where it sat above the name, so the icons rode high in the pill with
+     * the empty room under them. Then the icon, not the tab, goes in the pill's middle.
      */
     static void placeTabs(ViewGroup bar, Rect pill, float density) {
         if (pill.isEmpty()) return;
@@ -166,8 +199,8 @@ final class SeeThroughBottomBar {
             offset(tab, Math.round(slotMiddle(pill.left + inner, pill.right - inner, tabs.size(), k) - middle),
                     MOVED, true);
             float icon = centerIcons ? iconMiddle(tab) : Float.NaN;
-            offset(tab, Float.isNaN(icon) ? 0f : Math.round(pill.exactCenterY() - (tab.getTop() + icon)),
-                    LIFTED, false);
+            if (Float.isNaN(icon)) icon = tab.getHeight() / 2f;
+            offset(tab, Math.round(pill.exactCenterY() - (tab.getTop() + icon)), LIFTED, false);
         }
     }
 
@@ -477,7 +510,7 @@ final class SeeThroughBottomBar {
     /** The bubble's rim: bright along its top where the light catches it, faint along its bottom. */
     static final int LENS_RIM_TOP = 0xB0FFFFFF, LENS_RIM_BOTTOM = 0x28FFFFFF;
     /** How far the lens stays in from the pill's top, bottom and ends, and how far past the tab's slot it stands, in dp. */
-    static final int LENS_INSET_DP = 4, LENS_GROW_DP = 4;
+    static final int LENS_INSET_DP = 3, LENS_GROW_DP = 4;
     /** How much larger the bubble is midway through a slide and under a finger. */
     static final float BUBBLE_SWELL = 0.08f;
     /** How long the lens takes to slide to a newly picked tab. */
@@ -937,6 +970,7 @@ final class SeeThroughBottomBar {
         if (clear) {
             if (current == null) return;
             int wanted = !floating ? CLEAR : !glass ? FLOATING : lens ? GLASS_LENS : GLASS;
+            letPillRise(bar, floating);
             if (kind == wanted && (wanted < GLASS || blurs(current) == blur)) return;
             if (kind == THEIRS) BACKGROUNDS.put(bar, current);
             float density = bar.getResources().getDisplayMetrics().density;
@@ -947,10 +981,31 @@ final class SeeThroughBottomBar {
             if (wanted == CLEAR && bar instanceof ViewGroup) putTabsBack((ViewGroup) bar);
             return;
         }
+        letPillRise(bar, false);
         if (!BACKGROUNDS.containsKey(bar)) return;
         Drawable original = BACKGROUNDS.remove(bar);
         if (kind != THEIRS) bar.setBackground(original);
         if (bar instanceof ViewGroup) putTabsBack((ViewGroup) bar);
+    }
+
+    /** Bar parents this class stopped clipping, so a pill could stand above its bar. */
+    private static final Map<ViewGroup, Boolean> UNCLIPPED = new WeakHashMap<>();
+
+    /**
+     * Lets the pill draw above {@code bar} ({@link #PILL_RISE_DP}) by having the bar's parent stop
+     * clipping its children, or with {@code rise} false clips them again where this class stopped
+     * it. TikTok's bar parent spans the whole feed (S22, 47.5.3), so nothing past it shows.
+     */
+    static void letPillRise(View bar, boolean rise) {
+        if (!(bar.getParent() instanceof ViewGroup)) return;
+        ViewGroup parent = (ViewGroup) bar.getParent();
+        if (rise) {
+            if (!parent.getClipChildren()) return;
+            parent.setClipChildren(false);
+            UNCLIPPED.put(parent, true);
+        } else if (UNCLIPPED.remove(parent) != null && !parent.getClipChildren()) {
+            parent.setClipChildren(true);
+        }
     }
 
     /**

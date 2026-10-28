@@ -137,15 +137,21 @@ public final class ReelDeclutter {
     static final String SIDEBAR_ROUTE = "Reel sidebar buttons";
     static final String SAVE_BUTTON = "Save button";
     static final String WHATSAPP_BUTTON = "WhatsApp button";
+    static final String LIKE_BUTTON = "Like button";
+    static final String COMMENT_BUTTON = "Comment button";
+    static final String SHARE_BUTTON = "Share button";
     static final String SOUND_BUTTON = "speaker button";
 
     /**
      * The constant of Facebook's icon enum the reel sidebar builds its Save button for (#190). The
      * sidebar walks one constant per button, and the enum's names are kept as strings in the app,
-     * so {@code name()} reads this on any build. Like, Comment and Share are LIKE, COMMENT and SHARE.
+     * so {@code name()} reads this on any build. Like, Comment and Share are LIKE, COMMENT and SHARE (#265).
      */
     static final String SAVE_TYPE = "BOOKMARK";
     static final String WHATSAPP_TYPE = "APP_WHATSAPP";
+    static final String LIKE_TYPE = "LIKE";
+    static final String COMMENT_TYPE = "COMMENT";
+    static final String SHARE_TYPE = "SHARE";
 
     /**
      * What a hidden count becomes: one zero-width space. The button still has a text row, so it
@@ -487,9 +493,9 @@ public final class ReelDeclutter {
     /**
      * Injection point, in the reel sidebar builders, handed each button type before anything is
      * built for it (#190, #243). True skips that type, so the button isn't built, marked or named,
-     * and the others close the gap. Save and direct WhatsApp each have their own switch. Never
-     * throws: off, paused, before the settings are ready, for any other type or on a failure the
-     * button is built as before.
+     * and the others close the gap. Like, Comment, Share, Save and direct WhatsApp each have their
+     * own switch (#265). Never throws: off, paused, before the settings are ready, for any other
+     * type or on a failure the button is built as before.
      *
      * @param type the constant of Facebook's icon enum the sidebar is about to build a button for.
      */
@@ -498,11 +504,16 @@ public final class ReelDeclutter {
         try {
             HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
             if (!(type instanceof Enum)) return false;
-            String name = ((Enum<?>) type).name();
-            if (!SAVE_TYPE.equals(name) && !WHATSAPP_TYPE.equals(name)) return false;
-            if (WHATSAPP_TYPE.equals(name)) button = WHATSAPP_BUTTON;
+            BooleanSetting setting;
+            switch (((Enum<?>) type).name()) {
+                case SAVE_TYPE: setting = Settings.HIDE_REEL_SAVE_BUTTON; break;
+                case WHATSAPP_TYPE: button = WHATSAPP_BUTTON; setting = Settings.HIDE_REEL_WHATSAPP_BUTTON; break;
+                case LIKE_TYPE: button = LIKE_BUTTON; setting = Settings.HIDE_REEL_LIKE_BUTTON; break;
+                case COMMENT_TYPE: button = COMMENT_BUTTON; setting = Settings.HIDE_REEL_COMMENT_BUTTON; break;
+                case SHARE_TYPE: button = SHARE_BUTTON; setting = Settings.HIDE_REEL_SHARE_BUTTON; break;
+                default: return false;
+            }
             if (!Utils.settingsReady()) return false;
-            BooleanSetting setting = SAVE_TYPE.equals(name) ? Settings.HIDE_REEL_SAVE_BUTTON : Settings.HIDE_REEL_WHATSAPP_BUTTON;
             if (!setting.get()) return false;
             FeedFilterCounters.sawList(SIDEBAR_ROUTE, 1);
             FeedFilterCounters.sawKind(SIDEBAR_ROUTE, button);

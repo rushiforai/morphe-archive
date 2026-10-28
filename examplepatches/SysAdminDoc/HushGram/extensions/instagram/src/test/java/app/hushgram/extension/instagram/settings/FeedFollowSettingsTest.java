@@ -20,6 +20,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
+import app.hushgram.extension.instagram.feed.FeedFollowButton;
 import app.hushgram.extension.shared.SettingsContextRule;
 import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.settings.BaseSettings;
@@ -69,6 +71,21 @@ public class FeedFollowSettingsTest {
         SwitchPreference row = (SwitchPreference) page.getPreferenceScreen().findPreference(Settings.HIDE_FEED_FOLLOW.key);
         assertNotNull(row);
         assertEquals("Feed", row.getParent().getTitle().toString());
+    }
+    /** Settings are a dialog over Instagram's screen, which doesn't resume when they close, so flipping on reaches it at once. */
+    @Test public void flippingOnReachesTheScreenUnderSettings() throws Exception {
+        open(EnumSet.of(PatchFamily.FEED_FOLLOW));
+        SwitchPreference row = (SwitchPreference) page.getPreferenceScreen().findPreference(Settings.HIDE_FEED_FOLLOW.key);
+        try {
+            assertFalse(FeedFollowButton.listeningForTests(controller.get()));
+            assertTrue(row.getOnPreferenceChangeListener().onPreferenceChange(row, true));
+            // The switch saves after its listener, so the helper reads the value once the change is posted.
+            Settings.HIDE_FEED_FOLLOW.save(true);
+            ShadowLooper.idleMainLooper();
+            assertTrue(FeedFollowButton.listeningForTests(controller.get()));
+        } finally {
+            FeedFollowButton.resetForTests();
+        }
     }
     @Test public void switchStartsOffUnderFeedAndHonorsPause() throws Exception {
         open(EnumSet.of(PatchFamily.FULL_SCREEN_BARS, PatchFamily.FEED_FOLLOW));

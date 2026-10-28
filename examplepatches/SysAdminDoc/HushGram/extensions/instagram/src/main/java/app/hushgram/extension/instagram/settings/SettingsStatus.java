@@ -178,6 +178,16 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Rewritten by the Thicker story progress bar patch. */
+    public static boolean storyProgressBar() {
+        return false;
+    }
+
+    /** Rewritten by the Seek bar on stories patch. */
+    public static boolean storySeekBar() {
+        return false;
+    }
+
     public static boolean repostButton() {
         return false;
     }
@@ -411,6 +421,11 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Rewritten by the Start reels with sound patch. */
+    public static boolean reelSound() {
+        return false;
+    }
+
     public static boolean reelAutoScroll() {
         return false;
     }
@@ -501,6 +516,11 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Rewritten by the Keep your place in Home patch. */
+    public static boolean homePlace() {
+        return false;
+    }
+
     /** Rewritten by the Start feed videos with sound patch. */
     public static boolean feedSound() {
         return false;
@@ -523,6 +543,11 @@ public final class SettingsStatus {
 
     /** Rewritten by the Keep in chat patch. */
     public static boolean keepInChat() {
+        return false;
+    }
+
+    /** Rewritten by the Swipe through a chat's reels patch. */
+    public static boolean chatReels() {
         return false;
     }
 

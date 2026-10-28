@@ -9,6 +9,10 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import io.github.jordanwoodson.patches.shared.invokeStatic
+import io.github.jordanwoodson.patches.shared.parameterRegister
+import io.github.jordanwoodson.patches.twitch.emotes.EmoteUrlFingerprint
 import io.github.jordanwoodson.patches.twitch.shared.requireKept
 import io.github.jordanwoodson.patches.shared.settings.ChoiceSetting
 import io.github.jordanwoodson.patches.shared.settings.Section
@@ -24,12 +28,23 @@ private const val STYLE = "Lio/github/jordanwoodson/extension/shared/twitch/Twit
 private const val CHAR_SEQUENCE = "Ljava/lang/CharSequence;"
 private const val KEY = "chat_appearance"
 
+/** Text sizes, in percent of Twitch's. 85, 115 and 130 are the first ones the setting had; they stay valid. */
+private val TEXT_SIZES = listOf(70, 75, 80, 85, 90, 95, 105, 110, 115, 120, 125, 130, 140, 150, 175, 200)
+/** Emote and badge sizes, in percent of Twitch's (24 dp emotes, 18 dp badges). */
+private val IMAGE_SIZES = listOf(50, 75, 90, 110, 125, 150, 175, 200, 250, 300)
+/** Space above and below each message, in percent of Twitch's. */
+private val SPACINGS = listOf(25, 50, 75, 150, 200, 300)
+
+private fun percents(default: String, values: List<Int>) =
+    listOf(default to "0") + values.map { "$it%" to it.toString() }
+
 @Suppress("unused")
 val chatAppearancePatch = bytecodePatch(
     name = "Chat appearance",
-    description = "Adds chat look settings: text size, alternating row backgrounds, plain /me messages, and the " +
-        "width and background opacity of the landscape chat panel. Each keeps Twitch's look until changed in Lurk " +
-        "settings. Native and React Native live chat and history, plus native VOD chat replay.",
+    description = "Adds chat look settings: text, emote and badge size, message spacing, alternating row " +
+        "backgrounds, plain /me messages, and the width and background opacity of the landscape chat panel. Each " +
+        "keeps Twitch's look until changed in Lurk settings. Native live chat, chat history and VOD chat replay; " +
+        "React Native chat gets the text size, row backgrounds, /me style and landscape panel only.",
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
     dependsOn(twitchRNChatPatch, twitchSettingsPatch)
@@ -37,6 +52,8 @@ val chatAppearancePatch = bytecodePatch(
         styleLines()
         numberLiveMessages()
         hookChatRows("$STYLE->bindRow(Landroid/view/View;Landroid/widget/TextView;)V")
+        sizeChatImages()
+        sharpenLargeEmotes()
         sizeLandscapeChat()
         sizeTheatreChat()
         twitchSettings.add(
@@ -44,8 +61,17 @@ val chatAppearancePatch = bytecodePatch(
                 "Use the chat look chosen below. Off, or with every choice at Twitch's default, chat looks as in Twitch.",
                 Section.CHAT),
             ChoiceSetting("chat_text_size", "Chat text size", "Live chat, chat history and VOD chat replay.",
-                Section.CHAT, "0", listOf("Twitch's default" to "0", "85%" to "85", "115%" to "115", "130%" to "130"),
-                parent = KEY),
+                Section.CHAT, "0", percents("Twitch's default", TEXT_SIZES), parent = KEY),
+            ChoiceSetting("chat_emote_size", "Emote size",
+                "Twitch's and third-party emotes in native chat, chat history and VOD chat replay. Larger sizes " +
+                    "load Twitch's larger emote images.",
+                Section.CHAT, "0", percents("Twitch's default (24 dp)", IMAGE_SIZES), parent = KEY),
+            ChoiceSetting("chat_badge_size", "Badge size",
+                "Twitch's and third-party badges in native chat, chat history and VOD chat replay.",
+                Section.CHAT, "0", percents("Twitch's default (18 dp)", IMAGE_SIZES), parent = KEY),
+            ChoiceSetting("chat_message_spacing", "Message spacing",
+                "Space above and below each message in native chat, chat history and VOD chat replay.",
+                Section.CHAT, "0", percents("Twitch's default", SPACINGS), parent = KEY),
             SwitchSetting("chat_alternate_rows", "Alternating row backgrounds", "Shade every other chat message.",
                 Section.CHAT, default = false, parent = KEY),
             ChoiceSetting("chat_me_style", "/me messages", "How messages sent with /me look.",
@@ -118,6 +144,53 @@ private fun BytecodePatchContext.numberLiveMessages() {
         iget-object v2, v2, ${line.tokens}
         invoke-static { v0, v1, v2 }, $STYLE->onMessage(Ljava/lang/String;Ljava/lang/Object;Ljava/util/List;)V
     """)
+}
+
+/**
+ * Every chat image span (emote, badge, notice icon) gets a square box sized from its size class before its image
+ * loads; the loaded image is fitted into it. At each return of that size, the extension scales emotes' and badges'.
+ * The size class is read once at the start and its register isn't written again.
+ */
+private fun BytecodePatchContext.sizeChatImages() {
+    val match = ChatImageBoxFingerprint.twitchMatch("chat image box")
+    val sizeClass = match.instructionMatches.first().instruction.methodRef!!.definingClass
+    // The size class is Twitch's enum of chat image kinds; the extension tells them apart by constant name.
+    val constants = classDefBy(sizeClass).methods.singleOrNull { it.name == "<clinit>" }?.implementation
+        ?.instructions?.mapNotNull { it.stringRef }.orEmpty()
+    if (!constants.containsAll(listOf("Emote", "GigantifiedEmote", "Badge"))) {
+        throw PatchException("Twitch: chat image size classes changed")
+    }
+    match.method.apply {
+        val instructions = instructionList()
+        val read = instructions.indexOfFirst { it.opcode == Opcode.IGET_OBJECT && it.fieldRef?.type == sizeClass }
+        if (read != 0) throw PatchException("Twitch: the chat image box doesn't start with its size class")
+        val kind = (instructions[read] as TwoRegisterInstruction).registerA
+        if (instructions.drop(1).any { it.opcode.setsRegister() && (it as OneRegisterInstruction).registerA == kind }) {
+            throw PatchException("Twitch: the chat image box reuses its size class register")
+        }
+        val returns = instructions.indices.filter { instructions[it].opcode == Opcode.RETURN }
+        if (returns.isEmpty()) throw PatchException("Twitch: the chat image box has no return")
+        returns.reversed().forEach { index ->
+            val size = (instructions[index] as OneRegisterInstruction).registerA
+            requireNotBranchTarget(index, "chat image box return")
+            addInstructions(index, """
+                ${invokeStatic("$STYLE->imageSize(ILjava/lang/Object;)I", size, kind)}
+                move-result v$size
+            """)
+        }
+    }
+}
+
+/** The emote URL builder's image scale (a Float, null for the screen's own), at its start. */
+private fun BytecodePatchContext.sharpenLargeEmotes() {
+    EmoteUrlFingerprint.twitchMatch("emote URL builder").method.apply {
+        if (parameterTypes[3].toString() != "Ljava/lang/Float;") throw PatchException("Twitch: emote URL scale moved")
+        val scale = parameterRegister(4)
+        addInstructions(0, """
+            ${invokeStatic("$STYLE->emoteScale(Ljava/lang/Float;)Ljava/lang/Float;", scale)}
+            move-result-object v$scale
+        """)
+    }
 }
 
 /** Right after the landscape chat panel gets Twitch's width, adjust its width and background. */

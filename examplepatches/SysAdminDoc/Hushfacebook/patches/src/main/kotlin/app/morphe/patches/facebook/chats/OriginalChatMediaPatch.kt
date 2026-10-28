@@ -24,7 +24,7 @@ val originalChatMediaPatch = bytecodePatch(
     name = "Send chat photos and videos at original quality",
     description = "Photos and videos you send from chats that open inside Facebook go out as the originals " +
         "instead of smaller copies, so they arrive sharp. Very large files are still shrunk. Starts off. Turn it " +
-        "on in Hushfacebook settings > Chats.",
+        "on in Hushfacebook settings > Chats and Messenger.",
 ) {
     category("Chats")
     dependsOn(settingsPatch)

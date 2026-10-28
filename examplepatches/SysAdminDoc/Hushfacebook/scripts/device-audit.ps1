@@ -90,6 +90,11 @@ $smokeAst = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path
 $smokeReader = $smokeAst.Find({ param($node)
         $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Read-SmokeReport' }, $true)
 . ([scriptblock]::Create($smokeReader.Extent.Text))
+# Use-Utf8ConsoleOutput alone, the same way: adb writes UTF-8, and Invoke-Adb reads it through this.
+$commonAst = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'common.ps1'), [ref]$null, [ref]$null)
+$utf8Reader = $commonAst.Find({ param($node)
+        $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Use-Utf8ConsoleOutput' }, $true)
+. ([scriptblock]::Create($utf8Reader.Extent.Text))
 . (Join-Path $PSScriptRoot 'device-install.ps1')
 . (Join-Path $PSScriptRoot 'walk-receipt.ps1')
 
@@ -268,7 +273,10 @@ function Invoke-Adb {
     $preference = $ErrorActionPreference
     try {
         $ErrorActionPreference = 'Continue'
-        $output = @(& $adb -s $Serial @arguments 2>&1 | ForEach-Object { [string]$_ })
+        # Read as UTF-8: under the console's code page 437 (a pwsh started from Git Bash) the curly
+        # apostrophe in a notification row's settings button came back as three other characters, so no label with one
+        # ever matched (the S22 walks' notifications step, 2026-10-27).
+        $output = @(Use-Utf8ConsoleOutput { & $adb -s $Serial @arguments 2>&1 | ForEach-Object { [string]$_ } })
         $code = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $preference
@@ -302,7 +310,9 @@ function Test-AuditKeyboard {
 function Get-UiNodes {
     Assert-AuditForeground
     $windowBefore = $script:auditWindowIdentity
-    for ($try = 1; $try -le 4; $try++) {
+    # The settings title's gradient moves every frame, and on an emulator uiautomator then loses the
+    # window's root ("null root node returned") up to two dumps in five, so a screen gets ten tries.
+    for ($try = 1; $try -le 10; $try++) {
         $dump = (Invoke-Adb shell 'rm -f /sdcard/hushfacebook-audit.xml; uiautomator dump /sdcard/hushfacebook-audit.xml >/dev/null 2>&1; cat /sdcard/hushfacebook-audit.xml; rm -f /sdcard/hushfacebook-audit.xml') -join "`n"
         $start = $dump.IndexOf('<?xml')
         if ($start -ge 0) {
@@ -429,6 +439,46 @@ function Get-AuditReelProof {
     Assert-AuditForeground
     if ($script:auditWindowIdentity -cne $windowBefore) { return $false }
     return Test-AuditReelViewer $top $activity
+}
+
+# What a hold on a reel opened (the comment sheet Open comments with a gesture opens, or the share
+# sheet Facebook's own hold opens) stays over the reel, and the next link's page opens under it in the
+# same activity, where a Back pops that page instead of the sheet: the fourth S22 walk, 2026-10-27,
+# failed the notifications step after two Backs that way. So the hold step closes it there and then,
+# a Back at a time, up to three (a focused composer takes one), until the reel's own controls are on
+# screen again. An empty dump is a playing reel, which can't be dumped, with nothing over it.
+function Close-AuditHoldCover {
+    $backs = 0
+    while ($backs -lt 3) {
+        $nodes = @(Get-UiNodes)
+        if ($nodes.Count -eq 0 -or @($nodes | Where-Object {
+                    $_.'content-desc' -ceq 'Tap to show video controls' -or $_.text -ceq 'Tap to show video controls' }).Count -gt 0) { break }
+        Invoke-Adb shell input keyevent KEYCODE_BACK | Out-Null
+        Start-Sleep -Seconds 1
+        $backs++
+    }
+    return $backs
+}
+
+# Opens a walk route's link and proves the page it reached. A sheet an earlier step left open can
+# cover the page the link opened (the comment sheet the hold on a reel left on the S22, 2026-10-27,
+# failing the notifications step on two walks in a row), so a page that isn't proved gets a Back,
+# which closes what covers it, and the link goes again. That comment sheet holds the composer's
+# focus, so its first Back only drops the focus and a second one closes it (third S22 walk,
+# 2026-10-27): up to two Backs, each followed by the link. A reel's proof reads its activity, which
+# a sheet can't hide, so a reel route gets no second try.
+function Open-AuditRoute([string]$Route, [bool]$Reel) {
+    $script:auditRouteBacks = 0
+    for ($attempt = 1; ; $attempt++) {
+        $launch = (Invoke-Adb shell am start -W -a android.intent.action.VIEW -d $Route -p $Package) -join "`n"
+        Start-Sleep -Seconds $SettleSeconds
+        $proved = $launch -cmatch '(?m)^Status: ok\r?$' -and
+            $(if ($Reel) { Get-AuditReelProof } else { Test-AuditDestination $Route @(Get-UiNodes) })
+        if ($proved -or $Reel -or $attempt -ge 3) { return [bool]$proved }
+        Invoke-Adb shell input keyevent KEYCODE_BACK | Out-Null
+        Start-Sleep -Seconds 1
+        $script:auditRouteBacks++
+    }
 }
 
 # The one node a "tap:<label>" step may tap, or $null. A row can repeat its label on a child that
@@ -1016,6 +1066,10 @@ try {
                 try { Invoke-Adb shell input swipe $swipeX ([int]($height / 2)) $swipeX ([int]($height / 2)) 2500 | Out-Null }
                 finally { $inputReel = $false; $inputWindow = $null }
                 Start-Sleep -Seconds 1
+                $inputReel = $routeReel
+                try { $holdBacks = Close-AuditHoldCover }
+                finally { $inputReel = $false }
+                if ($holdBacks) { $summary.Add("Walk: the hold at step $stepNumber opened something over the reel, closed with $holdBacks Back(s).") }
             } elseif ($step -eq 'back') {
                 if ($skipBack) { $skipBack = $false; continue }
                 $inputReel = $routeReel
@@ -1044,10 +1098,10 @@ try {
                 $routeReel = $false
                 $routeStep = $null
                 $reel = $ReelRoutes -ccontains $step
-                $launch = (Invoke-Adb shell am start -W -a android.intent.action.VIEW -d $step -p $Package) -join "`n"
-                Start-Sleep -Seconds $SettleSeconds
-                $routeVerified = $launch -cmatch '(?m)^Status: ok\r?$' -and
-                    $(if ($reel) { Get-AuditReelProof } else { Test-AuditDestination $step @(Get-UiNodes) })
+                $routeVerified = Open-AuditRoute $step $reel
+                if ($script:auditRouteBacks) {
+                    $summary.Add("Walk: step $stepNumber ($step) $(if ($routeVerified) { 'was proved' } else { 'was still not proved' }) after $($script:auditRouteBacks) Back(s), each followed by the link again.")
+                }
                 if (-not $routeVerified) {
                     $summary.Add("Walk: destination not proved at step $stepNumber ($step). No input sent.")
                     if ($OptionalVisit -cnotcontains $step) { $problems.Add("Required destination not reached at step ${stepNumber}: $step") }

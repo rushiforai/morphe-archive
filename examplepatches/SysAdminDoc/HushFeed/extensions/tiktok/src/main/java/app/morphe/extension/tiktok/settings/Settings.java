@@ -164,8 +164,13 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting DOWNLOAD_WITHOUT_SOUND =
             new BooleanSetting("download_without_sound", FALSE);
     public static final BooleanSetting DOWNLOAD_PROGRESS = new BooleanSetting("download_progress", false);
+    /** The Share to sheet TikTok opens a few seconds after its own downloader saves a video. */
+    public static final BooleanSetting SKIP_POST_DOWNLOAD_SHARE_SHEET =
+            new BooleanSetting("skip_post_download_share_sheet", FALSE);
     /** How many of Hushfeed's saves run at once, "1" to "3"; the rest wait in line (#27). */
     public static final StringSetting DOWNLOAD_SAVES_AT_ONCE = new StringSetting("download_saves_at_once", "3");
+    /** Network saves wait for an unmetered network and stop when it turns metered; local saves still run. */
+    public static final BooleanSetting DOWNLOAD_UNMETERED_ONLY = new BooleanSetting("download_unmetered_only", FALSE);
     public static final BooleanSetting DOWNLOAD_DETAILS =new BooleanSetting("download_details", FALSE);
     /** The details file as JSON rather than plain text. */
     public static final BooleanSetting DOWNLOAD_DETAILS_JSON = new BooleanSetting(
@@ -705,6 +710,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting VIDEO_LENGTH_ON_GRID = new BooleanSetting("video_length_on_grid", FALSE);
     /** How loaded profile and Liked grids are ordered (#180): off, or one of the orders in GridSort. */
     public static final StringSetting PROFILE_GRID_SORT = new StringSetting("profile_grid_sort", "off");
+    /** The Liked tab's own order (#180): "profile" follows PROFILE_GRID_SORT, otherwise one of GridSort's orders. */
+    public static final StringSetting LIKED_GRID_SORT = new StringSetting("liked_grid_sort", "profile");
     public static final BooleanSetting SHOW_EXACT_COUNTS = new BooleanSetting("show_exact_counts", FALSE);
     public static final BooleanSetting CLEAR_DISPLAY = new BooleanSetting("clear_display", FALSE);
     /** Clear display turned on by hand carries to the next video. Off, each video starts with its controls (#232). */
@@ -719,6 +726,8 @@ public class Settings extends BaseSettings {
     public static final StringSetting CUSTOM_SPEEDS = new StringSetting("custom_speeds", "", true);
     /** The speed the hold gesture plays at and its pull-down lock keeps; TikTok's own is 2x (upstream #52). */
     public static final StringSetting HOLD_SPEED = new StringSetting("hold_speed", "2");
+    /** Sliding sideways during the hold changes its speed, with a bubble that shows it (#248). */
+    public static final BooleanSetting HOLD_SPEED_SLIDE = new BooleanSetting("hold_speed_slide", FALSE);
     public static final BooleanSetting AUTO_ADVANCE = new BooleanSetting("auto_advance", FALSE, true);
     public static final IntegerSetting AUTO_ADVANCE_LIMIT = new IntegerSetting(
             "auto_advance_limit", 0, false, Setting.parent(AUTO_ADVANCE)).withRange(0, 1000);
@@ -837,6 +846,12 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting FEED_LOCK = new BooleanSetting("feed_lock", FALSE);
     /**
+     * Weekly hours the feed lock applies by itself, on the phone's clock, as typed: "Mon-Fri
+     * 21:00-07:00; Sat Sun 13:00-15:00". Empty by default, which locks nothing, and empty while
+     * paused like the rest. See FeedSchedule.
+     */
+    public static final StringSetting FEED_LOCK_HOURS = new StringSetting("feed_lock_hours", "");
+    /**
      * A link to one video plays that video alone: the feed's swipe is turned down while it is the
      * one playing, and Auto-advance doesn't move on from it. Off by default, and off while
      * paused like the rest. See FeedLock#linkVideoAlone.
@@ -885,10 +900,15 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_FEED_SURVEYS = new BooleanSetting("hide_feed_surveys", FALSE);
     /** The Footnotes banner TikTok lays over a video that carries a note. */
     public static final BooleanSetting HIDE_FOOTNOTES = new BooleanSetting("hide_footnotes", FALSE);
+    /** The LIVE and stories row across the top of the Following tab and its count pill (#262). */
+    public static final BooleanSetting HIDE_FOLLOWING_LIVE_ROW = new BooleanSetting("hide_following_live_row", FALSE);
     /** The Add comment bar under a video opened from a profile, a hashtag or a sound, and the strip kept for it (#50). */
     public static final BooleanSetting HIDE_DETAIL_COMMENT_BAR = new BooleanSetting("hide_detail_comment_bar", FALSE);
     /** The progress bar, close button and pause/speed pill TikTok draws while Clear display is on (#97). */
     public static final BooleanSetting HIDE_CLEAR_DISPLAY_CONTROLS = new BooleanSetting("hide_clear_display_controls", FALSE);
+    /** Leaves TikTok's Clear display progress bar and its loading line out of that hiding (#237). */
+    public static final BooleanSetting KEEP_CLEAR_DISPLAY_SEEK_BAR = new BooleanSetting(
+            "keep_clear_display_seek_bar", FALSE, false, Setting.parent(HIDE_CLEAR_DISPLAY_CONTROLS));
     /**
      * How see-through the controls over the video are drawn, as a percentage: 100 leaves them as
      * TikTok draws them, lower fades the rail, caption, music row and tabs while they keep taking
@@ -953,9 +973,9 @@ public class Settings extends BaseSettings {
     public static final StringSetting GLASS_OPACITY = new StringSetting(
             "glass_opacity", "standard", false, Setting.parent(LIQUID_GLASS_BOTTOM_BAR));
     /**
-     * With Floating bottom bar, how tall the pill is inside the bar: "standard" fills the bar but
-     * for a hairline above and under, "compact" is 4dp slimmer on each side. The bar keeps its
-     * size, so the tabs keep their taps. Read on each draw.
+     * With Floating bottom bar, how tall the pill is: "standard" fills the bar but for a hairline
+     * under it and stands 4dp above its top, "compact" is 2dp slimmer on each side. The bar keeps
+     * its size, so the tabs keep their taps. Read on each draw.
      */
     public static final StringSetting GLASS_BAR_HEIGHT = new StringSetting(
             "glass_bar_height", "standard", false, Setting.parent(FLOATING_BOTTOM_BAR));

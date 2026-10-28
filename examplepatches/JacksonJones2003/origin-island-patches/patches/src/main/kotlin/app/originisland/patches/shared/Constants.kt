@@ -45,4 +45,24 @@ internal object Constants {
             )
         )
     )
+
+    val COMPATIBILITY_LASTWAVE = Compatibility(
+        name = "LastWave",
+        packageName = "com.lastwave.app",
+        apkFileType = ApkFileType.APK_REQUIRED,
+        appIconColor = 0xB6F23A,
+        targets = listOf(
+            // The patches only hook Android framework media session calls,
+            // so they are expected to work with other app versions as well.
+            AppTarget(
+                version = null,
+                minSdk = 29,
+                isExperimental = true
+            ),
+            AppTarget(
+                version = "4.3.1",
+                minSdk = 29
+            )
+        )
+    )
 }

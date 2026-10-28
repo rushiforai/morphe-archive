@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Function;
 
 import app.hushtelegram.extension.shared.L10n;
@@ -33,7 +34,8 @@ import app.hushtelegram.extension.telegram.settings.Settings;
  * <p>Turning the switch on does what Telegram's own folder screen does for a new folder, for each
  * type you don't already have a folder for, as far as Telegram's folder limit goes: it sends
  * {@code messages.updateDialogFilter} with only chat types in it, and once Telegram's server says
- * yes it puts the folder in Telegram's list and database and sends the order the tabs show.
+ * yes to all of them it puts the folders in Telegram's list and database in type order, whatever
+ * order the answers came in, and sends the order the tabs show.
  * Turning it off asks the server to delete the folders this made that are still as they were made,
  * and takes each out of the list once the server says yes, the way Telegram's own Delete folder
  * does. One you renamed, recolored, gave an emoji or added, removed or pinned chats in is yours.
@@ -357,6 +359,8 @@ public final class ChatTypeFolders {
         final Set<Integer> waiting = new HashSet<>();
         /** Folder ids it made, or removed. */
         final List<Integer> done = new ArrayList<>();
+        /** New folders the server has, by id, so in the order of their types, waiting to go into Telegram's list together. */
+        final Map<Integer, Record> made = new TreeMap<>();
         /** Folders left out by the folder limit, here or at Telegram's server. */
         int limited;
         /** Folders Telegram's server turned down for anything else, and requests that never went out. */
@@ -594,9 +598,8 @@ public final class ChatTypeFolders {
                 if (ours) save(prefs, key, record.as(Record.MADE));
                 // The server has it, so it counts as made even if putting it in Telegram's list goes wrong.
                 batch.done.add(id);
-                List<Folder> folders = here(batch) ? batch.telegram.folders(batch.account) : null;
-                // Telegram's list can have it already, when the server told this device about it first.
-                if (folders != null && find(folders, id) == null) batch.telegram.add(batch.account, id, asked.name, asked.flags);
+                // Answers come back in any order, so the list gets it once they're all in.
+                batch.made.put(id, asked);
             } else {
                 // With whoever asked signed out, the error can be Telegram dropping a request it had queued, which
                 // the server may have made anyway. The record stays sent, and the next flip goes by the list.
@@ -636,6 +639,7 @@ public final class ChatTypeFolders {
 
     /** Every folder is answered for. New folders get their order and the server's colors before anything is said. */
     private static void answered(Batch batch) {
+        if (batch.on) addMade(batch);
         if (batch.on && !batch.finished && !batch.done.isEmpty() && here(batch)) {
             batch.ordering = true;
             batch.coloring = true;
@@ -655,6 +659,25 @@ public final class ChatTypeFolders {
             }
         }
         finish(batch);
+    }
+
+    /**
+     * Puts the new folders into Telegram's list in the order of their types, whatever order the server
+     * answered in. The order sent after this is read from that list, so the tabs and the server agree.
+     */
+    private static void addMade(Batch batch) {
+        try {
+            List<Folder> folders = here(batch) ? batch.telegram.folders(batch.account) : null;
+            if (folders == null) return;
+            for (Map.Entry<Integer, Record> each : batch.made.entrySet()) {
+                int id = each.getKey();
+                Record asked = each.getValue();
+                // Telegram's list can have it already, when the server told this device about it first.
+                if (find(folders, id) == null) batch.telegram.add(batch.account, id, asked.name, asked.flags);
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.CHAT_TYPE_FOLDERS, "folder answer", failure);
+        }
     }
 
     private static void ordered(Batch batch, String error) {

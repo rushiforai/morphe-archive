@@ -64,18 +64,18 @@ internal fun integerReadAttributes(forEachClass: ((ClassDef) -> Unit) -> Unit): 
         for (method in classDef.methods) {
             val instructions = method.implementation?.instructions?.toList() ?: continue
             if (method.name == "<clinit>") arrays += staticIntArrays(instructions)
-            val key = method.key()
+            // Written out only for a method that holds something this scan keeps (#236).
+            val key by lazy(LazyThreadSafetyMode.NONE) { method.key() }
             for (instruction in instructions) {
                 when (val reference = (instruction as? ReferenceInstruction)?.reference) {
                     is FieldReference -> if (instruction.opcode == Opcode.SGET_OBJECT && reference.type == INT_ARRAY) {
                         loaders.getOrPut(key) { mutableSetOf() } += reference.key()
                     }
                     is MethodReference -> {
-                        val target = reference.key()
-                        if (target in INTEGER_READS) {
+                        if (reference.definingClass == TYPED_ARRAY && reference.key() in INTEGER_READS) {
                             readers += key
                         } else if (reference.parameterTypes.any { it.toString() == TYPED_ARRAY }) {
-                            callees.getOrPut(key) { mutableSetOf() } += target
+                            callees.getOrPut(key) { mutableSetOf() } += reference.key()
                         }
                     }
                     else -> {}

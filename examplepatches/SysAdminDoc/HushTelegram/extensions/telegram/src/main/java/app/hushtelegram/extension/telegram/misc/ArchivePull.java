@@ -42,25 +42,28 @@ public final class ArchivePull {
     }
 
     /**
-     * The chat list's menu, after Telegram's own entries.
+     * The chat list's menu, after Telegram's own entries. A chat list built without All Chats,
+     * the archive's usual way in, gets the entry too.
      *
      * @param options the menu being built
      * @param chats the chat list it belongs to
      */
     public static void menu(Object options, Object chats) {
-        if (!keepsOut()) return;
+        boolean pull = keepsOut();
+        if (!pull && !LaunchFolder.hides(chats)) return;
+        String family = pull ? FamilyNames.DISABLE_ARCHIVE_PULL : FamilyNames.HIDE_FOLDER_COUNTERS;
         try {
             if (!archived()) return;
             add(options, () -> {
                 try {
                     open(chats);
                 } catch (Throwable failure) {
-                    HookStatus.threw(FamilyNames.DISABLE_ARCHIVE_PULL, "open archive", failure);
+                    HookStatus.threw(family, "open archive", failure);
                 }
             });
-            HookStatus.counted(FamilyNames.DISABLE_ARCHIVE_PULL, "archive added to the menu");
+            HookStatus.counted(family, "archive added to the menu");
         } catch (Throwable failure) {
-            HookStatus.threw(FamilyNames.DISABLE_ARCHIVE_PULL, "menu", failure);
+            HookStatus.threw(family, "menu", failure);
         }
     }
 

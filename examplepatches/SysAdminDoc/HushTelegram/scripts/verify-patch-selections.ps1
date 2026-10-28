@@ -42,8 +42,9 @@ function Get-SelectionStatusModel {
         }
         [pscustomobject]@{ Enum = $match.Groups[1].Value; Name = $names[$match.Groups[1].Value]; Status = $match.Groups[3].Value }
     })
+    # A row-only capability carries a fourth argument, true. Its flag follows its family like the rest.
     $capabilities = @(foreach ($match in [regex]::Matches($familyText,
-        '(?m)^\s+([A-Z_]+)\(([A-Z_]+), "([^"]+)", "[^"]*"\)[,;]')) {
+        '(?m)^\s+([A-Z_]+)\(([A-Z_]+), "([^"]+)", "[^"]*"(?:, (?:true|false))?\)[,;]')) {
         [pscustomobject]@{ Enum = $match.Groups[1].Value; Family = $match.Groups[2].Value; Status = $match.Groups[3].Value }
     })
     $all = @($families.Status) + @($capabilities.Status)

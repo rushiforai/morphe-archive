@@ -200,6 +200,32 @@ Test-Broken { param($c) (Get-Entry $c $licensedCandidate).license.spdx = 'CC-BY-
     'A candidate whose licence can''t be combined with GPL-3.0'
 Test-Broken { param($c) (Get-Entry $c $unlicensed).disposition = 'adopted' } '*has no licence*' 'An unlicensed source marked adopted'
 
+# A relicensed source keeps its earlier licence pinned, and code it took from another lineage says so.
+$relicensed = @($entries | Where-Object { @($_.licenseHistory | Where-Object { $_ }).Count -gt 0 })
+Assert-True ($relicensed.Count -ge 1) 'No ledger source records an earlier licence, so the cases below would prove nothing.'
+$relicensedId = [string]$relicensed[0].id
+Test-Broken { param($c) (Get-Entry $c $relicensedId).licenseHistory[0].commit = 'main' } '*earlier licence*pinned to no commit*' `
+    'An earlier licence pinned to a branch name'
+Test-Broken { param($c) (Get-Entry $c $relicensedId).licenseHistory[0].sha256 = $null } '*earlier licence*no sha256*' 'An earlier licence with no hash'
+Test-Broken { param($c) (Get-Entry $c $relicensedId).licenseHistory[0].url = 'http://example.com/LICENSE' } '*earlier licence*no https url*' `
+    'An earlier licence with no https url'
+Test-Broken { param($c) (Get-Entry $c $relicensedId).licenseHistory[0].spdx = '' } '*earlier licence with no SPDX*' 'An earlier licence with no SPDX identifier'
+Test-Broken { param($c) (Get-Entry $c $relicensedId).licenseHistory[0].until = 'October' } '*earlier licence*until is not a yyyy-MM-dd date*' `
+    'An earlier licence with no end date'
+Test-Broken { param($c) (Get-Entry $c $relicensedId).licenseHistory[0].until = '2999-01-01' } '*earlier licence*until is 2999-01-01, after today*' `
+    'An earlier licence that ends in the future'
+$inheriting = @($entries | Where-Object { @($_.inherits | Where-Object { $_ }).Count -gt 0 })
+Assert-True ($inheriting.Count -ge 1) 'No ledger source records inherited code, so the cases below would prove nothing.'
+$inheritingId = [string]$inheriting[0].id
+Test-Broken { param($c) (Get-Entry $c $inheritingId).inherits[0].source = 'not a repository' } '*inherits code from no source repository*' `
+    'Inherited code with no source'
+Test-Broken { param($c) (Get-Entry $c $inheritingId).inherits[0].lineage = ' ' } '*inherits code from*no lineage named*' 'Inherited code with no lineage'
+Test-Broken { param($c) (Get-Entry $c $inheritingId).inherits[0].evidence = 'http://example.com' } '*inherits code from*no https evidence*' `
+    'Inherited code with no evidence'
+Test-Broken { param($c) (Get-Entry $c $inheritingId).inherits[0].paths = @() } '*inherits code from*without saying where*' 'Inherited code with no path'
+Test-Broken { param($c) (Get-Entry $c $inheritingId).inherits[0].paths = @('../outside') } '*inherited path*inside the repository*' `
+    'Inherited code outside the repository'
+
 # provenance.json can't credit what the ledger doesn't allow, and can't port from what isn't adopted.
 $behaviorOnly = [string]@($entries | Where-Object { $_.disposition -eq 'behavior-only' })[0].repository
 Test-Broken { param($c) } '*credits*but the ledger lists it as behavior-only*' 'A provenance rule crediting a behavior-only source' {
@@ -331,6 +357,10 @@ $fixtureLedger = [ordered]@{
             kind = 'revanced-patches'; packages = @('com.instagram.android'); targetVersions = [ordered]@{ 'com.instagram.android' = @() }
             features = @('Open links outside'); branches = @([ordered]@{ name = 'main'; commit = $commitG1 }); watchPaths = @()
             license = [ordered]@{ spdx = 'GPL-3.0'; url = "https://gitlab.com/fixture-group/gamma-patches/-/blob/$commitG1/LICENSE"; sha256 = $licenseHash }
+            licenseHistory = @([ordered]@{ spdx = 'MIT'; url = "https://gitlab.com/fixture-group/gamma-patches/-/blob/$('c0' * 20)/LICENSE"
+                sha256 = ('ab' * 32); commit = ('c0' * 20); until = '2026-08-01' })
+            inherits = @([ordered]@{ source = 'https://github.com/SysAdminDoc/HushGram'; lineage = 'hushgram'
+                evidence = "https://gitlab.com/fixture-group/gamma-patches/-/blob/$commitG1/third-party/HushGram/NOTICE.md"; paths = @('third-party/HushGram') })
             contaminatedBy = $null; disposition = 'candidate'; reason = 'A fixture GitLab source.'; archived = $false
             forks = @(); contentHashes = @(); mirrors = @(); lastChecked = '2026-09-01' }
     )
@@ -513,6 +543,14 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
         "The copy of the alpha lineage's file was not collapsed into it: $($clean.Report.notes -join ' | ')"
     Assert-True (@($clean.Report.lineages | Where-Object { $_.lineage -eq 'alpha' })[0].mirrors -contains 'https://github.com/clone/alpha-clone') `
         'The collapsed copy was not listed under its lineage.'
+    # Inherited code is reported as the lineage it came from, and adds no lineage of its own.
+    Assert-True (@($clean.Report.notes | Where-Object { $_ -like '*gamma-patches carries code from the hushgram lineage (third-party/HushGram)*not as its own work*' }).Count -eq 1) `
+        "The gamma fixture's inherited HushGram code was not reported as HushGram's: $($clean.Report.notes -join ' | ')"
+    Assert-True (@($clean.Report.lineages | Where-Object { $_.lineage -eq 'hushgram' }).Count -eq 0) 'Inherited code was counted as a lineage of its own.'
+    # The stamp moves the census dates, never when an earlier licence ended.
+    $stampedGamma = @($stampedLedger.entries | Where-Object { $_.id -eq 'gamma' })[0]
+    Assert-True (@($stampedGamma.licenseHistory).Count -eq 1 -and $stampedGamma.licenseHistory[0].until -eq '2026-08-01' -and
+        $stampedGamma.licenseHistory[0].commit -eq ('c0' * 20)) 'The clean audit moved or dropped an earlier licence record.'
     $leaked = @($fakeForge.Requests | Where-Object { $_.Authorization -and $_.Uri -notlike 'https://api.github.com/*' })
     Assert-True ($leaked.Count -eq 0) "The GitHub token went to another host: $($leaked[0].Uri)"
     Assert-True (@($fakeForge.Requests | Where-Object { $_.Uri -like 'https://api.github.com/*' -and $_.Authorization -ne "Bearer $fakeToken" }).Count -eq 0) `

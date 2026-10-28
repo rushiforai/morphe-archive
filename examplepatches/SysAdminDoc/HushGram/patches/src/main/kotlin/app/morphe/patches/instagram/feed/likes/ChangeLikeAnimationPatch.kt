@@ -12,9 +12,12 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesCalling
+import app.morphe.patches.instagram.misc.extension.classesCallingInto
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -271,10 +274,16 @@ private fun BytecodePatchContext.findHearts(setUp: Method, animation: String, no
     val returns = sourceCode.indices.filter { sourceCode[it].opcode == Opcode.RETURN_OBJECT }
     val returned = LikeAnimationSite(source, returns.singleOrNull() ?: refuse("${source.text()} returns in ${returns.size} places, not one"))
 
+    // Only code calling the factory or into the checks' class can hand the factory an animation or
+    // make a check, so the patcher's call index names the classes to read (#173). Its answer leaves
+    // the extension out, so the extension is read as before, and the walk keeps the app's order.
+    val factoryName = factory.substringAfter("->").substringBefore('(')
+    val callers = (classesCalling(factoryClass, factoryName) + classesCallingInto(checks)).mapTo(HashSet()) { it.type }
     val fields = linkedSetOf<String>()
     val found = mutableListOf<LikeAnimationSite>()
     classDefForEach { classDef ->
         if (classDef.type == LIKE_ACTION_VIEW) return@classDefForEach
+        if (classDef.type !in callers && !classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
         for (method in classDef.methods) {
             val code = method.code()
             var noneAt = Int.MIN_VALUE / 2

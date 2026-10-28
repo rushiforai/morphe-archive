@@ -292,7 +292,7 @@ try {
     # the document before it's written.
     function New-TestSbom {
         param([string]$Path, [string]$Bundle,
-            [string[]]$Libraries = @('pkg:maven/com.google.code.gson/gson@2.14.0'), [scriptblock]$Mutate,
+            [string[]]$Libraries = @('pkg:maven/com.google.code.gson/gson@2.15.0'), [scriptblock]$Mutate,
             [string]$InputRoot, [string]$LicenseLedger, [object[]]$ReviewedLicenseRecords)
         $bundleName = Split-Path -Leaf $Bundle
         $facts = Get-BundleManifestFacts -BundlePath $Bundle
@@ -775,7 +775,7 @@ try {
     Assert-True ($sbomRead.BundleName -eq 'patches-9.9.9.mpp' -and $sbomRead.BundleVersion -eq '9.9.9' -and
         $sbomRead.BundleSha256 -ceq $bundleHash.ToLowerInvariant() -and $sbomRead.Timestamp -eq '2023-11-14T22:13:20Z' -and
         @($sbomRead.Components).Count -eq 3 -and @($sbomRead.Libraries).Count -eq 1 -and
-        $sbomRead.Libraries[0].Purl -eq 'pkg:maven/com.google.code.gson/gson@2.14.0' -and $sbomRead.Libraries[0].Name -eq 'gson' -and
+        $sbomRead.Libraries[0].Purl -eq 'pkg:maven/com.google.code.gson/gson@2.15.0' -and $sbomRead.Libraries[0].Name -eq 'gson' -and
         @($sbomRead.Payloads).Count -eq 1 -and $sbomRead.Payloads[0].Ref -eq 'extensions/instagram.mpe' -and
         $sbomRead.Sha256 -eq (Get-Sha256Hex -Path $sbomFile)) `
         "The SBOM was misread: $($sbomRead.BundleName) $($sbomRead.BundleVersion) $($sbomRead.Timestamp), $(@($sbomRead.Components).Count) components"
@@ -832,17 +832,17 @@ try {
             @{ Name = 'no bundle hash'; Mutate = { param($d) $d.metadata.component.Remove('hashes') }; Pattern = '*does not name the bundle it describes*' },
             @{ Name = 'a package URL for another version'; Mutate = { param($d) $d.components[0].purl = 'pkg:maven/com.google.code.gson/gson@2.8.8' }
                 Pattern = '*with the package URL pkg:maven/com.google.code.gson/gson@2.8.8, which doesn''t name its own group, name and version*' },
-            @{ Name = 'a package URL with no group'; Mutate = { param($d) $d.components[0].purl = 'pkg:maven/gson@2.14.0' }
-                Pattern = '*with the package URL pkg:maven/gson@2.14.0, which doesn''t name*' },
-            @{ Name = 'a package URL for another group'; Mutate = { param($d) $d.components[0].purl = 'pkg:maven/com.google.gson/gson@2.14.0' }
-                Pattern = '*with the package URL pkg:maven/com.google.gson/gson@2.14.0, which doesn''t name*' },
-            @{ Name = 'a package URL for another name'; Mutate = { param($d) $d.components[0].purl = 'pkg:maven/com.google.code.gson/gson-extras@2.14.0' }
-                Pattern = '*with the package URL pkg:maven/com.google.code.gson/gson-extras@2.14.0, which doesn''t name*' },
+            @{ Name = 'a package URL with no group'; Mutate = { param($d) $d.components[0].purl = 'pkg:maven/gson@2.15.0' }
+                Pattern = '*with the package URL pkg:maven/gson@2.15.0, which doesn''t name*' },
+            @{ Name = 'a package URL for another group'; Mutate = { param($d) $d.components[0].purl = 'pkg:maven/com.google.gson/gson@2.15.0' }
+                Pattern = '*with the package URL pkg:maven/com.google.gson/gson@2.15.0, which doesn''t name*' },
+            @{ Name = 'a package URL for another name'; Mutate = { param($d) $d.components[0].purl = 'pkg:maven/com.google.code.gson/gson-extras@2.15.0' }
+                Pattern = '*with the package URL pkg:maven/com.google.code.gson/gson-extras@2.15.0, which doesn''t name*' },
             @{ Name = 'something that is not a package URL, beside empty fields'
                 Mutate = { param($d) $d.components[0].purl = 'not-a-package-url'; $d.components[0].group = ''; $d.components[0].name = ''; $d.components[0].version = '' }
                 Pattern = '*with the package URL not-a-package-url, which doesn''t name*' },
-            @{ Name = 'a library with no package URL'; Mutate = { param($d) $d.components[0].Remove('purl') }; Pattern = '*the library pkg:maven/com.google.code.gson/gson@2.14.0 with no package URL*' },
-            @{ Name = 'the same component twice'; Mutate = { param($d) $d.components = @($d.components) + @($d.components[0]) }; Pattern = '*lists pkg:maven/com.google.code.gson/gson@2.14.0 twice*' },
+            @{ Name = 'a library with no package URL'; Mutate = { param($d) $d.components[0].Remove('purl') }; Pattern = '*the library pkg:maven/com.google.code.gson/gson@2.15.0 with no package URL*' },
+            @{ Name = 'the same component twice'; Mutate = { param($d) $d.components = @($d.components) + @($d.components[0]) }; Pattern = '*lists pkg:maven/com.google.code.gson/gson@2.15.0 twice*' },
             @{ Name = 'a component of another type'; Mutate = { param($d) $d.components[0].type = 'framework' }; Pattern = '*as a framework, which a release SBOM doesn''t hold*' },
             @{ Name = 'a payload with no hash'; Mutate = { param($d) @($d.components | Where-Object { $_.type -eq 'file' })[0].Remove('hashes') }; Pattern = '*the file extensions/instagram.mpe with no SHA-256*' },
             @{ Name = 'no component'; Mutate = { param($d) $d.components = @() }; Pattern = '*lists no component*' })) {
@@ -1347,7 +1347,7 @@ $log4jVectorFour = '{"id":"GHSA-3pxv-7cmr-fjr4","summary":"Apache Log4j Core: Si
 $guavaModerate = '{"id":"GHSA-7g45-4rm6-3mm3","summary":"Guava vulnerable to insecure use of temporary directory","aliases":["CVE-2023-2976"],"modified":"2026-09-10T03:49:53.859811124Z","database_specific":{"severity":"MODERATE"},"severity":[{"type":"CVSS_V3","score":"CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N"}]}'
 $guavaLow = '{"id":"GHSA-5mg8-w23w-74h3","summary":"Information Disclosure in Guava","aliases":["CVE-2020-8908"],"modified":"2026-09-10T03:49:26.651391253Z","database_specific":{"severity":"LOW"},"severity":[{"type":"CVSS_V3","score":"CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N"}]}'
 $gsonPurl = 'pkg:maven/com.google.code.gson/gson@2.8.8'
-$cleanPurl = 'pkg:maven/com.google.code.gson/gson@2.14.0'
+$cleanPurl = 'pkg:maven/com.google.code.gson/gson@2.15.0'
 $osvRecorded = @{
     $gsonPurl = "{`"vulns`":[$gsonAdvisory]}"
     'pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1' = "{`"vulns`":[$log4jCritical,$log4jModerate]}"
@@ -1625,7 +1625,7 @@ try {
 
     # The gate. A clean library is asked about once and passes.
     $said = Invoke-Gate @($cleanPurl)
-    Assert-True ($said -like '*OSV has no advisory for the libraries patches-9.9.9.cdx.json lists: gson 2.14.0*' -and
+    Assert-True ($said -like '*OSV has no advisory for the libraries patches-9.9.9.cdx.json lists: gson 2.15.0*' -and
         ($osvAsked -join ', ') -eq $cleanPurl) "The gate did not ask OSV about the clean library, or did not say so: $said"
 
     # The deliberately vulnerable library is refused, naming the advisory, its alias and the version.
@@ -1854,7 +1854,7 @@ try {
     $certifiedReportHash = Get-Sha256Hex -Path $boundReportPath
     foreach ($case in @(
         @{ Name = 'omitted carried component'; Change = { param($d)
-            $d.components = @($d.components | Where-Object { $_.purl -cne 'pkg:maven/com.google.code.gson/gson@2.14.0' })
+            $d.components = @($d.components | Where-Object { $_.purl -cne 'pkg:maven/com.google.code.gson/gson@2.15.0' })
         } },
         @{ Name = 'downgraded license policy'; Change = { param($d)
             $d.metadata.properties = @($d.metadata.properties | Where-Object { $_.name -cnotlike 'hushgram:license-*' })
@@ -1938,7 +1938,7 @@ try {
     # scope. The fixture JAR embeds only the clean library's metadata, so OSV is asked nothing new.
     $desktopJar = Join-Path $advisoryRoot 'morphe-desktop-fixture.jar'
     $gsonMetadata = [ordered]@{
-        'META-INF/maven/com.google.code.gson/gson/pom.properties' = "groupId=com.google.code.gson`nartifactId=gson`nversion=2.14.0`n" }
+        'META-INF/maven/com.google.code.gson/gson/pom.properties' = "groupId=com.google.code.gson`nartifactId=gson`nversion=2.15.0`n" }
     New-TestBundleArchive -Path $desktopJar -Entries $gsonMetadata
     $desktopSubject = Get-CurrentDependencyAuditSubject -Root $inputRoot -Graphs $boundGraphs -Sbom $boundSbom `
         -BundlePath $boundBundle -DesktopJar $desktopJar
@@ -2966,7 +2966,7 @@ try {
                 $fixture.name + '/' + $fixture.version + '/' + $fixture.name + '-' + $fixture.version + '.pom')
                 sha256 = ('3' * 64); declaredLicense = 'test publisher license fixture' } }
     }
-    $baselineLicenses = @($licenseFixtures.artifacts | Where-Object purl -CEQ 'pkg:maven/com.google.code.gson/gson@2.14.0')
+    $baselineLicenses = @($licenseFixtures.artifacts | Where-Object purl -CEQ 'pkg:maven/com.google.code.gson/gson@2.15.0')
     $baselineLicenseLedger = [ordered]@{schemaVersion = 1; artifacts = $baselineLicenses}
     [IO.File]::WriteAllText($releaseLicenseLedger, ($baselineLicenseLedger | ConvertTo-Json -Depth 12),
         [Text.UTF8Encoding]::new($false))
@@ -3208,7 +3208,7 @@ try {
     # The receipt audits the Desktop JAR it patches with, so the stand-in is a JAR whose one
     # embedded library is the clean one OSV is asked about anyway. The stub java never reads it.
     New-TestBundleArchive -Path $stubJar -Entries ([ordered]@{
-        'META-INF/maven/com.google.code.gson/gson/pom.properties' = "groupId=com.google.code.gson`nartifactId=gson`nversion=2.14.0`n" })
+        'META-INF/maven/com.google.code.gson/gson/pom.properties' = "groupId=com.google.code.gson`nartifactId=gson`nversion=2.15.0`n" })
     New-TestBundleArchive -Path (Join-Path $tools 'patched.apk') -Entries ([ordered]@{
         'AndroidManifest.xml' = 'binary manifest'; 'classes.dex' = "dex`n035" })
 
@@ -3924,7 +3924,7 @@ try {
             "*Morphe Manager can read the $releaseVersionHere entry*",
             "*the hosted release-receipt-$releaseVersionHere.json is the receipt checked here, as SHA256SUMS.txt lists it*",
             "*the hosted patches-$releaseVersionHere.cdx.json is the SBOM the receipt names and SHA256SUMS.txt lists*",
-            "*OSV has no advisory for the libraries patches-$releaseVersionHere.cdx.json lists: gson 2.14.0*")) {
+            "*OSV has no advisory for the libraries patches-$releaseVersionHere.cdx.json lists: gson 2.15.0*")) {
         Assert-True ($said -like $expected) "The index push after the release did not say $expected`: $said"
     }
     # The hosted asset checked on its own, from a checkout with no bundle built for it: the hook's

@@ -2,6 +2,7 @@ package app.template.extension.pdb;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.drawable.GradientDrawable;
 import android.text.InputType;
@@ -71,7 +72,7 @@ public final class PdbUi {
         if (name != null && id != null && id.length() > 0) {
             LAST_PROFILE_ID = id;
             LAST_PROFILE_NAME = name;
-            recordSoul("seen", id, name);
+            if (isSoulUser(profile)) recordSoul("seen", id, name);
         }
         if (!IDS_EVERYWHERE || name == null || id == null || id.length() == 0) return name;
         if (name.length() == 0) return name;
@@ -205,7 +206,7 @@ public final class PdbUi {
     public static void recordSoulLike(Object card) {
         try {
             if (card == null) return;
-            String id = null, name = null;
+            String id = null, name = null, userClass = null;
             for (java.lang.reflect.Field f : card.getClass().getDeclaredFields()) {
                 f.setAccessible(true);
                 Object v;
@@ -221,8 +222,16 @@ public final class PdbUi {
                     try { vname = (String) v.getClass().getMethod("getUsername").invoke(v); }
                     catch (Throwable ignored2) { }
                 }
-                if (vid != null && vname != null) { id = vid; name = vname; break; }
+                if (vid != null && vname != null) {
+                    id = vid; name = vname; userClass = v.getClass().getName();
+                    break;
+                }
                 if (id == null) { id = vid; }
+            }
+            if (userClass != null && !userClass.equals(soulClass)) {
+                soulClass = userClass;
+                try { PdbMmkv.putString("morphe_soul_class", userClass); }
+                catch (Throwable ignored) { }
             }
             if (id != null) recordSoul("like", id, name);
         } catch (Throwable ignored) {
@@ -303,7 +312,90 @@ public final class PdbUi {
     }
 
     /** Resource color by name, or {@code fallback} when missing. */
+    /* ── theme ──
+     *
+     * The app's dark mode is an in-app setting: MMKV "dark_mode"
+     * (-1 = system, 1 = light, 2 = dark — see the appearance picker wiring in
+     * ij6/e50), applied through AppCompatDelegate, which AppCompatActivity
+     * contexts follow but our plain extension activities do NOT — that is why
+     * the injected screens stayed light in dark mode. isNight() reads the
+     * app's own setting first, then falls back to the system uiMode, and the
+     * palette helpers below resolve explicit colors so injected screens match
+     * the app in both modes.
+     */
+
+    public static boolean isNight(Context ctx) {
+        long v = PdbMmkv.getNumberAnyStore("dark_mode", -1);
+        if (v == 2) return true;   // in-app Dark
+        if (v == 1) return false;  // in-app Light
+        // -1 (System) or unset: follow the system uiMode
+        int m = ctx.getResources().getConfiguration().uiMode
+            & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+        return m == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+    }
+
+    /** Page background matching the app's dark/light surfaces. */
+    public static int pageBg(Context ctx) {
+        return isNight(ctx) ? 0xFF0A0A0C : 0xFFFFFFFF;
+    }
+
+    /** Card background (Pdb content_bg equivalents for both modes). */
+    public static int cardBg(Context ctx) {
+        return isNight(ctx) ? 0xFF1C1C20 : 0xFFF2F2F7;
+    }
+
+    /** Primary text color (mirrors the app's gray_01 for the current mode). */
+    public static int mainText(Context ctx) {
+        return isNight(ctx) ? 0xFFF0F0F0 : 0xFF0F0F0F;
+    }
+
+    /** Secondary text color. */
+    public static int subText(Context ctx) {
+        return 0xFF8E8E93;
+    }
+
+    /** Rounded card using the mode-aware card background. */
+    public static LinearLayout themedCard(Context ctx) {
+        LinearLayout card = new LinearLayout(ctx);
+        card.setOrientation(LinearLayout.VERTICAL);
+        GradientDrawable rounded = new GradientDrawable();
+        rounded.setColor(cardBg(ctx));
+        rounded.setCornerRadius(dp(ctx, 8));
+        card.setBackground(rounded);
+        return card;
+    }
+
+    /* ── soul-user filter ──
+     *
+     * decorateName fires for EVERY decorated row app-wide (explore, chats,
+     * thought-bubble carousels...), but the local Soul history must only
+     * contain SOUL-feed users. The soul card model's class is learned from
+     * the like hook (the one place we know the object is a soul card's user):
+     * once known (and persisted), "seen" records only apply to that class;
+     * "like" records are always taken from the hook itself.
+     */
+
+    private static volatile String soulClass;
+
+    private static String soulClass() {
+        if (soulClass == null) {
+            try {
+                soulClass = PdbMmkv.getString("morphe_soul_class");
+            } catch (Throwable ignored) {
+            }
+        }
+        return soulClass;
+    }
+
+    /** True if profile is an instance of the learned soul-card user class. */
+    private static boolean isSoulUser(Object profile) {
+        String c = soulClass();
+        return c != null && profile != null
+            && c.equals(profile.getClass().getName());
+    }
+
     public static int color(Context ctx, String name, int fallback) {
+        if (name == null) return fallback;
         int id = ctx.getResources().getIdentifier(name, "color", ctx.getPackageName());
         if (id == 0) return fallback;
         try {

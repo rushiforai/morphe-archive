@@ -79,6 +79,7 @@ import app.morphe.extension.facebook.download.SaveFolder;
 import app.morphe.extension.facebook.download.SaveTo;
 import app.morphe.extension.facebook.download.SendLink;
 import app.morphe.extension.facebook.comments.CommentOrder;
+import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.feed.PostSources;
 import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.feed.PostWordsTest;
@@ -146,6 +147,9 @@ public class SettingsBackupTest {
         out.put("hushfacebook_header_picture",
                 "it names the picture at the top of Home, whose shrunk copy only this install holds. A settings file "
                         + "can't carry the picture itself, and the name alone would point at nothing on another phone.");
+        out.put("hushfacebook_save_storage",
+                "it names the SD card saves go to by the volume name Android gave that card in this phone, which "
+                        + "points at nothing on another phone.");
         out.put("hushfacebook_seen_share_items",
                 "it records the share items this install's Facebook offered, which the hook writes, not a choice.");
         out.put("hushfacebook_seen_menu_tiles",
@@ -187,6 +191,7 @@ public class SettingsBackupTest {
         ShadowLooper.idleMainLooper();
         for (BooleanSetting setting : SettingsBackup.ALLOWLIST) setting.resetToDefault();
         Settings.SAVE_FOLDER.resetToDefault();
+        Settings.SAVE_STORAGE.resetToDefault();
         Settings.DOWNLOAD_QUALITY.resetToDefault();
         Settings.FILENAME_TEMPLATE.resetToDefault();
         Settings.PHOTO_FILENAME_TEMPLATE.resetToDefault();
@@ -197,6 +202,7 @@ public class SettingsBackupTest {
         Settings.PLAYBACK_QUALITY.resetToDefault();
         Settings.REELS_PLAYBACK_QUALITY.resetToDefault();
         Settings.STORIES_PLAYBACK_QUALITY.resetToDefault();
+        Settings.REELS_ORDER.resetToDefault();
         Settings.QUIET_HOURS_FROM.resetToDefault();
         Settings.QUIET_HOURS_UNTIL.resetToDefault();
         Settings.APP_LOCK_AFTER.resetToDefault();
@@ -214,6 +220,8 @@ public class SettingsBackupTest {
         Settings.HIDDEN_MENU_TILES.resetToDefault();
         Settings.AMOLED_BACKGROUND.resetToDefault();
         Settings.AMOLED_LIGHT_BACKGROUND.resetToDefault();
+        Settings.BADGE_COLOR.resetToDefault();
+        Settings.LOGO_COLOR.resetToDefault();
         Settings.HEADER_TEXT.resetToDefault();
         Settings.SEEN_MENU_TILES.resetToDefault();
         Settings.SEEN_SHARE_ITEMS.resetToDefault();
@@ -259,12 +267,12 @@ public class SettingsBackupTest {
         for (Setting<?> setting : SettingsBackup.VALUES) {
             assertFalse(setting.key + " is carried and kept out at once", VALUES_STAY_OUT.containsKey(setting.key));
         }
-        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.HIDDEN_SOURCES, Settings.HIDE_POSTS_OVER_REACTIONS, Settings.HIDDEN_SHARE_ITEMS, Settings.HIDDEN_MENU_TILES, Settings.HOME_FEED, Settings.AMOLED_BACKGROUND, Settings.AMOLED_LIGHT_BACKGROUND, Settings.HEADER_TEXT, Settings.SEEN_POSTS_KEEP, Settings.SAVE_TO,
+        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.HIDDEN_SOURCES, Settings.HIDE_POSTS_OVER_REACTIONS, Settings.REELS_ORDER, Settings.HIDDEN_SHARE_ITEMS, Settings.HIDDEN_MENU_TILES, Settings.HOME_FEED, Settings.AMOLED_BACKGROUND, Settings.AMOLED_LIGHT_BACKGROUND, Settings.HEADER_TEXT, Settings.SEEN_POSTS_KEEP, Settings.SAVE_TO,
                 Settings.SAVE_FOLDER, Settings.VIDEO_SUBFOLDER, Settings.PHOTO_SUBFOLDER, Settings.DOWNLOAD_QUALITY,
                 Settings.FILENAME_TEMPLATE, Settings.PHOTO_FILENAME_TEMPLATE, Settings.DOWNLOAD_ACTION, Settings.SEND_TO_APP,
                 Settings.START_TAB, Settings.FEEDS_SUBTAB, Settings.COMMENT_ORDER, Settings.PLAYBACK_QUALITY,
                 Settings.REELS_PLAYBACK_QUALITY, Settings.STORIES_PLAYBACK_QUALITY, Settings.QUIET_HOURS_FROM,
-                Settings.QUIET_HOURS_UNTIL, Settings.APP_LOCK_AFTER, Settings.TEXT_SIZE, Settings.ACCENT_COLOR), SettingsBackup.VALUES);
+                Settings.QUIET_HOURS_UNTIL, Settings.APP_LOCK_AFTER, Settings.TEXT_SIZE, Settings.ACCENT_COLOR, Settings.BADGE_COLOR, Settings.LOGO_COLOR), SettingsBackup.VALUES);
         assertEquals(Settings.SAVE_TO, SettingsBackup.TO);
         assertEquals(Settings.HIDDEN_WORDS, SettingsBackup.HIDDEN);
         assertEquals(Settings.KEPT_WORDS, SettingsBackup.KEPT);
@@ -284,6 +292,7 @@ public class SettingsBackupTest {
         assertEquals(Settings.PLAYBACK_QUALITY, SettingsBackup.PLAYBACK);
         assertEquals(Settings.REELS_PLAYBACK_QUALITY, SettingsBackup.REELS_QUALITY);
         assertEquals(Settings.STORIES_PLAYBACK_QUALITY, SettingsBackup.STORIES_QUALITY);
+        assertEquals(Settings.REELS_ORDER, SettingsBackup.REELS_ORDER);
         assertEquals(Settings.QUIET_HOURS_FROM, SettingsBackup.QUIET_FROM);
         assertEquals(Settings.QUIET_HOURS_UNTIL, SettingsBackup.QUIET_UNTIL);
         assertEquals(Settings.TEXT_SIZE, SettingsBackup.TEXT_SIZE);
@@ -779,6 +788,7 @@ public class SettingsBackupTest {
         Settings.SAVE_FOLDER.save("Clips");
         String file = SettingsBackup.create();
         Settings.SAVE_FOLDER.resetToDefault();
+        Settings.SAVE_STORAGE.resetToDefault();
 
         SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
         assertEquals("Clips", snapshot.folder);
@@ -1135,6 +1145,51 @@ public class SettingsBackupTest {
         assertEquals("#FFF8E7", SettingsBackup.Snapshot.fromBundle(state).lightBackground);
         state.putString("amoled_light_background", "#fff8e7");
         assertNull(SettingsBackup.Snapshot.fromBundle(state).lightBackground);
+    }
+
+    /**
+     * Badge and logo colors (#263) go out and come back as their rows keep them, and a code written
+     * any other way refuses the whole file.
+     */
+    @Test
+    public void badgeAndLogoColorsRoundTripAsTheirRowsKeepThem() throws Exception {
+        Settings.BADGE_COLOR.save("#2ECC71");
+        Settings.LOGO_COLOR.save(" ff00aa ");
+        String file = SettingsBackup.create();
+        JSONObject settings = new JSONObject(file).getJSONObject("settings");
+        assertEquals("#2ECC71", settings.get(SettingsBackup.BADGE.key));
+        assertEquals("#FF00AA", settings.get(SettingsBackup.LOGO.key));
+        Settings.BADGE_COLOR.resetToDefault();
+        Settings.LOGO_COLOR.resetToDefault();
+
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals("#2ECC71", snapshot.badgeChange());
+        assertEquals("#FF00AA", snapshot.logoChange());
+        assertEquals(2, SettingsBackup.apply(snapshot));
+        assertEquals("#2ECC71", Settings.BADGE_COLOR.savedValue());
+        assertEquals("#FF00AA", Settings.LOGO_COLOR.savedValue());
+        assertEquals("If your patched Facebook includes Badge and logo colors, badges will be #2ECC71.",
+                SettingsBackupPreference.markColorSentence(false, snapshot.badge)
+                        .replace(String.valueOf((char) 0x2068), "").replace(String.valueOf((char) 0x2069), ""));
+        assertEquals("If your patched Facebook includes Badge and logo colors, the logo will be Facebook's blue.",
+                SettingsBackupPreference.markColorSentence(true, ""));
+
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{"#2ecc71", "2ECC71", "#802ECC71", "green", "#2ECC7", 5, JSONObject.NULL}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.LOGO.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the Logo color " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        Bundle state = snapshot.toBundle();
+        assertEquals("#2ECC71", SettingsBackup.Snapshot.fromBundle(state).badge);
+        assertEquals("#FF00AA", SettingsBackup.Snapshot.fromBundle(state).logo);
     }
 
     /**
@@ -1982,6 +2037,61 @@ public class SettingsBackupTest {
     }
 
     /**
+     * What Sort loaded reels sorts by goes out as its file value and comes back only as one this
+     * build offers, and the preview says what it does. A file from before it was carried leaves it
+     * alone (#134).
+     */
+    @Test
+    public void theReelsOrderRoundTripsAndComesBackOnlyAsOneThisBuildOffers() throws Exception {
+        for (ReelsOrder order : ReelsOrder.values()) {
+            Settings.REELS_ORDER.save(order);
+            String file = SettingsBackup.create();
+            assertEquals(order.fileValue, new JSONObject(file).getJSONObject("settings").get(SettingsBackup.REELS_ORDER.key));
+            Settings.REELS_ORDER.save(order == ReelsOrder.NEWEST ? ReelsOrder.MOST_LIKED : ReelsOrder.NEWEST);
+
+            SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+            assertEquals(order, snapshot.reelsOrder);
+            assertEquals(order, snapshot.reelsOrderChange());
+            assertEquals(Collections.singletonMap(SettingsBackup.REELS_ORDER, order), snapshot.changes());
+            assertEquals(1, SettingsBackup.apply(snapshot));
+            assertEquals(order, Settings.REELS_ORDER.savedValue());
+            assertEquals("a file read back is the file", file, SettingsBackup.create());
+            assertEquals("the same order again changes nothing", 0, SettingsBackup.parse(file).changes().size());
+        }
+
+        Settings.REELS_ORDER.save(ReelsOrder.MOST_LIKED);
+        String file = SettingsBackup.create();
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{"MOST_LIKED", "Most liked", "oldest", "", 1, true,
+                JSONObject.NULL, new JSONObject(), new org.json.JSONArray()}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.REELS_ORDER.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the reels order " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        SettingsBackup.Snapshot older = SettingsBackup.parse(fileWith(Settings.HIDE_SUGGESTED_POSTS, false));
+        assertNull(older.reelsOrder);
+        assertNull(older.reelsOrderChange());
+        SettingsBackup.apply(older);
+        assertEquals(ReelsOrder.MOST_LIKED, Settings.REELS_ORDER.savedValue());
+
+        // A preview kept across a rebuild keeps its order, and only one this build offers comes back.
+        Bundle state = SettingsBackup.parse(file).toBundle();
+        assertEquals(ReelsOrder.MOST_LIKED, SettingsBackup.Snapshot.fromBundle(state).reelsOrder);
+        state.putString("reels_order", "MOST_LIKED");
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).reelsOrder);
+
+        assertEquals(L10n.f("Reels order will be set to %1$s.", L10n.t("Most liked")),
+                SettingsBackupPreference.reelsOrderSentence(ReelsOrder.MOST_LIKED));
+    }
+
+    /**
      * The order comments open in goes out as its file value and comes back only as one this build
      * offers: any other value, or one that isn't text, refuses the whole file.
      */
@@ -2132,7 +2242,7 @@ public class SettingsBackupTest {
             deliver(activity, tap(activity, page, IMPORT_ROW), file.toString());
             AlertDialog preview = shownPreview();
             String order = "Comments will open with Newest picked in their sort menu.";
-            String quality = "Playback quality will be set to Up to " + L10n.isolate("720p") + ".";
+            String quality = "Default quality will be set to Up to " + L10n.isolate("720p") + ".";
             assertEquals("1 switch will change.\n\n" + order + "\n\n" + quality,
                     String.valueOf(shadowOf(preview).getMessage()));
             preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();

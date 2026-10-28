@@ -170,7 +170,7 @@ public class SettingsCardsTest {
     @Test public void everyCategoryExpandsItsControlsBelowTheSameButton() throws Exception {
         open(true, EnumSet.allOf(PatchFamily.class));
         List<Preference> categories = categoryRows();
-        assertEquals(22, categories.size());
+        assertEquals("every category, Pause and diagnostics included", 23, categories.size());
         for (Preference row : categories) {
             HushgramPreferenceFragment.Heading group = (HushgramPreferenceFragment.Heading) row;
             assertEquals(0, group.getPreferenceCount());
@@ -248,12 +248,12 @@ public class SettingsCardsTest {
         assertTrue("Settings entry comes after the everyday controls, before backup: " + rows,
                 rows.indexOf(entry) > rows.indexOf(categoryRow("Feed")) && rows.indexOf(entry) < rows.indexOf(backup));
         assertFalse("Settings entry sits inside the card", ScreenColors.opensCard(entry) || ScreenColors.closesCard(entry));
-        for (Preference row : rows.subList(1, rows.indexOf(backup))) {
+        Preference pause = categoryRow("Pause and diagnostics");
+        assertEquals("Pause and diagnostics folds between backup and About: " + rows,
+                List.of(backup, pause, about), rows.subList(rows.indexOf(backup), rows.size()));
+        for (Preference row : rows.subList(1, rows.size())) {
             assertFalse(row.getTitle() + " sits inside the card", ScreenColors.opensCard(row) || ScreenColors.closesCard(row));
         }
-        assertTrue("Pause and diagnostics, a section of its own, comes next", ScreenColors.closesCard(backup));
-        assertTrue(ScreenColors.opensCard(about));
-        assertFalse("Report a problem and Support HushGram share About's card", ScreenColors.closesCard(about));
         Preference report = page.findPreference(HushgramPreferenceFragment.REPORT_ROW_KEY);
         assertFalse(ScreenColors.opensCard(report));
         assertFalse(ScreenColors.closesCard(report));

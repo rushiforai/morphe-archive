@@ -124,6 +124,29 @@ public final class PdbMmkv {
         return out;
     }
 
+    /**
+     * Numeric value searched across every store (int or long) — the app
+     * scatters settings like "dark_mode" across its KV stores and writes them
+     * through wrappers whose value type we don't control.
+     *
+     * @return the first hit, or {@code def} when no store carries the key.
+     */
+    public static long getNumberAnyStore(String key, long def) {
+        for (String id : ids()) {
+            SharedPreferences sp = open(id);
+            if (sp == null || !sp.contains(key)) continue;
+            try {
+                return sp.getLong(key, def);
+            } catch (Throwable notLong) {
+                try {
+                    return sp.getInt(key, (int) def);
+                } catch (Throwable ignored) {
+                }
+            }
+        }
+        return def;
+    }
+
     /** Keys in one store, sorted. Uses MMKV's allKeys() because getAll() is unsupported. */
     public static List<String> keys(String id) {
         List<String> out = new ArrayList<>();

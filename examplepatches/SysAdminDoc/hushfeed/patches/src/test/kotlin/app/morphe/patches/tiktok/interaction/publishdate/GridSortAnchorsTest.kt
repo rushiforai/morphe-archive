@@ -14,7 +14,12 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
@@ -112,6 +117,89 @@ class GridSortAnchorsTest {
             GridAdapterPageFingerprint.clearMatch()
             assertTrue("$version: the probe never ran", checked)
         }
+    }
+
+    @Test
+    fun `each declared build hands the extension the tab number its Liked tab uses`() {
+        Fixtures.forEachDeclared { apk ->
+            val version = Fixtures.versionOf(apk)
+            val inits = mutableListOf<Method>()
+            val data = mutableListOf<Method>()
+            val names = mutableListOf<Method>()
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            for (entry in container.dexEntryNames) {
+                for (classDef in container.getEntry(entry)!!.dexFile.classes) {
+                    for (method in classDef.methods) {
+                        if (GridAdapterInitFingerprint.takes(method, classDef)) inits += method
+                        if (GridAdapterSetDataFingerprint.takes(method, classDef)) data += method
+                        if (GridTabNameFingerprint.takes(method, classDef)) names += method
+                    }
+                }
+            }
+            assertEquals("$version: adapter constructors ${inits.map { it.parameterTypes }}", 1, inits.size)
+            assertEquals("$version: the adapter's own", data.single().definingClass, inits.single().definingClass)
+            assertTrue("$version: the constructor keeps its int in one field", gridTabField(inits.single()) != null)
+            assertTrue("$version: no tab name method", names.isNotEmpty())
+            for (name in names) {
+                assertEquals("$version: ${name.definingClass}->${name.name} names tab 1 the favorite tab", 1, favoriteTabNumber(name))
+            }
+
+            var checked = false
+            val probe = bytecodePatch(name = "grid tab probe") {
+                execute {
+                    fun ops(m: Method) = m.implementation!!.instructions.filter { it.opcode != Opcode.NOP }.toList()
+                    val before = ops(GridAdapterInitFingerprint.method)
+                    GridAdapterInitFingerprint.clearMatch()
+                    assertTrue("$version: the hook went in", hookGridTab(version))
+                    GridAdapterInitFingerprint.clearMatch()
+                    val after = ops(GridAdapterInitFingerprint.method)
+                    val returns = before.count { it.opcode == Opcode.RETURN_VOID }
+                    assertEquals("$version: three more per return", before.size + 3 * returns, after.size)
+                    after.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.forEach { (index, _) ->
+                        assertEquals(
+                            listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.IGET, Opcode.INVOKE_STATIC),
+                            after.subList(index - 3, index).map { it.opcode },
+                        )
+                        val call = after[index - 1].getReference<MethodReference>()!!
+                        assertEquals(
+                            "Lapp/morphe/extension/tiktok/feed/GridSort;->tab(Ljava/lang/Object;I)V",
+                            "${call.definingClass}->${call.name}(${call.parameterTypes.joinToString("")})${call.returnType}",
+                        )
+                    }
+                    checked = true
+                }
+            }
+            GridAdapterInitFingerprint.clearMatch()
+            Patcher(PatcherConfig(apk, temporary.newFolder())).use { patcher ->
+                patcher += setOf(probe)
+                runBlocking { patcher().collect { result -> result.exception?.let { throw it } } }
+            }
+            GridAdapterInitFingerprint.clearMatch()
+            assertTrue("$version: the probe never ran", checked)
+        }
+    }
+
+    /** The literal a tab name method compares the tab number to before naming it the favorite tab. */
+    private fun favoriteTabNumber(method: Method): Int? {
+        val code = method.implementation!!.instructions.toList()
+        val starts = IntArray(code.size)
+        var at = 0
+        code.forEachIndexed { index, instruction ->
+            starts[index] = at
+            at += instruction.codeUnits
+        }
+        for (index in 1 until code.size) {
+            val branch = code[index]
+            val literal = code[index - 1]
+            if (branch.opcode != Opcode.IF_EQ) continue
+            if (literal.opcode != Opcode.CONST_4 && literal.opcode != Opcode.CONST_16) continue
+            if ((literal as OneRegisterInstruction).registerA != (branch as TwoRegisterInstruction).registerB) continue
+            val target = starts.indexOf(starts[index] + (branch as OffsetInstruction).codeOffset)
+            if (target < 0) continue
+            val named = code.drop(target).take(6).mapNotNull { it.getReference<StringReference>()?.string }
+            if (named.any { it.endsWith("_favorite_tab") }) return (literal as NarrowLiteralInstruction).narrowLiteral
+        }
+        return null
     }
 
     @Test

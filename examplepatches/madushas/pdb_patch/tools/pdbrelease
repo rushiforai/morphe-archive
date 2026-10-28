@@ -32,6 +32,58 @@ export GITHUB_ACTOR="${GITHUB_ACTOR:-madushas}"
 VERSION="$(grep -E '^version' gradle.properties | head -1 | cut -d= -f2 | tr -d ' ')"
 ASSET="$REPO/patches/build/libs/patches-$VERSION.mpp"
 URL="https://github.com/$OWNER_REPO/releases/download/v$VERSION/patches-$VERSION.mpp"
+NOTES="$REPO/patches/build/libs/notes-$VERSION.md"
+
+# ── changelog ────────────────────────────────────────────────────────────────
+# Morphe Manager renders patches-bundle.json "description" as the source's
+# release notes (the official bundles ship a semantic-release-style markdown
+# changelog there: "## [version] (date)" + grouped sections with commit links).
+# We generate the same shape from git history since the previous release tag;
+# without it the Manager's changelog view shows our old one-line description.
+gen_notes() {
+  git fetch --tags -q >/dev/null 2>&1 || true
+  local prev
+  prev="$(git tag -l 'v*' | sort -V | awk -v cur="v$VERSION" '$0 < cur' | tail -1 || true)"
+  local range="HEAD"
+  [[ -n "$prev" ]] && range="$prev..HEAD"
+  python3 - "$VERSION" "$OWNER_REPO" "$range" "$prev" > "$NOTES" <<'PY'
+import json, subprocess, sys, datetime
+version, repo, rng, prev = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+today = datetime.date.today().isoformat()
+base = f"https://github.com/{repo}"
+head = f"## [{version}]({base}/compare/{prev or 'v0.0.0'}...v{version}) ({today})" if prev else \
+       f"## [{version}] ({today})"
+out = subprocess.run(["git", "log", "--format=%s%x09%h", rng],
+                     capture_output=True, text=True).stdout
+sections = {"feat": [], "fix": [], "perf": [], "misc": []}
+for line in out.splitlines():
+    if not line.strip():
+        continue
+    subject, sha = line.rsplit("\t", 1)
+    low = subject.lower()
+    link = f" ([{sha}]({base}/commit/{sha}))"
+    if low.startswith(("release:", "chore(release", "chore: release")):
+        continue
+    for key, tag in (("feat:", "feat"), ("fix:", "fix"), ("perf:", "perf")):
+        if low.startswith(key):
+            sections[tag].append(subject.split(":", 1)[1].strip() + link)
+            break
+    else:
+        sections["misc"].append(subject + link)
+parts = [head]
+if sections["feat"]:
+    parts += ["", "### ✨ New Features"] + [f"* {s}" for s in sections["feat"]]
+if sections["fix"]:
+    parts += ["", "### 🐛 Bug Fixes"] + [f"* {s}" for s in sections["fix"]]
+if sections["perf"]:
+    parts += ["", "### ⚡ Performance"] + [f"* {s}" for s in sections["perf"]]
+if sections["misc"]:
+    parts += ["", "### 🧹 Changes"] + [f"* {s}" for s in sections["misc"]]
+if len(parts) == 1:
+    parts += ["", "* Bundle maintenance release."]
+print("\n".join(parts))
+PY
+}
 
 report() {
   python3 - "$VERSION" "$URL" <<'PY'
@@ -65,6 +117,13 @@ fi
 if [[ "$MODE" == "--check" ]]; then
   [[ "$META_OK" == "1" ]] || { echo "Metadata is inconsistent — run: pdbrelease --prepare"; exit 1; }
   [[ -f "$ASSET" ]] || { echo "Bundle not built — run: pdbrelease --prepare"; exit 1; }
+  if ! python3 -c "
+import json,sys
+d=json.load(open('patches-bundle.json'))
+sys.exit(0 if d.get('description','').startswith('## [$VERSION]') else 1)
+" 2>/dev/null; then
+    echo "  NOTE: patches-bundle.json description is not the v$VERSION changelog (Manager shows it as release notes) — run --prepare"
+  fi
   echo "==> Ready to release v$VERSION"
   echo "    tag/asset: v$VERSION / patches-$VERSION.mpp"
   echo "    source:    https://morphe.software/add-source?github=$OWNER_REPO"
@@ -90,14 +149,51 @@ if ! unzip -l "$ASSET" | grep -q "\.dex"; then
 fi
 unzip -l "$ASSET" | grep "\.dex" | sed 's/^/  /'
 
+echo "==> Generating the release changelog (Manager renders it as the source's release notes)"
+gen_notes
+head -3 "$NOTES" | sed 's/^/  /'
+echo "  ... ($(( $(wc -l < "$NOTES") )) lines -> patches/build/libs/notes-$VERSION.md)"
+
+echo "==> Updating CHANGELOG.md (the Manager fetches it for per-app update hints)"
+python3 - "$VERSION" "$NOTES" <<'PY'
+import re, sys
+version, notes_path = sys.argv[1], sys.argv[2]
+section = open(notes_path, encoding="utf-8").read().strip()
+existing = ""
+try:
+    existing = open("CHANGELOG.md", encoding="utf-8").read()
+except FileNotFoundError:
+    pass
+# Replace the section for this version if present, else prepend it.
+pattern = re.compile(
+    r"(?ms)^## \[" + re.escape(version) + r"].*?(?=^## \[|\Z)")
+if pattern.search(existing):
+    existing = pattern.sub(section + "\n\n", existing)
+else:
+    header = "# Changelog\n\nAll notable changes to the Pdb & MyDialog Morphe patch bundle.\n" \
+        "The Manager reads this file to show per-app update hints and the in-app changelog.\n\n"
+    if existing.startswith("# Changelog"):
+        existing = re.sub(r"(?s)^# Changelog.*?(?=^## \[)", header, existing)
+    else:
+        existing = header + existing
+    existing = existing.replace(header, header, 1)
+    # insert the new section right after the header block
+    idx = existing.find("## [")
+    existing = (existing[:idx] + section + "\n\n" + existing[idx:]) if idx >= 0 else existing + "\n\n" + section
+open("CHANGELOG.md", "w", encoding="utf-8").write(existing.rstrip() + "\n")
+print("  CHANGELOG.md updated for", version)
+PY
+
 echo "==> Syncing patches-bundle.json"
-python3 - "$VERSION" "$URL" <<'PY'
-import collections, json, sys
-version, url = sys.argv[1], sys.argv[2]
+python3 - "$VERSION" "$URL" "$NOTES" <<'PY'
+import collections, json, sys, datetime
+version, url, notes_path = sys.argv[1], sys.argv[2], sys.argv[3]
 p = "patches-bundle.json"
 d = json.load(open(p), object_pairs_hook=collections.OrderedDict)
 d["download_url"] = url
 d["version"] = version
+d["created_at"] = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+d["description"] = open(notes_path, encoding="utf-8").read().strip()
 json.dump(d, open(p, "w"), indent=1, ensure_ascii=False)
 open(p, "a").write("\n")
 PY
@@ -121,7 +217,7 @@ if [[ "$MODE" == "--publish" ]]; then
   gh release create "v$VERSION" "$ASSET" \
     --repo "$OWNER_REPO" \
     --title "Morphe Patches (Pdb + MyDialog) v$VERSION" \
-    --generate-notes
+    --notes-file "$NOTES"
   echo "==> Released v$VERSION — refresh the source in Morphe Manager"
 else
   cat <<EOF
@@ -129,7 +225,8 @@ else
 
     git push origin HEAD
     gh release create v$VERSION patches/build/libs/patches-$VERSION.mpp \\
-      --repo $OWNER_REPO --title "Morphe Patches (Pdb + MyDialog) v$VERSION" --generate-notes
+      --repo $OWNER_REPO --title "Morphe Patches (Pdb + MyDialog) v$VERSION" \
+      --notes-file patches/build/libs/notes-$VERSION.md
 
     Then in Morphe Manager re-add / refresh:
     https://morphe.software/add-source?github=$OWNER_REPO

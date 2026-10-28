@@ -17,6 +17,7 @@ import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.ClockHourPreference;
+import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.SettingsActionBanner;
@@ -25,6 +26,7 @@ import app.morphe.extension.tiktok.settings.preference.StartTodayOverPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.wellbeing.BudgetChanges;
 import app.morphe.extension.tiktok.wellbeing.FeedLock;
+import app.morphe.extension.tiktok.wellbeing.FeedSchedule;
 import app.morphe.extension.tiktok.wellbeing.FinishLastVideo;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
@@ -70,6 +72,17 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
                         + "swipe. Messages, profiles and search work as usual, a link to one video "
                         + "still opens that video, and the app opens on Inbox instead of the feed.",
                 Settings.FEED_LOCK));
+        addPreference(new InputTextPreference(context, "Lock the feed at set times",
+                "The feed locks by itself during these hours, on your phone's clock. Write days "
+                        + "and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out "
+                        + "for every day. A time that ends earlier than it starts runs past midnight.",
+                Settings.FEED_LOCK_HOURS)
+                .withCheck(FeedSchedule::problem)
+                .withPreview(typed -> {
+                    String problem = FeedSchedule.problem(typed);
+                    return problem != null ? problem : FeedSchedule.statusLine(typed);
+                })
+                .withNote(value -> joined(FeedSchedule.statusLine(value), waitingHoursLine(context))));
         // The link's arrival, cold and warm, is read by Feed tab navigation's hooks, so without
         // that patch there is nothing for the switch to act on. The block author patch carries
         // the rest of what it stands on and this whole page, as FeedLock.aloneIsOn asks of both.
@@ -251,6 +264,7 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
             }
             // One literal for each, because the translation gate reads the literal handed to L10n.
             SettingsActionBanner.showNotice(context, setting == Settings.FEED_LOCK
+                    || setting == Settings.FEED_LOCK_HOURS
                     ? L10n.f(context, "That loosens the lock. It waits until %1$s.",
                             SessionLockOverlay.timeLabel(at))
                     : L10n.f(context, "That loosens the budget. It waits until %1$s.",
@@ -268,6 +282,21 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
                         && keepOrSave.onPreferenceChange(preference, value);
         Preference feedLockRow = findPreference(Settings.FEED_LOCK.key);
         if (feedLockRow != null) feedLockRow.setOnPreferenceChangeListener(feedLockChange);
+        // Its hours the same way: more hours tighten and apply at once, on a locked day too, and
+        // hours that leave out a minute already locked loosen it.
+        Preference hoursRow = findPreference(Settings.FEED_LOCK_HOURS.key);
+        if (hoursRow != null) {
+            hoursRow.setOnPreferenceChangeListener((preference, value) -> {
+                boolean loosening = BudgetChanges.loosens(Settings.FEED_LOCK_HOURS,
+                        Settings.FEED_LOCK_HOURS.savedValue(), String.valueOf(value));
+                if ((loosening && !refuseWhileLocked.onPreferenceChange(preference, value))
+                        || !keepOrSave.onPreferenceChange(preference, value)) {
+                    return false;
+                }
+                FeedSchedule.changed();
+                return true;
+            });
+        }
         for (Setting<?> setting : new Setting<?>[]{Settings.SESSION_BUDGET_VIDEOS,
                 Settings.SESSION_BUDGET_MINUTES, Settings.SESSION_BUDGET_LOCK_MINUTES,
                 Settings.SESSION_BUDGET_RESET_HOUR, Settings.SESSION_BUDGET_PASSES_PER_DAY,
@@ -330,10 +359,10 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
 
     /** Every row a budget change or a new day can move, in the order the page shows them. */
     private static Setting<?>[] budgetRows() {
-        return new Setting<?>[]{Settings.FEED_LOCK, Settings.SESSION_BUDGET_VIDEOS, Settings.SESSION_BUDGET_MINUTES,
-                Settings.SESSION_BUDGET_LOCK_MINUTES, Settings.SESSION_BUDGET_RESET_HOUR,
-                Settings.SESSION_BUDGET_LOCK, Settings.SESSION_BUDGET_PASSES_PER_DAY,
-                Settings.SESSION_BUDGET_WAIT_TO_LOOSEN};
+        return new Setting<?>[]{Settings.FEED_LOCK, Settings.FEED_LOCK_HOURS, Settings.SESSION_BUDGET_VIDEOS,
+                Settings.SESSION_BUDGET_MINUTES, Settings.SESSION_BUDGET_LOCK_MINUTES,
+                Settings.SESSION_BUDGET_RESET_HOUR, Settings.SESSION_BUDGET_LOCK,
+                Settings.SESSION_BUDGET_PASSES_PER_DAY, Settings.SESSION_BUDGET_WAIT_TO_LOOSEN};
     }
 
     /**
@@ -357,6 +386,15 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
                 toggle.setPersistent(false);
                 toggle.setChecked((Boolean) setting.get());
                 toggle.setPersistent(persistent);
+            } else if (row instanceof InputTextPreference) {
+                InputTextPreference text = (InputTextPreference) row;
+                String stored = String.valueOf(setting.get());
+                if (!stored.equals(text.getText())) {
+                    boolean persistent = text.isPersistent();
+                    text.setPersistent(false);
+                    text.setText(stored);
+                    text.setPersistent(persistent);
+                }
             }
             showWhatWaits(row);
         }
@@ -387,6 +425,17 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
                 shown.of(((Number) waiting).intValue()), SessionLockOverlay.timeLabel(at));
     }
 
+    /** What waits for the lock's hours: the new hours and when, or that they clear then. */
+    private static String waitingHoursLine(Context context) {
+        Object waiting = BudgetChanges.waiting(Settings.FEED_LOCK_HOURS);
+        long at = BudgetChanges.appliesAt();
+        if (!(waiting instanceof String) || at <= 0) return null;
+        String label = SessionLockOverlay.timeLabel(at);
+        return ((String) waiting).trim().isEmpty()
+                ? L10n.f(context, "Turns off at %1$s", label)
+                : L10n.f(context, "Changes to %1$s at %2$s", waiting, label);
+    }
+
     private static String joined(String first, String second) {
         if (second == null) return first;
         return first == null ? second : first + "\n" + second;
@@ -407,6 +456,10 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
     private static void showWhatWaits(Preference row) {
         if (row instanceof NumberInputPreference) {
             ((NumberInputPreference) row).refreshSummary();
+            return;
+        }
+        if (row instanceof InputTextPreference) {
+            ((InputTextPreference) row).refreshSummary();
             return;
         }
         if (!(row instanceof TogglePreference)) return;

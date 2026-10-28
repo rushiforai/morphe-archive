@@ -8,7 +8,7 @@ if ($parseErrors.Count) { throw ($parseErrors -join "`n") }
 $testFunctions = @('Assert-AuditLease', 'Assert-AuditSteps', 'Assert-AuditForeground', 'Invoke-Adb',
     'Get-AuditLocales', 'Get-AuditNightMode', 'Restore-AuditState', 'Format-Shell',
     'New-AuditBaseline', 'Compare-AuditWalk', 'Test-AuditBaseline', 'Publish-AuditBaseline', 'Save-SettingsPages', 'Get-SettingsPages', 'Test-AuditSectionShown', 'Get-AuditLocaleTable', 'Write-Step', 'Test-AuditDestination', 'Select-AuditTapNode', 'Find-AuditTapNode', 'Get-UiNodes', 'Send-Profile', 'Test-AuditLocaleList', 'Get-AuditLauncher', 'Get-Report',
-    'Test-AuditReelViewer', 'Get-AuditReelProof', 'Test-AuditKeyboard', 'Test-AuditSettingsRestored', 'ConvertFrom-AuditJsonTable', 'Resolve-AuditStateBefore', 'Get-AuditCrashes')
+    'Test-AuditReelViewer', 'Get-AuditReelProof', 'Close-AuditHoldCover', 'Open-AuditRoute', 'Test-AuditKeyboard', 'Test-AuditSettingsRestored', 'ConvertFrom-AuditJsonTable', 'Resolve-AuditStateBefore', 'Get-AuditCrashes')
 foreach ($functionName in $testFunctions) {
     $definition = $auditAst.Find({ param($node)
         $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq $functionName
@@ -16,6 +16,9 @@ foreach ($functionName in $testFunctions) {
     if (-not $definition) { throw "Missing audit function $functionName" }
     . ([scriptblock]::Create($definition.Extent.Text.Replace('$PSScriptRoot', '$testScriptRoot')))
 }
+$commonAst = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'common.ps1'), [ref]$null, [ref]$null)
+. ([scriptblock]::Create($commonAst.Find({ param($node)
+    $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Use-Utf8ConsoleOutput' }, $true).Extent.Text))
 
 . (Join-Path $PSScriptRoot 'device-install.ps1')
 $failures = [Collections.Generic.List[string]]::new()
@@ -98,6 +101,10 @@ function Invoke-FakeAdb {
         return $script:focusedWindow
     }
     if ($command -like '*uiautomator dump*') {
+        if ($script:nullRootDumps -gt 0) {
+            $script:nullRootDumps--
+            return 'ERROR: null root node returned by UiTestAutomationBridge.'
+        }
         if ($script:takeFocusOnDump) { $script:focusedWindow = 'mCurrentFocus=Window{2 u0 NotificationShade}' }
         if ($script:changeOwnWindowAfterDump) { $script:postDumpFocusReads = 0 }
         return $script:uiDump
@@ -192,6 +199,28 @@ try {
     } catch { $briefReadStopped = $true }
     finally { if ($script:briefReader) { $script:briefReader.Dispose() } }
     Assert-That (-not $briefReadStopped -and $script:adbCalls.Count -eq 1) 'A lease another process read for a moment stopped the audit.'
+
+    # adb writes UTF-8 whatever the console's code page. Under 437 (pwsh started from Git Bash) the
+    # notification row's curly apostrophe came back as three other characters, and the S22 walks
+    # failed the notifications step on a page that was there (2026-10-27). A real native command here.
+    $rowLabel = "Manage the notification$([char]0x2019)s settings"
+    $utf8Dump = Join-Path $testRoot 'utf8-dump.txt'
+    [IO.File]::WriteAllText($utf8Dump, "<?xml version=`"1.0`"?><hierarchy><node package=`"$Package`" text=`"`" content-desc=`"$rowLabel`" /></hierarchy>", [Text.UTF8Encoding]::new($false))
+    $nativeAdb = Join-Path $testRoot 'utf8-adb.cmd'
+    [IO.File]::WriteAllText($nativeAdb, "@type `"$utf8Dump`"`r`n")
+    $fakeAdb = $adb
+    $consoleBefore = [Console]::OutputEncoding
+    try {
+        [Console]::OutputEncoding = [Text.Encoding]::GetEncoding(437)
+        $adb = $nativeAdb
+        $read = (Invoke-Adb shell cat /sdcard/hushfacebook-audit.xml) -join "`n"
+        $nodes = @(([xml]$read.Substring($read.IndexOf('<?xml'))).SelectNodes('//node'))
+        Assert-That (Test-AuditDestination 'fb://notifications' $nodes) "adb's UTF-8 was misread under code page 437: $read"
+        Assert-That ([Console]::OutputEncoding.CodePage -eq 437) 'Reading adb left the console on another code page.'
+    } finally {
+        $adb = $fakeAdb
+        [Console]::OutputEncoding = $consoleBefore
+    }
 
     foreach ($unsafe in @('tap:Like', 'tap:Follow', 'tap:Add friend', 'tap:Send', 'tap:Alice', 'fb://friends', 'fb://messaging_thread', 'fb://feed; input tap 1 1')) {
         $Visit = @($unsafe)
@@ -688,6 +717,16 @@ try {
     Assert-That (@($declaredPages | Select-Object -Unique).Count -eq 23) 'The settings sweep included a route more than once.'
     Assert-That ($declaredPages -cnotcontains 'more' -and $declaredPages[-1] -ceq 'support') 'The settings sweep still uses More or omits Support.'
     function Start-Sleep { param([int]$Seconds, [int]$Milliseconds) }
+    # The settings title moves every frame, and an emulator's uiautomator then loses the window's
+    # root now and then: a run of misses still reads the screen, and a screen that never dumps doesn't.
+    $savedDump = $script:uiDump
+    $script:uiDump = "<?xml version=`"1.0`"?><hierarchy><node package=`"$Package`" text=`"Comment`" content-desc=`"Comment`" bounds=`"[0,0][20,20]`" /></hierarchy>"
+    $script:nullRootDumps = 6
+    Assert-That (@(Get-UiNodes).Count -eq 1) 'Six null-root dumps in a row lost the screen.'
+    $script:nullRootDumps = 50
+    Assert-That (@(Get-UiNodes).Count -eq 0) 'A screen that never dumped returned nodes.'
+    $script:nullRootDumps = 0
+    $script:uiDump = $savedDump
     $script:settingsPage = 'News feed'
     function Get-SettingsPages { return $script:settingsPage }
     function Close-Settings { }
@@ -966,6 +1005,61 @@ try {
     }
     $script:screenText = @()
     Assert-Throws { Save-SettingsPages 'dark-de' } 'Empty UI nodes passed.'
+
+    # A sheet an earlier step left over the page a link opened (the S22 walks, 2026-10-27) gets up to
+    # two Backs, each followed by the link, since the comment sheet's first Back only drops the
+    # composer's focus. A reel route, proved by its activity, never gets the Back.
+    & {
+        $SettleSeconds = 0
+        function Start-Sleep { param([int]$Seconds, [int]$Milliseconds) }
+        function Invoke-Adb { $script:routeCalls.Add($args -join ' '); if ($args -ccontains 'start') { 'Status: ok' } }
+        function Get-UiNodes { return @('node') }
+        function Test-AuditDestination([string]$Route, [object[]]$Nodes) { $script:pageAnswers.Dequeue() }
+        function Get-AuditReelProof { $script:pageAnswers.Dequeue() }
+        $cases = @(
+            @{ Reel = $false; Answers = @($true); Proved = $true; Backs = 0; Starts = 1; Name = 'a page proved at once' },
+            @{ Reel = $false; Answers = @($false, $true); Proved = $true; Backs = 1; Starts = 2; Name = 'a covered page' },
+            @{ Reel = $false; Answers = @($false, $false, $true); Proved = $true; Backs = 2; Starts = 3; Name = 'a focused comment sheet' },
+            @{ Reel = $false; Answers = @($false, $false, $false); Proved = $false; Backs = 2; Starts = 3; Name = 'a page never reached' },
+            @{ Reel = $true; Answers = @($false); Proved = $false; Backs = 0; Starts = 1; Name = 'a reel not proved' })
+        foreach ($case in $cases) {
+            $script:routeCalls = [Collections.Generic.List[string]]::new()
+            $script:pageAnswers = [Collections.Generic.Queue[bool]]::new([bool[]]$case.Answers)
+            $proved = Open-AuditRoute 'fb://notifications' $case.Reel
+            $backs = @($script:routeCalls | Where-Object { $_ -ceq 'shell input keyevent KEYCODE_BACK' }).Count
+            $starts = @($script:routeCalls | Where-Object { $_ -like 'shell am start *-d fb://notifications *' }).Count
+            Assert-That ($proved -eq $case.Proved) "Open-AuditRoute gave the wrong answer for $($case.Name)."
+            Assert-That ($backs -eq $case.Backs -and $starts -eq $case.Starts) "Open-AuditRoute sent $backs Back and $starts links for $($case.Name)."
+            Assert-That ($script:auditRouteBacks -eq $case.Backs) "Open-AuditRoute reported $($script:auditRouteBacks) Backs for $($case.Name)."
+            Assert-That ($script:pageAnswers.Count -eq 0) "Open-AuditRoute skipped a proof for $($case.Name)."
+        }
+    }
+
+    # What a hold on a reel opened is closed at the hold, a Back at a time, until the reel's controls
+    # show again, and never more than three Backs. An empty dump is a playing reel left alone.
+    & {
+        function Start-Sleep { param([int]$Seconds, [int]$Milliseconds) }
+        function Invoke-Adb { $script:holdCalls.Add($args -join ' ') }
+        function Get-UiNodes { $script:holdScreens.Dequeue() }
+        $reel = [pscustomobject]@{ text = ''; 'content-desc' = 'Tap to show video controls' }
+        $sheet = [pscustomobject]@{ text = 'Newest'; 'content-desc' = '' }
+        $cases = @(
+            @{ Screens = @(, @($reel)); Backs = 0; Name = 'a hold that opened nothing' },
+            @{ Screens = @(, @()); Backs = 0; Name = 'a playing reel' },
+            @{ Screens = @(@($sheet), @($reel)); Backs = 1; Name = 'the share sheet' },
+            @{ Screens = @(@($sheet), @($sheet), @($reel)); Backs = 2; Name = 'a comment sheet with a focused composer' },
+            @{ Screens = @(@($sheet), @($sheet), @($sheet)); Backs = 3; Name = 'a sheet that never closes' })
+        foreach ($case in $cases) {
+            $script:holdCalls = [Collections.Generic.List[string]]::new()
+            $script:holdScreens = [Collections.Generic.Queue[object]]::new()
+            foreach ($screen in $case.Screens) { $script:holdScreens.Enqueue($screen) }
+            $backs = Close-AuditHoldCover
+            $sent = @($script:holdCalls | Where-Object { $_ -ceq 'shell input keyevent KEYCODE_BACK' }).Count
+            Assert-That ($backs -eq $case.Backs -and $sent -eq $case.Backs) "Close-AuditHoldCover sent $sent Back(s) and said $backs for $($case.Name)."
+            Assert-That ($script:holdCalls.Count -eq $sent) "Close-AuditHoldCover sent something other than Back for $($case.Name)."
+            Assert-That ($script:holdScreens.Count -eq 0) "Close-AuditHoldCover skipped a look for $($case.Name)."
+        }
+    }
 } finally {
     # Only the exact uniquely-created test directory is removed.
     if ([IO.Path]::GetDirectoryName($testRoot.TrimEnd('\')) -ne [IO.Path]::GetTempPath().TrimEnd('\')) {

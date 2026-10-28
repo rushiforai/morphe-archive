@@ -143,6 +143,9 @@ final class DownloadsCategory {
                 });
                 downloads.addPreference(mark(clearHistory, SettingsIcons.DELETE));
             }
+            // Where every save goes, last, since the rows above it keep their places.
+            downloads.addPreference(page.saveTreeRow(context));
+            downloads.addPreference(page.galleryFoldersRow(context));
         }
     }
 }

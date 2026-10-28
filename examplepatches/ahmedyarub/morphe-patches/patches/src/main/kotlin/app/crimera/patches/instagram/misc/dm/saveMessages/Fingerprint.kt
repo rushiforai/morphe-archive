@@ -51,13 +51,9 @@ internal object DirectItemPostprocessFingerprint : Fingerprint(
 )
 
 // SQLite DAO hide-by-id. Injected at entry so our DB record is still present when the hook fires.
+// (DirectThreadKey, server id, client id) up to 452; from 453 the run() of a task built with them.
 internal object DirectItemDbHideFingerprint : Fingerprint(
     strings = listOf("Both message ID and client context is null."),
-    parameters = listOf(
-        "Lcom/instagram/model/direct/DirectThreadKey;",
-        "Ljava/lang/String;",
-        "Ljava/lang/String;",
-    ),
     returnType = "V",
 )
 

@@ -168,7 +168,10 @@ public class FontFilePreferenceTest {
 
             PreferenceGroup section = page.findPreference(FontFilePreference.CHOOSE_KEY).getParent();
             List<String> keys = new ArrayList<>();
-            for (int i = 0; i < section.getPreferenceCount(); i++) keys.add(section.getPreference(i).getKey());
+            // The section opens with its Text and emoji heading, which has no key.
+            assertTrue(section.getPreference(0) instanceof SettingsRows.Subheading);
+            assertEquals("Text and emoji", String.valueOf(section.getPreference(0).getTitle()));
+            for (int i = 1; i < section.getPreferenceCount(); i++) keys.add(section.getPreference(i).getKey());
             assertEquals(Arrays.asList(Settings.TEXT_SIZE.key, Settings.USE_SYSTEM_FONT.key, FontFilePreference.CHOOSE_KEY,
                     FontFilePreference.PHONE_FONT_KEY, Settings.USE_SYSTEM_EMOJI.key), keys);
         }

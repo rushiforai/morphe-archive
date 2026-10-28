@@ -298,6 +298,25 @@ public class ViewHiderTest {
         assertEquals(0, hider.sessionsForTests());
     }
 
+    /** HushGram settings are a dialog over the screen, so a switch flipped there can't wait for a resume. */
+    @Test
+    public void aSwitchFlippedUnderSettingsTakesHoldWithoutAResume() {
+        TextView target = view(targetId, "emoji");
+        root.addView(target);
+        show();
+        on.set(false);
+        hider(null).watch(activity);
+        assertFalse(hider.listeningForTests(activity));
+
+        on.set(true);
+        hider.switchChanged(activity);
+        shadowOf(Looper.getMainLooper()).idle();
+
+        assertTrue(hider.listeningForTests(activity));
+        assertTrue(frame());
+        assertEquals(View.GONE, target.getVisibility());
+    }
+
     @Test
     public void aBuildWithoutThePatchRegistersNothing() {
         root.addView(view(targetId, "emoji"));

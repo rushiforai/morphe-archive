@@ -109,6 +109,23 @@ public final class TwitchBadges {
         return out;
     }
 
+    /**
+     * Emote and badge info: { what it is ("FrankerFaceZ badge", ...), title } of the third-party badge or pronoun
+     * whose image URL is {@code url}, from the lists already loaded, or null for any other URL.
+     */
+    static String[] describe(String url) {
+        if (url == null) return null;
+        for (Provider provider : new Provider[]{FFZ, CHATTERINO}) {
+            for (Badge badge : provider.badges) {
+                if (badge.url.equals(url)) return new String[]{provider.name + " badge", badge.title};
+            }
+        }
+        for (Badge badge : PRONOUN_MODELS.values()) {
+            if (badge.url.equals(url)) return new String[]{"Pronouns from pronouns.alejo.io", badge.title};
+        }
+        return null;
+    }
+
     private static List add(List out, List badges, Badge[] provider, long id, Class<?> badgeClass)
             throws ReflectiveOperationException {
         for (Badge badge : provider) {
@@ -217,15 +234,15 @@ public final class TwitchBadges {
             String[] badge = meta.get(entry.getKey());
             if (badge == null || badge[3] == null || entry.getValue().length == 0) continue;
             String image = composeFfz(badge[3], badge[2]);
-            if (image != null) out.add(new Badge("ffz-" + badge[1], image, entry.getValue()));
+            if (image != null) out.add(new Badge("ffz-" + badge[1], image, entry.getValue(), badge[4]));
         }
         return out.toArray(NONE);
     }
 
-    /** { id, name, color, image URL } of one FrankerFaceZ badge, or null. */
+    /** { id, name, color, image URL, title } of one FrankerFaceZ badge, or null. */
     private static String[] parseFfzBadge(JsonReader reader) throws IOException {
         if (!TwitchThirdParty.beginObject(reader)) return null;
-        String[] badge = new String[4];
+        String[] badge = new String[5];
         String small = null;
         while (reader.hasNext()) {
             switch (reader.nextName()) {
@@ -237,6 +254,9 @@ public final class TwitchBadges {
                     break;
                 case "color":
                     badge[2] = TwitchThirdParty.string(reader);
+                    break;
+                case "title":
+                    badge[4] = TwitchThirdParty.string(reader);
                     break;
                 case "urls":
                     if (!TwitchThirdParty.beginObject(reader)) break;
@@ -295,7 +315,8 @@ public final class TwitchBadges {
                     reader.endObject();
                     if (!isHttps(image)) image = fallback;
                     if (tooltip != null && isHttps(image) && users.length > 0) {
-                        out.add(new Badge(tooltip.toLowerCase(java.util.Locale.ROOT).replace(' ', '-'), image, users));
+                        out.add(new Badge(tooltip.toLowerCase(java.util.Locale.ROOT).replace(' ', '-'), image, users,
+                                tooltip));
                     }
                 }
                 reader.endArray();
@@ -400,18 +421,24 @@ public final class TwitchBadges {
         }
     }
 
-    /** A badge: Twitch-style name, image URL and its holders' user IDs (sorted). */
+    /** A badge: Twitch-style name, image URL, its holders' user IDs (sorted) and the title its service gives it. */
     private static final class Badge {
         final String name;
         final String url;
         final long[] users;
+        final String title;
         private volatile Object model;
         private volatile Class<?> modelClass;
 
         Badge(String name, String url, long[] users) {
+            this(name, url, users, name);
+        }
+
+        Badge(String name, String url, long[] users, String title) {
             this.name = name;
             this.url = url;
             this.users = users;
+            this.title = title != null && !title.isEmpty() ? title : name;
         }
 
         Object model(Class<?> type) throws ReflectiveOperationException {

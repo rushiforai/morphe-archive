@@ -1299,6 +1299,7 @@ Value to return	Zurückgegebener Wert
 Verified accounts	Verifizierte Konten
 Version %1$s	Version %1$s
 Version %1$s for TikTok %2$s	Version %1$s für TikTok %2$s
+Version %1$s for PineDrama %2$s	Version %1$s für PineDrama %2$s
 Video	Video
 Video (MP4)	Video (MP4)
 Video destination	Speicherort für Videos
@@ -1401,6 +1402,8 @@ Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll
 Hide the unread badges on the bottom tabs	Ungelesen-Abzeichen auf den unteren Tabs ausblenden
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Blendet die roten Zähler und Punkte auf allen unteren Tabs aus, Posteingang und Profil eingeschlossen, dazu die Blase über dem Posteingang, die neue Likes, Follower, Kommentare und laufende LIVEs zählt. Der Posteingang selbst zeigt weiterhin, was angekommen ist.
 Speed while you hold the video	Geschwindigkeit, solange du das Video gedrückt hältst
+Slide to change the hold speed	Haltegeschwindigkeit durch Wischen ändern
+While you hold a video, slide left or right to change its speed, and a bubble shows it. Letting go goes back to normal. A pull-down lock keeps the speed you slid to.	Während du ein Video gedrückt hältst, wisch nach links oder rechts, um die Geschwindigkeit zu ändern. Eine Blase zeigt sie an. Beim Loslassen geht es zurück auf normal. Eine Sperre per Herunterziehen behält die gewählte Geschwindigkeit.
 Hide mini dramas	Mini-Dramen ausblenden
 Hide TikTok's short drama episodes and the cards that promote them.	TikToks kurze Drama-Folgen und die Karten, die dafür werben, ausblenden.
 Mini dramas	Mini-Dramen
@@ -1468,7 +1471,8 @@ This preset doesn't match the installed gates. Nothing changed.	Diese Vorlage pa
 About overrides	Über Überschreibungen
 Use {creator}, {date} and {video_id} to build the name. Start with {creator}/ to put each creator in a folder. The file ending is added for you.	Baue den Namen aus {creator}, {date} und {video_id}. Beginne mit {creator}/, um jeden Creator in einen eigenen Ordner zu legen. Die Dateiendung wird automatisch angehängt.
 Save details beside the video	Details neben dem Video speichern
-Saves the caption, creator, link and post date in a text file next to the video. On Android 10 and later, the pair goes in Download or Documents under the same folder name. Applies to saves made by Hushfeed.	Speichert Beschreibung, Creator, Link und Veröffentlichungsdatum in einer Textdatei neben dem Video. Ab Android 10 landet das Paar in Download oder Documents unter demselben Ordnernamen. Gilt für Speicherungen durch Hushfeed.
+Saves the caption, creator, link and post date in a text file next to the video, or one file for a photo post's original photos. On Android 10 and later, they go in Download or Documents under the same folder name. Applies to saves made by Hushfeed.	Speichert Beschreibung, Creator, Link und Veröffentlichungsdatum in einer Textdatei neben dem Video, bei einem Fotobeitrag in einer Datei für die Originalfotos. Ab Android 10 landen sie in Download oder Documents unter demselben Ordnernamen. Gilt für Speicherungen durch Hushfeed.
+The photos saved, but their details file couldn't be written. Check your storage and save the post again to get it.	Die Fotos wurden gespeichert, aber ihre Detaildatei konnte nicht geschrieben werden. Prüf deinen Speicher und speichere den Beitrag noch einmal, um sie zu bekommen.
 Check for already-saved videos	Bereits gespeicherte Videos prüfen
 Forget saved videos	Gespeicherte Videos vergessen
 Undo forgetting saved videos	Vergessen der gespeicherten Videos rückgängig machen
@@ -1495,6 +1499,8 @@ The video was saved, but its record couldn't be updated. A later save may make a
 The already-saved check failed. Try again.	Die Prüfung bereits gespeicherter Videos ist fehlgeschlagen. Versuch es erneut.
 Show download progress	Downloadfortschritt anzeigen
 Show a progress bar while a video saves.	Beim Speichern eines Videos einen Fortschrittsbalken anzeigen.
+Skip the Share to sheet after a save	Teilen-Menü nach dem Speichern überspringen
+TikTok opens a Share to sheet a few seconds after it saves a video. This stops it. The share button and the saved notice stay as they are.	TikTok öffnet ein paar Sekunden nach dem Speichern eines Videos ein Teilen-Menü. Das verhindert es. Der Teilen-Button und der Hinweis zum Speichern bleiben, wie sie sind.
 Saving video	Video wird gespeichert
 Waiting to save video	Video wartet auf das Speichern
 Saving video: %1$s	Video wird gespeichert: %1$s
@@ -1571,6 +1577,8 @@ LIVE followers range	Spanne der LIVE-Follower
 Show only LIVEs from creators with this many followers.	Nur LIVEs von Creatorn mit so vielen Followern zeigen.
 Hide the comment bar on opened videos	Kommentarleiste bei geöffneten Videos ausblenden
 Hide the Clear display controls	Steuerelemente der freien Ansicht ausblenden
+Keep the progress bar	Fortschrittsleiste behalten
+Hide the Clear display controls leaves the progress bar in sight, so you can still see and drag it.	Steuerelemente der freien Ansicht ausblenden lässt die Fortschrittsleiste sichtbar, sodass du sie weiter siehst und ziehen kannst.
 While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display, or pinch the screen.	Bei freier Ansicht auch den Fortschrittsbalken, die Schließen-Schaltfläche und die Pause- und Tempo-Schaltflächen unten ausblenden. Du kannst trotzdem am unteren Rand entlang ziehen, um im Video zu spulen. Um die freie Ansicht zu verlassen, halte das Video gedrückt und tippe auf Anzeige wiederherstellen. Du kannst auch zwei Finger auf dem Bildschirm zusammenziehen.
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Blende die Kommentarleiste unter Videos aus, die du über ein Profil, einen Hashtag, einen Sound oder die Suche öffnest, damit das Video den Bildschirm bis ganz unten füllt. Die Kommentar-Schaltfläche rechts öffnet die Kommentare weiterhin.
 Build details	Build-Informationen
@@ -1928,6 +1936,7 @@ Username last changed	Nutzername zuletzt geändert
 Display name last changed	Anzeigename zuletzt geändert
 Private account	Privates Konto
 Like the video	Video liken
+Like or unlike the video	Video liken oder Like entfernen
 Liked videos	Gelikte Videos
 Public	Öffentlich
 Copy	Kopieren
@@ -1953,6 +1962,8 @@ Hide TikTok's wind-down screens	Die Wind-down-Bildschirme von TikTok ausblenden
 Stops the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. Works only on accounts TikTok knows belong to adults. Teen accounts, and ones a parent links with Family Pairing, keep them. With Leave when TikTok says time is up on, the daily limit screen still shows so that switch can work.	Stoppt die Einschlaf-Erinnerung, die Atemübung und den Tageslimit-Bildschirm, die TikTok über den Feed legt. Funktioniert nur bei Konten, von denen TikTok weiß, dass sie Erwachsenen gehören. Teen-Konten und solche, die Eltern per Family Pairing verknüpft haben, behalten sie. Bei eingeschaltetem „Die App verlassen, wenn TikTok sagt, die Zeit ist um“ erscheint der Tageslimit-Bildschirm trotzdem, damit dieser Schalter arbeiten kann.
 Hide Footnotes	Footnotes ausblenden
 Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.	Das Footnotes-Banner ausblenden, das TikTok bei einem Video mit angehängter Notiz zeigt. Das Video und seine Kommentare bleiben unverändert.
+Hide the LIVE row on Following	LIVE-Leiste bei „Gefolgt“ ausblenden
+Hide the row of LIVE and story circles across the top of the Following feed, and the pill that counts them. For You is left as it is.	Die Reihe mit LIVE- und Story-Kreisen oben im Tab „Gefolgt“ ausblenden, samt der Pille, die sie zählt. „Für dich“ bleibt unverändert.
 Hide Bulletin board	Bulletin Board ausblenden
 The Bulletin board rows TikTok adds to the Inbox leave the list. Chats and the other rows stay where they are.	Die Zeilen von Bulletin Board, die TikTok dem Posteingang hinzufügt, verschwinden aus der Liste. Chats und die übrigen Zeilen bleiben, wo sie sind.
 Hide the group chat prompt	Gruppenchat-Hinweis ausblenden
@@ -2272,6 +2283,8 @@ Least viewed first	Am wenigsten gesehene zuerst
 Most liked first	Meistgelikte zuerst
 Least liked first	Am wenigsten gelikte zuerst
 Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Sortiert ein Profil- oder Gefällt-mir-Raster, angeheftete Videos bleiben vorn. Solange eine Reihenfolge gewählt ist, lädt das Raster von selbst bis zu 300 Videos nach, damit die Reihenfolge mehr als den ersten Bildschirm erfasst. Eine Schaltfläche in der oberen Ecke des Rasters ändert die Reihenfolge direkt dort.
+Sort loaded videos on Liked grids	Geladene Videos in Rastern mit „Gefällt mir“-Angaben sortieren
+Same as profile grids	Wie Profilraster
 Sort this grid	Dieses Raster sortieren
 Blur the video behind the bar	Video hinter der Leiste unscharf machen
 Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.	Macht im Haupt-Feed den Teil des Videos unscharf, der hinter der Glaskapsel liegt, sodass sie wie Milchglas aussieht. Braucht Liquid-Glass-Look und Android 12 oder neuer.
@@ -2313,3 +2326,24 @@ Shows a search button at the top left of the comments instead of the box, so the
 Put the comment search away	Kommentarsuche wegräumen
 Tap @names in bios	@Namen in Bios antippen
 An @username in a profile's bio opens that profile when you tap it. The rest of the bio still translates on a tap.	Ein @Nutzername in der Bio eines Profils öffnet beim Antippen dieses Profil. Der Rest der Bio wird beim Antippen weiterhin übersetzt.
+autoplay auto play	automatische Wiedergabe Autoplay
+picture in picture PiP	Bild-im-Bild PiP
+search suggestions	Suchvorschläge
+AI chat	KI-Chat
+AI Tako	KI Tako
+save photos	Fotos speichern
+Lock the feed at set times	Feed zu festen Zeiten sperren
+The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.	Der Feed sperrt sich in diesen Stunden von selbst, nach der Uhr deines Handys. Schreibe Tage und Uhrzeiten wie Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Lass die Tage weg, dann gilt es jeden Tag. Eine Zeit, die früher endet als sie beginnt, läuft über Mitternacht.
+Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.	%1$s konnte nicht gelesen werden. Schreibe Tage und Uhrzeiten wie Mon-Fri 21:00-07:00.
+%1$s starts and ends at the same time. Give it a different end time.	%1$s beginnt und endet zur selben Zeit. Gib eine andere Endzeit an.
+Locked all week	Die ganze Woche gesperrt
+Locked now, until %1$s	Jetzt gesperrt, bis %1$s
+Next lock starts %1$s	Nächste Sperre beginnt %1$s
+The feed is locked until %1$s. Messages, profiles and search still work.	Der Feed ist bis %1$s gesperrt. Nachrichten, Profile und Suche funktionieren weiter.
+Save only on Wi-Fi	Nur über WLAN speichern
+Saves wait for Wi-Fi or another network that isn't metered, for up to 30 minutes, and stop if you leave it. Saving a frame still works anywhere.	Speicherungen warten bis zu 30 Minuten auf WLAN oder ein anderes Netz ohne Volumenbegrenzung und stoppen, wenn du es verlässt. Ein Einzelbild lässt sich überall speichern.
+Waiting for Wi-Fi	Wartet auf WLAN
+The last one is still waiting for Wi-Fi	Das letzte wartet noch auf WLAN
+Stopped waiting for Wi-Fi after 30 minutes. Save it again when you're on Wi-Fi.	Nach 30 Minuten wird nicht mehr auf WLAN gewartet. Speichere es erneut, wenn du im WLAN bist.
+Saved %1$s of %2$s. The rest stopped when you left Wi-Fi. Save again on Wi-Fi.	%1$s von %2$s gespeichert. Der Rest stoppte, als du das WLAN verlassen hast. Speichere erneut im WLAN.
+The save stopped when you left Wi-Fi. Save it again on Wi-Fi.	Das Speichern stoppte, als du das WLAN verlassen hast. Speichere es erneut im WLAN.

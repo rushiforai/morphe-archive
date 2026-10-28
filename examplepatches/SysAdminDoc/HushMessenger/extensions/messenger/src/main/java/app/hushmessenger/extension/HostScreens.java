@@ -129,6 +129,11 @@ public final class HostScreens {
         return "";
     }
 
+    /** Rewritten with Messenger's own Log out, "Lowner;->name(Landroid/content/Context;)V", once the patch proves it (#88). */
+    static String logoutRoute() {
+        return "";
+    }
+
     /**
      * Starts settings when SettingsProvider never ran, as on a Root Mount install. Only in Messenger's main process,
      * the one SettingsProvider runs in, so the other processes stay stock the way they are on a normal install.

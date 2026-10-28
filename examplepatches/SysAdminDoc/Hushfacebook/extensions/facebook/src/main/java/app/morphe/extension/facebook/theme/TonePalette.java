@@ -81,10 +81,17 @@ public final class TonePalette {
      */
     public final boolean accentReplaced;
 
+    /** Whether the accent is the one picked in the Accent color row (#272) rather than the phone's. */
+    public final boolean accentPicked;
+
     /** [family][L* in tenths]: built on first use, since the settings screen needs only the tones. */
     private volatile int[][] byLightness;
 
     TonePalette(int[][] tones, boolean dynamic) {
+        this(tones, dynamic, false);
+    }
+
+    private TonePalette(int[][] tones, boolean dynamic, boolean accentPicked) {
         if (tones.length != 3) throw new IllegalArgumentException("three families, not " + tones.length);
         for (int[] family : tones) {
             if (family.length != TONES.length) throw new IllegalArgumentException("a family has " + family.length + " tones");
@@ -95,9 +102,18 @@ public final class TonePalette {
             for (int i = 0; i < TONES.length; i++) this.tones[f][i] = tones[f][i] | 0xFF000000;
         }
         this.dynamic = dynamic;
+        this.accentPicked = accentPicked;
         this.accentChroma = chroma(this.tones[ACCENT]);
-        this.accentReplaced = dynamic && accentChroma < GREY_ACCENT;
+        this.accentReplaced = dynamic && !accentPicked && accentChroma < GREY_ACCENT;
         if (accentReplaced) this.tones[ACCENT] = fallbackFamily(ACCENT);
+    }
+
+    /**
+     * This palette with {@code ramp}, one colour per step of {@link #TONES} darkest first, as its
+     * accent. The greys stay this palette's.
+     */
+    public TonePalette withAccent(int[] ramp) {
+        return new TonePalette(new int[][]{ramp, tones[NEUTRAL], tones[NEUTRAL_VARIANT]}, dynamic, true);
     }
 
     /** The fixed palette Android 11 gets. */
@@ -169,6 +185,11 @@ public final class TonePalette {
             if (TONES[i] == tone) return tones[family][i];
         }
         throw new IllegalArgumentException("no tone " + tone);
+    }
+
+    /** A copy of one family's colours, one per step of {@link #TONES}. */
+    int[] family(int family) {
+        return tones[family].clone();
     }
 
     /**

@@ -781,9 +781,18 @@ public final class DanmakuController {
         private WeakReference<View> videoTarget = new WeakReference<>(null);
         private final int[] containerLocation = new int[2];
         private final int[] overlayLocation = new int[2];
+        private long lastSurfaceFrameNanos;
         private final Choreographer.FrameCallback frameCallback = frameTimeNanos -> {
             frameScheduled = false;
             removeCallbacks(invalidateRunnable);
+            // Frame rate limit: on a faster display the previous frame simply stays up.
+            int maxFps = DanmakuSettings.getMaxFps();
+            if (maxFps > 0 && surfaceActive && frameTimeNanos - lastSurfaceFrameNanos
+                    < 1_000_000_000L / maxFps - 2_000_000L) {
+                requestFrame();
+                return;
+            }
+            lastSurfaceFrameNanos = frameTimeNanos;
             boolean visible = prepareFrame();
             if (canUseSurface()) {
                 renderToSurface(visible);
@@ -1173,18 +1182,22 @@ public final class DanmakuController {
             }
         }
 
-        /** Fastest mode of the current resolution. */
+        /** Fastest mode of the current resolution, within the frame rate limit if one is set. */
         private float highestRefreshRate() {
             android.view.Display display = getDisplay();
             if (display == null) return 0f;
             android.view.Display.Mode current = display.getMode();
-            float best = current.getRefreshRate();
+            int limit = DanmakuSettings.getMaxFps();
+            float best = limit > 0 ? 0f : current.getRefreshRate();
             for (android.view.Display.Mode mode : display.getSupportedModes()) {
+                float rate = mode.getRefreshRate();
                 if (mode.getPhysicalWidth() == current.getPhysicalWidth()
-                        && mode.getPhysicalHeight() == current.getPhysicalHeight()) {
-                    best = Math.max(best, mode.getRefreshRate());
+                        && mode.getPhysicalHeight() == current.getPhysicalHeight()
+                        && (limit <= 0 || rate <= limit + 0.5f)) {
+                    best = Math.max(best, rate);
                 }
             }
+            if (best <= 0f) best = Math.min(current.getRefreshRate(), limit);
             // Also on a 60 Hz panel: while a video plays the system may render at a divisor of
             // the panel rate (30 Hz, or 24 Hz for film) unless a layer asks for more.
             return best;

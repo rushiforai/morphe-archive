@@ -472,7 +472,7 @@ public final class Probe extends Instrumentation {
                             throw new IllegalStateException("no copied TikTok video URL");
                         }
                         Intent video = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(link));
-                        video.setPackage("com.zhiliaoapp.musically");
+                        video.setPackage(app.getPackageName());
                         video.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         app.startActivity(video);
                         Log.i(TAG, "ok open-copied-video");
@@ -492,7 +492,7 @@ public final class Probe extends Instrumentation {
                             throw new IllegalStateException("no copied TikTok photo URL");
                         }
                         Intent photo = new Intent(Intent.ACTION_VIEW, uri);
-                        photo.setPackage("com.zhiliaoapp.musically");
+                        photo.setPackage(app.getPackageName());
                         photo.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         app.startActivity(photo);
                         Log.i(TAG, "ok open-copied-photo");
@@ -502,8 +502,8 @@ public final class Probe extends Instrumentation {
                         String aid = required(intent, "aid");
                         if (!aid.matches("[0-9]+")) throw new IllegalArgumentException("invalid public video id");
                         Intent video = new Intent(Intent.ACTION_VIEW,
-                                android.net.Uri.parse("snssdk1233://aweme/detail/" + aid));
-                        video.setPackage("com.zhiliaoapp.musically");
+                                android.net.Uri.parse(deepLinkScheme(app) + "://aweme/detail/" + aid));
+                        video.setPackage(app.getPackageName());
                         video.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         app.startActivity(video);
                         Log.i(TAG, "ok open-public-video");
@@ -517,7 +517,7 @@ public final class Probe extends Instrumentation {
                         }
                         String link = "https://www.tiktok.com/@" + user + "/video/" + aid;
                         Intent video = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(link));
-                        video.setPackage("com.zhiliaoapp.musically");
+                        video.setPackage(app.getPackageName());
                         video.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         app.startActivity(video);
                         Log.i(TAG, "ok open-video");
@@ -582,9 +582,7 @@ public final class Probe extends Instrumentation {
                         // video, by biz type and component name only: which of them TikTok
                         // offered says whether a guard on one of them could have run at all.
                         // No text, id or url leaves the phone.
-                        Class<?> author = loader.loadClass(
-                                "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor");
-                        Object aweme = author.getMethod("getAweme").invoke(null);
+                        Object aweme = currentAweme();
                         if (aweme == null) throw new IllegalStateException("no current video");
                         // The resolver reads AwemeCommentConfig.commentTopBarComponent; the
                         // model's own getCommentTopBarStructList is a different, older list.
@@ -636,13 +634,129 @@ public final class Probe extends Instrumentation {
                         Log.i(TAG, "ok topbar\n" + out);
                         break;
                     }
+                    case "feedpager": {
+                        // Where the on-screen video lives when no patch tracks it: the activity,
+                        // every shown pager or recycler, its children and the Aweme found in each.
+                        android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                                .getMethod("getActivity").invoke(null);
+                        StringBuilder out = new StringBuilder("activity=")
+                                .append(activity == null ? "null" : activity.getClass().getName());
+                        Class<?> hold = loader.loadClass("app.morphe.extension.tiktok.wellbeing.SessionPlaybackHold");
+                        Object playingAweme = hold.getMethod("currentPlayingAweme").invoke(null);
+                        out.append("\n bridge id=").append(hold.getMethod("currentAwemeId").invoke(null) != null)
+                                .append(" aweme=").append(playingAweme != null);
+                        Class<?> awemeClass = loader.loadClass("com.ss.android.ugc.aweme.feed.model.Aweme");
+                        java.util.ArrayDeque<android.view.View> views = new java.util.ArrayDeque<>();
+                        java.util.List<android.view.View> roots = feedWindowRoots();
+                        views.addAll(roots);
+                        for (android.view.View root : roots) {
+                            out.append("\n root ").append(root.getClass().getName())
+                                    .append(" shown=").append(root.isShown())
+                                    .append(" ctx=").append(root.getContext().getClass().getName());
+                        }
+                        while (!views.isEmpty()) {
+                            android.view.View view = views.poll();
+                            if (!view.isShown() || !(view instanceof android.view.ViewGroup)) continue;
+                            android.view.ViewGroup group = (android.view.ViewGroup) view;
+                            String name = view.getClass().getName();
+                            if (name.contains("Pager") || name.contains("Recycler")) {
+                                out.append("\n  ").append(name).append(" children=").append(group.getChildCount());
+                                for (Class<?> up = view.getClass().getSuperclass(); up != null
+                                        && !up.getName().startsWith("android."); up = up.getSuperclass()) {
+                                    out.append(" < ").append(up.getName());
+                                }
+                                for (int i = 0; i < group.getChildCount(); i++) {
+                                    android.view.View child = group.getChildAt(i);
+                                    android.graphics.Rect rect = new android.graphics.Rect();
+                                    boolean visible = child.isShown() && child.getGlobalVisibleRect(rect);
+                                    out.append("\n    ").append(child.getClass().getName())
+                                            .append(" visible=").append(visible ? rect.toShortString() : "no")
+                                            .append(" aweme=").append(heldAweme(child, awemeClass) != null);
+                                }
+                            }
+                            for (int i = 0; i < group.getChildCount(); i++) views.add(group.getChildAt(i));
+                        }
+                        // Field paths from the activity and the shown views to any Aweme, collections
+                        // and arrays included. Paths only: no id, caption or creator.
+                        java.util.ArrayDeque<Object[]> queue = new java.util.ArrayDeque<>();
+                        java.util.Set<Object> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+                        if (activity != null) queue.add(new Object[] { activity, "activity", 0 });
+                        java.util.ArrayDeque<android.view.View> shown = new java.util.ArrayDeque<>(roots);
+                        while (!shown.isEmpty()) {
+                            android.view.View view = shown.poll();
+                            if (!view.isShown()) continue;
+                            queue.add(new Object[] { view, view.getClass().getName(), 0 });
+                            if (view instanceof android.view.ViewGroup) {
+                                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                                for (int i = 0; i < group.getChildCount(); i++) shown.add(group.getChildAt(i));
+                            }
+                        }
+                        int found = 0, visited = 0;
+                        while (!queue.isEmpty() && found < 8 && visited < 200000) {
+                            Object[] next = queue.poll();
+                            Object value = next[0];
+                            String path = (String) next[1];
+                            int depth = (Integer) next[2];
+                            if (value == null || !seen.add(value)) continue;
+                            visited++;
+                            if (awemeClass.isInstance(value)) {
+                                out.append("\n path ").append(path);
+                                found++;
+                                continue;
+                            }
+                            if (depth >= 6) continue;
+                            if (value instanceof java.util.Collection) {
+                                int i = 0;
+                                for (Object item : new java.util.ArrayList<>((java.util.Collection<?>) value)) {
+                                    if (i++ >= 64) break;
+                                    queue.add(new Object[] { item, path + "[" + (i - 1) + "]", depth + 1 });
+                                }
+                                continue;
+                            }
+                            if (value instanceof java.util.Map) {
+                                for (Object item : new java.util.ArrayList<>(((java.util.Map<?, ?>) value).values())) {
+                                    queue.add(new Object[] { item, path + "{}", depth + 1 });
+                                }
+                                continue;
+                            }
+                            if (value.getClass().isArray() && !value.getClass().getComponentType().isPrimitive()) {
+                                Object[] items = (Object[]) value;
+                                for (int i = 0; i < Math.min(items.length, 64); i++) {
+                                    queue.add(new Object[] { items[i], path + "[" + i + "]", depth + 1 });
+                                }
+                                continue;
+                            }
+                            for (Class<?> type = value.getClass(); type != null; type = type.getSuperclass()) {
+                                String typeName = type.getName();
+                                if (typeName.startsWith("java.") || typeName.startsWith("kotlin.")
+                                        || typeName.equals("android.view.View")) break;
+                                for (java.lang.reflect.Field field : type.getDeclaredFields()) {
+                                    Class<?> fieldType = field.getType();
+                                    if (fieldType.isPrimitive() || fieldType == String.class
+                                            || java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+                                    try {
+                                        field.setAccessible(true);
+                                        Object held = field.get(value);
+                                        if (held != null && !(held instanceof android.view.View)) {
+                                            queue.add(new Object[] { held,
+                                                    path + "." + type.getSimpleName() + "#" + field.getName()
+                                                            + ":" + held.getClass().getName(), depth + 1 });
+                                        }
+                                    } catch (ReflectiveOperationException | RuntimeException unreadable) {
+                                        // Not a route.
+                                    }
+                                }
+                            }
+                        }
+                        out.append("\n visited=").append(visited).append(" found=").append(found);
+                        Log.i(TAG, "ok feedpager\n" + out);
+                        break;
+                    }
                     case "videoinfo": {
                         // Technical facts about the current video that decide which surfaces
                         // TikTok offers on it: the caption's language code and whether TikTok
                         // marks the caption as translatable. No caption text, id or creator.
-                        Class<?> author = loader.loadClass(
-                                "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor");
-                        Object aweme = author.getMethod("getAweme").invoke(null);
+                        Object aweme = currentAweme();
                         if (aweme == null) throw new IllegalStateException("no current video");
                         Object language = aweme.getClass().getMethod("getDescLanguage").invoke(aweme);
                         Object translatable = aweme.getClass().getMethod("isDescTranslatable").invoke(aweme);
@@ -831,8 +945,7 @@ public final class Probe extends Instrumentation {
                                 out.append(tail(play.getKey())).append('=').append(play.getValue()).append(' ');
                             }
                         }
-                        Object aweme = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
-                                .getMethod("getAweme").invoke(null);
+                        Object aweme = currentAweme();
                         out.append("| current=").append(tail(optional(aweme, "getAid")));
                         Log.i(TAG, "ok feedmute " + out);
                         break;
@@ -892,9 +1005,7 @@ public final class Probe extends Instrumentation {
                         // Which addresses the current post's video carries and where they point,
                         // to tell a photo post's server-side render from an empty shell. Host and
                         // path only, since a query can carry tokens.
-                        Object aweme = loader.loadClass(
-                                "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
-                                .getMethod("getAweme").invoke(null);
+                        Object aweme = currentAweme();
                         if (aweme == null) throw new IllegalStateException("no current video");
                         Object video = optional(aweme, "getVideo");
                         Object images = optional(aweme, "getImageInfos");
@@ -913,9 +1024,7 @@ public final class Probe extends Instrumentation {
                         // Every cover the current video's model holds, read from its fields so a
                         // getter that swaps in another cover can't hide one: url count and frame
                         // size only, which says whether Save cover could fetch a bigger image.
-                        Object aweme = loader.loadClass(
-                                "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
-                                .getMethod("getAweme").invoke(null);
+                        Object aweme = currentAweme();
                         if (aweme == null) throw new IllegalStateException("no current video");
                         Object video = optional(aweme, "getVideo");
                         if (video == null) throw new IllegalStateException("no video model");
@@ -950,9 +1059,7 @@ public final class Probe extends Instrumentation {
                     case "coversizes": {
                         // Fetches each cover the current video's model holds and reads the size
                         // the image server actually sent, off the main thread. Sizes only.
-                        Object aweme = loader.loadClass(
-                                "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
-                                .getMethod("getAweme").invoke(null);
+                        Object aweme = currentAweme();
                         if (aweme == null) throw new IllegalStateException("no current video");
                         final Object video = optional(aweme, "getVideo");
                         if (video == null) throw new IllegalStateException("no video model");
@@ -999,9 +1106,7 @@ public final class Probe extends Instrumentation {
                         String aid = intent.getStringExtra("aid");
                         boolean on = Boolean.parseBoolean(intent.getStringExtra("on"));
                         if ("current".equals(aid)) {
-                            Object aweme = loader.loadClass(
-                                    "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
-                                    .getMethod("getAweme").invoke(null);
+                            Object aweme = currentAweme();
                             aid = aweme == null ? null : String.valueOf(optional(aweme, "getAid"));
                         }
                         if (aid == null || aid.isEmpty()) throw new IllegalArgumentException("no aid");
@@ -1100,12 +1205,11 @@ public final class Probe extends Instrumentation {
                         // come from. On 47.0.3 the route, like a www.tiktok.com video link, played
                         // the video in the home feed rather than opening the detail page. The id
                         // stays in the phone.
-                        Class<?> author = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor");
-                        Object aweme = author.getMethod("getAweme").invoke(null);
+                        Object aweme = currentAweme();
                         Object aid = optional(aweme, "getAid");
                         if (blank(aid)) throw new IllegalStateException("no current video");
                         android.content.Intent open = new android.content.Intent(android.content.Intent.ACTION_VIEW,
-                                android.net.Uri.parse("snssdk1233://aweme/detail/" + aid));
+                                android.net.Uri.parse(deepLinkScheme(context) + "://aweme/detail/" + aid));
                         open.setPackage(context.getPackageName());
                         open.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
                         context.startActivity(open);
@@ -2287,6 +2391,45 @@ public final class Probe extends Instrumentation {
                         Log.i(TAG, "ok call " + target.getName() + " -> " + shown);
                         break;
                     }
+                    case "privacy-call": {
+                        // The blockers TikTok's rewired contact and app-list calls go through,
+                        // called with what those call sites pass. TikTok reads contacts and the
+                        // app list only when its own schedule says so, so waiting for it proved
+                        // nothing either way. -e which contacts queries the contacts provider,
+                        // -e which apps asks for the package list, the launcher enumeration and
+                        // the share targets. Only counts and the cursor's type are shown.
+                        String which = required(intent, "which");
+                        if ("contacts".equals(which)) {
+                            Method query = loader.loadClass("app.morphe.extension.tiktok.privacy.ContactListBlocker")
+                                    .getMethod("interceptQuery", android.content.ContentResolver.class, android.net.Uri.class,
+                                            String[].class, String.class, String[].class, String.class);
+                            android.database.Cursor cursor = (android.database.Cursor) query.invoke(null,
+                                    app.getContentResolver(), android.provider.ContactsContract.Contacts.CONTENT_URI,
+                                    new String[] {android.provider.ContactsContract.Contacts._ID}, null, null, null);
+                            int rows = cursor == null ? -1 : cursor.getCount();
+                            String kind = cursor == null ? "null" : cursor.getClass().getSimpleName();
+                            if (cursor != null) cursor.close();
+                            Log.i(TAG, "ok privacy-call contacts rows=" + rows + " cursor=" + kind);
+                        } else if ("apps".equals(which)) {
+                            Class<?> blocker = loader.loadClass("app.morphe.extension.tiktok.privacy.InstalledAppsBlocker");
+                            android.content.pm.PackageManager pm = app.getPackageManager();
+                            List<?> packages = (List<?>) blocker.getMethod("interceptGetInstalledPackages",
+                                    android.content.pm.PackageManager.class, int.class).invoke(null, pm, 0);
+                            List<?> applications = (List<?>) blocker.getMethod("interceptGetInstalledApplications",
+                                    android.content.pm.PackageManager.class, int.class).invoke(null, pm, 0);
+                            Method activities = blocker.getMethod("interceptQueryIntentActivities",
+                                    android.content.pm.PackageManager.class, Intent.class, int.class);
+                            List<?> launcher = (List<?>) activities.invoke(null, pm,
+                                    new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0);
+                            List<?> share = (List<?>) activities.invoke(null, pm,
+                                    new Intent(Intent.ACTION_SEND).setType("text/plain"), 0);
+                            Log.i(TAG, "ok privacy-call apps packages=" + packages.size() + " applications=" + applications.size()
+                                    + " launcher=" + launcher.size() + " share=" + share.size());
+                        } else {
+                            throw new IllegalArgumentException("-e which is contacts or apps, not " + which);
+                        }
+                        break;
+                    }
                     case "seed-commenter-region": {
                         // TikTok 47.5.3 sends comment accounts with no country, so a commenter's
                         // country can only come from the feed's cache of creators it has shown.
@@ -2369,8 +2512,7 @@ public final class Probe extends Instrumentation {
                             arguments = new Object[]{count};
                         } catch (NoSuchMethodException notCountOnly) {
                             target = owner.getDeclaredMethod(name, awemeClass, long.class);
-                            Object aweme = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
-                                    .getMethod("getAweme").invoke(null);
+                            Object aweme = currentAweme();
                             if (aweme == null) throw new IllegalStateException("no current video");
                             arguments = new Object[]{aweme, count};
                         }
@@ -2467,8 +2609,7 @@ public final class Probe extends Instrumentation {
                                         now.append(' ').append(name.trim()).append('=').append(shown);
                                     }
                                     try {
-                                        Object onScreen = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
-                                                .getMethod("getAweme").invoke(null);
+                                        Object onScreen = currentAweme();
                                         Object aid = onScreen == null ? null : onScreen.getClass().getMethod("getAid").invoke(onScreen);
                                         now.append(" onScreen=").append(aid == null ? "none" : "<id " + (String.valueOf(aid).hashCode() & 0xffff) + ">");
                                     } catch (ReflectiveOperationException unreadable) {
@@ -3820,10 +3961,8 @@ public final class Probe extends Instrumentation {
         private String openCommentsReport() throws Exception {
             Class<?> gestures = loader.loadClass(
                     "app.morphe.extension.tiktok.interaction.GestureActions");
-            Class<?> author = loader.loadClass(
-                    "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor");
             Class<?> reflect = loader.loadClass("app.morphe.extension.tiktok.blockauthor.Reflect");
-            Object aweme = author.getMethod("getAweme").invoke(null);
+            Object aweme = currentAweme();
             Object aid = reflect.getMethod("string", Object.class, String.class, String.class)
                     .invoke(null, aweme, "getAid", "aid");
 
@@ -3874,9 +4013,7 @@ public final class Probe extends Instrumentation {
 
         /** Privacy-safe classifier state for the video currently bound to TikTok's player. */
         private String adEvidence() throws Exception {
-            Class<?> author = loader.loadClass(
-                    "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor");
-            Object aweme = author.getMethod("getAweme").invoke(null);
+            Object aweme = currentAweme();
             if (aweme == null) return "aweme=null";
 
             Class<?> awemeClass = aweme.getClass();
@@ -3932,9 +4069,7 @@ public final class Probe extends Instrumentation {
 
         /** Runs the real ad-only list boundary on a detached list, never the visible pager. */
         private String adBoundary() throws Exception {
-            Object aweme = loader.loadClass(
-                    "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
-                    .getMethod("getAweme").invoke(null);
+            Object aweme = currentAweme();
             if (aweme == null) return "aweme=null";
             Class<?> ads = loader.loadClass("app.morphe.extension.tiktok.feedfilter.AdsFilter");
             Class<?> model = loader.loadClass("com.ss.android.ugc.aweme.feed.model.Aweme");
@@ -3964,9 +4099,7 @@ public final class Probe extends Instrumentation {
          * property carries that decision without ever logging a user or server supplied string.
          */
         private List<String> commerceEvidence() throws Exception {
-            Class<?> author = loader.loadClass(
-                    "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor");
-            Object aweme = author.getMethod("getAweme").invoke(null);
+            Object aweme = currentAweme();
             if (aweme == null) return Collections.singletonList("aweme=null");
 
             List<String> out = new ArrayList<>();
@@ -3975,10 +4108,122 @@ public final class Probe extends Instrumentation {
             return out;
         }
 
+        /**
+         * The video on screen. Hushfeed's own tracker answers when a patch feeds it (Block author
+         * button binds it, and that patch is TikTok only), else the post the playback bridge's
+         * player has on screen (PineDrama's feed has no tracker hook), else the Aweme held by the
+         * feed pager's on-screen cell.
+         */
+        private Object currentAweme() throws ReflectiveOperationException {
+            Object tracked = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
+                    .getMethod("getAweme").invoke(null);
+            if (tracked != null) return tracked;
+            Object playing = loader.loadClass("app.morphe.extension.tiktok.wellbeing.SessionPlaybackHold")
+                    .getMethod("currentPlayingAweme").invoke(null);
+            return playing != null ? playing : pagerAweme();
+        }
+
+        private Object pagerAweme() throws ReflectiveOperationException {
+            Class<?> pagerClass = loader.loadClass("com.ss.android.ugc.aweme.common.widget.VerticalViewPager");
+            Class<?> awemeClass = loader.loadClass("com.ss.android.ugc.aweme.feed.model.Aweme");
+            // The cell that fills most of the screen in a shown pager: the For You and Following
+            // pagers both stay attached, but only one of them is shown.
+            android.view.View cell = null;
+            long cellArea = 0;
+            java.util.ArrayDeque<android.view.View> views = new java.util.ArrayDeque<>(feedWindowRoots());
+            while (!views.isEmpty()) {
+                android.view.View view = views.poll();
+                if (!view.isShown()) continue;
+                if (pagerClass.isInstance(view)) {
+                    android.view.ViewGroup pager = (android.view.ViewGroup) view;
+                    for (int i = 0; i < pager.getChildCount(); i++) {
+                        android.view.View child = pager.getChildAt(i);
+                        android.graphics.Rect rect = new android.graphics.Rect();
+                        if (!child.isShown() || !child.getGlobalVisibleRect(rect)) continue;
+                        long area = (long) rect.width() * rect.height();
+                        if (area > cellArea) {
+                            cellArea = area;
+                            cell = child;
+                        }
+                    }
+                } else if (view instanceof android.view.ViewGroup) {
+                    android.view.ViewGroup group = (android.view.ViewGroup) view;
+                    for (int i = 0; i < group.getChildCount(); i++) views.add(group.getChildAt(i));
+                }
+            }
+            return cell == null ? null : heldAweme(cell, awemeClass);
+        }
+
+        /**
+         * Every window's root view. PineDrama plays its feed in SplashActivity's window while
+         * Utils.getActivity() answers the MainActivity underneath it, whose pager stays empty.
+         */
+        private java.util.List<android.view.View> feedWindowRoots() throws ReflectiveOperationException {
+            try {
+                return windowRoots();
+            } catch (Exception noRoots) {
+                // Hidden-API refusal: the current activity's window is the next best place.
+                android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                        .getMethod("getActivity").invoke(null);
+                if (activity == null || activity.getWindow() == null) return java.util.Collections.emptyList();
+                return java.util.Collections.singletonList(activity.getWindow().getDecorView());
+            }
+        }
+
+        /**
+         * The first Aweme reachable from a feed cell: its views, their tags (the pager's view
+         * holder) and the app's own fields up to three objects deep, breadth first so the cell's
+         * own video comes before anything a neighbour reference leads to.
+         */
+        private static Object heldAweme(android.view.View cell, Class<?> awemeClass) {
+            java.util.Set<Object> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+            java.util.ArrayDeque<Object[]> queue = new java.util.ArrayDeque<>();
+            java.util.ArrayDeque<android.view.View> views = new java.util.ArrayDeque<>();
+            views.add(cell);
+            while (!views.isEmpty()) {
+                android.view.View view = views.poll();
+                queue.add(new Object[] { view, 0 });
+                if (view.getTag() != null) queue.add(new Object[] { view.getTag(), 1 });
+                if (view instanceof android.view.ViewGroup) {
+                    android.view.ViewGroup group = (android.view.ViewGroup) view;
+                    for (int i = 0; i < group.getChildCount(); i++) views.add(group.getChildAt(i));
+                }
+            }
+            int visited = 0;
+            while (!queue.isEmpty() && visited < 4000) {
+                Object[] next = queue.poll();
+                Object value = next[0];
+                int depth = (Integer) next[1];
+                if (value == null || !seen.add(value)) continue;
+                visited++;
+                if (awemeClass.isInstance(value)) return value;
+                if (depth >= 3) continue;
+                for (Class<?> type = value.getClass(); type != null; type = type.getSuperclass()) {
+                    String name = type.getName();
+                    if (name.startsWith("java.") || name.startsWith("android.") || name.startsWith("androidx.")
+                            || name.startsWith("kotlin.")) break;
+                    for (java.lang.reflect.Field field : type.getDeclaredFields()) {
+                        Class<?> fieldType = field.getType();
+                        if (fieldType.isPrimitive() || fieldType == String.class
+                                || java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+                        try {
+                            field.setAccessible(true);
+                            Object held = field.get(value);
+                            if (held != null && !(held instanceof android.view.View)) {
+                                queue.add(new Object[] { held, depth + 1 });
+                            }
+                        } catch (ReflectiveOperationException | RuntimeException unreadable) {
+                            // A field the runtime won't open is just not a route to the video.
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
         /** Exact technical banner counts only. Never collect the search suggestion or other text. */
         private String bannerEvidence(String expectedId) throws Exception {
-            Object aweme = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
-                    .getMethod("getAweme").invoke(null);
+            Object aweme = currentAweme();
             if (aweme == null) return "aweme=null";
             Class<?> model = loader.loadClass("com.ss.android.ugc.aweme.feed.model.Aweme");
             Object raw = model.getMethod("getBanners").invoke(aweme);
@@ -4039,8 +4284,7 @@ public final class Probe extends Instrumentation {
          * Identifiers only, never a strip's text.
          */
         private String stripKeys() throws Exception {
-            Object aweme = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
-                    .getMethod("getAweme").invoke(null);
+            Object aweme = currentAweme();
             if (aweme == null) return "aweme=null";
             Class<?> model = loader.loadClass("com.ss.android.ugc.aweme.feed.model.Aweme");
             List<String> anchorKeys = new ArrayList<>();
@@ -4081,8 +4325,7 @@ public final class Probe extends Instrumentation {
 
         /** Real current model and patched native getter, on a detached list. No place or creator text. */
         private String locationEvidence(String expectedId) throws Exception {
-            Object aweme = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
-                    .getMethod("getAweme").invoke(null);
+            Object aweme = currentAweme();
             if (aweme == null) return "aweme=null";
             Class<?> model = loader.loadClass("com.ss.android.ugc.aweme.feed.model.Aweme");
             Object raw = model.getMethod("getAnchors").invoke(aweme);
@@ -4142,8 +4385,7 @@ public final class Probe extends Instrumentation {
          * by whether they are a bare number, never by content, so no collection name is recorded.
          */
         private String seriesEvidence() throws Exception {
-            Object aweme = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
-                    .getMethod("getAweme").invoke(null);
+            Object aweme = currentAweme();
             if (aweme == null) return "aweme=null";
             Class<?> model = loader.loadClass("com.ss.android.ugc.aweme.feed.model.Aweme");
             Object info = model.getMethod("getMPaidContentInfo").invoke(aweme);
@@ -4574,6 +4816,11 @@ public final class Probe extends Instrumentation {
 
         private static boolean blank(Object value) {
             return value == null || String.valueOf(value).trim().isEmpty();
+        }
+
+        /** The app's own deep-link scheme: PineDrama answers snssdk845221, TikTok snssdk1233. */
+        private static String deepLinkScheme(Context context) {
+            return "com.ss.android.ttmd.video".equals(context.getPackageName()) ? "snssdk845221" : "snssdk1233";
         }
 
         /** Whether the author has a LIVE room open, from the room id their model carries. */

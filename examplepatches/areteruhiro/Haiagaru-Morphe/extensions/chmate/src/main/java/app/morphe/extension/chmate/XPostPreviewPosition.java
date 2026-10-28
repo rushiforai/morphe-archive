@@ -31,8 +31,10 @@ final class XPostPreviewPosition {
     private static boolean enabled(View view){
         return view.getContext().getSharedPreferences(WacchoiSearchOptions.PREFS,0).getBoolean(ENABLED,true);
     }
+    static boolean hasUserInteraction(View list){return INTERACTIONS.containsKey(list);}
     static void onTouch(View body,android.view.MotionEvent event){
-        if(!enabled(body))return;
+        // Reading-position recovery also needs to yield to touches when the
+        // separate preview-resize retention switch is disabled.
         if(event.getActionMasked()!=android.view.MotionEvent.ACTION_DOWN&&event.getActionMasked()!=android.view.MotionEvent.ACTION_MOVE)return;
         for(ViewParent parent=body.getParent();parent instanceof View;parent=parent.getParent()){
             View view=(View)parent;
@@ -60,9 +62,7 @@ final class XPostPreviewPosition {
             Long opening=OPENING.get(view);
             if(opening==null){opening(view);return;}
             if(android.os.SystemClock.uptimeMillis()<opening)return;
-            // Until the reader interacts with this newly opened list, its
-            // position belongs entirely to ChMate's unread/end restoration.
-            if(!INTERACTIONS.containsKey(view))return;
+            // After opening settles, metadata may resize rows before the first touch.
             // Native unread/end positioning owns both endpoints. A preview must
             // never pin a response above the native footer or unread boundary.
             if(!view.canScrollVertically(-1)||!view.canScrollVertically(1))return;

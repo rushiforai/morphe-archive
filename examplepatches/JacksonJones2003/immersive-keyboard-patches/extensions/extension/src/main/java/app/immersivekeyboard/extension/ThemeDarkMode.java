@@ -58,7 +58,9 @@ public final class ThemeDarkMode {
             }
             lastNightMode = nightMode;
             lastCheck = now;
-            apply(context, nightMode != Configuration.UI_MODE_NIGHT_YES, false);
+            boolean light = nightMode != Configuration.UI_MODE_NIGHT_YES;
+            apply(context, light, false);
+            WallpaperSwitch.check(context, light);
         } catch (Throwable failure) {
             Log.w(TAG, "theme dark mode check failed", failure);
         }
@@ -101,6 +103,11 @@ public final class ThemeDarkMode {
                 .putString(mode + THEME_SUFFIX, theme)
                 .remove(mode + BORDER_SUFFIX)
                 .apply();
+    }
+
+    /** Called when the system dark mode changes while the keyboard is hidden. */
+    static void modeChanged(Context context, boolean light) {
+        apply(context, light, false);
     }
 
     /** Selects the current mode's theme right away, for changes made in the menu. */

@@ -17,7 +17,8 @@
                  "chore(release): prepare X.Y.Z for publication".
       preflight  What a release gate would otherwise only reach late, in about five minutes: every
                  tracked PowerShell script parses, the release text and stage order tests, the facts
-                 check, the build advisory scan (the dependency report under strict verification,
+                 check, a source census from the last 14 days (the index stage holds the release to
+                 it), the build advisory scan (the dependency report under strict verification,
                  held to OSV and to the Gradle list), the patch tests without the fixture suite, and the translation tests. Then
                  push with HUSHTELEGRAM_SKIP_PRE_PUSH=1: the build stage runs the same full suite
                  and applies every patch to every fixture on the pushed commit, so the pre-push gate
@@ -82,6 +83,7 @@ $Root = (Resolve-Path -LiteralPath $Root).Path
 . (Join-Path $scripts 'release-receipt.ps1')
 . (Join-Path $scripts 'walk-receipt.ps1')
 . (Join-Path $releaseScripts 'release-text.ps1')
+. (Join-Path $scripts 'telegram-sources.ps1')
 
 Import-UserEnvironment -Name @('HUSHTELEGRAM_DESKTOP_JAR', 'HUSHTELEGRAM_FIXTURE_DIR', 'HUSHTELEGRAM_BUILD_WRAPPER',
     'HUSHTELEGRAM_JAVA')
@@ -373,6 +375,12 @@ switch ($Stage) {
         Invoke-Step 'The release facts precheck' {
             & (Join-Path $scripts 'validate-release-facts.ps1') -Root $Root -SkipDescriptionTestCount -AllowPublishedIndexLag -SkipTestResults
         }
+        # The index stage's published asset check holds the release to the source census too, and by
+        # then HEAD has to be the published commit, so a stale census found there costs a rebuild and a
+        # second walk (0.0.21). Refreshing the ledger is a commit, so it belongs before the build.
+        $sourceGate = Test-SourceReleaseGate -Root $Root
+        if (-not $sourceGate.Valid) { throw "The release can't go out on this source census: $($sourceGate.Reason)" }
+        Write-Step $sourceGate.Summary
         Invoke-ReleaseBuildAdvisories
         # --tests binds to the task before it, and --continue keeps one task's failure from hiding the other's.
         Invoke-ReleaseGradle @(':patches:test', '-x', ':patches:fixtureTest',

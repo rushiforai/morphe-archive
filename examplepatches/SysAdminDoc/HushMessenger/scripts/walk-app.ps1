@@ -27,8 +27,9 @@
 
     Screens open by their fb-messenger:// links (am start -W -a VIEW -d ...), the inbox through
     its launcher activity, and the chat by -Thread, the user id of a chat on the signed-in account. The chat goes first: opening it by its
-    link gets past the "Restore your Facebook chats" prompt Messenger shows after an update. The
-    settings pages open through SettingsActivity with the page extra the restart button uses.
+    link gets past the "Restore your Facebook chats" prompt Messenger shows after an update. A prompt
+    in front of the inbox with no Close gets stepped around the same way: the chat link, then the
+    launcher activity reordered to the front. The settings pages open through SettingsActivity with the page extra the restart button uses.
 
     Device safety: the walk takes an exclusive serial lease in the shared lease folder and gives it
     back when it's done. It stops on a lock screen instead of unlocking, wakes the screen with
@@ -543,11 +544,19 @@ function Invoke-WalkApp {
                 $front = Read-WalkScreen ''
                 if (-not (Test-WalkRestorePrompt $front)) { break }
                 $close = Find-WalkNodeCenter -Xml $front -Text 'Close' -Described
-                if ($null -eq $close) { break }
-                Write-Host "[walk] closing Messenger's chat restore prompt in front of $($definition.Id)"
-                [void](Invoke-WalkAdb @('shell', 'input', 'tap', [string]$close[0], [string]$close[1]))
-                Start-Sleep -Seconds 2
-                $launch = Start-WalkMessenger $definition $uri
+                if ($null -ne $close) {
+                    Write-Host "[walk] closing Messenger's chat restore prompt in front of $($definition.Id)"
+                    [void](Invoke-WalkAdb @('shell', 'input', 'tap', [string]$close[0], [string]$close[1]))
+                    Start-Sleep -Seconds 2
+                    $launch = Start-WalkMessenger $definition $uri
+                } elseif ($definition.Kind -ceq 'inbox' -and $Thread) {
+                    # Some prompts (the API 32 emulator's) have no Close. The chat link opens past it without
+                    # touching the backup, and bringing the launcher activity to the front then shows the inbox.
+                    Write-Host "[walk] stepping around Messenger's chat restore prompt through the chat"
+                    [void](Start-WalkLink "fb-messenger://user-thread/$Thread")
+                    Start-Sleep -Seconds $SettleSeconds
+                    $launch = Invoke-WalkAdb @('shell', 'am', 'start', '-W', '--activity-reorder-to-front', '-n', "$Package/$WalkInboxActivity")
+                } else { break }
                 Start-Sleep -Seconds $SettleSeconds
             }
             if (-not $problem -and ($launch.Stdout -join "`n") -notmatch '(?m)^Status:\s*ok\r?$') { $problem = "$($definition.Id) wouldn't start" }

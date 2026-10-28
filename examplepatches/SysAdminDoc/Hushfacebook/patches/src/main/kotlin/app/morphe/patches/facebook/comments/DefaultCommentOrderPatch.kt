@@ -32,7 +32,7 @@ val defaultCommentOrderPatch = bytecodePatch(
     name = "Default comment order",
     description = "Opens comments in the order you choose, Most relevant, Newest or All comments, instead of the " +
         "one Facebook picks. Handy if you always want the newest first. Starts off. Turn it on and pick an order " +
-        "in Hushfacebook settings > Comments.",
+        "in Hushfacebook settings > Comments and writing.",
 ) {
     category("Comments")
     dependsOn(settingsPatch)

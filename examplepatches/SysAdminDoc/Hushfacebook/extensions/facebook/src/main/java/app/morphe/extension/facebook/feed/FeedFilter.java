@@ -221,6 +221,12 @@ public final class FeedFilter {
     /** The kind a post counts under when it was read and no line matched. */
     static final String NO_SOURCE_MATCH = "no line matched";
     /**
+     * The stories Hide posts from Pages read, counted only while its switch is on, with what kind of
+     * author wrote each as the kind: {@value PostSources#PAGE} when every author is a Page, or the
+     * first other author's type, or why nothing was read. Never a name or an id.
+     */
+    static final String PAGES_ROUTE = "Posts from Pages";
+    /**
      * The Stories tray adapters the feed asked for, each call counted with its adapter as the kind,
      * and a skipped one as a removal. The tray is never a feed edge: the feed's adapter list adds it
      * as an adapter of its own, so it never reaches the edge guard.
@@ -475,6 +481,7 @@ public final class FeedFilter {
                         + (aiPatched ? " genai=" + flagValue(GenAiLabel.FLAG, feedUnit, aiAccessor)
                                 + " ailabel=" + flagValue(GenAiLabel.SELF_LABEL, feedUnit, aiLabelAccessor) : "")
                         + (ENGAGEMENT_PROMO.equals(categoryName) ? " qp=" + promotionId(feedUnit) : "")
+                        + (wordsPatched ? " author=" + PostSources.authorKind(feedUnit, PostSources.ACTORS) : "")
                         + (id != null ? " id=" + id : "");
             });
             // An edge a prefetch adds before the settings are ready stays: no switch can be read yet.
@@ -540,10 +547,14 @@ public final class FeedFilter {
                 reason = flagReason(GenAiLabel.SELF_LABEL, AI_LABEL_ROUTE, feedUnit, aiLabelAccessor);
             }
             if (reason == null && wordsPatched && Settings.HIDE_POSTS_WITH_WORDS.get()) {
-                reason = wordsReason(feedUnit, messageAccessor, attachedAccessor, PostSources.ATTACHMENTS);
+                reason = wordsReason(feedUnit, messageAccessor, attachedAccessor, PostSources.ATTACHMENTS,
+                        PostText.ACTION_LINKS);
             }
             if (reason == null && wordsPatched) {
                 reason = sourcesReason(feedUnit, PostSources.ACTORS, PostSources.ATTACHMENTS, attachedAccessor);
+            }
+            if (reason == null && wordsPatched && Settings.HIDE_PAGE_POSTS.get()) {
+                reason = pagesReason(feedUnit, PostSources.ACTORS);
             }
             if (reason == null && wordsPatched && typeReaders != null) {
                 reason = typesReason(feedUnit, typeReaders, attachedAccessor);
@@ -763,15 +774,31 @@ public final class FeedFilter {
     }
 
     /**
+     * Hide posts from Pages (#262): {@value PostSources#PAGE} when every author of the post is a
+     * Page, otherwise null. Only the post's own authors count, so a friend's share of a Page's post
+     * stays, and so does a post in a group, which its member wrote. An author whose type can't be
+     * read counts as a person, and a post whose authors can't be read is kept.
+     */
+    static String pagesReason(Object feedUnit, StoryFlag.Accessor actors) {
+        FeedFilterCounters.sawList(PAGES_ROUTE, 1);
+        String kind = PostSources.authorKind(feedUnit, actors);
+        FeedFilterCounters.sawKind(PAGES_ROUTE, kind);
+        if (!PostSources.PAGE.equals(kind)) return null;
+        FeedFilterCounters.removed(PAGES_ROUTE, 1, kind);
+        return kind;
+    }
+
+    /**
      * The word filter: {@link #WORDS_REASON} when the post's own words, or those of the post it
      * shares, hold a phrase from the hide list and none from the keep list, otherwise null. A post's
-     * words include its link cards' headlines and descriptions, read through [links]. Every story
+     * words include its link cards' headlines and descriptions, read through [links] and each card's
+     * [actionLinks]. Every story
      * it's asked about is counted on its route under which list matched or why nothing was read, so
      * a kept post always has a reason in the report. With the hide list empty nothing of the post is
      * read, and a post whose words can't be read is kept.
      */
     static String wordsReason(Object feedUnit, StoryFlag.Accessor message, StoryFlag.Accessor attached,
-            StoryFlag.Accessor links) {
+            StoryFlag.Accessor links, StoryFlag.Accessor actionLinks) {
         FeedFilterCounters.sawList(WORDS_ROUTE, 1);
         PostWords.Rules rules = PostWords.rules(Settings.HIDDEN_WORDS.get(), Settings.KEPT_WORDS.get(),
                 Settings.POST_WORDS_WHOLE_WORDS.get());
@@ -779,7 +806,7 @@ public final class FeedFilter {
             FeedFilterCounters.sawKind(WORDS_ROUTE, NO_WORDS);
             return null;
         }
-        PostText.Read read = PostText.read(feedUnit, message, attached, links);
+        PostText.Read read = PostText.read(feedUnit, message, attached, links, actionLinks);
         if (read.outcome != PostText.Outcome.TEXT) {
             FeedFilterCounters.sawKind(WORDS_ROUTE, read.outcome.reason);
             return null;

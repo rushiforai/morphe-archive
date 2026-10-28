@@ -347,7 +347,7 @@ Profiles	Perfis
 Show if a profile follows you	Mostrar se um perfil segue você
 Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	Adiciona Segue você ou Não segue você ao lado do nome no perfil de alguém, depois dos pronomes, se a pessoa tiver definido. Nada aparece até o Instagram verificar.
 Mark who doesn't follow you back	Marcar quem não segue você de volta
-On your own Following list, adds Doesn't follow you after the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.	Na sua própria lista Seguindo, adiciona Não segue você depois do nome de cada conta que não segue você de volta. Nada aparece até o Instagram verificar.
+On your own Following list, adds Doesn't follow you before the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.	Na sua própria lista Seguindo, adiciona Não segue você antes do nome de cada conta que não segue você de volta. Nada aparece até o Instagram verificar.
 Put accounts that don't follow you back first	Mostrar primeiro as contas que não seguem você de volta
 On your own Following list, moves the accounts that don't follow you back to the top and keeps Instagram's order within each group. Accounts Instagram hasn't checked yet stay below.	Na sua própria lista Seguindo, move para o topo as contas que não seguem você de volta e mantém a ordem do Instagram dentro de cada grupo. As contas que o Instagram ainda não verificou ficam abaixo.
 Follows you	Segue você
@@ -532,6 +532,8 @@ Screenshots and screen recordings work wherever Instagram blocks them, like disa
 Turns the switches that keep what you do to yourself on or off in one go, like View stories anonymously and Hide that you're typing. Each one keeps its own switch.	Liga ou desliga de uma vez as chaves que mantêm o que você faz só para você, como Ver Stories anonimamente e Ocultar que você está digitando. Cada uma mantém a própria chave.
 View live anonymously	Ver lives anonimamente
 Photos and videos sent as view once or replayable stay in the chat so you can open them again. Open the chat again to update ones already loaded.	Fotos e vídeos enviados como visualização única ou reproduzíveis ficam na conversa para você abrir de novo. Abra a conversa outra vez para atualizar os que já carregaram.
+Swipe through a chat's reels	Deslizar pelos reels de uma conversa
+Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Back takes you to the chat.	Deslizar para cima em um reel aberto de uma conversa passa pelos outros reels compartilhados nela antes de qualquer reel sugerido. Voltar leva você à conversa.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	Adiciona Baixar capa embaixo de Baixar. Salva a imagem estática que um reel mostra antes de começar, no maior tamanho.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	Adiciona Baixar áudio embaixo de Baixar. Salva o som do reel como um arquivo de áudio.
 After 20 reels, swiping in Reels stops until Instagram has been in the background for 15 minutes. A reel you open from a message or a post still plays.	Depois de 20 reels, deslizar no Reels para até o Instagram ficar 15 minutos em segundo plano. Um reel aberto de uma mensagem ou de um post continua tocando.
@@ -919,7 +921,7 @@ Space under the tab bar	Espaço abaixo da barra de abas
 A little more	Um pouco mais
 More	Mais
 Hide the tab bar as you scroll	Ocultar a barra de abas ao rolar
-Scrolling a list down slides the pill out of the way. Scrolling up, reaching the top, or changing tab brings it back. Restart Instagram after changing it.	Rolar uma lista para baixo tira a pílula do caminho. Rolar para cima, chegar ao topo ou trocar de aba a traz de volta. Reinicie o Instagram depois de alterar.
+Scrolling a list down slides the tab bar out of the way. Scrolling up, reaching the top, or changing tab brings it back. It works with or without Glass tab bar. Restart Instagram after changing it.	Rolar uma lista para baixo tira a barra de abas do caminho. Rolar para cima, chegar ao topo ou trocar de aba a traz de volta. Funciona com ou sem a Barra de abas de vidro. Reinicie o Instagram depois de alterar.
 Hide the tab bar on Reels	Ocultar a barra de abas nos Reels
 # context: a choice in the Hide the tab bar on Reels list under Glass tab bar; the bar is never hidden there
 Never	Nunca
@@ -1023,8 +1025,19 @@ Active at %1$s	Ativo às %1$s
 Active yesterday at %1$s	Ativo ontem às %1$s
 Active %1$s at %2$s	Ativo em %1$s às %2$s
 Rounded corners on posts	Cantos arredondados nas publicações
-Rounds the corners of a post's photo, video and carousel pages in Home and Following. Posts you scroll to after a change show it. Stories, profiles, Explore and Reels stay as they were.	Arredonda os cantos da foto, do vídeo e das páginas do carrossel de uma publicação no Início e em Seguindo. As publicações que você rolar depois de uma mudança já aparecem assim. Stories, perfis, Explorar e Reels continuam como estavam.
+Rounds the corners of a post's photo, video and carousel pages in Home and Following. Posts you scroll to after a change show it. Stories, profiles and Explore stay as they were.	Arredonda os cantos da foto, do vídeo e das páginas do carrossel de uma publicação no Início e em Seguindo. As publicações que você rolar depois de uma mudança já aparecem assim. Stories, perfis e Explorar continuam como estavam.
 Corner size	Tamanho dos cantos
+Rounded corners on Reels	Cantos arredondados nos Reels
+Seek bar on stories	Barra de busca nos stories
+Shows a bar near the bottom of a video story. Drag it to jump to any point in the video. Photos don't get one.	Mostra uma barra perto da parte de baixo de um story em vídeo. Arraste para pular para qualquer ponto do vídeo. Fotos não têm.
+Thicker story progress bar	Barra de progresso dos stories mais grossa
+Draws the bar along the top of a story as thick as the choice below. Its segments and timing stay as they were.	Desenha a barra no topo de um story tão grossa quanto a opção abaixo. Os segmentos e o tempo continuam como estavam.
+Thickness	Espessura
+Twice as thick	Duas vezes mais grossa
+Three times as thick	Três vezes mais grossa
+Rounds the corners of a reel's video in the Reels tab and wherever a reel opens full screen. The seek bar, captions and buttons stay whole.	Arredonda os cantos do vídeo de um reel na aba Reels e onde quer que um reel abra em tela cheia. A barra de progresso, as legendas e os botões ficam inteiros.
+Peek at the next carousel page	Espiar a próxima página do carrossel
+A carousel post's page sits a little in from the edges, with the start of the next page showing at the right.	A página de um post em carrossel fica um pouco afastada das bordas, com o começo da próxima página aparecendo à direita.
 Large	Grande
 Small	Pequeno
 # context: a toast shown once when safe mode has paused HushGram on its own after crashes at start
@@ -1216,6 +1229,7 @@ New	Novo
 App icon	Ícone do app
 Instagram on black	Instagram em fundo preto
 Instagram on plum	Instagram em fundo ameixa
+Instagram in black on white	Instagram em preto sobre branco
 Instagram's own	O do Instagram
 Instagram's own. Pick another to change the icon on your home screen and in the app drawer.	O do Instagram. Escolha outro para mudar o ícone na tela inicial e na gaveta de apps.
 %1$s. It shows once you leave Instagram. If the icon is gone from your home screen, add it again from the app drawer.	%1$s. Aparece quando você sai do Instagram. Se o ícone sumir da tela inicial, adicione de novo pela gaveta de apps.
@@ -1257,3 +1271,22 @@ Instagram picks the tab bar for your account, and it can switch between the two 
 Group Instagram's notifications, and take suggestions off the Notifications page.	Agrupe as notificações do Instagram e tire as sugestões da página de notificações.
 Take suggestions and Featured off the Notifications page.	Tire as sugestões e Em destaque da página de notificações.
 Version warnings	Avisos de versão
+Pause HushGram, lock these settings, or make a report when something breaks.	Pause o HushGram, bloqueie estas configurações ou crie um relatório quando algo der errado.
+Choose a folder	Escolher uma pasta
+Saves go to Movies and Pictures. Pick any folder instead, a hidden one too, and every photo and video goes there.	O que você salva vai para Movies e Pictures. Escolha qualquer pasta no lugar, até uma oculta, e cada foto e vídeo vai para lá.
+Photos and videos go to %1$s. Tap to pick another folder.	Fotos e vídeos vão para %1$s. Toque para escolher outra pasta.
+HushGram can't reach %1$s anymore, so saves go to Movies and Pictures. Pick the folder again.	O HushGram não consegue mais acessar %1$s, então o que você salva vai para Movies e Pictures. Escolha a pasta de novo.
+Use Movies and Pictures	Usar Movies e Pictures
+Stop using the folder you picked. Saves go back to Movies and Pictures.	Parar de usar a pasta escolhida. O que você salva volta para Movies e Pictures.
+Couldn't use that folder. Saves still go where they did.	Não deu para usar essa pasta. O que você salva continua indo para onde ia.
+Saves go to Movies and Pictures again.	O que você salva volta a ir para Movies e Pictures.
+%1$s didn't take this save, so it went to Movies and Pictures.	%1$s não aceitou este salvamento, então ele foi para Movies e Pictures.
+Start reels with sound	Iniciar reels com som
+A reel you tap open from a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Um reel que você abre a partir de um post no Início toca com som, e o Início volta a ficar silenciado quando você volta. O modo de toque e o volume do celular continuam valendo.
+Keep your place in Home	Manter seu lugar no Início
+Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	Ao voltar ao Instagram, o Início fica no post em que você estava, não importa quanto tempo ficou fora. Puxar para baixo para atualizar continua recarregando.
+Filter the Stories tray by verified accounts	Filtrar a fileira de stories por contas verificadas
+The row of stories at the top of Home keeps only the accounts the choice below names, by Instagram's verified badge. Your own story stays. Turn it off to see every story.	A fileira de stories no topo da página inicial mantém só as contas que a opção abaixo indica, pelo selo de verificação do Instagram. O seu próprio story fica. Desative para ver todos os stories.
+Stories to keep	Stories a manter
+Only verified accounts	Só contas verificadas
+Only accounts that aren't verified	Só contas não verificadas

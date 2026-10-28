@@ -1369,6 +1369,40 @@ public class MaterialYouThemeTest {
         assertTrue(MaterialYouTheme.reportLine(TonePalette.fallback()).startsWith("Facebook's blue palette: "));
     }
 
+    /**
+     * The Accent color row's pick takes the wallpaper accent's place and the wallpaper's greys stay
+     * (#272). Facebook blue, there the wallpaper's accent, leaves the palette as it is, and a pick
+     * also beats the blue that stands in for a grey wallpaper accent.
+     */
+    @Test
+    public void aPickedAccentTakesTheWallpaperAccentsPlace() {
+        DarkMode.answer(true);
+        TonePalette phone = PalettesForTests.palette(PalettesForTests.GALAXY_S25);
+        TonePalette green = AccentColor.palette(AccentColor.Preset.GREEN);
+        TonePalette picked = AccentColor.onWallpaper(phone, AccentColor.Preset.GREEN);
+        assertTrue(picked.accentPicked);
+        assertTrue(picked.dynamic);
+        for (int tone : TonePalette.TONES) {
+            assertEquals("accent " + tone, green.tone(TonePalette.ACCENT, tone), picked.tone(TonePalette.ACCENT, tone));
+            assertEquals("neutral " + tone, phone.tone(TonePalette.NEUTRAL, tone), picked.tone(TonePalette.NEUTRAL, tone));
+            assertEquals("neutral variant " + tone, phone.tone(TonePalette.NEUTRAL_VARIANT, tone),
+                    picked.tone(TonePalette.NEUTRAL_VARIANT, tone));
+        }
+        MaterialYouTheme.use(picked, false);
+        assertEquals(green.sameLightness(TonePalette.ACCENT, UNSEEN_BLUE), MaterialYouTheme.fds(UNSEEN_BLUE, Ring.STORY_UNSEEN));
+        assertEquals("wallpaper palette; the Accent color row's accent in place of the phone's",
+                MaterialYouTheme.reportLine(picked));
+
+        assertTrue(AccentColor.onWallpaper(phone, AccentColor.Preset.FACEBOOK) == phone);
+        assertTrue(AccentColor.onWallpaper(phone, null) == phone);
+
+        TonePalette grey = AccentColor.onWallpaper(PalettesForTests.palette(PalettesForTests.NEAR_GREY), AccentColor.Preset.PURPLE);
+        assertFalse(grey.accentReplaced);
+        assertEquals(AccentColor.palette(AccentColor.Preset.PURPLE).tone(TonePalette.ACCENT, 40), grey.tone(TonePalette.ACCENT, 40));
+        assertEquals("Facebook's palette; the Accent color row's accent in place of the phone's",
+                MaterialYouTheme.reportLine(AccentColor.onWallpaper(TonePalette.fallback(), AccentColor.Preset.RED)));
+    }
+
     /** CIELAB distance between two colours. */
     private static double distance(int a, int b) {
         double[] x = TonePalette.lab(a);

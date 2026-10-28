@@ -90,6 +90,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean postActionButtons() {
+        return false;
+    }
+
     public static boolean sponsoredMarketplace() {
         return false;
     }
@@ -294,6 +298,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean markColors() {
+        return false;
+    }
+
     public static boolean storyDownload() {
         return false;
     }
@@ -363,6 +371,10 @@ public final class SettingsStatus {
     }
 
     public static boolean postDates() {
+        return false;
+    }
+
+    public static boolean fullPostText() {
         return false;
     }
 

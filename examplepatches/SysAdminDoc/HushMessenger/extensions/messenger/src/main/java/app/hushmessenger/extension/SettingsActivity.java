@@ -217,6 +217,7 @@ public final class SettingsActivity extends Activity {
         {"save_stories", "Save any story", "Adds Save to the More options menu on other people's stories, so you can keep the photo or video on your phone.", "privacy"},
         {"material_you", "Material You theme", "Colors Messenger's dark mode with your wallpaper colors on Android 12 and newer, and a fixed blue on Android 11. Turn on dark mode in Messenger first.", "theme"},
         {"app_icons", "Unlock app icons", "Lets you pick any icon in Messenger's App icon setting without a subscription. Messenger decides whether that setting shows for you. Turning this off can bring the default icon back.", "theme"},
+        {"avatar_shape", "Square profile pictures", "Shows people's profile pictures as squares instead of circles. Turn on Round the corners below for rounded squares. Restart Messenger to see the change.", "theme"},
         {"custom_font", "Use your own font", "Shows Messenger's text in your phone's font instead of Meta's, or in a .ttf or .otf font file you choose below, which you can also make larger or smaller and move up or down. Emoji don't change. Restart Messenger to see a change.", "theme"},
     };
 
@@ -799,13 +800,15 @@ public final class SettingsActivity extends Activity {
             }
             LinearLayout row = controlRow(spec[0], text.control(spec, 1), text.control(spec, 2), true);
             if ("bubbles".equals(spec[0]) || "facebook".equals(spec[0]) || Settings.TAB_BADGES.equals(spec[0]) || OwnFont.KEY.equals(spec[0])
-                    || MessageLog.KEY.equals(spec[0]) || AutoReply.KEY.equals(spec[0])) {
+                    || MessageLog.KEY.equals(spec[0]) || AutoReply.KEY.equals(spec[0]) || Settings.AVATAR_SHAPE.equals(spec[0])) {
                 // Below the row, where TalkBack reaches them: the row's label column hides its descendants.
                 LinearLayout wrapper = ui.column();
                 ui.add(wrapper, row, 0);
                 if ("bubbles".equals(spec[0])) addBubbleModes(wrapper);
                 else if ("facebook".equals(spec[0])) ui.add(wrapper, controlRow(Settings.KEEP_FACEBOOK_PROFILE,
                     text.format("facebook_keep_profile"), text.format("facebook_keep_profile_help"), false), 8);
+                else if (Settings.AVATAR_SHAPE.equals(spec[0])) ui.add(wrapper, controlRow(Settings.AVATAR_ROUNDED,
+                    text.format(Settings.AVATAR_ROUNDED), text.format("avatar_shape_rounded_help"), false), 8);
                 else if (Settings.TAB_BADGES.equals(spec[0])) {
                     for (String keep : Settings.KEEP_BADGES.values()) ui.add(wrapper, controlRow(keep, text.format(keep), "", false), 8);
                 }
@@ -1682,6 +1685,17 @@ public final class SettingsActivity extends Activity {
         ui.add(help, ui.text(text.get("missing_help"), 13, ui.muted, false), 6);
         ui.add(usage, help, 12);
         section(content, "usage", usage, 8);
+        // #88: Messenger's own Log out, no dialog in front of it. A build the patch found none in says where to go instead.
+        LinearLayout logOut = linkPanel("log_out", "log_out", this::logOut);
+        if (!LogOut.available()) {
+            logOut.setOnClickListener(null);
+            logOut.setEnabled(false);
+            logOut.setClickable(false);
+            logOut.getChildAt(0).setAlpha(0.6f);
+            ((TextView) logOut.getChildAt(1)).setText(text.get("log_out_unavailable"));
+            logOut.setContentDescription(text.get("log_out") + ". " + text.get("log_out_unavailable"));
+        }
+        ui.add(content, logOut, 16);
         Button source = ui.button(text.get("source"));
         source.setTag("source_licenses");
         source.setOnClickListener(view -> openPage("https://github.com/SysAdminDoc/HushMessenger#credits"));
@@ -3397,7 +3411,8 @@ public final class SettingsActivity extends Activity {
         ((TextView) header.getChildAt(0)).setTextColor(shown ? ui.accent : ui.muted);
         header.getChildAt(2).setRotation(shown ? -90 : 90);
         header.setActivated(shown);
-        if (Build.VERSION.SDK_INT >= 30) header.setStateDescription(text.get(shown ? "section_expanded" : "section_collapsed"));
+        // No state description: TalkBack already says "collapsed" or "expanded" from the expand and collapse actions,
+        // and a description of our own made it say the state twice.
     }
 
     private void showPage(String name) {
@@ -3458,6 +3473,7 @@ public final class SettingsActivity extends Activity {
             // A switch inside a control's block is found by its own words too.
             String inside = "facebook".equals(spec[0]) ? text.get("facebook_keep_profile") + " " + text.get("facebook_keep_profile_help") : "";
             if (Settings.TAB_BADGES.equals(spec[0])) for (String keep : Settings.KEEP_BADGES.values()) inside += " " + text.get(keep);
+            if (Settings.AVATAR_SHAPE.equals(spec[0])) inside = text.get(Settings.AVATAR_ROUNDED) + " " + text.get("avatar_shape_rounded_help");
             boolean match = SettingsSearch.matches(terms, spec[1], spec[2],
                 SettingsText.english(spec[3]), text.display(text.control(spec, 1)), text.display(text.control(spec, 2)), text.get(spec[3]), inside);
             controlRows.get(i).setVisibility(match ? View.VISIBLE : View.GONE);
@@ -3526,6 +3542,12 @@ public final class SettingsActivity extends Activity {
             android.util.Log.w("HushMessenger", "The phone refused to open a web page from settings");
             feedback(text.get("page_blocked"), Toast.LENGTH_LONG);
         }
+    }
+
+    /** Hands over to Messenger's account screen, which signs out, and closes settings so Back doesn't land here. */
+    private void logOut() {
+        if (LogOut.start(this, HostScreens.logoutRoute())) finish();
+        else feedback(text.get("log_out_failed"), Toast.LENGTH_LONG);
     }
 
     /** One toast at a time, built on the app context so no destroyed page is kept alive. */

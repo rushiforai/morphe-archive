@@ -51,6 +51,16 @@ public enum SaveTo {
         return video ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
     }
 
+    /**
+     * {@link #collection(boolean)} on the SD card whose MediaStore volume is [volume], or on the
+     * phone's storage, exactly as before cards could be picked, when [volume] is null (#274).
+     */
+    Uri collection(boolean video, String volume) {
+        if (volume == null) return collection(video);
+        if (this == DOWNLOAD) return MediaStore.Downloads.getContentUri(volume);
+        return video ? MediaStore.Video.Media.getContentUri(volume) : MediaStore.Images.Media.getContentUri(volume);
+    }
+
     /** Where the next save goes. Never throws, and answers the default when settings can't be read. */
     public static SaveTo current() {
         try {

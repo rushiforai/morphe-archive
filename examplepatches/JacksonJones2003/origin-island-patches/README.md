@@ -21,7 +21,7 @@ risk. See the [license](LICENSE) for details.
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.0](https://github.com/JacksonJones2003/origin-island-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.9.1](https://github.com/JacksonJones2003/origin-island-patches/releases/tag/v1.9.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
 <summary>📦 YouTube Music&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -33,8 +33,24 @@ risk. See the [license](LICENSE) for details.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Lyrics in player](#lyrics-in-player) | Shows the line of the lyrics that is sung below the title of the queue in the player. Requires the Third-party lyrics patch. |  |
+| [Lyrics in player](#lyrics-in-player) | Shows the line of the lyrics that is sung between the cover and the title in the player. Requires the Third-party lyrics patch. |  |
 | [Origin Island music card](#origin-island-music-card) | Lets the OriginOS music card on the lock screen and Origin Island like songs, switch between repeat and shuffle, show the playlist, the playlists of the library and the downloads, and show the lyrics of the Third-party lyrics patch. |  |
+| [Pause on fold](#pause-on-fold) | Pauses what plays when a foldable phone is closed. |  |
+
+</details>
+
+<details open>
+<summary>📦 LastWave&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.3.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Origin Island music card](#origin-island-music-card) | Lets the OriginOS music card on the lock screen and Origin Island show lyrics, like songs, switch between repeat and shuffle, and show the playlist and play from it. |  |
 | [Pause on fold](#pause-on-fold) | Pauses what plays when a foldable phone is closed. |  |
 
 </details>
@@ -189,26 +205,75 @@ Tested with YouTube 21.38.123.
 
 ## Lyrics in player (YouTube Music)
 
-Shows the line of the lyrics that is sung in the player, below the title of the queue at the
-bottom of it:
+Shows the line of the lyrics that is sung in the player, between the cover and the title:
 
-- a new line swoops in from below, and each word lights up, swells and shimmers as it is sung
-- until the first line is sung, the artist and who wrote the lyrics are named, or where the
-  lyrics are from if that is not known
-- the line is hidden while the queue is pulled up
+- a new line rises into place as the line before it rises away, and each word fills with
+  light and lifts a little as it is sung
+- until the first line is sung, who wrote the song is named, or the artist if that is not known
+- a line that does not fit in one row is wrapped, and drawn smaller if it does not fit in two
+
+The player is given more room below the cover for the line, taken from the room above the
+cover and below the controls, so that the cover keeps its size.
 
 The lyrics are those of the **Third-party lyrics** patch of Morphe, which has to be applied
-and enabled. Words are only brought out one by one for lyrics that have a time for each word,
-which depends on where that patch found them. Other lyrics are shown a line at a time.
+and enabled, and only lyrics with the time of each line can be shown. Words are only brought
+out one by one for lyrics that have a time for each word, which depends on where that patch
+found them. That patch keeps the lyrics it found for a song on the device, so after its
+sources are changed, its stored lyrics have to be cleared for a song to be looked up again.
 
 ### How it works
 
 The line is a view of its own that is added to the player from the main activity, found by
-the names of the views of YouTube Music, so that nothing of the player has to be patched. It
-is drawn over the header of the queue, which YouTube Music keeps below the title, unseen,
-until the queue is pulled up. The position of the song is read from the media session.
+the names of the views of YouTube Music, so that nothing of the player has to be patched.
+YouTube Music places the cover and the title by moving them, so the line is placed in the room
+between them every time the player is drawn, and fades with the title as the player is pulled
+down. The room is made by changing the sizes of the resources YouTube Music lays out the
+player with. The position of the song is read from the media session.
 
-## Pause on fold (YouTube, YouTube Music)
+## Origin Island music card (LastWave)
+
+Makes the OriginOS music card work with LastWave the way it does
+with the music apps vivo supports:
+
+- the cover, the song and the playback controls are shown
+- the loop mode button switches between repeat all, repeat one and shuffle. LastWave can repeat
+  and shuffle at the same time, which the card has no mode for, so each turns the other off
+- the heart button likes the song, and is filled when the song is in the liked songs of LastWave.
+  Liking it in LastWave fills it on the card as well
+- the playlist shows the queue, and plays the song that is tapped
+- the lyrics LastWave loads for the song are shown, line by line
+
+The patch also lets LastWave play a song asked for by voice when Android Auto prepares it before
+playing it, which LastWave ignored. Gemini only asks the music apps it works with for a song, so
+in the car it starts LastWave, but only plays a song asked for by name in apps such as YouTube Music.
+
+LastWave is installed from its own APK, so the patched LastWave is signed by Morphe Manager and
+not by its developers. The first time it is installed, the LastWave that was installed before has to
+be uninstalled, which removes its library, playlists and settings from the phone. Updates of
+LastWave are then installed by patching them as well. Restart the phone once after installing,
+since the card only looks for apps that support these features when it starts.
+
+### How it works
+
+The patch declares the action the card looks for on the media browser service of LastWave, answers
+the card when it connects, and adds to the metadata what the card may show and control. It only hooks
+calls of the Android framework, which have the same names in every version of LastWave, except for
+the heart.
+
+LastWave keeps its liked songs in a manager that it toggles a like with in a coroutine. Its classes are
+obfuscated, so the patch finds the manager, the toggle and how a coroutine is started by the text they
+log and by how they call each other, and the heart of the card toggles the like the same way the heart
+of LastWave does.
+
+The lyrics are taken as the player of LastWave keeps the lyrics it loaded for the song that plays,
+and are given to the card as LRC once the card has that song.
+
+The card draws the cover from the image in the metadata, but prefers the address of the cover, and
+can only read that address from files of the device. LastWave gives the cover by its address on the
+web, so the card is given the cover as an image without its address. The cover is loaded from its
+address, since the image LastWave gives the session may only stand in for it while it loads.
+
+## Pause on fold (YouTube, YouTube Music, LastWave)
 
 Pauses what plays when a foldable phone is closed, the way a laptop does when its lid is closed.
 Playing on the cover screen of a closed phone is not paused, only closing it.

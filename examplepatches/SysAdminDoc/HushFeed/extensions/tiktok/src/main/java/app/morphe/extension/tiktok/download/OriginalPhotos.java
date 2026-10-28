@@ -166,13 +166,18 @@ public final class OriginalPhotos {
         String id = Reflect.string(aweme, "getAid", "aid");
         if (id == null) return failedConversion(owned);
         List<List<String>> photoSnapshot = snapshot(photos);
-        String path = DownloadFilenameFormatter.destinationPath(aweme, true);
+        // With Save details beside the video on, the photos go where Android lets a text file
+        // sit beside them, as a video does.
+        boolean withDetails = Settings.DOWNLOAD_DETAILS.get();
+        String destination = DownloadFilenameFormatter.destinationPath(aweme, true);
+        String path = withDetails ? DownloadDetails.pairedPath(destination) : destination;
         List<String> names = new ArrayList<>();
         for (int i = 0; i < photos.size(); i++) {
             names.add(DownloadFilenameFormatter.formatOriginalPhotoName(aweme, i + 1, "tmp"));
         }
+        Sidecar details = withDetails ? Sidecar.of(aweme, Settings.DOWNLOAD_DETAILS_JSON.get(), chosen, path) : null;
         Retry run = new Retry(id, SignedInUser.id(), photoSnapshot, List.copyOf(names), path, chosen,
-                SystemClock.elapsedRealtime());
+                SystemClock.elapsedRealtime(), details);
         // The scheduler already reports a refusal. A requested image save must not become a
         // native converted video merely because the image queue is full.
         return queue(context.getApplicationContext(), run, true) || owned;
@@ -220,10 +225,12 @@ public final class OriginalPhotos {
                     if (found == SavedVideoArchive.Check.FAILED) return;
                 }
                 // A photo that fails is skipped and the rest still land, and the result says what did.
+                List<Integer> landed = new ArrayList<>();
                 SaveProgress.Outcome outcome = progress.run(index -> {
                     MediaBudget.checkDiskSpace(app.getCacheDir(), -1L);
                     last[0] = savePhoto(app, run, chosen.get(index));
                     if (first[0] == null) first[0] = last[0];
+                    landed.add(chosen.get(index));
                 });
                 if (checkSaved && first[0] != null) {
                     SavedVideoArchive.rememberQuietly(app, run.id, first[0], archiveGeneration);
@@ -231,10 +238,17 @@ public final class OriginalPhotos {
                 if (outcome.saved == 0 && outcome.cancelled == 0) {
                     Utils.showToastLong(L10n.t("None of the photos could be saved. Try again."));
                 } else {
+                    // Written once photos landed, and said apart from them: the photos are saved
+                    // whether or not their details file makes it.
+                    boolean detailsWritten = run.details == null || run.details.write(app, landed);
                     Retry failed = run.failed(outcome);
                     SaveNotice.saved(SaveProgress.message(outcome, L10n.quantity(Utils.getContext(), outcome.saved,
                             "Saved one original photo", "Saved %1$s original photos")), last[0],
                             failed == null ? null : () -> retry(failed));
+                    if (!detailsWritten) {
+                        Utils.showToastLong(L10n.t("The photos saved, but their details file couldn't be written. "
+                                + "Check your storage and save the post again to get it."));
+                    }
                 }
             } catch (RuntimeException exception) {
                 Logger.printException(() -> "Original photo download failed", exception);
@@ -319,10 +333,17 @@ public final class OriginalPhotos {
         final String path;
         final List<Integer> positions;
         final long madeAt;
+        /** The post's one details file, shared by the save and its Retry; null with the switch off. */
+        final Sidecar details;
         private final AtomicBoolean used = new AtomicBoolean();
 
         Retry(String id, String account, List<List<String>> photos, List<String> names, String path,
                 List<Integer> positions, long madeAt) {
+            this(id, account, photos, names, path, positions, madeAt, null);
+        }
+
+        Retry(String id, String account, List<List<String>> photos, List<String> names, String path,
+                List<Integer> positions, long madeAt, Sidecar details) {
             this.id = id;
             this.account = account;
             this.photos = photos;
@@ -330,6 +351,7 @@ public final class OriginalPhotos {
             this.path = path;
             this.positions = Collections.unmodifiableList(new ArrayList<>(positions));
             this.madeAt = madeAt;
+            this.details = details;
         }
 
         /**
@@ -341,7 +363,7 @@ public final class OriginalPhotos {
             if (outcome.unsaved.isEmpty()) return null;
             List<Integer> left = new ArrayList<>();
             for (int index : outcome.unsaved) left.add(positions.get(index));
-            return new Retry(id, account, photos, names, path, left, madeAt);
+            return new Retry(id, account, photos, names, path, left, madeAt, details);
         }
 
         /** Whether it may run now, which it can do once: same account, inside the window. */
@@ -354,6 +376,98 @@ public final class OriginalPhotos {
         /** Undoes {@link #stillUsable} when the run it allowed never started. */
         void giveBack() {
             used.set(false);
+        }
+    }
+
+    /** For the tests: stands in for writing the details file, given the one the last run wrote. */
+    interface DetailsStep {
+        MediaFileWriter.Saved write(String name, String path, String content, MediaFileWriter.Saved previous)
+                throws java.io.IOException;
+    }
+
+    static volatile DetailsStep detailsStepForTests;
+
+    /**
+     * One photo post's details file. The post's facts, the photos asked for and the file's name
+     * and folder are read when the save is queued, so a swipe, an account change or another
+     * post's save can't change what it says. A Retry carries the same one, adds the photos it
+     * lands and writes over the file the first run made rather than adding a second.
+     */
+    static final class Sidecar {
+        private final DownloadDetails facts;
+        /** Numbered from 1, like the photos' own names. */
+        private final List<Integer> requested;
+        final String name;
+        private final String path;
+        private final java.util.TreeSet<Integer> saved = new java.util.TreeSet<>();
+        private MediaFileWriter.Saved written;
+
+        Sidecar(DownloadDetails facts, List<Integer> positions, String name, String path) {
+            this.facts = facts;
+            List<Integer> numbers = new ArrayList<>(positions.size());
+            for (int position : positions) numbers.add(position + 1);
+            this.requested = Collections.unmodifiableList(numbers);
+            this.name = name;
+            this.path = path;
+        }
+
+        static Sidecar of(Object aweme, boolean json, List<Integer> positions, String path) {
+            DownloadDetails facts = new DownloadDetails(aweme, json, true);
+            String name = DownloadFilenameFormatter.formatPhotoDetailsName(aweme, facts.extension().substring(1));
+            return new Sidecar(facts, positions, name, path);
+        }
+
+        /**
+         * Adds the photos this run landed, by their place in the post, and writes the file. Nothing
+         * is written while no photo has landed. False when the file couldn't be written, which the
+         * caller says apart from the photos.
+         */
+        synchronized boolean write(Context app, List<Integer> landed) {
+            for (int position : landed) saved.add(position + 1);
+            if (saved.isEmpty()) return true;
+            String content = facts.content(requested, new ArrayList<>(saved));
+            try {
+                DetailsStep stand = detailsStepForTests;
+                written = stand != null ? stand.write(name, path, content, written) : publish(app, content);
+                return true;
+            } catch (java.io.IOException | RuntimeException failure) {
+                Logger.printException(() -> "Photo details file failed", failure);
+                return false;
+            }
+        }
+
+        private MediaFileWriter.Saved publish(Context app, String content) throws java.io.IOException {
+            byte[] bytes = content.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            if (written != null) {
+                // A Retry rewrites the first run's file in place, so the name and the URI stay.
+                try {
+                    if (written.uri != null) {
+                        try (java.io.OutputStream output = app.getContentResolver().openOutputStream(written.uri, "wt")) {
+                            if (output == null) throw new java.io.IOException("Could not reopen the details file");
+                            output.write(bytes);
+                        }
+                        return written;
+                    }
+                    if (written.file != null && written.file.isFile()) {
+                        try (java.io.FileOutputStream output = new java.io.FileOutputStream(written.file)) {
+                            output.write(bytes);
+                        }
+                        return written;
+                    }
+                } catch (java.io.IOException | RuntimeException gone) {
+                    // Deleted between the runs: a fresh file still says what landed.
+                    Logger.printInfo(() -> "The photo details file from the first run is gone, writing it again");
+                }
+            }
+            File temporary = MediaCache.createTempFile(app, "photo-details-", facts.extension());
+            try {
+                try (java.io.FileOutputStream output = new java.io.FileOutputStream(temporary)) {
+                    output.write(bytes);
+                }
+                return MediaFileWriter.publishForResult(app, temporary, name, facts.mime(), path, false);
+            } finally {
+                if (!MediaCache.delete(temporary)) Logger.printInfo(() -> "Could not remove the details temporary file");
+            }
         }
     }
 

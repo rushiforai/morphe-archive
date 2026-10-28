@@ -30,8 +30,9 @@ private const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
 internal val rumbleSettings = RUMBLE.settings
 
 /**
- * The Lurk settings screen, opened from a "Lurk" row in Rumble's Settings (App Info) or the launcher
- * shortcut. Every patch that can be switched on and off at runtime depends on this one.
+ * The Lurk settings screen, opened from a "Lurk" row in Rumble's Settings (App Info), the launcher shortcut or
+ * the app settings link on Android's App info page. Every patch that can be switched on and off at runtime
+ * depends on this one.
  */
 val settingsPatch = bytecodePatch(
     description = "Adds Lurk to Rumble's settings, where the other patches can be turned off and on.",

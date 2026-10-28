@@ -352,7 +352,7 @@ Profiles	個人檔案
 Show if a profile follows you	顯示帳號是否已追蹤您
 Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	在他人個人檔案的名稱旁新增「已追蹤你」或「未追蹤你」；若有設定代名詞，會顯示在代名詞之後。Instagram 完成查詢前不會顯示。
 Mark who doesn't follow you back	標示未回追的帳號
-On your own Following list, adds Doesn't follow you after the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.	在您的追蹤中名單內，於未回追帳號的名稱後方新增「未追蹤你」。Instagram 完成查詢前不會顯示。
+On your own Following list, adds Doesn't follow you before the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.	在您的追蹤中名單內，於未回追帳號的名稱前方新增「未追蹤你」。Instagram 完成查詢前不會顯示。
 Put accounts that don't follow you back first	優先顯示未回追的帳號
 On your own Following list, moves the accounts that don't follow you back to the top and keeps Instagram's order within each group. Accounts Instagram hasn't checked yet stay below.	在您的追蹤中名單內，將未回追帳號移至頂端，各組內仍維持 Instagram 原本的順序。尚未完成查詢的帳號會留在下方。
 Follows you	已追蹤你
@@ -537,6 +537,8 @@ Screenshots and screen recordings work wherever Instagram blocks them, like disa
 Turns the switches that keep what you do to yourself on or off in one go, like View stories anonymously and Hide that you're typing. Each one keeps its own switch.	一次開啟或關閉隱藏您活動的開關，例如「匿名觀看限時動態」與「隱藏『正在輸入…』狀態」。每項功能仍保留獨立開關。
 View live anonymously	匿名觀看直播
 Photos and videos sent as view once or replayable stay in the chat so you can open them again. Open the chat again to update ones already loaded.	以只能看一次或可重播方式傳送的照片與影片會保留在聊天室，讓您再次開啟。已載入的內容請重新開啟聊天以更新。
+Swipe through a chat's reels	在聊天室的 Reels 之間滑動
+Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Back takes you to the chat.	在從聊天室開啟的 Reels 上往上滑，會先看完該聊天室分享的其他 Reels，再看到推薦的 Reels。返回會回到聊天室。
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	在「下載」下方新增「下載封面」，以最大尺寸儲存 Reel 播放前顯示的靜態圖片。
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	在「下載」下方新增「下載音訊」，將 Reel 的聲音儲存為音訊檔案。
 After 20 reels, swiping in Reels stops until Instagram has been in the background for 15 minutes. A reel you open from a message or a post still plays.	觀看 20 則 Reels 後會停用 Reels 滑動，直到 Instagram 在背景停留 15 分鐘。從訊息或貼文開啟的 Reel 仍會播放。
@@ -919,7 +921,7 @@ Space under the tab bar	分頁列下方間距
 A little more	稍多
 More	更多
 Hide the tab bar as you scroll	捲動時隱藏分頁列
-Scrolling a list down slides the pill out of the way. Scrolling up, reaching the top, or changing tab brings it back. Restart Instagram after changing it.	向下捲動清單時，膠囊會滑出畫面；向上捲動、回到頂端或切換分頁時會重新出現。變更後請重新啟動 Instagram。
+Scrolling a list down slides the tab bar out of the way. Scrolling up, reaching the top, or changing tab brings it back. It works with or without Glass tab bar. Restart Instagram after changing it.	向下捲動清單時，分頁列會滑出畫面；向上捲動、回到頂端或切換分頁時會重新出現。無論是否啟用「玻璃分頁列」都可使用。變更後請重新啟動 Instagram。
 Hide the tab bar on Reels	在 Reels 隱藏分頁列
 # context: a choice in the Hide the tab bar on Reels list under Glass tab bar; the bar is never hidden there
 Never	永不
@@ -1021,8 +1023,19 @@ Active at %1$s	%1$s 上線
 Active yesterday at %1$s	昨天 %1$s 上線
 Active %1$s at %2$s	%1$s %2$s 上線
 Rounded corners on posts	貼文圓角
-Rounds the corners of a post's photo, video and carousel pages in Home and Following. Posts you scroll to after a change show it. Stories, profiles, Explore and Reels stay as they were.	將首頁與追蹤中貼文的照片、影片與輪播頁面改為圓角。變更後捲動到的貼文才會顯示。限時動態、個人檔案、探索與 Reels 不變。
+Rounds the corners of a post's photo, video and carousel pages in Home and Following. Posts you scroll to after a change show it. Stories, profiles and Explore stay as they were.	將首頁與追蹤中貼文的照片、影片與輪播頁面改為圓角。變更後捲動到的貼文才會顯示。限時動態、個人檔案與探索不變。
 Corner size	圓角大小
+Rounded corners on Reels	Reels 圓角
+Seek bar on stories	限時動態拖曳列
+Shows a bar near the bottom of a video story. Drag it to jump to any point in the video. Photos don't get one.	在影片限時動態底部附近顯示一條拖曳列。拖曳它即可跳到影片中的任何位置。相片不會顯示。
+Thicker story progress bar	較粗的限時動態進度列
+Draws the bar along the top of a story as thick as the choice below. Its segments and timing stay as they were.	依下方選擇的粗細繪製限時動態頂端的進度列。各段與時間長度不變。
+Thickness	粗細
+Twice as thick	兩倍粗
+Three times as thick	三倍粗
+Rounds the corners of a reel's video in the Reels tab and wherever a reel opens full screen. The seek bar, captions and buttons stay whole.	在 Reels 分頁及任何以全螢幕開啟 Reels 的地方，將 Reels 影片的邊角變圓。進度列、字幕和按鈕保持完整。
+Peek at the next carousel page	預覽下一張輪播頁面
+A carousel post's page sits a little in from the edges, with the start of the next page showing at the right.	輪播貼文的頁面會與邊緣稍微內縮，右側露出下一頁的開頭。
 Large	大
 Small	小
 # context: a toast shown once when safe mode has paused HushGram on its own after crashes at start
@@ -1214,6 +1227,7 @@ New	新增項目
 App icon	應用程式圖示
 Instagram on black	黑底 Instagram
 Instagram on plum	梅紫底 Instagram
+Instagram in black on white	白底黑色 Instagram
 Instagram's own	Instagram 原版
 Instagram's own. Pick another to change the icon on your home screen and in the app drawer.	Instagram 原版。選擇其他圖示，可變更主畫面與應用程式抽屜中的圖示。
 %1$s. It shows once you leave Instagram. If the icon is gone from your home screen, add it again from the app drawer.	%1$s。離開 Instagram 後即會顯示。若主畫面的圖示消失，請從應用程式抽屜重新加入。
@@ -1260,3 +1274,22 @@ Instagram picks the tab bar for your account, and it can switch between the two 
 Group Instagram's notifications, and take suggestions off the Notifications page.	將 Instagram 通知分組，並移除通知頁面上的建議。
 Take suggestions and Featured off the Notifications page.	移除通知頁面上的建議和精選內容。
 Version warnings	版本警告
+Pause HushGram, lock these settings, or make a report when something breaks.	暫停 HushGram、鎖定這些設定，或在出問題時製作報告。
+Choose a folder	選擇資料夾
+Saves go to Movies and Pictures. Pick any folder instead, a hidden one too, and every photo and video goes there.	儲存的內容會放在 Movies 和 Pictures。你可以改選任何資料夾，包括隱藏資料夾，所有相片和影片都會存到那裡。
+Photos and videos go to %1$s. Tap to pick another folder.	相片和影片會存到 %1$s。輕觸即可選擇其他資料夾。
+HushGram can't reach %1$s anymore, so saves go to Movies and Pictures. Pick the folder again.	HushGram 已無法存取 %1$s，因此儲存的內容會放在 Movies 和 Pictures。請重新選擇資料夾。
+Use Movies and Pictures	使用 Movies 和 Pictures
+Stop using the folder you picked. Saves go back to Movies and Pictures.	停止使用你選擇的資料夾。儲存的內容會改回放在 Movies 和 Pictures。
+Couldn't use that folder. Saves still go where they did.	無法使用該資料夾。儲存的內容仍會存到原本的位置。
+Saves go to Movies and Pictures again.	儲存的內容已改回放在 Movies 和 Pictures。
+%1$s didn't take this save, so it went to Movies and Pictures.	%1$s 無法存放這次儲存的內容，因此改放在 Movies 和 Pictures。
+Start reels with sound	Reels 預設開啟聲音
+A reel you tap open from a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	從首頁貼文點開的 Reel 會有聲音播放，返回後首頁會再次靜音。手機的鈴聲模式和音量仍然有效。
+Keep your place in Home	保留首頁的瀏覽位置
+Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	回到 Instagram 時，不論離開多久，首頁都會停在你剛才看的貼文。下拉重新整理仍會重新載入。
+Filter the Stories tray by verified accounts	依已驗證帳號篩選限時動態橫幅
+The row of stories at the top of Home keeps only the accounts the choice below names, by Instagram's verified badge. Your own story stays. Turn it off to see every story.	首頁頂端的限時動態橫幅只保留下方選項指定的帳號，依據 Instagram 的驗證徽章判斷。你自己的限時動態會保留。關閉即可查看所有限時動態。
+Stories to keep	要保留的限時動態
+Only verified accounts	僅限已驗證帳號
+Only accounts that aren't verified	僅限未驗證帳號

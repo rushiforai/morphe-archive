@@ -9,7 +9,7 @@
     - the official Morphe patch bundle's patches-list.json, which has shipped no Telegram patch so
       far;
     - the Morphe community directory, Awesome Morphe, the Morphe Patch Tracker and Jman's Patch
-      Bundle Registry (its git snapshot), for every bundle that targets a census package, and for
+      Bundle Registry (its catalog API), for every bundle that targets a census package, and for
       whether HushTelegram is listed on each, plus the Morphe Archive for HushTelegram' own listing;
     - GitHub code search for each census package name in patch lists, patch code and Xposed hooks,
       with the two archive mirrors mapped back to the repositories they copied, and GitLab code
@@ -564,26 +564,51 @@ function Get-RegistrySource {
     return [pscustomobject]@{ Url = $null; Key = $null }
 }
 
-Invoke-Source 'Jman''s bundle index' {
-    # Jman's Patch Bundle Registry. Its API turns down a query across the whole catalog, so this
-    # reads the git snapshot the registry's website reads: the newest generation snapshot-history.json
-    # names, every bundle in it, and the patch shards patch-index.json files each latest Telegram
-    # bundle's patches under. A shard holds many bundles' patches and is fetched once a run.
-    $base = 'https://raw.githubusercontent.com/Jman-Github/Patch-Bundle-Registry/bundles/database'
-    $history = @(Get-JsonItems (Get-SourceJson -Uri "$base/snapshot-history.json" -What 'Jman''s snapshot history'))
-    $generation = if ($history.Count -gt 0) { [string]$history[$history.Count - 1] } else { '' }
-    # The generation goes into request addresses, so only a snapshot directory is taken.
-    if ($generation -notmatch '^snapshots/[0-9a-f]+$') {
-        throw "Jman's snapshot history doesn't end in a snapshot generation (snapshots/<hex>): '$generation'"
+function Get-RegistryPatchPackages {
+    <#
+        The packages a patch in Jman's registry names. The catalog API lists {name, versions}
+        records; the git snapshot it replaced mapped each package to its versions. A patch for any
+        app names none.
+    #>
+    param($Patch)
+    # Read straight off the property: Get-SourceProperty returns through the pipeline, which turns a
+    # one-record list into the bare record, and its keys then read as package names.
+    if ($null -eq $Patch) { return }
+    $property = $Patch.PSObject.Properties['compatiblePackages']
+    if ($null -eq $property -or $null -eq $property.Value) { return }
+    $compatible = $property.Value
+    if ($compatible -is [array]) {
+        foreach ($record in $compatible) { $name = [string](Get-SourceProperty $record 'name'); if ($name) { $name } }
+    } else {
+        foreach ($property in $compatible.PSObject.Properties) { $property.Name }
     }
-    $bundles = Get-SourceJson -Uri "$base/$generation/bundles.json" -What 'Jman''s bundles.json'
-    $shardsOf = Get-SourceProperty (Get-SourceJson -Uri "$base/$generation/patch-index.json" -What 'Jman''s patch-index.json') 'bundles'
-    $shards = @{}
+}
+
+Invoke-Source 'Jman''s bundle index' {
+    # Jman's Patch Bundle Registry, through its catalog API. The registry dropped the git snapshot
+    # this used to read on 2026-10-14. Its API turns down a query across the whole catalog, so this
+    # asks for each census package's latest bundles, then reads each Telegram bundle's own patch
+    # list once, a bundle naming several census packages included.
+    $base = 'https://patch-bundles.api.jmancentral.com'
+    $selfUrl = [string]$ledgerDocument.self.repository
+    $mine = Get-SourceJson -Uri "$base/bundles?limit=1&source_url=$([Uri]::EscapeDataString($selfUrl))" -What 'Jman''s bundles for HushTelegram'
+    $listed['jman-bundles'] = [int](Get-SourceProperty $mine 'total') -gt 0
+    $byId = [ordered]@{}
+    foreach ($package in $packages) {
+        $page = Get-SourceJson -Uri "$base/apps/$([Uri]::EscapeDataString($package))/bundles?release=latest&include_unverified=true&limit=100" `
+            -What "Jman's $package bundles"
+        $items = @(Get-JsonItems (Get-SourceProperty $page 'data'))
+        if ([int](Get-SourceProperty $page 'total') -gt $items.Count) {
+            throw "Jman's registry has more than one page of latest $package bundles, and this reads one."
+        }
+        foreach ($item in $items) {
+            $itemId = [string](Get-SourceProperty $item 'id')
+            if ($itemId -and -not $byId.Contains($itemId)) { $byId[$itemId] = $item }
+        }
+    }
     $seen = @{}
-    $listed['jman-bundles'] = $false
-    foreach ($bundle in (Get-JsonItems $bundles)) {
+    foreach ($bundle in $byId.Values) {
         $source = Get-RegistrySource $bundle
-        if ($source.Key -and $source.Key -eq $selfKey) { $listed['jman-bundles'] = $true }
         # A source's stable and dev bundles can both be latest. Add-Candidate merges the two.
         if (-not [bool](Get-SourceProperty $bundle 'is_latest')) { continue }
         $apps = @(Get-JsonItems (Get-SourceProperty $bundle 'packages') | Where-Object { $packages -contains $_ })
@@ -607,19 +632,25 @@ Invoke-Source 'Jman''s bundle index' {
             continue
         }
         $features = New-Object System.Collections.Generic.List[string]
-        foreach ($shard in @(Get-JsonItems (Get-SourceProperty $shardsOf $id))) {
-            $path = [string]$shard
-            if (-not $shards.ContainsKey($path)) {
-                $shards[$path] = @(Get-JsonItems (Get-SourceJson -Uri "$base/$generation/$(Get-EncodedPath $path)" -What "Jman's $path"))
-            }
-            foreach ($patch in $shards[$path]) {
-                if ([string](Get-SourceProperty $patch 'bundle_id') -ne $id) { continue }
-                # compatiblePackages maps a package to its versions; a patch for any app has none.
-                $compatible = Get-SourceProperty $patch 'compatiblePackages'
-                if ($null -eq $compatible -or @($compatible.PSObject.Properties | Where-Object { $packages -contains $_.Name }).Count -eq 0) { continue }
+        # A patch search answers in windows: offset pages through one, and next_cursor starts the next.
+        $offset = 0
+        $cursor = $null
+        for ($request = 1; ; $request++) {
+            if ($request -gt 50) { throw "Jman's patch list for bundle $id ran past 50 pages." }
+            $uri = "$base/bundles/$(Get-EncodedPath $id)/patches?include_unverified=true&limit=100&offset=$offset"
+            if ($cursor) { $uri += "&page_cursor=$([Uri]::EscapeDataString($cursor))" }
+            $page = Get-SourceJson -Uri $uri -What "Jman's patches for bundle $id"
+            $rows = @(Get-JsonItems (Get-SourceProperty $page 'data'))
+            foreach ($patch in $rows) {
+                if (@(Get-RegistryPatchPackages $patch | Where-Object { $packages -contains $_ }).Count -eq 0) { continue }
                 $name = [string](Get-SourceProperty $patch 'name')
                 if ($name -and -not $features.Contains($name)) { $features.Add($name) }
             }
+            $offset += $rows.Count
+            if ($rows.Count -gt 0 -and $offset -lt [int](Get-SourceProperty $page 'total')) { continue }
+            $cursor = [string](Get-SourceProperty $page 'next_cursor')
+            if (-not $cursor) { break }
+            $offset = 0
         }
         Add-Candidate -Key $source.Key -Source 'Jman''s bundle index' -Packages $apps -Features @($features)
         $seen[$source.Key] = $true

@@ -21,6 +21,8 @@ import app.morphe.patches.facebook.coexist.pickedAppName
 import app.morphe.patches.facebook.coexist.taskLabels
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
 import app.morphe.patches.facebook.media.hdr.playbackFormatEvidencePatch
+import app.morphe.patches.facebook.misc.appicons.LauncherIconStyle
+import app.morphe.patches.facebook.misc.appicons.launcherIconPatch
 import app.morphe.patches.facebook.misc.extension.FACEBOOK_APPLICATION
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
@@ -89,7 +91,8 @@ val settingsPatch = bytecodePatch(
     name = "Hushfacebook settings",
     description = "Adds Hushfacebook settings to Facebook, where you turn features on or off, pause Hushfacebook " +
         "and back up your choices. To open them, long-press the Facebook logo at the top of your feed or " +
-        "Facebook's app icon. Its App name option shows a name you pick under the icon. Other patches need it, " +
+        "Facebook's app icon. Its App name option shows a name you pick under the icon, and Icon style can make " +
+        "the icon white on black or black on white. Other patches need it, " +
         "so keep it selected.",
     default = true,
 ) {
@@ -102,8 +105,18 @@ val settingsPatch = bytecodePatch(
             "characters, so this copy is easy to tell apart. Leave it empty to keep Facebook's name. It only changes " +
             "the name. Clone app is what lets a copy install next to the official Facebook.",
     )
+    val iconStyle by stringOption(
+        key = "iconStyle",
+        default = LauncherIconStyle.FACEBOOK.key,
+        values = LauncherIconStyle.entries.associate { it.label to it.key },
+        title = "Icon style",
+        description = "Facebook colors keeps the home screen icon as it is. White on black and Black on white draw " +
+            "Facebook's \"f\" in one color on a plain icon. Themed icons on Android 13 and up still work.",
+    )
     // The name goes into the manifest and the resources, which only a resource patch can write.
     dependsOn(appLabelPatch { appName })
+    // So does the icon's look (#278).
+    dependsOn(launcherIconPatch { iconStyle })
     dependsOn(facebookExtensionPatch)
     // Every patch depends on this one, so a copy renamed with Clone app works whatever is picked,
     // and the patches Morphe runs before Clone app bring it in early enough. See ClonedPackage.kt.

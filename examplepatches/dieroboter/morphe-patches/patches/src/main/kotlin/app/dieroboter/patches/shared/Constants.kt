@@ -38,7 +38,7 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         targets = listOf(
             AppTarget(
-                version = "2.2.147"
+                version = "2.2.148"
             )
         )
     )
@@ -49,7 +49,7 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         targets = listOf(
             AppTarget(
-                version = "2.2.147"
+                version = "2.2.148"
             )
         )
     )
@@ -60,7 +60,7 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         targets = listOf(
             AppTarget(
-                version = "2.2.147"
+                version = "2.2.148"
             )
         )
     )

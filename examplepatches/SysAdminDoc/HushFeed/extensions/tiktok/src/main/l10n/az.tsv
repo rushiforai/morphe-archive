@@ -1317,6 +1317,7 @@ Value to return	Qaytarılacaq dəyər
 Verified accounts	Təsdiqlənmiş hesablar
 Version %1$s	Versiya %1$s
 Version %1$s for TikTok %2$s	Versiya %1$s, TikTok %2$s üçün
+Version %1$s for PineDrama %2$s	Versiya %1$s, PineDrama %2$s üçün
 Video	Video
 Video (MP4)	Video (MP4)
 Video destination	Video təyinatı
@@ -1398,6 +1399,8 @@ Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll
 Hide the unread badges on the bottom tabs	Alt nişanlardakı oxunmamış nişanları gizlədin
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Gələnlər və Profil daxil olmaqla hər alt nişandakı qırmızı say və nöqtələri, həmçinin Gələnlər üzərində yeni bəyənmələri, izləyiciləri, şərhləri və kimin LIVE-da olduğunu sayan balonu gizlədin. Gələnlərin özü yenə də nələrin gəldiyini göstərir.
 Speed while you hold the video	Videonu basıb saxlayarkən sürət
+Slide to change the hold speed	Saxlama sürətini sürüşdürərək dəyiş
+While you hold a video, slide left or right to change its speed, and a bubble shows it. Letting go goes back to normal. A pull-down lock keeps the speed you slid to.	Videonu basıb saxlayarkən sürətini dəyişmək üçün sola və ya sağa sürüşdür, sürət balonda görünür. Barmağını çəkəndə normala qayıdır. Aşağı çəkib kilidləsən, seçdiyin sürət qalır.
 Hide mini dramas	Mini dramaları gizlədin
 Hide TikTok's short drama episodes and the cards that promote them.	TikTok-un qısa drama epizodlarını və onları təbliğ edən kartları gizlədin.
 Mini dramas	Mini dramalar
@@ -1465,7 +1468,8 @@ This preset doesn't match the installed gates. Nothing changed.	Bu hazır ayar q
 About overrides	Əvəzləmələr haqqında
 Use {creator}, {date} and {video_id} to build the name. Start with {creator}/ to put each creator in a folder. The file ending is added for you.	Adı qurmaq üçün {creator}, {date} və {video_id} istifadə edin. Hər yaradıcını ayrıca qovluğa qoymaq üçün {creator}/ ilə başlayın. Fayl uzantısı sizin üçün əlavə olunur.
 Save details beside the video	Təfərrüatları videonun yanında saxlayın
-Saves the caption, creator, link and post date in a text file next to the video. On Android 10 and later, the pair goes in Download or Documents under the same folder name. Applies to saves made by Hushfeed.	Başlığı, yaradıcını, linki və paylaşım tarixini videonun yanında mətn faylında saxlayır. Android 10 və daha yenisində cüt Download və ya Documents içində eyni qovluq adı ilə qalır. Hushfeed-in etdiyi saxlamalara aiddir.
+Saves the caption, creator, link and post date in a text file next to the video, or one file for a photo post's original photos. On Android 10 and later, they go in Download or Documents under the same folder name. Applies to saves made by Hushfeed.	Başlığı, yaradıcını, linki və paylaşım tarixini videonun yanında mətn faylında, foto paylaşımının orijinal fotoları üçün isə bir faylda saxlayır. Android 10 və daha yenisində onlar Download və ya Documents içində eyni qovluq adı ilə qalır. Hushfeed-in etdiyi saxlamalara aiddir.
+The photos saved, but their details file couldn't be written. Check your storage and save the post again to get it.	Fotolar saxlanıldı, amma onların təfərrüat faylı yazıla bilmədi. Yaddaşı yoxlayın və onu almaq üçün paylaşımı yenidən saxlayın.
 Check for already-saved videos	Artıq saxlanılmış videoları yoxlayın
 Forget saved videos	Saxlanılmış videoları unudun
 Undo forgetting saved videos	Saxlanılmış videoların unudulmasını geri qaytarın
@@ -1492,6 +1496,8 @@ The video was saved, but its record couldn't be updated. A later save may make a
 The already-saved check failed. Try again.	Artıq saxlanılıb yoxlaması alınmadı. Yenidən cəhd edin.
 Show download progress	Endirmə irəliləyişini göstərin
 Show a progress bar while a video saves.	Video saxlanılarkən irəliləyiş paneli göstərin.
+Skip the Share to sheet after a save	Saxladıqdan sonra paylaşma vərəqini keçin
+TikTok opens a Share to sheet a few seconds after it saves a video. This stops it. The share button and the saved notice stay as they are.	TikTok videonu saxladıqdan bir neçə saniyə sonra paylaşma vərəqi açır. Bu, onun qarşısını alır. Paylaş düyməsi və saxlanıldı bildirişi olduğu kimi qalır.
 Saving video	Video saxlanılır
 Waiting to save video	Video saxlamaq gözlənilir
 Saving video: %1$s	Video saxlanılır: %1$s
@@ -1568,6 +1574,8 @@ LIVE followers range	LIVE izləyən aralığı
 Show only LIVEs from creators with this many followers.	Yalnız bu qədər izləyicisi olan yaradıcıların LIVE-larını göstərin.
 Hide the comment bar on opened videos	Açılmış videolarda şərh panelini gizlədin
 Hide the Clear display controls	Təmiz ekran idarəetmələrini gizlədin
+Keep the progress bar	Gedişat zolağını saxlayın
+Hide the Clear display controls leaves the progress bar in sight, so you can still see and drag it.	Təmiz ekran idarəetmələrini gizlədin gedişat zolağını göstərir, beləliklə onu yenə görə və sürüşdürə bilərsiniz.
 While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display, or pinch the screen.	Təmiz ekran açıq olanda aşağıdakı irəliləmə zolağını, bağlama düyməsini, fasilə və sürət düymələrini də gizlədin. Videoda irəli-geri keçmək üçün yenə də aşağı kənar boyunca sürüşdürə bilərsiniz. Təmiz ekrandan çıxmaq üçün videonu basıb saxlayın və Ekranı bərpa et düyməsinə toxunun. Ekranda çimdik jesti ilə də çıxmaq mümkündür.
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Video ekranı aşağıya qədər doldursun deyə, profildən, heşteqdən, səsdən və ya axtarışdan açdığınız videolardan Add comment panelini çıxarın. Sağdakı şərh düyməsi yenə də şərhləri açır.
 Build details	Build təfərrüatları
@@ -1925,6 +1933,7 @@ Username last changed	İstifadəçi adı sonuncu dəfə dəyişib
 Display name last changed	Görünən ad sonuncu dəfə dəyişib
 Private account	Gizli hesab
 Like the video	Videonu bəyənin
+Like or unlike the video	Videonu bəyənin və ya bəyənməni geri alın
 Liked videos	Bəyənilən videolar
 Public	Hamıya açıq
 Copy	Kopyala
@@ -1950,6 +1959,8 @@ Hide TikTok's wind-down screens	TikTok-un sakitləşmə ekranlarını gizlət
 Stops the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. Works only on accounts TikTok knows belong to adults. Teen accounts, and ones a parent links with Family Pairing, keep them. With Leave when TikTok says time is up on, the daily limit screen still shows so that switch can work.	TikTok-un lentin üstünə qoyduğu yatmazdan əvvəl sakitləşmə, nəfəs məşqi və gündəlik limit ekranlarını dayandırır. Yalnız TikTok-un yetkinə aid olduğunu bildiyi hesablarda işləyir. Yeniyetmə hesabları və valideynin Family Pairing ilə bağladığı hesablar onları saxlayır. “TikTok vaxtın bitdiyini dedikdə çıxın” açıq olduqda gündəlik limit ekranı yenə də görünür ki, həmin açar işləyə bilsin.
 Hide Footnotes	Footnotes-u gizlədin
 Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.	TikTok-un qeyd əlavə olunmuş videoda göstərdiyi Footnotes bannerini gizlədin. Video və onun şərhləri olduğu kimi qalır.
+Hide the LIVE row on Following	İzlənilənlər lentində LIVE sırasını gizlədin
+Hide the row of LIVE and story circles across the top of the Following feed, and the pill that counts them. For You is left as it is.	İzlənilənlər lentinin yuxarısındakı LIVE və hekayə dairələri sırasını və onları sayan düyməni gizlədin. Sənin üçün olduğu kimi qalır.
 Hide Bulletin board	Bulletin board-u gizlədin
 The Bulletin board rows TikTok adds to the Inbox leave the list. Chats and the other rows stay where they are.	TikTok-un Gələnlərə əlavə etdiyi Bulletin board sətirləri siyahıdan çıxır. Söhbətlər və digər sətirlər yerində qalır.
 Hide the group chat prompt	Qrup söhbəti təklifini gizlədin
@@ -2269,6 +2280,8 @@ Least viewed first	Əvvəlcə ən az baxılanlar
 Most liked first	Əvvəlcə ən çox bəyənilənlər
 Least liked first	Əvvəlcə ən az bəyənilənlər
 Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Profil və ya bəyənilənlər şəbəkəsini sıralayır, sancılmış videolar əvvəldə qalır. Sıra seçiləndə şəbəkə 300 videoya qədər özü yüklənməyə davam edir, beləliklə sıra ilk ekrandan daha çoxunu əhatə edir. Şəbəkənin yuxarı küncündəki düymə sıranı elə oradaca dəyişir.
+Sort loaded videos on Liked grids	Bəyənilənlər şəbəkələrində yüklənmiş videoları sıralayın
+Same as profile grids	Profil şəbəkələri ilə eyni
 Sort this grid	Bu şəbəkəni sırala
 Blur the video behind the bar	Panelin arxasındakı videonu bulanıqlaşdırın
 Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.	Əsas lentdə şüşə həbin arxasında qalan video hissəsini bulanıqlaşdırın ki, buzlu şüşə kimi görünsün. Maye şüşə görünüşü və Android 12 və yuxarı tələb olunur.
@@ -2310,3 +2323,24 @@ Shows a search button at the top left of the comments instead of the box, so the
 Put the comment search away	Şərh axtarışını gizlət
 Tap @names in bios	Bioqrafiyalarda @adlara toxun
 An @username in a profile's bio opens that profile when you tap it. The rest of the bio still translates on a tap.	Profilin bioqrafiyasındakı @istifadəçi adına toxunanda həmin profil açılır. Bioqrafiyanın qalan hissəsi toxunanda yenə tərcümə olunur.
+autoplay auto play	avtomatik oynatma avtooynatma
+picture in picture PiP	şəkil içində şəkil PiP
+search suggestions	axtarış təklifləri
+AI chat	Sİ söhbəti
+AI Tako	Sİ Tako
+save photos	fotoları saxla
+Lock the feed at set times	Lenti müəyyən saatlarda kilidlə
+The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.	Lent bu saatlarda telefonunun saatına görə özü kilidlənir. Günləri və saatları belə yaz: Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Hər gün üçün günləri yazma. Başladığından tez bitən vaxt gecə yarısını keçir.
+Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.	%1$s oxuna bilmədi. Günləri və saatları Mon-Fri 21:00-07:00 kimi yaz.
+%1$s starts and ends at the same time. Give it a different end time.	%1$s eyni vaxtda başlayır və bitir. Başqa bitmə vaxtı ver.
+Locked all week	Bütün həftə kilidlidir
+Locked now, until %1$s	İndi kilidlidir, açılır: %1$s
+Next lock starts %1$s	Növbəti kilid: %1$s
+The feed is locked until %1$s. Messages, profiles and search still work.	Lent kilidlidir, açılır: %1$s. Mesajlar, profillər və axtarış yenə işləyir.
+Save only on Wi-Fi	Yalnız Wi-Fi ilə saxla
+Saves wait for Wi-Fi or another network that isn't metered, for up to 30 minutes, and stop if you leave it. Saving a frame still works anywhere.	Saxlamalar 30 dəqiqəyədək Wi-Fi və ya limitsiz başqa şəbəkə gözləyir, ondan çıxsanız dayanır. Kadrın saxlanması hər yerdə işləyir.
+Waiting for Wi-Fi	Wi-Fi gözlənilir
+The last one is still waiting for Wi-Fi	Sonuncu hələ Wi-Fi gözləyir
+Stopped waiting for Wi-Fi after 30 minutes. Save it again when you're on Wi-Fi.	30 dəqiqədən sonra Wi-Fi gözləməsi dayandırıldı. Wi-Fi-a qoşulanda yenidən saxlayın.
+Saved %1$s of %2$s. The rest stopped when you left Wi-Fi. Save again on Wi-Fi.	%2$s fayldan %1$s saxlanıldı. Qalanları Wi-Fi-dan çıxanda dayandı. Wi-Fi ilə yenidən saxlayın.
+The save stopped when you left Wi-Fi. Save it again on Wi-Fi.	Wi-Fi-dan çıxanda saxlama dayandı. Wi-Fi ilə yenidən saxlayın.

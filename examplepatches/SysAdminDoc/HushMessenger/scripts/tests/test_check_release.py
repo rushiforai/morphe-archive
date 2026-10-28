@@ -923,6 +923,31 @@ class ReleaseChecks(unittest.TestCase):
     def text(self, path):
         return (self.root / path).read_text(encoding="utf-8")
 
+    def test_release_refuses_an_install_step_still_naming_the_old_messenger_version(self):
+        self.catalog["patches"][0]["compatiblePackages"] = [
+            {"packageName": "com.facebook.orca", "targets": [{"version": "584.1.0.61.98"}]}
+        ]
+        self.write("patches-list.json", json.dumps(self.catalog))
+        self.write(
+            "patches/build/reports/catalog-evidence.json",
+            json.dumps(
+                {
+                    "bundle": self.bundle.name,
+                    "sha256": self.digest,
+                    "dexValidated": True,
+                    "catalog": self.catalog,
+                }
+            ),
+        )
+        badge = f"https://img.shields.io/badge/version-1.2.3-blue\n{self.digest}  patches-1.2.3.mpp\n"
+        with self.assertRaisesRegex(ValueError, "no Get the APK step"):
+            release.verify(self.root)
+        self.write("README.md", badge + "1. **Get the APK.** The current release patches Messenger 584.0.0.49.98.\n")
+        with self.assertRaisesRegex(ValueError, "different Messenger version"):
+            release.verify(self.root)
+        self.write("README.md", badge + "1. **Get the APK.** HushMessenger patches Messenger 584.1.0.61.98.\n")
+        self.assertIn("Release metadata passed", release.verify(self.root))
+
     def test_readme_may_link_another_projects_release(self):
         self.write(
             "README.md",

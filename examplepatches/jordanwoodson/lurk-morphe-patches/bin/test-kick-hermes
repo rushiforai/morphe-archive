@@ -37,7 +37,7 @@ keys=" $(unzip -p "$apk" assets/lurk-hermes.json | python3 -I -c \
 run python3 -I "$ROOT/tests/kick/verify_sources.py"
 run "$hermes_python" -I "$ROOT/tests/kick/test_hermes.py" "$stock" "$apk"
 run "$hermes_python" -I "$ROOT/tests/kick/verify_literals.py" "$stock" "$apk"
-if [[ "$keys" =~ \ (hide_clips|hide_subscription_upsells|hide_kicks|hide_home_[a-z]+|block_update_prompts|amoled_black|hide_mature_warning)\  ]]; then
+if [[ "$keys" =~ \ (hide_clips|hide_subscription_upsells|hide_kicks|hide_home_[a-z]+|block_update_prompts|amoled_black|hide_mature_warning|lurk_menu_entry)\  ]]; then
     run "$hermes_python" -I "$ROOT/tests/kick/verify_interface.py" "$stock" "$apk"
 else
     note "skipped verify_interface.py: the APK has none of the Interface patches it executes"

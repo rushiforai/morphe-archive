@@ -15,7 +15,8 @@ New-Item -ItemType Directory -Path $fixture | Out-Null
 try {
     # Keep qualification fixtures independent of uncommitted changes to the scripts under test.
     $inputRepo = Join-Path $fixture 'input-repo'
-    foreach ($relative in @('audit/evidence.ps1', 'audit/run-audit.ps1', 'scripts/release-receipt.ps1', 'scripts/release-qualification.ps1', 'scripts/device-lease.ps1')) {
+    foreach ($relative in @('audit/evidence.ps1', 'audit/run-audit.ps1', 'scripts/release-receipt.ps1', 'scripts/release-qualification.ps1', 'scripts/device-lease.ps1',
+            'scripts/patch-target.ps1', 'tools/verification-probe/profile.ps1')) {
         $destination = Join-Path $inputRepo $relative
         [void][IO.Directory]::CreateDirectory((Split-Path -Parent $destination))
         [IO.File]::Copy((Join-Path (Split-Path -Parent $PSScriptRoot) $relative), $destination)
@@ -133,12 +134,17 @@ $maxCode.app.versionCode = '2147483647'
 $maxCode.patches[0].checks[0].build.apk.versionCode = '2147483647'
 Set-AuditCheckReceipt $maxCode.patches[0].checks[0] $fixture
 Assert-Audit ((Get-AuditResultValidation $catalog $maxCode $fixture $inputRepo).currentChecks -eq 1) 'A deliberately changed patched version code was equated with its stock code.'
-$unreviewedPackage = Copy-Json $run
-$unreviewedPackage.app.package = 'com.ss.android.ttmd.video'
-$unreviewedPackage.patches[0].checks[0].build.sourceApk.package = $unreviewedPackage.app.package
-$unreviewedPackage.patches[0].checks[0].build.apk.package = $unreviewedPackage.app.package
-Set-AuditCheckReceipt $unreviewedPackage.patches[0].checks[0] $fixture
-Assert-Audit ((Get-AuditResultValidation $catalog $unreviewedPackage $fixture $inputRepo).currentChecks -eq 0) 'The global profile qualified an unreviewed PineDrama build.'
+# PineDrama has its own audit profile and catalog; a package with none can't be qualified.
+foreach ($otherPackage in @(@('com.ss.android.ttmd.video', 1), @('com.example.unreviewed', 0))) {
+    $packageRun = Copy-Json $run
+    $packageRun.app.package = $otherPackage[0]
+    $packageRun.patches[0].checks[0].build.sourceApk.package = $packageRun.app.package
+    $packageRun.patches[0].checks[0].build.apk.package = $packageRun.app.package
+    Set-AuditCheckReceipt $packageRun.patches[0].checks[0] $fixture
+    Assert-Audit ((Get-AuditResultValidation $catalog $packageRun $fixture $inputRepo).currentChecks -eq $otherPackage[1]) "The audit profile of $($otherPackage[0]) was not applied."
+}
+Assert-Audit ($null -eq (Get-AuditPackageProfile 'com.example.unreviewed')) 'An unknown package got an audit profile.'
+Assert-Audit ((Get-AuditPackageProfile 'com.ss.android.ttmd.video').Catalog -ceq 'audit/catalog-pinedrama.json') 'PineDrama is not held to its own catalog.'
 foreach ($oldStatus in @('fail','review','inconclusive')) {
     $historicalNative = Copy-Json $run
     $historicalNative.patches[0].checks[0].status = $oldStatus

@@ -14,6 +14,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -28,7 +29,8 @@ import java.util.Locale;
 /**
  * Adds a "Light & dark pair" card to the top of Gboard's Themes screen, where a theme can be
  * chosen for light mode and another for dark mode. {@link ThemeDarkMode} switches between
- * them when the system dark mode changes.
+ * them when the system dark mode changes. The card also picks a wallpaper for each mode,
+ * which {@link WallpaperSwitch} sets on the phone.
  */
 @SuppressWarnings({"unused", "deprecation"})
 public final class ThemePairMenu {
@@ -104,6 +106,13 @@ public final class ThemePairMenu {
         /** The mode waiting for a theme tapped in the list below, or null. */
         Boolean picking;
         boolean reverting;
+        final Switch wallpaperToggle;
+        final View wallpaperRows;
+        final TextView lightWallpaper;
+        final TextView darkWallpaper;
+        final ImageView lightPreview;
+        final ImageView darkPreview;
+        final TextView target;
 
         Card(Context context) {
             this.context = context;
@@ -137,6 +146,37 @@ public final class ThemePairMenu {
             rowColumn.addView(hint);
             rows = rowColumn;
             view.addView(rowColumn);
+
+            LinearLayout wallpaperHeader = new LinearLayout(context);
+            wallpaperHeader.setGravity(Gravity.CENTER_VERTICAL);
+            wallpaperHeader.setMinimumHeight(dp(56));
+            wallpaperHeader.addView(text("Wallpaper follows dark mode", 16, true),
+                    new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            wallpaperToggle = new Switch(context);
+            wallpaperHeader.addView(wallpaperToggle);
+            view.addView(wallpaperHeader);
+
+            LinearLayout wallpaperColumn = new LinearLayout(context);
+            wallpaperColumn.setOrientation(LinearLayout.VERTICAL);
+            lightWallpaper = text("", 14, false);
+            darkWallpaper = text("", 14, false);
+            lightPreview = new ImageView(context);
+            darkPreview = new ImageView(context);
+            target = text("", 14, false);
+            wallpaperColumn.addView(wallpaperRow("Light mode wallpaper", lightWallpaper,
+                    lightPreview, v -> chooseWallpaper(true)));
+            wallpaperColumn.addView(wallpaperRow("Dark mode wallpaper", darkWallpaper,
+                    darkPreview, v -> chooseWallpaper(false)));
+            wallpaperColumn.addView(wallpaperRow("Set on", target, null,
+                    v -> chooseTarget()));
+            wallpaperRows = wallpaperColumn;
+            view.addView(wallpaperColumn);
+
+            wallpaperToggle.setChecked(WallpaperSwitch.enabled(context));
+            wallpaperToggle.setOnCheckedChangeListener((button, checked) -> {
+                WallpaperSwitch.setEnabled(context, checked);
+                refresh();
+            });
 
             toggle.setChecked(ThemeDarkMode.enabled(context));
             toggle.setOnCheckedChangeListener((button, checked) -> {
@@ -176,6 +216,119 @@ public final class ThemePairMenu {
             row.addView(value);
             row.setOnClickListener(v -> choose(light));
             return row;
+        }
+
+        private View wallpaperRow(String label, TextView value, ImageView preview,
+                View.OnClickListener click) {
+            LinearLayout row = new LinearLayout(context);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setMinimumHeight(dp(56));
+            row.setPadding(0, dp(6), 0, dp(6));
+            TypedValue ripple = new TypedValue();
+            if (context.getTheme().resolveAttribute(
+                    android.R.attr.selectableItemBackground, ripple, true)) {
+                row.setBackgroundResource(ripple.resourceId);
+            }
+            LinearLayout labels = new LinearLayout(context);
+            labels.setOrientation(LinearLayout.VERTICAL);
+            labels.addView(text(label, 16, false));
+            value.setAlpha(0.7f);
+            labels.addView(value);
+            row.addView(labels, new LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            if (preview != null) {
+                preview.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                preview.setClipToOutline(true);
+                preview.setOutlineProvider(new android.view.ViewOutlineProvider() {
+                    @Override
+                    public void getOutline(View view, android.graphics.Outline outline) {
+                        outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), dp(6));
+                    }
+                });
+                row.addView(preview, new LinearLayout.LayoutParams(dp(28), dp(48)));
+            }
+            row.setOnClickListener(click);
+            return row;
+        }
+
+        private void chooseWallpaper(boolean light) {
+            Context host = activity(context);
+            if (!(host instanceof Activity)) {
+                return;
+            }
+            boolean vivo = VivoWallpapers.available(context);
+            boolean chosen = WallpaperSwitch.hasImage(context, light);
+            if (!vivo && !chosen) {
+                pickWallpaper((Activity) host, light);
+                return;
+            }
+            List<CharSequence> options = new ArrayList<>();
+            List<Runnable> actions = new ArrayList<>();
+            options.add("Choose from photos");
+            actions.add(() -> pickWallpaper((Activity) host, light));
+            if (vivo) {
+                options.add("Pick in vivo Themes");
+                actions.add(() -> VivoThemesPicker.pick((Activity) host, light, this::refresh));
+                options.add("Built-in vivo wallpapers");
+                actions.add(() -> VivoWallpapers.choose(host, light, this::refresh));
+            }
+            if (chosen) {
+                options.add("Remove");
+                actions.add(() -> {
+                    WallpaperSwitch.remove(context, light);
+                    refresh();
+                });
+            }
+            new AlertDialog.Builder(host)
+                    .setTitle(light ? "Light mode wallpaper" : "Dark mode wallpaper")
+                    .setItems(options.toArray(new CharSequence[0]),
+                            (dialog, which) -> actions.get(which).run())
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private void pickWallpaper(Activity host, boolean light) {
+            try {
+                WallpaperSwitch.pick(host, light, this::refresh);
+            } catch (Throwable failure) {
+                Log.w(TAG, "wallpaper picker failed", failure);
+                Toast.makeText(context, "Couldn't open the photo picker",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        private void chooseTarget() {
+            new AlertDialog.Builder(activity(context))
+                    .setTitle("Set wallpaper on")
+                    .setSingleChoiceItems(new CharSequence[]{"Home and lock screens",
+                                    "Home screen only"},
+                            WallpaperSwitch.homeOnly(context) ? 1 : 0, (dialog, which) -> {
+                                WallpaperSwitch.setHomeOnly(context, which == 1);
+                                dialog.dismiss();
+                                refresh();
+                            })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private void showWallpaper(boolean light, TextView value, ImageView preview) {
+            boolean chosen = WallpaperSwitch.hasImage(context, light);
+            value.setText(chosen ? "Chosen" : "Tap to choose an image");
+            preview.setVisibility(chosen ? View.VISIBLE : View.GONE);
+            if (!chosen) {
+                preview.setImageDrawable(null);
+                return;
+            }
+            new Thread(() -> {
+                android.graphics.Bitmap bitmap = null;
+                try {
+                    bitmap = WallpaperSwitch.thumbnail(context, light, dp(48));
+                } catch (Throwable ignored) {
+                    // No preview, the image is still used.
+                }
+                android.graphics.Bitmap result = bitmap;
+                handler.post(() -> preview.setImageBitmap(result));
+            }).start();
         }
 
         private void choose(boolean light) {
@@ -256,6 +409,17 @@ public final class ThemePairMenu {
                 toggle.setChecked(on);
             }
             rows.setVisibility(on ? View.VISIBLE : View.GONE);
+            boolean wallpaperOn = WallpaperSwitch.enabled(context);
+            if (wallpaperToggle.isChecked() != wallpaperOn) {
+                wallpaperToggle.setChecked(wallpaperOn);
+            }
+            wallpaperRows.setVisibility(wallpaperOn ? View.VISIBLE : View.GONE);
+            if (wallpaperOn) {
+                showWallpaper(true, lightWallpaper, lightPreview);
+                showWallpaper(false, darkWallpaper, darkPreview);
+                target.setText(WallpaperSwitch.homeOnly(context) ? "Home screen only"
+                        : "Home and lock screens");
+            }
             lightValue.setText(name(ThemeDarkMode.theme(context, true)));
             darkValue.setText(name(ThemeDarkMode.theme(context, false)));
             if (picking != null) {

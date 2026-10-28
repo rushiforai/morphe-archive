@@ -75,8 +75,11 @@ $WalkSteps = @(
 # A screen standing in front of the one a step asked for. Either one in a dump fails the step,
 # whether the words sit in a node's text or only in its content-desc (Compose buttons do that).
 $WalkBlockingScreens = @(
-    # 584.1 draws its headline outside the accessibility tree, so only its "Restore now" button shows in a dump.
-    [pscustomobject]@{ Name = 'the "Restore your chats" prompt'; Pattern = '(?i)<node\b[^>]*\b(text|content-desc)="([^"]*\brestore your\b[^"]*\bchats\b[^"]*|Restore now)"' }
+    # 584.1 draws its headline outside the accessibility tree, so only its "Restore now" button shows in a dump. Once
+    # past it, the inbox carries a "Restore chat history" banner with its own "Restore now" button, so a bare
+    # "Restore now" counts only on a screen without the inbox's New message button.
+    [pscustomobject]@{ Name = 'the "Restore your chats" prompt'
+        Pattern = '(?i)<node\b[^>]*\b(text|content-desc)="[^"]*\brestore your\b[^"]*\bchats\b[^"]*"|\A(?![\s\S]*<node\b[^>]*\bcontent-desc="New message")[\s\S]*<node\b[^>]*\b(text|content-desc)="Restore now"' }
     [pscustomobject]@{ Name = 'the login screen'; Pattern = '(?i)<node\b[^>]*\b(text|content-desc)="(Log in|Log into Messenger|Mobile number or email|Continue as [^"]*)"' }
 )
 $WalkBlockingActivities = @(

@@ -1,3 +1,190 @@
+## [1.20.0](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.19.0...v1.20.0) (2026-10-28)
+
+### ✨ New Features
+
+* Pick light and dark mode wallpapers in vivo Themes itself ([9a3c627](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/9a3c627e9b354a4d0bc4a30cd4418f3615dfe8d3))
+
+## [1.20.0-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.19.0...v1.20.0-dev.1) (2026-10-28)
+
+### ✨ New Features
+
+* Pick light and dark mode wallpapers in vivo Themes itself ([9a3c627](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/9a3c627e9b354a4d0bc4a30cd4418f3615dfe8d3))
+
+## [1.19.0](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.18.0...v1.19.0) (2026-10-28)
+
+### ✨ New Features
+
+* Include vivo's theme, video, color and lock screen wallpapers in the vivo wallpaper grid ([7114df9](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/7114df9323a942e54095609d0225f33ef90f61e7))
+
+## [1.19.0-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.18.0...v1.19.0-dev.1) (2026-10-28)
+
+### ✨ New Features
+
+* Include vivo's theme, video, color and lock screen wallpapers in the vivo wallpaper grid ([7114df9](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/7114df9323a942e54095609d0225f33ef90f61e7))
+
+## [1.18.0](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.17.0...v1.18.0) (2026-10-28)
+
+### ✨ New Features
+
+* Offer vivo's built-in wallpapers for the light and dark mode wallpapers ([6fad9ee](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/6fad9ee44d4c3e09e4d8116f094961138e877f07))
+
+## [1.18.0-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.17.0...v1.18.0-dev.1) (2026-10-28)
+
+### ✨ New Features
+
+* Offer vivo's built-in wallpapers for the light and dark mode wallpapers ([6fad9ee](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/6fad9ee44d4c3e09e4d8116f094961138e877f07))
+
+## [1.17.0](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.16.5...v1.17.0) (2026-10-28)
+
+### ✨ New Features
+
+* Switch the wallpaper between a light and a dark image with dark mode ([d806efb](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/d806efbbe4fcc69791852dde81d4ffa20b841729))
+
+## [1.17.0-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.16.5...v1.17.0-dev.1) (2026-10-28)
+
+### ✨ New Features
+
+* Switch the wallpaper between a light and a dark image with dark mode ([d806efb](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/d806efbbe4fcc69791852dde81d4ffa20b841729))
+
+## [1.16.5](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.16.4...v1.16.5) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Tint the side-button column in one-handed mode to match the keyboard ([d86f06c](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/d86f06c05b821833f2c323d56e37acc057dee1ea))
+
+## [1.16.5-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.16.4...v1.16.5-dev.1) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Tint the side-button column in one-handed mode to match the keyboard ([d86f06c](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/d86f06c05b821833f2c323d56e37acc057dee1ea))
+
+## [1.16.4](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.16.3...v1.16.4) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Step in whenever Frosted Glass leaves the keyboard unblurred, not only for outlines it rejects ([71db588](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/71db5885a09ed770fb602934ca14c222a3ec9b54))
+
+## [1.16.4](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.16.3...v1.16.4) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Step in whenever Frosted Glass leaves the keyboard unblurred, not only for outlines it rejects ([71db588](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/71db5885a09ed770fb602934ca14c222a3ec9b54))
+
+## [1.16.4-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.16.3...v1.16.4-dev.1) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Step in whenever Frosted Glass leaves the keyboard unblurred, not only for outlines it rejects ([71db588](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/71db5885a09ed770fb602934ca14c222a3ec9b54))
+
+## [1.16.3](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.16.2...v1.16.3) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Blur the keyboard in one-handed mode, where Frosted Glass cannot handle the panel's outline ([c2a3740](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/c2a37401360a05a698213d79e9aefb39081cdf91))
+
+## [1.16.3-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.16.2...v1.16.3-dev.1) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Blur the keyboard in one-handed mode, where Frosted Glass cannot handle the panel's outline ([c2a3740](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/c2a37401360a05a698213d79e9aefb39081cdf91))
+
+## [1.16.2](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.16.1...v1.16.2) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Match the bottom strip to panels opened over the keyboard ([2c26162](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/2c261625ab59717e04ccf22d35345af08b556a5c))
+
+## [1.16.2-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.16.1...v1.16.2-dev.1) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Match the bottom strip to panels opened over the keyboard ([2c26162](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/2c261625ab59717e04ccf22d35345af08b556a5c))
+
+## [1.16.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.16.0...v1.16.1) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Only give popups their own glass while a hardware keyboard hides the on-screen keyboard ([5fd4422](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/5fd442268ef4c1fde32f1ca7b0e47fc47ba6cd5e))
+
+## [1.16.1-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.16.0...v1.16.1-dev.1) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Only give popups their own glass while a hardware keyboard hides the on-screen keyboard ([5fd4422](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/5fd442268ef4c1fde32f1ca7b0e47fc47ba6cd5e))
+
+## [1.16.0](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.15.4...v1.16.0) (2026-10-27)
+
+### ✨ New Features
+
+* Give floating popups like the hardware keyboard switcher the keyboard's liquid glass and touch light ([41e50b6](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/41e50b6cd31779745daab90807dd2a7f92174990))
+
+## [1.16.0-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.15.4...v1.16.0-dev.1) (2026-10-27)
+
+### ✨ New Features
+
+* Give floating popups like the hardware keyboard switcher the keyboard's liquid glass and touch light ([41e50b6](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/41e50b6cd31779745daab90807dd2a7f92174990))
+
+## [1.15.4](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.15.3...v1.15.4) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Give the hardware keyboard switcher a full-height layer so its menu opens at full size ([3bda3a6](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/3bda3a6bfc8da7a11613727c2746cdfb2b721ad5))
+
+## [1.15.4-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.15.3...v1.15.4-dev.1) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Give the hardware keyboard switcher a full-height layer so its menu opens at full size ([3bda3a6](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/3bda3a6bfc8da7a11613727c2746cdfb2b721ad5))
+
+## [1.15.3](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.15.2...v1.15.3) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Keep the hardware keyboard switcher's menu tappable after making room for it ([ffae652](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/ffae652e66e279be3f367c9c8e4736e723b2c790))
+
+## [1.15.3-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.15.2...v1.15.3-dev.1) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Keep the hardware keyboard switcher's menu tappable after making room for it ([ffae652](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/ffae652e66e279be3f367c9c8e4736e723b2c790))
+
+## [1.15.2](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.15.1...v1.15.2) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Grow the keyboard window to fit the hardware keyboard switcher's menu ([b1b83c9](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/b1b83c99ec8101870a30bfe0dd1bc357491c8307))
+
+## [1.15.2-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.15.1...v1.15.2-dev.1) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Grow the keyboard window to fit the hardware keyboard switcher's menu ([b1b83c9](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/b1b83c99ec8101870a30bfe0dd1bc357491c8307))
+
+## [1.15.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.15.0...v1.15.1) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Keep the hardware keyboard switcher inside the keyboard window in edge-to-edge mode ([bac5080](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/bac50803916a1bafd0ee0694e2c8a3085271c17f))
+* Match the popup positioning method on Gboard 18.0.3 as well ([57f0297](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/57f029790ff8e1dd53f7d1a6a4a73e91913a305b))
+
+## [1.15.1-dev.2](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.15.1-dev.1...v1.15.1-dev.2) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Match the popup positioning method on Gboard 18.0.3 as well ([57f0297](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/57f029790ff8e1dd53f7d1a6a4a73e91913a305b))
+
+## [1.15.1-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.15.0...v1.15.1-dev.1) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* Keep the hardware keyboard switcher inside the keyboard window in edge-to-edge mode ([bac5080](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/bac50803916a1bafd0ee0694e2c8a3085271c17f))
+
+## [1.15.0](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.14.1...v1.15.0) (2026-10-27)
+
+### ✨ New Features
+
+* Support Gboard 18.5.4.993608717, the build Gboard Patches 4.x targets ([6824811](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/68248116f51ffed1a529687d89dbbc7ebc36fe42))
+
 ## [1.15.0-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.14.1...v1.15.0-dev.1) (2026-10-27)
 
 ### ✨ New Features

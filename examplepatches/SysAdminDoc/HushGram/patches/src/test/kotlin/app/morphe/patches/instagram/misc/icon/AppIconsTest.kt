@@ -32,6 +32,13 @@ import javax.xml.parsers.DocumentBuilderFactory
 class AppIconsTest {
     @get:Rule val folder = TemporaryFolder()
 
+    /** A white glyph the way the decoder writes Instagram's. */
+    private val GLYPH = """<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#ffffffff" android:pathData="M54,42a12,12 0 1,0 0.1,0z" />
+    <path android:fillColor="#ffffffff" android:pathData="M66,41a3,3 0 1,0 0.1,0z" />
+</vector>"""
+
     private val manifest = """
         <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.instagram.android">
             <application android:icon="@mipmap/icon">
@@ -60,7 +67,7 @@ class AppIconsTest {
         )
         assertEquals("Instagram's is left as it was", "", aliases[0].getAttribute("android:enabled"))
         assertEquals(listOf("android.app.shortcuts"), aliases[0].elements("meta-data").map { it.getAttribute("android:name") })
-        for ((icon, alias) in HUSHGRAM_ICONS.zip(aliases.subList(1, 4))) {
+        for ((icon, alias) in HUSHGRAM_ICONS.zip(aliases.subList(1, 1 + HUSHGRAM_ICONS.size))) {
             assertEquals(icon.key, "false", alias.getAttribute("android:enabled"))
             assertEquals(icon.key, "@mipmap/hushgram_icon_${icon.key}", alias.getAttribute("android:icon"))
             assertEquals(icon.key, "", alias.getAttribute("android:roundIcon"))
@@ -125,15 +132,20 @@ class AppIconsTest {
         assertTrue(assertThrows(PatchException::class.java) { readInstagramIcon(framework, "mipmap/icon") }.message.orEmpty().contains("isn't one of the app's drawables"))
     }
 
-    /** HushGram's icon is its mark on the gradient, and the other two are Instagram's glyph on a color. */
+    /**
+     * HushGram's icon is its mark on the gradient, the next two are Instagram's glyph on a color, and the
+     * light one a black copy of that glyph on white (#353), its themed layer still Instagram's glyph.
+     */
     @Test
     fun eachIconHasItsBackgroundAndItsFront() {
-        val files = iconFiles(InstagramIcon("mipmap-anydpi", "@drawable/ig_launcher_monochrome"))
+        val files = iconFiles(InstagramIcon("mipmap-anydpi", "@drawable/ig_launcher_monochrome"), GLYPH)
         assertEquals(
             setOf(
                 "drawable/$ICON_MARK.xml", "drawable/$ICON_MARK_MONO.xml",
                 "drawable/hushgram_icon_hushgram_background.xml", "drawable/hushgram_icon_dark_background.xml", "drawable/hushgram_icon_plum_background.xml",
+                "drawable/hushgram_icon_light_background.xml", "drawable/hushgram_icon_light_glyph.xml",
                 "mipmap-anydpi/hushgram_icon_hushgram.xml", "mipmap-anydpi/hushgram_icon_dark.xml", "mipmap-anydpi/hushgram_icon_plum.xml",
+                "mipmap-anydpi/hushgram_icon_light.xml",
             ),
             files.keys,
         )
@@ -143,12 +155,28 @@ class AppIconsTest {
         assertEquals(listOf("@drawable/hushgram_icon_hushgram_background", "@drawable/$ICON_MARK", "@drawable/$ICON_MARK_MONO"), layers("hushgram"))
         assertEquals(listOf("@drawable/hushgram_icon_dark_background", "@drawable/ig_launcher_monochrome", "@drawable/ig_launcher_monochrome"), layers("dark"))
         assertEquals(listOf("@drawable/hushgram_icon_plum_background", "@drawable/ig_launcher_monochrome", "@drawable/ig_launcher_monochrome"), layers("plum"))
+        assertEquals(listOf("@drawable/hushgram_icon_light_background", "@drawable/hushgram_icon_light_glyph", "@drawable/ig_launcher_monochrome"), layers("light"))
+        assertEquals("#FFFFFFFF", parse(files.getValue("drawable/hushgram_icon_light_background.xml")).elements("solid").single().getAttribute("android:color"))
+        val black = parse(files.getValue("drawable/hushgram_icon_light_glyph.xml"))
+        assertEquals("vector", black.documentElement.tagName)
+        assertEquals("#FF000000", black.documentElement.getAttribute("android:tint"))
+        assertEquals("the glyph's own shape", parse(GLYPH).elements("path").map { it.getAttribute("android:pathData") },
+            black.elements("path").map { it.getAttribute("android:pathData") })
         assertEquals("linear", parse(files.getValue("drawable/hushgram_icon_hushgram_background.xml")).elements("gradient").single().getAttribute("android:type"))
         assertEquals("#FF000000", parse(files.getValue("drawable/hushgram_icon_dark_background.xml")).elements("solid").single().getAttribute("android:color"))
         val mark = parse(files.getValue("drawable/$ICON_MARK.xml"))
         assertEquals("108dp", mark.documentElement.getAttribute("android:width"))
         assertEquals(3, mark.elements("path").size)
         assertEquals(setOf("#FFFFFFFF"), parse(files.getValue("drawable/$ICON_MARK_MONO.xml")).elements("path").map { it.getAttribute("android:fillColor") }.toSet())
+    }
+
+    @Test
+    fun theGlyphIsReadOnlyWhenItsOneVector() {
+        assertEquals(GLYPH, readGlyph(res("drawable-anydpi/ig_launcher_monochrome.xml" to GLYPH), "@drawable/ig_launcher_monochrome"))
+        val two = res("drawable/g.xml" to GLYPH, "drawable-v26/g.xml" to GLYPH)
+        assertTrue(assertThrows(PatchException::class.java) { readGlyph(two, "@drawable/g") }.message.orEmpty().contains("found 2"))
+        val shape = res("drawable/g.xml" to "<shape xmlns:android=\"http://schemas.android.com/apk/res/android\" />")
+        assertTrue(assertThrows(PatchException::class.java) { readGlyph(shape, "@drawable/g") }.message.orEmpty().contains("isn't a vector"))
     }
 
     /**
@@ -165,7 +193,7 @@ class AppIconsTest {
             addIconAliases(manifest)
             val names = manifest.elements("activity-alias").map { it.getAttribute("android:name") }
             val at = names.indexOfFirst { it == INSTAGRAM_ALIAS || it == ".activity.MainTabActivity" }
-            assertEquals("$code: after Instagram's", HUSHGRAM_ICONS.map { it.alias }, names.subList(at + 1, at + 4))
+            assertEquals("$code: after Instagram's", HUSHGRAM_ICONS.map { it.alias }, names.subList(at + 1, at + 1 + HUSHGRAM_ICONS.size))
         }
     }
 
@@ -202,6 +230,10 @@ class AppIconsTest {
                 assertTrue(icon.key, File(res, "drawable/${icon.backgroundName}.xml").isFile)
             }
             assertEquals("vector", parse(File(res, "drawable/$ICON_MARK.xml").readText()).documentElement.tagName)
+            val black = parse(File(res, "drawable/hushgram_icon_light_glyph.xml").readText())
+            assertEquals("Instagram's glyph, tinted", "vector", black.documentElement.tagName)
+            assertEquals("#ff000000", black.documentElement.getAttribute("android:tint").lowercase())
+            assertTrue("with its paths", black.elements("path").isNotEmpty())
         }
     }
 

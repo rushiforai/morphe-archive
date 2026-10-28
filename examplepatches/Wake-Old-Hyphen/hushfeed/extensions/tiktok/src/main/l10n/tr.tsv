@@ -1317,6 +1317,7 @@ Value to return	Döndürülecek değer
 Verified accounts	Doğrulanmış hesaplar
 Version %1$s	Sürüm %1$s
 Version %1$s for TikTok %2$s	Sürüm %1$s, TikTok %2$s için
+Version %1$s for PineDrama %2$s	Sürüm %1$s, PineDrama %2$s için
 Video	Video
 Video (MP4)	Video (MP4)
 Video destination	Video kayıt konumu
@@ -1398,6 +1399,8 @@ Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll
 Hide the unread badges on the bottom tabs	Alt sekmelerdeki okunmamış rozetlerini gizle
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Gelen Kutusu ve Profil dahil tüm alt sekmelerdeki kırmızı sayaçları ve noktaları, ayrıca Gelen Kutusu'nun üstünde yeni beğenileri, takipçileri, yorumları ve kimin LIVE'da olduğunu sayan baloncuğu gizler. Gelen kutusunun kendisi gelenleri göstermeye devam eder.
 Speed while you hold the video	Videoyu basılı tutarken hız
+Slide to change the hold speed	Basılı tutma hızını kaydırarak değiştir
+While you hold a video, slide left or right to change its speed, and a bubble shows it. Letting go goes back to normal. A pull-down lock keeps the speed you slid to.	Bir videoyu basılı tutarken hızını değiştirmek için sola veya sağa kaydır. Hızı bir balon gösterir. Bıraktığında normale döner. Aşağı çekerek kilitlersen seçtiğin hız kalır.
 Hide mini dramas	Mini dizileri gizle
 Hide TikTok's short drama episodes and the cards that promote them.	TikTok'un kısa dizi bölümlerini ve onları tanıtan kartları gizle.
 Mini dramas	Mini diziler
@@ -1465,7 +1468,8 @@ This preset doesn't match the installed gates. Nothing changed.	Bu hazır ayar, 
 About overrides	Geçersiz kılmalar hakkında
 Use {creator}, {date} and {video_id} to build the name. Start with {creator}/ to put each creator in a folder. The file ending is added for you.	Adı oluşturmak için {creator}, {date} ve {video_id} kullan. Her içerik üreticisini ayrı klasöre koymak için {creator}/ ile başla. Dosya uzantısı otomatik eklenir.
 Save details beside the video	Ayrıntıları videonun yanına kaydet
-Saves the caption, creator, link and post date in a text file next to the video. On Android 10 and later, the pair goes in Download or Documents under the same folder name. Applies to saves made by Hushfeed.	Açıklamayı, içerik üreticisini, bağlantıyı ve paylaşım tarihini videonun yanında bir metin dosyasına kaydeder. Android 10 ve üzerinde bu çift, aynı klasör adıyla Download veya Documents içine gider. Hushfeed'in yaptığı kayıtlar için geçerlidir.
+Saves the caption, creator, link and post date in a text file next to the video, or one file for a photo post's original photos. On Android 10 and later, they go in Download or Documents under the same folder name. Applies to saves made by Hushfeed.	Açıklamayı, içerik üreticisini, bağlantıyı ve paylaşım tarihini videonun yanında bir metin dosyasına, fotoğraf gönderisinin orijinal fotoğrafları için ise tek bir dosyaya kaydeder. Android 10 ve üzerinde bunlar aynı klasör adıyla Download veya Documents içine gider. Hushfeed'in yaptığı kayıtlar için geçerlidir.
+The photos saved, but their details file couldn't be written. Check your storage and save the post again to get it.	Fotoğraflar kaydedildi, ancak ayrıntı dosyaları yazılamadı. Depolama alanını kontrol edip almak için gönderiyi yeniden kaydet.
 Check for already-saved videos	Önceden kaydedilen videoları kontrol et
 Forget saved videos	Kaydedilen videoları unut
 Undo forgetting saved videos	Kaydedilen videoları unutmayı geri al
@@ -1492,6 +1496,8 @@ The video was saved, but its record couldn't be updated. A later save may make a
 The already-saved check failed. Try again.	Önceden kaydedilen videolar kontrol edilemedi. Yeniden deneyin.
 Show download progress	İndirme ilerlemesini göster
 Show a progress bar while a video saves.	Video kaydedilirken ilerleme çubuğu gösterir.
+Skip the Share to sheet after a save	Kaydettikten sonra paylaşım menüsünü atla
+TikTok opens a Share to sheet a few seconds after it saves a video. This stops it. The share button and the saved notice stay as they are.	TikTok bir videoyu kaydettikten birkaç saniye sonra bir paylaşım menüsü açar. Bu ayar onu engeller. Paylaş düğmesi ve kaydedildi bildirimi olduğu gibi kalır.
 Saving video	Video kaydediliyor
 Waiting to save video	Video kaydedilmeyi bekliyor
 Saving video: %1$s	Video kaydediliyor: %1$s
@@ -1568,6 +1574,8 @@ LIVE followers range	CANLI takipçi aralığı
 Show only LIVEs from creators with this many followers.	Yalnızca bu kadar takipçisi olan içerik üreticilerinin CANLI yayınlarını göster.
 Hide the comment bar on opened videos	Açılan videolarda yorum çubuğunu gizle
 Hide the Clear display controls	Temiz ekran kontrollerini gizle
+Keep the progress bar	İlerleme çubuğunu koru
+Hide the Clear display controls leaves the progress bar in sight, so you can still see and drag it.	Temiz ekran kontrollerini gizle, ilerleme çubuğunu görünür bırakır, böylece onu görmeye ve sürüklemeye devam edebilirsin.
 While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display, or pinch the screen.	Temiz ekran açıkken alttaki ilerleme çubuğunu, kapatma düğmesini, duraklatma ve hız düğmelerini de gizle. Videoda ileri geri gitmek için yine de alt kenar boyunca sürükleyebilirsin. Temiz ekrandan çıkmak için videoya basılı tut ve Ekranı geri yükle'ye dokun. Ekranda iki parmağını birbirine yaklaştırarak da çıkabilirsin.
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Bir profilden, hashtag'den, sesten veya aramadan açtığın videolardaki yorum yazma çubuğunu kaldır, böylece video ekranı en alta kadar doldurur. Sağdaki yorum düğmesi yorumları açmaya devam eder.
 Build details	Derleme ayrıntıları
@@ -1925,6 +1933,7 @@ Username last changed	Kullanıcı adı son değişikliği
 Display name last changed	Görünen ad son değişikliği
 Private account	Gizli hesap
 Like the video	Videoyu beğen
+Like or unlike the video	Videoyu beğen veya beğeniyi geri al
 Liked videos	Beğenilen videolar
 Public	Herkese açık
 Copy	Kopyala
@@ -1950,6 +1959,8 @@ Hide TikTok's wind-down screens	TikTok'un dinlenme ekranlarını gizle
 Stops the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. Works only on accounts TikTok knows belong to adults. Teen accounts, and ones a parent links with Family Pairing, keep them. With Leave when TikTok says time is up on, the daily limit screen still shows so that switch can work.	TikTok'un akışın üstüne koyduğu uyku öncesi sakinleşme, nefes egzersizi ve günlük sınır ekranını durdurur. Yalnızca TikTok'un yetişkin olduğunu bildiği hesaplarda çalışır. Genç hesapları ve bir ebeveynin Family Pairing ile bağladığı hesaplar bunları korur. “TikTok süre doldu deyince uygulamadan çık” açıkken günlük sınır ekranı yine görünür, böylece o anahtar çalışabilir.
 Hide Footnotes	Footnotes'u gizle
 Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.	TikTok'un notu olan bir videoda gösterdiği Footnotes bannerını gizle. Video ve yorumları olduğu gibi kalır.
+Hide the LIVE row on Following	Takip Edilenler'de CANLI satırını gizle
+Hide the row of LIVE and story circles across the top of the Following feed, and the pill that counts them. For You is left as it is.	Takip Edilenler sekmesinin üstündeki CANLI ve hikâye daireleri satırını ve onları sayan hapı gizle. Senin İçin olduğu gibi kalır.
 Hide Bulletin board	Bulletin board'u gizle
 The Bulletin board rows TikTok adds to the Inbox leave the list. Chats and the other rows stay where they are.	TikTok'un Gelen Kutusu'na eklediği Bulletin board satırları listeden kalkar. Sohbetler ve diğer satırlar yerinde kalır.
 Hide the group chat prompt	Grup sohbeti önerisini gizle
@@ -2269,6 +2280,8 @@ Least viewed first	Önce en az izlenen
 Most liked first	Önce en çok beğenilen
 Least liked first	Önce en az beğenilen
 Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Bir profil veya Beğenilenler ızgarasını sıralar, sabitlenen videolar başta kalır. Bir sıra seçiliyken ızgara 300 videoya kadar kendiliğinden yüklemeye devam eder, böylece sıra ilk ekrandan fazlasını kapsar. Izgaranın üst köşesindeki düğme sırayı orada değiştirir.
+Sort loaded videos on Liked grids	Beğenilenler ızgaralarında yüklenen videoları sırala
+Same as profile grids	Profil ızgaralarıyla aynı
 Sort this grid	Bu ızgarayı sırala
 Blur the video behind the bar	Çubuğun arkasındaki videoyu bulanıklaştır
 Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.	Ana akışta cam hapın arkasında kalan video bölümünü bulanıklaştırır, böylece buzlu cam gibi görünür. Sıvı cam görünümü ve Android 12 veya üstü gerekir.
@@ -2303,3 +2316,31 @@ Collapsed	Daraltılmış
 This setting isn't available. Search for another setting.	Bu ayar kullanılamıyor. Başka bir ayar arayın.
 Hide the Hushfeed row	Hushfeed satırını gizle
 Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.	Hushfeed'i TikTok'un Ayarlar ve gizlilik listesinden çıkarır. Bu ayarları açmak için akışın üstündeki Senin İçin'e basılı tut, ya da Hushfeed ayarları için Ana Sayfa'ya basılı tut açıksa Ana Sayfa'ya.
+Open the search page	Arama sayfasını aç
+TikTok's search page couldn't be opened. Restart TikTok and try again.	TikTok'un arama sayfası açılamadı. TikTok'u yeniden başlatıp tekrar dene.
+Fold the search into a button	Aramayı bir düğmeye katla
+Shows a search button at the top left of the comments instead of the box, so the comments get that room back. Tap it to search, and tap it again to put the box away. Search within comments must be on.	Kutu yerine yorumların sol üstünde bir arama düğmesi gösterir, böylece o alan yorumlara geri döner. Aramak için ona dokun, kutuyu kaldırmak için yeniden dokun. “Yorumların içinde ara” açık olmalı.
+Put the comment search away	Yorum aramasını kaldır
+Tap @names in bios	Biyografilerdeki @adlara dokun
+An @username in a profile's bio opens that profile when you tap it. The rest of the bio still translates on a tap.	Bir profilin biyografisindeki @kullanıcıadı, dokunduğunda o profili açar. Biyografinin geri kalanı dokununca yine çevrilir.
+autoplay auto play	otomatik oynatma
+picture in picture PiP	resim içinde resim PiP
+search suggestions	arama önerileri
+AI chat	yapay zeka sohbeti
+AI Tako	yapay zeka Tako
+save photos	fotoğrafları kaydet
+Lock the feed at set times	Akışı belirli saatlerde kilitle
+The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.	Akış bu saatlerde telefonunun saatine göre kendiliğinden kilitlenir. Günleri ve saatleri Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00 gibi yaz. Her gün için günleri yazma. Başladığından önce biten bir süre gece yarısını geçer.
+Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.	%1$s okunamadı. Günleri ve saatleri Mon-Fri 21:00-07:00 gibi yaz.
+%1$s starts and ends at the same time. Give it a different end time.	%1$s aynı saatte başlayıp bitiyor. Farklı bir bitiş saati ver.
+Locked all week	Tüm hafta kilitli
+Locked now, until %1$s	Şu an kilitli, bitiş: %1$s
+Next lock starts %1$s	Sonraki kilit başlangıcı: %1$s
+The feed is locked until %1$s. Messages, profiles and search still work.	Akış kilitli, açılış: %1$s. Mesajlar, profiller ve arama çalışmaya devam ediyor.
+Save only on Wi-Fi	Yalnızca Wi-Fi ile kaydet
+Saves wait for Wi-Fi or another network that isn't metered, for up to 30 minutes, and stop if you leave it. Saving a frame still works anywhere.	Kayıtlar 30 dakikaya kadar Wi-Fi'ı veya kotasız başka bir ağı bekler, ağdan çıkarsan durur. Kare kaydetme her yerde çalışır.
+Waiting for Wi-Fi	Wi-Fi bekleniyor
+The last one is still waiting for Wi-Fi	Bir önceki hâlâ Wi-Fi bekliyor
+Stopped waiting for Wi-Fi after 30 minutes. Save it again when you're on Wi-Fi.	30 dakika sonra Wi-Fi beklemesi bırakıldı. Wi-Fi'a bağlanınca yeniden kaydet.
+Saved %1$s of %2$s. The rest stopped when you left Wi-Fi. Save again on Wi-Fi.	%2$s dosyadan %1$s kaydedildi. Kalanlar Wi-Fi'dan çıkınca durdu. Wi-Fi ile yeniden kaydet.
+The save stopped when you left Wi-Fi. Save it again on Wi-Fi.	Wi-Fi'dan çıkınca kayıt durdu. Wi-Fi ile yeniden kaydet.

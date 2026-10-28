@@ -28,7 +28,8 @@ doubles (no Android SDK, APK or device) and cover:
 - Export and Import settings: every setting written with its type, re-importing changes nothing,
   export-change-import restores every value, bad values and unknown keys are listed, not applied;
 - the bug report URL: the form's fields, every switch under On or Off, list contents never sent;
-- the launcher shortcut is added once and refreshed when its label or the versions changed.
+- the launcher shortcut: on Android 11+ pushed back over the app's own conversation shortcuts on every start;
+  before that added once and refreshed when its label or the versions changed.
 """
 import json
 import re
@@ -60,7 +61,7 @@ ANDROID = {
         public static long uptimeMillis(){return now;} public static long elapsedRealtime(){return now;} }''',
     'android/os/Build.java': '''package android.os; public class Build {
         public static final String MANUFACTURER="Google",MODEL="Pixel Test";
-        public static class VERSION {public static final int SDK_INT=36; public static final String RELEASE="16";}
+        public static class VERSION {public static int SDK_INT=36; public static final String RELEASE="16";}
         public static class VERSION_CODES {public static final int N_MR1=25,O=26,P=28,Q=29,R=30,S=31,TIRAMISU=33;} }''',
     'android/content/Context.java': '''package android.content; public class Context {
         public static final int MODE_PRIVATE=0; public static final String ACCESSIBILITY_SERVICE="accessibility",AUDIO_SERVICE="audio";
@@ -99,22 +100,25 @@ ANDROID = {
     'android/content/pm/PackageInfo.java': 'package android.content.pm; public class PackageInfo {public String versionName;}',
     'android/content/pm/ApplicationInfo.java': 'package android.content.pm; public class ApplicationInfo {public int icon;}',
     'android/content/pm/ShortcutInfo.java': '''package android.content.pm; public class ShortcutInfo {
-        public String id="";public CharSequence shortLabel,longLabel;
+        public String id="";public CharSequence shortLabel,longLabel;public int rank=-1;
         public String getId(){return id;} public CharSequence getShortLabel(){return shortLabel;}
-        public CharSequence getLongLabel(){return longLabel;}
+        public CharSequence getLongLabel(){return longLabel;} public int getRank(){return rank;}
         public static class Builder {final ShortcutInfo info=new ShortcutInfo();
           public Builder(android.content.Context c,String id){info.id=id;}
           public Builder setShortLabel(CharSequence s){info.shortLabel=s;return this;}
           public Builder setLongLabel(CharSequence s){info.longLabel=s;return this;}
+          public Builder setRank(int r){info.rank=r;return this;}
           public Builder setIcon(android.graphics.drawable.Icon i){return this;} public Builder setIntent(android.content.Intent i){return this;}
           public ShortcutInfo build(){return info;}} }''',
+    # Dynamic shortcuts in rank order; pushDynamicShortcut puts one first (replacing its ID) as Android 11+ does.
     'android/content/pm/ShortcutManager.java': '''package android.content.pm; public class ShortcutManager {
         public final java.util.List<ShortcutInfo> dynamic=new java.util.ArrayList<>();
-        public int added,updated;
+        public int added,updated,pushed;
         public java.util.List<ShortcutInfo> getDynamicShortcuts(){return new java.util.ArrayList<>(dynamic);}
         public boolean addDynamicShortcuts(java.util.List<ShortcutInfo> s){added++;dynamic.addAll(s);return true;}
         public boolean updateShortcuts(java.util.List<ShortcutInfo> s){updated++;
-          for(ShortcutInfo n:s)for(int i=0;i<dynamic.size();i++)if(dynamic.get(i).id.equals(n.id))dynamic.set(i,n);return true;} }''',
+          for(ShortcutInfo n:s)for(int i=0;i<dynamic.size();i++)if(dynamic.get(i).id.equals(n.id))dynamic.set(i,n);return true;}
+        public void pushDynamicShortcut(ShortcutInfo s){pushed++;dynamic.removeIf(o->o.id.equals(s.id));dynamic.add(0,s);} }''',
     'android/os/Process.java': '''package android.os; public class Process {
         public static long start=100_000; public static int killed;
         public static long getStartElapsedRealtime(){return start;} public static int myPid(){return 1;}
@@ -625,12 +629,31 @@ public class SettingsProbe {
     check(Access.reportSettings(true).startsWith("Patches selected"),"changed-only variant");
   }
 
-  /** The launcher shortcut: added once, updated when its label or the app/Lurk version changed. */
+  /**
+   * The launcher shortcut. Android 11+: pushed to the top on every start, over the app's own conversation shortcuts.
+   * Older: added once, updated when its label or the app/Lurk version changed.
+   */
   static void shortcut()throws Exception{
-    android.content.pm.ShortcutManager manager=new android.content.pm.ShortcutManager();
-    Context.services=type->type==android.content.pm.ShortcutManager.class?manager:null;
+    android.content.pm.ShortcutManager pushing=new android.content.pm.ShortcutManager();
+    Context.services=type->type==android.content.pm.ShortcutManager.class?pushing:null;
     Access.context(new Context());
     install(registry(entry("block_ads","switch","true",null)));
+    android.os.Build.VERSION.SDK_INT=36;
+    Access.publishShortcut();
+    for(int i=0;i<5;i++){
+      android.content.pm.ShortcutInfo whisper=new android.content.pm.ShortcutInfo.Builder(new Context(),"whisper_"+i).build();
+      pushing.pushDynamicShortcut(whisper);
+    }
+    check(!pushing.dynamic.get(0).getId().equals("lurk_settings"),"the conversation shortcuts are on top");
+    Access.publishShortcut();
+    check(pushing.pushed==7&&pushing.added==0&&pushing.updated==0,"Android 11+: pushed on every start");
+    check(pushing.dynamic.get(0).getId().equals("lurk_settings")&&pushing.dynamic.get(0).getRank()==0,"pushed back on top");
+    check(pushing.dynamic.stream().filter(s->s.getId().equals("lurk_settings")).count()==1,"one Lurk shortcut");
+    check(pushing.dynamic.get(0).getShortLabel().toString().equals("Lurk")&&pushing.dynamic.get(0).getLongLabel().toString().equals("Lurk settings"),"pushed labels");
+
+    android.os.Build.VERSION.SDK_INT=29;
+    android.content.pm.ShortcutManager manager=new android.content.pm.ShortcutManager();
+    Context.services=type->type==android.content.pm.ShortcutManager.class?manager:null;
     Access.publishShortcut();
     check(manager.added==1&&manager.updated==0,"first start: added "+manager.added+" updated "+manager.updated);
     check(manager.dynamic.get(0).getShortLabel().toString().equals("Lurk")&&manager.dynamic.get(0).getLongLabel().toString().equals("Lurk settings"),"labels");
@@ -644,6 +667,8 @@ public class SettingsProbe {
     check(manager.updated==2,"an app update didn't refresh the shortcut");
     Access.publishShortcut();
     check(manager.added==1&&manager.updated==2,"refreshed again without a change");
+    check(manager.pushed==0,"pushed before Android 11");
+    android.os.Build.VERSION.SDK_INT=36;
   }
 
   static void unknownIsOff(){

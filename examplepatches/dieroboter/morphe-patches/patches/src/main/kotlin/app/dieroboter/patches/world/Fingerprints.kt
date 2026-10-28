@@ -70,3 +70,19 @@ object AppMetricaActivateReporterFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/content/Context;", "Lio/appmetrica/analytics/ReporterConfig;")
 )
+
+/**
+ * AppRater.tryShowRateDialog(Context, String)V — the launch-counted gate
+ * that shows the "Thanks for playing!" rate prompt. Its only caller is the
+ * delayed BaseRobTopActivity$4 Runnable; app_launched (the launch counter)
+ * is called only from BaseRobTopActivity.onCreate, and showRateDialog is
+ * called only from here. All return void, nothing consumes a result. The
+ * explicit rate action (BaseRobTopActivity$3.run -> openRate) is a separate
+ * path.
+ */
+object AppRaterTryShowRateDialogFingerprint : Fingerprint(
+    definingClass = "Lcom/customRobTop/AppRater;",
+    name = "tryShowRateDialog",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;")
+)

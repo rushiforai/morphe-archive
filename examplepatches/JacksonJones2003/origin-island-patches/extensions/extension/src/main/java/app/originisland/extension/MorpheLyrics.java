@@ -67,8 +67,7 @@ final class MorpheLyrics {
          * Called on the main thread.
          *
          * @param lines Lines of the synced lyrics of the current track, or none if there are none.
-         * @param credit Who wrote the lyrics, or where they are from if that is not known.
-         *               Empty if neither is.
+         * @param credit Who wrote the song, or empty if that is not known.
          */
         void onLyricsChanged(List<Line> lines, String credit);
     }
@@ -165,10 +164,6 @@ final class MorpheLyrics {
                 return credit.toString();
             }
 
-            String provider = (String) lyrics.getClass().getMethod("providerName").invoke(lyrics);
-            if (provider != null && !provider.trim().isEmpty()) {
-                return "Lyrics from " + provider.trim();
-            }
         } catch (Exception ex) {
             // The credit is left out.
         }

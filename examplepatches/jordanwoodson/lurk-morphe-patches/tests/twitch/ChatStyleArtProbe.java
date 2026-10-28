@@ -17,10 +17,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Version-pinned integration test for Chat keywords and Chat appearance: Twitch 31.7.0's real chat line builder
- * (with the emitted hooks) and live message models, run on ART with a fake settings store and a fake signed-in
- * account. Each setting is checked on and off; off must give Twitch's own line.
- * The short class and field names below are Twitch 31.7.0's R8 output.
+ * Version-pinned integration test for Chat keywords, Chat appearance and Emote and badge info: Twitch 31.7.0's
+ * real chat line builder and chat image box (with the emitted hooks) and live message models, run on ART with a
+ * fake settings store and a fake signed-in account. Each setting is checked on and off; off must give Twitch's own
+ * line. The short class and field names below are Twitch 31.7.0's R8 output; the chat image box comes from the
+ * APK's locators (the first argument).
  */
 public final class ChatStyleArtProbe {
     private static final Map<String, Object> settings = new HashMap<>();
@@ -211,6 +212,212 @@ public final class ChatStyleArtProbe {
         check((float) guide.invoke(null, null, 0.8f) == 0.8f, "Off keeps Twitch's width");
     }
 
+    // ---------------------------------------------------------------------------------------------
+    // Chat appearance sizes and Emote and badge info. These look Twitch's classes up in the APK's locators.
+
+    private static final String INFO = "io.github.jordanwoodson.extension.shared.twitch.TwitchChatInfo";
+
+    /** Twitch's chat image box (the size in pixels of an image span's box) and its placeholder drawable. */
+    private static Method box() throws Exception {
+        String type = ProbeLocators.type("twitch.match.chat_image_box", "hlj");
+        String name = ProbeLocators.method("twitch.match.chat_image_box", "g");
+        for (Method method : Class.forName(type).getDeclaredMethods()) {
+            if (method.getName().equals(name) && method.getReturnType() == int.class && method.getParameterTypes().length == 2) {
+                method.setAccessible(true);
+                return method;
+            }
+        }
+        throw new AssertionError("No chat image box " + type + "." + name);
+    }
+
+    /** A real chat image placeholder for {@code url} of size class {@code kind} (Emote, Badge, Gif, ...). */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static android.graphics.drawable.Drawable placeholder(String url, String kind) throws Exception {
+        Class<?> type = box().getParameterTypes()[1];
+        Class kinds = null;
+        for (Field field : type.getDeclaredFields()) if (field.getType().isEnum()) kinds = field.getType();
+        check(kinds != null, "The chat image placeholder has no size class");
+        java.lang.reflect.Constructor<?> make = type.getDeclaredConstructor(String.class, kinds, boolean.class);
+        make.setAccessible(true);
+        return (android.graphics.drawable.Drawable) make.newInstance(url, Enum.valueOf(kinds, kind), false);
+    }
+
+    private static int boxSize(String kind) throws Exception {
+        return (int) box().invoke(null, context, placeholder("https://example.invalid/" + kind, kind));
+    }
+
+    private static void sizes() throws Exception {
+        reset();
+        int emote = boxSize("Emote"), badge = boxSize("Badge"), gif = boxSize("Gif"), giant = boxSize("GigantifiedEmote");
+        check(emote > 0 && badge > 0 && gif > 0, "Twitch sizes its chat images");
+        settings.put("chat_emote_size", "200");
+        settings.put("chat_badge_size", "50");
+        check(boxSize("Emote") == emote * 2 && boxSize("GigantifiedEmote") == giant * 2, "Emotes at 200%");
+        check(boxSize("Badge") == Math.round(badge * 0.5f), "Badges at 50%");
+        check(boxSize("Gif") == gif, "Other chat images keep Twitch's size");
+        settings.put("chat_appearance", false);
+        check(boxSize("Emote") == emote && boxSize("Badge") == badge, "Off keeps Twitch's sizes");
+
+        // Larger emotes ask Twitch's emote URL builder for its larger image.
+        Method scale = Class.forName(STYLE).getMethod("emoteScale", Float.class);
+        reset();
+        check(scale.invoke(null, 2f).equals(2f) && scale.invoke(null, (Object) null) == null, "Default keeps the scale");
+        settings.put("chat_emote_size", "150");
+        check(scale.invoke(null, 2f).equals(3f) && scale.invoke(null, 3f).equals(3f), "150% asks for Twitch's 3x");
+        settings.put("chat_emote_size", "75");
+        check(scale.invoke(null, 2f).equals(2f), "Smaller emotes keep the scale");
+
+        // Text size, minimum height and spacing on real views, as the row binders leave them.
+        android.content.Context views = viewContext();
+        android.widget.LinearLayout row = new android.widget.LinearLayout(views);
+        android.widget.TextView text = new android.widget.TextView(views);
+        row.addView(text, new android.widget.LinearLayout.LayoutParams(-1, -2));
+        android.widget.LinearLayout.LayoutParams params = (android.widget.LinearLayout.LayoutParams) text.getLayoutParams();
+        params.topMargin = 8;
+        text.setLayoutParams(params);
+        text.setPadding(0, 8, 0, 8);
+        text.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, 40);
+        text.setMinHeight(60);
+        Method bind = Class.forName(STYLE).getMethod("bindRow", android.view.View.class, android.widget.TextView.class);
+        reset();
+        settings.put("chat_text_size", "90");
+        settings.put("chat_message_spacing", "50");
+        for (int bound = 0; bound < 2; bound++) {
+            // Twitch sets a live row's padding on every bind; a replay row keeps what it was given.
+            row.setPadding(0, 6, 0, 6);
+            bind.invoke(null, row, text);
+            check(row.getPaddingTop() == 3 && row.getPaddingBottom() == 3, "Row padding at 50%, bind " + bound);
+            check(text.getPaddingTop() == 4 && ((android.widget.LinearLayout.LayoutParams) text.getLayoutParams()).topMargin == 4,
+                "Text padding and margin at 50% once, bind " + bound);
+            check(text.getTextSize() == 36f && text.getMinHeight() == 54, "Text and minimum height at 90% once, bind " + bound);
+        }
+        settings.put("chat_appearance", false);
+        row.setPadding(0, 6, 0, 6);
+        bind.invoke(null, row, text);
+        check(row.getPaddingTop() == 6 && text.getPaddingTop() == 8 && text.getTextSize() == 40f && text.getMinHeight() == 60
+            && ((android.widget.LinearLayout.LayoutParams) text.getLayoutParams()).topMargin == 8, "Off gives Twitch's own back");
+    }
+
+    private static Object infoSpan(Spanned spanned, int at) throws Exception {
+        Class<?> type = Class.forName(INFO + "$InfoSpan");
+        Object[] spans = spanned.getSpans(at, at + 1, type);
+        return spans.length == 0 ? null : spans[0];
+    }
+
+    private static Spanned image(String text, String url, String kind, boolean clickable) throws Exception {
+        android.text.SpannableString spanned = new android.text.SpannableString(text);
+        spanned.setSpan(new android.text.style.ImageSpan(placeholder(url, kind)), 0, text.length(), 17);
+        if (clickable) spanned.setSpan(new android.text.style.ClickableSpan() {
+            @Override public void onClick(android.view.View view) { }
+        }, 0, text.length(), 33);
+        return spanned;
+    }
+
+    private static Spanned message(Spanned text) throws Exception {
+        return (Spanned) Class.forName(INFO).getMethod("message", CharSequence.class).invoke(null, text);
+    }
+
+    private static void info() throws Exception {
+        reset();
+        String twitch = "https://static-cdn.jtvnw.net/emoticons/v2/425618/default/dark/2.0";
+        String seventv = "https://cdn.7tv.app/emote/01FGH8NE3800064MEQW00DNBNG/2x.gif";
+        check(infoSpan(message(image("LUL", twitch, "Emote", false)), 0) == null, "Off adds no tap");
+        settings.put("chat_emote_info", true);
+        check(infoSpan(message(image("LUL", twitch, "Emote", false)), 0) != null, "A Twitch emote without a tap gets one");
+        check(infoSpan(message(image("reckH", seventv, "Emote", false)), 0) != null, "A 7TV emote gets one");
+        check(infoSpan(message(image("Cheer100", "https://d3aqoihi2n8ty8.cloudfront.net/x.gif", "Emote", false)), 0) == null,
+            "Cheermotes keep Twitch's handling");
+        // Signed in ("name" in Twitch's user preferences), Twitch's emote card span stays the only tap.
+        check(infoSpan(message(image("LUL", twitch, "Emote", true)), 0) == null, "Signed in, Twitch's emote card stays");
+        settings.remove("name");
+        Spanned signedOut = message(image("LUL", twitch, "Emote", true));
+        Object[] taps = signedOut.getSpans(0, 1, android.text.style.ClickableSpan.class);
+        check(taps.length == 2 && taps[0] == infoSpan(signedOut, 0), "Signed out, Lurk's tap goes first");
+        check(infoSpan(message(image("Gif", "https://media.giphy.com/x.gif", "Gif", true)), 0) == null, "GIFs keep their tap");
+
+        // Badges through the real line builder: Twitch's (name, URL) view models become badge spans.
+        reset();
+        settings.put("chat_emote_info", true);
+        String url = "https://static-cdn.jtvnw.net/badges/v1/5d9f2208-5dd8-11e7-8513-2ff4adfae661/2";
+        Object model = Class.forName("stp").getConstructor(String.class, String.class).newInstance("subscriber", url);
+        Spanned badges = (Spanned) field(lineWithBadges(Collections.singletonList(model)), "b");
+        Object badge = infoSpan(badges, 0);
+        check(badge != null, "A badge gets a tap");
+        settings.put("chat_emote_info", false);
+        check(infoSpan((Spanned) field(lineWithBadges(Collections.singletonList(model)), "b"), 0) == null, "Off: no badge tap");
+
+        // Twitch's badge registry reports set and version; the sheet names the badge from them.
+        settings.put("chat_emote_info", true);
+        Object key = Class.forName("yg2").getConstructor(String.class, String.class).newInstance("subscriber", "12");
+        Class.forName(INFO).getMethod("twitchChannelBadge", String.class, Object.class).invoke(null, url, key);
+        Method describe = Class.forName(INFO).getDeclaredMethod("describe", boolean.class, String.class, String.class);
+        describe.setAccessible(true);
+        Object described = describe.invoke(null, true, "subscriber", url);
+        check("1-Year Subscriber".equals(field(described, "name")) && "Twitch channel badge".equals(field(described, "kind")),
+            "Twitch badge named by set and version: " + field(described, "name") + ", " + field(described, "kind"));
+        described = describe.invoke(null, false, "reckH", seventv);
+        check("reckH".equals(field(described, "name")) && String.valueOf(field(described, "kind")).startsWith("7TV"),
+            "7TV emote described: " + field(described, "kind"));
+        Method title = Class.forName(INFO).getDeclaredMethod("badgeTitle", String.class, String.class);
+        title.setAccessible(true);
+        String[][] titles = {{"subscriber", "0", "Subscriber"}, {"subscriber", "3006", "Tier 3 6-Month Subscriber"},
+            {"subscriber", "2024", "Tier 2 2-Year Subscriber"}, {"bits", "1000", "cheer 1000"},
+            {"sub-gifter", "50", "50 Gift Subs"}, {"premium", "1", "Prime Gaming"}, {"twitch-recap-2025", "1", "Twitch Recap 2025"}};
+        for (String[] row : titles) {
+            check(row[2].equals(title.invoke(null, row[0], row[1])), "Badge title of " + row[0] + "/" + row[1]);
+        }
+
+        // The sheet loads a larger copy of the image from the same host.
+        Method larger = Class.forName(INFO).getDeclaredMethod("larger", String.class);
+        larger.setAccessible(true);
+        String[][] urls = {
+            {twitch, "https://static-cdn.jtvnw.net/emoticons/v2/425618/default/dark/3.0"},
+            {seventv, "https://cdn.7tv.app/emote/01FGH8NE3800064MEQW00DNBNG/4x.gif"},
+            {"https://cdn.7tv.app/emote/abc/2x_static.png", "https://cdn.7tv.app/emote/abc/4x_static.png"},
+            {"https://cdn.betterttv.net/emote/abc/2x.png", "https://cdn.betterttv.net/emote/abc/3x.png"},
+            {"https://cdn.frankerfacez.com/emote/123/2", "https://cdn.frankerfacez.com/emote/123/4"},
+            {"https://cdn.frankerfacez.com/emote/123/animated/2.gif", "https://cdn.frankerfacez.com/emote/123/animated/4.gif"},
+            {url, url.substring(0, url.length() - 1) + "3"},
+            {"data:image/png;base64,AA==", "data:image/png;base64,AA=="},
+            {"https://fourtf.com/chatterino/badges/topd3x.png", "https://fourtf.com/chatterino/badges/topd3x.png"}};
+        for (String[] row : urls) check(row[1].equals(larger.invoke(null, row[0])), "Larger copy of " + row[0]);
+    }
+
+    /** The real line builder with these badge view models, as in ChatStyleArtProbe#line. */
+    private static Object lineWithBadges(List<Object> badges) throws Exception {
+        Method build = null;
+        for (Method method : Class.forName("kb6").getDeclaredMethods()) {
+            if (method.getName().equals("b") && method.getParameterTypes().length == 21) build = method;
+        }
+        Object builder = allocate("kb6");
+        Field colors = builder.getClass().getDeclaredField("e");
+        colors.setAccessible(true);
+        Object readable = allocate("x5r");
+        Field contrast = readable.getClass().getDeclaredField("a");
+        contrast.setAccessible(true);
+        contrast.set(readable, allocate("uow"));
+        colors.set(builder, readable);
+        return build.invoke(null, builder, context, badges, sender("viewer"), 0xFFFEFEFE, tokens("hi"),
+            false, false, false, "b1", null, staticField("s340", "c"), false, config("Chat"), null, null, null, null, null, true, 0);
+    }
+
+    private static android.content.Context viewContext() throws Exception {
+        if (android.os.Looper.getMainLooper() == null) android.os.Looper.prepareMainLooper();
+        // app_process has no preloaded fonts: give TextView a system font map, as UiBoundaryProbe does.
+        android.graphics.fonts.Font font = new android.graphics.fonts.Font.Builder(
+            new java.io.File("/system/fonts/Roboto-Regular.ttf")).build();
+        Method makeFace = Typeface.class.getDeclaredMethod("createFromFamilies", String.class,
+            android.graphics.fonts.FontFamily[].class);
+        makeFace.setAccessible(true);
+        Typeface face = (Typeface) makeFace.invoke(null, "sans-serif",
+            new android.graphics.fonts.FontFamily[]{new android.graphics.fonts.FontFamily.Builder(font).build()});
+        Method fonts = Typeface.class.getDeclaredMethod("setSystemFontMap", Map.class);
+        fonts.setAccessible(true);
+        fonts.invoke(null, Map.of("sans-serif", face, "serif", face, "monospace", face));
+        Object thread = Class.forName("android.app.ActivityThread").getMethod("systemMain").invoke(null);
+        return (android.content.Context) thread.getClass().getMethod("getSystemContext").invoke(thread);
+    }
+
     private interface Section {
         void run() throws Exception;
     }
@@ -230,9 +437,12 @@ public final class ChatStyleArtProbe {
     }
 
     public static void main(String[] args) throws Exception {
+        if (args.length > 0) ProbeLocators.load(args[0]);
         install();
         section("chat keywords: mentions, highlight and blocked words, blocked users, live drops", ChatStyleArtProbe::keywords);
         section("chat appearance: /me style, alternating rows, landscape width", ChatStyleArtProbe::appearance);
+        section("chat appearance: emote and badge size, emote image scale, text size and spacing on views", ChatStyleArtProbe::sizes);
+        section("emote and badge info: tap spans, Twitch's emote card signed in, badge names", ChatStyleArtProbe::info);
         if (failures > 0) {
             System.out.println("FAILED: " + failures + " section(s)");
             System.exit(1);

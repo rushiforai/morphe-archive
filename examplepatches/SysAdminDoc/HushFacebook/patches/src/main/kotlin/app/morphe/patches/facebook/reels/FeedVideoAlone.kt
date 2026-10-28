@@ -83,7 +83,9 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  * The Warion step tells the extension a feed video is opening, the reels viewer's entry tells it
  * where the video opens from, and the fragment tells it when a Warion viewer opens and closes.
  * Both fetch mores ask it first, with the object asking, and answer false (nothing fetched) when
- * the extension says so, and the data source's seed check answers yes. The list builder hands it
+ * the extension says so, and the data source's seed check answers yes, except for a feed's ordinary
+ * video ("<surface>::feed_story", or "group::multimedia_post" for one opened from its group), whose first page that answer would hold back (#237, 584 emulator
+ * 2026-10-27: the viewer stood empty up to a second longer). The list builder hands it
  * whether more are coming, and separately whether to add its pagination page, each with the viewer's
  * params, whose origin the extension reads through a stub the patch fills, and takes its answers.
  */

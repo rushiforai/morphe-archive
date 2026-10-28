@@ -45,7 +45,8 @@ import java.util.WeakHashMap;
  */
 public final class FeedVisibility {
     private static final String[] HOME_TAB_RESOURCE_NAMES = {"47.5.3:op1"};
-    private static final String[] INBOX_TAB_RESOURCE_NAMES = {"47.5.3:op2"};
+    /** PineDrama's own name for the Inbox tab, read off its live bottom bar (#156). */
+    private static final String[] INBOX_TAB_RESOURCE_NAMES = {"47.5.3:op2", "pinedrama-47.5.3:hrp"};
     private static final String[] PROFILE_TAB_RESOURCE_NAMES = {"47.5.3:op3"};
     /**
      * The bottom Friends tab, the id FriendsTabProtocol loads on every declared build (one before

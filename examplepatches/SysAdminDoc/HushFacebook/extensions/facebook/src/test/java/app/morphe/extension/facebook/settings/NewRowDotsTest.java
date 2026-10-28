@@ -154,11 +154,11 @@ public class NewRowDotsTest {
         Preference header = null;
         for (int i = 0; i < page.navigation.getCount(); i++) {
             Preference item = page.navigation.getItem(i);
-            if (("section_" + section.getTitle()).equals(item.getKey())) header = item;
+            if (("section_" + page.navigation.sectionId(section)).equals(item.getKey())) header = item;
         }
         assertNotNull(header);
         assertTrue(header.getOnPreferenceClickListener().onPreferenceClick(header));
-        assertFalse(page.navigation.isExpanded(section.getTitle().toString()));
+        assertFalse(page.navigation.isExpanded(page.navigation.sectionId(section)));
         assertTrue(store().getStringSet(NewRowDots.SEEN, null).contains(KEY));
         assertEquals("the home row is clear once the page was seen", new ArrayList<String>(), dottedTitles());
         assertTrue(page.navigation.open(section));

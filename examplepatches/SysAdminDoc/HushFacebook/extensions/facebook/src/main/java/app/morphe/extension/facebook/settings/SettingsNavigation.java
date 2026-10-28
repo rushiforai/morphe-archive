@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -69,6 +70,9 @@ final class SettingsNavigation extends BaseAdapter {
     private final Preference support;
     private final PreferenceCategory supportHeading;
     private final Preference supportProject;
+    /** Over Report a problem and Restart Facebook, and over Support Hushfacebook, so help reads apart from donating. */
+    private final SettingsRows.Subheading helpHeading;
+    private final SettingsRows.Subheading projectHeading;
     private final Preference buildDetails;
     /** Just above Support: a new GitHub bug report with this install's versions filled in. */
     private final Preference report;
@@ -120,21 +124,26 @@ final class SettingsNavigation extends BaseAdapter {
         section("News feed", L10n.t("News feed"), L10n.t("Ads, suggestions and word filters"), SettingsIcons.FEED);
         section("Stories", L10n.t("Stories"), L10n.t("Saving, playback and anonymous viewing"), SettingsIcons.STORIES);
         section("Reels and Watch", L10n.t("Reels and Watch"), L10n.t("Cleaner reels and video controls"), SettingsIcons.REELS);
-        section("Playback", L10n.t("Playback"), L10n.t("Tap to play, quality and resume"), SettingsIcons.PLAYBACK);
+        // Renamed sections keep their first names as route IDs, and as words search still finds them by.
+        section("Playback", L10n.t("Video and audio"), L10n.t("Autoplay, quality and sound"), SettingsIcons.PLAYBACK,
+                L10n.t("Playback"));
         section("Downloads", L10n.t("Downloads"), L10n.t("Quality, format and file names"), SettingsIcons.DOWNLOADS);
-        section("Comments", L10n.t("Comments"), L10n.t("Sorting, replies and reactions"), SettingsIcons.COMMENTS);
-        section("Writing", L10n.t("Writing"), null, SettingsIcons.WRITING);
-        section("Chats", L10n.t("Chats"), null, SettingsIcons.CHATS);
+        section("Comments", L10n.t("Comments and writing"), L10n.t("Sorting, replies and reactions"),
+                SettingsIcons.COMMENTS, L10n.t("Writing"));
+        section("Chats", L10n.t("Chats and Messenger"), null, SettingsIcons.CHATS, L10n.t("Chats"));
         section("Menu", L10n.t("Menu"), null, SettingsIcons.MENU);
         section("Meta's other products", L10n.t("Meta's other products"), null, SettingsIcons.BLOCK);
         section("Search", L10n.t("Search"), null, SettingsIcons.SEARCH);
         section("Marketplace", L10n.t("Marketplace"), null, SettingsIcons.MARKETPLACE);
         section("Notifications", L10n.t("Notifications"), null, SettingsIcons.NOTIFICATIONS);
-        section("Links", L10n.t("Links"), null, SettingsIcons.LINKS);
+        section("Links", L10n.t("Links and sharing"), null, SettingsIcons.LINKS, L10n.t("Links"));
         section("Privacy", L10n.t("Privacy"), null, SettingsIcons.TELEMETRY);
         section("Updates", L10n.t("Updates"), null, SettingsIcons.UPDATES);
+        section("Tabs and navigation", L10n.t("Tabs and navigation"), L10n.t("Tab bar, top bar, hidden tabs and dots"),
+                SettingsIcons.PHONE);
         section("Appearance", L10n.t("Appearance"), null, SettingsIcons.APPEARANCE);
-        section("Set when you patched", L10n.t("Set when you patched"), null, SettingsIcons.PATCHED);
+        section("Set when you patched", L10n.t("Built-in changes"), null, SettingsIcons.PATCHED,
+                L10n.t("Set when you patched"));
         section("Pause, backup and diagnostics", L10n.t("Pause, backup and diagnostics"), null, SettingsIcons.TOOLS);
         section("About", L10n.t("About"), null, SettingsIcons.ABOUT);
         List<PreferenceCategory> pages = new ArrayList<>();
@@ -149,6 +158,10 @@ final class SettingsNavigation extends BaseAdapter {
         support.setOnPreferenceClickListener(ignored -> { toggle(SUPPORT); return true; });
         supportHeading = new SettingsRows.Heading(context);
         supportHeading.setTitle(support.getTitle());
+        helpHeading = new SettingsRows.Subheading(context);
+        helpHeading.setTitle(L10n.t("Help and restart"));
+        projectHeading = new SettingsRows.Subheading(context);
+        projectHeading.setTitle(L10n.t("Support the project"));
         supportProject = link(context, L10n.t("Support Hushfacebook"), null, SettingsIcons.OPENING);
         supportProject.setKey(HushfacebookPages.SUPPORT);
         supportProject.setOnPreferenceClickListener(row -> { HushfacebookPages.openSupport(row.getContext()); return true; });
@@ -237,12 +250,20 @@ final class SettingsNavigation extends BaseAdapter {
     }
 
     private void section(String id, String title, String detail, String icon) {
+        section(id, title, detail, icon, null);
+    }
+
+    /**
+     * A section, found by the title its category was given, so a renamed category needs its
+     * title changed here too. [alias] is the name it had before, which search still answers to.
+     */
+    private void section(String id, String title, String detail, String icon, @Nullable String alias) {
         for (Preference candidate : page.sections()) {
             if (!title.contentEquals(candidate.getTitle())) continue;
             Preference link = link(screen.getContext(), title, detail, icon);
             link.setKey("section_" + id);
             link.setOnPreferenceClickListener(ignored -> { toggle(id); return true; });
-            sections.add(new Section(id, (PreferenceCategory) candidate, link));
+            sections.add(new Section(id, (PreferenceCategory) candidate, link, alias));
             return;
         }
     }
@@ -348,6 +369,13 @@ final class SettingsNavigation extends BaseAdapter {
     private String headerId(Preference item) {
         if (item == support) return SUPPORT;
         for (Section section : sections) if (section.link == item) return section.id;
+        return null;
+    }
+
+    /** The route id of [category]'s section, which stays the same when its title is renamed. */
+    @Nullable
+    String sectionId(Preference category) {
+        for (Section section : sections) if (section.category == category) return section.id;
         return null;
     }
 
@@ -497,6 +525,10 @@ final class SettingsNavigation extends BaseAdapter {
         for (Section section : sections) if (item == section.category) return "heading:" + section.id;
         if (item == buildDetails) return "build";
         if (item == screen.getPreference(0)) return "status";
+        // An inline heading has no key, so its section and title find it again.
+        if (item instanceof SettingsRows.Subheading && item.getParent() != null) {
+            return "sub:" + sectionId(item.getParent()) + ":" + item.getTitle();
+        }
         return item.hasKey() ? "key:" + item.getKey() : "";
     }
 
@@ -567,10 +599,16 @@ final class SettingsNavigation extends BaseAdapter {
         if (!terms.isEmpty()) {
             for (Section section : sections) {
                 boolean headingAdded = false;
+                CharSequence subheading = null;
                 for (int i = 0; i < section.category.getPreferenceCount(); i++) {
                     Preference row = section.category.getPreference(i);
-                    if (!SettingsSearch.matchesTerms(terms, section.category.getTitle(), row.getTitle(),
-                            row.getSummary())) continue;
+                    // A subheading names the rows under it, so "video quality" finds them, but isn't a result.
+                    if (row instanceof SettingsRows.Subheading) {
+                        subheading = row.getTitle();
+                        continue;
+                    }
+                    if (!SettingsSearch.matchesTerms(terms, section.category.getTitle(), section.alias, subheading,
+                            row.getTitle(), row.getSummary(), TextUtils.join(" ", SettingsRows.aliases(row)))) continue;
                     if (!headingAdded) visible.add(section.category);
                     headingAdded = true;
                     visible.add(row);
@@ -607,8 +645,10 @@ final class SettingsNavigation extends BaseAdapter {
             }
             visible.add(support);
             if (expanded.contains(SUPPORT)) {
+                visible.add(helpHeading);
                 visible.add(report);
                 if (ReopenSettingsAfterRestart.changesWaiting(screen.getContext()) <= 0) visible.add(restartNow);
+                visible.add(projectHeading);
                 visible.add(supportProject);
             }
             visible.add(buildDetails);
@@ -719,7 +759,12 @@ final class SettingsNavigation extends BaseAdapter {
             // Posted from the new row, it runs after this layout has put the row in the window.
             row.post(() -> row.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null));
         }
-        if (!(item instanceof PreferenceCategory)) {
+        if (item instanceof SettingsRows.Subheading) {
+            // Drawn on the page like a section title, lined up with the cards it sits over.
+            // Support's own two sit flush with its rows, which belong to no section.
+            if (query.isEmpty() && item.getParent() instanceof PreferenceCategory)
+                row.setPaddingRelative(row.getPaddingStart() + dp(12), row.getPaddingTop(), row.getPaddingEnd(), row.getPaddingBottom());
+        } else if (!(item instanceof PreferenceCategory)) {
             Object group = group(item);
             boolean first = position == 0 || group(getItem(position - 1)) != group;
             boolean last = position + 1 == getCount() || group(getItem(position + 1)) != group;
@@ -863,12 +908,15 @@ final class SettingsNavigation extends BaseAdapter {
 
     Object group(Preference item) {
         if (item == screen.getPreference(0) || item == restart || item == buildDetails) return item;
-        if (headerId(item) != null) return item;
+        if (headerId(item) != null || item instanceof SettingsRows.Subheading) return item;
         if (item == report || item == restartNow || item == supportProject) return support;
         if (!query.trim().isEmpty() && item.getParent() != null) return item.getParent();
         String key = item.getKey();
         if (Settings.DEFAULT_COMMENT_ORDER.key.equals(key) || Settings.COMMENT_ORDER.key.equals(key)) {
             return Settings.COMMENT_ORDER;
+        }
+        if (Settings.NEWEST_REELS_FIRST.key.equals(key) || Settings.REELS_ORDER.key.equals(key)) {
+            return Settings.REELS_ORDER;
         }
         // Guide destinations form one list; independent selectors keep their own surfaces.
         if (key != null && key.startsWith("action_show_")) return guideLinks;
@@ -887,10 +935,13 @@ final class SettingsNavigation extends BaseAdapter {
         final String id;
         final PreferenceCategory category;
         final Preference link;
-        Section(String id, PreferenceCategory category, Preference link) {
+        /** The section's earlier name, which search still finds it by, or null. */
+        @Nullable final CharSequence alias;
+        Section(String id, PreferenceCategory category, Preference link, @Nullable CharSequence alias) {
             this.id = id;
             this.category = category;
             this.link = link;
+            this.alias = alias;
         }
     }
 }

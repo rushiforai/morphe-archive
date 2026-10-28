@@ -115,14 +115,14 @@ public final class PdbExtrasActivity extends Activity {
     }
 
     private LinearLayout newCard() {
-        LinearLayout card = PdbUi.card(this);
+        LinearLayout card = PdbUi.themedCard(this);
         if (content != null) content.addView(card, PdbUi.cardParams(this));
         return card;
     }
 
     private void note(LinearLayout card, String text) {
         if (card != null) {
-            TextView t = PdbUi.text(this, text, 11, "gray_03", 0xFF8E8E93);
+            TextView t = PdbUi.text(this, text, 11, null, PdbUi.subText(this));
             int pad = PdbUi.dp(this, 14);
             t.setPadding(pad, PdbUi.dp(this, 6), pad, PdbUi.dp(this, 2));
             card.addView(t);
@@ -138,7 +138,7 @@ public final class PdbExtrasActivity extends Activity {
         sw.setText(label);
         sw.setTextSize(15);
         sw.setAllCaps(false);
-        sw.setTextColor(PdbUi.color(this, "gray_01", 0xFF1C1C1E));
+        sw.setTextColor(PdbUi.mainText(this));
         sw.setChecked(PdbSettings.getBool(PdbTools.prefs(this), key,
             PdbSettings.defaultBool(key)));
         int padV = PdbUi.dp(this, 10);

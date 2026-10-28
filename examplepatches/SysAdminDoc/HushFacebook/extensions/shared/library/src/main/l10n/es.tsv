@@ -110,7 +110,7 @@ The top bar with search and Messenger stays put while you scroll down, instead o
 # context: switch title under Appearance, after Keep the top bar on screen; a big screen is a tablet or the inner screen of a folding phone, and the phone layout is the one Facebook shows on a normal phone
 Phone layout on big screens	Diseño de móvil en pantallas grandes
 # context: description of that switch; on a big screen Facebook keeps the tab bar at the top in a wider layout, so the tab bar switches above it do nothing there
-A tablet or an unfolded phone gets the layout Facebook uses on a phone, so the tab bar switches above work on the big screen too. Facebook's wider big screen layout goes away. Off by default, since it hasn't been tried on a big screen yet. Restart Facebook to see the change.	Una tablet o un móvil plegable abierto recibe el diseño que Facebook usa en un móvil, así los ajustes de la barra de pestañas de arriba también funcionan en la pantalla grande. Desaparece el diseño más ancho de Facebook para pantallas grandes. Apagado por defecto, porque aún no se ha probado en una pantalla grande. Reinicia Facebook para ver el cambio.
+A tablet or an unfolded phone gets the layout Facebook uses on a phone, so the tab bar choices above work on the big screen too. Facebook's wider big screen layout goes away. Off by default, since it hasn't been tried on a big screen yet. Restart Facebook to see the change.	Una tablet o un móvil plegable abierto recibe el diseño que Facebook usa en un móvil, así los ajustes de la barra de pestañas de arriba también funcionan en la pantalla grande. Desaparece el diseño más ancho de Facebook para pantallas grandes. Apagado por defecto, porque aún no se ha probado en una pantalla grande. Reinicia Facebook para ver el cambio.
 # context: switch title under Appearance, after Phone layout on big screens; it makes Facebook's top bar (search and Messenger) and its tab bar partly transparent
 See-through bars	Barras transparentes
 # context: description of that switch; the feed is the list of posts on Home, and blurred means frosted like glass
@@ -191,7 +191,7 @@ Reels show up in four places, and each one has its own control.	Los reels aparec
 Reels in the feed	Reels en el feed
 In News feed, Hide Reels in the feed blocks the rows of reels between posts.	En Feed, “Ocultar reels en el feed” bloquea las filas de reels entre las publicaciones.
 Reels that play by themselves	Reels que se reproducen solos
-In Playback, Tap to play blocks autoplay, so reels and other videos wait for your tap.	En Reproducción, “Toca para reproducir” bloquea la reproducción automática, así que los reels y otros vídeos esperan a que toques.
+In Video and audio, Tap to play blocks autoplay, so reels and other videos wait for your tap.	En Video y audio, “Toca para reproducir” bloquea la reproducción automática, así que los reels y otros vídeos esperan a que toques.
 The Reels tab	La pestaña Reels
 # context: map line without the patch; %1$s is the patch's English name in Morphe Manager
 Facebook's own setting blocks it. Open Settings, Tab bar, Customize the bar and choose Hide next to Reels, which some accounts call Video. If neither is listed, choose the %1$s patch in Morphe Manager and patch again.	La bloquea el propio ajuste de Facebook. Abre Configuración, Barra de pestañas, Personalizar la barra y elige Ocultar junto a Reels, que en algunas cuentas se llama Video. Si no aparece ninguna de las dos, elige el parche %1$s en Morphe Manager y vuelve a parchear.
@@ -357,7 +357,6 @@ Stops sending Facebook your list of watched reels. It uses the list to rank your
 # context: switch title under Reels and Watch; the Reels tab shows the most recently posted reels before older ones
 Newest reels first	Reels más recientes primero
 # context: summary of that switch; "loaded" means the reels the app has already downloaded in the background, "placed" means reels already lined up as the next ones
-The Reels tab plays the newest posted of the reels Facebook has loaded for you first, instead of its own pick. It can't fetch newer ones, and reels already placed stay put. Off by default, since it hasn't been tried on a real account yet.	La pestaña Reels reproduce primero los más recientes de los reels que Facebook ya cargó para ti, en lugar de su propia elección. No puede traer reels más nuevos, y los que ya están en cola se quedan donde están. Desactivado por defecto, porque todavía no se probó en una cuenta real.
 # context: what stays in while Hushfacebook is paused, shown before the patch's name in brackets; the patch raises the app's version number so Google Play never offers an update
 Meta's apps can install beside this one	Las apps de Meta se pueden instalar al lado
 Messenger, Facebook Lite, Business Suite and Workplace can install next to this Facebook. Their shared permissions no longer clash.	Messenger, Facebook Lite, Business Suite y Workplace se pueden instalar junto a este Facebook. Sus permisos compartidos ya no chocan.
@@ -464,7 +463,6 @@ Hide Meta AI in search	Ocultar Meta AI en la búsqueda
 # context: summary of that switch; Meta AI and Ask Meta AI are Meta's own names, as Facebook shows them
 Search no longer shows Meta AI answers or Ask Meta AI prompts, or sends your search to Meta AI. Results for people, groups, pages and posts stay.	La búsqueda ya no muestra respuestas de Meta AI ni avisos de Ask Meta AI, ni envía tu búsqueda a Meta AI. Los resultados de personas, grupos, páginas y publicaciones se quedan.
 # context: settings section heading for the Default comment order switch and its list
-Comments	Comentarios
 # context: switch title; on, a post's comments open in the order chosen in the list below it
 Default comment order	Orden predeterminado de los comentarios
 # context: summary of that switch; a link to a comment is one from a notification, say
@@ -477,6 +475,8 @@ Hides Meta AI's summary at the top of comments and the comment summary under a p
 Hide comments under posts	Ocultar los comentarios bajo las publicaciones
 # context: summary of that switch; Comment is the post's Comment button
 Feed posts stop showing a few comments under their buttons. Tap Comment to read them all.	Las publicaciones del feed dejan de mostrar comentarios bajo sus botones. Toca Comentar para leerlos todos.
+Hide dislike on comments	Ocultar el pulgar abajo en los comentarios
+Takes the thumbs-down off comments. Like and Reply stay.	Quita el pulgar hacia abajo de los comentarios. Me gusta y Responder se quedan.
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	Solo Me gusta
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -538,6 +538,24 @@ Hides ads between posts on someone's profile or a Page. Their own posts stay.	Oc
 Hide profile notes	Ocultar notas del perfil
 # context: summary of that switch
 Hides the note bubble that sits on profile pictures. Applies the next time you open a profile.	Oculta la burbuja de nota que aparece sobre las fotos de perfil. Se aplica la próxima vez que abras un perfil.
+# context: switch title under News feed; Save is Facebook's own button that keeps a post in your saved items
+Save button under posts	Botón Guardar debajo de las publicaciones
+# context: summary of that switch; Like, Comment and Share are the buttons under a post
+Adds Facebook's own Save button next to Like, Comment and Share under posts. A saved post shows its bookmark filled in.	Añade el botón Guardar de Facebook junto a Me gusta, Comentar y Compartir debajo de las publicaciones. Una publicación guardada muestra su marcador relleno.
+# context: switch title under News feed; a button that saves a post's video or photos to the phone
+Download button under posts	Botón Descargar debajo de las publicaciones
+# context: summary of that switch; Downloads is the name of Hushfacebook's settings page for saving media
+Adds a Download button under posts with a video or photos. It saves the video, the photo, or every photo of an album, using the Downloads settings.	Añade un botón Descargar debajo de las publicaciones con un video o fotos. Guarda el video, la foto o todas las fotos de un álbum con los ajustes de Descargas.
+# context: switch title under News feed; Like is Facebook's own button under a post
+Hide Like under posts	Ocultar Me gusta debajo de las publicaciones
+# context: switch title under News feed; Comment is Facebook's own button under a post
+Hide Comment under posts	Ocultar Comentar debajo de las publicaciones
+# context: switch title under News feed; Share is Facebook's own button under a post
+Hide Share under posts	Ocultar Compartir debajo de las publicaciones
+# context: switch title under News feed; Send is Facebook's own button under a post that sends it in a chat
+Hide Send under posts	Ocultar Enviar debajo de las publicaciones
+# context: summary shared by those four switches
+Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	Quita este botón de la fila debajo de las publicaciones del feed. Los demás botones se quedan, y una publicación con todos sus botones ocultos no muestra la fila.
 # context: what stays in while Hushfacebook is paused, followed by the patch name in brackets; the row in Facebook's own Menu that opens Hushfacebook settings
 # context: a short message when the Hushfacebook row in Facebook's Menu couldn't open the settings
 Hushfacebook settings can't open here. Long-press the Facebook logo instead.	La configuración de Hushfacebook no se puede abrir aquí. Mantén pulsado el logotipo de Facebook.
@@ -745,7 +763,6 @@ Active. Events, Notifications and Profile/Menu stay. Find Hushfacebook settings 
 # context: Settings overview, category navigation and search.
 Ads, suggestions and word filters	Anuncios, sugerencias y filtros de palabras
 Cleaner reels and video controls	Reels más limpios y controles de vídeo
-Tap to play, quality and resume	Tocar para reproducir, calidad y reanudar
 Quality, format and file names	Calidad, formato y nombres de archivo
 No matching settings	No hay ajustes coincidentes
 %1$d setting found	%1$d ajuste encontrado
@@ -837,7 +854,7 @@ Videos play at the lowest quality Facebook offers for each.	Los vídeos se repro
 Videos play at the best quality up to %1$s that Facebook offers for each, or the closest above.	Los vídeos se reproducen en la mejor calidad hasta %1$s que Facebook ofrece para cada uno, o en la más cercana por encima.
 Videos play at the highest quality Facebook offers for each.	Los vídeos se reproducen en la calidad más alta que Facebook ofrece para cada uno.
 Facebook will pick the quality videos play at.	Facebook elegirá la calidad de reproducción de los vídeos.
-Playback quality will be set to %1$s.	La calidad de reproducción será %1$s.
+Default quality will be set to %1$s.	La calidad predeterminada será %1$s.
 # context: import preview and toast sentence when a settings file sets the Reels quality to follow the playback quality
 Reels will play at the same quality as other videos.	Los reels se reproducirán con la misma calidad que los demás videos.
 # context: import preview and toast sentence; %1$s is a Reels quality choice such as Up to 720p
@@ -944,6 +961,8 @@ Hides the row of Meta AI questions under some posts. The post, its link card and
 Keep post dates	Mantener la fecha de las publicaciones
 # context: description of that switch; the rotating details are the texts Facebook's newer post header takes turns showing on that line
 Shows the post's date under the poster's name instead of Facebook's rotating details, which can go blank on some phones.	Muestra la fecha de la publicación bajo el nombre de quien publica, en lugar de los datos rotativos de Facebook, que en algunos teléfonos se quedan en blanco.
+Show full post text	Mostrar el texto completo de las publicaciones
+Posts in the feed show all of their text, so there's no See more to tap.	Las publicaciones del feed muestran todo su texto, así que no hay que tocar Ver más.
 # context: switch title under News feed; the Feeds header is the row at the top of the Feeds tab with Feeds, the menu and search, and the filters under it, All, Favorites, Friends, Groups and Pages
 Hide the Feeds header	Ocultar el encabezado de Feeds
 # context: description of that switch; the Feeds tab is where Facebook lists posts by those filters, and the title row is the one with the tab's name
@@ -966,6 +985,16 @@ Couldn't open an app for this link	No se pudo abrir una app para este enlace
 Video link	Enlace del video
 # context: Toast after a long press on the reel button copied its link
 Link copied	Enlace copiado
+# context: row title in a reel's three-dot More menu; the caption is the text under the reel
+Copy caption	Copiar descripción
+# context: Clipboard label of a copied reel caption
+Reel caption	Descripción del reel
+# context: Toast after Copy caption copied a reel's caption
+Caption copied	Descripción copiada
+# context: switch title under Saving reels on the Reels and Watch page
+Copy reel captions	Copiar descripciones de reels
+# context: summary of that switch; More is the reel's three-dot menu, See more is the link that opens a long caption
+A reel's More menu gets Copy caption, which copies the whole caption, even the part behind See more.	El menú Más de un reel incluye Copiar descripción, que copia la descripción completa, incluso la parte oculta tras Ver más.
 # context: Toast when a reel's link can't be built
 Couldn't find this reel's link	No se encontró el enlace de este reel
 # context: Toast when a feed video's link can't be built
@@ -1178,16 +1207,16 @@ With Block Instant Games ads on, a game's rewarded ad counts as watched. No ad p
 Reels quality	Calidad de los reels
 # context: title of the list that picks the quality video stories start at
 Stories quality	Calidad de las historias
-# context: first choice in the Reels and Stories quality lists: follow the Playback quality row; use this language's name for that row
-Same as Playback quality	Igual que Calidad de reproducción
+# context: first choice in the Reels and Stories quality lists: follow the Default quality row
+Same as default	Igual que la predeterminada
 # context: summary of the Reels quality list when it follows the Playback quality row
-Reels follow the Playback quality row.	Los reels siguen la fila Calidad de reproducción.
+Reels follow the Default quality row.	Los reels siguen la fila Calidad predeterminada.
 # context: summary of the Stories quality list when it follows the Playback quality row
-Video stories follow the Playback quality row.	Las historias en video siguen la fila Calidad de reproducción.
+Video stories follow the Default quality row.	Las historias en video siguen la fila Calidad predeterminada.
 # context: summary of the Reels quality list when it has a quality of its own; %1$s is that choice, such as Highest or Up to 720p
-%1$s for reels, whatever Playback quality is set to.	%1$s para los reels, sin importar la Calidad de reproducción.
+%1$s for reels, whatever Default quality is set to.	%1$s para los reels, sin importar la Calidad predeterminada.
 # context: summary of the Stories quality list when it has a quality of its own; %1$s is that choice, such as Highest or Up to 720p
-%1$s for video stories, whatever Playback quality is set to.	%1$s para las historias en video, sin importar la Calidad de reproducción.
+%1$s for video stories, whatever Default quality is set to.	%1$s para las historias en video, sin importar la Calidad predeterminada.
 # context: title of the row naming a folder inside the save folder that video saves go in
 Video subfolder	Subcarpeta de videos
 # context: title of the row naming a folder inside the save folder that photo saves go in
@@ -1278,6 +1307,8 @@ Hides short posts shown as big text on a colored background.	Oculta las publicac
 Hide reposts	Ocultar publicaciones compartidas
 # context: summary of the Hide reposts switch; a caption is what the sharer wrote above the shared post
 Hides posts that share another post, with or without a caption. Original posts stay. Off by default, since it hasn't been tried on a real feed yet.	Oculta las publicaciones que comparten otra publicación, con o sin texto propio. Las publicaciones originales se quedan. Apagado por defecto, porque aún no se ha probado en un feed real.
+Hide posts from Pages	Ocultar publicaciones de páginas
+Hides posts written by Pages, the ones you follow too. Posts from friends and groups stay, and so does a friend's share of a Page's post.	Oculta las publicaciones escritas por páginas, también las que sigues. Las publicaciones de amigos y grupos se quedan, y también la publicación de una página que comparte un amigo.
 # context: switch title in Privacy: asks for the phone's own screen lock before Facebook shows
 Lock Facebook	Bloquear Facebook
 Save crashes to Downloads	Guardar fallos en Descargas
@@ -1349,12 +1380,16 @@ Red	Rojo
 Indigo	Índigo
 # context: Accent color choice, a yellow-orange
 Amber	Ámbar
-# context: summary of the Accent color row, greyed out because the Material You theme patch is in the build
-Material You theme is in this build and picks Facebook's colors, so this has no effect.	El tema Material You está en esta compilación y elige los colores de Facebook, así que esto no tiene efecto.
+# context: summary of the Accent color row at Facebook blue while the Material You theme patch is in the build
+Material You uses your wallpaper's accent. Pick a color to use it instead.	Material You usa el acento de tu fondo de pantalla. Elige un color para usarlo en su lugar.
+# context: summary of the Accent color row while the Material You theme patch is in the build; %1$s is a color name such as Teal
+Material You uses %1$s in place of your wallpaper's accent. Restart Facebook to see the change.	Material You usa %1$s en lugar del acento de tu fondo de pantalla. Reinicia Facebook para ver el cambio.
+# context: the Accent color list's first choice while the Material You theme patch is in the build: keep the phone's own wallpaper color
+Wallpaper accent	Acento del fondo de pantalla
 # context: summary of the Accent color row at its default
 Links, buttons, switches and the selected tab keep Facebook's blue.	Los enlaces, botones, interruptores y la pestaña seleccionada conservan el azul de Facebook.
 # context: summary of the Accent color row; %1$s is a color name such as Teal
-Links, buttons, switches and the selected tab use %1$s instead of Facebook's blue. Restart Facebook to see the change. If the Material You theme is added, it takes over.	Los enlaces, botones, interruptores y la pestaña seleccionada usan %1$s en lugar del azul de Facebook. Reinicia Facebook para ver el cambio. Si se añade el tema Material You, este tiene prioridad.
+Links, buttons, switches and the selected tab use %1$s instead of Facebook's blue. Restart Facebook to see the change.	Los enlaces, botones, interruptores y la pestaña seleccionada usan %1$s en lugar del azul de Facebook. Reinicia Facebook para ver el cambio.
 # context: what a settings import changes: Facebook goes back to its own blue
 Facebook will keep its own blue.	Facebook conservará su propio azul.
 # context: what a settings import changes; %1$s is a color name such as Teal
@@ -1692,6 +1727,14 @@ Takes the numbers away from under a reel's Like, Comment and Share icons. The ic
 # context: Reels and Watch switch for the dedicated WhatsApp sidebar button, independent of the Share menu
 Hide WhatsApp on reels	Ocultar WhatsApp en los reels
 Hides the WhatsApp button beside reels and videos. WhatsApp stays in the Share menu. A change shows from the next video.	Oculta el botón de WhatsApp junto a los reels y los videos. WhatsApp sigue en el menú Compartir. El cambio se aplica a partir del siguiente video.
+# context: switch title under Reels and Watch; Like is Facebook's own label for that button down a reel's right side, so use Facebook's wording in your language
+Hide Like on reels	Ocultar Me gusta en los reels
+# context: switch title under Reels and Watch; Comment is Facebook's own label for that button down a reel's right side, so use Facebook's wording in your language
+Hide Comment on reels	Ocultar Comentar en los reels
+# context: switch title under Reels and Watch; Share is Facebook's own label for that button down a reel's right side, so use Facebook's wording in your language
+Hide Share on reels	Ocultar Compartir en los reels
+# context: summary shared by the Like, Comment and Share switches on reels
+Takes this button off the side of reels. The buttons above it move down. A change shows from the next reel.	Quita este botón del lateral de los reels. Los botones de arriba bajan. El cambio se ve desde el siguiente reel.
 # context: switch title under Reels and Watch; Save is Facebook's own label for the bookmark button down a reel's right side, so use Facebook's wording in your language
 Hide Save on reels	Ocultar Guardar en los reels
 # context: summary of that switch; the buttons under it are Download and More
@@ -1938,3 +1981,108 @@ Saving, playback and anonymous viewing	Guardado, reproducción y visualización 
 Sorting, replies and reactions	Orden, respuestas y reacciones
 Expanded	Expandido
 Collapsed	Contraído
+Ads and suggestions	Anuncios y sugerencias
+Feed layout	Diseño del feed
+Content filters	Filtros de contenido
+Reels tab and ads	Pestaña Reels y anuncios
+On reels and videos	En reels y videos
+Video controls	Controles de video
+Saving reels	Guardar reels
+Autoplay and resume	Reproducción automática y reanudar
+Video quality	Calidad de video
+Sound	Sonido
+Controls and picture-in-picture	Controles e imagen en imagen
+Tab bar	Barra de pestañas
+Top bar	Barra superior
+Tabs to hide	Pestañas que ocultar
+Dots and counts	Puntos y contadores
+Text and emoji	Texto y emoji
+Colors and theme	Colores y tema
+Screen and motion	Pantalla y movimiento
+App icon and header	Icono de la app y encabezado
+Backup and restore	Copia de seguridad y restauración
+Troubleshooting	Solución de problemas
+Help and restart	Ayuda y reinicio
+Support the project	Apoya el proyecto
+Video and audio	Video y audio
+Comments and writing	Comentarios y escritura
+Tabs and navigation	Pestañas y navegación
+Links and sharing	Enlaces y compartir
+Chats and Messenger	Chats y Messenger
+Built-in changes	Cambios integrados
+Autoplay, quality and sound	Reproducción automática, calidad y sonido
+Tab bar, top bar, hidden tabs and dots	Barra de pestañas, barra superior, pestañas ocultas y puntos
+Default quality	Calidad predeterminada
+Tab bar position	Posición de la barra de pestañas
+Tab bar while scrolling	Barra de pestañas al desplazarte
+At the bottom	Abajo
+At the top	Arriba
+Hides while scrolling	Se oculta al desplazarte
+Stays on screen	Se queda en pantalla
+Facebook decides where the tab bar goes on your account. Restart Facebook after you change this.	Facebook decide dónde va la barra de pestañas en tu cuenta. Reinicia Facebook después de cambiar esto.
+Facebook decides whether the bottom tab bar slides away as you scroll. Restart Facebook after you change this.	Facebook decide si la barra de pestañas inferior se oculta al desplazarte. Reinicia Facebook después de cambiar esto.
+# context: heading above a text field under a word list being edited, where a person types text to test the lists on
+Try the lists on some text	Prueba las listas con un texto
+# context: hint inside that test field
+Text of a post	Texto de una publicación
+# context: line under the test field when the Words to hide list is empty
+The hide list is empty, so no post would be hidden.	«Palabras para ocultar» está vacía, así que no se ocultaría ninguna publicación.
+# context: line under the test field before anything is typed in it
+Type or paste a post's text to see what these lists would do with it. It isn't saved.	Escribe o pega el texto de una publicación para ver qué harían estas listas con ella. No se guarda.
+# context: line under the test field: the lists would hide a post with the typed text
+A post with this text would be hidden.	Una publicación con este texto se ocultaría.
+# context: line under the test field: the Words that keep a post list matches the typed text
+A post with this text would stay, because the keep list matches it.	Una publicación con este texto se quedaría, porque coincide con «Palabras que mantienen una publicación».
+# context: line under the test field: the lists' patterns (regular expressions) ran out of time on the typed text, and such a post stays
+A post with this text would stay, because the patterns took too long on it.	Una publicación con este texto se quedaría, porque los patrones tardaron demasiado con ella.
+# context: line under the test field: no word, phrase or pattern of either list matches the typed text
+A post with this text would stay. Nothing on either list matches it.	Una publicación con este texto se quedaría. Nada de ninguna lista coincide.
+# context: added after one of those lines when the typed text was too long; %1$d is how many characters were read
+Only the first %1$d characters were checked.	Solo se revisaron los primeros %1$d caracteres.
+Save on	Guardar en
+Phone storage	Almacenamiento del teléfono
+SD card that isn't in the phone	Tarjeta SD que no está en el teléfono
+Videos and photos are saved on the phone's storage.	Los videos y las fotos se guardan en el almacenamiento del teléfono.
+Videos and photos are saved on the phone's storage. Put in an SD card to save on it instead.	Los videos y las fotos se guardan en el almacenamiento del teléfono. Pon una tarjeta SD para guardarlos ahí.
+The SD card you picked isn't in the phone, so videos and photos are saved on the phone's storage until it's back.	La tarjeta SD que elegiste no está en el teléfono, así que los videos y las fotos se guardan en el almacenamiento del teléfono hasta que vuelva.
+Videos and photos are saved on %1$s, in the same folders. Saves you already have stay where they are.	Los videos y las fotos se guardan en %1$s, en las mismas carpetas. Lo que ya guardaste se queda donde está.
+Pause reels while comments are open	Pausar reels mientras los comentarios están abiertos
+A reel stops while you read its comments and plays on from the same spot when you close them.	Un reel se detiene mientras lees sus comentarios y sigue desde el mismo punto cuando los cierras.
+Sort loaded reels	Ordenar los reels cargados
+The Reels tab plays the reels Facebook has loaded for you in the order picked below, instead of its own pick. It can't fetch more, and reels already placed stay put. Off by default, since it hasn't been tried on a real account yet.	La pestaña Reels reproduce los reels que Facebook ya cargó para ti en el orden elegido abajo, en lugar de su propia elección. No puede traer más, y los que ya están en cola se quedan donde están. Desactivado por defecto, porque todavía no se probó en una cuenta real.
+Reels order	Orden de los reels
+Most liked	Más reacciones
+Of the reels Facebook has loaded, the ones with the most reactions play first.	De los reels que Facebook ya cargó, primero se reproducen los que tienen más reacciones.
+Of the reels Facebook has loaded, the newest posted play first.	De los reels que Facebook ya cargó, primero se reproducen los más recientes.
+Reels order will be set to %1$s.	El orden de los reels será %1$s.
+Cast button on feed videos	Botón de enviar en videos del feed
+Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	Añade un botón de enviar a los videos del feed. Pasa el video a una app de transmisión que tengas, como Web Video Caster, que lo envía a tu TV. Facebook ya no tiene transmisión propia.
+Cast this video	Enviar este video
+# context: title of the row that holds a color code for the count badges on the tabs
+Badge color	Color de insignias
+# context: title of the row that holds a color code for the Facebook logo at the top of Home
+Logo color	Color del logo
+# context: dialog message of the Logo color row; keep #RRGGBB and #2ECC71 as they are
+A color code (#RRGGBB) for the Facebook logo at the top of Home, like #2ECC71. Leave it blank for Facebook's blue.	Un código de color (#RRGGBB) para el logo de Facebook arriba en Inicio, como #2ECC71. Déjalo vacío para el azul de Facebook.
+# context: dialog message of the Badge color row; keep #RRGGBB and #2ECC71 as they are
+A color code (#RRGGBB) for the count badges on the tabs, like #2ECC71. Leave it blank for Facebook's red.	Un código de color (#RRGGBB) para las insignias con números de las pestañas, como #2ECC71. Déjalo vacío para el rojo de Facebook.
+# context: summary of the Logo color row while it's blank
+The Facebook logo keeps its blue. Type a color code to change it.	El logo de Facebook conserva su azul. Escribe un código de color para cambiarlo.
+# context: summary of the Badge color row while it's blank
+Badges keep Facebook's red. Type a color code to change it.	Las insignias conservan el rojo de Facebook. Escribe un código de color para cambiarlo.
+# context: summary of the Logo color row; %1$s is a color code like #2ECC71
+The Facebook logo at the top of Home is %1$s. Restart Facebook to see the change.	El logo de Facebook arriba en Inicio es %1$s. Reinicia Facebook para ver el cambio.
+# context: summary of the Badge color row; %1$s is a color code like #2ECC71
+Count badges on the tabs are %1$s. Restart Facebook to see the change.	Las insignias con números de las pestañas son %1$s. Reinicia Facebook para ver el cambio.
+# context: shown when Save is tapped on the Badge or Logo color row with text that isn't a color code; %1$s is what was typed; keep #RRGGBB and #2ECC71 as they are
+"%1$s" isn't a color. Type a six-digit color code (#RRGGBB), like #2ECC71, or leave it blank for Facebook's own.	“%1$s” no es un color. Escribe un código de color de seis dígitos (#RRGGBB), como #2ECC71, o déjalo vacío para el color de Facebook.
+# context: shown when Save is tapped on the Badge or Logo color row with a see-through color; %1$s is what was typed; keep #RRGGBB and #2ECC71 as they are
+%1$s is see-through. Type a solid six-digit color code (#RRGGBB), like #2ECC71.	%1$s es transparente. Escribe un código de color sólido de seis dígitos (#RRGGBB), como #2ECC71.
+# context: import preview sentence: the file sets the Badge color row back to blank; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, badges will be Facebook's red.	Si tu Facebook parcheado incluye Colores de insignias y logo, las insignias serán del rojo de Facebook.
+# context: import preview sentence: the file sets the Logo color row back to blank; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, the logo will be Facebook's blue.	Si tu Facebook parcheado incluye Colores de insignias y logo, el logo será del azul de Facebook.
+# context: import preview sentence: the file sets the Badge color row; %1$s is a color code like #2ECC71; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, badges will be %1$s.	Si tu Facebook parcheado incluye Colores de insignias y logo, las insignias serán %1$s.
+# context: import preview sentence: the file sets the Logo color row; %1$s is a color code like #2ECC71; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, the logo will be %1$s.	Si tu Facebook parcheado incluye Colores de insignias y logo, el logo será %1$s.

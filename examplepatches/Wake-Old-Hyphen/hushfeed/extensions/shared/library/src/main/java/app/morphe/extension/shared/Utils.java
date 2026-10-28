@@ -512,6 +512,9 @@ public class Utils {
         android.app.Application application = activity == null ? null : activity.getApplication();
         if (application == null || followedApplication.get() == application) return;
         followedApplication = new WeakReference<>(application);
+        // An activity another application resumed is never in front of this one. Kept, it made
+        // every later caller see that stale activity, since the main one resumed unseen.
+        resumedRef = new WeakReference<>(null);
         application.registerActivityLifecycleCallbacks(new android.app.Application.ActivityLifecycleCallbacks() {
             @Override public void onActivityResumed(Activity resumed) { resumedRef = new WeakReference<>(resumed); }
             @Override public void onActivityDestroyed(Activity destroyed) {

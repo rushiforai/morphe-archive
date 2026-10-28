@@ -31,7 +31,9 @@ try {
     Assert-Profile (-not (Get-PineDramaInspectionProblem $plan)) 'Exact PineDrama subset was rejected.'
     $app = [pscustomobject]@{ package = $build.apk.package; version = $build.apk.versionName; versionCode = $build.apk.versionCode }
     Assert-Profile (-not (Get-DeviceNativeBuildProblem $build $build.apk.sha256 $app)) 'Package-neutral artifact identity rejected PineDrama.'
-    Assert-Profile ([bool](Get-AuditNativeBuildProblem $build $build.apk.sha256 $app)) 'PineDrama slipped into the global native audit.'
+    Assert-Profile (-not (Get-AuditNativeBuildProblem $build $build.apk.sha256 $app)) 'PineDrama lost its own native audit profile.'
+    $unknownApp = [pscustomobject]@{ package = 'com.example.unreviewed'; version = $app.version; versionCode = $app.versionCode }
+    Assert-Profile ([bool](Get-AuditNativeBuildProblem $build $build.apk.sha256 $unknownApp)) 'A package with no audit profile slipped into the native audit.'
     foreach ($mutation in @(
         { param($p) $p.profile = 'tiktok-whole-app-v1' },
         { param($p) $p.full = $true },

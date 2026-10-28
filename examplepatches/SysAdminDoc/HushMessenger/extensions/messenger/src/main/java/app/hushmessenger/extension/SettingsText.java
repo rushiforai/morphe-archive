@@ -86,8 +86,6 @@ final class SettingsText {
     static {
         ENGLISH.put("controls", "Controls");
         ENGLISH.put("app", "App");
-        ENGLISH.put("section_expanded", "Expanded");
-        ENGLISH.put("section_collapsed", "Collapsed");
         ENGLISH.put("inbox", "Inbox");
         ENGLISH.put("navigation", "Navigation");
         ENGLISH.put("stickers", "Stickers");
@@ -178,6 +176,8 @@ final class SettingsText {
         ENGLISH.put("bubble_settings_missing", "Screen not found. Open app info, then Notifications.");
         ENGLISH.put("facebook_keep_profile", "Keep the Profile button");
         ENGLISH.put("facebook_keep_profile_help", "Leaves the Profile button on a chat's details page, so you can still open the person's Facebook profile. The other Facebook shortcuts stay hidden.");
+        ENGLISH.put("avatar_shape_rounded", "Round the corners");
+        ENGLISH.put("avatar_shape_rounded_help", "Gives the squares rounded corners instead of sharp ones.");
         ENGLISH.put("tab_badges_keep_chats", "Keep the Chats badge");
         ENGLISH.put("tab_badges_keep_people", "Keep the People badge");
         ENGLISH.put("tab_badges_keep_notifications", "Keep the Notifications badge");
@@ -205,6 +205,10 @@ final class SettingsText {
         ENGLISH.put("account_help", "Your choices apply to every Messenger account in this installation.");
         ENGLISH.put("missing", "Missing a control?");
         ENGLISH.put("missing_help", "Pick it in Morphe Manager and patch Messenger again. Updating the patch source alone doesn't add new controls.");
+        ENGLISH.put("log_out", "Log out");
+        ENGLISH.put("log_out_help", "Signs you out of this account on this phone, the same way Messenger's own Log out does.");
+        ENGLISH.put("log_out_unavailable", "Messenger's Log out wasn't found in this build, so use the one in Messenger's menu.");
+        ENGLISH.put("log_out_failed", "Messenger's Log out didn't open. The one in Messenger's menu still works.");
         ENGLISH.put("source", "Source and licenses");
         ENGLISH.put("no_browser", "No web browser found on this phone");
         ENGLISH.put("page_blocked", "Your phone didn't allow opening that page");

@@ -75,10 +75,11 @@ public final class EmotePickerArtProbe {
     /** Puts a provider list into Lurk's cache, as a finished request would. [code, id] pairs. */
     private static void cache(String key, String... pairs) throws Exception {
         Class<?> emote = Class.forName(EMOTES + "$Emote");
-        Constructor<?> make = emote.getDeclaredConstructor(String.class, String.class);
+        // (code, ID, owner): the owner is only shown by Emote and badge info.
+        Constructor<?> make = emote.getDeclaredConstructor(String.class, String.class, String.class);
         make.setAccessible(true);
         Object emotes = Array.newInstance(emote, pairs.length / 2);
-        for (int i = 0; i < pairs.length; i += 2) Array.set(emotes, i / 2, make.newInstance(pairs[i], pairs[i + 1]));
+        for (int i = 0; i < pairs.length; i += 2) Array.set(emotes, i / 2, make.newInstance(pairs[i], pairs[i + 1], null));
         method(Class.forName(EMOTES), "put", String.class, emotes.getClass(), long.class).invoke(null, key, emotes, 3_600_000L);
     }
 

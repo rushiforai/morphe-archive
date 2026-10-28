@@ -1295,6 +1295,7 @@ Value to return,Nilai yang dikembalikan
 Verified accounts,Akun terverifikasi
 Version %1$s,Versi %1$s
 Version %1$s for TikTok %2$s,Versi %1$s untuk TikTok %2$s
+Version %1$s for PineDrama %2$s,Versi %1$s untuk PineDrama %2$s
 Video,Video
 Video (MP4),Video (MP4)
 Video destination,Lokasi simpan video
@@ -1394,6 +1395,8 @@ Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll
 Hide the unread badges on the bottom tabs,Sembunyikan lencana belum dibaca di tab bawah
 "Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.","Menyembunyikan angka dan titik merah di semua tab bawah, termasuk Kotak Masuk dan Profil, serta gelembung di atas Kotak Masuk yang menghitung suka, pengikut, dan komentar baru, juga siapa yang sedang LIVE. Kotak masuk sendiri tetap menampilkan yang masuk."
 Speed while you hold the video,Kecepatan saat video ditahan
+Slide to change the hold speed,Geser untuk mengubah kecepatan tahan
+"While you hold a video, slide left or right to change its speed, and a bubble shows it. Letting go goes back to normal. A pull-down lock keeps the speed you slid to.","Saat menahan video, geser ke kiri atau kanan untuk mengubah kecepatannya. Gelembung menampilkan kecepatannya. Saat dilepas, kembali normal. Kunci dengan tarik ke bawah mempertahankan kecepatan yang dipilih."
 Hide mini dramas,Sembunyikan drama mini
 Hide TikTok's short drama episodes and the cards that promote them.,Sembunyikan episode drama pendek TikTok dan kartu yang mempromosikannya.
 Mini dramas,Drama mini
@@ -1460,7 +1463,8 @@ This preset doesn't match the installed gates. Nothing changed.,Preset ini tidak
 About overrides,Tentang penggantian
 "Use {creator}, {date} and {video_id} to build the name. Start with {creator}/ to put each creator in a folder. The file ending is added for you.","Pakai {creator}, {date}, dan {video_id} untuk menyusun nama. Awali dengan {creator}/ agar setiap kreator masuk ke foldernya sendiri. Ekstensi file ditambahkan otomatis."
 Save details beside the video,Simpan detail di samping video
-"Saves the caption, creator, link and post date in a text file next to the video. On Android 10 and later, the pair goes in Download or Documents under the same folder name. Applies to saves made by Hushfeed.","Menyimpan keterangan, kreator, tautan, dan tanggal unggah dalam file teks di samping video. Di Android 10 ke atas, pasangan file itu masuk ke Download atau Documents dengan nama folder yang sama. Berlaku untuk penyimpanan yang dilakukan Hushfeed."
+"Saves the caption, creator, link and post date in a text file next to the video, or one file for a photo post's original photos. On Android 10 and later, they go in Download or Documents under the same folder name. Applies to saves made by Hushfeed.","Menyimpan keterangan, kreator, tautan, dan tanggal unggah dalam file teks di samping video, atau satu file untuk foto asli dari unggahan foto. Di Android 10 ke atas, file itu masuk ke Download atau Documents dengan nama folder yang sama. Berlaku untuk penyimpanan yang dilakukan Hushfeed."
+"The photos saved, but their details file couldn't be written. Check your storage and save the post again to get it.","Foto sudah tersimpan, tetapi file detailnya tidak dapat ditulis. Periksa penyimpanan dan simpan unggahan lagi untuk mendapatkannya."
 Check for already-saved videos,Periksa video yang sudah disimpan
 Forget saved videos,Lupakan video tersimpan
 Undo forgetting saved videos,Batalkan melupakan video tersimpan
@@ -1487,6 +1491,8 @@ Video and details saved to %1$s,Video dan detail disimpan ke %1$s
 The already-saved check failed. Try again.,Pemeriksaan video tersimpan gagal. Coba lagi.
 Show download progress,Tampilkan progres unduhan
 Show a progress bar while a video saves.,Tampilkan bilah progres saat video disimpan.
+Skip the Share to sheet after a save,Lewati lembar berbagi setelah menyimpan
+TikTok opens a Share to sheet a few seconds after it saves a video. This stops it. The share button and the saved notice stay as they are.,TikTok membuka lembar berbagi beberapa detik setelah menyimpan video. Ini mencegahnya. Tombol bagikan dan pemberitahuan tersimpan tetap seperti biasa.
 Saving video,Menyimpan video
 Waiting to save video,Menunggu untuk menyimpan video
 Saving video: %1$s,Menyimpan video: %1$s
@@ -1563,6 +1569,8 @@ LIVE followers range,Rentang pengikut LIVE
 Show only LIVEs from creators with this many followers.,Hanya tampilkan LIVE dari kreator dengan jumlah pengikut sebanyak ini.
 Hide the comment bar on opened videos,Sembunyikan bilah komentar di video yang dibuka
 Hide the Clear display controls,Sembunyikan kontrol Tampilan bersih
+Keep the progress bar,Pertahankan bilah progres
+"Hide the Clear display controls leaves the progress bar in sight, so you can still see and drag it.","Sembunyikan kontrol Tampilan bersih membiarkan bilah progres tetap terlihat, jadi kamu masih bisa melihat dan menggesernya."
 "While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display, or pinch the screen.","Saat Tampilan bersih aktif, sembunyikan juga bilah progres, tombol tutup, serta tombol jeda dan kecepatan di bagian bawah. Kamu tetap bisa menggeser di sepanjang tepi bawah untuk berpindah di dalam video. Untuk keluar dari Tampilan bersih, tekan lama video lalu ketuk Pulihkan tampilan, atau cubit layar."
 "Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.","Sembunyikan bilah untuk menulis komentar di video yang kamu buka dari profil, hashtag, suara, atau pencarian, agar video memenuhi layar sampai ke bawah. Tombol komentar di kanan tetap membuka komentar."
 Build details,Detail build
@@ -1912,6 +1920,7 @@ Username last changed,Nama pengguna terakhir diubah
 Display name last changed,Nama tampilan terakhir diubah
 Private account,Akun privat
 Like the video,Sukai video
+Like or unlike the video,Sukai atau batal sukai video
 Liked videos,Video yang disukai
 Public,Publik
 Copy,Salin
@@ -1937,6 +1946,8 @@ Hide TikTok's wind-down screens,Sembunyikan layar penenang TikTok
 "Stops the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. Works only on accounts TikTok knows belong to adults. Teen accounts, and ones a parent links with Family Pairing, keep them. With Leave when TikTok says time is up on, the daily limit screen still shows so that switch can work.","Menghentikan jeda sebelum tidur, latihan napas, dan layar batas harian yang ditaruh TikTok di atas feed. Hanya berfungsi di akun yang TikTok tahu milik orang dewasa. Akun remaja, dan akun yang dihubungkan orang tua lewat Family Pairing, tetap memilikinya. Saat “Keluar saat TikTok bilang waktunya habis” menyala, layar batas harian tetap muncul agar sakelar itu bisa bekerja."
 Hide Footnotes,Sembunyikan Footnotes
 Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.,Sembunyikan banner Footnotes yang TikTok tampilkan pada video yang memiliki catatan. Video dan komentarnya tetap seperti semula.
+Hide the LIVE row on Following,Sembunyikan baris LIVE di Mengikuti
+"Hide the row of LIVE and story circles across the top of the Following feed, and the pill that counts them. For You is left as it is.","Sembunyikan baris lingkaran LIVE dan cerita di bagian atas tab Mengikuti, beserta pil yang menghitungnya. Untuk Kamu tetap seperti semula."
 Hide Bulletin board,Sembunyikan Bulletin board
 The Bulletin board rows TikTok adds to the Inbox leave the list. Chats and the other rows stay where they are.,Baris Bulletin board yang ditambahkan TikTok ke Kotak Masuk hilang dari daftar. Obrolan dan baris lainnya tetap di tempatnya.
 Hide the group chat prompt,Sembunyikan ajakan obrolan grup
@@ -2247,6 +2258,8 @@ Least viewed first,Paling sedikit ditonton dulu
 Most liked first,Paling banyak disukai dulu
 Least liked first,Paling sedikit disukai dulu
 "Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.","Mengurutkan kisi profil atau Disukai, dan video yang disematkan tetap di depan. Selama urutan dipilih, kisi terus memuat sendiri hingga 300 video, jadi urutannya mencakup lebih dari layar pertama. Tombol di sudut atas kisi mengubah urutan langsung di sana."
+Sort loaded videos on Liked grids,Urutkan video yang dimuat di kisi Disukai
+Same as profile grids,Sama seperti kisi profil
 Sort this grid,Urutkan kisi ini
 Blur the video behind the bar,Buramkan video di belakang bilah
 "Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.","Buramkan bagian video di feed utama yang ada di belakang pil kaca, sehingga terlihat seperti kaca buram. Perlu Tampilan kaca cair dan Android 12 ke atas."
@@ -2277,3 +2290,31 @@ Some recording files remain. Try deleting them again.,Beberapa file rekaman masi
 This setting isn't available. Search for another setting.,Setelan ini tidak tersedia. Cari setelan lain.
 Hide the Hushfeed row,Sembunyikan baris Hushfeed
 "Take Hushfeed out of TikTok's Settings and privacy. To open these settings, press and hold For You at the top of the feed, or Home if Long-press Home for Hushfeed settings is on.","Keluarkan Hushfeed dari Pengaturan dan privasi TikTok. Untuk membuka pengaturan ini, tekan lama Untuk Kamu di bagian atas feed, atau Beranda jika Tekan lama Beranda untuk pengaturan Hushfeed aktif."
+Open the search page,Buka halaman pencarian
+TikTok's search page couldn't be opened. Restart TikTok and try again.,Halaman pencarian TikTok tidak bisa dibuka. Mulai ulang TikTok lalu coba lagi.
+Fold the search into a button,Lipat pencarian jadi tombol
+"Shows a search button at the top left of the comments instead of the box, so the comments get that room back. Tap it to search, and tap it again to put the box away. Search within comments must be on.","Menampilkan tombol pencarian di kiri atas komentar sebagai ganti kotaknya, jadi komentar mendapat ruang itu kembali. Ketuk untuk mencari, lalu ketuk lagi untuk menyimpan kotaknya. “Cari dalam komentar” harus menyala."
+Put the comment search away,Tutup pencarian komentar
+Tap @names in bios,Ketuk @nama di bio
+An @username in a profile's bio opens that profile when you tap it. The rest of the bio still translates on a tap.,@nama pengguna di bio profil membuka profil itu saat diketuk. Bagian bio lainnya tetap diterjemahkan saat diketuk.
+autoplay auto play,putar otomatis autoplay
+picture in picture PiP,gambar dalam gambar PiP
+search suggestions,saran pencarian
+AI chat,chat AI
+AI Tako,AI Tako
+save photos,simpan foto
+Lock the feed at set times,Kunci feed pada waktu tertentu
+"The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.","Feed terkunci sendiri selama jam-jam ini, menurut jam ponselmu. Tulis hari dan jam seperti Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Kosongkan hari agar berlaku setiap hari. Waktu yang berakhir lebih awal dari mulainya berlanjut melewati tengah malam."
+Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.,Tidak dapat membaca %1$s. Tulis hari dan jam seperti Mon-Fri 21:00-07:00.
+%1$s starts and ends at the same time. Give it a different end time.,%1$s mulai dan berakhir pada waktu yang sama. Beri waktu selesai yang berbeda.
+Locked all week,Terkunci sepanjang minggu
+"Locked now, until %1$s","Terkunci sekarang, sampai %1$s"
+Next lock starts %1$s,Kunci berikutnya mulai %1$s
+"The feed is locked until %1$s. Messages, profiles and search still work.","Feed terkunci sampai %1$s. Pesan, profil, dan pencarian tetap berfungsi."
+Save only on Wi-Fi,Simpan hanya lewat Wi-Fi
+"Saves wait for Wi-Fi or another network that isn't metered, for up to 30 minutes, and stop if you leave it. Saving a frame still works anywhere.","Penyimpanan menunggu Wi-Fi atau jaringan lain yang tidak berkuota hingga 30 menit, dan berhenti jika kamu keluar darinya. Menyimpan bingkai tetap bisa di mana saja."
+Waiting for Wi-Fi,Menunggu Wi-Fi
+The last one is still waiting for Wi-Fi,Yang sebelumnya masih menunggu Wi-Fi
+Stopped waiting for Wi-Fi after 30 minutes. Save it again when you're on Wi-Fi.,Berhenti menunggu Wi-Fi setelah 30 menit. Simpan lagi saat kamu terhubung ke Wi-Fi.
+Saved %1$s of %2$s. The rest stopped when you left Wi-Fi. Save again on Wi-Fi.,Tersimpan %1$s dari %2$s. Sisanya berhenti saat kamu keluar dari Wi-Fi. Simpan lagi lewat Wi-Fi.
+The save stopped when you left Wi-Fi. Save it again on Wi-Fi.,Penyimpanan berhenti saat kamu keluar dari Wi-Fi. Simpan lagi lewat Wi-Fi.

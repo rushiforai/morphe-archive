@@ -467,7 +467,7 @@ public class FeedVisibilityTest {
 
             assertEquals(java.util.Arrays.asList(
                             "view id 'Home tab (47.5.3:op1)'",
-                            "view id 'Inbox tab (47.5.3:op2)'"),
+                            "view id 'Inbox tab (47.5.3:op2/pinedrama-47.5.3:hrp)'"),
                     HookStatus.missing("bottom navigation"));
             assertTrue(String.join(" ", HookStatus.report()).contains("bottom navigation"));
         } finally {

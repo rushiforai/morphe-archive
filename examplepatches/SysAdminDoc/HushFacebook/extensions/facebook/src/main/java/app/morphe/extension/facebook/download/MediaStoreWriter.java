@@ -69,12 +69,16 @@ final class MediaStoreWriter implements Downloader.Sink {
         this.details = details == null ? PostDetails.NONE : details;
     }
 
+    /** What the message names: {@link #location}, after the card's name when the save went to an SD card. */
+    private String shownLocation;
+
     /**
      * {@code Movies/Facebook} or {@code Pictures/Facebook}, or the top folder and the folder the
-     * person chose in their place, such as {@code Download/Clips}, for the message to the user.
+     * person chose in their place, such as {@code Download/Clips}, for the message to the user. A
+     * save on an SD card starts with the card's name, such as {@code SanDisk SD card/Movies/Facebook}.
      */
     String savedLocation() {
-        return location;
+        return shownLocation;
     }
 
     /** Only a successfully committed gallery row may be offered to another app. */
@@ -100,7 +104,11 @@ final class MediaStoreWriter implements Downloader.Sink {
         // path of the setting's choosing.
         location = to.directory(video) + "/" + SaveFolder.path(video);
 
-        Uri collection = to.collection(video);
+        // The same folders on an SD card when one is picked and in the phone (#274), and the
+        // message names the card first.
+        SaveStorage.Card card = SaveStorage.current(context);
+        shownLocation = card == null ? location : card.label + "/" + location;
+        Uri collection = to.collection(video, card == null ? null : card.volume);
 
         ContentValues values = new ContentValues();
         values.put(MediaStore.MediaColumns.DISPLAY_NAME, name(mime, collection));

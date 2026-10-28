@@ -626,6 +626,61 @@ public class DoubleTapCommentsTest {
         assertEquals(void.class, like.getReturnType());
     }
 
+    /**
+     * #248: Like or unlike presses the heart's own click, the toggle, on the video on screen and
+     * not the one the player still names. Each double tap is one press, so a second one takes
+     * the like back off, and the long press like is never used for it.
+     */
+    @Test public void aDoubleTapSetToLikeOrUnlikeClicksTheHeartOnScreenOncePerTap() {
+        VerticalViewPager pager = feed(root, "one", "two");
+        assem(pager, 0, "one");
+        assem(pager, 1, "two");
+        HeartAssem before = heart(pager, 0);
+        HeartAssem onScreen = heart(pager, 1);
+        layOut(root);
+        pager.scrollTo(0, PAGE_HEIGHT);
+        playing(new GestureActionsTest.Clip("one"));
+        Settings.DOUBLE_TAP_ACTION.save("like_toggle");
+        ShadowToast.reset();
+        try {
+            assertTrue("the tap is Hushfeed's, not TikTok's like", GestureActions.onDoubleTap());
+            assertEquals(1, onScreen.clicks);
+            assertTrue(GestureActions.onDoubleTap());
+            assertEquals("a second double tap is a second click", 2, onScreen.clicks);
+        } finally {
+            Settings.DOUBLE_TAP_ACTION.resetToDefault();
+        }
+        assertEquals(0, before.clicks);
+        assertEquals("never the like-only press", 0, onScreen.likes);
+        assertEquals(0, ShadowToast.shownToastCount());
+    }
+
+    @Test public void theHeartsClickIsChosenByShape() {
+        java.lang.reflect.Method click = GestureActions.heartClick(new HeartAssem());
+
+        assertNotNull(click);
+        assertEquals("Dw0", click.getName());
+        assertNull(GestureActions.heartClick(new BareAssem()));
+    }
+
+    @Test public void likeOrUnlikeOnALiveOrAnAdPressesNothing() {
+        VerticalViewPager pager = feed(root, "one", "live");
+        assem(pager, 0, "one");
+        HeartAssem before = heart(pager, 0);
+        layOut(root);
+        pager.scrollTo(0, PAGE_HEIGHT);
+        playing(new GestureActionsTest.Clip("one"));
+        Settings.DOUBLE_TAP_ACTION.save("like_toggle");
+        ShadowToast.reset();
+        try {
+            assertTrue(GestureActions.onDoubleTap());
+        } finally {
+            Settings.DOUBLE_TAP_ACTION.resetToDefault();
+        }
+        assertEquals(0, before.clicks);
+        assertEquals(L10n.t("Likes aren't available for this video"), ShadowToast.getTextOfLatestToast());
+    }
+
     @Test public void aBuildWithoutTheHeartsAbilityLikesNothingAndSaysSo() {
         VerticalViewPager pager = feed(root, "one");
         assem(pager, 0, "one");

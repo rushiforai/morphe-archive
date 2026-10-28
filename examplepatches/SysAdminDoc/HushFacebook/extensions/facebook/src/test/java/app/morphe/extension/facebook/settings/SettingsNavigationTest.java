@@ -111,7 +111,8 @@ public class SettingsNavigationTest {
         Map<String, Object> before = savedValues();
         assertFalse(titles().contains("More settings"));
         for (Preference section : page.sections()) {
-            String id = section.getTitle().toString();
+            // Headers keep their route ids when a section's title is renamed.
+            String id = page.navigation.sectionId(section);
             String key = "section_" + id;
             assertTrue("missing main header " + id, contains(key));
             assertFalse(page.navigation.isExpanded(id));
@@ -492,7 +493,11 @@ public class SettingsNavigationTest {
         app.morphe.extension.shared.settings.preference.ReopenSettingsAfterRestart.setRestarterForTests(restarted::add);
         page.navigation.navigate(SettingsNavigation.SUPPORT);
         int own = position(SettingsNavigation.RESTART_NOW);
-        assertEquals(list().getCount() - 3, own);
+        // Help and restart heads Report a problem and Restart Facebook, and Support the project heads the donation row.
+        assertEquals(list().getCount() - 4, own);
+        assertEquals("Help and restart", String.valueOf(((Preference) list().getItemAtPosition(own - 2)).getTitle()));
+        assertEquals(SettingsNavigation.REPORT, ((Preference) list().getItemAtPosition(own - 1)).getKey());
+        assertEquals("Support the project", String.valueOf(((Preference) list().getItemAtPosition(own + 1)).getTitle()));
         Preference row = (Preference) list().getItemAtPosition(own);
         assertEquals("Restart Facebook", String.valueOf(row.getTitle()));
         assertEquals("Facebook closes and reopens on this page.", String.valueOf(row.getSummary()));
@@ -771,11 +776,11 @@ public class SettingsNavigationTest {
         }
     }
 
-    private int categoryCount(String title) {
+    private int categoryCount(String id) {
         for (Preference section : page.sections()) {
-            if (title.contentEquals(section.getTitle())) return ((PreferenceCategory) section).getPreferenceCount();
+            if (id.equals(page.navigation.sectionId(section))) return ((PreferenceCategory) section).getPreferenceCount();
         }
-        throw new AssertionError("No section " + title);
+        throw new AssertionError("No section " + id);
     }
 
     /** Paused, the overview says what to do in order. It used to read as if a restart came before Resume. */
@@ -1045,7 +1050,7 @@ public class SettingsNavigationTest {
         tap("section_Playback");
         layout(dialog.getView());
         assertFalse(page.navigation.isExpanded("Playback"));
-        assertEquals("Playback", focusedTitle(a11y));
+        assertEquals("Video and audio", focusedTitle(a11y));
         page.navigation.navigate("About");
         layout(dialog.getView());
         tap("section_About");
@@ -1078,6 +1083,45 @@ public class SettingsNavigationTest {
     }
 
     /**
+     * Renamed sections and rows still answer to their earlier names, each tab bar pair answers to
+     * both of its switches' names, and an inline heading finds the rows under it without showing
+     * up as a result itself.
+     */
+    @Test public void earlierNamesAndInlineHeadingsStillFindTheirRows() {
+        Map<String, Object> before = savedValues();
+        String[][] searches = {
+                {"Playback", Settings.TAP_TO_PLAY.key},
+                {"Playback quality", Settings.PLAYBACK_QUALITY.key},
+                {"Writing", Settings.TAG_SUGGESTIONS_ONLY_AFTER_AT.key},
+                {"Set when you patched", null},
+                {String.valueOf(SwitchLabels.title(Settings.BOTTOM_TAB_BAR)), TabBarChoices.POSITION_ROW},
+                {String.valueOf(SwitchLabels.title(Settings.TOP_TAB_BAR)), TabBarChoices.POSITION_ROW},
+                {String.valueOf(SwitchLabels.title(Settings.TAB_BAR_SCROLL_AWAY)), TabBarChoices.SCROLLING_ROW},
+                {String.valueOf(SwitchLabels.title(Settings.KEEP_TAB_BAR)), TabBarChoices.SCROLLING_ROW},
+                {"Troubleshooting", Settings.SAVE_CRASH_FILE.key}};
+        for (String[] search : searches) {
+            findSearch(dialog.getView()).setText(search[0]);
+            ShadowLooper.idleMainLooper();
+            if (search[1] == null) assertTrue(titles().toString(), titles().contains("Built-in changes"));
+            else assertTrue(search[0] + " lost " + search[1] + ": " + titles(), contains(search[1]));
+            for (int i = 0; i < list().getCount(); i++) {
+                assertFalse(search[0] + " shows a heading as a result",
+                        list().getItemAtPosition(i) instanceof SettingsRows.Subheading);
+            }
+            for (TabBarChoices.Pair pair : TabBarChoices.Pair.values()) {
+                assertFalse("a switch behind a tab bar row is on the screen", contains(pair.first.key));
+                assertFalse("a switch behind a tab bar row is on the screen", contains(pair.second.key));
+            }
+        }
+        // Crash saving moved to Troubleshooting, so Privacy no longer answers to it.
+        findSearch(dialog.getView()).setText("Troubleshooting");
+        ShadowLooper.idleMainLooper();
+        assertFalse(titles().toString(), titles().contains("Privacy"));
+        page.navigation.back();
+        assertEquals(before, savedValues());
+    }
+
+    /**
      * Discussion #17 asked how to block Reels. The words people type reach the map, each line whose
      * patch is in opens its setting's page on that setting's row, and nothing saved changes.
      */
@@ -1094,7 +1138,7 @@ public class SettingsNavigationTest {
 
         String[][] links = {
                 {Settings.HIDE_FEED_REELS.key, "News feed"},
-                {Settings.TAP_TO_PLAY.key, "Playback"},
+                {Settings.TAP_TO_PLAY.key, "Video and audio"},
                 {Settings.HIDE_REELS_TAB.key, "Reels and Watch"},
                 {Settings.MARKETPLACE_ONLY.key, "Opening Facebook"}};
         for (String[] link : links) {
@@ -1493,8 +1537,9 @@ public class SettingsNavigationTest {
         page = page(dialog);
         Map<String, Object> before = savedValues();
         page.navigation.navigate("Privacy");
-        // Save crashes to Downloads and Close Facebook when you leave it belong to no patch, so every build has them.
-        List<String> expected = new ArrayList<>(Arrays.asList("Lock Facebook", "Lock after", "Save crashes to Downloads",
+        // Close Facebook when you leave it belongs to no patch, so every build has it. Save crashes to Downloads
+        // moved to Troubleshooting under Pause, backup and diagnostics.
+        List<String> expected = new ArrayList<>(Arrays.asList("Lock Facebook", "Lock after",
                 "Close Facebook when you leave it"));
         expected.addAll(ADS_MAP);
         assertEquals(expected, categoryTitles("Privacy"));
@@ -1555,6 +1600,28 @@ public class SettingsNavigationTest {
         assertEquals(anchor, ((Preference) list().getItemAtPosition(list().getFirstVisiblePosition())).getKey());
         assertEquals(offset, list().getChildAt(0).getTop());
         assertMainToolbar();
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "w390dp-h600dp-night-xhdpi")
+    public void recreationKeepsAnInlineHeadingAtTheTop() {
+        page.navigation.navigate("Playback");
+        layout(dialog.getView(), 1200);
+        int heading = -1;
+        for (int i = 0; i < list().getCount() && heading < 0; i++) {
+            if (list().getItemAtPosition(i) instanceof SettingsRows.Subheading) heading = i;
+        }
+        assertTrue("no inline heading in Video and audio", heading > 0);
+        String title = String.valueOf(((Preference) list().getItemAtPosition(heading)).getTitle());
+        list().setSelectionFromTop(heading, 0);
+        layout(dialog.getView(), 1200);
+        assertEquals(heading, list().getFirstVisiblePosition());
+        recreate();
+        layout(dialog.getView(), 1200);
+        // An inline heading has no key, so it comes back by its section and title.
+        Object first = list().getItemAtPosition(list().getFirstVisiblePosition());
+        assertTrue(String.valueOf(first), first instanceof SettingsRows.Subheading);
+        assertEquals(title, String.valueOf(((Preference) first).getTitle()));
     }
 
     @Test public void bothBackPathsClearSearchThenCloseWithoutCollapsingSections() {

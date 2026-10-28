@@ -1,0 +1,27 @@
+import pathlib,subprocess,sys,time,re,xml.etree.ElementTree as ET
+source=pathlib.Path('scripts/media-gallery/run.py').read_text(encoding='utf-8-sig');exec(source.split('\ntry:\n rpc.setup',1)[0])
+try:
+ rpc.setup('http://10.0.2.2:'+str(server.server_port));rpc.preference('videoChmateGestures',False);rpc.preference('mediaSwipeNavigation',True);rpc.preference('videoLetterboxTouch',True)
+ rpc.launch(2);wait_state('/clip.mp4','VideoViewerActivity',True);rpc.portrait();time.sleep(2);wait_state('/clip.mp4','VideoViewerActivity',True);rpc.video_prepare()
+ point=rpc.letterbox_point();print('LETTERBOX',point,flush=True);rpc.controls(False)
+ rpc.touch_point(0,point['x'],point['y']);rpc.touch_point(1,point['x'],point['y']);time.sleep(.2);check(rpc.state()['controls'],'tap in top letterbox shows player controls')
+ rpc.controls(False);rpc.touch_point(0,point['x'],point['y']);time.sleep(.75);check(rpc.state()['hold'],'hold in top letterbox enables 2x');rpc.touch_point(1,point['x'],point['y']);check(not rpc.state()['hold'],'hold release in letterbox restores speed')
+ rpc.preference('videoLetterboxTouch',False);rpc.controls(False);rpc.touch_point(0,point['x'],point['y']);rpc.touch_point(1,point['x'],point['y']);time.sleep(.2);check(not rpc.state()['controls'],'letterbox touch OFF ignores taps outside the video')
+ rpc.touch_point(0,point['x'],point['y']);time.sleep(.75);check(not rpc.state()['hold'],'letterbox touch OFF ignores long presses');rpc.touch_point(1,point['x'],point['y'])
+ rpc.preference('videoLetterboxTouch',True);rpc.swipe_point(point['x'],point['y']);wait_state('/two.gif','GifViewerActivity',True);check(True,'horizontal swipe in letterbox moves to next gallery media')
+ rpc.launch(2);wait_state('/clip.mp4','VideoViewerActivity',True);rpc.controls(True);time.sleep(1)
+ subprocess.run([adb,'-s',serial,'shell','uiautomator','dump','/sdcard/haiagaru-video-controls.xml'],check=True);subprocess.run([adb,'-s',serial,'pull','/sdcard/haiagaru-video-controls.xml','build/video-controls-ui.xml'],check=True)
+ nodes=list(ET.parse('build/video-controls-ui.xml').iter('node'))
+ def node(label):return next(n for n in nodes if n.get('text')==label or n.get('content-desc')==label)
+ def bounds(n):return tuple(map(int,re.findall(r'\d+',n.get('bounds',''))))
+ mute=node('ミュート');speed=node('再生速度');seek=next(n for n in nodes if n.get('class')=='android.widget.SeekBar')
+ check(bounds(mute)[1]>=bounds(seek)[1] and bounds(speed)[1]>=bounds(seek)[1],'mute and speed actions appear beside time below the seek bar')
+ before=rpc.playback_actions()
+ for item in (speed,mute):
+  x1,y1,x2,y2=bounds(item);subprocess.run([adb,'-s',serial,'shell','input','tap',str((x1+x2)//2),str((y1+y2)//2)],check=True);time.sleep(.2)
+ after=rpc.playback_actions();check(after['muted'] and after['speed']!=before['speed'],'real bottom controls toggle mute and playback speed')
+ subprocess.run([adb,'-s',serial,'shell','screencap','-p','/sdcard/haiagaru-video-bottom-controls.png'],check=True);subprocess.run([adb,'-s',serial,'pull','/sdcard/haiagaru-video-bottom-controls.png','build/video-bottom-controls.png'],check=True)
+ print('PASS_LETTERBOX_SUITE',len(checks),flush=True)
+finally:
+ try:rpc.cleanup()
+ finally:session.detach();server.shutdown()

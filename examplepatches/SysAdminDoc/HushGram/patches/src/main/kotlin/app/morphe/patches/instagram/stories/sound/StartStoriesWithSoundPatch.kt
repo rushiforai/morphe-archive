@@ -211,8 +211,9 @@ private fun BytecodePatchContext.findSessionGetter(start: String?): MethodRefere
  * The Reels audio toggle ([TOGGLE_AUDIO]) takes the audio state from the session (a static taking
  * the session), asks it whether sound is on (a no-argument boolean), flips that with an xor and
  * hands the result to a boolean setter on the same object. Found once, or the patch stops.
+ * `Start reels with sound` sets the same state.
  */
-private fun BytecodePatchContext.findAudioState(): Triple<MethodReference, MethodReference, MethodReference> {
+internal fun BytecodePatchContext.findAudioState(): Triple<MethodReference, MethodReference, MethodReference> {
     val toggles = mutableListOf<Method>()
     val marked = typesMarked(TOGGLE_AUDIO)
     classDefForEach { classDef ->

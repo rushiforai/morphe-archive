@@ -57,10 +57,29 @@ class VoiceMusicPlayerFixtureTest {
                 }
             }
 
+            // Add to Profile: one call after the own-list check's answer, on the same register, the rest stock.
+            val (toggle, at) = site.profile
+            val stockToggle = hosts.single { it.type == site.player }.methods.single { it.name == toggle.name &&
+                it.parameterTypes.map(CharSequence::toString) == toggle.parameterTypes.map(CharSequence::toString) }.controlBody()
+            val patched = toggle.controlBody()
+            assertEquals("$name: two lines added", stockToggle.size + 2, patched.size)
+            val mine = stockToggle[at - 1].namedRegisters()
+            assertEquals(PLAYER_PROFILE, patched[at].controlRef())
+            assertEquals("$name: the own-list answer goes in", mine, patched[at].namedRegisters())
+            assertEquals(Opcode.MOVE_RESULT, patched[at + 1].opcode)
+            assertEquals("$name: and comes back in the same register", mine, patched[at + 1].namedRegisters())
+            assertTrue("$name: the toggle fades the buttons", patched.count { it.controlRef() == "Landroid/view/View;->animate()Landroid/view/ViewPropertyAnimator;" } >= 2)
+            for (i in stockToggle.indices) {
+                val j = if (i < at) i else i + 2
+                assertEquals("$name: toggle stock $i", listOf(stockToggle[i].opcode, stockToggle[i].namedRegisters(), stockToggle[i].controlRef()),
+                    listOf(patched[j].opcode, patched[j].namedRegisters(), patched[j].controlRef()))
+            }
+
             val stub = { n: String -> context.mutableClassDefBy(VOICE_PLAYER).methods.single { it.name == n }.controlBody().map { it.controlRef() } }
             assertTrue(IS_MUSIC in stub("isMusic"))
             assertTrue("Lorg/telegram/messenger/MessageObject;->isVoice()Z" in stub("isVoice"))
             assertTrue("Lorg/telegram/messenger/MessageObject;->isVoiceOnce()Z" in stub("once"))
+            assertTrue("Lorg/telegram/messenger/MediaController;->getPlayingMessageObject()Lorg/telegram/messenger/MessageObject;" in stub("playing"))
             val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "voiceMusicPlayer" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }

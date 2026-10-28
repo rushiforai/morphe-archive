@@ -11,6 +11,7 @@ import app.morphe.extension.tiktok.settings.Settings;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -76,6 +77,35 @@ public class DownloadDetailsTest {
                 + "  \"published\": \"2023-11-14T22:13:20Z\",\n"
                 + "  \"caption\": \"Say \\\"hi\\\"\\\\\\n\\ttab \\u0001 🌿\"\n"
                 + "}\n", details.json());
+    }
+
+    @Test public void aPhotoPostLinksUnderPhotoAndSaysWhichPhotosWereAskedForAndSaved() {
+        Post post = new Post("alice", "123");
+        post.desc = "Trip";
+        DownloadDetails text = new DownloadDetails(post, false, true);
+        assertEquals("Creator: @alice\nLink: https://www.tiktok.com/@alice/photo/123\n"
+                + "Published: 2023-11-14T22:13:20Z\nPhotos asked for: 1, 3, 4\nPhotos saved: 1, 4\n\n"
+                + "Caption:\nTrip\n", text.content(List.of(1, 3, 4), List.of(1, 4)));
+        DownloadDetails json = new DownloadDetails(post, true, true);
+        assertEquals("application/json", json.mime());
+        assertEquals("{\n"
+                + "  \"id\": \"123\",\n"
+                + "  \"creator\": \"@alice\",\n"
+                + "  \"link\": \"https://www.tiktok.com/@alice/photo/123\",\n"
+                + "  \"published\": \"2023-11-14T22:13:20Z\",\n"
+                + "  \"photos_requested\": [1, 3, 4],\n"
+                + "  \"photos_saved\": [1, 4],\n"
+                + "  \"caption\": \"Trip\"\n"
+                + "}\n", json.content(List.of(1, 3, 4), List.of(1, 4)));
+        assertEquals("a video's file is unchanged", new DownloadDetails(post).text(), new DownloadDetails(post).content(null, null));
+    }
+
+    @Test public void aPhotoPostsDetailsFileIsNamedForThePostNotOnePhoto() {
+        Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE.save("{creator}_{video_id}");
+        Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE.save("{creator}_{video_id}_{index}");
+        Post post = new Post("alice", "123");
+        assertEquals("alice_123.txt", DownloadFilenameFormatter.formatPhotoDetailsName(post, "txt"));
+        assertEquals("alice_123_1.jpg", DownloadFilenameFormatter.formatOriginalPhotoName(post, 1, "jpg"));
     }
 
     @Test public void whatThePostDidNotHaveIsNullInJson() {

@@ -18,9 +18,11 @@ import app.morphe.util.addInstructions
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Field
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/interaction/CopyIds;"
@@ -65,9 +67,25 @@ internal object BioBindFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/String;", "Ljava/util/List;"),
 )
 
-/** The text view the bio item draws its signature in: its one TuxTextView field. */
-internal fun ClassDef.bioTextField(): Field? = fields.singleOrNull {
-    !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == TUX_TEXT_VIEW
+/**
+ * The bio on someone else's profile, with TikTok's translation: a sibling of the own-profile item
+ * with its own bind (`d23` on 47.5.3) and its own text view. Hooking only the base item left other
+ * people's bios without the long-press copy and without tappable @names (#247).
+ */
+internal const val TRANSLATED_SIGNATURE_COMPONENT =
+    "Lcom/ss/android/ugc/profile/platform/business/header/business/bio/business/signature/base/ProfileHeaderSignatureTranslationComponent;"
+
+internal object TranslatedBioBindFingerprint : Fingerprint(
+    // Final as well as public on 47.5.3, so the flags aren't pinned: it's the class's one (String, List) method.
+    definingClass = TRANSLATED_SIGNATURE_COMPONENT,
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;", "Ljava/util/List;"),
+)
+
+/** The text view a bio bind draws the signature in: the first TuxTextView field of its own class it reads. */
+internal fun Method.bioTextField(): FieldReference? = implementation?.instructions?.firstNotNullOfOrNull { instruction ->
+    if (instruction.opcode != Opcode.IGET_OBJECT) return@firstNotNullOfOrNull null
+    instruction.getReference<FieldReference>()?.takeIf { it.type == TUX_TEXT_VIEW && it.definingClass == definingClass }
 }
 
 /** The share model builder's one BaseSharePackage field, the package the sheet is built from. */
@@ -78,9 +96,9 @@ internal fun ClassDef.sharePackageField(): Field? = fields.singleOrNull {
 @Suppress("unused")
 val copyIdsPatch = bytecodePatch(
     name = "Copy bio and IDs",
-    description = "Lets you long-press a bio to copy it, and adds share sheet buttons that " +
-        "copy a username, user ID or video ID. On by default. Turn it off in Hushfeed settings > " +
-        "App.",
+    description = "Lets you long-press a bio to copy it, makes the @names in a bio open those " +
+        "profiles on a tap, and adds share sheet buttons that copy a username, user ID or video " +
+        "ID. On by default. Turn it off in Hushfeed settings > App.",
     default = true,
 ) {
     category("Interaction")
@@ -93,22 +111,24 @@ val copyIdsPatch = bytecodePatch(
             "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableCopyIds()V",
         )
 
-        val bioText = classDefBy(SIGNATURE_COMPONENT).bioTextField()
-            ?: throw PatchException("Copy bio and IDs: $SIGNATURE_COMPONENT has no single text view field.")
-        BioBindFingerprint.method.apply {
-            // p0 and p1 are copied down first, so a larger frame can't push them past v15.
-            if (implementation!!.registerCount - 3 < 2) {
-                throw PatchException("Copy bio and IDs: the bio bind has no two free registers.")
+        listOf(BioBindFingerprint, TranslatedBioBindFingerprint).forEach { fingerprint ->
+            fingerprint.method.apply {
+                val bioText = bioTextField()
+                    ?: throw PatchException("Copy bio and IDs: $definingClass's bio bind reads no text view.")
+                // p0 and p1 are copied down first, so a larger frame can't push them past v15.
+                if (implementation!!.registerCount - 3 < 2) {
+                    throw PatchException("Copy bio and IDs: $definingClass's bio bind has no two free registers.")
+                }
+                addInstructions(
+                    0,
+                    """
+                        move-object/from16 v0, p0
+                        iget-object v0, v0, $definingClass->${bioText.name}:$TUX_TEXT_VIEW
+                        move-object/from16 v1, p1
+                        invoke-static { v0, v1 }, $EXTENSION->onBio(Landroid/view/View;Ljava/lang/String;)V
+                    """,
+                )
             }
-            addInstructions(
-                0,
-                """
-                    move-object/from16 v0, p0
-                    iget-object v0, v0, $SIGNATURE_COMPONENT->${bioText.name}:$TUX_TEXT_VIEW
-                    move-object/from16 v1, p1
-                    invoke-static { v0, v1 }, $EXTENSION->onBio(Landroid/view/View;Ljava/lang/String;)V
-                """,
-            )
         }
 
         // The share model's constructor, before its super call: only p1, the builder, is read.

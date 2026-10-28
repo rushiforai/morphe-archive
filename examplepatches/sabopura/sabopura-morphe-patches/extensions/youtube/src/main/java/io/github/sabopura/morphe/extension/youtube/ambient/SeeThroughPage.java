@@ -160,9 +160,6 @@ public final class SeeThroughPage {
             clearedViews.keySet().removeIf(view -> !view.isAttachedToWindow());
             clearBackgrounds(host, player, host.getWidth() / 3, 0);
             statusClearedViews = clearedViews.size();
-            hiddenViews.keySet().removeIf(view -> !view.isAttachedToWindow());
-            hideCinematic(host.getRootView(), player, 0);
-            statusHiddenViews = hiddenViews.size();
             if (changed) {
                 refreshLithoBackgrounds();
                 if (Log.isLoggable(TAG, Log.DEBUG)) {
@@ -179,11 +176,6 @@ public final class SeeThroughPage {
             }
             clearedViews.clear();
             statusClearedViews = 0;
-            for (Map.Entry<View, Float> entry : hiddenViews.entrySet()) {
-                entry.getKey().setAlpha(entry.getValue());
-            }
-            hiddenViews.clear();
-            statusHiddenViews = 0;
             restoreHost();
             refreshLithoBackgrounds();
         }
@@ -196,6 +188,12 @@ public final class SeeThroughPage {
      * to black in between. The few views involved are put back right away.
      */
     static void keep() {
+        for (View view : hiddenViews.keySet()) {
+            if (view.getAlpha() != 0f) {
+                view.setAlpha(0f);
+                restoredCount++;
+            }
+        }
         if (!active) return;
         for (Map.Entry<View, Object[]> entry : clearedViews.entrySet()) {
             Drawable drawable = (Drawable) entry.getValue()[0];
@@ -205,11 +203,27 @@ public final class SeeThroughPage {
                 restoredCount++;
             }
         }
-        for (View view : hiddenViews.keySet()) {
-            if (view.getAlpha() != 0f) {
-                view.setAlpha(0f);
-                restoredCount++;
+    }
+
+    private static boolean cinematicSuppressed;
+
+    /**
+     * YouTube's own ambient mode is kept hidden whenever our light shows, in every mode, so the
+     * two never stack. Its setting is left alone: once our light is off, it comes back.
+     */
+    static void suppressCinematic(View root, View player, boolean wanted) {
+        if (wanted && root != null) {
+            cinematicSuppressed = true;
+            hiddenViews.keySet().removeIf(view -> !view.isAttachedToWindow());
+            hideCinematic(root, player, 0);
+            statusHiddenViews = hiddenViews.size();
+        } else if (cinematicSuppressed) {
+            cinematicSuppressed = false;
+            for (Map.Entry<View, Float> entry : hiddenViews.entrySet()) {
+                entry.getKey().setAlpha(entry.getValue());
             }
+            hiddenViews.clear();
+            statusHiddenViews = 0;
         }
     }
 
@@ -319,6 +333,59 @@ public final class SeeThroughPage {
         hostOriginalBackground = null;
     }
 
+    /** Backgrounds outside the watch page cleared for the light surface: {drawable, alpha}. */
+    private static final IdentityHashMap<View, Object[]> clearedAncestors = new IdentityHashMap<>();
+    private static final String[] SYSTEM_BAR_BACKGROUND_IDS = {
+            "statusBarBackground", "navigationBarBackground"
+    };
+
+    /**
+     * With the light on a surface underneath the window, everything the window paints below
+     * the watch page would hide it: the views around the page and the system bar strips.
+     */
+    static void clearAroundPage(View host) {
+        for (android.view.ViewParent parent = host.getParent(); parent instanceof View;
+             parent = parent.getParent()) {
+            clearAncestor((View) parent);
+        }
+        View root = host.getRootView();
+        if (systemBarIds == null) {
+            systemBarIds = new int[SYSTEM_BAR_BACKGROUND_IDS.length];
+            for (int i = 0; i < systemBarIds.length; i++) {
+                systemBarIds[i] = root.getResources()
+                        .getIdentifier(SYSTEM_BAR_BACKGROUND_IDS[i], "id", "android");
+            }
+        }
+        for (int id : systemBarIds) {
+            if (id != 0) clearAncestor(root.findViewById(id));
+        }
+    }
+
+    private static int[] systemBarIds;
+
+    private static void clearAncestor(View view) {
+        Drawable background = view == null ? null : view.getBackground();
+        if (background == null) return;
+        Object[] saved = clearedAncestors.get(view);
+        if (saved != null && saved[0] == background) {
+            if (background.getAlpha() != 0) background.setAlpha(0);
+            return;
+        }
+        Drawable mutable = background.mutate();
+        clearedAncestors.put(view, new Object[]{mutable, mutable.getAlpha()});
+        mutable.setAlpha(0);
+        view.invalidate();
+    }
+
+    static void restoreAroundPage() {
+        for (Map.Entry<View, Object[]> entry : clearedAncestors.entrySet()) {
+            Object[] saved = entry.getValue();
+            ((Drawable) saved[0]).setAlpha((Integer) saved[1]);
+            entry.getKey().invalidate();
+        }
+        clearedAncestors.clear();
+    }
+
     private static void clearBackgrounds(View view, View player, int minWidth, int depth) {
         if (view == null || view == player || depth > 48
                 || view.getVisibility() != View.VISIBLE) return;
@@ -403,7 +470,7 @@ public final class SeeThroughPage {
         }
 
         @Override public int getOpacity() {
-            return PixelFormat.OPAQUE;
+            return light.lightOnSurface() ? PixelFormat.TRANSLUCENT : PixelFormat.OPAQUE;
         }
     }
 

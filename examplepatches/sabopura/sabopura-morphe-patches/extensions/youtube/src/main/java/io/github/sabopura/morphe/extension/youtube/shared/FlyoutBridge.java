@@ -1,6 +1,5 @@
 package io.github.sabopura.morphe.extension.youtube.shared;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -13,11 +12,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -26,19 +28,21 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import io.github.sabopura.morphe.extension.youtube.ambient.AmbientLightController;
 import io.github.sabopura.morphe.extension.youtube.ambient.AmbientLightSettings;
+import io.github.sabopura.morphe.extension.youtube.danmaku.DanmakuController;
 import io.github.sabopura.morphe.extension.youtube.danmaku.DanmakuSettings;
 
 /**
- * Adds native YouTube rows to the player's settings flyout: one quick toggle per patched
- * feature plus a single settings row (a chooser when several features are patched in).
- * Long-pressing a toggle opens that feature's detailed settings directly.
+ * Adds native YouTube rows to the player's settings flyout: one row with an on/off switch per
+ * patched feature, like YouTube's own "Loop video" row. Long-pressing a row opens that
+ * feature's detailed settings.
  */
 @SuppressWarnings("unused")
 public final class FlyoutBridge {
     private static final String TAG = "SabopuraPlayer";
     private static final String ROW_TAG_PREFIX = "sabopura_flyout_";
-    private static final String SETTINGS_TAG = ROW_TAG_PREFIX + "settings";
+    private static final String LONG_PRESS_HINT_SHOWN = "flyout_long_press_hint_shown";
     static final String DANMAKU_SETTINGS_ACTION = "io.github.sabopura.morphe.action.OPEN_DANMAKU_SETTINGS_V2";
     static final String AMBIENT_SETTINGS_ACTION = "io.github.sabopura.morphe.action.OPEN_AMBIENT_LIGHT_SETTINGS";
 
@@ -91,66 +95,88 @@ public final class FlyoutBridge {
     private static boolean inject(Object flyout) {
         LinearLayout container = findMenuContainer(flyout);
         if (container == null) return false;
-        if (findByTag(container, SETTINGS_TAG) != null) return true;
+        List<Feature> features = features();
+        if (features.isEmpty()) return true;
+        if (findByTag(container, ROW_TAG_PREFIX + features.get(0).id) != null) return true;
         if (!looksLikePlayerSettings(container)) return false;
 
         Context context = container.getContext();
-        List<Feature> features = features();
-        if (features.isEmpty()) return true;
-        int index = flyout instanceof Dialog ? Math.min(1, container.getChildCount()) : 0;
+        int first = flyout instanceof Dialog ? Math.min(1, container.getChildCount()) : 0;
+        int index = first;
         for (Feature feature : features) {
             feature.initialize(context);
-            View toggle = createRow(context, container, feature.toggleTitle(), feature.icon);
-            if (toggle == null) return true;
-            toggle.setTag(ROW_TAG_PREFIX + feature.id);
-            TextView toggleText = findText(toggle);
-            toggle.setOnClickListener(view -> {
+            View row = createRow(context, container, feature.label(), feature.icon);
+            if (row == null) return true;
+            row.setTag(ROW_TAG_PREFIX + feature.id);
+            TextView text = findText(row);
+            FlyoutSwitch toggle = addSwitch(row, text);
+            if (toggle != null) {
+                toggle.setChecked(feature.enabled(), false);
+            } else if (text != null) {
+                text.setText(feature.toggleTitle());
+            }
+            row.setOnClickListener(view -> {
                 feature.toggle(view.getContext());
-                if (toggleText != null) toggleText.setText(feature.toggleTitle());
+                if (toggle != null) {
+                    toggle.setChecked(feature.enabled(), true);
+                } else if (text != null) {
+                    text.setText(feature.toggleTitle());
+                }
+                showLongPressHintOnce(view.getContext());
             });
-            toggle.setOnLongClickListener(view -> {
+            row.setOnLongClickListener(view -> {
+                Context viewContext = view.getContext();
+                int textColor = text != null ? text.getCurrentTextColor() : 0xFFFFFFFF;
                 dismissFlyouts();
-                openSettings(view.getContext(), feature.settingsAction);
+                QuickSettingsSheet.show(viewContext, feature.label(), feature::enabled,
+                        () -> feature.toggle(viewContext), feature.sliders(),
+                        Views.isJapanese() ? "光の見せ方" : "How the light looks",
+                        feature.looks(),
+                        () -> openSettings(viewContext, feature.settingsAction), textColor);
                 return true;
             });
-            container.addView(toggle, Math.min(index++, container.getChildCount()));
+            row.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                @Override public void onInitializeAccessibilityNodeInfo(
+                        View host, AccessibilityNodeInfo info) {
+                    super.onInitializeAccessibilityNodeInfo(host, info);
+                    info.setClassName(Switch.class.getName());
+                    info.setCheckable(true);
+                    info.setChecked(feature.enabled());
+                    info.addAction(new AccessibilityNodeInfo.AccessibilityAction(
+                            AccessibilityNodeInfo.ACTION_LONG_CLICK, feature.settingsTitle()));
+                }
+            });
+            container.addView(row, Math.min(index++, container.getChildCount()));
         }
-
-        String settingsTitle;
-        if (features.size() == 1) {
-            settingsTitle = features.get(0).settingsTitle();
-        } else {
-            settingsTitle = Views.isJapanese() ? "弾幕・アンビエントライトの設定"
-                    : "Danmaku & ambient light settings";
-        }
-        View settings = createRow(context, container, settingsTitle,
-                "yt_outline_gear_vd_theme_24|yt_outline_settings_vd_theme_24");
-        if (settings == null) return true;
-        settings.setTag(SETTINGS_TAG);
-        settings.setOnClickListener(view -> {
-            Context viewContext = view.getContext();
-            dismissFlyouts();
-            if (features.size() == 1) {
-                openSettings(viewContext, features.get(0).settingsAction);
-            } else {
-                chooseSettings(viewContext, features);
-            }
-        });
-        container.addView(settings, Math.min(index, container.getChildCount()));
+        moveListTopGap(container, first, index);
         return true;
     }
 
-    private static void chooseSettings(Context context, List<Feature> features) {
-        CharSequence[] titles = new CharSequence[features.size()];
-        for (int i = 0; i < titles.length; i++) titles[i] = features.get(i).label();
+    /**
+     * YouTube's list starts with a gap meant to sit under the sheet's drag handle. With the
+     * rows added above the list, the gap belongs above the first added row instead.
+     */
+    private static void moveListTopGap(ViewGroup container, int firstRow, int listIndex) {
+        View list = childAt(container, listIndex);
+        View row = childAt(container, firstRow);
+        int gap = list == null ? 0 : list.getPaddingTop();
+        if (gap <= 0 || row == null || !list.getClass().getName().contains("RecyclerView")
+                || !(row.getLayoutParams() instanceof ViewGroup.MarginLayoutParams)) return;
+        list.setPadding(list.getPaddingLeft(), 0, list.getPaddingRight(), list.getPaddingBottom());
+        ((ViewGroup.MarginLayoutParams) row.getLayoutParams()).topMargin += gap;
+        row.requestLayout();
+    }
+
+    /** The settings row is gone, so the first toggle tells once how to reach the settings. */
+    private static void showLongPressHintOnce(Context context) {
         try {
-            new AlertDialog.Builder(context)
-                    .setItems(titles, (dialog, which) ->
-                            openSettings(context, features.get(which).settingsAction))
-                    .show();
+            android.content.SharedPreferences store = SettingsStore.open(context);
+            if (store.getBoolean(LONG_PRESS_HINT_SHOWN, false)) return;
+            store.edit().putBoolean(LONG_PRESS_HINT_SHOWN, true).apply();
+            Toast.makeText(context, Views.isJapanese() ? "長押しで設定を開けます"
+                    : "Long-press for settings", Toast.LENGTH_LONG).show();
         } catch (Throwable throwable) {
-            // A non-Activity context cannot host a dialog; open the first screen instead.
-            openSettings(context, features.get(0).settingsAction);
+            Log.w(TAG, "Unable to show the long-press hint", throwable);
         }
     }
 
@@ -209,9 +235,17 @@ public final class FlyoutBridge {
         return current;
     }
 
+    /**
+     * The main player menu. Its "More" page also lists loop and sleep timer, but the rows belong
+     * on the first page only: in Japanese that page never matched, so the rows showed up once in
+     * Japanese and twice in English.
+     */
     private static boolean looksLikePlayerSettings(View root) {
         Set<String> labels = new HashSet<>();
         collectText(root, labels);
+        if (!containsLabel(labels, "quality") && !containsLabel(labels, "画質")
+                && !containsLabel(labels, "playback speed")
+                && !containsLabel(labels, "再生速度")) return false;
         int matches = 0;
         String[] expected = {
                 "quality", "playback speed", "captions", "additional settings", "loop video",
@@ -220,14 +254,16 @@ public final class FlyoutBridge {
                 "スリープタイマー", "画面のロック"
         };
         for (String item : expected) {
-            for (String label : labels) {
-                if (label.equals(item) || label.startsWith(item + " ")) {
-                    matches++;
-                    break;
-                }
-            }
+            if (containsLabel(labels, item)) matches++;
         }
         return matches >= 2;
+    }
+
+    private static boolean containsLabel(Set<String> labels, String item) {
+        for (String label : labels) {
+            if (label.equals(item) || label.startsWith(item + " ")) return true;
+        }
+        return false;
     }
 
     private static void collectText(View view, Set<String> result) {
@@ -268,7 +304,13 @@ public final class FlyoutBridge {
         if (layout == 0) return null;
         View row = LayoutInflater.from(context).inflate(layout, parent, false);
         TextView text = findText(row);
-        if (text != null) text.setText(title);
+        if (text != null) {
+            text.setText(title);
+            // YouTube's own rows are drawn in the medium weight of the same font and size.
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                text.setTypeface(android.graphics.Typeface.create(text.getTypeface(), 500, false));
+            }
+        }
 
         int iconId = Views.resource(context, "id", "list_item_icon_primary");
         ImageView icon = iconId == 0 ? null : row.findViewById(iconId);
@@ -283,9 +325,6 @@ public final class FlyoutBridge {
             icon.setImageDrawable(drawable);
             if (text != null) icon.setImageTintList(ColorStateList.valueOf(text.getCurrentTextColor()));
         }
-        int secondaryId = Views.resource(context, "id", "list_item_secondary_container");
-        View secondary = secondaryId == 0 ? null : row.findViewById(secondaryId);
-        if (secondary != null) secondary.setVisibility(View.GONE);
         TypedArray attributes = context.obtainStyledAttributes(
                 new int[]{android.R.attr.selectableItemBackground});
         try {
@@ -294,6 +333,25 @@ public final class FlyoutBridge {
             attributes.recycle();
         }
         return row;
+    }
+
+    /** Puts a switch where the row shows its chevron or detail text; null if there is no slot. */
+    private static FlyoutSwitch addSwitch(View row, TextView text) {
+        int secondaryId = Views.resource(row.getContext(), "id", "list_item_secondary_container");
+        View secondary = secondaryId == 0 ? null : row.findViewById(secondaryId);
+        if (!(secondary instanceof ViewGroup)) return null;
+        ViewGroup slot = (ViewGroup) secondary;
+        for (int i = 0; i < slot.getChildCount(); i++) slot.getChildAt(i).setVisibility(View.GONE);
+        FlyoutSwitch toggle = new FlyoutSwitch(row.getContext());
+        if (text != null) toggle.setTextColor(text.getCurrentTextColor());
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+                android.view.Gravity.CENTER_VERTICAL);
+        // YouTube's own switches end 5 dp further in than this layout's chevron slot.
+        params.setMarginEnd(Math.round(5 * row.getResources().getDisplayMetrics().density));
+        slot.addView(toggle, params);
+        slot.setVisibility(View.VISIBLE);
+        return toggle;
     }
 
     private static TextView findText(View row) {
@@ -370,6 +428,53 @@ public final class FlyoutBridge {
 
         String settingsTitle() {
             return Views.isJapanese() ? label() + "の設定" : label() + " settings";
+        }
+
+        /** The effects switchable from the long-press sheet while watching. */
+        java.util.List<QuickSettingsSheet.Toggle> looks() {
+            if (this == DANMAKU) return java.util.Collections.emptyList();
+            return java.util.Arrays.asList(
+                    new QuickSettingsSheet.Toggle(AmbientLightSettings.PICTURE_BACKDROP,
+                            "背景に動画の映像を映す", "Show the video behind the page", false),
+                    new QuickSettingsSheet.Toggle(AmbientLightSettings.FALLOFF,
+                            "画面の下に行くほど暗くする", "Darker towards the bottom", false),
+                    new QuickSettingsSheet.Toggle(AmbientLightSettings.SCENE_WAVE,
+                            "場面が変わったら光を広げる", "Spread the light on scene changes",
+                            false),
+                    new QuickSettingsSheet.Toggle(AmbientLightSettings.BREATHE,
+                            "一時停止中は光をゆっくり明滅", "Pulse slowly while paused", true));
+        }
+
+        /** The values the long-press sheet offers, the same lists as the settings screen. */
+        java.util.List<QuickSettingsSheet.Slider> sliders() {
+            boolean japanese = Views.isJapanese();
+            int[] percents = {20, 35, 50, 65, 75, 90, 100};
+            if (this == DANMAKU) {
+                return java.util.Arrays.asList(
+                        new QuickSettingsSheet.Slider("danmaku_font_size", "文字サイズ", "Text size",
+                                new int[]{12, 16, 20, 22, 24, 28, 32, 40, 48},
+                                DanmakuController.configFontSizeSp(), " sp"),
+                        new QuickSettingsSheet.Slider("danmaku_opacity", "不透明度", "Opacity",
+                                percents, DanmakuController.configOpacityPercent(), "%"),
+                        new QuickSettingsSheet.Slider("danmaku_duration", "画面を横切る時間",
+                                "Scroll duration", new int[]{3, 5, 8, 10, 12, 15, 20},
+                                DanmakuController.configTravelDurationSeconds(),
+                                japanese ? "秒" : " s"),
+                        new QuickSettingsSheet.Slider("danmaku_coverage", "縦方向の表示範囲",
+                                "Vertical coverage", percents,
+                                DanmakuController.configLaneCoveragePercent(), "%"));
+            }
+            return java.util.Arrays.asList(
+                    new QuickSettingsSheet.Slider("ambient_brightness", "明るさ", "Brightness",
+                            new int[]{50, 70, 85, 100, 115, 130, 150, 175, 200},
+                            AmbientLightController.configBrightnessPercent(), "%"),
+                    new QuickSettingsSheet.Slider("ambient_saturation", "彩度", "Colour saturation",
+                            new int[]{0, 50, 80, 100, 120, 140, 160, 200, 250},
+                            AmbientLightController.configSaturationPercent(), "%"),
+                    new QuickSettingsSheet.Slider("ambient_smoothing", "なめらかさ（ちらつき軽減）",
+                            "Smoothing (flicker reduction)", new int[]{0, 25, 50, 70, 85}, 50, "",
+                            japanese ? new String[]{"オフ", "弱", "中", "強", "最大"}
+                                    : new String[]{"Off", "Low", "Medium", "High", "Maximum"}));
         }
     }
 }

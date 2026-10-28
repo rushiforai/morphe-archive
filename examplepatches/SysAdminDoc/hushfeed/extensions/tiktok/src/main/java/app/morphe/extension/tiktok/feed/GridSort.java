@@ -39,6 +39,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.Setting;
+import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -65,6 +66,9 @@ import app.morphe.extension.tiktok.settings.preference.SettingsUi;
  * the way scrolling to its end would, until TikTok has no more, a page adds nothing, or the grid
  * holds {@link #LOAD_CAP} videos. That way the order covers the profile rather than the first
  * screen of it. A chip over the grid's top corner names the order and changes it in place.
+ *
+ * <p>The Liked tab has its own order, which follows the profile grids until one is chosen for it
+ * there or from its chip ({@link #orderFor}).
  */
 @SuppressWarnings("unused")
 public final class GridSort {
@@ -87,6 +91,15 @@ public final class GridSort {
             "Original order", "Newest first", "Oldest first", "Longest first", "Shortest first",
             "Most viewed first", "Least viewed first", "Most liked first", "Least liked first",
     };
+    /**
+     * TikTok's number for a grid's tab, as its adapter is built (#180): 0 posts, 1 Liked, 4 and
+     * 25 Favorites, 14 private. Both of TikTok's profile tab fragments use these numbers.
+     */
+    static final int TAB_POSTS = 0;
+    static final int TAB_LIKED = 1;
+    static final int TAB_FAVORITES = 4;
+    static final int TAB_PRIVATE = 14;
+    static final int TAB_FAVORITE_VIDEOS = 25;
 
     /** The most videos a sorted grid loads by itself. Past this the reader's scrolling loads more. */
     static final int LOAD_CAP = 300;
@@ -111,10 +124,56 @@ public final class GridSort {
     private static final Map<Object, List<?>> HANDED = new WeakHashMap<>();
     /** Adapters whose handed list was given the grid's order, so it no longer holds TikTok's. */
     private static final Map<Object, Boolean> REWRITTEN = new WeakHashMap<>();
+    /** Per adapter, TikTok's number for the tab it draws, where the patch passed one on. */
+    private static final Map<Object, Integer> TABS = new WeakHashMap<>();
     /** Per grid fragment class, the field that holds its adapter. */
     private static final Map<Class<?>, Field> ADAPTER_FIELDS = new WeakHashMap<>();
 
     private GridSort() {
+    }
+
+    /** Called as TikTok builds a grid adapter, with the number of the tab it's for. */
+    public static void tab(Object adapter, int type) {
+        if (adapter == null) return;
+        synchronized (ORIGINALS) {
+            TABS.put(adapter, type);
+        }
+    }
+
+    /**
+     * The order the grid this adapter draws follows. The Liked tab has its own setting, which
+     * follows the profile grids ("profile", its default) until an order is chosen for it. Posts, Favorites and the private
+     * tab follow the profile setting, and a tab TikTok numbers some other way keeps TikTok's
+     * order. An adapter whose tab never came in (a build the patch couldn't hook) follows the
+     * profile setting, as every grid did before Liked got its own.
+     */
+    static String orderFor(Object adapter) {
+        Integer type;
+        synchronized (ORIGINALS) {
+            type = adapter == null ? null : TABS.get(adapter);
+        }
+        if (type == null) return Settings.PROFILE_GRID_SORT.get();
+        switch (type) {
+            case TAB_LIKED:
+                String liked = Settings.LIKED_GRID_SORT.get();
+                return indexOf(liked) >= 0 ? liked : Settings.PROFILE_GRID_SORT.get();
+            case TAB_POSTS:
+            case TAB_FAVORITES:
+            case TAB_PRIVATE:
+            case TAB_FAVORITE_VIDEOS:
+                return Settings.PROFILE_GRID_SORT.get();
+            default:
+                return OFF;
+        }
+    }
+
+    /** The setting a choice on this adapter's chip saves to. */
+    static StringSetting settingFor(Object adapter) {
+        Integer type;
+        synchronized (ORIGINALS) {
+            type = adapter == null ? null : TABS.get(adapter);
+        }
+        return type != null && type == TAB_LIKED ? Settings.LIKED_GRID_SORT : Settings.PROFILE_GRID_SORT;
     }
 
     /**
@@ -122,9 +181,10 @@ public final class GridSort {
      * came. A fresh list starts the loading over.
      */
     public static List<?> data(Object adapter, List<?> list) {
-        HookStatus.bound("profile grid sort", OFF.equals(Settings.PROFILE_GRID_SORT.get()) ? "order left" : "order sorted");
+        String chosen = orderFor(adapter);
+        HookStatus.bound("profile grid sort", OFF.equals(chosen) ? "order left" : "order sorted");
         List<?> order = adapter == null ? list : tiktokOrder(adapter, list);
-        List<?> out = sorted(order);
+        List<?> out = sorted(order, chosen);
         if (adapter != null) {
             remember(adapter, list, order);
             int size = list == null ? 0 : list.size();
@@ -139,9 +199,10 @@ public final class GridSort {
      * that moved anything also gets a full refresh once TikTok's own call is through.
      */
     public static List<?> page(Object adapter, List<?> list) {
-        HookStatus.bound("profile grid sort", OFF.equals(Settings.PROFILE_GRID_SORT.get()) ? "order left" : "order sorted");
+        String chosen = orderFor(adapter);
+        HookStatus.bound("profile grid sort", OFF.equals(chosen) ? "order left" : "order sorted");
         List<?> order = adapter == null ? list : tiktokOrder(adapter, list);
-        List<?> out = sorted(order);
+        List<?> out = sorted(order, chosen);
         if (adapter != null) {
             int before = remember(adapter, list, order);
             int size = list == null ? 0 : list.size();
@@ -166,7 +227,7 @@ public final class GridSort {
 
     /**
      * Puts {@code order} on the grid this adapter draws, from the list TikTok last gave it, and
-     * saves it as the order every grid follows.
+     * saves it as the order its kind of grid follows: the Liked tab's own, or the profile grids'.
      */
     static void apply(Object adapter, String order) {
         apply(adapter, order, null);
@@ -180,7 +241,7 @@ public final class GridSort {
         synchronized (Setting.class) {
             boolean retainedOriginal = control != null && control.originalChosen;
             if (control != null) control.stopRetainingOriginal();
-            saved = Settings.PROFILE_GRID_SORT.save(order);
+            saved = settingFor(adapter).save(order);
             if (control != null && (saved ? control == chosenFrom && OFF.equals(order) : retainedOriginal)) {
                 control.retainOriginal();
             }
@@ -194,7 +255,7 @@ public final class GridSort {
             original = ORIGINALS.get(adapter);
         }
         if (original != null) {
-            List<?> out = sorted(original);
+            List<?> out = sorted(original, orderFor(adapter));
             Field items = Reflect.field(adapter.getClass(), "mmItems");
             if (items != null) {
                 try {
@@ -245,7 +306,7 @@ public final class GridSort {
             }
             return list;
         }
-        String chosen = Settings.PROFILE_GRID_SORT.get();
+        String chosen = orderFor(adapter);
         if ((OFF.equals(chosen) || comparator(chosen) == null) && follow(list, order)) {
             synchronized (ORIGINALS) {
                 REWRITTEN.remove(adapter);
@@ -390,7 +451,7 @@ public final class GridSort {
             View grid = gridView(adapter);
             showChip(adapter, grid);
             boolean shown = onScreen(grid);
-            boolean next = wantsNextPage(Settings.PROFILE_GRID_SORT.get(), before, size, shown);
+            boolean next = wantsNextPage(orderFor(adapter), before, size, shown);
             Logger.printDebug(() -> "Grid sort: page " + before + " -> " + size
                     + (grid == null ? ", no grid" : shown ? "" : ", off screen") + (next ? ", asking for more" : ""));
             if (next) askForNextPage(adapter);
@@ -413,7 +474,7 @@ public final class GridSort {
      */
     private static void loadMore(Object adapter) {
         try {
-            String order = Settings.PROFILE_GRID_SORT.get();
+            String order = orderFor(adapter);
             if (OFF.equals(order) || comparator(order) == null || !onScreen(gridView(adapter))) {
                 synchronized (ORIGINALS) {
                     ASKED.remove(adapter);
@@ -503,7 +564,8 @@ public final class GridSort {
 
             @Override
             public void onSharedPreferenceChanged(SharedPreferences preferences, String key) {
-                if (key != null && !Settings.PROFILE_GRID_SORT.key.equals(key)) return;
+                if (key != null && !Settings.PROFILE_GRID_SORT.key.equals(key)
+                        && !Settings.LIKED_GRID_SORT.key.equals(key)) return;
                 synchronized (Setting.class) {
                     if (originalWatch != this || !originalChosen) return;
                     originalChosen = false;
@@ -592,7 +654,7 @@ public final class GridSort {
         int index;
         boolean hideChip;
         synchronized (Setting.class) {
-            index = indexOf(Settings.PROFILE_GRID_SORT.get());
+            index = indexOf(orderFor(adapter));
             hideChip = Setting.isPaused() || index < 0 || (index == 0
                     && (chip == null || differentControl || !chip.originalChosen || !shown));
             if (chip != null && (differentControl || index > 0 || hideChip)) chip.stopRetainingOriginal();
@@ -712,7 +774,7 @@ public final class GridSort {
                 }
                 if (chip.getParent() != null) {
                     if (!grid.isAttachedToWindow()) chip.setVisibility(View.GONE);
-                    else if (indexOf(Settings.PROFILE_GRID_SORT.get()) > 0) chip.setVisibility(View.VISIBLE);
+                    else if (indexOf(orderFor(chip.adapter)) > 0) chip.setVisibility(View.VISIBLE);
                     placeChip(chip, grid);
                     return;
                 }
@@ -774,7 +836,7 @@ public final class GridSort {
             for (int i = 0; i < labels.length; i++) labels[i] = L10n.t(LABELS[i]);
             AlertDialog dialog = new AlertDialog.Builder(activity)
                     .setTitle(L10n.t("Sort this grid"))
-                    .setSingleChoiceItems(labels, indexOf(Settings.PROFILE_GRID_SORT.get()), (shown, which) -> {
+                    .setSingleChoiceItems(labels, indexOf(orderFor(adapter)), (shown, which) -> {
                         shown.dismiss();
                         apply(adapter, ORDERS[which], anchor);
                     })
@@ -818,9 +880,8 @@ public final class GridSort {
         }
     }
 
-    static List<?> sorted(List<?> list) {
+    static List<?> sorted(List<?> list, String order) {
         try {
-            String order = Settings.PROFILE_GRID_SORT.get();
             if (list == null || list.size() < 2 || OFF.equals(order)) return list;
             Comparator<Object> by = comparator(order);
             if (by == null) return list;
@@ -907,6 +968,7 @@ public final class GridSort {
             ASKED.clear();
             HANDED.clear();
             REWRITTEN.clear();
+            TABS.clear();
         }
         synchronized (ADAPTER_FIELDS) {
             ADAPTER_FIELDS.clear();

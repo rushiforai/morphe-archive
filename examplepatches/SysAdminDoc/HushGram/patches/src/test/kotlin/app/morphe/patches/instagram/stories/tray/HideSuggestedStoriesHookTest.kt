@@ -29,12 +29,14 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction31i
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableTypeReference
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -173,6 +175,53 @@ class HideSuggestedStoriesHookTest {
         assertThrows(PatchException::class.java) { context.findTrayItemParse() }
     }
 
+    /**
+     * Filter the Stories tray by verified accounts reads the tray item's owner through the item
+     * interface's one User getter, and that User's is_verified and id getters (#340): each of
+     * StoriesTray's three stubs casts its argument and answers the getter's result.
+     */
+    @Test
+    fun theTrayOwnerStubsReadTheOwnersBadgeAndId() {
+        val context = PatchContexts.of(ownerClasses() + ExtensionDex.classDef(STORIES_TRAY))
+
+        val found = context.findTrayOwner()
+        assertEquals("Dy7", found.owner.name)
+        assertEquals("A62", found.verified.name)
+        assertEquals("A7J", found.id.name)
+        context.fillTrayOwnerStubs(found)
+
+        val tray = context.mutableClassDefBy(STORIES_TRAY)
+        for ((stub, call) in listOf(
+            "trayOwner" to "$TRAY_ITEM_INTF->Dy7()$USER",
+            "userVerified" to "$USER->A62()Ljava/lang/Boolean;",
+            "userId" to "$USER->A7J()Ljava/lang/String;",
+        )) {
+            val code = tray.methods.single { it.name == stub }.implementation!!.instructions.toList()
+            assertEquals("$stub: the cast", Opcode.CHECK_CAST, code[0].opcode)
+            assertEquals("$stub: the cast type", call.substringBefore("->"), (code[0] as ReferenceInstruction).reference.toString())
+            assertEquals("$stub: the call", call, (code[1] as ReferenceInstruction).reference.toString())
+            assertEquals("$stub: the answer", Opcode.MOVE_RESULT_OBJECT, code[2].opcode)
+            assertEquals("$stub: the return", Opcode.RETURN_OBJECT, code[3].opcode)
+        }
+    }
+
+    /** An item interface with no User getter, or two, leaves the filter out and the rest of the patch in. */
+    @Test
+    fun aTrayItemWithoutOneOwnerLeavesTheBadgeFilterOut() {
+        for (owners in listOf(emptyList(), listOf("Dy7", "Dy8"))) {
+            val context = PatchContexts.of(ownerClasses(owners) + ExtensionDex.classDef(STORIES_TRAY))
+            assertThrows("$owners", PatchException::class.java) { context.findTrayOwner() }
+            assertNull("$owners", context.findTrayOwnerOrWarn())
+        }
+    }
+
+    /** A User without an is_verified getter leaves the filter out too. */
+    @Test
+    fun aUserWithoutTheVerifiedGetterLeavesTheBadgeFilterOut() {
+        val context = PatchContexts.of(ownerClasses(verified = false) + ExtensionDex.classDef(STORIES_TRAY))
+        assertNull(context.findTrayOwnerOrWarn())
+    }
+
     @Test
     fun theExtensionIsLeftAlone() {
         val own = trayRows(type = "Lapp/hushgram/extension/instagram/stories/Probe;")
@@ -209,13 +258,14 @@ class HideSuggestedStoriesHookTest {
         FixtureDex.forEach(bundle) { dex ->
             for (classDef in dex.classes) {
                 val keep = classDef.superclass == "Ljava/lang/Enum;" || TRAY_ITEM_INTF in classDef.interfaces ||
+                    classDef.type == TRAY_ITEM_INTF || classDef.type == USER ||
                     classDef.methods.any {
                         it.name == "parseFromJsonParser" || it.holds(TRAY_ROWS) || it.holds(TRAY_REMAINING) || it.holds(FLOATING_TRAY)
                     }
                 if (keep) holders += ImmutableClassDef.of(classDef)
             }
         }
-        val context = PatchContexts.of(holders)
+        val context = PatchContexts.of(holders + ExtensionDex.classDef(STORIES_TRAY))
 
         val rows = context.findTrayRowBuild()
         val floating = context.findFloatingTrayShow()
@@ -224,10 +274,13 @@ class HideSuggestedStoriesHookTest {
         val guarded = { site: MethodSite ->
             context.mutableClassDefBy(site.type).methods.single { it.name == site.name && it.parameterTypes.map(CharSequence::toString) == site.parameters }
         }
+        val owner = context.findTrayOwner()
         val stock = listOf(rows, floating).map { NeutralNativePath(guarded(it)) }
         context.guardTray(rows)
         context.guardTray(floating, FLOAT_TRAY)
         context.hookTrayParser(parse, remaining)
+        context.fillTrayOwnerStubs(owner)
+        assertEquals("$label: the owner's is_verified getter", "Ljava/lang/Boolean;", owner.verified.returnType)
 
         for ((site, original) in listOf(rows, floating).zip(stock)) {
             val what = "${label} ${site.type}->${site.name}"
@@ -296,6 +349,8 @@ class HideSuggestedStoriesHookTest {
         const val ITEM = "Lfixture/ReelItem;"
         const val REEL_TYPE = "Lfixture/ReelType;"
         const val JSON = "Lfixture/Json;"
+        const val USER = "Lcom/instagram/user/model/User;"
+        const val STORIES_TRAY = "Lapp/hushgram/extension/instagram/stories/StoriesTray;"
 
         val INSTANCE = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
 
@@ -303,6 +358,36 @@ class HideSuggestedStoriesHookTest {
 
         fun classOf(type: String, methods: List<ImmutableMethod>, superclass: String = "Ljava/lang/Object;", interfaces: List<String>? = null, fields: List<ImmutableField>? = null) =
             ImmutableClassDef(type, INSTANCE, superclass, interfaces, null, null, fields, methods)
+
+        /**
+         * Shaped like 452.1's tray item interface and User: the interface's User getters [owners],
+         * User's hashCode asking its id getter A7J, and (when [verified]) A62 reading is_verified by
+         * its hash, as Pando getters do.
+         */
+        fun ownerClasses(owners: List<String> = listOf("Dy7"), verified: Boolean = true): List<ClassDef> {
+            val abstract = AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value
+            val items = ImmutableClassDef(
+                TRAY_ITEM_INTF, abstract or AccessFlags.INTERFACE.value, "Ljava/lang/Object;", null, null, null, null,
+                owners.map { ImmutableMethod(TRAY_ITEM_INTF, it, null, USER, abstract, null, null, null) },
+            )
+            fun getter(name: String, returns: String, code: List<Instruction>, registers: Int = 2) =
+                ImmutableMethod(USER, name, null, returns, INSTANCE, null, null, ImmutableMethodImplementation(registers, code, null, null))
+            val hash = getter("hashCode", "I", listOf(
+                ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 1, 0, 0, 0, 0, ImmutableMethodReference(USER, "A7J", null, "Ljava/lang/String;")),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 0, 0, 0, 0, 0, ImmutableMethodReference("Ljava/lang/String;", "hashCode", null, "I")),
+                ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                ImmutableInstruction11x(Opcode.RETURN, 0),
+            ))
+            val id = getter("A7J", "Ljava/lang/String;", listOf(string(0, "pk"), ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)))
+            val badge = getter("A62", "Ljava/lang/Boolean;", listOf(
+                string(1, "is_verified"),
+                ImmutableInstruction31i(Opcode.CONST, 0, "is_verified".hashCode()),
+                ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
+                ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0),
+            ), registers = 3)
+            return listOf(items, classOf(USER, listOfNotNull(hash, id, badge.takeIf { verified })))
+        }
 
         /** Shaped like 449's MainFeedStoryTrayBinderGroup.buildRowViewTypes: its trace name, then a row type added through the builder. */
         fun trayRows(type: String = ROWS, adds: Boolean = true): ClassDef {

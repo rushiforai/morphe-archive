@@ -201,7 +201,7 @@ public final class TwitchChatKeywords {
     }
 
     /** A value of the signed-in account from Twitch's own user preferences, lowercase; "" when signed out. */
-    private static String signedIn(String key) {
+    static String signedIn(String key) {
         try {
             SharedPreferences preferences = userPreferences;
             if (preferences == null) {

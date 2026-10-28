@@ -52,7 +52,7 @@ val tapToPlayPatch = bytecodePatch(
     name = "Tap to play",
     description = "Videos, reels, stories and music wait for your tap instead of starting by themselves, so " +
         "nothing plays until you want it to. A separate switch adds a play/pause button to feed videos. " +
-        "The switches start off in Hushfacebook settings > Playback.",
+        "The switches start off in Hushfacebook settings > Video and audio.",
 ) {
     category("Playback")
     dependsOn(settingsPatch)

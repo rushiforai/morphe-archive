@@ -21,6 +21,7 @@ import java.util.concurrent.Executors;
 
 /** GIF playback uses the platform decoder, including on Android 5–8. */
 public final class GifViewerActivity extends HaiagaruComposeActivity {
+    private ViewerCornerControls cornerControls;
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private volatile boolean closed;
     private volatile int generation;
@@ -39,6 +40,7 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
     /** Called after the native image activity's super.onCreate, before it loads images. */
     public static boolean redirectNative(Activity activity) {
         if (!Haiagaru.videoViewerEnabled()) return false;
+        MediaViewerNavigation.nativeOpening(activity);
         Intent incoming = activity.getIntent();
         if (incoming == null) return false;
         java.util.ArrayList<String> links = incoming.getStringArrayListExtra("links");
@@ -79,8 +81,13 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
             playing = !playing; image.setPlaying(playing && foreground); play.setText(playing ? "一時停止" : "再生");
         }); toolbar.addView(play, new LinearLayout.LayoutParams(-2, -2));
         Button more = button("︙"); more.setContentDescription("GIFメニュー");
-        more.setOnClickListener(this::showMenu); toolbar.addView(more, new LinearLayout.LayoutParams(dp(48), -2));
-        image = new GifCanvas(); root.addView(image, new LinearLayout.LayoutParams(-1, 0, 1));
+        more.setOnClickListener(this::showMenu);
+        Button back = button("戻る"); back.setOnClickListener(v -> finish());
+        cornerControls = new ViewerCornerControls(this, back, more);
+        FrameLayout frame = new FrameLayout(this);
+        image = new GifCanvas(); frame.addView(image, new FrameLayout.LayoutParams(-1,-1));
+        frame.addView(cornerControls, new FrameLayout.LayoutParams(-1,-1));
+        root.addView(frame, new LinearLayout.LayoutParams(-1,0,1));
         status = new TextView(this); status.setTextColor(Color.WHITE); status.setPadding(dp(16), dp(8), dp(16), dp(8)); root.addView(status);
         root.addView(toolbar);
         HaiagaruUi.showPlayer(this, root); root.requestApplyInsets(); load();
@@ -129,6 +136,7 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
     private boolean forceReload;
 
     @Override public boolean dispatchTouchEvent(android.view.MotionEvent event) {
+        if(event.getActionMasked()==android.view.MotionEvent.ACTION_DOWN && cornerControls.contains(event.getRawX(),event.getRawY())) return super.dispatchTouchEvent(event);
         if(MediaViewerNavigation.onTouch(this,event,image))return true;
         return super.dispatchTouchEvent(event);
     }

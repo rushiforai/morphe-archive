@@ -50,7 +50,7 @@ val cleanUpChatListPatch = bytecodePatch(
     description = "Tidies Chats inside Facebook. One switch empties the row of notes and who's active above your " +
         "chats, and another removes promotional banners like the one asking you to turn on notifications. A third " +
         "takes the Meta AI button off the search row and the search screen. Your chats stay. Starts off. Turn on the parts you want in " +
-        "Hushfacebook settings > Chats.",
+        "Hushfacebook settings > Chats and Messenger.",
     default = true,
 ) {
     category("Chats")

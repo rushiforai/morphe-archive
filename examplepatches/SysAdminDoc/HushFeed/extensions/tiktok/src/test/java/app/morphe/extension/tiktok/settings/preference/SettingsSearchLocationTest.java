@@ -316,6 +316,57 @@ public class SettingsSearchLocationTest {
     }
 
     @Test
+    public void aResultDeepInFeedScreenLandsOnItsRow() throws Exception {
+        // On the S22 these opened Feed screen at its top, 5 to 15 swipes above the row.
+        assertResultLandsOnRow("liked grids", "Sort loaded videos on Liked grids",
+                Settings.LIKED_GRID_SORT.key);
+        assertResultLandsOnRow("double tap", "Double tap", Settings.DOUBLE_TAP_ACTION.key);
+    }
+
+    private void assertResultLandsOnRow(String query, String title, String key) throws Exception {
+        if (owner != null) {
+            owner.get().getFragmentManager().unregisterFragmentLifecycleCallbacks(frameLifecycle);
+            owner.pause().stop().destroy();
+        }
+        TikTokPreferenceFragment search = search(query);
+        // Typing leaves the field focused, and the list followed that focus back to the top.
+        android.widget.EditText field = findEditText(list(search));
+        assertNotNull(field);
+        assertTrue(field.requestFocus());
+        settle();
+        // The keyboard takes the bottom of the window, and the page grows back as it closes.
+        View decor = owner.get().getWindow().getDecorView();
+        decor.measure(View.MeasureSpec.makeMeasureSpec(360, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(360, View.MeasureSpec.EXACTLY));
+        decor.layout(0, 0, 360, 360);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        Preference result = resultByTitle(search, L10n.t(owner.get(), title));
+        assertTrue(result.getOnPreferenceClickListener().onPreferenceClick(result));
+        // The page lays out keyboard-sized once, then grows while the result's scroll is pending.
+        decor.measure(View.MeasureSpec.makeMeasureSpec(360, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(360, View.MeasureSpec.EXACTLY));
+        decor.layout(0, 0, 360, 360);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        settle();
+        ListView list = list(page());
+        int position = position(list, key);
+        assertTrue(title + " at " + position + " is not on screen ("
+                        + list.getFirstVisiblePosition() + ".." + list.getLastVisiblePosition() + ")",
+                position >= list.getFirstVisiblePosition() && position <= list.getLastVisiblePosition());
+    }
+
+    private static android.widget.EditText findEditText(View root) {
+        if (root instanceof android.widget.EditText) return (android.widget.EditText) root;
+        if (!(root instanceof android.view.ViewGroup)) return null;
+        android.view.ViewGroup group = (android.view.ViewGroup) root;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            android.widget.EditText found = findEditText(group.getChildAt(i));
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    @Test
     public void recycledDestinationDropsOnlyItsOwnedFlashAndIgnoresTheOldFade() throws Exception {
         TikTokPreferenceFragment search = search("advertising id");
         ListView results = list(search);

@@ -84,6 +84,15 @@ val hideVideoOverlaysPatch = bytecodePatch(
             println("[$PATCH_NAME] Left out Hide Footnotes on ${packageMetadata.buildName}: ${problem.message}")
             null
         }
+        // The Following tab's LIVE and stories row (#262), the same way: required where
+        // FollowingSkylightAnchorsTest holds the toggle, left out with a note anywhere else.
+        val skylightToggle = try {
+            FollowingSkylightToggleFingerprint.method
+        } catch (problem: Exception) {
+            if (packageMetadata.buildName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out the Following LIVE row on ${packageMetadata.buildName}: ${problem.message}")
+            null
+        }
         // The music disc's two switches (#68), the same way: required where MusicDiscSpinAnchorsTest
         // holds every hold on the disc's way, left out with a note anywhere else.
         val musicDisc = try {
@@ -129,6 +138,15 @@ val hideVideoOverlaysPatch = bytecodePatch(
             SettingsStatusLoadFingerprint.method.addInstruction(
                 0,
                 "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableFootnotes()V",
+            )
+        }
+        // The Following row folds through the same toggle TikTok uses when it has nothing to
+        // show, and VideoOverlayHider hides its container in case the row was already open.
+        if (skylightToggle != null) {
+            skylightToggle.keepFollowingSkylightFolded(PATCH_NAME)
+            status.addInstruction(
+                0,
+                "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableFollowingSkylight()V",
             )
         }
         // The music disc. 47.1.4 ships music_animation_close_exp at 3, which keeps the disc from

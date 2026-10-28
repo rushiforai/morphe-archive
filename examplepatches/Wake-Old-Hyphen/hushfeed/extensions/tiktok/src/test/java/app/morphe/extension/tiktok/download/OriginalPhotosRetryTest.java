@@ -63,7 +63,10 @@ public class OriginalPhotosRetryTest {
     private final Set<Integer> failing = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final List<Integer> renamed = new CopyOnWriteArrayList<>();
     private final Set<String> ownIds = new HashSet<>();
-    private boolean previousOriginals, previousAdvanced;
+    /** Each details file written: its name, folder, text and the file the run before it wrote. */
+    private final List<Object[]> detailWrites = new CopyOnWriteArrayList<>();
+    private boolean failDetails;
+    private boolean previousOriginals, previousAdvanced, previousDetails, previousDetailsJson;
     private ActivityController<SaveNoticeTest.HostActivity> owner;
     private ViewGroup root;
 
@@ -85,6 +88,16 @@ public class OriginalPhotosRetryTest {
             if (failing.contains(position)) throw new IOException("photo " + position + " didn't come");
             return new MediaFileWriter.Saved(name, Uri.parse("content://media/external/images/media/" + position));
         };
+        previousDetails = Settings.DOWNLOAD_DETAILS.savedValue();
+        previousDetailsJson = Settings.DOWNLOAD_DETAILS_JSON.savedValue();
+        Settings.DOWNLOAD_DETAILS.save(false);
+        Settings.DOWNLOAD_DETAILS_JSON.save(false);
+        OriginalPhotos.detailsStepForTests = (name, path, content, previous) -> {
+            detailWrites.add(new Object[]{name, path, content, previous});
+            if (failDetails) throw new IOException("the details file didn't land");
+            return previous != null ? previous
+                    : new MediaFileWriter.Saved(name, Uri.parse("content://media/external/file/" + detailWrites.size()));
+        };
         owner = Robolectric.buildActivity(SaveNoticeTest.HostActivity.class).setup().visible();
         Utils.setActivity(owner.get());
         root = owner.get().findViewById(android.R.id.content);
@@ -97,6 +110,9 @@ public class OriginalPhotosRetryTest {
             idle();
         } finally {
             OriginalPhotos.photoStepForTests = null;
+            OriginalPhotos.detailsStepForTests = null;
+            Settings.DOWNLOAD_DETAILS.save(previousDetails);
+            Settings.DOWNLOAD_DETAILS_JSON.save(previousDetailsJson);
             SignedInUser.idForTests = null;
             SaveNotice.windowRootsForTests = null;
             Utils.setActivity(null);
@@ -133,6 +149,71 @@ public class OriginalPhotosRetryTest {
         assertNotNull(find(root, "Saved one original photo"));
         assertNull("nothing is left to retry", find(root, "Retry"));
         assertEquals("a retried photo keeps the name it first had", List.of(), renamed);
+    }
+
+    @Test public void onePostLevelDetailsFileFollowsAPartialSaveAndItsRetryInPlace() throws Exception {
+        Settings.DOWNLOAD_DETAILS.save(true);
+        var post = post("details-retry", 5);
+        failing.add(1);
+        assertTrue(OriginalPhotos.startPhotos(post, Set.of(0, 1, 3), false));
+        finish();
+        assertEquals("one file for the post, not one per photo", 1, detailWrites.size());
+        Object[] first = detailWrites.get(0);
+        String name = (String) first[0];
+        assertTrue(name, name.endsWith("details-retry.txt"));
+        assertTrue(first[2].toString(), first[2].toString().contains("Photos asked for: 1, 2, 4\nPhotos saved: 1, 4\n"));
+        assertNull("the first run makes the file", first[3]);
+        assertEquals("the photos and their details share a folder",
+                DownloadFilenameFormatter.destinationPath(post, true), first[1]);
+        assertNotNull(find(root, "Saved 2 of 3, 1 skipped"));
+
+        failing.clear();
+        tap("Retry");
+        finish();
+        assertEquals(2, detailWrites.size());
+        Object[] second = detailWrites.get(1);
+        assertEquals("a Retry writes the same file", name, second[0]);
+        assertNotNull("over the first run's file, not beside it", second[3]);
+        assertEquals(((MediaFileWriter.Saved) second[3]).uri, Uri.parse("content://media/external/file/1"));
+        assertTrue(second[2].toString(), second[2].toString().contains("Photos asked for: 1, 2, 4\nPhotos saved: 1, 2, 4\n"));
+
+        // A new save of another post never picks up this post's file or photos.
+        var other = post("details-other", 2);
+        assertTrue(OriginalPhotos.startPhotos(other, null, false));
+        finish();
+        Object[] third = detailWrites.get(2);
+        assertTrue(third[0].toString(), third[0].toString().endsWith("details-other.txt"));
+        assertNull(third[3]);
+        assertTrue(third[2].toString(), third[2].toString().contains("Photos asked for: 1, 2\nPhotos saved: 1, 2\n"));
+    }
+
+    @Test public void aDetailsFileThatFailsIsSaidApartFromThePhotos() throws Exception {
+        Settings.DOWNLOAD_DETAILS.save(true);
+        Settings.DOWNLOAD_DETAILS_JSON.save(true);
+        failDetails = true;
+        var post = post("details-fail", 2);
+        assertTrue(OriginalPhotos.startPhotos(post, null, false));
+        finish();
+        assertEquals(List.of(0, 1), tried);
+        assertTrue(detailWrites.get(0)[0].toString().endsWith(".json"));
+        assertNotNull("the photos still say they saved", find(root, "Saved 2 original photos"));
+        assertNull("the photos all landed, so there's nothing to retry", find(root, "Retry"));
+        assertEquals("The photos saved, but their details file couldn't be written. "
+                + "Check your storage and save the post again to get it.", ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test public void noDetailsFileWithTheSwitchOffOrWhenNoPhotoLanded() throws Exception {
+        var off = post("details-off", 2);
+        assertTrue(OriginalPhotos.startPhotos(off, null, false));
+        finish();
+        assertEquals(List.of(), detailWrites);
+
+        Settings.DOWNLOAD_DETAILS.save(true);
+        failing.addAll(Set.of(0, 1));
+        var none = post("details-none", 2);
+        assertTrue(OriginalPhotos.startPhotos(none, null, false));
+        finish();
+        assertEquals("nothing landed, so there's nothing to describe", List.of(), detailWrites);
     }
 
     @Test public void aRetryUnderAnotherAccountIsRefusedAndQueuesNothing() throws Exception {

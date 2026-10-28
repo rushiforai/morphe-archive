@@ -163,6 +163,7 @@ public class FeedScreenCoverageTest {
         put("video_length_on_grid", NONE, NONE, NONE);
         // The order of the profile and Liked grids, which neither window draws (#180).
         put("profile_grid_sort", NONE, NONE, NONE);
+        put("liked_grid_sort", NONE, NONE, NONE);
         put("show_author_region", YES, YES, NONE);
         // Only how the region label shows its code, so it reaches where the label does (#157).
         put("region_as_flag", YES, YES, NONE);
@@ -185,6 +186,8 @@ public class FeedScreenCoverageTest {
         put("hide_creation_tags", YES, YES, NONE);
         put("hide_feed_surveys", YES, YES, NONE);
         put("hide_footnotes", YES, YES, NONE);
+        // The Following tab's LIVE row is the main feed's; an opened video has none (#262).
+        put("hide_following_live_row", YES, NONE, NONE);
         put("hide_visual_search", YES, YES, NONE);
         // The bar is an opened post's: the detail pager's videos and, on 47.1.4, a photo from
         // search in the main activity. The main feed has the tabs there.
@@ -229,6 +232,7 @@ public class FeedScreenCoverageTest {
         put("automatic_clear_display_delay", YES, YES, NONE);
         put("remember_clear_display_on_scroll", YES, YES, NONE);
         put("hide_clear_display_controls", YES, YES, NONE);
+        put("keep_clear_display_seek_bar", YES, YES, NONE);
         put("fade_controls_opacity", YES, YES, NONE);
         put("fade_in_clear_display", YES, YES, NONE);
         // The tab bar belongs to the main feed; an opened video has none (#145).

@@ -562,9 +562,10 @@ function New-FakeAnswers {
             'sysadmindoc:stable' = @{ repo_url = 'https://github.com/SysAdminDoc/HushTelegram'; apps = @(@{ package = 'org.telegram.messenger.web'; patches = @(@{ name = 'Hide ads' }) }) }
             'alpha:stable' = @{ repo_url = 'https://github.com/fixture-owner/alpha-patches'; apps = @(@{ package = 'org.telegram.messenger.web'; patches = @(@{ name = 'Hide ads' }) }) }
         } | ConvertTo-Json -Depth 8) }
-        # Jman's registry: the snapshot history (its last generation is current), the bundles, the
-        # index of patch shards and two shards. The bundles answer is built from this list per request.
-        jmanHistory = @{ Status = 200; Content = '["snapshots/0f0f0f0f0f0f0f0f0f0f0f0f","snapshots/0123456789abcdef01234567"]' }
+        # Jman's registry: its bundles and their patches, which the catalog API answers are built
+        # from per request. jmanBundlesUnread is how many more latest bundles the API says it has
+        # past the first page.
+        jmanBundlesUnread = 0
         jmanBundles = @(
             [ordered]@{ id = $jmanAlpha; version = 'v1.0.0'; is_latest = $true; packages = @('org.telegram.messenger.web'); source_id = 'alpha'
                 import_urls = [ordered]@{ latest = (Get-JmanImport 'https://github.com/fixture-owner/alpha-patches' 'any')
@@ -583,25 +584,18 @@ function New-FakeAnswers {
                 import_urls = [ordered]@{ stable = (Get-JmanImport 'https://github.com/someone-else/youtube-patches' 'stable') }
                 download_url = 'https://github.com/someone-else/youtube-patches/releases/download/v5.0.0/patches-5.0.0.mpp' }
         )
-        # A bundle's shards come as a list or a single path. The live index also files packages
-        # under keys that differ only in case.
-        jmanIndex = @{ Status = 200; Content = ([ordered]@{
-            bundles = [ordered]@{ $jmanAlpha = @('patches/00001.json'); $jmanAlphaDev = 'patches/00002.json'
-                $jmanGamma = @('patches/00001.json', 'patches/00002.json'); $jmanOld = @('patches/00001.json') }
-            packages = [ordered]@{ 'Sofascore' = 'patches/00009.json'; 'SOFASCORE-AGAIN' = 'patches/00009.json' }
-            pages = @(); patch_ids = [ordered]@{} } | ConvertTo-Json -Depth 6).Replace('"SOFASCORE-AGAIN"', '"SofaScore"') }
-        # A shard mixes bundles. A patch for any app names no package, and one for a fork names no census package.
-        jmanShards = @{
-            '00001' = @{ Status = 200; Content = (ConvertTo-Json -Depth 6 -InputObject @(
-                [ordered]@{ bundle_id = $jmanAlpha; name = 'Hide ads'; compatiblePackages = [ordered]@{ 'org.telegram.messenger.web' = @('12.10.6') } }
-                [ordered]@{ bundle_id = $jmanAlpha; name = 'Disable typing status'; compatiblePackages = [ordered]@{ 'org.telegram.messenger.web' = $null } }
-                [ordered]@{ bundle_id = $jmanAlpha; name = 'Spoof signature'; compatiblePackages = $null }
-                [ordered]@{ bundle_id = $jmanOld; name = 'Hide replies'; compatiblePackages = [ordered]@{ 'org.telegram.messenger.web' = $null } }
-                [ordered]@{ bundle_id = $jmanGamma; name = 'Open links outside'; compatiblePackages = [ordered]@{ 'org.telegram.messenger.web' = $null } })) }
-            '00002' = @{ Status = 200; Content = (ConvertTo-Json -Depth 6 -InputObject @(
-                [ordered]@{ bundle_id = $jmanAlphaDev; name = 'Hide stories'; compatiblePackages = [ordered]@{ 'org.telegram.messenger.web' = @('12.10.7') } }
-                [ordered]@{ bundle_id = $jmanGamma; name = 'Plus only'; compatiblePackages = [ordered]@{ 'org.telegram.plus' = $null } })) }
-        }
+        # The API lists a patch's packages as {name, versions} records, and older records map each
+        # package to its versions. A patch for any app names no package, and one for a fork names no
+        # census package.
+        jmanPatches = @(
+            [ordered]@{ bundle_id = $jmanAlpha; name = 'Hide ads'; compatiblePackages = @([ordered]@{ name = 'org.telegram.messenger.web'; versions = @('12.10.6') }) }
+            [ordered]@{ bundle_id = $jmanAlpha; name = 'Disable typing status'; compatiblePackages = [ordered]@{ 'org.telegram.messenger.web' = $null } }
+            [ordered]@{ bundle_id = $jmanAlpha; name = 'Spoof signature'; compatiblePackages = $null }
+            [ordered]@{ bundle_id = $jmanOld; name = 'Hide replies'; compatiblePackages = @([ordered]@{ name = 'org.telegram.messenger.web'; versions = $null }) }
+            [ordered]@{ bundle_id = $jmanGamma; name = 'Open links outside'; compatiblePackages = @([ordered]@{ name = 'org.telegram.messenger.web'; versions = $null }) }
+            [ordered]@{ bundle_id = $jmanAlphaDev; name = 'Hide stories'; compatiblePackages = @([ordered]@{ name = 'org.telegram.messenger.web'; versions = @('12.10.7') }) }
+            [ordered]@{ bundle_id = $jmanGamma; name = 'Plus only'; compatiblePackages = @([ordered]@{ name = 'org.telegram.plus'; versions = $null }) }
+        )
         archive = @{ Status = 200; Content = '{"name":"patches-list.json"}' }
         searchHits = @(
             @{ repository = @{ full_name = 'fixture-owner/alpha-patches' }; path = 'patches/Alpha.kt'; sha = $blobKnown }
@@ -653,14 +647,30 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
             '^https://morphe-patches\.software/data/bundles\.json$' { $answer = $a.directory; break }
             '^https://raw\.githubusercontent\.com/nvbangg/awesome-morphe/main/data/hashes\.json$' { $answer = $a.awesome; break }
             '^https://raw\.githubusercontent\.com/drnx64/morphe-track-patches/main/data/bundles\.json$' { $answer = $a.tracker; break }
-            '^https://raw\.githubusercontent\.com/Jman-Github/Patch-Bundle-Registry/bundles/database/snapshot-history\.json$' { $answer = $a.jmanHistory; break }
-            '^https://raw\.githubusercontent\.com/Jman-Github/Patch-Bundle-Registry/bundles/database/snapshots/0123456789abcdef01234567/bundles\.json$' {
-                $answer = @{ Status = 200; Content = (ConvertTo-Json -Depth 8 -InputObject @($a.jmanBundles)) }
+            '^https://patch-bundles\.api\.jmancentral\.com/bundles\?limit=1&source_url=([^&]+)$' {
+                # Any bundle the repository stands behind, by its import link or its release download.
+                $repository = [Uri]::UnescapeDataString($Matches[1])
+                $theirs = @($a.jmanBundles | Where-Object {
+                    ([string]$_.download_url).StartsWith("$repository/releases/") -or
+                        ($_.import_urls -and @($_.import_urls.Values | Where-Object { $_ -like "*source_url=$([Uri]::EscapeDataString($repository))&*" }).Count -gt 0) })
+                $answer = @{ Status = 200; Content = (ConvertTo-Json -Depth 8 -InputObject ([ordered]@{
+                    data = @($theirs | Select-Object -First 1); total = $theirs.Count; limit = 1; offset = 0 })) }
                 break
             }
-            '^https://raw\.githubusercontent\.com/Jman-Github/Patch-Bundle-Registry/bundles/database/snapshots/0123456789abcdef01234567/patch-index\.json$' { $answer = $a.jmanIndex; break }
-            '^https://raw\.githubusercontent\.com/Jman-Github/Patch-Bundle-Registry/bundles/database/snapshots/0123456789abcdef01234567/patches/(\d+)\.json$' {
-                $answer = $a.jmanShards[$Matches[1]]
+            '^https://patch-bundles\.api\.jmancentral\.com/apps/([^/?]+)/bundles\?release=latest&include_unverified=true&limit=100$' {
+                # The API filters to latest bundles. Its answer here keeps an old one in, so the audit's own check is what skips it.
+                $app = [Uri]::UnescapeDataString($Matches[1])
+                $forApp = @($a.jmanBundles | Where-Object { @($_.packages) -contains $app })
+                $answer = @{ Status = 200; Content = (ConvertTo-Json -Depth 8 -InputObject ([ordered]@{
+                    data = $forApp; total = ($forApp.Count + $a.jmanBundlesUnread); limit = 100; offset = 0 })) }
+                break
+            }
+            '^https://patch-bundles\.api\.jmancentral\.com/bundles/([0-9a-f]+)/patches\?include_unverified=true&limit=100&offset=(\d+)$' {
+                $bundleId = $Matches[1]
+                $ofBundle = @($a.jmanPatches | Where-Object { $_.bundle_id -eq $bundleId })
+                $answer = @{ Status = 200; Content = (ConvertTo-Json -Depth 8 -InputObject ([ordered]@{
+                    data = @($ofBundle | Select-Object -Skip ([int]$Matches[2])); total = $ofBundle.Count; limit = 100
+                    offset = [int]$Matches[2]; next_cursor = $null })) }
                 break
             }
             '^https://api\.github\.com/repos/rushiforai/morphe-archive/contents/examplepatches/SysAdminDoc/HushTelegram/patches-list\.json$' { $answer = $a.archive; break }
@@ -767,12 +777,13 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
     Assert-True (@($fakeForge.Requests | Where-Object { $_.Uri -like 'https://api.github.com/*' -and $_.Authorization -ne "Bearer $fakeToken" }).Count -eq 0) `
         'A GitHub API request went out without the token.'
     Assert-True ($clean.ReportText.IndexOf($fakeToken) -lt 0 -and $stamped.IndexOf($fakeToken) -lt 0) 'The token was written to the report or the ledger.'
-    # Jman's registry: alpha (its stable and dev bundles) and gamma are its Telegram sources, and a
-    # shard two bundles share is fetched once.
+    # Jman's registry: alpha (its stable and dev bundles) and gamma are its Telegram sources. Each
+    # of their patch lists is read once, and neither the old bundle's nor another app's is read.
     Assert-True ($clean.Said -like "*Jman's bundle index: 2 Telegram bundles; HushTelegram not listed*") "Jman's registry was not read for alpha and gamma: $($clean.Said)"
-    Assert-True (@($fakeForge.Requests | Where-Object { $_.Uri -like '*/patches/00001.json' }).Count -eq 1 -and
-        @($fakeForge.Requests | Where-Object { $_.Uri -like '*/snapshots/0f0f0f0f0f0f0f0f0f0f0f0f/*' }).Count -eq 0) `
-        "Jman's registry was read from an older generation, or a shared shard was fetched more than once."
+    $patchReads = @($fakeForge.Requests | Where-Object { $_.Uri -like 'https://patch-bundles.api.jmancentral.com/bundles/*/patches?*' } |
+        ForEach-Object { ($_.Uri -split '/')[4] })
+    Assert-True ((($patchReads | Sort-Object) -join ',') -eq ((@($jmanAlpha, $jmanAlphaDev, $jmanGamma) | Sort-Object) -join ',')) `
+        "Jman's patch lists were read for the wrong bundles, or one more than once: $($patchReads -join ', ')"
     Reset-FixtureLedger
 
     # A request that carries a token follows a redirect itself, to the same host over https and
@@ -1003,15 +1014,13 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
     Assert-Drift 'listing-changed' "*Jman's Patch Bundle Registry lists HushTelegram now*" 'A registry bundle of HushTelegram''s own'
     $fakeForge.Answers = New-FakeAnswers
 
-    # A snapshot history that doesn't end in a snapshot generation fails the source, and nothing
-    # past the history is requested from the registry.
-    foreach ($history in @('[]', '["snapshots/../../main"]')) {
-        $fakeForge.Answers.jmanHistory.Content = $history
-        Assert-Drift 'source-failed' "*Jman's bundle index could not be read*snapshot generation*" "A snapshot history of $history"
-        Assert-True (@($fakeForge.Requests | Where-Object { $_.Uri -like '*/Patch-Bundle-Registry/*' -and $_.Uri -notlike '*/snapshot-history.json' }).Count -eq 0) `
-            "The registry was read past a snapshot history of $history."
-        $fakeForge.Answers = New-FakeAnswers
-    }
+    # Latest bundles past the one page the audit reads fail the source rather than leaving some
+    # unread, and no patch list is read from a bundle list known to be short.
+    $fakeForge.Answers.jmanBundlesUnread = 1
+    Assert-Drift 'source-failed' "*Jman's bundle index could not be read*more than one page*" 'A second page of latest bundles'
+    Assert-True (@($fakeForge.Requests | Where-Object { $_.Uri -like 'https://patch-bundles.api.jmancentral.com/bundles/*/patches?*' }).Count -eq 0) `
+        'Patch lists were read from a short bundle list.'
+    $fakeForge.Answers = New-FakeAnswers
 
     # An index still spelling a source by its old name is that source, not an addition.
     $fakeForge.Answers.directory.Content = $fakeForge.Answers.directory.Content -replace '"fixture-owner/alpha-patches"', '"fixture-owner/alpha-old"'

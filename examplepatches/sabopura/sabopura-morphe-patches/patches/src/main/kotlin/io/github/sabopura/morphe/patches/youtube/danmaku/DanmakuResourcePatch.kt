@@ -49,6 +49,7 @@ private val englishStrings = linkedMapOf(
     "danmaku_show_stats_summary" to "Diagnostics: shows the comment frame rate, display refresh rate and clock interval over the video",
     "danmaku_smooth_motion_title" to "Smooth motion",
     "danmaku_smooth_motion_summary" to "Keep the display at its highest refresh rate while comments move. Uses a little more battery",
+    "danmaku_max_fps_title" to "Frame rate limit",
     "danmaku_appearance_title" to "Appearance",
     "danmaku_font_size_title" to "Text size",
     "danmaku_bold_title" to "Bold text",
@@ -104,6 +105,7 @@ private val japaneseStrings = linkedMapOf(
     "danmaku_show_stats_summary" to "診断用：コメントの描画fps・画面のリフレッシュレート・時刻更新の間隔を動画の上に表示します",
     "danmaku_smooth_motion_title" to "なめらかに流す",
     "danmaku_smooth_motion_summary" to "コメントが流れている間、画面を最高リフレッシュレートに保ちます。バッテリー消費が少し増えます",
+    "danmaku_max_fps_title" to "最大フレームレート",
     "danmaku_appearance_title" to "見た目",
     "danmaku_font_size_title" to "文字サイズ",
     "danmaku_bold_title" to "太字",
@@ -210,6 +212,9 @@ private const val DANMAKU_PREFERENCES_XML = """<?xml version="1.0" encoding="utf
             android:title="@string/danmaku_smooth_motion_title"
             android:summary="@string/danmaku_smooth_motion_summary"
             android:defaultValue="true" android:dependency="danmaku_enabled" />
+        <ListPreference android:key="danmaku_max_fps" android:title="@string/danmaku_max_fps_title"
+            android:entries="@array/danmaku_max_fps_entries" android:entryValues="@array/danmaku_max_fps_values"
+            android:defaultValue="0" android:summary="%s" android:dependency="danmaku_enabled" />
         <SwitchPreference android:key="danmaku_separate_layer"
             android:title="@string/danmaku_separate_layer_title"
             android:summary="@string/danmaku_separate_layer_summary"
@@ -277,6 +282,7 @@ internal val danmakuResourcePatch = resourcePatch(
             addPair("danmaku_duration", listOf("3 seconds", "5 seconds", "8 seconds", "10 seconds", "12 seconds", "15 seconds", "20 seconds"), listOf(3, 5, 8, 10, 12, 15, 20))
             addPair("danmaku_max_comments", listOf("20", "50", "100", "200", "300", "500"), listOf(20, 50, 100, 200, 300, 500))
             addPair("danmaku_text_style", listOf("Outline", "Drop shadow", "Outline + shadow"), listOf(0, 1, 2))
+            addPair("danmaku_max_fps", listOf("Display maximum (smoothest)", "60 fps (saves battery)"), listOf(0, 60))
             addPair(
                 "danmaku_speed_mode",
                 listOf("Same time for every comment (NicoNico)", "Same speed for every comment (bilibili)"),
@@ -300,6 +306,7 @@ internal val danmakuResourcePatch = resourcePatch(
             )
             arrays.addStringArray("danmaku_duration_entries", listOf("3秒", "5秒", "8秒", "10秒", "12秒", "15秒", "20秒"))
             arrays.addStringArray("danmaku_text_style_entries", listOf("縁取り", "影", "縁取り＋影"))
+            arrays.addStringArray("danmaku_max_fps_entries", listOf("端末の最大（いちばんなめらか）", "60fps（電池を節約）"))
             arrays.addStringArray(
                 "danmaku_speed_mode_entries",
                 listOf("どのコメントも同じ時間で流す（ニコニコ風）", "どのコメントも同じ速さで流す（bilibili風）"),

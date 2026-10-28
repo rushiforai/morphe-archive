@@ -19,7 +19,7 @@ import org.w3c.dom.Element
 
 /**
  * Unified privacy patch audited against Telegram 13.1.1, Telegram Web 13.1.1 and Plus Messenger
- * 13.0.3.0. It disables Firebase Analytics collection/event forwarding and Crashlytics
+ * 13.1.1.0. It disables Firebase Analytics collection/event forwarding and Crashlytics
  * collection/log APIs where those SDKs exist. Telegram/Web's App Center logging/start
  * methods are already no-op stubs in the audited APKs; they are kept as defensive hooks.
  *
@@ -119,7 +119,7 @@ val telegramDisableAnalyticsPatch = bytecodePatch(
         }
 
         // Plus: Crashlytics wrapper method names are obfuscated, but the exact descriptors
-        // and method bodies were inspected in the supplied Plus 13.0.3.0 DEX.
+        // and method bodies were inspected in the supplied Plus 13.1.1.0 DEX.
         TelegramPrivacyCrashlyticsSetCollectionFingerprint.methodOrNull?.let { method ->
             method.addInstructions(0, "const/4 p1, 0x0")
             patchedTargets++

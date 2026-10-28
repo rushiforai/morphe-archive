@@ -7,6 +7,7 @@
 package app.hushgram.extension.instagram.settings;
 
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.category;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.onFlip;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.toggle;
 
 import android.content.Context;
@@ -15,6 +16,7 @@ import android.preference.PreferenceScreen;
 
 import java.util.Set;
 
+import app.hushgram.extension.instagram.feed.CommentEmojiRow;
 import app.hushgram.extension.shared.L10n;
 
 /** Builds the Comments category of HushGram settings. */
@@ -46,8 +48,9 @@ final class CommentsCategory {
                         L10n.t("Takes the Comment button and the comment count off the posts in your feed.")));
             }
             if (build.contains(PatchFamily.COMMENT_EMOJI_ROW)) {
-                comments.addPreference(toggle(context, Settings.HIDE_COMMENT_EMOJI_ROW, L10n.t("Hide the emoji row"),
-                        L10n.t("Takes the row of quick emoji off above the comment box. The box itself stays.")));
+                comments.addPreference(onFlip(toggle(context, Settings.HIDE_COMMENT_EMOJI_ROW, L10n.t("Hide the emoji row"),
+                        L10n.t("Takes the row of quick emoji off above the comment box. The box itself stays.")),
+                        CommentEmojiRow::switchChanged));
             }
             if (build.contains(PatchFamily.COMMENT_KEYBOARD)) {
                 comments.addPreference(toggle(context, Settings.COMMENT_KEYBOARD_DOWN, L10n.t("Open comments without the keyboard"),

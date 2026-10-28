@@ -51,6 +51,22 @@ public class VoicePlayerTest {
         assertTrue(VoicePlayer.plays(true, false, false));
     }
 
+    @Test public void onlyAVoiceMessageInThePlayerOrYourOwnListHidesTheProfileButtons() {
+        assertTrue(VoicePlayer.hidesProfile(true, true, false, false));
+        assertFalse(VoicePlayer.hidesProfile(false, false, true, false));
+        Settings.VOICE_MUSIC_PLAYER.save(true);
+        assertTrue(VoicePlayer.hidesProfile(false, false, true, false));
+        assertFalse(VoicePlayer.hidesProfile(false, true, false, false));
+        assertFalse(VoicePlayer.hidesProfile(false, false, true, true));
+        PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
+        assertFalse(VoicePlayer.hidesProfile(false, false, true, false));
+        assertTrue(VoicePlayer.hidesProfile(true, false, false, false));
+        PauseForTests.resume();
+        // Unpatched, nothing is playing, so only your own list hides them.
+        assertTrue(VoicePlayer.keepsProfileOut(1));
+        assertFalse(VoicePlayer.keepsProfileOut(0));
+    }
+
     @Test public void pausingAnEarlyStartOrAnUnreadableSwitchKeepsVoiceOutOfThePlayer() {
         Settings.VOICE_MUSIC_PLAYER.save(true);
         for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {

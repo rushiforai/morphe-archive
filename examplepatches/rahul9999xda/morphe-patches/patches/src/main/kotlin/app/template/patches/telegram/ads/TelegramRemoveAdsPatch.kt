@@ -6,7 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.TELEGRAM_COMPATIBILITY
 import app.template.patches.shared.Constants.TELEGRAM_PLUS_COMPATIBILITY
 import app.template.patches.shared.Constants.TELEGRAM_WEB_COMPATIBILITY
-import app.template.patches.telegram.PlusApplicationLoaderLoadAdsCurrentFingerprint
+import app.template.patches.telegram.PlusApplicationLoaderLoadAdsFingerprint
 import app.template.patches.telegram.PlusApplicationLoaderLoadAdsLegacyFingerprint
 import app.template.patches.telegram.signature.telegramSpoofDependency
 
@@ -69,10 +69,10 @@ val telegramRemoveAdsPatch = bytecodePatch(
 
         videoAdsLoadFingerprint.method.addInstructions(0, "return-void")
 
-        // Plus Messenger 13.0.3.0 declares loadAds(Activity, Cells.m3)V.
+        // Plus Messenger 13.1.1.0 declares loadAds(Activity, Cells.m3)V.
         // Keep the historical no-argument signature as a separate fallback for older Plus builds.
         listOf(
-            PlusApplicationLoaderLoadAdsCurrentFingerprint.methodOrNull,
+            PlusApplicationLoaderLoadAdsFingerprint.methodOrNull,
             PlusApplicationLoaderLoadAdsLegacyFingerprint.methodOrNull,
         ).filterNotNull().distinct().forEach { method ->
             method.addInstructions(0, "return-void")

@@ -128,16 +128,20 @@ public class GridSortTest {
     }
 
     private boolean gridSortEnabled;
+    private boolean likedGridSortEnabled;
 
     @Before public void setUp() {
         Utils.setContext(RuntimeEnvironment.getApplication());
         gridSortEnabled = SettingsStatus.gridSortEnabled;
+        likedGridSortEnabled = SettingsStatus.likedGridSortEnabled;
     }
 
     @After public void tearDown() {
         setPaused(false);
         Settings.PROFILE_GRID_SORT.resetToDefault();
+        Settings.LIKED_GRID_SORT.resetToDefault();
         SettingsStatus.gridSortEnabled = gridSortEnabled;
+        SettingsStatus.likedGridSortEnabled = likedGridSortEnabled;
         SettingsStatus.alwaysShowPublishDateEnabled = false;
         HookStatus.clear();
         GridSort.resetForTests();
@@ -431,6 +435,76 @@ public class GridSortTest {
         }
     }
 
+    @Test public void theLikedGridFollowsTheProfileOrderUntilItHasItsOwn() {
+        assertEquals("liked_grid_sort", Settings.LIKED_GRID_SORT.key);
+        assertEquals("profile", Settings.LIKED_GRID_SORT.defaultValue);
+        Object liked = new GridAdapter();
+        Object posts = new GridAdapter();
+        Object favorites = new GridAdapter();
+        Object other = new GridAdapter();
+        GridSort.tab(liked, GridSort.TAB_LIKED);
+        GridSort.tab(posts, GridSort.TAB_POSTS);
+        GridSort.tab(favorites, GridSort.TAB_FAVORITE_VIDEOS);
+        GridSort.tab(other, 7);
+        Settings.PROFILE_GRID_SORT.save("newest");
+
+        assertEquals("the default follows the profile grids", "newest", GridSort.orderFor(liked));
+        Settings.LIKED_GRID_SORT.save("oldest");
+        assertEquals("oldest", GridSort.orderFor(liked));
+        assertEquals("newest", GridSort.orderFor(posts));
+        assertEquals("newest", GridSort.orderFor(favorites));
+        assertEquals("a tab TikTok numbers some other way keeps its order", "off", GridSort.orderFor(other));
+        assertEquals("an adapter whose tab never came in follows the profile grids",
+                "newest", GridSort.orderFor(new GridAdapter()));
+        Settings.LIKED_GRID_SORT.save("off");
+        assertEquals("Original order on Liked stays original", "off", GridSort.orderFor(liked));
+        Settings.LIKED_GRID_SORT.save("sideways");
+        assertEquals("an unknown value follows the profile grids", "newest", GridSort.orderFor(liked));
+    }
+
+    @Test public void eachGridSortsByItsOwnTabsOrder() {
+        Settings.PROFILE_GRID_SORT.save("newest");
+        Settings.LIKED_GRID_SORT.save("oldest");
+        GridAdapter liked = new GridAdapter();
+        GridAdapter posts = new GridAdapter();
+        GridAdapter other = new GridAdapter();
+        GridSort.tab(liked, GridSort.TAB_LIKED);
+        GridSort.tab(posts, GridSort.TAB_POSTS);
+        GridSort.tab(other, 7);
+
+        assertEquals("pinned first, then oldest", "apfcdeb", ids(GridSort.data(liked, grid())));
+        assertEquals("pinned first, then newest", "apecdfb", ids(GridSort.data(posts, grid())));
+        List<Aweme> list = grid();
+        assertSame("TikTok's own list", list, GridSort.data(other, list));
+        idle(0);
+    }
+
+    @Test public void theChipOnALikedGridChangesOnlyTheLikedOrder() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            GridAdapter adapter = gridOnScreen(controller.get());
+            GridSort.tab(adapter, GridSort.TAB_LIKED);
+            Settings.PROFILE_GRID_SORT.save("newest");
+            List<Aweme> model = grid();
+            adapter.mmItems = GridSort.data(adapter, model);
+            idle(0);
+            assertEquals("apecdfb", ids(adapter.mmItems));
+            assertEquals("Newest first", String.valueOf(chip(adapter).getText()));
+
+            selectOrder(adapter, "least_liked");
+
+            assertEquals("least_liked", Settings.LIKED_GRID_SORT.get());
+            assertEquals("the profile grids keep theirs", "newest", Settings.PROFILE_GRID_SORT.get());
+            assertEquals("apcdfeb", ids(adapter.mmItems));
+            assertEquals("Least liked first", String.valueOf(chip(adapter).getText()));
+
+            GridSort.apply(adapter, "off");
+            idle(0);
+            assertEquals("off", Settings.LIKED_GRID_SORT.get());
+            assertEquals("newest", Settings.PROFILE_GRID_SORT.get());
+            assertSame("Original order hands the Liked grid TikTok's list", model, adapter.mmItems);
+        }
+    }
+
     private static void selectOrder(GridAdapter adapter, String order) {
         TextView control = chip(adapter);
         assertNotNull("the current grid has a sort control", control);
@@ -439,7 +513,7 @@ public class GridSortTest {
         AlertDialog dialog = (AlertDialog) ShadowDialog.getLatestDialog();
         assertNotNull(dialog);
         assertTrue(dialog.isShowing());
-        assertEquals("the menu marks the current order", GridSort.indexOf(Settings.PROFILE_GRID_SORT.get()),
+        assertEquals("the menu marks the current order", GridSort.indexOf(GridSort.orderFor(adapter)),
                 dialog.getListView().getCheckedItemPosition());
         Shadows.shadowOf(dialog).clickOnItem(GridSort.indexOf(order));
         idle(0);
@@ -1766,6 +1840,31 @@ public class GridSortTest {
             String summary = String.valueOf(row.getSummary());
             assertTrue(summary, summary.contains("pinned") && summary.contains("up to 300 videos")
                     && summary.contains("top corner"));
+        }
+    }
+
+    @Test public void theLikedRowShowsOnlyWhereTheTabNumberWasHooked() {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            SettingsStatus.alwaysShowPublishDateEnabled = true;
+            SettingsStatus.gridSortEnabled = true;
+
+            SettingsStatus.likedGridSortEnabled = false;
+            assertEquals(null, build(activity).findPreference(Settings.LIKED_GRID_SORT.key));
+
+            SettingsStatus.likedGridSortEnabled = true;
+            Preference row = build(activity).findPreference(Settings.LIKED_GRID_SORT.key);
+            assertTrue(row instanceof ListPreference);
+            assertEquals("Sort loaded videos on Liked grids", String.valueOf(row.getTitle()));
+            ListPreference list = (ListPreference) row;
+            assertEquals("Same as profile grids", String.valueOf(list.getEntries()[0]));
+            assertEquals("profile", String.valueOf(list.getEntryValues()[0]));
+            assertEquals(GridSort.ORDERS.length + 1, list.getEntryValues().length);
+            for (int i = 0; i < GridSort.ORDERS.length; i++) {
+                assertEquals(GridSort.ORDERS[i], String.valueOf(list.getEntryValues()[i + 1]));
+                assertEquals(GridSort.LABELS[i], String.valueOf(list.getEntries()[i + 1]));
+            }
         }
     }
 

@@ -72,7 +72,7 @@ val openMessengerFromTopBarPatch = bytecodePatch(
     name = "Open Messenger from the top bar",
     description = "Makes the Messenger icon at the top of Facebook open the Messenger app instead of Facebook's " +
         "own Chats, if you'd rather chat in Messenger. Without Messenger installed, Chats opens as before. " +
-        "Starts off. Turn it on in Hushfacebook settings > Chats. Also carries Leave calls and chats to " +
+        "Starts off. Turn it on in Hushfacebook settings > Chats and Messenger. Also carries Leave calls and chats to " +
         "Messenger, a separate switch that starts off and leaves calls and chat notifications to Messenger " +
         "while it's installed and enabled. Restart Facebook after changing the switch or whether Messenger is " +
         "installed or enabled, so call routing updates.",

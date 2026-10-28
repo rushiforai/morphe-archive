@@ -8,6 +8,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -101,8 +102,9 @@ internal fun linkBoxFallbacks(method: Method): List<Int> {
  */
 internal fun BytecodePatchContext.hookLinkBoxFallbacks(): Int {
     val owners = mutableSetOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
+    // Only a method hookLinkBoxColour sent to PARSE_LINK_BOX has fallbacks to find (#236).
+    classDefForEachReferencing(names = listOf(PARSE_LINK_BOX.substringAfter("->").substringBefore('('))) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
         if (classDef.methods.any { linkBoxFallbacks(it).isNotEmpty() }) owners += classDef.type
     }
     return owners.sumOf { type -> mutableClassDefBy(type).methods.sumOf { it.recolourLinkBoxFallbacks() } }

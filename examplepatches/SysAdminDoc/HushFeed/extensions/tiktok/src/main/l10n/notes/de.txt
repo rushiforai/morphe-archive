@@ -1,41 +1,66 @@
-## Unreleased
+## 0.80.0 (2026-10-27)
 
-* **Einstellungen:** Ein neuer Schalter nimmt die Hushfeed-Zeile aus TikToks Einstellungen und Datenschutz. Danach öffnest du die Einstellungen, indem du Für dich gedrückt hältst (#264).
-* **Kommentare:** Kommentare in voller Höhe enden jetzt unter der Statusleiste statt Uhr und Akku zu verdecken, und sie öffnen auch beim ersten Video nach dem Start von TikTok in voller Höhe (#261).
-* **Feed:** Die untere Leiste des Haupt-Feeds bekommt eine schwebende Glaskapsel mit einer Linse, die über die Tabs gleitet, einer Wischgeste, optionalem Haptik-Feedback und neuen Einstellungen unter Oberfläche für Unschärfe, Glasdurchsichtigkeit, Kapselhöhe und Ecken (#259).
-* **Patchen:** Patches mit Einstellungen haben jetzt Morphe-Optionen für ihre Startwerte, damit ein Build deine Schalter schon eingeschaltet mitbringt. Danke an @XEGARE (#256).
-* **Einstellungen:** Kategorien klappen direkt unter ihrer Zeile in der Hauptliste auf und zu. Die Suche zeigt Bedienelemente in derselben Liste, und offene Kategorien bleiben nach Drehen oder Neustart offen.
-* **Einstellungen:** Große Karten auf der Startseite weichen einer kompakten Liste über die volle Breite. Die Schnelleinstellungen wurden entfernt.
+* **TikTok:** Steuerelemente der Freien Ansicht ausblenden hat einen neuen Schalter, der die Fortschrittsleiste sichtbar lässt, damit du sie weiter sehen und ziehen kannst (#237).
+* **TikTok:** Doppeltippen kann jetzt liken und das Like wieder zurücknehmen. Ein Doppeltippen auf ein Video, das du schon geliked hast, nimmt das Like zurück (#248).
+* **TikTok:** Wische nach links oder rechts, während du ein Video gedrückt hältst, um die Haltegeschwindigkeit zu wählen, von halber bis dreifacher Geschwindigkeit. Standardmäßig ist es aus (#248).
+* **TikTok:** Raster mit Gefällt-mir-Videos haben eine eigene Sortierung, und die Sortierschaltfläche in so einem Raster ändert nur diese Reihenfolge (#180).
+* **TikTok:** Jeder Hushfeed-Titel zeigt jetzt TikToks Cyan und Rot in einem langsam wandernden Farbverlauf.
+* **TikTok:** Die Voreinstellung Ruhiger Feed ist weg. Ihre Filter findest du alle noch unter Feed-Filter, und was sie eingeschaltet hat, bleibt an.
+* **TikTok:** Doppeltippen und Langes Drücken können TikToks Suchseite öffnen, auch wenn die Suchschaltfläche im Feed ausgeblendet ist (#251).
+* **TikTok:** Ein neuer Schalter faltet das Kommentar-Suchfeld zu einer Lupenschaltfläche oben links zusammen (#254).
+* **TikTok:** Ein neuer Schalter nimmt die Hushfeed-Zeile aus TikToks Einstellungen und Datenschutz. Danach öffnest du die Einstellungen, indem du Für dich gedrückt hältst (#264).
+* **TikTok:** Ein @Benutzername in der Bio von jemandem ist jetzt ein Link. Tippe darauf, und das Profil öffnet sich (#247).
+* **TikTok:** Die untere Leiste des Haupt-Feeds kann eine schwebende Glaskapsel sein, mit einer Linse, die über die Tabs gleitet, und neuen Einstellungen für Unschärfe, Deckkraft, Höhe und Ecken (#259).
+* **TikTok:** Patches mit Einstellungen haben Morphe-Optionen für ihre Startwerte, damit ein Build deine Schalter schon eingeschaltet mitbringt. Danke an @XEGARE (#256).
+* **TikTok:** Ein neuer Schalter blendet die Reihe mit LIVE- und Story-Kreisen oben in Folge ich aus, ohne dass ein leerer Streifen bleibt (#262).
+* **TikTok:** Ein neuer Schalter stoppt das Fenster Teilen mit, das TikTok ein paar Sekunden nach dem Speichern eines Videos öffnet. PineDrama bekommt ihn auch.
+* **TikTok:** Wenn du die Originalfotos eines Fotobeitrags speicherst, werden auch Beschreibung, Creator, Link und Beitragsdatum in einer Datei gespeichert.
+* **TikTok:** Die Einstellungssuche kennt alltägliche Namen wie Autoplay, PiP und AI und findet eine Auswahlzeile über jede ihrer Optionen.
+* **TikTok:** Feed zu festen Zeiten sperren sperrt den Feed von selbst in den Stunden, die du wählst, und das Sperrfenster zeigt, wann er wieder öffnet.
+* **TikTok:** Nur über Wi-Fi speichern hält Speichern aus dem mobilen Netz heraus. Ein Speichervorgang wartet bis zu 30 Minuten auf Wi-Fi, und du kannst ihn unter Downloads abbrechen.
+* **TikTok:** Bei PineDrama funktionieren die Schalter im Posteingang jetzt, auch Unterhaltungen ausblenden (#156).
+* **TikTok:** Bei PineDrama nennt die Versionszeile in den Einstellungen jetzt PineDrama und seinen Build statt TikTok (#156).
+* **TikTok:** Ein Suchergebnis weit unten auf einer Einstellungsseite öffnet jetzt direkt an seiner Zeile.
+* **TikTok:** Mit eingeschalteter Durchsichtiger unterer Leiste sitzt die Zeile Zum Überspringen nach oben wischen auf Karten mit vorgeschlagenen Konten wieder über den Tabs (#261).
+* **TikTok:** Die schwebende Tab-Kapsel ist etwas höher, damit das Home-Symbol und sein Name in der Hervorhebung bleiben und die Fortschrittslinie nicht mehr darauf sitzt (#259).
+* **TikTok:** Mit eingeschalteter Automatischen Freien Ansicht blitzt die Suchleiste nicht mehr auf, wenn du ein zweites Video aus Favoriten, Gefällt mir oder einem Profil öffnest (#84).
+* **TikTok:** Mit eingeschaltetem AMOLED-Dunkelmodus ist auch die Karte im Activity Center schwarz (#263).
+* **TikTok:** Hinweise auf ungeprüfte Inhalte ausblenden entfernt auch den Hinweisstreifen bei Videos, die dir in Nachrichten geschickt wurden (#258).
+* **TikTok:** Langes Drücken auf die Bio von jemand anderem kopiert sie jetzt (#247).
+* **TikTok:** Kommentare in voller Höhe enden jetzt unter der Statusleiste, und sie öffnen auch beim ersten Video nach dem Start von TikTok in voller Höhe (#261).
+* **TikTok:** Einstellungskategorien öffnen und schließen sich direkt unter ihren Zeilen, und eine geöffnete Kategorie bleibt nach einer Drehung oder einem Neustart offen.
+* **TikTok:** Die großen Karten auf der Startseite der Einstellungen sind jetzt eine kompakte Liste, und Schnelleinstellungen gibt es nicht mehr.
 * **TikTok:** Hushfeed braucht jetzt Morphe Manager 2.2.0 oder neuer, am Computer morphe-desktop 1.19.1.
-* **Prüfungen:** Ein PineDrama-Kernablauf prüft Start, das Auf- und Zuklappen der Einstellungen an Ort und Stelle und Rückkehr. Die vollständige Prüfung bleibt offen.
-* **Prüfungen:** Jede LIVE-Vorschau- und Drama-Beschriftung, die die durchsichtige untere Leiste nutzt, wird gegen die unterstützte TikTok-APK geprüft.
-* **Feed:** Länderflaggen und Ländercodes bleiben neben Namen, die von rechts nach links geschrieben werden (#258).
-* **Feed:** Mit durchsichtiger unterer Leiste bleiben Name und "Zum Ansehen tippen"-Zeile von LIVE-Vorschauen und Mini-Dramen über den Tabs (#250).
-* **Raster:** Das Sortierfeld hat eine Berührungsfläche von mindestens 48 dp.
-* **Raster:** Das Sortierfeld wird ausgeblendet, solange sein Raster entfernt ist, und erscheint bei dessen Rückkehr wieder.
-* **Raster:** Wenn eine neue Sortierung nicht gespeichert werden kann, bleibt die bisherige Reihenfolge erhalten.
-* **Raster:** Bei Auswahl der ursprünglichen Reihenfolge bleibt das Sortiermenü des aktuellen Rasters erreichbar (#180).
-* **Kommentare:** Kommentare neben dem Video verwenden für Layout und Neuaufbau dieselbe Breite (#253).
-* **Posteingang:** Bei aktivierter Story-Priorität öffnet ein wiederverwendetes Chatbild beim ersten Tippen die Story des aktuell angezeigten Erstellers (#233).
-* **Playback:** Keep the source video paused when a comment link opens another page. Leaving the tap-to-start cover for another tab also keeps its feed paused (#257).
-* **Diagnose:** Benachrichtigungsberichte zählen die Schritte bei Registrierung und Anzeige, ohne Nachrichteninhalte aufzunehmen (#126, #222, #86).
-* **Bildschirmaufnahme:** TikTok bleibt ab Android 14 in der Auswahl der zuletzt verwendeten Apps für die Aufnahme verfügbar.
-* **Prüfungen:** Der Audit für den automatischen Videowechsel verfolgt TikToks Wiedergabe ohne einzelne Videos zu kennzeichnen. Nicht beendete Clips und nicht verfügbare Wiedergabedaten bleiben unentschieden.
+* **TikTok:** Der Release-Durchlauf deckt jetzt auch PineDrama ab, von den Feeds und Fenstern bis zu jedem Hushfeed-Bereich.
+* **TikTok:** PineDrama hat eine eigene Patch-Prüfung, und ein Release braucht für jede unterstützte App eine saubere Prüfung und einen sauberen Durchlauf.
+* **TikTok:** Jede LIVE-Vorschau und jede Drama-Beschriftung, die die Durchsichtige untere Leiste verschiebt, wird gegen den unterstützten TikTok-Build geprüft.
+* **TikTok:** Länderflaggen und Ländercodes bleiben neben Namen, die von rechts nach links geschrieben werden (#258).
+* **TikTok:** Mit eingeschalteter Durchsichtiger unterer Leiste bleiben Name und die Zeile Zum Ansehen tippen von LIVE-Vorschauen und Mini-Dramen über den Tabs (#250).
+* **TikTok:** Die Sortierschaltfläche im Raster ist größer und lässt sich leichter treffen.
+* **TikTok:** Die Sortierschaltfläche im Raster verschwindet, solange ihr Raster nicht zu sehen ist, und kommt mit ihm zurück.
+* **TikTok:** Wenn eine neue Sortierung nicht gespeichert werden kann, behält das Raster seine bisherige Reihenfolge.
+* **TikTok:** Wenn du die Originalreihenfolge wählst, bleibt das Sortiermenü des Rasters verfügbar (#180).
+* **TikTok:** Kommentare neben dem Video misst seine Breite jetzt jedes Mal auf dieselbe Weise (#253).
+* **TikTok:** Im Posteingang öffnet ein wiederverwendetes Chatbild bei eingeschalteter Story-Priorität schon beim ersten Tippen die Story des aktuellen Creators (#233).
+* **TikTok:** Das Video bleibt pausiert, wenn ein Link in den Kommentaren eine andere Seite öffnet (#257).
+* **TikTok:** Benachrichtigungsberichte in der Diagnose zählen Benachrichtigungen, ohne zu speichern, was darin stand (#126, #222, #86).
+* **TikTok:** TikTok bleibt in der Liste, die Android beim Aufnehmen einer einzelnen App zeigt.
+* **TikTok:** Die Prüfung des automatischen Weiterschaltens folgt dem Videoplayer selbst statt Beschriftungen pro Video.
 * **TikTok:** Halte einen Schalter in der Einstellungssuche gedrückt, um sein Bedienelement in der Hauptliste anzuzeigen und hervorzuheben (#248).
-* **Diagnose:** Aufzeichnungen des ersten Bild-Callbacks behalten die Quellzuordnung und monotone Zeitstempel für Startprüfungen (#150).
-* **Build-Prüfungen:** Release-Prüfungen verlangen für jedes angegebene Paket passende APK- und native Prüfnachweise. Rundgänge prüfen den installierten Build und die Patch-Optionen.
-* **TikTok:** Recording recovery exports use bulk writes to avoid long waits when saving large files.
-* **TikTok:** Recovery Retry keeps the recording's original stop reason instead of saying TikTok closed. Recovery dialogs follow Hushfeed's theme.
-* **TikTok:** Screen recordings check storage as they run and keep recovery files until the saved copy is verified. Interrupted recordings can be retried, exported or deleted.
-* **Build checks:** Patch audits now check the installed APK and selected patches. Results from a different package or an excluded patch stay historical.
-* **Build-Prüfungen:** Patch-Audits prüfen vollständige Diagnosedaten, bevor sie fehlende Schalter melden. Fehlende Videos lassen abhängige Prüfungen offen. Die Prüfung der Kommentatorregion nutzt die aktuelle Cache-Ausgabe.
-* **TikTok:** Bildschirmaufnahmen behalten getrennte Zeitstempel für ihre ersten Bilder, während die Tonaufnahme startet.
-* **TikTok:** Bildschirmaufnahmen behalten ihre ersten Videobilder, während der Audio-Encoder startet.
-* **Build-Prüfungen:** Ein Patch-Audit gilt nicht mehr für einen Build, sobald sich dessen ausführbare Eingaben ändern. Teilweise Wiederholungen lassen ältere Prüfungen historisch.
-* **TikTok:** Die Bildschirmaufnahme gibt Audioressourcen frei, wenn der Ton nicht starten kann. Der Speicherhinweis meldet jetzt, wenn die Aufnahme keinen Ton hat.
-* **TikTok:** Die Bildschirmaufnahme fordert Android jetzt auf, nur den Ton der gepatchten App aufzunehmen.
-* **TikTok:** Die Service+-Bereinigung prüft jetzt den ersten Eintrag einer LIVE-Vorschau, so wie TikTok selbst (#94).
-* **TikTok:** Die Kommentarpause kann ein bereits laufendes erstes Bild erkennen, bevor die erste Fortschrittsmeldung eintrifft (#151).
+* **TikTok:** Startprüfungen halten fest, welcher Player das erste Bild gezeichnet hat (#150).
+* **TikTok:** Ein Release braucht passende Nachweise für jede App, die es unterstützt.
+* **TikTok:** Eine wiederhergestellte Aufnahme zu exportieren geht bei großen Dateien schneller.
+* **TikTok:** Bei Wiederherstellung Erneut versuchen behält die Aufnahme ihren ursprünglichen Stoppgrund, und die Wiederherstellungsdialoge folgen dem Hushfeed-Design.
+* **TikTok:** Bildschirmaufnahmen prüfen den Speicher, während sie laufen, und behalten Wiederherstellungsdateien, bis die gespeicherte Kopie geprüft ist.
+* **TikTok:** Patch-Prüfungen untersuchen die installierte App und welche Patches ausgewählt waren.
+* **TikTok:** Eine Patch-Prüfung wartet auf den vollständigen Diagnosebericht, bevor sie einen Schalter als fehlend meldet.
+* **TikTok:** Die ersten Bilder einer Bildschirmaufnahme behalten jeweils ihren eigenen Zeitstempel, während der Ton startet.
+* **TikTok:** Bildschirmaufnahmen behalten ihre ersten Videobilder, während der Ton gerade startet.
+* **TikTok:** Eine Patch-Prüfung zählt für einen Build nicht mehr, sobald sich der Code ändert, gegen den sie lief.
+* **TikTok:** Die Bildschirmaufnahme gibt ihren Ton frei, wenn der Ton nicht starten kann, und der Speicherhinweis sagt, wenn kein Ton dabei ist.
+* **TikTok:** Die Bildschirmaufnahme bittet Android, nur den Ton der gepatchten App aufzunehmen.
+* **TikTok:** Die Service+-Bereinigung prüft denselben ersten LIVE-Vorschau-Eintrag, den TikTok anzeigt (#94).
+* **TikTok:** Die Kommentarpause erkennt, dass das erste Bild läuft, noch vor TikToks erster Fortschrittsmeldung (#151).
 
 ## 0.79.0 (2026-10-24)
 

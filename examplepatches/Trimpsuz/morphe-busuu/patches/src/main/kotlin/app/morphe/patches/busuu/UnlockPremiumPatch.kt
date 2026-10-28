@@ -2,14 +2,14 @@ package app.morphe.patches.busuu
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patches.busuu.Constants.COMPATIBILTIY
+import app.morphe.patches.compatibility.Constants.BUSUU
 
 @Suppress("unused")
 val spoofPremiumStatus = bytecodePatch(
     name = "Spoof premium status",
     description = "Spoofs premium status",
 ) {
-    compatibleWith(COMPATIBILTIY)
+    compatibleWith(BUSUU)
 
     execute {
         IsPremiumAccountFingerprint.method.addInstructions(
@@ -27,7 +27,7 @@ val spoofPremiumPlus = bytecodePatch(
     name = "Spoof premium plus status",
     description = "Spoofs premium plus status",
 ) {
-    compatibleWith(COMPATIBILTIY)
+    compatibleWith(BUSUU)
 
     execute {
         val targetClass = FeatureAccessClassFingerprint.originalClassDef

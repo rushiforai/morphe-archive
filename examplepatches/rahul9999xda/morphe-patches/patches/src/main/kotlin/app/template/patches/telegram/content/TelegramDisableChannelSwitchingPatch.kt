@@ -7,7 +7,7 @@ import app.template.patches.shared.Constants.TELEGRAM_WEB_COMPATIBILITY
 
 /**
  * The former ChatPullingDownDrawable implementation is not present under its old
- * class/method names in Telegram/Web 13.1.1 or Plus 13.0.3.0 DEX sets.
+ * class/method names in Telegram/Web 13.1.1 or Plus 13.1.1.0 DEX sets.
  * The old three fingerprints therefore must
  * not be required: doing so is exactly what caused the 12.10.4 patch failure.
  *

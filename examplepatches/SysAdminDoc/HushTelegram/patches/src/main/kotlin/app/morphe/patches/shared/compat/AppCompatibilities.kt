@@ -40,14 +40,20 @@ internal object AppCompatibilities {
      */
     const val TELEGRAM_SIGNER_SHA256 = "49c1522548ebacd46ce322b6fd47f6092bb745d0f88082145caf35e14dcc38e1"
 
-    /** The Telegram release every patch here was applied to and read against, in both builds. */
+    /**
+     * The telegram.org release every patch here was applied to and read against. telegram.org
+     * moves on its own schedule, so it can trail [TELEGRAM_PLAY_TARGET_VERSION].
+     */
     const val TELEGRAM_TARGET_VERSION = "13.1.0"
 
+    /** The Play release every patch here was applied to and read against. */
+    const val TELEGRAM_PLAY_TARGET_VERSION = "13.1.1"
+
     /**
-     * The version code of the Play build's universal [TELEGRAM_TARGET_VERSION] APK on APKMirror.
-     * It carries every ABI, so the one code stands for arm64-v8a too.
+     * The version code of the Play build's universal [TELEGRAM_PLAY_TARGET_VERSION] APK on
+     * APKMirror. It carries every ABI, so the one code stands for arm64-v8a too.
      */
-    const val TELEGRAM_PLAY_TARGET_VERSION_CODE = 72291
+    const val TELEGRAM_PLAY_TARGET_VERSION_CODE = 72371
 
     /** The version code of telegram.org's [TELEGRAM_TARGET_VERSION] APK, also universal. */
     const val TELEGRAM_TARGET_VERSION_CODE = 72299
@@ -67,7 +73,7 @@ internal object AppCompatibilities {
             signatures = setOf(TELEGRAM_SIGNER_SHA256),
             targets = listOf(
                 AppTarget(
-                    version = TELEGRAM_TARGET_VERSION,
+                    version = TELEGRAM_PLAY_TARGET_VERSION,
                     versionCodes = mapOf(SupportedAbi.ARM64_V8A to TELEGRAM_PLAY_TARGET_VERSION_CODE),
                     minSdk = TELEGRAM_TARGET_MIN_SDK,
                 ),

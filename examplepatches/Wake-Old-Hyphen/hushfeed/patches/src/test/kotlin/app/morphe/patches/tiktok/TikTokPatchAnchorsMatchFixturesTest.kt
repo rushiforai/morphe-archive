@@ -17,6 +17,8 @@ import app.morphe.patches.tiktok.interaction.copyids.BioBindFingerprint
 import app.morphe.patches.tiktok.interaction.copyids.SHARE_APPS_MARKER
 import app.morphe.patches.tiktok.interaction.copyids.SHARE_PANEL_MARKER
 import app.morphe.patches.tiktok.interaction.copyids.SIGNATURE_COMPONENT
+import app.morphe.patches.tiktok.interaction.copyids.TRANSLATED_SIGNATURE_COMPONENT
+import app.morphe.patches.tiktok.interaction.copyids.TranslatedBioBindFingerprint
 import app.morphe.patches.tiktok.interaction.copyids.bioTextField
 import app.morphe.patches.tiktok.interaction.copyids.resolveShareAppsPanel
 import app.morphe.patches.tiktok.interaction.copyids.sharePackageField
@@ -1138,11 +1140,20 @@ class TikTokPatchAnchorsMatchFixturesTest {
                 .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
                 .associateBy { it.type }
 
-            val bio = classes.getValue(SIGNATURE_COMPONENT)
-            val bioBinds = bio.methods.filter { BioBindFingerprint.takes(it, bio) }
-            assertEquals("the bio bind", 1, bioBinds.size)
-            assertTrue("the bio bind has two free registers", bioBinds.single().implementation!!.registerCount - 3 >= 2)
-            assertTrue("the bio item's one text view", bio.bioTextField() != null)
+            // Your own bio and someone else's (with translation) are two sibling items, each hooked (#247).
+            listOf(
+                SIGNATURE_COMPONENT to BioBindFingerprint,
+                TRANSLATED_SIGNATURE_COMPONENT to TranslatedBioBindFingerprint,
+            ).forEach { (type, fingerprint) ->
+                val bio = classes.getValue(type)
+                val bioBinds = bio.methods.filter { fingerprint.takes(it, bio) }
+                assertEquals("$type's bio bind", 1, bioBinds.size)
+                assertTrue("$type's bio bind has two free registers",
+                    bioBinds.single().implementation!!.registerCount - 3 >= 2)
+                val text = bioBinds.single().bioTextField()
+                assertTrue("$type's bio bind reads its own text view",
+                    text != null && bio.fields.any { it.name == text.name && it.type == text.type })
+            }
 
             val snapshots = classes.values.flatMap { classDef ->
                 classDef.methods.filter {

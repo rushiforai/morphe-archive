@@ -7,6 +7,7 @@ export PYTHONDONTWRITEBYTECODE=1
 checks=(
     tests/twitch/verify_interface.py
     tests/twitch/verify_playback_links.py
+    tests/twitch/verify_fill_screen.py
     tests/twitch/test_async.py
     tests/twitch/test_vod_requests.py
     tests/twitch/test_privacy_consent.py

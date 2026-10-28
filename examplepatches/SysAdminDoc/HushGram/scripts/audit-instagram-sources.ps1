@@ -704,6 +704,12 @@ foreach ($candidate in @($candidates.Values | Sort-Object Key)) {
 foreach ($copy in $collapsed) {
     $notes.Add("$($copy.repository) is a byte-for-byte copy of files in the $($copy.lineage) lineage, so it counts as that lineage")
 }
+foreach ($entry in $entries) {
+    foreach ($inherited in @(Get-SourceProperty $entry 'inherits' | Where-Object { $_ })) {
+        $notes.Add("$($entry.repository) carries code from the $($inherited.lineage) lineage ($(@($inherited.paths) -join ', ')), " +
+            "which counts as that lineage, not as its own work")
+    }
+}
 
 # --- every source the ledger holds ---------------------------------------------------------------
 

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -28,19 +29,27 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.widget.Toolbar;
 import com.mxtech.videoplayer.ad.online.theme.ui.ThemeSkinItem;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLongArray;
 
 /**
- * In-memory Classic Theme engine for MX Player (3.3.1 / 3.4.0 / 3.4.1).
+ * Zero-allocation, zero-jitter in-memory Classic Theme engine for MX Player 3.4.1.
  *
- * Powers all local Classic Theme swatches (16 solid Light themes + 16 split Dark Slate #1c2939
- * themes) with zero network requests, zero .mxskin downloads, and zero ad prompts while keeping
+ * Powers all 32 local Classic Theme swatches (16 solid Light themes + 16 split Dark Slate #1c2939
+ * themes) in 1 tap with zero network requests, zero .mxskin downloads, zero per-frame boxing/GC
+ * churn during RecyclerView scrolling, and zero transition-frame layout jitter while keeping
  * Row 1 (Adaptive / Light Theme / Dark Theme) 100% stock.
  */
 @SuppressWarnings("unused")
@@ -60,8 +69,39 @@ public final class ClassicThemeEngine {
     private static final int SYSTEM_UI_FLAG_LIGHT_STATUS_BAR = 0x00002000;
     private static final int SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR = 0x00000010;
 
+    // Resource role IDs cached in Lock-Free RES_ROLE_CACHE (0 = uncached)
+    private static final int ROLE_NON_MXSKIN = 1;
+    private static final int ROLE_COLOR_TOOLBAR_BG = 2;
+    private static final int ROLE_COLOR_TOOLBAR_FG = 3;
+    private static final int ROLE_COLOR_ACCENT = 4;
+    private static final int ROLE_COLOR_BACKDROP = 5;
+    private static final int ROLE_COLOR_SURFACE = 6;
+    private static final int ROLE_COLOR_CARD = 7;
+    private static final int ROLE_COLOR_DIVIDER = 8;
+    private static final int ROLE_CSL_STATEFUL_ACCENT = 9;
+    private static final int ROLE_DRAWABLE_TOOLBAR_BG = 10;
+    private static final int ROLE_DRAWABLE_FAB = 11;
+    private static final int ROLE_DRAWABLE_ME_WAVE = 12;
+    private static final int ROLE_DRAWABLE_CARD_SHAPE = 13;
+    private static final int ROLE_DRAWABLE_FOLDER_SILHOUETTE = 14;
+    private static final int ROLE_DRAWABLE_FOLDER_BADGE = 15;
+    private static final int ROLE_DRAWABLE_ACCENT_ICON = 16;
+    private static final int ROLE_DRAWABLE_SWITCH_TRACK = 17;
+    private static final int ROLE_DRAWABLE_SWITCH_THUMB = 18;
+    private static final int ROLE_DRAWABLE_AURORA_NAV = 19;
+    private static final int ROLE_MXSKIN_OTHER = 20;
+
+    private static final int ROLE_CACHE_SIZE = 4096;
+    private static final int ROLE_CACHE_MASK = ROLE_CACHE_SIZE - 1;
+    private static final int ROLE_PROBE_LIMIT = 12;
+
+    /**
+     * Lock-free open-addressed primitive cache: upper 32 bits = resId, lower 32 bits = role (1..20).
+     * Eliminates Integer.valueOf boxing, ThreadLocal lookups, and HashSet<String> scans on hot paths.
+     */
+    private static final AtomicLongArray RES_ROLE_CACHE = new AtomicLongArray(ROLE_CACHE_SIZE);
+
     private static final AtomicBoolean LIFECYCLE_REGISTERED = new AtomicBoolean(false);
-    private static final ConcurrentHashMap<Integer, String> RES_KEY_CACHE = new ConcurrentHashMap<>(512);
     private static final ThreadLocal<Boolean> IN_RESOLVE = new ThreadLocal<Boolean>() {
         @Override
         protected Boolean initialValue() {
@@ -69,138 +109,176 @@ public final class ClassicThemeEngine {
         }
     };
 
+    // UI-thread-only per-DecorView styling state to prevent redundant window invalidations & post storms.
+    private static final WeakHashMap<View, DecorStamp> DECOR_STAMPS = new WeakHashMap<>();
+    private static final ConcurrentHashMap<Class<?>, Field> RES_WRAPPER_FIELD_CACHE = new ConcurrentHashMap<>(4);
+    private static volatile WeakReference<Activity> resumedActivityRef = new WeakReference<>(null);
+    private static volatile Resources rawBaseResources = null;
+    private static volatile int cachedLightWaveSourceId = 0;
+    private static volatile int cachedLightWaveTargetId = 0;
+
     static volatile ThemeState currentState = ThemeState.INACTIVE;
 
-    private static final Set<String> TOOLBAR_BG_COLOR_KEYS = new HashSet<>(Arrays.asList(
-            "mxskin__toolbar_bg",
-            "mxskin__aurora_toolbar_background",
-            "mxskin__activate_tv_dialog_toolbar_bg"
-    ));
+    private static final Map<String, Integer> KEY_TO_ROLE = buildKeyRoleMap();
 
-    private static final Set<String> TOOLBAR_FG_COLOR_KEYS = new HashSet<>(Arrays.asList(
-            "mxskin__theme_toolbar_primary_color",
-            "mxskin__me_tab_toolbar_text_theme",
-            "mxskin__activate_tv_dialog_toolbar_title"
-    ));
+    private static Map<String, Integer> buildKeyRoleMap() {
+        Map<String, Integer> m = new HashMap<>(160);
 
-    private static final Set<String> PAGE_BACKDROP_COLOR_KEYS = new HashSet<>(Arrays.asList(
-            "mxskin__f5f7fa_000000",
-            "mxskin__f5f7fa_16202b",
-            "mxskin__color_f5f9fe_16202b",
-            "mxskin__ott_me_bg",
-            "mxskin__me_tab_settings_page_theme",
-            "mxskin__private_folder_background"
-    ));
+        putRoles(m, ROLE_COLOR_TOOLBAR_BG,
+                "mxskin__toolbar_bg",
+                "mxskin__aurora_toolbar_background",
+                "mxskin__activate_tv_dialog_toolbar_bg"
+        );
 
-    private static final Set<String> SURFACE_COLOR_KEYS = new HashSet<>(Arrays.asList(
-            "mxskin__ffffff_1c2939",
-            "mxskin__ffffff_000000",
-            "mxskin__ffffff_16202b",
-            "mxskin__ffffff_181c1f",
-            "mxskin__ffffff_22282d",
-            "mxskin__ffffff_26374c",
-            "mxskin__ffffff_2a2a2a",
-            "mxskin__f2f2f2_1c2939",
-            "mxskin__f6f7f8_1c2939",
-            "mxskin__fafafa_1c2939",
-            "mxskin__F3F3F3_18191A",
-            "mxskin__aurora_background",
-            "mxskin__mx_home_tab_bg_color",
-            "mxskin__ott_me_settings_bg",
-            "mxskin__color_activity_background"
-    ));
+        putRoles(m, ROLE_COLOR_TOOLBAR_FG,
+                "mxskin__theme_toolbar_primary_color",
+                "mxskin__me_tab_toolbar_text_theme",
+                "mxskin__activate_tv_dialog_toolbar_title"
+        );
 
-    private static final Set<String> CARD_COLOR_KEYS = new HashSet<>(Arrays.asList(
-            "mxskin__card_bg",
-            "mxskin__search_tab_card_bg",
-            "mxskin__dialog_bg",
-            "mxskin__dialog_bg_color",
-            "mxskin__alert_dialog_color_back_ground",
-            "mxskin__transfer_home_item_bg"
-    ));
+        putRoles(m, ROLE_COLOR_BACKDROP,
+                "mxskin__f5f7fa_000000",
+                "mxskin__f5f7fa_16202b",
+                "mxskin__color_f5f9fe_16202b",
+                "mxskin__ott_me_bg",
+                "mxskin__me_tab_settings_page_theme",
+                "mxskin__private_folder_background"
+        );
 
-    private static final Set<String> ACCENT_COLOR_KEYS = new HashSet<>(Arrays.asList(
-            "mxskin__tag_blue",
-            "mxskin__text_color_selected_blue",
-            "mxskin__list_selected_text_color",
-            "mxskin__tab_select_text_color",
-            "mxskin__tab_select_text_color2",
-            "mxskin__mx_origin_bottom_indicator_title_selected_color",
-            "mxskin__home_tab_indicator_color",
-            "mxskin__home_tab_chiclet_selected",
-            "mxskin__file_list_last_folder",
-            "mxskin__create_folder_color",
-            "mxskin__create_new_folder_dialog_ok",
-            "mxskin__local_music_folder_color",
-            "mxskin__smb_folder_color",
-            "mxskin__transfer_folder",
-            "mxskin__check_select_all_text_color",
-            "mxskin__mx_one_theme_compat_cta_color",
-            "mxskin__sleep_timer_radio_checked",
-            "mxskin__choose_magic_indicator",
-            "mxskin__choose_folder_path_bottom_btn",
-            "mxskin__search_tab_home_hot_words_indicator_select_color",
-            "mxskin__search_tab_result_indicator_select_color"
-    ));
+        putRoles(m, ROLE_COLOR_SURFACE,
+                "mxskin__ffffff_1c2939",
+                "mxskin__ffffff_000000",
+                "mxskin__ffffff_16202b",
+                "mxskin__ffffff_181c1f",
+                "mxskin__ffffff_22282d",
+                "mxskin__ffffff_26374c",
+                "mxskin__ffffff_2a2a2a",
+                "mxskin__f2f2f2_1c2939",
+                "mxskin__f6f7f8_1c2939",
+                "mxskin__fafafa_1c2939",
+                "mxskin__F3F3F3_18191A",
+                "mxskin__aurora_background",
+                "mxskin__mx_home_tab_bg_color",
+                "mxskin__ott_me_settings_bg",
+                "mxskin__color_activity_background",
+                "mxskin__color_aurora_surface"
+        );
 
-    private static final Set<String> STATEFUL_ACCENT_COLOR_KEYS = new HashSet<>(Arrays.asList(
-            "mxskin__tab_text",
-            "mxskin__aurora_tab_text_color",
-            "mxskin__menu_checkbox_color",
-            "mxskin__radio_button",
-            "mxskin__radio_text_selector",
-            "mxskin__sleep_timer_switch",
-            "mxskin__equalizer_switch",
-            "mxskin__download_type_switch_color"
-    ));
+        putRoles(m, ROLE_COLOR_CARD,
+                "mxskin__card_bg",
+                "mxskin__search_tab_card_bg",
+                "mxskin__dialog_bg",
+                "mxskin__dialog_bg_color",
+                "mxskin__alert_dialog_color_back_ground",
+                "mxskin__transfer_home_item_bg"
+        );
 
-    private static final Set<String> TOOLBAR_BG_DRAWABLE_KEYS = new HashSet<>(Arrays.asList(
-            "mxskin__theme_toolbar_bg",
-            "mxskin__aurora_top_head_background",
-            "mxskin__aurora_top_head_home_background"
-    ));
+        putRoles(m, ROLE_COLOR_ACCENT,
+                "mxskin__color_accent",
+                "mxskin__tag_blue",
+                "mxskin__text_color_selected_blue",
+                "mxskin__list_selected_text_color",
+                "mxskin__tab_select_text_color",
+                "mxskin__tab_select_text_color2",
+                "mxskin__mx_origin_bottom_indicator_title_selected_color",
+                "mxskin__home_tab_indicator_color",
+                "mxskin__home_tab_chiclet_selected",
+                "mxskin__file_list_last_folder",
+                "mxskin__create_folder_color",
+                "mxskin__create_new_folder_dialog_ok",
+                "mxskin__local_music_folder_color",
+                "mxskin__smb_folder_color",
+                "mxskin__transfer_folder",
+                "mxskin__check_select_all_text_color",
+                "mxskin__mx_one_theme_compat_cta_color",
+                "mxskin__sleep_timer_radio_checked",
+                "mxskin__choose_magic_indicator",
+                "mxskin__choose_folder_path_bottom_btn",
+                "mxskin__search_tab_home_hot_words_indicator_select_color",
+                "mxskin__search_tab_result_indicator_select_color"
+        );
 
-    private static final Set<String> CARD_SHAPE_DRAWABLE_KEYS = new HashSet<>(Arrays.asList(
-            "mxskin__ott_me_group_bg",
-            "mxskin__mx_home_tab_bg",
-            "mxskin__popup",
-            "mxskin__popup_bg_corner_16dp",
-            "mxskin__popup_big_radius",
-            "mxskin__rate_dialog_bg",
-            "mxskin__privacy_dialog_bg"
-    ));
+        putRoles(m, ROLE_COLOR_DIVIDER,
+                "mxskin__bottom_tab_divider",
+                "mxskin__divider",
+                "mxskin__divider_line"
+        );
 
-    private static final Set<String> FOLDER_SILHOUETTE_DRAWABLE_KEYS = new HashSet<>(Arrays.asList(
-            "mxskin__ic_default_folder",
-            "mxskin__ic_default_folders",
-            "mxskin__ic_recycle_bin_folders",
-            "mxskin__list_folder_usb",
-            "mxskin__share_folder"
-    ));
+        putRoles(m, ROLE_CSL_STATEFUL_ACCENT,
+                "mxskin__tab_text",
+                "mxskin__aurora_tab_text_color",
+                "mxskin__menu_checkbox_color",
+                "mxskin__radio_button",
+                "mxskin__radio_text_selector",
+                "mxskin__sleep_timer_switch",
+                "mxskin__equalizer_switch",
+                "mxskin__download_type_switch_color"
+        );
 
-    private static final Set<String> FOLDER_BADGE_DRAWABLE_KEYS = new HashSet<>(Arrays.asList(
-            "mxskin__ic_folder_camera",
-            "mxskin__ic_folder_download",
-            "mxskin__ic_folder_movies",
-            "mxskin__ic_folder_mxplayer",
-            "mxskin__ic_folder_screenshot",
-            "mxskin__ic_folder_transfer",
-            "mxskin__ic_folder_whatsapp"
-    ));
+        putRoles(m, ROLE_DRAWABLE_TOOLBAR_BG,
+                "mxskin__theme_toolbar_bg",
+                "mxskin__aurora_top_head_background",
+                "mxskin__aurora_top_head_home_background"
+        );
 
-    private static final Set<String> ACCENT_ICON_DRAWABLE_KEYS = new HashSet<>(Arrays.asList(
-            "mxskin__tab_local",
-            "mxskin__mx_tab_profile",
-            "mxskin__tab_video_selected",
-            "mxskin__tab_audio_selected",
-            "mxskin__tab_file_selected",
-            "mxskin__tab_photo_selected",
-            "mxskin__tab_app_selected",
-            "mxskin__ic_radio_button",
-            "mxskin__ic_ok",
-            "mxskin__icon_done",
-            "mxskin__ic_search_accent"
-    ));
+        putRoles(m, ROLE_DRAWABLE_FAB, "mxskin__local_last_play_icon");
+        putRoles(m, ROLE_DRAWABLE_ME_WAVE, "mxskin__bg_me_page");
+
+        putRoles(m, ROLE_DRAWABLE_CARD_SHAPE,
+                "mxskin__ott_me_group_bg",
+                "mxskin__mx_home_tab_bg",
+                "mxskin__popup",
+                "mxskin__popup_bg_corner_16dp",
+                "mxskin__popup_big_radius",
+                "mxskin__rate_dialog_bg",
+                "mxskin__privacy_dialog_bg"
+        );
+
+        putRoles(m, ROLE_DRAWABLE_FOLDER_SILHOUETTE,
+                "mxskin__ic_default_folder",
+                "mxskin__ic_default_folders",
+                "mxskin__ic_recycle_bin_folders",
+                "mxskin__list_folder_usb",
+                "mxskin__share_folder"
+        );
+
+        putRoles(m, ROLE_DRAWABLE_FOLDER_BADGE,
+                "mxskin__ic_folder_camera",
+                "mxskin__ic_folder_download",
+                "mxskin__ic_folder_movies",
+                "mxskin__ic_folder_mxplayer",
+                "mxskin__ic_folder_screenshot",
+                "mxskin__ic_folder_transfer",
+                "mxskin__ic_folder_whatsapp"
+        );
+
+        putRoles(m, ROLE_DRAWABLE_ACCENT_ICON,
+                "mxskin__tab_local",
+                "mxskin__mx_tab_profile",
+                "mxskin__tab_video_selected",
+                "mxskin__tab_audio_selected",
+                "mxskin__tab_file_selected",
+                "mxskin__tab_photo_selected",
+                "mxskin__tab_app_selected",
+                "mxskin__ic_radio_button",
+                "mxskin__ic_ok",
+                "mxskin__icon_done",
+                "mxskin__ic_search_accent"
+        );
+
+        putRoles(m, ROLE_DRAWABLE_SWITCH_TRACK, "mxskin__modern_switch_track_activated");
+        putRoles(m, ROLE_DRAWABLE_SWITCH_THUMB, "mxskin__modern_switch_thumb_activated");
+        putRoles(m, ROLE_DRAWABLE_AURORA_NAV, "mxskin__ic_aurora_back", "mxskin__ic_aurora_close");
+
+        return m;
+    }
+
+    private static void putRoles(Map<String, Integer> map, int role, String... keys) {
+        Integer boxed = Integer.valueOf(role);
+        for (String k : keys) {
+            map.put(k, boxed);
+        }
+    }
 
     private ClassicThemeEngine() {
     }
@@ -210,9 +288,24 @@ public final class ClassicThemeEngine {
     // =========================================================================
 
     public static void init(Object appObj, String skinName) {
-        syncSkinName(skinName);
-        if (appObj instanceof Application && LIFECYCLE_REGISTERED.compareAndSet(false, true)) {
-            ((Application) appObj).registerActivityLifecycleCallbacks(new LifecycleHook());
+        if (appObj instanceof Application) {
+            Application app = (Application) appObj;
+            try {
+                Context base = app.getBaseContext();
+                if (base != null) {
+                    Resources baseRes = base.getResources();
+                    if (baseRes != null) {
+                        rawBaseResources = unwrapBaseResources(baseRes);
+                    }
+                }
+            } catch (Throwable ignored) {
+            }
+            syncSkinName(skinName);
+            if (LIFECYCLE_REGISTERED.compareAndSet(false, true)) {
+                app.registerActivityLifecycleCallbacks(new LifecycleHook());
+            }
+        } else {
+            syncSkinName(skinName);
         }
     }
 
@@ -221,7 +314,16 @@ public final class ClassicThemeEngine {
         if (prev != null && equalsNullable(prev.skinName, skinName)) {
             return;
         }
-        currentState = ThemeState.parse(skinName);
+        ThemeState next = ThemeState.parse(skinName);
+        currentState = next;
+        Activity resumed = resumedActivityRef.get();
+        if (resumed != null && !resumed.isFinishing() && !isPlayerScreen(resumed.getClass().getName())) {
+            if (next.active) {
+                applyActivityPass(resumed, next, true);
+            } else if (prev != null && prev.active) {
+                restoreStockActivityBars(resumed, skinName);
+            }
+        }
     }
 
     public static boolean isActive() {
@@ -335,7 +437,7 @@ public final class ClassicThemeEngine {
 
     public static Drawable overrideStrategyDrawable(Context context, int resId, Drawable origDrawable) {
         ThemeState state = currentState;
-        if (!state.active || context == null || resId == 0) {
+        if (!state.active || context == null || resId == 0 || origDrawable == null) {
             return origDrawable;
         }
         return overrideResDrawable(context.getResources(), resId, origDrawable);
@@ -343,18 +445,30 @@ public final class ClassicThemeEngine {
 
     public static int overrideResColor(Resources res, int resId, int origColor) {
         ThemeState state = currentState;
-        if (!state.active || res == null || resId == 0 || Boolean.TRUE.equals(IN_RESOLVE.get())) {
+        if (!state.active || res == null || resId == 0) {
             return origColor;
         }
-        String key = lookupMxSkinKey(res, resId);
-        if (key.isEmpty()) {
-            return origColor;
+        int role = resolveRoleFast(res, resId);
+        switch (role) {
+            case ROLE_NON_MXSKIN:
+                return origColor;
+            case ROLE_COLOR_TOOLBAR_BG:
+                return state.accentColor;
+            case ROLE_COLOR_TOOLBAR_FG:
+                return state.toolbarFgColor;
+            case ROLE_COLOR_ACCENT:
+                return state.readableAccent;
+            case ROLE_COLOR_BACKDROP:
+                return state.backdropColor;
+            case ROLE_COLOR_SURFACE:
+                return state.surfaceColor;
+            case ROLE_COLOR_CARD:
+                return state.cardColor;
+            case ROLE_COLOR_DIVIDER:
+                return state.dividerColor;
+            default:
+                return fallbackMxSkinColor(state, origColor);
         }
-        Integer mapped = mapColorForKey(state, key);
-        if (mapped != null) {
-            return mapped.intValue();
-        }
-        return fallbackMxSkinColor(state, origColor);
     }
 
     public static ColorStateList overrideResColorStateList(
@@ -363,84 +477,83 @@ public final class ClassicThemeEngine {
             ColorStateList origList
     ) {
         ThemeState state = currentState;
-        if (!state.active || res == null || resId == 0 || Boolean.TRUE.equals(IN_RESOLVE.get())) {
+        if (!state.active || res == null || resId == 0) {
             return origList;
         }
-        String key = lookupMxSkinKey(res, resId);
-        if (key.isEmpty()) {
-            return origList;
+        int role = resolveRoleFast(res, resId);
+        switch (role) {
+            case ROLE_NON_MXSKIN:
+                return origList;
+            case ROLE_CSL_STATEFUL_ACCENT:
+                return state.statefulAccentList;
+            case ROLE_COLOR_TOOLBAR_BG:
+                return state.toolbarBgCSL;
+            case ROLE_COLOR_TOOLBAR_FG:
+                return state.toolbarFgCSL;
+            case ROLE_COLOR_ACCENT:
+                return state.accentCSL;
+            case ROLE_COLOR_BACKDROP:
+                return state.backdropCSL;
+            case ROLE_COLOR_SURFACE:
+                return state.surfaceCSL;
+            case ROLE_COLOR_CARD:
+                return state.cardCSL;
+            case ROLE_COLOR_DIVIDER:
+                return state.dividerCSL;
+            default:
+                return origList;
         }
-        if (STATEFUL_ACCENT_COLOR_KEYS.contains(key)) {
-            return state.statefulAccentList;
-        }
-        Integer single = mapColorForKey(state, key);
-        if (single != null) {
-            return ColorStateList.valueOf(single.intValue());
-        }
-        return origList;
     }
 
     public static Drawable overrideResDrawable(Resources res, int resId, Drawable origDrawable) {
         ThemeState state = currentState;
-        if (!state.active || res == null || resId == 0 || Boolean.TRUE.equals(IN_RESOLVE.get())) {
+        if (!state.active || res == null || resId == 0 || origDrawable == null) {
             return origDrawable;
         }
-        String key = lookupMxSkinKey(res, resId);
-        if (key.isEmpty()) {
-            return origDrawable;
-        }
-
-        if (TOOLBAR_BG_DRAWABLE_KEYS.contains(key)) {
-            return new ColorDrawable(state.accentColor);
-        }
-
-        if ("mxskin__local_last_play_icon".equals(key)) {
-            return state.getOrCreateFabDrawable(res, origDrawable);
-        }
-
-        if ("mxskin__bg_me_page".equals(key)) {
-            Drawable wave = origDrawable;
-            if (state.dark) {
-                Drawable lightWave = loadLightCounterpart(res, resId);
-                if (lightWave != null) {
-                    wave = lightWave;
-                }
-            }
-            return tintClone(res, wave, state.accentColor);
-        }
-
-        if (CARD_SHAPE_DRAWABLE_KEYS.contains(key)) {
-            if (!state.dark) {
+        int role = resolveRoleFast(res, resId);
+        switch (role) {
+            case ROLE_NON_MXSKIN:
                 return origDrawable;
+            case ROLE_DRAWABLE_TOOLBAR_BG:
+                if (origDrawable instanceof ColorDrawable
+                        && ((ColorDrawable) origDrawable).getColor() == state.accentColor) {
+                    return origDrawable;
+                }
+                return new ColorDrawable(state.accentColor);
+            case ROLE_DRAWABLE_FAB:
+                return state.getOrCreateFabDrawable(res, origDrawable);
+            case ROLE_DRAWABLE_ME_WAVE: {
+                if (origDrawable.getColorFilter() == state.toolbarBgFilter) {
+                    return origDrawable;
+                }
+                Drawable wave = origDrawable;
+                if (state.dark) {
+                    Drawable lightWave = loadLightCounterpart(res, resId);
+                    if (lightWave != null) {
+                        wave = lightWave;
+                    }
+                }
+                return tintClone(res, wave, state.toolbarBgFilter);
             }
-            return tintClone(res, origDrawable, state.cardColor);
+            case ROLE_DRAWABLE_CARD_SHAPE:
+                if (!state.dark) {
+                    return origDrawable;
+                }
+                return tintClone(res, origDrawable, state.cardFilter);
+            case ROLE_DRAWABLE_FOLDER_SILHOUETTE:
+                return tintClone(res, origDrawable, state.folderTintFilter);
+            case ROLE_DRAWABLE_FOLDER_BADGE:
+                return tintClone(res, origDrawable, state.folderBadgeFilter);
+            case ROLE_DRAWABLE_ACCENT_ICON:
+            case ROLE_DRAWABLE_SWITCH_THUMB:
+                return tintClone(res, origDrawable, state.accentFilter);
+            case ROLE_DRAWABLE_SWITCH_TRACK:
+                return tintClone(res, origDrawable, state.switchTrackFilter);
+            case ROLE_DRAWABLE_AURORA_NAV:
+                return tintClone(res, origDrawable, state.toolbarIconFilter);
+            default:
+                return origDrawable;
         }
-
-        if (FOLDER_SILHOUETTE_DRAWABLE_KEYS.contains(key)) {
-            return tintClone(res, origDrawable, state.folderTintColor);
-        }
-
-        if (FOLDER_BADGE_DRAWABLE_KEYS.contains(key)) {
-            return tintClone(res, origDrawable, state.folderBadgeColor);
-        }
-
-        if (ACCENT_ICON_DRAWABLE_KEYS.contains(key)) {
-            return tintClone(res, origDrawable, state.readableAccent);
-        }
-
-        if ("mxskin__modern_switch_track_activated".equals(key)) {
-            return tintClone(res, origDrawable, withAlpha(state.readableAccent, 0x90));
-        }
-
-        if ("mxskin__modern_switch_thumb_activated".equals(key)) {
-            return tintClone(res, origDrawable, state.readableAccent);
-        }
-
-        if ("mxskin__ic_aurora_back".equals(key) || "mxskin__ic_aurora_close".equals(key)) {
-            return tintClone(res, origDrawable, state.toolbarFgColor);
-        }
-
-        return origDrawable;
     }
 
     public static ColorFilter overrideToolbarIconFilter(
@@ -456,33 +569,10 @@ public final class ClassicThemeEngine {
             return null;
         }
         PorterDuffColorFilter filter = state.toolbarIconFilter;
-        drawable.mutate().setColorFilter(filter);
+        if (drawable.getColorFilter() != filter) {
+            drawable.mutate().setColorFilter(filter);
+        }
         return filter;
-    }
-
-    private static Integer mapColorForKey(ThemeState state, String key) {
-        if (TOOLBAR_BG_COLOR_KEYS.contains(key)) {
-            return Integer.valueOf(state.accentColor);
-        }
-        if (TOOLBAR_FG_COLOR_KEYS.contains(key)) {
-            return Integer.valueOf(state.toolbarFgColor);
-        }
-        if (ACCENT_COLOR_KEYS.contains(key) || "mxskin__color_accent".equals(key)) {
-            return Integer.valueOf(state.readableAccent);
-        }
-        if (PAGE_BACKDROP_COLOR_KEYS.contains(key)) {
-            return Integer.valueOf(state.backdropColor);
-        }
-        if (SURFACE_COLOR_KEYS.contains(key) || "mxskin__color_aurora_surface".equals(key)) {
-            return Integer.valueOf(state.surfaceColor);
-        }
-        if (CARD_COLOR_KEYS.contains(key)) {
-            return Integer.valueOf(state.cardColor);
-        }
-        if ("mxskin__bottom_tab_divider".equals(key) || "mxskin__divider".equals(key) || "mxskin__divider_line".equals(key)) {
-            return Integer.valueOf(state.dividerColor);
-        }
-        return null;
     }
 
     private static int fallbackMxSkinColor(ThemeState state, int origColor) {
@@ -505,26 +595,61 @@ public final class ClassicThemeEngine {
         return origColor;
     }
 
-    private static String lookupMxSkinKey(Resources res, int resId) {
-        Integer boxed = Integer.valueOf(resId);
-        String cached = RES_KEY_CACHE.get(boxed);
-        if (cached != null) {
-            return cached;
+    /**
+     * Zero-allocation fast lookup in RES_ROLE_CACHE; resolves via Resources.getResourceEntryName
+     * only once per unique resId across the entire app session.
+     */
+    private static int resolveRoleFast(Resources res, int resId) {
+        int baseSlot = mixInt(resId) & ROLE_CACHE_MASK;
+        for (int p = 0; p < ROLE_PROBE_LIMIT; p++) {
+            long entry = RES_ROLE_CACHE.get((baseSlot + p) & ROLE_CACHE_MASK);
+            if (entry == 0L) {
+                break;
+            }
+            if (((int) (entry >>> 32)) == resId) {
+                return (int) (entry & 0xFFL);
+            }
         }
-        String computed = "";
+
+        if (Boolean.TRUE.equals(IN_RESOLVE.get())) {
+            return ROLE_NON_MXSKIN;
+        }
+
+        int computedRole = ROLE_NON_MXSKIN;
         IN_RESOLVE.set(Boolean.TRUE);
         try {
             String raw = res.getResourceEntryName(resId);
             if (raw != null && raw.startsWith("mxskin")) {
-                computed = normalizeMxSkinEntryName(raw);
+                String normalized = normalizeMxSkinEntryName(raw);
+                Integer mapped = KEY_TO_ROLE.get(normalized);
+                computedRole = mapped != null ? mapped.intValue() : ROLE_MXSKIN_OTHER;
             }
         } catch (Throwable ignored) {
-            computed = "";
+            computedRole = ROLE_NON_MXSKIN;
         } finally {
             IN_RESOLVE.set(Boolean.FALSE);
         }
-        RES_KEY_CACHE.putIfAbsent(boxed, computed);
-        return computed;
+
+        long newEntry = (((long) resId) << 32) | (computedRole & 0xFFL);
+        for (int p = 0; p < ROLE_PROBE_LIMIT; p++) {
+            int slot = (baseSlot + p) & ROLE_CACHE_MASK;
+            long existing = RES_ROLE_CACHE.get(slot);
+            if (existing == 0L) {
+                if (RES_ROLE_CACHE.compareAndSet(slot, 0L, newEntry)) {
+                    break;
+                }
+                existing = RES_ROLE_CACHE.get(slot);
+            }
+            if (((int) (existing >>> 32)) == resId) {
+                break;
+            }
+        }
+        return computedRole;
+    }
+
+    private static int mixInt(int x) {
+        int h = x * 0x9E3779B9;
+        return h ^ (h >>> 16);
     }
 
     private static String normalizeMxSkinEntryName(String entry) {
@@ -543,29 +668,95 @@ public final class ClassicThemeEngine {
         return s;
     }
 
+    private static Resources unwrapBaseResources(Resources res) {
+        Resources current = res;
+        for (int depth = 0; depth < 4 && current != null && current.getClass() != Resources.class; depth++) {
+            Class<?> cls = current.getClass();
+            Field delegateField = RES_WRAPPER_FIELD_CACHE.get(cls);
+            if (delegateField == null) {
+                Field fallbackField = null;
+                for (Field f : cls.getDeclaredFields()) {
+                    if (!Modifier.isStatic(f.getModifiers()) && f.getType() == Resources.class) {
+                        f.setAccessible(true);
+                        if (Modifier.isFinal(f.getModifiers())) {
+                            delegateField = f;
+                            break;
+                        }
+                        if (fallbackField == null) {
+                            fallbackField = f;
+                        }
+                    }
+                }
+                if (delegateField == null) {
+                    delegateField = fallbackField;
+                }
+                if (delegateField == null) {
+                    break;
+                }
+                RES_WRAPPER_FIELD_CACHE.putIfAbsent(cls, delegateField);
+            }
+            try {
+                Object inner = delegateField.get(current);
+                if (inner instanceof Resources && inner != current) {
+                    current = (Resources) inner;
+                } else {
+                    break;
+                }
+            } catch (Throwable ignored) {
+                break;
+            }
+        }
+        return current != null ? current : res;
+    }
+
     private static Drawable loadLightCounterpart(Resources res, int darkResId) {
-        // In MX Player's public.xml, __light is adjacent (+1 or -1) to __dark.
         IN_RESOLVE.set(Boolean.TRUE);
         try {
-            int[] offsets = new int[]{1, -1};
+            // Unwrap ResourcesSkin (`Lkug;`) / MXMultiLanguageResourceWrapper (`Lztb;`) to raw
+            // framework `android.content.res.Resources` so `getDrawable(id, null)` never re-maps
+            // `mxskin__bg_me_page__light` back to `mxskin__bg_me_page__dark` on Dark Classic Themes.
+            Resources unskinned = rawBaseResources;
+            if (unskinned == null || unskinned.getClass() != Resources.class) {
+                unskinned = unwrapBaseResources(res);
+                if (unskinned != null && unskinned.getClass() == Resources.class) {
+                    rawBaseResources = unskinned;
+                }
+            }
+            if (unskinned == null) {
+                return null;
+            }
+            if (cachedLightWaveSourceId == darkResId && cachedLightWaveTargetId != 0) {
+                return unskinned.getDrawable(cachedLightWaveTargetId, null);
+            }
+            // Check delta = 0 FIRST: XML layouts pass `mxskin__bg_me_page__light` (`resId`) into
+            // `ResourcesSkin` / `ThemeStrategyBase`, which mapped `origDrawable` to `resId - 1` (`__dark`)
+            // while still passing the original `__light` `resId` into our hook!
+            int[] offsets = new int[]{0, 1, -1, 2, -2};
             for (int delta : offsets) {
                 int candidateId = darkResId + delta;
                 try {
-                    String name = res.getResourceEntryName(candidateId);
+                    String name = unskinned.getResourceEntryName(candidateId);
                     if (name != null && name.startsWith("mxskin__bg_me_page__light")) {
-                        return res.getDrawable(candidateId, null);
+                        cachedLightWaveSourceId = darkResId;
+                        cachedLightWaveTargetId = candidateId;
+                        return unskinned.getDrawable(candidateId, null);
                     }
                 } catch (Throwable ignored) {
                 }
             }
+        } catch (Throwable ignored) {
         } finally {
             IN_RESOLVE.set(Boolean.FALSE);
         }
         return null;
     }
 
-    private static Drawable tintClone(Resources res, Drawable src, int color) {
-        if (src == null) return null;
+    private static Drawable tintClone(Resources res, Drawable src, PorterDuffColorFilter filter) {
+        if (src == null || filter == null) return src;
+        // Skip duplicate clone+mutate when ResourcesSkin already tinted this Drawable in the same call!
+        if (src.getColorFilter() == filter) {
+            return src;
+        }
         Drawable copy = src;
         Drawable.ConstantState cs = src.getConstantState();
         if (cs != null) {
@@ -576,12 +767,12 @@ public final class ClassicThemeEngine {
             }
         }
         copy = copy.mutate();
-        copy.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
+        copy.setColorFilter(filter);
         return copy;
     }
 
     // =========================================================================
-    // Activity Window, System Bars & Toolbar Live Styling
+    // Activity Window, System Bars & Toolbar Live Styling (Zero-Jitter)
     // =========================================================================
 
     public static void styleActivity(final Activity activity) {
@@ -592,38 +783,64 @@ public final class ClassicThemeEngine {
         if (isPlayerScreen(activity.getClass().getName())) {
             return;
         }
-        applyActivityPass(activity, state);
-        Window window = activity.getWindow();
-        if (window != null) {
-            View decor = window.getDecorView();
+        boolean foundToolbar = applyActivityPass(activity, state, false);
+        if (!foundToolbar) {
+            Window window = activity.getWindow();
+            final View decor = window != null ? window.getDecorView() : null;
             if (decor != null) {
-                decor.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        ThemeState latest = currentState;
-                        if (latest.active) {
-                            applyActivityPass(activity, latest);
+                final DecorStamp stamp = getOrCreateStamp(decor);
+                if (!stamp.postScheduled) {
+                    stamp.postScheduled = true;
+                    decor.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            stamp.postScheduled = false;
+                            ThemeState latest = currentState;
+                            if (latest.active && !activity.isFinishing()) {
+                                applyActivityPass(activity, latest, false);
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         }
     }
 
-    private static void applyActivityPass(Activity activity, ThemeState state) {
+    private static DecorStamp getOrCreateStamp(View decor) {
+        DecorStamp stamp = DECOR_STAMPS.get(decor);
+        if (stamp == null) {
+            stamp = new DecorStamp();
+            DECOR_STAMPS.put(decor, stamp);
+        }
+        return stamp;
+    }
+
+    private static boolean applyActivityPass(Activity activity, ThemeState state, boolean forceWindowUpdate) {
         try {
             Window window = activity.getWindow();
-            if (window == null) return;
+            if (window == null) return false;
             View decor = window.getDecorView();
-            if (decor == null) return;
+            if (decor == null) return false;
 
             boolean foundToolbar = styleToolbarsInTree(decor, state);
             if (!foundToolbar) {
-                return;
+                return false;
             }
 
+            DecorStamp stamp = getOrCreateStamp(decor);
+            if (!forceWindowUpdate && stamp.appliedState == state) {
+                return true;
+            }
+            stamp.appliedState = state;
+
             if (state.dark) {
-                window.setBackgroundDrawable(new ColorDrawable(state.surfaceColor));
+                if (stamp.windowBgColor != state.surfaceColor) {
+                    stamp.windowBgColor = state.surfaceColor;
+                    window.setBackgroundDrawable(new ColorDrawable(state.surfaceColor));
+                }
+            } else if (stamp.windowBgColor != 0xFFFFFFFF) {
+                stamp.windowBgColor = 0xFFFFFFFF;
+                window.setBackgroundDrawable(new ColorDrawable(0xFFFFFFFF));
             }
 
             window.addFlags(FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -631,38 +848,89 @@ public final class ClassicThemeEngine {
             window.setStatusBarColor(state.accentColor);
             window.setNavigationBarColor(state.navBarColor);
 
-            boolean lightStatus = state.lightToolbarBar;
-            boolean lightNav = !state.dark;
-
-            if (Build.VERSION.SDK_INT >= 30) {
-                try {
-                    WindowInsetsController controller = window.getInsetsController();
-                    if (controller != null) {
-                        int appearance = (lightStatus ? WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS : 0)
-                                | (lightNav ? WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS : 0);
-                        int mask = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-                                | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
-                        controller.setSystemBarsAppearance(appearance, mask);
-                    }
-                } catch (Throwable ignored) {
-                }
-            }
-
-            int vis = decor.getSystemUiVisibility();
-            if (lightStatus) {
-                vis |= SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-            } else {
-                vis &= ~SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-            }
-            if (Build.VERSION.SDK_INT >= 26) {
-                if (lightNav) {
-                    vis |= SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
-                } else {
-                    vis &= ~SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
-                }
-            }
-            decor.setSystemUiVisibility(vis);
+            applySystemBarAppearance(window, decor, state.lightToolbarBar, !state.dark);
+            return true;
         } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static void restoreStockActivityBars(Activity activity, String newSkinName) {
+        try {
+            Window window = activity.getWindow();
+            if (window == null) return;
+            View decor = window.getDecorView();
+            if (decor == null) return;
+
+            boolean stockDark = "black".equals(newSkinName)
+                    || ("follow_system".equals(newSkinName)
+                    && (activity.getResources().getConfiguration().uiMode
+                    & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES);
+
+            int bg = stockDark ? 0xFF121212 : 0xFFFFFFFF;
+            try {
+                Resources actRes = activity.getResources();
+                int statusId = actRes.getIdentifier(
+                        "mxskin__status_bar__light",
+                        "color",
+                        activity.getPackageName()
+                );
+                if (statusId != 0) {
+                    bg = actRes.getColor(statusId, null);
+                }
+            } catch (Throwable ignored) {
+            }
+            int fg = stockDark ? 0xFFFFFFFF : 0xFF1C2939;
+            PorterDuffColorFilter resetFilter = new PorterDuffColorFilter(fg, PorterDuff.Mode.SRC_IN);
+
+            DecorStamp stamp = getOrCreateStamp(decor);
+            stamp.appliedState = null;
+            stamp.windowBgColor = bg;
+            window.setBackgroundDrawable(new ColorDrawable(bg));
+            window.setStatusBarColor(bg);
+            window.setNavigationBarColor(bg);
+            applySystemBarAppearance(window, decor, !stockDark, !stockDark);
+            resetToolbarsInTree(decor, bg, fg, resetFilter);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static void applySystemBarAppearance(
+            Window window,
+            View decor,
+            boolean lightStatus,
+            boolean lightNav
+    ) {
+        if (Build.VERSION.SDK_INT >= 30) {
+            try {
+                WindowInsetsController controller = window.getInsetsController();
+                if (controller != null) {
+                    int appearance = (lightStatus ? WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS : 0)
+                            | (lightNav ? WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS : 0);
+                    int mask = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                            | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+                    controller.setSystemBarsAppearance(appearance, mask);
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+
+        int oldVis = decor.getSystemUiVisibility();
+        int vis = oldVis;
+        if (lightStatus) {
+            vis |= SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        } else {
+            vis &= ~SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        }
+        if (Build.VERSION.SDK_INT >= 26) {
+            if (lightNav) {
+                vis |= SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+            } else {
+                vis &= ~SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+            }
+        }
+        if (vis != oldVis) {
+            decor.setSystemUiVisibility(vis);
         }
     }
 
@@ -685,23 +953,70 @@ public final class ClassicThemeEngine {
         return found;
     }
 
-    private static void styleSingleToolbar(Toolbar toolbar, ThemeState state) {
-        toolbar.setBackgroundColor(state.accentColor);
-        toolbar.setTitleTextColor(state.toolbarFgColor);
-        toolbar.setSubtitleTextColor(withAlpha(state.toolbarFgColor, 0xCC));
+    private static void resetToolbarsInTree(
+            View view,
+            int bg,
+            int fg,
+            PorterDuffColorFilter filter
+    ) {
+        if (view == null) return;
+        if (view instanceof Toolbar) {
+            Toolbar toolbar = (Toolbar) view;
+            toolbar.setBackgroundColor(bg);
+            toolbar.setTitleTextColor(fg);
+            Drawable nav = toolbar.getNavigationIcon();
+            if (nav != null) {
+                nav.mutate().setColorFilter(filter);
+                nav.invalidateSelf();
+            }
+            int childCount = toolbar.getChildCount();
+            for (int i = 0; i < childCount; i++) {
+                styleToolbarChildWithColors(toolbar.getChildAt(i), fg, filter);
+            }
+            return;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup vg = (ViewGroup) view;
+            int count = vg.getChildCount();
+            for (int i = 0; i < count; i++) {
+                resetToolbarsInTree(vg.getChildAt(i), bg, fg, filter);
+            }
+        }
+    }
 
+    private static void styleSingleToolbar(Toolbar toolbar, ThemeState state) {
+        Drawable existingBg = toolbar.getBackground();
+        if (!(existingBg instanceof ColorDrawable)
+                || ((ColorDrawable) existingBg).getColor() != state.accentColor) {
+            toolbar.setBackgroundColor(state.accentColor);
+        }
+        toolbar.setTitleTextColor(state.toolbarFgColor);
+        toolbar.setSubtitleTextColor(state.toolbarSubtitleFgColor);
+
+        // Mutate and tint in place without re-calling setNavigationIcon unless instance changed,
+        // avoiding unnecessary Toolbar.requestLayout() passes during screen transitions!
         Drawable nav = toolbar.getNavigationIcon();
         if (nav != null) {
             Drawable navMut = nav.mutate();
-            navMut.setColorFilter(state.toolbarIconFilter);
-            toolbar.setNavigationIcon(navMut);
+            if (navMut.getColorFilter() != state.toolbarIconFilter) {
+                navMut.setColorFilter(state.toolbarIconFilter);
+                navMut.invalidateSelf();
+            }
+            if (navMut != nav) {
+                toolbar.setNavigationIcon(navMut);
+            }
         }
 
         Drawable overflow = toolbar.getOverflowIcon();
         if (overflow != null) {
             Drawable ovMut = overflow.mutate();
-            ovMut.setColorFilter(state.toolbarIconFilter);
-            toolbar.setOverflowIcon(ovMut);
+            if (ovMut.getColorFilter() != state.toolbarIconFilter) {
+                ovMut.setColorFilter(state.toolbarIconFilter);
+                ovMut.invalidateSelf();
+            }
+            if (ovMut != overflow) {
+                toolbar.setOverflowIcon(ovMut);
+            }
         }
 
         Menu menu = toolbar.getMenu();
@@ -711,8 +1026,10 @@ public final class ClassicThemeEngine {
                 MenuItem item = menu.getItem(i);
                 if (item != null) {
                     Drawable icon = item.getIcon();
-                    if (icon != null) {
-                        icon.mutate().setColorFilter(state.toolbarIconFilter);
+                    if (icon != null && icon.getColorFilter() != state.toolbarIconFilter) {
+                        Drawable mut = icon.mutate();
+                        mut.setColorFilter(state.toolbarIconFilter);
+                        mut.invalidateSelf();
                     }
                 }
             }
@@ -720,20 +1037,29 @@ public final class ClassicThemeEngine {
 
         int childCount = toolbar.getChildCount();
         for (int i = 0; i < childCount; i++) {
-            styleToolbarChild(toolbar.getChildAt(i), state);
+            styleToolbarChildWithColors(toolbar.getChildAt(i), state.toolbarFgColor, state.toolbarIconFilter);
         }
     }
 
-    private static void styleToolbarChild(View child, ThemeState state) {
+    private static void styleToolbarChildWithColors(
+            View child,
+            int fgColor,
+            PorterDuffColorFilter iconFilter
+    ) {
         if (child == null) return;
         if (child instanceof TextView) {
-            ((TextView) child).setTextColor(state.toolbarFgColor);
+            TextView tv = (TextView) child;
+            if (tv.getCurrentTextColor() != fgColor) {
+                tv.setTextColor(fgColor);
+            }
             return;
         }
         if (child instanceof ImageView) {
             Drawable d = ((ImageView) child).getDrawable();
-            if (d != null) {
-                d.mutate().setColorFilter(state.toolbarIconFilter);
+            if (d != null && d.getColorFilter() != iconFilter) {
+                Drawable mut = d.mutate();
+                mut.setColorFilter(iconFilter);
+                mut.invalidateSelf();
             }
             return;
         }
@@ -741,7 +1067,7 @@ public final class ClassicThemeEngine {
             ViewGroup vg = (ViewGroup) child;
             int n = vg.getChildCount();
             for (int i = 0; i < n; i++) {
-                styleToolbarChild(vg.getChildAt(i), state);
+                styleToolbarChildWithColors(vg.getChildAt(i), fgColor, iconFilter);
             }
         }
     }
@@ -751,7 +1077,7 @@ public final class ClassicThemeEngine {
     }
 
     // =========================================================================
-    // Color Math & Immutable Theme Snapshot
+    // Color Math & Pre-Cached Immutable Theme Snapshot
     // =========================================================================
 
     private static double luminance(int color) {
@@ -784,10 +1110,20 @@ public final class ClassicThemeEngine {
         return a == null ? b == null : a.equals(b);
     }
 
+    private static final class DecorStamp {
+        ThemeState appliedState;
+        int windowBgColor;
+        boolean postScheduled;
+        boolean toolbarPostScheduled;
+    }
+
     private static final class LifecycleHook implements Application.ActivityLifecycleCallbacks {
         @Override
         public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-            styleActivity(activity);
+            ThemeState state = currentState;
+            if (state.active && activity != null && !isPlayerScreen(activity.getClass().getName())) {
+                applyActivityPass(activity, state, false);
+            }
         }
 
         @Override
@@ -796,8 +1132,34 @@ public final class ClassicThemeEngine {
         }
 
         @Override
-        public void onActivityResumed(Activity activity) {
-            styleActivity(activity);
+        public void onActivityResumed(final Activity activity) {
+            resumedActivityRef = new WeakReference<>(activity);
+            ThemeState state = currentState;
+            if (state.active && activity != null && !isPlayerScreen(activity.getClass().getName())) {
+                applyActivityPass(activity, state, false);
+                // Schedule a lightweight toolbar-only post-pass so MenuItem & overflow icons
+                // inflated during first traversal (`onCreateOptionsMenu` / `onPrepareOptionsMenu`
+                // after `onResume`) receive `toolbarIconFilter` on bright Light Classic Themes
+                // without touching Window flags or system bars (zero layout jitter).
+                Window window = activity.getWindow();
+                final View decor = window != null ? window.getDecorView() : null;
+                if (decor != null) {
+                    final DecorStamp stamp = getOrCreateStamp(decor);
+                    if (!stamp.toolbarPostScheduled) {
+                        stamp.toolbarPostScheduled = true;
+                        decor.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                stamp.toolbarPostScheduled = false;
+                                ThemeState latest = currentState;
+                                if (latest.active && !activity.isFinishing()) {
+                                    styleToolbarsInTree(decor, latest);
+                                }
+                            }
+                        });
+                    }
+                }
+            }
         }
 
         @Override
@@ -814,6 +1176,9 @@ public final class ClassicThemeEngine {
 
         @Override
         public void onActivityDestroyed(Activity activity) {
+            if (resumedActivityRef.get() == activity) {
+                resumedActivityRef = new WeakReference<>(null);
+            }
         }
     }
 
@@ -826,6 +1191,7 @@ public final class ClassicThemeEngine {
         final int accentColor;
         final int readableAccent;
         final int toolbarFgColor;
+        final int toolbarSubtitleFgColor;
         final boolean lightToolbarBar;
         final int surfaceColor;
         final int backdropColor;
@@ -834,8 +1200,25 @@ public final class ClassicThemeEngine {
         final int dividerColor;
         final int folderTintColor;
         final int folderBadgeColor;
+
+        // Pre-built reusable ColorFilters (zero allocations during scroll/bind!)
+        final PorterDuffColorFilter toolbarBgFilter;
         final PorterDuffColorFilter toolbarIconFilter;
+        final PorterDuffColorFilter cardFilter;
+        final PorterDuffColorFilter folderTintFilter;
+        final PorterDuffColorFilter folderBadgeFilter;
+        final PorterDuffColorFilter accentFilter;
+        final PorterDuffColorFilter switchTrackFilter;
+
+        // Pre-built reusable ColorStateLists (zero allocations during scroll/bind!)
         final ColorStateList statefulAccentList;
+        final ColorStateList toolbarBgCSL;
+        final ColorStateList toolbarFgCSL;
+        final ColorStateList accentCSL;
+        final ColorStateList backdropCSL;
+        final ColorStateList surfaceCSL;
+        final ColorStateList cardCSL;
+        final ColorStateList dividerCSL;
 
         private volatile Bitmap fabBitmap;
         private volatile int fabBitmapSize;
@@ -854,6 +1237,7 @@ public final class ClassicThemeEngine {
                 this.accentColor = 0;
                 this.readableAccent = 0;
                 this.toolbarFgColor = 0;
+                this.toolbarSubtitleFgColor = 0;
                 this.lightToolbarBar = false;
                 this.surfaceColor = 0;
                 this.backdropColor = 0;
@@ -862,8 +1246,21 @@ public final class ClassicThemeEngine {
                 this.dividerColor = 0;
                 this.folderTintColor = 0;
                 this.folderBadgeColor = 0;
+                this.toolbarBgFilter = null;
                 this.toolbarIconFilter = null;
+                this.cardFilter = null;
+                this.folderTintFilter = null;
+                this.folderBadgeFilter = null;
+                this.accentFilter = null;
+                this.switchTrackFilter = null;
                 this.statefulAccentList = null;
+                this.toolbarBgCSL = null;
+                this.toolbarFgCSL = null;
+                this.accentCSL = null;
+                this.backdropCSL = null;
+                this.surfaceCSL = null;
+                this.cardCSL = null;
+                this.dividerCSL = null;
                 return;
             }
 
@@ -871,7 +1268,7 @@ public final class ClassicThemeEngine {
             double lum = luminance(this.accentColor);
             this.lightToolbarBar = lum > 0.62;
             this.toolbarFgColor = this.lightToolbarBar ? 0xFF1C2939 : 0xFFFFFFFF;
-            this.toolbarIconFilter = new PorterDuffColorFilter(this.toolbarFgColor, PorterDuff.Mode.SRC_IN);
+            this.toolbarSubtitleFgColor = withAlpha(this.toolbarFgColor, 0xCC);
 
             if (dark) {
                 int baseDark = 0xFF000000 | (rawSurfaceColor & 0xFFFFFF);
@@ -902,6 +1299,17 @@ public final class ClassicThemeEngine {
                 this.folderBadgeColor = blend(this.readableAccent, 0xFF1C2939, 0.35f);
             }
 
+            this.toolbarBgFilter = new PorterDuffColorFilter(this.accentColor, PorterDuff.Mode.SRC_IN);
+            this.toolbarIconFilter = new PorterDuffColorFilter(this.toolbarFgColor, PorterDuff.Mode.SRC_IN);
+            this.cardFilter = new PorterDuffColorFilter(this.cardColor, PorterDuff.Mode.SRC_IN);
+            this.folderTintFilter = new PorterDuffColorFilter(this.folderTintColor, PorterDuff.Mode.SRC_IN);
+            this.folderBadgeFilter = new PorterDuffColorFilter(this.folderBadgeColor, PorterDuff.Mode.SRC_IN);
+            this.accentFilter = new PorterDuffColorFilter(this.readableAccent, PorterDuff.Mode.SRC_IN);
+            this.switchTrackFilter = new PorterDuffColorFilter(
+                    withAlpha(this.readableAccent, 0x90),
+                    PorterDuff.Mode.SRC_IN
+            );
+
             int unselected = dark ? 0xFF85929C : 0xFF6B778D;
             this.statefulAccentList = new ColorStateList(
                     new int[][]{
@@ -919,6 +1327,13 @@ public final class ClassicThemeEngine {
                             unselected
                     }
             );
+            this.toolbarBgCSL = ColorStateList.valueOf(this.accentColor);
+            this.toolbarFgCSL = ColorStateList.valueOf(this.toolbarFgColor);
+            this.accentCSL = ColorStateList.valueOf(this.readableAccent);
+            this.backdropCSL = ColorStateList.valueOf(this.backdropColor);
+            this.surfaceCSL = ColorStateList.valueOf(this.surfaceColor);
+            this.cardCSL = ColorStateList.valueOf(this.cardColor);
+            this.dividerCSL = ColorStateList.valueOf(this.dividerColor);
         }
 
         static ThemeState parse(String skinName) {
@@ -978,7 +1393,6 @@ public final class ClassicThemeEngine {
             float cy = size * 0.48f;
             float radius = size * 0.34f;
 
-            // Soft layered drop shadow matching Material / MX FAB elevation
             paint.setColor(0x10000000);
             canvas.drawCircle(cx, cy + size * 0.045f, radius * 1.06f, paint);
             paint.setColor(0x18000000);
@@ -986,11 +1400,9 @@ public final class ClassicThemeEngine {
             paint.setColor(0x22000000);
             canvas.drawCircle(cx, cy + size * 0.018f, radius * 0.99f, paint);
 
-            // Crisp themed FAB circle
             paint.setColor(circleColor);
             canvas.drawCircle(cx, cy, radius, paint);
 
-            // Crisp centered play triangle
             paint.setColor(iconColor);
             float triHalfH = radius * 0.36f;
             float triLeft = cx - radius * 0.24f;

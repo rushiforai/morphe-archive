@@ -230,6 +230,14 @@ public final class DownloadFilenameFormatter {
         return formatSourceName(aweme, index, extension, true);
     }
 
+    /**
+     * One photo post's details file: the post's own name without a photo number, so it sorts just
+     * ahead of {@code <post>_1.jpg} and stays the same however many of the photos a save took.
+     */
+    static String formatPhotoDetailsName(Object aweme, String extension) {
+        return formatSourceName(aweme, 1, extension, false);
+    }
+
     static String formatSelectedVideoName(Object aweme) {
         return formatSourceName(aweme, 1, "mp4", false);
     }

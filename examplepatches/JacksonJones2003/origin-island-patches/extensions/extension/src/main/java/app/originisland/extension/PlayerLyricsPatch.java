@@ -12,15 +12,17 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
+import android.util.TypedValue;
+import android.view.ViewTreeObserver;
+import android.widget.FrameLayout;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Shows the line of the lyrics that is sung in the player, below the title of the queue
- * at the bottom of it.
+ * Shows the line of the lyrics that is sung in the player, between the cover and the title
+ * of the song.
  *
  * The lyrics are those of the "Third-party lyrics" patch of Morphe, which has them with
  * the time of each line. Without it, or without lyrics for a song, nothing is shown.
@@ -31,11 +33,18 @@ public final class PlayerLyricsPatch {
     private static final String TAG = "OriginIslandPlayerLyrics";
 
     /**
-     * View at the bottom of the player. While the queue is not pulled up, it shows a strip
-     * with the title of the queue, and otherwise a header and the queue in place of the strip.
+     * Views of the player: the cover, and the title and the artist of the song below it.
+     * The app places them by moving them, and not in a layout, so the line is placed over
+     * the player in the room between them, and moved along with them. The patch makes the
+     * app leave more room below the cover, see the patch.
      */
-    private static final String QUEUE_SHEET_ID = "bottom_sheet_tabbed_view";
-    private static final String QUEUE_TITLE_ID = "player_page_tab_title";
+    private static final String COVER_ID = "watch_fragment_container";
+    private static final String SONG_ID = "current_song_view";
+
+    /**
+     * Least room between the cover and the title for the line to be shown in.
+     */
+    private static final float MIN_ROOM_DP = 24;
 
     /**
      * Package of the resources of the app, which patches can install under another package.
@@ -43,6 +52,12 @@ public final class PlayerLyricsPatch {
     private static final String APP_RESOURCES_PACKAGE = "com.google.android.apps.youtube.music";
 
     private static final Object VIEW_TAG = new Object();
+
+    /**
+     * How far ahead of the song the lyrics run, so a line and its words come in as they are sung
+     * rather than just after.
+     */
+    private static final long LYRICS_LEAD_MS = 250;
 
     private static final long UPDATE_INTERVAL_MS = 100;
     private static final long UPDATE_INTERVAL_HIDDEN_MS = 1_000;
@@ -52,25 +67,22 @@ public final class PlayerLyricsPatch {
 
     private static WeakReference<Activity> activityRef = new WeakReference<>(null);
     private static WeakReference<LyricLineView> viewRef = new WeakReference<>(null);
-    /**
-     * Strip with the title of the queue, which the line is below.
-     */
-    private static WeakReference<View> stripRef = new WeakReference<>(null);
+    private static WeakReference<View> coverRef = new WeakReference<>(null);
+    private static WeakReference<View> songRef = new WeakReference<>(null);
     /**
      * Playback state of each session of the app. The app makes more than the one it plays with.
      */
     private static final List<PlaybackState[]> playbackStates = new ArrayList<>();
     private static final List<MediaController> controllers = new ArrayList<>();
     /**
-     * Who wrote the lyrics or where they are from, and the line shown before the first one
-     * is sung, which names the artist and gives that credit.
+     * Who wrote the song, and the line shown before the first one is sung, which names them.
      */
     private static String credit = "";
     private static MorpheLyrics.Line creditLine;
     private static Boolean lyricsSupported;
     private static List<MorpheLyrics.Line> lines = new ArrayList<>();
-    private static int queueSheetId;
-    private static int queueTitleId;
+    private static int coverId;
+    private static int songId;
 
     private PlayerLyricsPatch() {
     }
@@ -135,7 +147,8 @@ public final class PlayerLyricsPatch {
                 withWords++;
             }
         }
-        Log.i(TAG, "Lyrics changed: " + changed.size() + " lines, " + withWords + " with times for their words");
+        Log.i(TAG, "Lyrics changed: " + changed.size() + " lines, " + withWords + " with times for their words, "
+                + (changedCredit.isEmpty() ? "no writers" : changedCredit));
     }
 
     private static void update() {
@@ -149,11 +162,9 @@ public final class PlayerLyricsPatch {
             LyricLineView view = getView(activity);
             if (view != null) {
                 MorpheLyrics.Line line = getCurrentLine();
-                // The line is only shown with the title of the queue, and not with the queue.
-                // It keeps its place without a line, so that the player is not laid out again
-                // for every line, which would start the title of the queue over if it scrolls.
-                View strip = stripRef.get();
-                boolean visible = strip != null && strip.isShown();
+                // The line is placed as the player is drawn, see place().
+                View song = songRef.get();
+                boolean visible = song != null && song.isShown();
 
                 int visibility = visible ? View.VISIBLE : View.GONE;
                 if (view.getVisibility() != visibility) {
@@ -161,21 +172,6 @@ public final class PlayerLyricsPatch {
                 }
                 if (visible) {
                     view.setLine(line);
-
-                    // The app keeps the header of the queue below the strip, unseen until the
-                    // queue is pulled up, so the line is drawn over it and not after it.
-                    // In the middle of what is seen below the title: from under its text,
-                    // which the strip has some room below, to the bottom of the screen.
-                    int[] location = new int[2];
-                    strip.getLocationOnScreen(location);
-                    float bandTop = strip.getBottom() - strip.getHeight() * 0.3f;
-                    float bandHeight = view.getRootView().getHeight()
-                            - (location[1] + strip.getHeight() * 0.7f);
-                    float translation = bandTop - view.getTop()
-                            + Math.max(0, (bandHeight - view.getTextHeight()) / 2);
-                    if (view.getTranslationY() != translation) {
-                        view.setTranslationY(translation);
-                    }
                 }
                 visible = visible && line != null;
                 shown = visible && view.isShown();
@@ -230,7 +226,8 @@ public final class PlayerLyricsPatch {
             Log.e(TAG, "getCreditLine failure", ex);
         }
 
-        String text = artist.isEmpty() || credit.isEmpty() ? artist + credit : artist + "\n" + credit;
+        // Who wrote the song, or the artist if that is not known.
+        String text = credit.isEmpty() ? artist : credit;
         if (text.isEmpty()) {
             return null;
         }
@@ -264,7 +261,52 @@ public final class PlayerLyricsPatch {
                     * state.getPlaybackSpeed());
         }
 
-        return position;
+        return position + LYRICS_LEAD_MS;
+    }
+
+    /**
+     * Places the line in the room between the cover and the title, and fades it with the title.
+     */
+    private static void place(LyricLineView view) {
+        try {
+            View cover = coverRef.get();
+            View song = songRef.get();
+            if (cover == null || song == null || !cover.isShown()) {
+                if (view.getAlpha() != 0) {
+                    view.setAlpha(0);
+                }
+                return;
+            }
+
+            int[] coverLocation = new int[2];
+            int[] songLocation = new int[2];
+            int[] layerLocation = new int[2];
+            cover.getLocationOnScreen(coverLocation);
+            song.getLocationOnScreen(songLocation);
+            ((View) view.getParent()).getLocationOnScreen(layerLocation);
+
+            float coverBottom = coverLocation[1] + cover.getHeight() * cover.getScaleY();
+            float room = songLocation[1] - coverBottom;
+            float minRoom = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, MIN_ROOM_DP,
+                    view.getResources().getDisplayMetrics());
+
+            // The title fades as the player is pulled down, and so does the line.
+            float alpha = room < minRoom ? 0 : song.getAlpha();
+            if (view.getAlpha() != alpha) {
+                view.setAlpha(alpha);
+            }
+            if (alpha == 0) {
+                return;
+            }
+
+            view.setAvailableHeight(room);
+            float translation = coverBottom - layerLocation[1] - view.getTop();
+            if (view.getTranslationY() != translation) {
+                view.setTranslationY(translation);
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "place failure", ex);
+        }
     }
 
     private static View findShownView(View view, int id) {
@@ -309,28 +351,25 @@ public final class PlayerLyricsPatch {
             return view;
         }
 
-        if (queueSheetId == 0 || queueTitleId == 0) {
-            queueSheetId = getId(activity, QUEUE_SHEET_ID);
-            queueTitleId = getId(activity, QUEUE_TITLE_ID);
-            if (queueSheetId == 0 || queueTitleId == 0) {
+        if (coverId == 0 || songId == 0) {
+            coverId = getId(activity, COVER_ID);
+            songId = getId(activity, SONG_ID);
+            if (coverId == 0 || songId == 0) {
                 return null;
             }
         }
 
-        // The strip is the view of the sheet that the title of the queue is in.
-        View strip = findShownView(activity.getWindow().getDecorView(), queueTitleId);
-        while (strip != null && !(strip.getParent() instanceof LinearLayout
-                && ((View) strip.getParent()).getId() == queueSheetId)) {
-            strip = strip.getParent() instanceof View ? (View) strip.getParent() : null;
-        }
-        if (strip == null) {
+        View decor = activity.getWindow().getDecorView();
+        View song = findShownView(decor, songId);
+        View cover = findShownView(decor, coverId);
+        if (song == null || cover == null || !(song.getParent() instanceof FrameLayout)) {
             return null;
         }
-        LinearLayout sheet = (LinearLayout) strip.getParent();
+        FrameLayout layer = (FrameLayout) song.getParent();
 
-        for (int i = sheet.getChildCount() - 1; i >= 0; i--) {
-            if (sheet.getChildAt(i).getTag() == VIEW_TAG) {
-                sheet.removeViewAt(i);
+        for (int i = layer.getChildCount() - 1; i >= 0; i--) {
+            if (layer.getChildAt(i).getTag() == VIEW_TAG) {
+                layer.removeViewAt(i);
             }
         }
 
@@ -338,12 +377,28 @@ public final class PlayerLyricsPatch {
         view.setTag(VIEW_TAG);
         view.setVisibility(View.GONE);
 
-        int index = sheet.indexOfChild(strip) + 1;
-        sheet.addView(view, index, new LinearLayout.LayoutParams(
+        // Above the views of the player that it does not cover, so that they keep their touches.
+        layer.addView(view, layer.indexOfChild(song), new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         viewRef = new WeakReference<>(view);
-        stripRef = new WeakReference<>(strip);
-        Log.i(TAG, "Line added to the player, as view " + index + " of " + sheet.getChildCount());
+        coverRef = new WeakReference<>(cover);
+        songRef = new WeakReference<>(song);
+
+        // The player moves its views as it is pulled down and up, so the line follows them
+        // every time the player is drawn.
+        LyricLineView placed = view;
+        layer.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                if (!placed.isAttachedToWindow()) {
+                    layer.getViewTreeObserver().removeOnPreDrawListener(this);
+                } else {
+                    place(placed);
+                }
+                return true;
+            }
+        });
+        Log.i(TAG, "Line added to the player");
 
         return view;
     }

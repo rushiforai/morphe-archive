@@ -20,6 +20,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
+import app.hushgram.extension.instagram.feed.CommentEmojiRow;
 import app.hushgram.extension.shared.SettingsContextRule;
 import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.settings.BaseSettings;
@@ -69,6 +71,21 @@ public class CommentEmojiRowSettingsTest {
         SwitchPreference row = (SwitchPreference) page.getPreferenceScreen().findPreference(Settings.HIDE_COMMENT_EMOJI_ROW.key);
         assertNotNull(row);
         assertEquals("Comments", row.getParent().getTitle().toString());
+    }
+    /** Settings are a dialog over Instagram's screen, which doesn't resume when they close, so flipping on reaches it at once. */
+    @Test public void flippingOnReachesTheScreenUnderSettings() throws Exception {
+        open(EnumSet.of(PatchFamily.COMMENT_EMOJI_ROW));
+        SwitchPreference row = (SwitchPreference) page.getPreferenceScreen().findPreference(Settings.HIDE_COMMENT_EMOJI_ROW.key);
+        try {
+            assertFalse(CommentEmojiRow.listeningForTests(controller.get()));
+            assertTrue(row.getOnPreferenceChangeListener().onPreferenceChange(row, true));
+            // The switch saves after its listener, so the helper reads the value once the change is posted.
+            Settings.HIDE_COMMENT_EMOJI_ROW.save(true);
+            ShadowLooper.idleMainLooper();
+            assertTrue(CommentEmojiRow.listeningForTests(controller.get()));
+        } finally {
+            CommentEmojiRow.resetForTests();
+        }
     }
     @Test public void switchStartsOffUnderCommentsAndHonorsPause() throws Exception {
         open(EnumSet.of(PatchFamily.HIDE_COMMENTS, PatchFamily.COMMENT_EMOJI_ROW));

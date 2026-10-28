@@ -10,6 +10,7 @@ import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,9 +18,11 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.function.Function;
 
+import app.hushtelegram.extension.shared.L10n;
 import app.hushtelegram.extension.shared.Utils;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.telegram.settings.FamilyNames;
+import app.hushtelegram.extension.telegram.settings.PatchFamily;
 import app.hushtelegram.extension.telegram.settings.Settings;
 
 /**
@@ -38,19 +41,51 @@ import app.hushtelegram.extension.telegram.settings.Settings;
  * the main chat list takes it: the lists that pick a chat to share or forward to, and the archive,
  * open as Telegram has them. It happens once for each chat list Telegram makes. A list whose view
  * is built again, after a theme change say, gets new tabs and opens as Telegram has it then.
+ *
+ * <p>Hide All Chats leaves the All Chats tab out of that build while the account has a folder it
+ * can open, and the list opens on the pick or the first such folder. Telegram numbers the tabs by
+ * their place in the folder list, and with one left out some of its lookups by place land on the
+ * next tab, so after every build the selected tab and the page's folder are set to agree again. Tab
+ * dragging writes the new order by place too, to the server, so it's turned down while the tab is
+ * hidden. The archive's row only shows in All Chats, so the chat list's menu and the side menu
+ * take one instead. Each list reads the switch once, at its first build.
  */
 public final class LaunchFolder {
     private LaunchFolder() {}
 
     /** What the diagnostic report counts each chat list opened on a picked folder as. */
     static final String OPENED = "chat list opened on the picked folder";
+    /** What it counts each chat list built without All Chats as. */
+    static final String HIDDEN = "chat list built without All Chats";
+    /** The archive's folder id, which a chat list opened with it shows. */
+    static final int ARCHIVE = 1;
+    static final String ARCHIVE_FALLBACK = "Archived Chats";
 
     private static final String PREFS = "hushtelegram_launch_folders";
     /** Added to a user id for the picked folder's name, beside its id under the user id itself. */
     private static final String NAME = ".name";
 
     /** The chat lists whose tabs were built once already. Weak, so a list Telegram drops goes too. Main thread only. */
-    private static final Map<Object, Boolean> built = new WeakHashMap<>();
+    private static final Map<Object, Build> built = new WeakHashMap<>();
+    /** The tab strips building without All Chats now. Main thread only. */
+    private static final Map<Object, Boolean> hiddenIn = new WeakHashMap<>();
+    /** The last main chat list built without All Chats, which the side menu opens the archive from. */
+    private static WeakReference<Object> archiveFrom = new WeakReference<>(null);
+
+    /** One chat list's answer to Hide All Chats, and where it stood before the build going on. */
+    private static final class Build {
+        /** The switch as the first build read it, for the main chat list only. */
+        final boolean hides;
+        /** Whether this build leaves All Chats out: [hides], and the account has a folder to open. */
+        boolean hiding;
+        boolean wasEmpty;
+        int typeBefore;
+        int stableBefore;
+
+        Build(boolean hides) {
+            this.hides = hides;
+        }
+    }
 
     static Function<Context, SharedPreferences> store = context -> context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
 
@@ -107,18 +142,164 @@ public final class LaunchFolder {
     public static void firstTabs(Object list) {
         HookStatus.invoked(FamilyNames.HIDE_FOLDER_COUNTERS);
         try {
-            // Counted whatever the switch says, so turning it on later doesn't move a list already up.
-            if (!telegram.tabsEmpty(list) || built.put(list, Boolean.TRUE) != null) return;
-            if (!Utils.settingsReady() || !Settings.LAUNCH_FOLDER.get()) return;
-            if (!mainList(telegram.arguments(list))) return;
-            int account = telegram.account(list);
-            int index = indexOf(account, picked(telegram.userId(account)));
-            if (index >= 0 && telegram.select(list, index)) {
-                HookStatus.counted(FamilyNames.HIDE_FOLDER_COUNTERS, OPENED);
+            boolean empty = telegram.tabsEmpty(list);
+            Build build = built.get(list);
+            boolean opened = false;
+            if (build == null) {
+                // Counted whatever the switches say, so turning one on later doesn't move a list already up.
+                if (!empty) return;
+                boolean ready = Utils.settingsReady();
+                boolean launch = ready && Settings.LAUNCH_FOLDER.get();
+                boolean hide = ready && Settings.HIDE_ALL_CHATS.get();
+                boolean main = (launch || hide) && mainList(telegram.arguments(list));
+                build = new Build(main && hide);
+                built.put(list, build);
+                if (main && launch) {
+                    int account = telegram.account(list);
+                    int index = indexOf(account, picked(telegram.userId(account)));
+                    opened = index >= 0 && telegram.select(list, index);
+                    if (opened) HookStatus.counted(FamilyNames.HIDE_FOLDER_COUNTERS, OPENED);
+                }
             }
+            if (build.hides) beforeHiding(list, build, empty, opened);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.HIDE_FOLDER_COUNTERS, "folder at launch", failure);
         }
+    }
+
+    /**
+     * Decides whether this build of [list]'s tabs leaves All Chats out and notes where the list
+     * stands before it. A first build that didn't open on a pick opens on the first folder.
+     */
+    private static void beforeHiding(Object list, Build build, boolean empty, boolean opened) {
+        // Stock until this build is known to hide, so a read that throws keeps All Chats and its archive row.
+        archiveFrom = new WeakReference<>(null);
+        build.hiding = false;
+        Object strip = telegram.strip(list);
+        if (strip == null) return;
+        hiddenIn.remove(strip);
+        int account = telegram.account(list);
+        int first = firstOpen(account);
+        // All Chats holds the archive's row, so it stays unless the menu or the side menu opens the archive.
+        if (first < 0 || !telegram.archiveReachable()) return;
+        build.hiding = true;
+        hiddenIn.put(strip, Boolean.TRUE);
+        archiveFrom = new WeakReference<>(list);
+        build.wasEmpty = empty;
+        build.typeBefore = telegram.selectedType(list);
+        build.stableBefore = telegram.currentStable(list);
+        if (empty) {
+            if (!opened) {
+                // A view built again opens where a new list would: the pick, else the first folder.
+                int pick = Utils.settingsReady() && Settings.LAUNCH_FOLDER.get()
+                        ? indexOf(account, picked(telegram.userId(account))) : -1;
+                telegram.select(list, pick >= 0 ? pick : first);
+            }
+            HookStatus.counted(FamilyNames.HIDE_FOLDER_COUNTERS, HIDDEN);
+        }
+    }
+
+    /**
+     * Put in place of the call that adds the All Chats tab: adds it unless this strip's build
+     * leaves it out. The flags come as ints, the way the hook hands them on.
+     */
+    public static void allChatsTab(Object strip, int id, int stableId, String title, ArrayList<?> entities,
+                                   int noAnimation, int isDefault, int locked) {
+        if (Boolean.TRUE.equals(hiddenIn.get(strip))) return;
+        telegram.addTab(strip, id, stableId, title, entities, noAnimation != 0, isDefault != 0, locked != 0);
+    }
+
+    /**
+     * Injected in updateFilterTabs once every tab is added, where it decides whether the page shows
+     * another folder now. With All Chats left out it sets the selected tab, and the first page's
+     * folder, to one the account can open, and answers whether that moved the list.
+     *
+     * @param update Telegram's own answer
+     * @return whether the page switches to the selected tab's chats
+     */
+    public static boolean tabsAdded(Object list, int update) {
+        try {
+            Build build = built.get(list);
+            if (build == null || !build.hiding) return update != 0;
+            int account = telegram.account(list);
+            int selected = telegram.selectedId(list);
+            if (!opens(account, selected)) {
+                selected = firstOpen(account);
+                if (selected < 0) return update != 0;
+                telegram.selectByStable(list, telegram.folderStable(account, selected));
+            }
+            telegram.select(list, selected);
+            // Telegram's own answer compares by place, which is off by one with All Chats gone.
+            return build.wasEmpty || build.typeBefore != selected || telegram.currentStable(list) != build.stableBefore;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_FOLDER_COUNTERS, "tabs without All Chats", failure);
+            return update != 0;
+        }
+    }
+
+    /**
+     * Injected first in the tab strip's setIsEditing. Dragging tabs writes the new folder order by
+     * place, which is off by one with All Chats gone, so the strip doesn't start editing then.
+     *
+     * @return whether the strip edits
+     */
+    public static boolean editing(Object strip, int editing) {
+        if (editing == 0 || !Boolean.TRUE.equals(hiddenIn.get(strip))) return editing != 0;
+        HookStatus.counted(FamilyNames.HIDE_FOLDER_COUNTERS, "tab drag turned down without All Chats");
+        Utils.showToastShort(L10n.t("Turn off Hide All Chats to drag tabs"));
+        return false;
+    }
+
+    /**
+     * Injected first in the chat list's call that shows the Done button for tab editing.
+     *
+     * @return true to skip it: editing was asked for and turned down
+     */
+    public static boolean skipsDone(Object list, int show) {
+        return show != 0 && hides(list);
+    }
+
+    /** Whether the side menu shows its Archived Chats row: a main chat list is built without All Chats, the archive's usual way in. */
+    public static boolean archiveShown() {
+        return hides(archiveFrom.get());
+    }
+
+    /** Whether [list]'s tabs are built without All Chats. */
+    public static boolean hides(@Nullable Object list) {
+        Build build = list == null ? null : built.get(list);
+        return build != null && build.hiding;
+    }
+
+    /** Telegram's name for the archive, in its language. */
+    public static String archiveTitle() {
+        String title = null;
+        try {
+            title = telegram.archiveTitle();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_FOLDER_COUNTERS, "archive title", failure);
+        }
+        return title == null || title.isEmpty() ? ARCHIVE_FALLBACK : title;
+    }
+
+    /** Opens the archive over the chat list built without All Chats, as the archive's own row does. */
+    public static boolean openArchive() {
+        Object list = archiveFrom.get();
+        return list != null && telegram.openArchive(list);
+    }
+
+    /** Whether [index] is a folder of [account]'s the chat list can open: not All Chats and not locked. */
+    private static boolean opens(int account, int index) {
+        return index >= 0 && index < telegram.folderCount(account)
+                && !telegram.folderDefault(account, index) && !telegram.folderLocked(account, index);
+    }
+
+    /** The first folder [account] can open, or -1. */
+    private static int firstOpen(int account) {
+        int count = telegram.folderCount(account);
+        for (int i = 0; i < count; i++) {
+            if (opens(account, i)) return i;
+        }
+        return -1;
     }
 
     /**
@@ -210,6 +391,8 @@ public final class LaunchFolder {
     /** Forgets which chat lists were built, as a restart does. */
     static void resetForTests() {
         built.clear();
+        hiddenIn.clear();
+        archiveFrom = new WeakReference<>(null);
     }
 
     /** What this needs from Telegram. */
@@ -237,6 +420,37 @@ public final class LaunchFolder {
         boolean folderLocked(int account, int index);
 
         boolean folderDefault(int account, int index);
+
+        // What Hide All Chats adds, the stubs unless a test says otherwise.
+
+        @Nullable
+        default Object strip(Object list) { return LaunchFolder.strip(list); }
+
+        default int selectedType(Object list) { return LaunchFolder.selectedType(list); }
+
+        default int selectedId(Object list) { return LaunchFolder.selectedId(list); }
+
+        default int currentStable(Object list) { return LaunchFolder.currentStable(list); }
+
+        default boolean selectByStable(Object list, int stableId) { return LaunchFolder.selectByStable(list, stableId); }
+
+        default int folderStable(int account, int index) { return LaunchFolder.folderStable(account, index); }
+
+        default void addTab(Object strip, int id, int stableId, String title, ArrayList<?> entities,
+                            boolean noAnimation, boolean isDefault, boolean locked) {
+            LaunchFolder.addTab(strip, id, stableId, title, entities, noAnimation, isDefault, locked);
+        }
+
+        default boolean openArchive(Object list) { return LaunchFolder.presentArchive(list); }
+
+        @Nullable
+        default String archiveTitle() { return LaunchFolder.telegramArchiveTitle(); }
+
+        /** Whether this build opens the archive without its row: Disable pull to archive's menu entry, or the side menu. */
+        default boolean archiveReachable() {
+            return PatchFamily.DISABLE_ARCHIVE_PULL.inBuild()
+                    || PatchFamily.Capability.SIDE_MENU.installed() && Utils.settingsReady() && Settings.SIDE_MENU.get();
+        }
     }
 
     private static final class Stubs implements Telegram {
@@ -292,4 +506,34 @@ public final class LaunchFolder {
 
     /** {@code getDialogFilters().get(index).isDefault()}, All chats. */
     public static boolean folderDefault(int account, int index) { return false; }
+
+    /** {@code list.filterTabsView}. */
+    @Nullable
+    public static Object strip(Object list) { return null; }
+
+    /** {@code list.viewPages[0].selectedType}, or -1 without pages. */
+    public static int selectedType(Object list) { return -1; }
+
+    /** {@code list.filterTabsView.selectedTabId}, or -1 without tabs. */
+    public static int selectedId(Object list) { return -1; }
+
+    /** {@code list.filterTabsView.getCurrentTabStableId()}, or -1 without tabs. */
+    public static int currentStable(Object list) { return -1; }
+
+    /** {@code list.filterTabsView.selectTabWithStableId(stableId)}. */
+    public static boolean selectByStable(Object list, int stableId) { return false; }
+
+    /** {@code getDialogFilters().get(index).localId}, the tab's stable id. */
+    public static int folderStable(int account, int index) { return 0; }
+
+    /** {@code strip.addTab(...)}, Telegram's own call this stands in for. */
+    public static void addTab(Object strip, int id, int stableId, String title, ArrayList<?> entities,
+                              boolean noAnimation, boolean isDefault, boolean locked) {}
+
+    /** {@code list.presentFragment(new DialogsActivity(args))} with the archive's folder id in args. */
+    public static boolean presentArchive(Object list) { return false; }
+
+    /** {@code LocaleController.getString(R.string.ArchivedChats)}. */
+    @Nullable
+    public static String telegramArchiveTitle() { return null; }
 }

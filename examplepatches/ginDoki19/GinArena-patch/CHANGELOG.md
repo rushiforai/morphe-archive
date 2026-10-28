@@ -1,3 +1,15 @@
+## [2.4.2](https://github.com/ginDoki19/GinArena-patch/compare/v2.4.1...v2.4.2) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* **mxplayer:** target 3.4.1 only, fix playback heating, theme hang, and smoothness ([e5da880](https://github.com/ginDoki19/GinArena-patch/commit/e5da880592e9741cde8f4d9f91b35b8ac8f80b63))
+
+## [2.4.2-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.4.1...v2.4.2-dev.1) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* **mxplayer:** target 3.4.1 only, fix playback heating, theme hang, and smoothness ([e5da880](https://github.com/ginDoki19/GinArena-patch/commit/e5da880592e9741cde8f4d9f91b35b8ac8f80b63))
+
 ## [2.4.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.4.0...v2.4.1) (2026-10-27)
 
 ### 🐛 Bug Fixes

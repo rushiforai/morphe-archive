@@ -94,20 +94,30 @@ private fun BytecodePatchContext.trayIdentity(reelType: String): TrayIdentity {
         }.toSet().containsAll(TRAY_KINDS)
     }.singleOrNull() ?: refuseTray("expected one native reel-kind field on $reelType")
     if (!AccessFlags.PUBLIC.isSet(kind.accessFlags)) refuseTray("the native reel-kind field isn't public")
-    val user = classDefByOrNull(TRAY_USER) ?: refuseTray("the User model isn't present")
-    val hash = user.methods.singleOrNull { it.name == "hashCode" && it.reader("I") }
-        ?: refuseTray("the User model has no public hashCode")
-    val id = hash.implementation!!.instructions.mapNotNull {
-        (it as? ReferenceInstruction)?.reference as? MethodReference
-    }.filter { it.definingClass == TRAY_USER && it.parameterTypes.isEmpty() && it.returnType == TRAY_STRING }
-        .map { it.name }.distinct().singleOrNull() ?: refuseTray("the User hash doesn't identify one ID getter")
-    val userId = user.methods.singleOrNull { it.name == id && it.reader(TRAY_STRING) }
-        ?: refuseTray("the User ID getter isn't public")
+    val userId = userIdGetter(::refuseTray)
     val sessionId = classDefByOrNull(USER_SESSION)?.methods?.singleOrNull { it.name == "getUserId" && it.reader(TRAY_STRING) }
         ?: refuseTray("the session has no public getUserId")
     val reelId = reel.methods.singleOrNull { it.name == "getId" && it.reader(TRAY_STRING) }
         ?: refuseTray("the Reel has no public getId")
     return TrayIdentity(kind, owner, userId, sessionId, reelId)
+}
+
+/**
+ * The User model's public id getter: the one String getter of its own its hashCode asks, since a
+ * User hashes by its id. [refuse] says why when that isn't so.
+ */
+internal fun BytecodePatchContext.userIdGetter(refuse: (String) -> Nothing): Method {
+    fun Method.reader(result: String) = AccessFlags.PUBLIC.isSet(accessFlags) && !AccessFlags.STATIC.isSet(accessFlags) &&
+        parameterTypes.isEmpty() && returnType == result && implementation != null
+    val user = classDefByOrNull(TRAY_USER) ?: refuse("the User model isn't present")
+    val hash = user.methods.singleOrNull { it.name == "hashCode" && it.reader("I") }
+        ?: refuse("the User model has no public hashCode")
+    val id = hash.implementation!!.instructions.mapNotNull {
+        (it as? ReferenceInstruction)?.reference as? MethodReference
+    }.filter { it.definingClass == TRAY_USER && it.parameterTypes.isEmpty() && it.returnType == TRAY_STRING }
+        .map { it.name }.distinct().singleOrNull() ?: refuse("the User hash doesn't identify one ID getter")
+    return user.methods.singleOrNull { it.name == id && it.reader(TRAY_STRING) }
+        ?: refuse("the User ID getter isn't public")
 }
 
 /**

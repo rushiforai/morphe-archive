@@ -91,7 +91,7 @@ val turnOffHdrBrightnessPatch = bytecodePatch(
     name = "Turn off HDR brightness",
     description = "Stops HDR videos and photos from turning your screen up to full brightness, which can be " +
         "harsh in the dark. They keep their resolution. Starts off. Turn it on in Hushfacebook settings > " +
-        "Playback.",
+        "Video and audio.",
 ) {
     category("Playback")
     dependsOn(settingsPatch, facebookExtensionPatch)

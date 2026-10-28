@@ -22,7 +22,8 @@ public final class MediaViewerNavigation {
     }
     private static WeakReference<TextView> body=new WeakReference<>(null);
     private static long touched;
-    private static final class Swipe {float x,y;boolean dragging,blocked,cancelling;}
+    private static final class Swipe {float x,y;boolean dragging,blocked,cancelling;String selected;MediaViewerBackGesture back;}
+    private static final WeakHashMap<Activity,WeakReference<Object>> MODELS=new WeakHashMap<>();
 
     static void rememberBody(TextView view,MotionEvent event) {
         if(event.getActionMasked()!=MotionEvent.ACTION_UP||!Haiagaru.videoViewerEnabled()||!DirectBodySelection.isBody(view))return;
@@ -85,7 +86,57 @@ public final class MediaViewerNavigation {
         Intent intent=activity.getIntent();
         if(intent.getData()!=null)return PreviewUrls.normalize(intent.getDataString());
         ArrayList<String> links=intent.getStringArrayListExtra("links");int index=intent.getIntExtra("index",0);
+        if(activity.getClass().getName().equals("jp.syoboi.a2chMate.activity.ImagesViewer2Activity")){
+            Integer displayed=nativeIndex(activity);if(displayed!=null&&displayed>=0)index=displayed;
+        }
         return links!=null&&index>=0&&index<links.size()?PreviewUrls.normalize(links.get(index)):null;
+    }
+    private static WeakReference<Activity> nativeOpening=new WeakReference<>(null);
+    static void nativeOpening(Activity activity){nativeOpening=new WeakReference<>(activity);}
+    /** Compose's screen-local ViewModelStore is separate from the Activity store. */
+    public static void registerNativeModel(Object model){
+        Activity activity=nativeOpening.get();
+        if(activity==null||activity.isFinishing()||activity.isDestroyed()||model==null)return;
+        try{
+            java.lang.reflect.Field field=model.getClass().getDeclaredField("h");field.setAccessible(true);
+            ArrayList<String> links=activity.getIntent().getStringArrayListExtra("links");
+            if(links!=null&&links.equals(field.get(model)))MODELS.put(activity,new WeakReference<>(model));
+        }catch(ReflectiveOperationException|RuntimeException ignored){}
+    }
+    private static Integer nativeIndex(Activity activity){
+        // 191/226 keep their current page on the Activity. 242 uses a Compose
+        // SavedStateHandle flow; the Intent and ViewModel.j are launch values.
+        for(String name:new String[]{"f","o"})try{
+            java.lang.reflect.Field field=activity.getClass().getDeclaredField(name);
+            if(field.getType()==int.class){field.setAccessible(true);return field.getInt(activity);}
+        }catch(ReflectiveOperationException ignored){}
+        try{
+            WeakReference<Object> cached=MODELS.get(activity);Object model=cached==null?null:cached.get();
+            if(model==null){
+                Object store=activity.getClass().getMethod("getViewModelStore").invoke(activity);
+                for(java.lang.reflect.Field field:store.getClass().getDeclaredFields()){
+                    if(!Map.class.isAssignableFrom(field.getType()))continue;
+                    field.setAccessible(true);Object value=field.get(store);if(!(value instanceof Map))continue;
+                    for(Object candidate:((Map<?,?>)value).values())if(candidate!=null&&candidate.getClass().getName().equals("jp.syoboi.a2chMate.activity.ImagesViewerViewModel")){model=candidate;break;}
+                    if(model!=null)break;
+                }
+                if(model!=null)MODELS.put(activity,new WeakReference<>(model));
+            }
+            if(model!=null){
+                java.lang.reflect.Field field=model.getClass().getDeclaredField("f");field.setAccessible(true);Object flow=field.get(model);
+                java.lang.reflect.Method get=flow.getClass().getMethod("d");get.setAccessible(true);
+                Object value=get.invoke(flow);if(value instanceof Number)return ((Number)value).intValue();
+            }
+        }catch(ReflectiveOperationException|RuntimeException ignored){}
+        return pagerIndex(activity.getWindow().getDecorView());
+    }
+    private static Integer pagerIndex(View view){
+        if(!view.isShown())return null;
+        for(Class<?> type=view.getClass();type!=null;type=type.getSuperclass())
+            if(type.getName().equals("androidx.viewpager.widget.ViewPager")||type.getName().equals("androidx.viewpager2.widget.ViewPager2"))
+                try{return ((Number)view.getClass().getMethod("getCurrentItem").invoke(view)).intValue();}catch(Exception ignored){}
+        if(view instanceof ViewGroup){ViewGroup group=(ViewGroup)view;for(int i=0;i<group.getChildCount();i++){Integer found=pagerIndex(group.getChildAt(i));if(found!=null)return found;}}
+        return null;
     }
     static Intent destination(Activity activity,ArrayList<String> links,int index) {
         String url=links.get(index);Intent intent=new Intent();ArrayList<String> nativeLinks=new ArrayList<>(links);int nativeIndex=index;
@@ -107,11 +158,44 @@ public final class MediaViewerNavigation {
         return intent.putStringArrayListExtra(EXTRA,new ArrayList<>(links))
                 .putStringArrayListExtra("links",nativeLinks).putExtra("index",nativeIndex);
     }
+    /** Native pager contains only media ChMate can load. Its label must still
+     * index the complete mixed-media gallery used by our swipe gesture. */
+    public static void setNativeCounter(TextView view,CharSequence nativeLabel){
+        CharSequence label=nativeLabel;
+        try{
+            android.content.Context context=view.getContext();
+            for(int depth=0;depth<16&&context instanceof android.content.ContextWrapper&&!(context instanceof Activity);depth++){
+                android.content.Context base=((android.content.ContextWrapper)context).getBaseContext();if(base==context)break;context=base;
+            }
+            if(context instanceof Activity){
+                Activity activity=(Activity)context;Intent intent=activity.getIntent();
+                ArrayList<String> gallery=intent.getStringArrayListExtra(EXTRA),nativeLinks=intent.getStringArrayListExtra("links");
+                if(gallery!=null&&nativeLinks!=null&&nativeLabel!=null){
+                    java.util.regex.Matcher page=java.util.regex.Pattern.compile("^\\s*([0-9]+)\\s*/\\s*[0-9]+\\s*$").matcher(nativeLabel);
+                    if(page.matches()){
+                        // The native callback formats the next page before updating
+                        // its Activity field / pager; use the label's own index.
+                        int index=Integer.parseInt(page.group(1))-1;
+                        if(index>=0&&index<nativeLinks.size()){
+                            String selected=PreviewUrls.normalize(nativeLinks.get(index));
+                            ArrayList<String> all=MediaGallery.links(gallery,selected,intent.getBooleanExtra(THREAD_EXTRA,false)?4096:128);
+                            int position=all.indexOf(selected);
+                            if(position>=0)label=(position+1)+"/"+all.size();
+                        }
+                    }
+                }
+            }
+        }catch(RuntimeException ignored){/* Leave native count intact for unknown media. */}
+        view.setText(label);
+    }
     static String counter(Activity activity) {
         ArrayList<String> links=links(activity);return links.size()>1?" · "+(links.indexOf(current(activity))+1)+"/"+links.size():"";
     }
     static boolean move(Activity activity,int step) {
-        ArrayList<String> links=links(activity);int current=links.indexOf(current(activity)),next=current+step;
+        return move(activity,step,current(activity));
+    }
+    private static boolean move(Activity activity,int step,String selected){
+        ArrayList<String> links=links(activity);int current=links.indexOf(selected),next=current+step;
         if(current<0||next<0||next>=links.size())return false;
         activity.startActivity(destination(activity,links,next));activity.finish();activity.overridePendingTransition(0,0);return true;
     }
@@ -129,26 +213,40 @@ public final class MediaViewerNavigation {
         if(swipe!=null&&swipe.cancelling)return false;
         if(action==MotionEvent.ACTION_DOWN){
             if(links(activity).size()<2)return false;
-            swipe=new Swipe();swipe.x=event.getRawX();swipe.y=event.getRawY();
+            swipe=new Swipe();swipe.selected=current(activity);swipe.x=event.getRawX();swipe.y=event.getRawY();
             Rect bounds=new Rect();View area=surface!=null?surface:activity.getWindow().getDecorView();
             swipe.blocked=!area.getGlobalVisibleRect(bounds)||!bounds.contains((int)swipe.x,(int)swipe.y)
                     ||controlAt(activity.getWindow().getDecorView(),swipe.x,swipe.y)
                     ||activity instanceof VideoViewerActivity&&((VideoViewerActivity)activity).isVideoToolbarTouch(swipe.x,swipe.y)
                     ||surface==null&&zoomed(activity.getWindow().getDecorView());
+            if(!swipe.blocked){swipe.back=new MediaViewerBackGesture(activity);swipe.back.dispatch(event);}
             SWIPES.put(activity,swipe);return false;
         }
         if(swipe==null)return false;
         if(event.getPointerCount()>1||action==MotionEvent.ACTION_POINTER_DOWN){swipe.blocked=true;return swipe.dragging;}
         if(action==MotionEvent.ACTION_CANCEL){SWIPES.remove(activity);return false;}
         if(swipe.blocked){if(action==MotionEvent.ACTION_UP)SWIPES.remove(activity);return swipe.dragging;}
+        if(swipe.back!=null&&swipe.back.dispatch(event)){SWIPES.remove(activity);return true;}
+        boolean backPriority=swipe.back!=null&&swipe.back.active();
         float dx=event.getRawX()-swipe.x,dy=event.getRawY()-swipe.y;
-        int step=MediaGallery.step(dx,dy,Math.max(48,48*activity.getResources().getDisplayMetrics().density));
-        if(action==MotionEvent.ACTION_MOVE&&step!=0&&!swipe.dragging){
+        float threshold=Math.max(48,48*activity.getResources().getDisplayMetrics().density);
+        int step=activity.getIntent().getBooleanExtra(THREAD_EXTRA,false)
+                ?MediaGallery.threadStep(dx,dy,threshold):MediaGallery.step(dx,dy,threshold);
+        if(action==MotionEvent.ACTION_MOVE&&step!=0&&!swipe.dragging&&!backPriority){
             swipe.dragging=true;swipe.cancelling=true;MotionEvent cancel=MotionEvent.obtain(event);cancel.setAction(MotionEvent.ACTION_CANCEL);
             try{activity.dispatchTouchEvent(cancel);}finally{cancel.recycle();swipe.cancelling=false;}
         }
         if(action==MotionEvent.ACTION_UP){
-            SWIPES.remove(activity);if(swipe.dragging){if(step!=0)move(activity,step);return true;}
+            SWIPES.remove(activity);if(swipe.dragging||backPriority&&step!=0){
+                if(step!=0){
+                    if(backPriority){
+                        final Swipe completed=swipe;
+                        // Native recognizers post completion to the main Handler.
+                        activity.getWindow().getDecorView().post(()->{
+                            if(!completed.back.returned()&&!activity.isFinishing()&&!activity.isDestroyed())move(activity,step,completed.selected);
+                        });
+                    }else move(activity,step,swipe.selected);
+                }return true;}
         }
         return swipe.dragging;
     }

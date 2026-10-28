@@ -63,8 +63,8 @@ of the Source Code and any Derivative Works.
 Carried third-party libraries
 ----------------------------
 
-Gson 2.14.0 is carried by the patch bundle. Copyright 2008 Google Inc.
-Kotlin stdlib 2.4.20 and JetBrains annotations 13.0 are carried by the shared
+Gson 2.15.0 is carried by the patch bundle. Copyright 2008 Google Inc.
+Kotlin stdlib 2.4.21 and JetBrains annotations 13.0 are carried by the shared
 extension payload. Kotlin is copyright 2010-2024 JetBrains s.r.o. and Kotlin
 Programming Language contributors. Each library is licensed under Apache
 License 2.0, whose text is reproduced below.
@@ -73,8 +73,8 @@ The exact publisher artifacts and their license declarations are recorded
 with SHA-256 hashes in sources/carried-library-licenses.json. The publisher
 POMs for these versions are:
 
-https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.14.0/gson-2.14.0.pom
-https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.4.20/kotlin-stdlib-2.4.20.pom
+https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.15.0/gson-2.15.0.pom
+https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.4.21/kotlin-stdlib-2.4.21.pom
 https://repo.maven.apache.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.pom
 
 

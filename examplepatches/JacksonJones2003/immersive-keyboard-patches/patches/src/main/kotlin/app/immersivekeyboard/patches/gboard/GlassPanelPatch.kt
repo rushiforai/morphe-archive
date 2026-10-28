@@ -2,9 +2,12 @@ package app.immersivekeyboard.patches.gboard
 
 import app.immersivekeyboard.patches.shared.Constants.COMPATIBILITY_GBOARD
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 
 private const val EXTENSION_CLASS = "Lapp/immersivekeyboard/extension/GlassPanel;"
+private const val POPUPS_CLASS = "Lapp/immersivekeyboard/extension/GlassPopups;"
 
 @Suppress("unused")
 val glassPanelPatch = bytecodePatch(
@@ -12,7 +15,8 @@ val glassPanelPatch = bytecodePatch(
     description = "Turns the translucent keyboard panel into glass. On vivo OriginOS it uses " +
         "the system's own glass material, with real refraction, rim light and dispersion; " +
         "elsewhere it draws lit edges and a sheen. Keys are left as they are. Works on top of " +
-        "Translucent Bottom Bar and Frosted Glass.",
+        "Translucent Bottom Bar and Frosted Glass. Floating popups, like the keyboard switcher " +
+        "shown with a hardware keyboard, get the same glass.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
@@ -29,6 +33,16 @@ val glassPanelPatch = bytecodePatch(
             it.method.addInstructions(
                 it.instructionMatches.first().index + 1,
                 "invoke-static { }, $EXTENSION_CLASS->enable()V"
+            )
+        }
+
+        // Glass behind floating popups, once Gboard has positioned them.
+        FloatingPopupPositionFingerprint.let {
+            val setY = it.instructionMatches.last().index
+            val container = it.method.getInstruction<FiveRegisterInstruction>(setY).registerC
+            it.method.addInstructions(
+                setY + 1,
+                "invoke-static { v$container }, $POPUPS_CLASS->style(Landroid/view/View;)V"
             )
         }
     }

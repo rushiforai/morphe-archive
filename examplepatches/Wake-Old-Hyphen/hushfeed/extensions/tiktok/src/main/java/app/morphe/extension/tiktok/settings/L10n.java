@@ -118,7 +118,12 @@ public final class L10n {
      * restart phrase changes: TikTok's servers, TikTok Sans and the rest stay TikTok's.
      */
     static String forApp(String text) {
-        return forApp(text, PINEDRAMA.equals(BuildNames.runningApp()));
+        return forApp(text, inPineDrama());
+    }
+
+    /** Whether these settings are running inside PineDrama rather than TikTok (#156). */
+    public static boolean inPineDrama() {
+        return PINEDRAMA.equals(BuildNames.runningApp());
     }
 
     static String forApp(String text, boolean pineDrama) {

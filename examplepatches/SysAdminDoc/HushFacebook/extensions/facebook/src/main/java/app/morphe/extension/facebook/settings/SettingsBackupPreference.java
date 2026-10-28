@@ -46,6 +46,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 import app.morphe.extension.facebook.comments.CommentOrder;
+import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.SaveTo;
 import app.morphe.extension.facebook.download.SendLink;
@@ -399,8 +400,11 @@ public class SettingsBackupPreference extends Preference {
             if (snapshot.shareItemsChange() != null) parts.add(shareItemsSentence(snapshot.shareItemsChange()));
             if (snapshot.menuTilesChange() != null) parts.add(menuTilesSentence(snapshot.menuTilesChange()));
             if (snapshot.homeFeedChange() != null) parts.add(homeFeedSentence(snapshot.homeFeedChange()));
+            if (snapshot.reelsOrderChange() != null) parts.add(reelsOrderSentence(snapshot.reelsOrderChange()));
             if (snapshot.backgroundChange() != null) parts.add(backgroundSentence(snapshot.backgroundChange()));
             if (snapshot.lightBackgroundChange() != null) parts.add(lightBackgroundSentence(snapshot.lightBackgroundChange()));
+            if (snapshot.badgeChange() != null) parts.add(markColorSentence(false, snapshot.badgeChange()));
+            if (snapshot.logoChange() != null) parts.add(markColorSentence(true, snapshot.logoChange()));
             if (snapshot.headerTextChange() != null) parts.add(headerTextSentence(snapshot.headerTextChange()));
             if (snapshot.seenKeep != null && snapshot.changes().containsKey(SettingsBackup.SEEN_KEEP)) {
                 parts.add(L10n.f("Posts you've seen will stay hidden for %1$s.",
@@ -556,6 +560,11 @@ public class SettingsBackupPreference extends Preference {
                 HushfacebookPreferenceFragment.feedsSubtabLabel(feed));
     }
 
+    /** The sentence that says what Sort loaded reels sorts by after an import. */
+    static String reelsOrderSentence(ReelsOrder order) {
+        return L10n.f("Reels order will be set to %1$s.", HushfacebookPreferenceFragment.reelsOrderLabel(order));
+    }
+
     /** The sentence that says in what order comments open after an import. */
     static String commentOrderSentence(CommentOrder order) {
         if (order == CommentOrder.FACEBOOK) return L10n.t("Comments will open in the order Facebook picks.");
@@ -566,7 +575,7 @@ public class SettingsBackupPreference extends Preference {
     /** The sentence that says what quality videos play at after an import. */
     static String playbackQualitySentence(PlaybackQuality quality) {
         if (quality == PlaybackQuality.AUTO) return L10n.t("Facebook will pick the quality videos play at.");
-        return L10n.f("Playback quality will be set to %1$s.", HushfacebookPreferenceFragment.playbackQualityLabel(quality));
+        return L10n.f("Default quality will be set to %1$s.", HushfacebookPreferenceFragment.playbackQualityLabel(quality));
     }
 
     /** The sentence that says how long Facebook may be away before the app lock asks, after an import. */
@@ -587,7 +596,7 @@ public class SettingsBackupPreference extends Preference {
     static String accentSentence(AccentColor.Preset accent) {
         if (accent == AccentColor.Preset.FACEBOOK) return L10n.t("Facebook will keep its own blue.");
         return L10n.f("If your patched Facebook includes Accent color, Facebook's blue will be %1$s.",
-                HushfacebookPreferenceFragment.accentLabel(accent));
+                HushfacebookPreferenceFragment.accentLabel(accent, false));
     }
 
     /** The sentence that says which color dark mode's backgrounds will take after an import, [background] blank or a code. */
@@ -598,6 +607,17 @@ public class SettingsBackupPreference extends Preference {
         }
         return L10n.f("If your patched Facebook includes the AMOLED black theme, dark mode's backgrounds will be %1$s.",
                 L10n.isolate(background));
+    }
+
+    /** The sentence that says which color the badges, or with [logo] the logo, will take after an import, [code] blank or a code. */
+    static String markColorSentence(boolean logo, String code) {
+        if (code.isEmpty()) {
+            return logo ? L10n.t("If your patched Facebook includes Badge and logo colors, the logo will be Facebook's blue.")
+                    : L10n.t("If your patched Facebook includes Badge and logo colors, badges will be Facebook's red.");
+        }
+        return logo ? L10n.f("If your patched Facebook includes Badge and logo colors, the logo will be %1$s.",
+                L10n.isolate(code))
+                : L10n.f("If your patched Facebook includes Badge and logo colors, badges will be %1$s.", L10n.isolate(code));
     }
 
     /** The sentence that says which color light mode's backgrounds will take after an import, [background] blank or a code. */
@@ -922,8 +942,11 @@ public class SettingsBackupPreference extends Preference {
                     + (snapshot.shareItemsChange() == null ? "" : " " + shareItemsSentence(snapshot.shareItemsChange()))
                     + (snapshot.menuTilesChange() == null ? "" : " " + menuTilesSentence(snapshot.menuTilesChange()))
                     + (snapshot.homeFeedChange() == null ? "" : " " + homeFeedSentence(snapshot.homeFeedChange()))
+                    + (snapshot.reelsOrderChange() == null ? "" : " " + reelsOrderSentence(snapshot.reelsOrderChange()))
                     + (snapshot.backgroundChange() == null ? "" : " " + backgroundSentence(snapshot.backgroundChange()))
                     + (snapshot.lightBackgroundChange() == null ? "" : " " + lightBackgroundSentence(snapshot.lightBackgroundChange()))
+                    + (snapshot.badgeChange() == null ? "" : " " + markColorSentence(false, snapshot.badgeChange()))
+                    + (snapshot.logoChange() == null ? "" : " " + markColorSentence(true, snapshot.logoChange()))
                     + (snapshot.headerTextChange() == null ? "" : " " + headerTextSentence(snapshot.headerTextChange()));
             accepted = Utils.runOnBackgroundThread(() -> {
                 try {

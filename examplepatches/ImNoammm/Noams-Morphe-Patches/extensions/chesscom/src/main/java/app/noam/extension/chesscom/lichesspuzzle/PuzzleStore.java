@@ -231,4 +231,9 @@ final class PuzzleStore extends SQLiteOpenHelper {
     void solved(long number) {
         getWritableDatabase().execSQL("UPDATE puzzles SET state = " + SOLVED + " WHERE number = " + number);
     }
+
+    /** The given puzzles, once chess.com's queue no longer has them: new again. */
+    void ungive() {
+        getWritableDatabase().execSQL("UPDATE puzzles SET state = " + NEW + " WHERE state = " + GIVEN);
+    }
 }

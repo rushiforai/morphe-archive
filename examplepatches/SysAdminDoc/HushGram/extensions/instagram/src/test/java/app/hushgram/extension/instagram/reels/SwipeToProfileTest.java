@@ -643,7 +643,7 @@ public class SwipeToProfileTest {
     public void aRightSwipeOnTheProfileTheReelOpenedGoesBack() {
         Screen screen = screen();
         assertTrue(SwipeToProfile.allow(false, () -> true));
-        SwipeToProfile.profileResumed(new Object());
+        resumeProfile();
         float x = 20;
         float y = headerY(screen);
 
@@ -667,7 +667,8 @@ public class SwipeToProfileTest {
         Object pager = new Object();
         startTouch(container, panels, pager, true);
         SwipeToProfile.touched(container, event(MotionEvent.ACTION_MOVE, 100), panels, () -> true);
-        SwipeToProfile.profileResumed(new Object());
+        resumeProfile();
+        collectGarbage();
 
         assertTrue(swipesBack(screen(), () -> true));
     }
@@ -677,7 +678,7 @@ public class SwipeToProfileTest {
     public void aShortRightSwipeDoesntGoBack() {
         Screen screen = screen();
         SwipeToProfile.allow(false, () -> true);
-        SwipeToProfile.profileResumed(new Object());
+        resumeProfile();
         float y = headerY(screen);
 
         dispatch(screen, MotionEvent.ACTION_DOWN, 20, y, () -> true);
@@ -694,7 +695,7 @@ public class SwipeToProfileTest {
     public void leftAndUpAndDownSwipesStayInstagrams() {
         Screen screen = screen();
         SwipeToProfile.allow(false, () -> true);
-        SwipeToProfile.profileResumed(new Object());
+        resumeProfile();
         float y = headerY(screen);
         float middle = width(screen) / 2f;
 
@@ -717,7 +718,7 @@ public class SwipeToProfileTest {
     public void aViewThatCanScrollLeftKeepsTheSwipe() {
         Screen screen = screen();
         SwipeToProfile.allow(false, () -> true);
-        SwipeToProfile.profileResumed(new Object());
+        resumeProfile();
         int[] strip = new int[2];
         screen.strip.getLocationInWindow(strip);
         float y = strip[1] + screen.strip.getHeight() / 2f;
@@ -736,7 +737,7 @@ public class SwipeToProfileTest {
     public void aSecondFingerNeverGoesBack() {
         Screen screen = screen();
         SwipeToProfile.allow(false, () -> true);
-        SwipeToProfile.profileResumed(new Object());
+        resumeProfile();
         float y = headerY(screen);
 
         int secondDown = MotionEvent.ACTION_POINTER_DOWN | (1 << MotionEvent.ACTION_POINTER_INDEX_SHIFT);
@@ -765,7 +766,7 @@ public class SwipeToProfileTest {
     public void offPausedAndUnreadyLeaveTheProfileAlone() {
         Screen screen = screen();
         SwipeToProfile.allow(false, () -> true);
-        SwipeToProfile.profileResumed(new Object());
+        resumeProfile();
 
         Settings.REEL_SWIPE_TO_PROFILE.save(false);
         assertFalse("off", swipesBack(screen, null));
@@ -787,12 +788,12 @@ public class SwipeToProfileTest {
     @Test
     public void aProfileTheSwipeDidntOpenStaysInstagrams() {
         Screen screen = screen();
-        SwipeToProfile.profileResumed(new Object());
+        resumeProfile();
         assertFalse("opened some other way", swipesBack(screen, () -> true));
 
         SwipeToProfile.allow(false, () -> true);
         SystemClock.sleep(SwipeToProfile.OPENS_WITHIN_MS + 1);
-        SwipeToProfile.profileResumed(new Object());
+        resumeProfile();
         assertFalse("shown too long after the swipe", swipesBack(screen, () -> true));
 
         SwipeToProfile.allow(false, () -> true);
@@ -814,7 +815,7 @@ public class SwipeToProfileTest {
     public void aThrowingSwitchLeavesTheProfileAloneAndIsReported() {
         Screen screen = screen();
         SwipeToProfile.allow(false, () -> true);
-        SwipeToProfile.profileResumed(new Object());
+        resumeProfile();
 
         assertFalse(swipesBack(screen, THROWS));
 
@@ -826,7 +827,7 @@ public class SwipeToProfileTest {
     @Test
     public void aFailedCloseLeavesTheTouchToInstagramAndIsReported() {
         SwipeToProfile.allow(false, () -> true);
-        SwipeToProfile.profileResumed(new Object());
+        resumeProfile();
         Activity unattached = new Activity();
         MotionEvent down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 20, 50, 0);
         MotionEvent move = MotionEvent.obtain(0, 0, MotionEvent.ACTION_MOVE, 520, 50, 0);
@@ -864,11 +865,11 @@ public class SwipeToProfileTest {
     public void aSwipeInstagramAllowsItselfClosesTheSameWay() {
         Screen screen = screen();
         assertTrue(SwipeToProfile.allow(true, () -> false));
-        SwipeToProfile.profileResumed(new Object());
+        resumeProfile();
         assertFalse("the switch was off at the swipe", swipesBack(screen, () -> true));
 
         assertTrue(SwipeToProfile.allow(true, () -> true));
-        SwipeToProfile.profileResumed(new Object());
+        resumeProfile();
         assertTrue(swipesBack(screen, () -> true));
     }
 
@@ -908,7 +909,7 @@ public class SwipeToProfileTest {
         RowScreen screen = Robolectric.buildActivity(RowScreen.class).setup().get();
         ShadowLooper.idleMainLooper();
         SwipeToProfile.allow(false, () -> true);
-        SwipeToProfile.profileResumed(new Object());
+        resumeProfile();
         int[] at = new int[2];
         screen.row.getLocationInWindow(at);
         float high = at[1] + screen.row.getHeight() / 3f;
@@ -1093,5 +1094,25 @@ public class SwipeToProfileTest {
 
     private static int slop() {
         return ViewConfiguration.get(RuntimeEnvironment.getApplication()).getScaledTouchSlop();
+    }
+
+    /**
+     * Profiles the test resumed, held as Instagram holds the fragment it shows. SwipeToProfile keeps
+     * them weakly, so one held by nothing could be collected mid-test and read as "no profile".
+     */
+    private final List<Object> profiles = new ArrayList<>();
+
+    private Object resumeProfile() {
+        Object profile = new Object();
+        profiles.add(profile);
+        SwipeToProfile.profileResumed(profile);
+        return profile;
+    }
+
+    /** Runs the collector until an object nobody holds is gone, as a loaded full suite does at any point. */
+    private static void collectGarbage() {
+        java.lang.ref.WeakReference<Object> gone = new java.lang.ref.WeakReference<>(new Object());
+        for (int i = 0; i < 50 && gone.get() != null; i++) System.gc();
+        assertTrue("the collector never ran", gone.get() == null);
     }
 }

@@ -9,6 +9,9 @@ Settings.isEnabled
 KickBundle.init
 KickBundle.prepare
 
+# Lurk in account menu: the Lurk row's link in Linking.openURL
+Settings.openLink
+
 # Chat page: Show deleted messages, Ignore chat clears, Hide chat highlights, Third-party emotes
 KickChat.onWebViewCreated
 KickChat.onPageStarted

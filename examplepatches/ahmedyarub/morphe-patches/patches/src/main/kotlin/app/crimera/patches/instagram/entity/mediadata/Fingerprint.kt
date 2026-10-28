@@ -180,7 +180,3 @@ internal object GetUserDataFromMediaFingerprint : Fingerprint(
     },
 )
 
-internal object CommentToStringFingerprint : Fingerprint(
-    name = "toString",
-    strings = listOf("Comment{mCreatedAtSeconds=%d, mUser=@%s, mText=\'%s\'}"),
-)

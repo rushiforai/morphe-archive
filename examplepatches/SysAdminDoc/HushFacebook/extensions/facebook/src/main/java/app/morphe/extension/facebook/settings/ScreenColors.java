@@ -38,6 +38,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import app.morphe.extension.facebook.theme.AmoledTheme;
+import app.morphe.extension.facebook.theme.MaterialYouTheme;
 import app.morphe.extension.facebook.theme.TonePalette;
 import app.morphe.extension.shared.settings.preference.ImmediateAction;
 
@@ -219,7 +220,7 @@ final class ScreenColors {
     static ScreenColors forScreen(Context context) {
         if (!PatchFamily.MATERIAL_YOU_THEME.inBuild()) return null;
         int night = context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-        return new ScreenColors(TonePalette.of(context), night != Configuration.UI_MODE_NIGHT_YES);
+        return new ScreenColors(MaterialYouTheme.phonePalette(context), night != Configuration.UI_MODE_NIGHT_YES);
     }
 
     /** The framework theme rows and dialogs are built with, so what this class doesn't paint still reads. */

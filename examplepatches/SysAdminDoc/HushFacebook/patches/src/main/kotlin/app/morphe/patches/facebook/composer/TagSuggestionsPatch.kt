@@ -30,7 +30,7 @@ val tagSuggestionsOnlyAfterAtPatch = bytecodePatch(
     name = "Tag suggestions only after @",
     description = "Stops Facebook offering people to tag while you type ordinary words in posts and comments, so " +
         "names don't pop up in your way. Typing @ still brings up the list. Starts off. Turn it on in " +
-        "Hushfacebook settings > Writing.",
+        "Hushfacebook settings > Comments and writing.",
 ) {
     category("Comments")
     dependsOn(settingsPatch)

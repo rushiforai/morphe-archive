@@ -1802,11 +1802,11 @@
       "branches": [
         {
           "name": "main",
-          "commit": "bbd0bb6c1f529165f663d56eb59ce8f2fa575315"
+          "commit": "8f9849668693b255d572854510775e2a26250f39"
         },
         {
           "name": "dev",
-          "commit": "bbd0bb6c1f529165f663d56eb59ce8f2fa575315"
+          "commit": "c66590e893fc1c4ad21b1d0589c33199071302e8"
         }
       ],
       "watchPaths": [
@@ -1819,15 +1819,15 @@
         "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
       },
       "contaminatedBy": null,
-      "disposition": "candidate",
-      "reason": "GPL-3.0 font bundle for many apps, with one Instagram patch.",
+      "disposition": "rejected",
+      "reason": "GPL-3.0 font bundle for many apps. Its one Instagram patch, Force system font, was removed at bbd0bb6c (2026-09-30, \"remove font patch covered by Piko\"); main 8f984966 and dev c66590e8, read 2026-10-27, hold no Instagram code and the README no longer lists Instagram. Nothing left to take; the watch paths stay in case it comes back.",
       "archived": false,
       "forks": [],
       "contentHashes": [
         "8a0aa3093911297c065c084d99e51629f7965701"
       ],
       "mirrors": [],
-      "lastChecked": "2026-10-15"
+      "lastChecked": "2026-10-27"
     },
     {
       "id": "dudek",
@@ -2448,18 +2448,37 @@
       "branches": [
         {
           "name": "main",
-          "commit": "74bd7e1bc97386b06b595440d82106d9daa2dfae"
+          "commit": "e19ab0def2dc1ac197b7a2d4f8763f701ef68b1d"
         }
       ],
       "watchPaths": [],
       "license": {
-        "spdx": "Apache-2.0",
-        "url": "https://github.com/ReSo7200/InstaEclipse/blob/989cc6bad818788a3bc7ea1d9f42c48f99685dd9/LICENSE",
-        "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/ReSo7200/InstaEclipse/blob/3298e7edadc8bf33b11239cc3d4437ab555cdd7f/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
       },
+      "licenseHistory": [
+        {
+          "spdx": "Apache-2.0",
+          "url": "https://github.com/ReSo7200/InstaEclipse/blob/989cc6bad818788a3bc7ea1d9f42c48f99685dd9/LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+          "commit": "74bd7e1bc97386b06b595440d82106d9daa2dfae",
+          "until": "2026-10-18"
+        }
+      ],
+      "inherits": [
+        {
+          "source": "https://github.com/SysAdminDoc/HushGram",
+          "lineage": "hushgram",
+          "evidence": "https://github.com/ReSo7200/InstaEclipse/blob/e19ab0def2dc1ac197b7a2d4f8763f701ef68b1d/third-party/HushGram/NOTICE.md",
+          "paths": [
+            "third-party/HushGram"
+          ]
+        }
+      ],
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "Apache-2.0, which can go into a GPL-3.0 project with its NOTICE kept. The most complete maintained module and the second source of demand after piko. Its hooks run at runtime, so a port means rewriting each one as a patch.",
+      "reason": "GPL-3.0 since 3298e7ed (2026-10-18); Apache-2.0 before that, kept in licenseHistory at the commit last read under it. The most complete maintained module and the second source of demand after piko. Since PR #270 (merged 2026-10-18, 9db51b48) its downloader is adapted from HushGram's own download package (third-party/HushGram/NOTICE.md), so that part is HushGram's lineage and never counts as independent evidence. Its hooks run at runtime, so a port means rewriting each one as a patch.",
       "archived": false,
       "forks": [
         "2Lias/InstaEclipse",
@@ -2570,7 +2589,7 @@
           "blobs": []
         }
       ],
-      "lastChecked": "2026-10-15"
+      "lastChecked": "2026-10-27"
     },
     {
       "id": "igexperiments",

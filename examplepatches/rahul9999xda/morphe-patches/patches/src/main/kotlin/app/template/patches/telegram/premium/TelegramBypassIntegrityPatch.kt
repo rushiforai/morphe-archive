@@ -38,7 +38,7 @@ private val CERT_HASHES = mapOf(
 )
 
 // Legacy call-site fallback retained for Plus builds where the helper body is not local.
-// In the supplied Plus Messenger 13.0.3.0 APK the helper body is present, so the direct
+// In the supplied Plus Messenger 13.1.1.0 APK the helper body is present, so the direct
 // fingerprint is preferred and this call-site path is only used when that body is absent.
 private val plusCertificateFingerprintCallSite = Fingerprint(
     filters = listOf(
@@ -74,7 +74,7 @@ val telegramBypassIntegrityPatch = bytecodePatch(
             ?: error("No cert hash for package '$detectedPackageName'")
 
         // Return the exact original certificate SHA-256. Prefer the verified local AndroidUtilities
-        // helper body in all three audited clean APKs (Telegram/Web 13.1.1, Plus 13.0.3.0);
+        // helper body in all three audited clean APKs (Telegram/Web 13.1.1, Plus 13.1.1.0);
         // retain call-site fallback for legacy variants.
         val certMethod = AndroidUtilitiesGetCertFingerprintFingerprint.methodOrNull
         if (certMethod != null) {

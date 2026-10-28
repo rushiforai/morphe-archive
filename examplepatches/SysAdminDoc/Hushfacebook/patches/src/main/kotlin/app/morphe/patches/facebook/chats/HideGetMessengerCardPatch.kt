@@ -30,7 +30,7 @@ val hideGetMessengerCardPatch = bytecodePatch(
     name = "Hide the Get Messenger card",
     description = "Hides the \"Get the Messenger app\" card at the top of Chats when Messenger is already " +
         "installed. A patched Facebook may not see that Messenger is there, so it keeps showing the card. On by " +
-        "default. Turn it off in Hushfacebook settings > Chats.",
+        "default. Turn it off in Hushfacebook settings > Chats and Messenger.",
     default = true,
 ) {
     category("Chats")

@@ -74,27 +74,49 @@ public final class OpenInAnotherApp {
                     () -> "Open in another app tapped after its switch went off");
                 return;
             }
-            Context application = context == null ? Utils.getContext() : context.getApplicationContext();
-            if (application == null) return;
             Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "Open in another app tapped");
-
-            String url = bestFile(video.id, video.hd, video.sd);
-            if (url == null) {
-                Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE,
-                    () -> "no single file of this video was found to hand over", null);
-                Feedback.show(application,
-                    L10n.t(application, "Couldn't find a file for this video. Play it for a moment, then try again."), true);
-                return;
-            }
-            try {
-                application.startActivity(chooser(url));
-                Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "opened the chooser for the video");
-            } catch (ActivityNotFoundException none) {
-                Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "no app takes a video file", none);
-                Feedback.show(application, L10n.t(application, "No app on this phone can open this video"), true);
-            }
+            handOff(context, bestFile(video.id, video.hd, video.sd));
         } catch (Throwable t) {
             Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "Open in another app failed", t);
+        }
+    }
+
+    /**
+     * The feed cast button's tap (#182): opens the chooser for the video with [videoId], from the
+     * file its player recorded, or says why it couldn't. Only that id's file is ever handed over,
+     * so a button left from a scrolled-away video can't send it. A tap after the switch went off
+     * does nothing. Never throws.
+     */
+    public static void cast(@Nullable Context context, @Nullable String videoId) {
+        try {
+            if (!Utils.settingsReady() || !Settings.FEED_VIDEO_CAST_BUTTON.get()) {
+                Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE,
+                    () -> "cast button tapped after its switch went off");
+                return;
+            }
+            Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "cast button tapped");
+            handOff(context, bestFile(videoId, null, null));
+        } catch (Throwable t) {
+            Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "cast button failed", t);
+        }
+    }
+
+    private static void handOff(@Nullable Context context, @Nullable String url) {
+        Context application = context == null ? Utils.getContext() : context.getApplicationContext();
+        if (application == null) return;
+        if (url == null) {
+            Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE,
+                () -> "no single file of this video was found to hand over", null);
+            Feedback.show(application,
+                L10n.t(application, "Couldn't find a file for this video. Play it for a moment, then try again."), true);
+            return;
+        }
+        try {
+            application.startActivity(chooser(url));
+            Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "opened the chooser for the video");
+        } catch (ActivityNotFoundException none) {
+            Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "no app takes a video file", none);
+            Feedback.show(application, L10n.t(application, "No app on this phone can open this video"), true);
         }
     }
 }

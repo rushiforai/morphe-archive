@@ -60,7 +60,9 @@ public class SettingsL10nTest {
 
     /** Text that stays as it is in every language: the product's name and its source's address. */
     private static final Set<String> AS_IS = new LinkedHashSet<>(Arrays.asList(
-            "Hushfacebook", "github.com/SysAdminDoc/Hushfacebook"));
+            "Hushfacebook", "github.com/SysAdminDoc/Hushfacebook",
+            // The Badge and Logo color rows' hint: a color code reads the same in every language.
+            "#2ECC71"));
 
     @Before
     public void everyPatchIn() {

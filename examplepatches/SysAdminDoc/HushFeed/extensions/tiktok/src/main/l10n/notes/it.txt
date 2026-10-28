@@ -1,41 +1,66 @@
-## Unreleased
+## 0.80.0 (2026-10-27)
 
-* **Impostazioni:** Un nuovo interruttore toglie la riga di Hushfeed da Impostazioni e privacy di TikTok. Dopo, tieni premuto Per te per aprire le impostazioni (#264).
-* **Commenti:** I commenti ad altezza piena ora si fermano sotto la barra di stato invece di coprire ora e batteria, e si aprono ad altezza piena anche sul primo video dopo l'avvio di TikTok (#261).
-* **Feed:** La barra inferiore del feed principale ha una pillola di vetro fluttuante con una lente che scorre tra le schede, un gesto di scorrimento, vibrazione facoltativa e nuove impostazioni in Interfaccia per sfocatura, opacità del vetro, altezza della pillola e angoli (#259).
-* **Patch:** Le patch con impostazioni ora hanno opzioni Morphe per i valori iniziali, così una build può arrivare con i tuoi interruttori già attivi. Grazie a @XEGARE (#256).
-* **Impostazioni:** Le categorie si aprono e si chiudono subito sotto la loro riga nell'elenco principale. La ricerca mostra i controlli nello stesso elenco, e le categorie aperte restano aperte dopo una rotazione o un riavvio.
-* **Impostazioni:** Le grandi schede iniziali lasciano spazio a un elenco compatto a tutta larghezza. Le configurazioni rapide sono state rimosse.
+* **TikTok:** Nascondi i controlli della Vista pulita ha un nuovo interruttore che tiene sullo schermo la barra di avanzamento, così puoi ancora vederla e trascinarla (#237).
+* **TikTok:** Il doppio tocco ora può mettere e togliere il Mi piace. Un doppio tocco su un video che hai già messo tra i Mi piace toglie il Mi piace (#248).
+* **TikTok:** Scorri a sinistra o a destra mentre tieni premuto un video per scegliere la velocità, da mezza velocità a tre volte. È disattivato di base (#248).
+* **TikTok:** Le griglie dei Mi piace hanno un ordinamento tutto loro, e il pulsante di ordinamento di una griglia dei Mi piace cambia solo quell'ordine (#180).
+* **TikTok:** Ogni titolo di Hushfeed ora mostra il ciano e il rosso di TikTok in un gradiente che si muove lentamente.
+* **TikTok:** Il preset Feed calmo non c'è più. Tutti i suoi filtri sono ancora nel Filtro del feed, e quello che aveva attivato resta attivo.
+* **TikTok:** Doppio tocco e Pressione prolungata possono aprire la pagina di ricerca di TikTok, anche con il pulsante di ricerca del feed nascosto (#251).
+* **TikTok:** Un nuovo interruttore sposta la casella di ricerca dei commenti in un pulsante a lente in alto a sinistra (#254).
+* **TikTok:** Un nuovo interruttore toglie la riga di Hushfeed da Impostazioni e privacy di TikTok. Dopo, tieni premuto Per te per aprire le impostazioni (#264).
+* **TikTok:** Un @nomeutente scritto nella bio di qualcuno ora è un link. Toccalo e si apre quel profilo (#247).
+* **TikTok:** La barra inferiore del feed principale può essere una pillola di vetro fluttuante, con una lente che scorre tra le schede e nuove impostazioni per sfocatura, opacità, altezza e angoli (#259).
+* **TikTok:** Le patch con impostazioni hanno opzioni Morphe per i valori iniziali, così una build può arrivare con i tuoi interruttori già attivi. Grazie a @XEGARE (#256).
+* **TikTok:** Un nuovo interruttore nasconde la fila di cerchi di LIVE e storie in cima a Seguiti, senza lasciare una fascia vuota (#262).
+* **TikTok:** Un nuovo interruttore ferma il foglio Condividi con che TikTok apre qualche secondo dopo aver salvato un video. Lo ha anche PineDrama.
+* **TikTok:** Salvando le foto originali di un post fotografico si salvano anche didascalia, creator, link e data del post in un solo file.
+* **TikTok:** La ricerca nelle impostazioni conosce nomi di tutti i giorni come autoplay, PiP e AI, e trova una riga di scelta da una qualsiasi delle sue opzioni.
+* **TikTok:** Blocca il feed a orari fissi blocca il feed da solo nelle ore che scegli, e il pannello di blocco dice quando si riapre.
+* **TikTok:** Salva solo con Wi-Fi tiene i salvataggi lontani dai dati mobili. Un salvataggio aspetta il Wi-Fi per al massimo 30 minuti, e puoi annullarlo da Download.
+* **TikTok:** Su PineDrama ora funzionano gli interruttori della Posta in arrivo, compreso Nascondi le conversazioni (#156).
+* **TikTok:** Su PineDrama, la riga della versione nelle impostazioni ora indica PineDrama e la sua build invece di TikTok (#156).
+* **TikTok:** Un risultato della ricerca nelle impostazioni che sta in fondo a una pagina ora si apre proprio sulla sua riga.
+* **TikTok:** Con la Barra inferiore trasparente attiva, la riga Scorri verso l'alto per saltare sulle schede degli account suggeriti sta di nuovo sopra le schede (#261).
+* **TikTok:** La pillola flottante delle schede è un po' più alta, così l'icona Home e il suo nome restano dentro l'evidenziazione, e la linea di avanzamento non ci sta più sopra (#259).
+* **TikTok:** Con la Vista pulita automatica attiva, aprire un secondo video da Preferiti, Mi piace o da un profilo non fa più lampeggiare la barra di ricerca (#84).
+* **TikTok:** Con il tema scuro AMOLED attivo, anche la scheda del centro attività è nera (#263).
+* **TikTok:** Nascondi gli avvisi sui contenuti non verificati toglie anche la striscia Attenzione dai video condivisi con te nei messaggi (#258).
+* **TikTok:** Una pressione prolungata sulla bio di qualcun altro ora la copia (#247).
+* **TikTok:** I commenti a tutta altezza ora si fermano sotto la barra di stato, e si aprono a tutta altezza anche sul primo video dopo l'avvio di TikTok (#261).
+* **TikTok:** Le categorie delle impostazioni si aprono e si chiudono subito sotto le loro righe, e una categoria che hai aperto resta aperta dopo una rotazione o un riavvio.
+* **TikTok:** Le grandi schede della pagina iniziale delle impostazioni ora sono un elenco compatto, e le Configurazioni rapide non ci sono più.
 * **TikTok:** Hushfeed ora richiede Morphe Manager 2.2.0 o successivo, oppure morphe-desktop 1.19.1 sul computer.
-* **Verifiche:** Aggiunto un percorso di base PineDrama per avvio, apertura e chiusura delle impostazioni sul posto e ritorno. La verifica completa resta incompleta.
-* **Verifiche:** Ogni etichetta di anteprima LIVE e di drama usata dalla barra inferiore trasparente viene verificata sull'APK di TikTok supportato.
-* **Feed:** Bandiere e codici paese restano accanto ai nomi scritti da destra a sinistra (#258).
-* **Feed:** Con la barra inferiore trasparente attiva, il nome e la riga "Tocca per guardare" delle anteprime LIVE e dei mini drama restano sopra le schede (#250).
-* **Griglie:** Il controllo di ordinamento ha un’area toccabile di almeno 48 dp.
-* **Griglie:** Il controllo di ordinamento si nasconde quando la griglia viene rimossa dalla vista e riappare al suo ritorno.
-* **Griglie:** Se il nuovo ordinamento non può essere salvato, resta quello attuale.
-* **Griglie:** Scegliendo Ordine originale, il menu di ordinamento della griglia attuale resta disponibile (#180).
-* **Commenti:** I commenti accanto al video usano la stessa larghezza per il layout e la ricostruzione della vista (#253).
-* **Posta in arrivo:** Con la priorità alle Storie attiva, una foto della chat riutilizzata apre la Storia del creator attuale al primo tocco (#233).
-* **Playback:** Keep the source video paused when a comment link opens another page. Leaving the tap-to-start cover for another tab also keeps its feed paused (#257).
-* **Diagnostica:** I rapporti sulle notifiche contano le fasi di registrazione e visualizzazione senza includere il contenuto dei messaggi (#126, #222, #86).
-* **Registrazione schermo:** TikTok resta tra le app recenti selezionabili per la registrazione su Android 14 e versioni successive.
-* **Controlli:** La verifica dell’avanzamento automatico segue la riproduzione di TikTok senza etichettare i singoli video. I filmati non terminati e la riproduzione non disponibile restano senza un esito conclusivo.
+* **TikTok:** La verifica di rilascio ora copre anche PineDrama, dai feed ai fogli fino a ogni sezione di Hushfeed.
+* **TikTok:** PineDrama ha un suo controllo delle patch, e un rilascio richiede un controllo e una verifica puliti per ogni app supportata.
+* **TikTok:** Ogni anteprima LIVE e ogni etichetta di drama che la Barra inferiore trasparente sposta viene controllata sulla build di TikTok supportata.
+* **TikTok:** Bandiere e codici paese restano accanto ai nomi scritti da destra a sinistra (#258).
+* **TikTok:** Con la Barra inferiore trasparente attiva, il nome e la riga Tocca per guardare delle anteprime LIVE e dei mini drama restano sopra le schede (#250).
+* **TikTok:** Il controllo di ordinamento della griglia è più grande, quindi è più facile da toccare.
+* **TikTok:** Il controllo di ordinamento della griglia si nasconde quando la griglia non è visibile e torna insieme a lei.
+* **TikTok:** Se un cambio di ordinamento non può essere salvato, la griglia mantiene l'ordine che aveva.
+* **TikTok:** Scegliendo Ordine originale, il menu di ordinamento della griglia resta disponibile (#180).
+* **TikTok:** Commenti accanto al video misura la sua larghezza sempre allo stesso modo (#253).
+* **TikTok:** In Posta in arrivo, una foto di chat riutilizzata apre la Storia del creator attuale al primo tocco quando Prima la storia è attivo (#233).
+* **TikTok:** Il video resta in pausa quando un link nei suoi commenti apre un'altra pagina (#257).
+* **TikTok:** I rapporti sulle notifiche in Diagnostica contano le notifiche senza salvare cosa dicevano (#126, #222, #86).
+* **TikTok:** TikTok resta nell'elenco che Android mostra quando registri una sola app.
+* **TikTok:** La verifica dell'avanzamento automatico segue il lettore video stesso invece delle etichette dei singoli video.
 * **TikTok:** Tieni premuto un interruttore nella ricerca delle impostazioni per mostrare ed evidenziare il suo controllo nell'elenco principale (#248).
-* **Diagnostica:** I record della callback del primo fotogramma conservano la fonte e i tempi monotoni per controllare l’avvio (#150).
-* **Controlli della build:** I controlli di rilascio richiedono prove native e APK corrispondenti per ogni pacchetto dichiarato. I controlli nell’app verificano la build installata e le opzioni delle patch.
-* **TikTok:** Recording recovery exports use bulk writes to avoid long waits when saving large files.
-* **TikTok:** Recovery Retry keeps the recording's original stop reason instead of saying TikTok closed. Recovery dialogs follow Hushfeed's theme.
-* **TikTok:** Screen recordings check storage as they run and keep recovery files until the saved copy is verified. Interrupted recordings can be retried, exported or deleted.
-* **Build checks:** Patch audits now check the installed APK and selected patches. Results from a different package or an excluded patch stay historical.
-* **Controlli della build:** Le verifiche controllano che la diagnostica sia completa prima di segnalare interruttori mancanti. Senza un video, i controlli dipendenti restano inconcludenti. La verifica della regione del commentatore usa la traccia attuale della cache.
-* **TikTok:** La registrazione dello schermo mantiene timestamp distinti per i primi fotogrammi mentre si avvia il suono.
-* **TikTok:** Le registrazioni dello schermo mantengono i primi fotogrammi mentre si avvia il codificatore audio.
-* **Controlli della build:** Una verifica delle patch non convalida più una build quando cambiano gli input eseguibili. Le ripetizioni parziali lasciano storici i controlli precedenti.
-* **TikTok:** La registrazione dello schermo libera le risorse audio se il suono non può avviarsi. L'avviso di salvataggio ora indica quando la registrazione è senza audio.
-* **TikTok:** La registrazione dello schermo ora chiede ad Android di acquisire solo l'audio dell'app modificata.
-* **TikTok:** La pulizia di Service+ ora controlla la prima voce dell'anteprima LIVE, come fa TikTok (#94).
-* **TikTok:** La pausa dei commenti può identificare il primo fotogramma in riproduzione prima che arrivi il primo aggiornamento di avanzamento (#151).
+* **TikTok:** I controlli all'avvio registrano quale lettore ha disegnato il primo fotogramma (#150).
+* **TikTok:** Un rilascio richiede prove corrispondenti per ogni app che supporta.
+* **TikTok:** Esportare una registrazione recuperata è più veloce per i file grandi.
+* **TikTok:** Riprova nel recupero mantiene il motivo di arresto originale della registrazione, e le finestre di recupero seguono il tema di Hushfeed.
+* **TikTok:** Le registrazioni dello schermo controllano lo spazio mentre vanno e tengono i file di recupero finché la copia salvata non è verificata.
+* **TikTok:** I controlli delle patch verificano l'app installata e quali patch sono state scelte.
+* **TikTok:** Un controllo delle patch aspetta il rapporto diagnostico completo prima di dire che un interruttore manca.
+* **TikTok:** I primi fotogrammi di una registrazione dello schermo mantengono ciascuno il proprio timestamp mentre parte l'audio.
+* **TikTok:** Le registrazioni dello schermo mantengono i primi fotogrammi video mentre l'audio si sta avviando.
+* **TikTok:** Un controllo delle patch smette di valere per una build quando cambia il codice su cui è stato eseguito.
+* **TikTok:** La registrazione dello schermo libera l'audio se il suono non può partire, e l'avviso di salvataggio dice quando non c'è audio.
+* **TikTok:** La registrazione dello schermo chiede ad Android di catturare solo l'audio dell'app modificata.
+* **TikTok:** La pulizia di Service+ controlla la stessa prima voce dell'anteprima LIVE che mostra TikTok (#94).
+* **TikTok:** La pausa dei commenti capisce che il primo fotogramma è in riproduzione prima del primo aggiornamento di avanzamento di TikTok (#151).
 
 ## 0.79.0 (2026-10-24)
 

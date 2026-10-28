@@ -198,7 +198,9 @@ public final class TapToPlay {
 
     /** The hook, first thing in FbGrootPlayer's play. False, and the play returns at once. */
     public static boolean allowStart(Object player, Object trigger) {
-        boolean allowed = allow(player, trigger, "player start", "", true);
+        // A reel waits while its comments are open, whatever this switch says (#266).
+        boolean allowed = !PauseUnderComments.holdsStart(player, trigger)
+                && allow(player, trigger, "player start", "", true);
         FeedVideoControls.changed(player);
         return allowed;
     }
@@ -680,6 +682,14 @@ public final class TapToPlay {
 
     static boolean armed(Object player) {
         return ARMED.armed(player);
+    }
+
+    /**
+     * Arms [player] for the start Pause reels while comments are open sends when the sheet closes.
+     * The reel was playing before the sheet paused it, so it plays on with no tap.
+     */
+    static void armForResume(Object player) {
+        ARMED.arm(player, SystemClock.uptimeMillis());
     }
 
     static int armedCount() {

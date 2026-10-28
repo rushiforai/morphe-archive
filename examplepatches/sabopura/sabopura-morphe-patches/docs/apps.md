@@ -199,7 +199,8 @@ real post and comment translation callbacks. Translated content rendering
 remains unverified behind this authentication gate. `2026.24.0[2624051]`, the official Morphe
 patches' stable target, passed the same checks; its patched DEX has the same ten translation
 call sites as 2026.42.0 (four post, two comment, one accessibility comment, two post detail and
-the extension's own queue).
+the extension's own queue). `2026.43.0[2643041]` applied without changes and passed the same checks,
+with the same ten call sites.
 
 Reddit fingerprints use stable translation state/event descriptors. Obfuscated
 callback classes, model classes, field names, and synthetic-lambda selector
@@ -231,12 +232,22 @@ underneath, so YouTube's own text, icons and thumbnails sit directly on the ligh
 theme. The light calms down while the user touches or scrolls the page (touches on the player
 itself are ignored) and fades back after an idle delay. There is no light in the miniplayer.
 
-Open `Settings > Video and audio > Ambient light` (or the player menu) to configure it:
-fullscreen / regular-player display, blur, spread, edge fade, brightness, saturation, frame
-rate, colour detail, smoothing, black-bar handling, and energy saving. The player settings
-menu has an `Ambient light: On/Off` row; long-press it to open the settings. The light
-stops updating while playback is paused or buffering and on
-still pictures, and hides itself for protected (DRM) videos whose frames cannot be read.
+Open `Settings > Video and audio > Ambient light` to configure it: how the light looks
+(show the video itself behind the page, darker towards the bottom, spread the light on scene
+changes, pulse slowly while paused), fullscreen / regular-player display, blur, spread, edge
+fade, brightness, saturation, frame rate, colour detail, smoothing, black-bar handling, and
+energy saving. The light is drawn on its own small, low-resolution surfaces, so a new light
+frame does not redraw YouTube's page or player. It samples still pictures less often, stops
+updating while playback is paused or buffering, does nothing in picture-in-picture and
+background playback, and hides itself for protected (DRM) videos whose frames cannot be read.
+
+### Player menu
+
+Both patches add a row with an on/off switch to the player settings menu, like YouTube's own
+`Loop video` row. Tap the row to switch the feature on or off. Long-press it to open a small
+sheet over the video with the switch, the most used values as sliders (danmaku: text size,
+opacity, scroll duration, vertical coverage; ambient light: brightness, saturation,
+smoothing, and how the light looks) and a link to the full settings screen.
 
 ### Danmaku comments
 
@@ -246,7 +257,9 @@ YouTube Data API or an API key, and never opens the visible comments or chat
 panel. It reads YouTube's keyless internal comment and chat responses in the
 background using the app's current in-memory request context.
 
-Open `Settings > Video and audio > Danmaku` to configure the overlay. The screen is
+Open `Settings > Video and audio > Danmaku` (or long-press the `Danmaku` row in the player
+menu) to configure the overlay. A frame rate limit (`60 fps`) saves battery on 120 Hz
+displays. The screen is
 embedded in YouTube's native preference hierarchy and uses its standard switches,
 selection dialog, and sliders. Regular videos and live/premiere streams have
 independent switches. Regular comments can be limited to timestamped comments;
@@ -277,9 +290,12 @@ video is paused or buffering and between sparse comments.
 
 Verification: for every added YouTube version a public replay is opened on the API 36
 emulator and the danmaku overlay must attach, fetch comments and draw them. 21.40.165,
-21.40.166, 21.41.526, 21.41.529, 21.42.243, and the official Morphe targets 21.20.405 and
-21.42.241 passed this check, the last two also with the watch page tinted by ambient light. The emulator build needs a test-only startup shim that is applied
-after patching and never enters the MPP.
+21.40.166, 21.41.526, 21.41.529, 21.42.243, 21.43.523, and the official Morphe targets 21.20.405 and
+21.42.241 passed this check, the last three also with the watch page tinted by ambient light. The emulator build needs a test-only startup shim that is applied
+after patching and never enters the MPP. On the emulator, YouTube's stream protection rejects the
+re-signed build after roughly 20 to 60 seconds of playback (`ump.spsrejectfailure` in the QoE ping,
+then "There was a problem with playback"); an unpatched re-signed 21.41.526 stopped the same way, so
+this is not a patch failure.
 
 ## Pinterest
 
@@ -307,7 +323,8 @@ the patched methods were also checked by decompiling the output (in 14.40.0 the
 `is_promoted` getter returns `false`). 14.41.0 applied without changes; it launched to the
 sign-in screen without crashes, and the output DEX has the `is_promoted` getter returning
 `false`, Bugsnag's release stage check returning `true` and the 14 startup task tags
-skipped. Feed behaviour after login was not verified.
+skipped. 14.42.0 applied without changes and passed the same launch and DEX checks. Feed
+behaviour after login was not verified.
 
 ## pixiv
 

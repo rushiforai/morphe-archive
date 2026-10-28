@@ -215,6 +215,7 @@ public class CompatReport {
         PATCHES.put("Mark as read button", List.of("mark_read_bar", "mark_read_click"));
         PATCHES.put("Keep unsent messages", List.of("keep_unsent", "unsent_indicator", "delta_unsent"));
         PATCHES.put("Unlock app icons", List.of("app_icons"));
+        PATCHES.put("Square profile pictures", List.of("avatar_shape"));
         PATCHES.put("Use your own font", List.of("font_layout", "font_repository", "font_roboto", "font_by_name", "font_input"));
         PATCHES.put("View stories anonymously", List.of("anonymous_stories"));
         PATCHES.put("Save any story", List.of("save_stories"));
@@ -4685,6 +4686,235 @@ public class CompatReport {
         return hoisted == 1 ? creators : List.of();
     }
 
+    /** The register holding parameter n, counting this as 0 on an instance method. */
+    static int parameterSlot(Method method, int n) {
+        int words = AccessFlags.STATIC.isSet(method.getAccessFlags()) ? 0 : 1;
+        for (var type : method.getParameterTypes()) words += "J".contentEquals(type) || "D".contentEquals(type) ? 2 : 1;
+        return method.getImplementation().getRegisterCount() - words + n;
+    }
+
+    /** RoundingOptions' isCircular: the own boolean its toString() last read into the register it appends right after the class name. */
+    static String vitoCircle(ClassDef cls) {
+        Method printer = null;
+        for (var method : cls.getMethods()) {
+            if (!"toString".equals(method.getName()) || !method.getParameterTypes().isEmpty() || !"Ljava/lang/String;".equals(method.getReturnType())) continue;
+            if (printer != null) return null;
+            printer = method;
+        }
+        if (printer == null || AccessFlags.STATIC.isSet(printer.getAccessFlags())) return null;
+        var code = instructions(printer);
+        int named = -1;
+        for (int i = 0; i < code.size() && named < 0; i++) {
+            String value = text(code.get(i));
+            if (value != null && value.startsWith("RoundingOptions(isCircular=")) named = i;
+        }
+        if (named < 0) return null;
+        int append = -1;
+        for (int i = named + 1; i < code.size() && append < 0; i++) {
+            if (code.get(i) instanceof ReferenceInstruction call && call.getReference() instanceof MethodReference target &&
+                "Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;".equals(target.toString())) append = i;
+        }
+        if (append < 0) return null;
+        var targets = mediaTargets(printer);
+        for (int i = 0; i < append; i++) if (code.get(i) instanceof OffsetInstruction || targets.contains(i + 1)) return null;
+        var appended = reads(code.get(append));
+        if (appended.size() < 2) return null;
+        int value = appended.get(1);
+        for (int i = append - 1; i >= 0; i--) {
+            if (!(code.get(i) instanceof OneRegisterInstruction one) || one.getRegisterA() != value) continue;
+            if (code.get(i).getOpcode() != Opcode.IGET_BOOLEAN || ((TwoRegisterInstruction) code.get(i)).getRegisterB() != parameterSlot(printer, 0)) return null;
+            var field = (FieldReference) ((ReferenceInstruction) code.get(i)).getReference();
+            return field.getDefiningClass().equals(cls.getType()) && "Z".equals(field.getType()) ? field.toString() : null;
+        }
+        return null;
+    }
+
+    /** Mirrors AvatarShape.kt's vitoRounding: Object's constructor, one own-parameter store per field, return. */
+    static boolean vitoRounding(Method method, String circleField) {
+        if (!"<init>".equals(method.getName()) || AccessFlags.STATIC.isSet(method.getAccessFlags()) || !"V".equals(method.getReturnType())) return false;
+        if (!circleField.startsWith(method.getDefiningClass() + "->")) return false;
+        var code = instructions(method);
+        if (code.size() < 3 || code.get(code.size() - 1).getOpcode() != Opcode.RETURN_VOID) return false;
+        int self = parameterSlot(method, 0);
+        if (code.get(0).getOpcode() != Opcode.INVOKE_DIRECT || !"Ljava/lang/Object;-><init>()V".equals(ref(code.get(0))) ||
+            !reads(code.get(0)).equals(List.of(self))) return false;
+        var params = new HashMap<Integer, String>();
+        var types = method.getParameterTypes();
+        for (int i = 0; i < types.size(); i++) {
+            String type = types.get(i).toString();
+            if ("J".equals(type) || "D".equals(type)) return false;
+            params.put(parameterSlot(method, i + 1), type);
+        }
+        var names = new HashSet<String>();
+        var values = new HashSet<Integer>();
+        int circle = -1, radius = -1, radii = -1, floats = 0, arrays = 0, circles = 0;
+        for (var store : code.subList(1, code.size() - 1)) {
+            var op = store.getOpcode();
+            if (op != Opcode.IPUT && op != Opcode.IPUT_BOOLEAN && op != Opcode.IPUT_OBJECT) return false;
+            var field = (FieldReference) ((ReferenceInstruction) store).getReference();
+            var put = (TwoRegisterInstruction) store;
+            if (put.getRegisterB() != self || !field.getDefiningClass().equals(method.getDefiningClass()) ||
+                !field.getType().equals(params.get(put.getRegisterA()))) return false;
+            if (!names.add(field.getName()) || !values.add(put.getRegisterA())) return false;
+            if (field.toString().equals(circleField)) { circle = put.getRegisterA(); circles++; }
+            if ("F".equals(field.getType())) { radius = put.getRegisterA(); floats++; }
+            if ("[F".equals(field.getType())) { radii = put.getRegisterA(); arrays++; }
+        }
+        return circles == 1 && floats == 1 && arrays == 1 && Math.max(circle, Math.max(radius, radii)) <= 15;
+    }
+
+    /** Mirrors AvatarShape.kt's legacyRounding: the params' flag, then their radii, handed to the layer, then a spare read. */
+    static boolean legacyRounding(Method method) {
+        if (!AccessFlags.STATIC.isSet(method.getAccessFlags()) || !"V".equals(method.getReturnType()) || method.getParameterTypes().size() != 2) return false;
+        String layerType = method.getParameterTypes().get(0).toString(), paramsType = method.getParameterTypes().get(1).toString();
+        if (!layerType.startsWith("L") || !paramsType.startsWith("L") || layerType.equals(paramsType)) return false;
+        var code = instructions(method);
+        if (code.size() < 6) return false;
+        int layer = parameterSlot(method, 0), params = parameterSlot(method, 1);
+        int flag = legacyRead(code.get(0), Opcode.IGET_BOOLEAN, "Z", layer, params, paramsType);
+        if (flag < 0 || !legacyHands(code.get(1), layer, flag, layerType, "Z")) return false;
+        int radii = legacyRead(code.get(2), Opcode.IGET_OBJECT, "[F", layer, params, paramsType);
+        if (radii < 0 || !legacyHands(code.get(3), layer, radii, layerType, "[F")) return false;
+        var next = code.get(4);
+        if ((next.getOpcode() != Opcode.IGET && next.getOpcode() != Opcode.IGET_BOOLEAN) || ((TwoRegisterInstruction) next).getRegisterB() != params) return false;
+        int spare = ((TwoRegisterInstruction) next).getRegisterA();
+        if (spare == layer || spare == params || spare == radii || spare > 15) return false;
+        var targets = mediaTargets(method);
+        for (int i = 0; i <= 4; i++) if (targets.contains(i)) return false;
+        return true;
+    }
+
+    static int legacyRead(Instruction get, Opcode opcode, String type, int layer, int params, String paramsType) {
+        if (get.getOpcode() != opcode || !(get instanceof TwoRegisterInstruction two) || two.getRegisterB() != params) return -1;
+        var field = (FieldReference) ((ReferenceInstruction) get).getReference();
+        if (!field.getDefiningClass().equals(paramsType) || !field.getType().equals(type)) return -1;
+        int value = two.getRegisterA();
+        return value == layer || value == params || value > 15 ? -1 : value;
+    }
+
+    static boolean legacyHands(Instruction call, int layer, int value, String layerType, String parameter) {
+        if (call.getOpcode() != Opcode.INVOKE_INTERFACE || !(((ReferenceInstruction) call).getReference() instanceof MethodReference target)) return false;
+        return target.getDefiningClass().equals(layerType) && "V".equals(target.getReturnType()) && target.getParameterTypes().size() == 1 &&
+            parameter.contentEquals(target.getParameterTypes().get(0)) && reads(call).equals(List.of(layer, value));
+    }
+
+    static final String TILE_SET_SHAPE = "Landroid/graphics/drawable/ShapeDrawable;->setShape(Landroid/graphics/drawable/shapes/Shape;)V";
+    static final String TILE_PATH_SHAPE = "Landroid/graphics/drawable/shapes/PathShape;-><init>(Landroid/graphics/Path;FF)V";
+    static final String TILE_DRAW_OVAL = "Landroid/graphics/Canvas;->drawOval(Landroid/graphics/RectF;Landroid/graphics/Paint;)V";
+
+    /** Mirrors AvatarShape.kt's tileShapeFlag: a (Z)V that makes an OvalShape and a RectShape, sets one, and branches first on the flag. */
+    static boolean tileShapeFlag(Method method) {
+        if (AccessFlags.STATIC.isSet(method.getAccessFlags()) || !"V".equals(method.getReturnType()) || method.getParameterTypes().size() != 1 ||
+            !"Z".contentEquals(method.getParameterTypes().get(0)) || method.getImplementation() == null) return false;
+        var code = instructions(method);
+        var created = new HashSet<String>();
+        boolean sets = false;
+        Instruction branch = null;
+        for (var i : code) {
+            if (i.getOpcode() == Opcode.NEW_INSTANCE && ((ReferenceInstruction) i).getReference() instanceof TypeReference type) created.add(type.getType());
+            if (TILE_SET_SHAPE.equals(ref(i))) sets = true;
+            if (branch == null && i instanceof OffsetInstruction) branch = i;
+        }
+        if (!created.contains("Landroid/graphics/drawable/shapes/OvalShape;") || !created.contains("Landroid/graphics/drawable/shapes/RectShape;") || !sets) return false;
+        int flag = parameterSlot(method, 1);
+        if (branch == null || (branch.getOpcode() != Opcode.IF_EQZ && branch.getOpcode() != Opcode.IF_NEZ) || register(branch) != flag) return false;
+        return flag <= 15 && !mediaTargets(method).contains(0);
+    }
+
+    /** Mirrors AvatarShape.kt's tilePath: the setter's class, one Path parameter, made into a PathShape, and the setter called. */
+    static boolean tilePath(Method method, String setter) {
+        if (!setter.startsWith(method.getDefiningClass() + "->") || AccessFlags.STATIC.isSet(method.getAccessFlags()) ||
+            !"V".equals(method.getReturnType()) || method.getImplementation() == null) return false;
+        var types = method.getParameterTypes();
+        int paths = 0, index = -1, words = 1;
+        for (int i = 0; i < types.size(); i++) {
+            String type = types.get(i).toString();
+            if ("Landroid/graphics/Path;".equals(type)) { paths++; if (index < 0) index = words; }
+            words += "J".equals(type) || "D".equals(type) ? 2 : 1;
+        }
+        if (paths != 1) return false;
+        var code = instructions(method);
+        boolean shaped = false, set = false;
+        for (var i : code) { shaped |= TILE_PATH_SHAPE.equals(ref(i)); set |= setter.equals(ref(i)); }
+        return shaped && set && parameterSlot(method, index) <= 15 && !mediaTargets(method).contains(0);
+    }
+
+    /** Mirrors AvatarShape.kt's tileOvals: the placeholder's draw(Canvas), every oval it draws an invoke-virtual drawOval. */
+    static boolean tileOvals(Method method) {
+        if (!"draw".equals(method.getName()) || AccessFlags.STATIC.isSet(method.getAccessFlags()) || !"V".equals(method.getReturnType()) ||
+            method.getParameterTypes().size() != 1 || !"Landroid/graphics/Canvas;".contentEquals(method.getParameterTypes().get(0)) ||
+            method.getImplementation() == null) return false;
+        int ovals = 0;
+        for (var i : instructions(method)) {
+            if (!TILE_DRAW_OVAL.equals(ref(i))) continue;
+            if (i.getOpcode() != Opcode.INVOKE_VIRTUAL) return false;
+            ovals++;
+        }
+        return ovals > 0;
+    }
+
+    /**
+     * avatar_shape: Vito's one RoundingOptions constructor in its proven shape, the one legacy rounding helper, then the
+     * user tile's one shape setter, the one setup in its class that hands it a clip path, and the draw of the placeholder
+     * type that setup takes. Mirrors AvatarShape.kt.
+     */
+    static List<Method> avatarShape(List<ClassDef> classes) {
+        ClassDef vito = null;
+        String circle = null;
+        for (var cls : classes) {
+            String field = vitoCircle(cls);
+            if (field == null) continue;
+            if (vito != null) return List.of();
+            vito = cls;
+            circle = field;
+        }
+        if (vito == null) return List.of();
+        Method constructor = null;
+        for (var method : vito.getMethods()) {
+            if (!vitoRounding(method, circle)) continue;
+            if (constructor != null) return List.of();
+            constructor = method;
+        }
+        if (constructor == null) return List.of();
+        Method legacy = null;
+        for (var cls : classes) for (var method : cls.getMethods()) {
+            if (!legacyRounding(method)) continue;
+            if (legacy != null) return List.of();
+            legacy = method;
+        }
+        if (legacy == null) return List.of();
+        Method setter = null;
+        for (var cls : classes) for (var method : cls.getMethods()) {
+            if (!tileShapeFlag(method)) continue;
+            if (setter != null) return List.of();
+            setter = method;
+        }
+        if (setter == null) return List.of();
+        String setterId = hookId(setter);
+        var byType = new HashMap<String, ClassDef>();
+        for (var cls : classes) byType.put(cls.getType(), cls);
+        var tile = byType.get(setter.getDefiningClass());
+        if (tile == null) return List.of();
+        Method setup = null;
+        for (var method : tile.getMethods()) {
+            if (!tilePath(method, setterId)) continue;
+            if (setup != null) return List.of();
+            setup = method;
+        }
+        if (setup == null) return List.of();
+        Method placeholder = null;
+        for (var type : new LinkedHashSet<String>(setup.getParameterTypes().stream().map(Object::toString).toList())) {
+            var cls = byType.get(type);
+            if (cls == null) continue;
+            for (var method : cls.getMethods()) {
+                if (!tileOvals(method)) continue;
+                if (placeholder != null) return List.of();
+                placeholder = method;
+            }
+        }
+        return placeholder == null ? List.of() : List.of(constructor, legacy, setter, setup, placeholder);
+    }
+
     static final String RTC_NOTIFICATION_SERVICE ="Lcom/facebook/rtc/notification/RtcNotificationForegroundService;";
 
     /** The one register a String.valueOf(boolean) call reads, in either invoke form, or -1. */
@@ -5347,6 +5577,7 @@ public class CompatReport {
         found.get("phone_id_sync").addAll(phoneIdSync(classes));
         found.get("story_hold").addAll(storyHold(classes));
         found.get("share_story").addAll(shareStory(classes));
+        found.get("avatar_shape").addAll(avatarShape(classes));
         found.get("quiet_call_ring").addAll(quietCallRing(classes));
         found.get("quiet_call_notification").addAll(quietCallNotification(classes));
         var markRead = markReadButton(classes);

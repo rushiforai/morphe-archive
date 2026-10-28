@@ -348,7 +348,7 @@ Profiles	프로필
 Show if a profile follows you	프로필이 나를 팔로우하는지 표시
 Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	상대방의 프로필에서 이름 옆에 ‘나를 팔로우하고 있음’ 또는 ‘나를 팔로우하지 않음’을 표시합니다. 대명사를 설정한 경우 대명사 뒤에 표시됩니다. Instagram이 확인을 완료하기 전에는 아무것도 표시되지 않습니다
 Mark who doesn't follow you back	나를 팔로우하지 않는 사람 표시
-On your own Following list, adds Doesn't follow you after the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.	내 팔로잉 목록에서 나를 맞팔로우하지 않는 계정의 이름 뒤에 '나를 팔로우하지 않음’이라고 표시합니다. Instagram에서 확인을 완료하기 전까지는 아무것도 표시되지 않습니다
+On your own Following list, adds Doesn't follow you before the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.	내 팔로잉 목록에서 나를 맞팔로우하지 않는 계정의 이름 앞에 '나를 팔로우하지 않음’이라고 표시합니다. Instagram에서 확인을 완료하기 전까지는 아무것도 표시되지 않습니다
 Put accounts that don't follow you back first	나를 팔로우하지 않는 계정을 먼저 표시
 On your own Following list, moves the accounts that don't follow you back to the top and keeps Instagram's order within each group. Accounts Instagram hasn't checked yet stay below.	내 팔로잉 목록에서 나를 맞팔로우하지 않는 계정을 맨 위로 올리고, 각 그룹 안에서는 Instagram의 순서를 유지합니다. Instagram에서 아직 확인하지 않은 계정은 아래에 남습니다.
 Follows you	나를 팔로우하고 있음
@@ -531,6 +531,8 @@ Screenshots and screen recordings work wherever Instagram blocks them, like disa
 Turns the switches that keep what you do to yourself on or off in one go, like View stories anonymously and Hide that you're typing. Each one keeps its own switch.	스토리 몰래보기와 입력 중 표시 숨기기처럼 내 활동을 숨기는 스위치를 한 번에 켜거나 끕니다. 각 스위치는 그대로 남습니다.
 View live anonymously	라이브 몰래보기
 Photos and videos sent as view once or replayable stay in the chat so you can open them again. Open the chat again to update ones already loaded.	한 번 보기나 다시 보기로 보낸 사진과 동영상이 채팅에 남아 다시 열 수 있습니다. 이미 불러온 항목을 갱신하려면 채팅을 다시 여세요.
+Swipe through a chat's reels	채팅의 릴스 넘겨보기
+Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Back takes you to the chat.	채팅에서 연 릴스에서 위로 넘기면 추천 릴스보다 먼저 그 채팅에 공유된 다른 릴스를 차례로 봅니다. 뒤로 가기를 누르면 채팅으로 돌아갑니다.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	다운로드 아래에 커버 다운로드를 추가합니다. 릴스가 재생되기 전에 보여 주는 정지 이미지를 가장 큰 크기로 저장합니다.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	다운로드 아래에 오디오 다운로드를 추가합니다. 릴스의 소리를 오디오 파일로 저장합니다.
 After 20 reels, swiping in Reels stops until Instagram has been in the background for 15 minutes. A reel you open from a message or a post still plays.	릴스 20개를 보면 Instagram이 15분 동안 백그라운드에 있을 때까지 릴스 스와이프가 멈춥니다. 메시지나 게시물에서 연 릴스는 계속 재생됩니다.
@@ -918,7 +920,7 @@ Space under the tab bar	탭 바 아래 공간
 A little more	조금 더
 More	더
 Hide the tab bar as you scroll	스크롤할 때 탭 바 숨기기
-Scrolling a list down slides the pill out of the way. Scrolling up, reaching the top, or changing tab brings it back. Restart Instagram after changing it.	목록을 아래로 스크롤하면 알약 모양 바가 옆으로 비켜 줍니다. 위로 스크롤하거나 맨 위에 닿거나 탭을 바꾸면 다시 나타납니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
+Scrolling a list down slides the tab bar out of the way. Scrolling up, reaching the top, or changing tab brings it back. It works with or without Glass tab bar. Restart Instagram after changing it.	목록을 아래로 스크롤하면 탭 바가 아래로 비켜 줍니다. 위로 스크롤하거나 맨 위에 닿거나 탭을 바꾸면 다시 나타납니다. 유리 탭 바를 켜든 끄든 작동합니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
 Hide the tab bar on Reels	릴스에서 탭 바 숨기기
 # context: a choice in the Hide the tab bar on Reels list under Glass tab bar; the bar is never hidden there
 Never	안 함
@@ -1022,8 +1024,19 @@ Active at %1$s	%1$s에 활동
 Active yesterday at %1$s	어제 %1$s에 활동
 Active %1$s at %2$s	%1$s %2$s에 활동
 Rounded corners on posts	게시물 모서리 둥글게
-Rounds the corners of a post's photo, video and carousel pages in Home and Following. Posts you scroll to after a change show it. Stories, profiles, Explore and Reels stay as they were.	홈과 팔로잉에서 게시물의 사진, 동영상, 캐러셀 페이지 모서리를 둥글게 만듭니다. 변경한 뒤에 스크롤해서 보는 게시물부터 적용됩니다. 스토리, 프로필, 탐색, 릴스는 그대로입니다.
+Rounds the corners of a post's photo, video and carousel pages in Home and Following. Posts you scroll to after a change show it. Stories, profiles and Explore stay as they were.	홈과 팔로잉에서 게시물의 사진, 동영상, 캐러셀 페이지 모서리를 둥글게 만듭니다. 변경한 뒤에 스크롤해서 보는 게시물부터 적용됩니다. 스토리, 프로필, 탐색은 그대로입니다.
 Corner size	모서리 크기
+Rounded corners on Reels	Reels 둥근 모서리
+Seek bar on stories	스토리 탐색 막대
+Shows a bar near the bottom of a video story. Drag it to jump to any point in the video. Photos don't get one.	동영상 스토리 아래쪽 근처에 막대를 표시합니다. 막대를 끌어 동영상의 원하는 지점으로 이동하세요. 사진에는 표시되지 않습니다.
+Thicker story progress bar	더 두꺼운 스토리 진행 막대
+Draws the bar along the top of a story as thick as the choice below. Its segments and timing stay as they were.	스토리 위쪽의 막대를 아래에서 고른 두께로 그립니다. 구간과 타이밍은 그대로입니다.
+Thickness	두께
+Twice as thick	두 배 두껍게
+Three times as thick	세 배 두껍게
+Rounds the corners of a reel's video in the Reels tab and wherever a reel opens full screen. The seek bar, captions and buttons stay whole.	Reels 탭과 릴스가 전체 화면으로 열리는 모든 곳에서 릴스 동영상의 모서리를 둥글게 합니다. 탐색 막대, 자막, 버튼은 잘리지 않습니다.
+Peek at the next carousel page	다음 캐러셀 페이지 미리 보기
+A carousel post's page sits a little in from the edges, with the start of the next page showing at the right.	캐러셀 게시물의 페이지가 가장자리에서 조금 안쪽에 놓이고, 오른쪽에 다음 페이지의 시작 부분이 보입니다.
 Large	크게
 Small	작게
 # context: a toast shown once when safe mode has paused HushGram on its own after crashes at start
@@ -1215,6 +1228,7 @@ New	새로 추가됨
 App icon	앱 아이콘
 Instagram on black	검은색 바탕의 Instagram
 Instagram on plum	자두색 바탕의 Instagram
+Instagram in black on white	흰색 바탕의 검은색 Instagram
 Instagram's own	Instagram 기본
 Instagram's own. Pick another to change the icon on your home screen and in the app drawer.	Instagram 기본 아이콘입니다. 다른 아이콘을 고르면 홈 화면과 앱 서랍의 아이콘이 바뀝니다.
 %1$s. It shows once you leave Instagram. If the icon is gone from your home screen, add it again from the app drawer.	%1$s. Instagram에서 나가면 바뀝니다. 홈 화면에서 아이콘이 사라지면 앱 서랍에서 다시 추가하세요.
@@ -1256,3 +1270,22 @@ Instagram picks the tab bar for your account, and it can switch between the two 
 Group Instagram's notifications, and take suggestions off the Notifications page.	Instagram 알림을 묶고, 알림 페이지에서 추천을 없앱니다.
 Take suggestions and Featured off the Notifications page.	알림 페이지에서 추천과 주요 항목을 없앱니다.
 Version warnings	버전 경고
+Pause HushGram, lock these settings, or make a report when something breaks.	HushGram을 일시 정지하거나, 이 설정을 잠그거나, 문제가 생기면 보고서를 만듭니다.
+Choose a folder	폴더 선택
+Saves go to Movies and Pictures. Pick any folder instead, a hidden one too, and every photo and video goes there.	저장한 항목은 Movies와 Pictures에 들어갑니다. 대신 숨겨진 폴더를 포함해 아무 폴더나 선택하면 모든 사진과 동영상이 그곳에 저장됩니다.
+Photos and videos go to %1$s. Tap to pick another folder.	사진과 동영상이 %1$s에 저장됩니다. 탭해서 다른 폴더를 선택하세요.
+HushGram can't reach %1$s anymore, so saves go to Movies and Pictures. Pick the folder again.	HushGram이 더 이상 %1$s에 접근할 수 없어서 저장한 항목이 Movies와 Pictures에 들어갑니다. 폴더를 다시 선택하세요.
+Use Movies and Pictures	Movies와 Pictures 사용
+Stop using the folder you picked. Saves go back to Movies and Pictures.	선택한 폴더를 더 이상 사용하지 않습니다. 저장한 항목이 다시 Movies와 Pictures에 들어갑니다.
+Couldn't use that folder. Saves still go where they did.	그 폴더를 사용할 수 없습니다. 저장한 항목은 원래 위치에 계속 저장됩니다.
+Saves go to Movies and Pictures again.	저장한 항목이 다시 Movies와 Pictures에 들어갑니다.
+%1$s didn't take this save, so it went to Movies and Pictures.	%1$s에서 이 항목을 저장하지 못해 Movies와 Pictures에 저장했습니다.
+Start reels with sound	릴스를 소리와 함께 시작
+A reel you tap open from a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	홈의 게시물에서 연 릴스는 소리와 함께 재생되고, 돌아가면 홈은 다시 음소거됩니다. 휴대폰의 벨소리 모드와 볼륨은 그대로 적용됩니다.
+Keep your place in Home	홈에서 보던 위치 유지
+Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	Instagram으로 돌아오면 얼마나 오래 떠나 있었든 홈이 보던 게시물에 그대로 머뭅니다. 아래로 당겨 새로고침하면 여전히 다시 불러옵니다.
+Filter the Stories tray by verified accounts	인증된 계정으로 스토리 선반 필터링
+The row of stories at the top of Home keeps only the accounts the choice below names, by Instagram's verified badge. Your own story stays. Turn it off to see every story.	홈 상단의 스토리 줄에 Instagram 인증 배지를 기준으로 아래에서 선택한 계정만 남깁니다. 내 스토리는 그대로 있습니다. 모든 스토리를 보려면 끄세요.
+Stories to keep	남길 스토리
+Only verified accounts	인증된 계정만
+Only accounts that aren't verified	인증되지 않은 계정만

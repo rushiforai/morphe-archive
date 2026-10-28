@@ -44,6 +44,7 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  *
  * <p>The bar is only ever moved with a translation, never resized and never hidden, so nothing under it
  * shifts: with "Show content behind the tab bar" off, the strip it leaves is the window's own background.
+ * On Instagram's own bar, with the glass off, a {@link Room} gives that strip to the screens instead (#343).
  *
  * <p>It can't strand the bar. While the bar is away a short timer looks at the list that hid it, and
  * brings the bar back as soon as that list is at its top, no longer on screen, gone, or the feature has been
@@ -86,6 +87,14 @@ final class GlassScrollHide {
     interface Shrinker {
         /** Shrinks the bar, or grows it back when not [on], at once when [now]. Says whether it did. */
         boolean shrink(boolean on, boolean now);
+    }
+
+    /**
+     * What hands the bar's room to the screens while a scroll has it away, so Instagram's own bar leaves no
+     * empty strip behind it (#343). Told as the bar starts to slide away, and again once it's all the way back.
+     */
+    interface Room {
+        void away(boolean away);
     }
 
     /** What a drag says about the bar. */
@@ -196,6 +205,10 @@ final class GlassScrollHide {
     private float homeDownX, homeDownY;
     /** What shrinks the bar in place of a scroll sliding it away, or null. The wait on Reels still slides it. */
     @Nullable private final Shrinker shrinker;
+    /** What takes the bar's room while it's away, or null. */
+    @Nullable private final Room room;
+    /** Whether [room] has the bar's room now. */
+    private boolean roomGiven;
     /** Whether a scroll shrank the bar, in place of sliding it away. */
     private boolean shrunk;
     private final Runnable watch = this::watchScroller;
@@ -225,7 +238,16 @@ final class GlassScrollHide {
      * @param shrinker what shrinks the bar to a compact row where a scroll would slide it away, or null to slide it
      */
     GlassScrollHide(View bar, BooleanSupplier running, boolean onScroll, long reelsMillis, @Nullable Shrinker shrinker) {
+        this(bar, running, onScroll, reelsMillis, shrinker, null);
+    }
+
+    /**
+     * @param room what takes the bar's room while a scroll has it away, or null to leave the screens as they are
+     */
+    GlassScrollHide(View bar, BooleanSupplier running, boolean onScroll, long reelsMillis, @Nullable Shrinker shrinker,
+            @Nullable Room room) {
         this.bar = bar;
+        this.room = room;
         this.running = running;
         this.onScroll = onScroll;
         this.reelsMillis = Math.max(0L, reelsMillis);
@@ -533,6 +555,7 @@ final class GlassScrollHide {
             moved = true;
             bar.animate().cancel();
             bar.animate().translationY(travel()).setDuration(SLIDE_MS).setInterpolator(new DecelerateInterpolator()).start();
+            giveRoom(true);
         }
         guard = held;
         byReels = reels;
@@ -559,9 +582,23 @@ final class GlassScrollHide {
             return;
         }
         bar.animate().cancel();
+        // The screens keep the room until the bar covers it again, so nothing shows through as it slides back.
         bar.animate().translationY(0f).setDuration(SLIDE_MS).setInterpolator(new DecelerateInterpolator())
-                .withEndAction(() -> moved = hidden).start();
+                .withEndAction(() -> {
+                    moved = hidden;
+                    if (!hidden) giveRoom(false);
+                }).start();
         HookStatus.counted(FamilyNames.GLASS_TAB_BAR, counted);
+    }
+
+    private void giveRoom(boolean away) {
+        if (room == null || roomGiven == away) return;
+        roomGiven = away;
+        try {
+            room.away(away);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.GLASS_TAB_BAR, "scroll room", failure);
+        }
     }
 
     /**
@@ -579,6 +616,7 @@ final class GlassScrollHide {
             shrunk = false;
             shrinker.shrink(false, true);
         }
+        giveRoom(false);
         if (!moved) return;
         moved = false;
         bar.animate().cancel();

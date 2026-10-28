@@ -14,6 +14,8 @@ import android.preference.PreferenceFragment;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import java.util.List;
+
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.BuildDetails;
@@ -49,6 +51,21 @@ public class TikTokActivityHook {
             Logger.printException(() -> "showSettingsRow failure", failure);
             return true;
         }
+    }
+
+    /**
+     * Puts the Hushfeed row first in Settings and privacy unless {@link #showSettingsRow()} says
+     * no. The patch calls this rather than branching inside TikTok's list builder: that branch
+     * made ART's JIT crash (SIGSEGV in HScheduler::Schedule) compiling the builder once the
+     * switch was on, and TikTok then offered its "Restore your experience" safe mode.
+     */
+    public static void addSettingsRowFirst(List<Object> rows, Object row) {
+        if (showSettingsRow()) rows.add(0, row);
+    }
+
+    /** Same as {@link #addSettingsRowFirst} for builds that append the row at the end. */
+    public static void addSettingsRowLast(List<Object> rows, Object row) {
+        if (showSettingsRow()) rows.add(row);
     }
 
     /***

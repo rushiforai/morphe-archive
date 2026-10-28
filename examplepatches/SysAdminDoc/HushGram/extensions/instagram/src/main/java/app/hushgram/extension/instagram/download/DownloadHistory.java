@@ -8,6 +8,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.SystemClock;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 
 import java.io.File;
@@ -395,6 +396,8 @@ public final class DownloadHistory {
             return path != null && !path.isEmpty() && new File(path).isFile();
         }
         if (!"content".equals(item.getScheme())) return false;
+        // A save into a folder picked in settings: the folder's own app answers for its file.
+        if (DocumentsContract.isTreeUri(item)) return SaveTree.exists(application, item);
         try (Cursor row = application.getContentResolver().query(item,
                 new String[] { MediaStore.MediaColumns.RELATIVE_PATH }, null, null, null)) {
             if (row == null || !row.moveToFirst()) return false;

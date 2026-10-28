@@ -80,7 +80,7 @@ val cleanUpReelsPatch = bytecodePatch(
     name = "Clean up Reels",
     description = "Hides clutter on reels, such as the Follow button, comment previews, Remix and Use template " +
         "buttons and Threads cards between reels, so more of the video shows, and can play each reel once " +
-        "instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Save button, the speaker button or the line naming the reel's sound. It can also open a video you tap in the feed on its own, with no reels after it, stop the \"This is taking a while\" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
+        "instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Share, Save or speaker button, or the line naming the reel's sound. It can also open a video you tap in the feed on its own, with no reels after it, stop the \"This is taking a while\" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
 ) {
     category("Reels")
     dependsOn(settingsPatch)
@@ -105,7 +105,7 @@ val cleanUpReelsPatch = bytecodePatch(
         hideSearchBar()
         // #180: the numbers under the sidebar's Like, Comment and Share icons.
         hideReelCounts()
-        // #190, #243: Save and the direct WhatsApp button, skipped as their icon types come up.
+        // #190, #243, #265: Like, Comment, Share, Save and the direct WhatsApp button, skipped as their icon types come up.
         hideReelSaveButton()
         // #190: the speaker button under the sidebar, from whichever place a server flag picks:
         // the video controls, through Facebook's own check for it, or the footer, through its null check.

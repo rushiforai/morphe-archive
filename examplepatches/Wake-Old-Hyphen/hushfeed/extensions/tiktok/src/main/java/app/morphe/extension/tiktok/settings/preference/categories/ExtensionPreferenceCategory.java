@@ -250,6 +250,13 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                             + "its liked videos are public. Nothing extra is fetched.",
                     Settings.ACCOUNT_FACTS
             ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Tap @names in bios",
+                    "An @username in a profile's bio opens that profile when you tap it. "
+                            + "The rest of the bio still translates on a tap.",
+                    Settings.BIO_MENTION_LINKS
+            ));
         }
         if (SettingsStatus.promotionalBannersEnabled) {
             addPreference(new TogglePreference(

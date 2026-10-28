@@ -93,13 +93,13 @@ public final class PdbTools {
      *     deliberately do not fake from injected code).</li>
      * </ol>
      */
-    public static void openChat(Activity activity, String userId) {
+    public static void openChat(Context ctx, String userId) {
         try {
             if (userId == null || userId.trim().isEmpty()) {
-                toast(activity, "No profile id");
+                toast(ctx, "No profile id");
                 return;
             }
-            String[] ch = PdbDatabase.channelForUser(activity, userId.trim());
+            String[] ch = PdbDatabase.channelForUser(ctx, userId.trim());
             // The app's router (u8c.R) reads the FIRST PATH SEGMENT, so the
             // link needs a host: pdb://pdb.app/chat/{type}:{id}. Host-less
             // forms (pdb://chat/...) put the route in the URI authority and
@@ -108,9 +108,9 @@ public final class PdbTools {
             String link = (ch != null)
                 ? "pdb://pdb.app/chat/" + ch[0] + ":" + ch[1]
                 : "pdb://pdb.app/u/" + userId.trim();
-            PdbNav.openLink(activity, link);
+            PdbNav.openLink(ctx, link);
         } catch (Throwable t) {
-            toast(activity, "Chat failed: " + t);
+            toast(ctx, "Chat failed: " + t);
         }
     }
 

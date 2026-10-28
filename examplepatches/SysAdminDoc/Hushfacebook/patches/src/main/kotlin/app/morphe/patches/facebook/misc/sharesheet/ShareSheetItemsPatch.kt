@@ -31,7 +31,7 @@ val shareSheetItemsPatch = bytecodePatch(
     name = "Share sheet items",
     description = "Lets you hide items you never use from Facebook's share sheet, such as WhatsApp, Meta AI or " +
         "Copy link, so the ones you want are easier to reach. Nothing is hidden until you pick. Choose them in " +
-        "Hushfacebook settings > Links, where two switches that start off also take away the buttons that send to " +
+        "Hushfacebook settings > Links and sharing, where two switches that start off also take away the buttons that send to " +
         "the people you picked as a new group chat and the row of people Facebook suggests sending to.",
 ) {
     category("Interface")

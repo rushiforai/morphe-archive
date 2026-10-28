@@ -5,7 +5,22 @@ Collection of my patches for [Morphe](https://morphe.software/)
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.1](https://github.com/Trimpsuz/morphe-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.1.0](https://github.com/Trimpsuz/morphe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+<details open>
+<summary>📦 Firsty&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.8.23 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Auto-claim free data](#auto-claim-free-data) | Claim 20 MB ad data bundles in a loop until your limit is reached |  |
+
+</details>
+
 <details open>
 <summary>📦 Busuu&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>

@@ -6,6 +6,11 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.MediaController
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -19,6 +24,14 @@ open class HaiagaruMediaController(context: Context) : MediaController(context) 
     private var visible by mutableStateOf(false)
     private var host: FrameLayout? = null
     private var panel: ComposeView? = null
+    private var speedAction: android.widget.Button? = null
+    private var muteAction: android.widget.Button? = null
+    private var speedCaption by mutableStateOf("")
+    private var muteCaption by mutableStateOf("")
+    fun setPlaybackActions(speed: android.widget.Button, mute: android.widget.Button) {
+        speedAction=speed;muteAction=mute;refreshPlaybackActions()
+    }
+    fun refreshPlaybackActions(){speedCaption=speedAction?.text?.toString().orEmpty();muteCaption=muteAction?.text?.toString().orEmpty()}
     override fun setMediaPlayer(value: MediaPlayerControl) { player = value }
     override fun setAnchorView(anchor: View) {
         panel?.let { host?.removeView(it) }
@@ -33,6 +46,8 @@ open class HaiagaruMediaController(context: Context) : MediaController(context) 
     override fun hide() { visible = false; panel?.visibility = View.GONE }
     override fun isShowing() = visible
 
+    fun controlHeight(): Int = if (visible) panel?.height ?: 0 else 0
+
     fun containsControlTouch(x: Float, y: Float): Boolean {
         val view = panel ?: return false
         if (!visible || !view.isShown) return false
@@ -42,6 +57,7 @@ open class HaiagaruMediaController(context: Context) : MediaController(context) 
             y >= position[1] && y < position[1] + view.height
     }
 
+    @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
     @Composable private fun PlayerControls() {
         if (!visible) return
         var position by remember { mutableIntStateOf(0) }
@@ -82,7 +98,14 @@ open class HaiagaruMediaController(context: Context) : MediaController(context) 
                     onValueChangeFinished = { try { player?.seekTo(position) } catch (_: RuntimeException) {}; seeking = false },
                     valueRange = 0f..duration.coerceAtLeast(1).toFloat(), enabled = duration > 0,
                     colors = HaiagaruUi.sliderColors())
-                Text("${time(position)} / ${time(duration)}", style = MaterialTheme.typography.labelMedium)
+                Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                    Text("${time(position)} / ${time(duration)}",modifier=Modifier.weight(1f),style=MaterialTheme.typography.labelMedium)
+                    if(speedAction!=null) Box(Modifier.heightIn(min=48.dp).widthIn(min=64.dp)
+                        .semantics { contentDescription="再生速度" }
+                        .combinedClickable(role=Role.Button,onClick={speedAction?.performClick()},onLongClick={speedAction?.performLongClick()})
+                        .padding(horizontal=12.dp),contentAlignment=Alignment.Center){Text(speedCaption,style=MaterialTheme.typography.labelLarge)}
+                    if(muteAction!=null) TextButton(onClick={muteAction?.performClick()}){Text(muteCaption)}
+                }
             }
         }
     }

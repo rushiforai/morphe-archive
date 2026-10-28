@@ -4,7 +4,10 @@
  */
 package app.hushgram.extension.instagram.feed;
 
+import android.app.Activity;
 import android.content.Context;
+
+import androidx.annotation.Nullable;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
@@ -44,6 +47,11 @@ public final class CommentEmojiRow {
         HIDER.install(context, SettingsStatus.commentEmojiRow());
     }
 
+    /** The switch was flipped in HushGram settings, a dialog over [activity]: the screen under it decides now. */
+    public static void switchChanged(@Nullable Activity activity) {
+        HIDER.switchChanged(activity);
+    }
+
     /**
      * Injected where the comment sheet checks whether it has emoji for the strip above the box, with
      * that check's answer as an int, non-zero for no emoji (BooleanHookParametersTest). True, draw no strip, when there are none or the switch is on. False, as
@@ -65,5 +73,13 @@ public final class CommentEmojiRow {
 
     static ViewHider hider() {
         return HIDER;
+    }
+
+    public static boolean listeningForTests(Activity activity) {
+        return HIDER.listeningForTests(activity);
+    }
+
+    public static void resetForTests() {
+        HIDER.resetForTests();
     }
 }

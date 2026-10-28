@@ -6,25 +6,20 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.TELEGRAM_COMPATIBILITY
 import app.template.patches.shared.Constants.TELEGRAM_PLUS_COMPATIBILITY
 import app.template.patches.shared.Constants.TELEGRAM_WEB_COMPATIBILITY
-import app.template.patches.telegram.CheckCanOpenChat2Normal1311Fingerprint
-import app.template.patches.telegram.CheckCanOpenChat3Normal1311Fingerprint
-import app.template.patches.telegram.CheckCanOpenChat4Normal1311Fingerprint
-import app.template.patches.telegram.CheckCanOpenChat4Web1311Fingerprint
-import app.template.patches.telegram.CheckCanOpenChat2Plus1303Fingerprint
-import app.template.patches.telegram.CheckCanOpenChat3Plus1303Fingerprint
-import app.template.patches.telegram.CheckCanOpenChat4Plus1303Fingerprint
+import app.template.patches.telegram.CheckCanOpenChat2NormalFingerprint
+import app.template.patches.telegram.CheckCanOpenChat3NormalFingerprint
+import app.template.patches.telegram.CheckCanOpenChat4NormalFingerprint
+import app.template.patches.telegram.CheckCanOpenChat4NormalCurrentFingerprint
+import app.template.patches.telegram.CheckCanOpenChat4WebCurrentFingerprint
+import app.template.patches.telegram.CheckCanOpenChat2PlusFingerprint
+import app.template.patches.telegram.CheckCanOpenChat3PlusFingerprint
+import app.template.patches.telegram.CheckCanOpenChat4PlusFingerprint
 import app.template.patches.telegram.CheckCanOpenChat4Plus1302Fingerprint
-import app.template.patches.telegram.CheckSensitiveNormal1311Fingerprint
-import app.template.patches.telegram.CheckSensitivePlus1303Fingerprint
-import app.template.patches.telegram.ShowCantOpenAlertNormal1311Fingerprint
-import app.template.patches.telegram.ShowCantOpenAlertPlus1303Fingerprint
-import app.template.patches.telegram.CheckCanOpenChat2Normal1303Fingerprint
-import app.template.patches.telegram.CheckCanOpenChat3Normal1303Fingerprint
-import app.template.patches.telegram.CheckCanOpenChat4Normal1303Fingerprint
+import app.template.patches.telegram.CheckSensitiveNormalFingerprint
+import app.template.patches.telegram.CheckSensitivePlusFingerprint
+import app.template.patches.telegram.ShowCantOpenAlertNormalFingerprint
+import app.template.patches.telegram.ShowCantOpenAlertPlusFingerprint
 import app.template.patches.telegram.CheckCanOpenChat4Web1303Fingerprint
-import app.template.patches.telegram.CheckCanOpenChat4Web1310Fingerprint
-import app.template.patches.telegram.CheckSensitiveNormal1303Fingerprint
-import app.template.patches.telegram.ShowCantOpenAlertNormal1303Fingerprint
 import app.template.patches.telegram.signature.telegramSpoofDependency
 
 private val getRestrictionReasonFingerprint = Fingerprint(
@@ -301,9 +296,8 @@ val telegramBypassChannelRestrictionsPatch = bytecodePatch(
         resolveVariantMethod(
             showCantOpenAlertWebFingerprint,
             showCantOpenAlertNormalFingerprint,
-            ShowCantOpenAlertNormal1311Fingerprint,
-            ShowCantOpenAlertPlus1303Fingerprint,
-            ShowCantOpenAlertNormal1303Fingerprint,
+            ShowCantOpenAlertNormalFingerprint,
+            ShowCantOpenAlertPlusFingerprint,
             showCantOpenAlertPlusFingerprint,
             methodName = "showCantOpenAlert",
         ).addInstructions(0, "return-void")
@@ -313,17 +307,16 @@ val telegramBypassChannelRestrictionsPatch = bytecodePatch(
         resolveVariantMethod(
             checkSensitiveWebFingerprint,
             checkSensitiveNormalFingerprint,
-            CheckSensitiveNormal1311Fingerprint,
-            CheckSensitivePlus1303Fingerprint,
-            CheckSensitiveNormal1303Fingerprint,
+            CheckSensitiveNormalFingerprint,
+            CheckSensitivePlusFingerprint,
             checkSensitivePlusFingerprint,
             methodName = "checkSensitive",
         ).addInstructions(
             0,
             """
-                if-eqz p4, :skip
+                if-eqz p4, :morphe_check_sensitive_skip
                 invoke-interface {p4}, Ljava/lang/Runnable;->run()V
-                :skip
+                :morphe_check_sensitive_skip
                 return-void
             """,
         )
@@ -332,30 +325,26 @@ val telegramBypassChannelRestrictionsPatch = bytecodePatch(
             resolveVariantMethod(
                 checkCanOpenChat2WebFingerprint,
                 checkCanOpenChat2NormalFingerprint,
-                CheckCanOpenChat2Normal1311Fingerprint,
-                CheckCanOpenChat2Plus1303Fingerprint,
-                CheckCanOpenChat2Normal1303Fingerprint,
+                CheckCanOpenChat2NormalFingerprint,
+                CheckCanOpenChat2PlusFingerprint,
                 checkCanOpenChat2PlusFingerprint,
                 methodName = "checkCanOpenChat/2",
             ),
             resolveVariantMethod(
                 checkCanOpenChat3WebFingerprint,
                 checkCanOpenChat3NormalFingerprint,
-                CheckCanOpenChat3Normal1311Fingerprint,
-                CheckCanOpenChat3Plus1303Fingerprint,
-                CheckCanOpenChat3Normal1303Fingerprint,
+                CheckCanOpenChat3NormalFingerprint,
+                CheckCanOpenChat3PlusFingerprint,
                 checkCanOpenChat3PlusFingerprint,
                 methodName = "checkCanOpenChat/3",
             ),
             resolveVariantMethod(
                 checkCanOpenChat4WebFingerprint,
                 checkCanOpenChat4NormalFingerprint,
-                CheckCanOpenChat4Normal1311Fingerprint,
-                CheckCanOpenChat4Web1311Fingerprint,
-                CheckCanOpenChat4Plus1303Fingerprint,
-                CheckCanOpenChat4Normal1303Fingerprint,
+                CheckCanOpenChat4NormalCurrentFingerprint,
+                CheckCanOpenChat4WebCurrentFingerprint,
+                CheckCanOpenChat4PlusFingerprint,
                 CheckCanOpenChat4Web1303Fingerprint,
-                CheckCanOpenChat4Web1310Fingerprint,
                 CheckCanOpenChat4Plus1302Fingerprint,
                 methodName = "checkCanOpenChat/4",
             ),

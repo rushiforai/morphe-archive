@@ -310,10 +310,10 @@ public class MediaData extends Entity {
         return null;
     }
 
+    /** The caption: the media's caption getter, then the caption's text getter (names set by the patch). */
     public String getDescriptionText() throws Exception {
-        Class<?> helperClass = this.getHelperClass();
-        Object result = super.getMethod(helperClass, "A0J", this.obj);
-        return result != null ? (String) super.getField(result, "A0Z") : null;
+        Object caption = super.getMethod(this.obj, "captionGetter");
+        return caption != null ? (String) caption.getClass().getMethod("captionTextGetter").invoke(caption) : null;
     }
 
     public String getMessageAudioUrl() throws Exception {

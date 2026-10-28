@@ -72,6 +72,7 @@ val removeCheckInAdsPatch = bytecodePatch(
         "Morphe-Manager-safe; enable this one when patching with the desktop CLI.",
 ) {
     compatibleWith(COMPATIBILITY_SIMOSA)
+    dependsOn(restoreStreakWithoutAdPatch)
 
     execute {
         fun stub(fingerprint: Fingerprint) {

@@ -688,19 +688,21 @@ $unchanged = Get-ManifestDelta -Stock $facts -Patched $facts
 Assert-True (@(ConvertTo-ManifestDeltaEntries -Delta $unchanged).Count -eq 0) `
     'An unchanged manifest produced a delta.'
 
-# The checked-in allowlist approves three changes and nothing else: HushTelegram settings exports an
-# alias of Telegram's launcher activity for Android's App info page, and UnifiedPush notifications
-# exports the receiver and service a UnifiedPush app talks to.
+# The checked-in allowlist approves four changes and nothing else: HushTelegram settings exports an
+# alias of Telegram's launcher activity for Android's App info page, UnifiedPush notifications
+# exports the receiver and service a UnifiedPush app talks to, and Save downloaded files asks for
+# All files access for its storage folder switch.
 $checkedInAllowlist = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') |
     Where-Object { $_ })
 $settingsAlias = 'activity-alias:app.hushtelegram.extension.telegram.settings.OpenSettings'
 $approvedEntries = @("exported-added $settingsAlias",
     'exported-added receiver:app.hushtelegram.extension.telegram.misc.UnifiedPushReceiver',
-    'exported-added service:app.hushtelegram.extension.telegram.misc.UnifiedPushRaise')
+    'exported-added service:app.hushtelegram.extension.telegram.misc.UnifiedPushRaise',
+    'permission-added android.permission.MANAGE_EXTERNAL_STORAGE')
 Assert-True ((@($checkedInAllowlist | Sort-Object -CaseSensitive) -join "`n") -ceq
         (@($approvedEntries | Sort-Object -CaseSensitive) -join "`n")) `
-    ('The checked-in manifest delta allowlist approves something besides the settings alias and the UnifiedPush ' +
-     "receiver and service, or leaves one out: $($checkedInAllowlist -join ', ')")
+    ('The checked-in manifest delta allowlist approves something besides the settings alias, the UnifiedPush ' +
+     "receiver and service and All files access, or leaves one out: $($checkedInAllowlist -join ', ')")
 
 $allowlistRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("receipt-" + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $allowlistRoot | Out-Null
@@ -1128,6 +1130,7 @@ try {
             $target.manifestDelta.exportedComponentsAdded = @($settingsAlias,
                 'receiver:app.hushtelegram.extension.telegram.misc.UnifiedPushReceiver',
                 'service:app.hushtelegram.extension.telegram.misc.UnifiedPushRaise')
+            $target.manifestDelta.permissionsAdded = @('android.permission.MANAGE_EXTERNAL_STORAGE')
         }
     }
     $approvedReceipt = Test-TestReceipt -Receipt (New-TestReceipt -Mutate $withApproved) -Approved $checkedInAllowlist
@@ -4909,8 +4912,9 @@ class AlignmentFixture {
     $androidName = 'http://schemas.android.com/apk/res/android:name(0x01010003)='
     $androidExported = '          A: http://schemas.android.com/apk/res/android:exported(0x01010010)=true'
     # Telegram asks for internet access and exports its launcher activity, on every build. The patched
-    # build exports the settings alias beside the launcher, and the UnifiedPush receiver and service:
-    # the changes the checked-in allowlist approves, and the only ones the patches make here.
+    # build exports the settings alias beside the launcher, and the UnifiedPush receiver and service,
+    # and asks for All files access: the changes the checked-in allowlist approves, and the only ones
+    # the patches make here.
     function Get-FixtureManifest([string]$Build, [string]$Code, [switch]$WithSplit, [switch]$Patched,
             [string]$Package = $releaseTarget.PackageName, [int]$MinSdk = 21) {
         $binaryMinSdk = if ($Patched) { [Math]::Max($MinSdk, 28) } else { $MinSdk }
@@ -4924,6 +4928,10 @@ class AlignmentFixture {
             "        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=$binaryMinSdk",
             '      E: uses-permission (line=10)',
             "        A: $androidName`"android.permission.INTERNET`" (Raw: `"android.permission.INTERNET`")")
+        if ($Patched) {
+            $lines += @('      E: uses-permission (line=11)',
+                "        A: $androidName`"android.permission.MANAGE_EXTERNAL_STORAGE`" (Raw: `"android.permission.MANAGE_EXTERNAL_STORAGE`")")
+        }
         $lines += @('      E: application (line=20)',
             '        E: activity (line=21)',
             "          A: $androidName`"org.telegram.messenger.web.LaunchActivity`" (Raw: `"org.telegram.messenger.web.LaunchActivity`")",

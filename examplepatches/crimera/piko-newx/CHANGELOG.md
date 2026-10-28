@@ -1,3 +1,12 @@
+## [3.65.0](https://github.com/crimera/piko-newx/compare/v3.64.1...v3.65.0) (2026-10-27)
+
+### ✨ New Features
+* **Twitter - newx:** enable quality-of-life feature flags ([0dd6dce](https://github.com/crimera/piko/commit/0dd6dcea52b0973e630ed568a58d2de047ae3417))
+* **Twitter - newx:** add feature flag override helper ([3e76390](https://github.com/crimera/piko/commit/3e7639030171d39c865e17533132de6bb5b58ef9))
+
+### New Patches
+* **Twitter:** NewX: Enable quality-of-life feature flags
+
 ## [3.64.1](https://github.com/crimera/piko-newx/compare/v3.64.0...v3.64.1) (2026-10-25)
 
 ### 🐛 Bug Fixes

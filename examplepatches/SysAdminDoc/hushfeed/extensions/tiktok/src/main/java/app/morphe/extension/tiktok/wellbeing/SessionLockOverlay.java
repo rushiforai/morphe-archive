@@ -158,12 +158,15 @@ public final class SessionLockOverlay {
     /** The app left the screen: the countdown stops on its next tick and the panel stays as it is. */
     public static void onBackground() {
         foreground = false;
+        FeedSchedule.onBackground();
     }
 
     /** The app is back: a hold still running gets its countdown back. */
     public static void onForeground() {
         foreground = true;
         BudgetChanges.applyDue(SessionBudget.now());
+        // The lock's weekly hours are read from the clock as it is now, the zone included.
+        FeedSchedule.onForeground();
         ensureRunning();
         // A hold that ended while nothing ticked, the app away past the reset hour, left its
         // panel up with nothing to take it down: the tick needs a running hold to start, and the
@@ -334,9 +337,17 @@ public final class SessionLockOverlay {
         if (hint == null) return;
         // One literal, because the translation gate reads the literal handed to L10n and a
         // string built from two of them is two entries it cannot find.
-        SettingsUi.setTextIfChanged(hint, budgetHold && locked && !FeedLock.isOn()
-                ? L10n.f("Today's budget is locked. The feed opens again at %1$s. Messages, profiles and search still work.", resetTimeLabel())
-                : L10n.t("Messages, profiles and search still work."));
+        String hintText;
+        if (budgetHold && locked && !FeedLock.isOn()) {
+            hintText = L10n.f("Today's budget is locked. The feed opens again at %1$s. Messages, profiles and search still work.", resetTimeLabel());
+        } else if (!budgetHold && FeedLock.onByHoursOnly() && FeedSchedule.nextChangeAt() > 0) {
+            // The lock's hours end by themselves, so the panel says when.
+            hintText = L10n.f("The feed is locked until %1$s. Messages, profiles and search still work.",
+                    FeedSchedule.dayTimeLabel(FeedSchedule.nextChangeAt()));
+        } else {
+            hintText = L10n.t("Messages, profiles and search still work.");
+        }
+        SettingsUi.setTextIfChanged(hint, hintText);
     }
 
     /**

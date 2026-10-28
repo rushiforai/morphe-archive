@@ -138,7 +138,7 @@ public class GestureActionsTest {
             ChoicePreference choice = (ChoicePreference) screen.findPreference("double_tap_action");
             assertNotNull(choice);
             // #136: it offered only nothing and comments, and Long press had all the rest.
-            assertArrayEquals(new String[]{"default", "nothing", "comments", "original_sound",
+            assertArrayEquals(new String[]{"default", "nothing", "like_toggle", "comments", "original_sound",
                     "copy_link", "copy_sound_link", "youtube_music", "sleep_timer", "save_frame",
                     "save_cover", "open_search"}, choice.getEntryValues());
             assertEquals("every value needs a label to pick it by",
@@ -221,7 +221,7 @@ public class GestureActionsTest {
 
     /**
      * The two rows offer the same actions, each under its own TikTok default, but for the like:
-     * TikTok's own double tap already likes.
+     * TikTok's own double tap already likes, so Double tap offers Like or unlike instead (#248).
      */
     @Test public void doubleTapAndLongPressOfferTheSameActions() {
         try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
@@ -236,7 +236,10 @@ public class GestureActionsTest {
             java.util.Set<String> longPressButTheLike = new java.util.TreeSet<>(longPress);
             assertTrue(longPressButTheLike.remove("like"));
             assertFalse(doubleTap.contains("like"));
-            assertEquals(longPressButTheLike, new java.util.TreeSet<>(doubleTap));
+            java.util.Set<String> doubleTapButTheToggle = new java.util.TreeSet<>(doubleTap);
+            assertTrue(doubleTapButTheToggle.remove("like_toggle"));
+            assertFalse(longPress.contains("like_toggle"));
+            assertEquals(longPressButTheLike, doubleTapButTheToggle);
         }
     }
 

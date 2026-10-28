@@ -36,6 +36,7 @@ final class MessagesCategory {
                 || build.contains(PatchFamily.SCREENSHOT_REPORTS)
                 || build.contains(PatchFamily.SCREENSHOT_BLOCK)
                 || build.contains(PatchFamily.KEEP_IN_CHAT)
+                || build.contains(PatchFamily.CHAT_REELS)
                 || build.contains(PatchFamily.ASK_BEFORE_CALL)
                 || build.contains(PatchFamily.MESSAGE_BOX)
                 || build.contains(PatchFamily.FULL_SCREEN_BARS)) {
@@ -110,6 +111,11 @@ final class MessagesCategory {
                 messages.addPreference(toggle(context, Settings.KEEP_IN_CHAT, L10n.t("Keep in chat"),
                         L10n.t("Photos and videos sent as view once or replayable stay in the chat so you can open "
                                 + "them again. Open the chat again to update ones already loaded.")));
+            }
+            if (build.contains(PatchFamily.CHAT_REELS)) {
+                messages.addPreference(toggle(context, Settings.SWIPE_CHAT_REELS, L10n.t("Swipe through a chat's reels"),
+                        L10n.t("Swiping up on a reel you opened from a chat goes through the other reels shared in that "
+                                + "chat before any suggested reels. Back takes you to the chat.")));
             }
             if (build.contains(PatchFamily.ASK_BEFORE_CALL)) {
                 messages.addPreference(toggle(context, Settings.ASK_BEFORE_CALL, L10n.t("Ask before a call"),

@@ -1,7 +1,7 @@
 ![HushMessenger. Keep the conversation. Cut the friction.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.26.0"><img src="https://img.shields.io/badge/version-0.26.0-0084FF" alt="Version 0.26.0"></a>
+  <a href="https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.27.0"><img src="https://img.shields.io/badge/version-0.27.0-0084FF" alt="Version 0.27.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B%20arm64%20%7C%20armv7-3DDC84" alt="Platform Android 9 or newer, arm64 and armv7">
   <img src="https://img.shields.io/badge/Messenger-584.1.0.61.98-0084FF" alt="Messenger 584.1.0.61.98">
@@ -21,7 +21,7 @@
 
 HushMessenger is a set of [Morphe](https://morphe.software) patches for Facebook Messenger. You bring the Messenger APK, Morphe patches it on your phone, and you get a Messenger with a settings screen full of switches that stock Messenger doesn't have. Hide the ads, the suggested people, the stories row and Meta AI. Stop sending read receipts and typing indicators. Watch stories without showing up in the viewer list. Keep a log of messages so an unsend can't take them back. Send photos at their real quality, use your own font, let Material You color the app, and more.
 
-Every switch starts off, so a freshly patched Messenger behaves like stock until you turn something on. The current release has 63 patches. What changed in each version is in the [changelog](CHANGELOG.md).
+Every switch starts off, so a freshly patched Messenger behaves like stock until you turn something on. The current release has 66 patches. What changed in each version is in the [changelog](CHANGELOG.md).
 
 **[Add HushMessenger to Morphe Manager](https://morphe.software/add-source?github=SysAdminDoc%2FHushMessenger)**
 
@@ -30,18 +30,18 @@ Every switch starts off, so a freshly patched Messenger behaves like stock until
 
 ## Install
 
-1. **Get the APK.** HushMessenger patches Messenger 584.1.0.61.98. Download it from [APKMirror's 584.1.0.61.98 page](https://www.apkmirror.com/apk/facebook-2/messenger/facebook-messenger-584-1-0-61-98-release/). Every arm64 and armv7 build listed there works. Pick one for your phone's CPU, and check its DPI column too. A `nodpi` build has icons for every screen. A build made for a smaller screen (`120-160dpi`, say) still patches fine, but on a sharper phone its icons come out blurry and jagged, in the launcher and in Messenger's own settings. HushMessenger's settings say so under **About** when that happens. Older versions, 584.0 included, need an older HushMessenger release.
-2. **Add the source.** Open the link above on your phone with Morphe Manager (2.2.0 or newer) installed. Or in Manager open **Sources**, tap **+**, choose **Remote** and enter `github.com/SysAdminDoc/HushMessenger`. The card should show **63 patches**. If it shows an older version, tap its refresh button.
+1. **Get the APK.** The current release, v0.27.0, patches Messenger 584.1.0.61.98. Download it from [APKMirror's 584.1.0.61.98 page](https://www.apkmirror.com/apk/facebook-2/messenger/facebook-messenger-584-1-0-61-98-release/). Every build listed there works, arm64 and armv7. Pick a `nodpi` one if your phone's type has it, since those keep the icons sharp.
+2. **Add the source.** Open the link above on your phone with Morphe Manager (2.2.0 or newer) installed. Or in Manager open **Sources**, tap **+**, choose **Remote** and enter `github.com/SysAdminDoc/HushMessenger`. The card should show **66 patches**. If it shows an older version, tap its refresh button.
 3. **Patch Messenger.** The default selection includes every switch. Four patches start unselected because they change the app itself, with no switch to undo them: **Clone install under another package name**, **Spoof package version**, **Custom new-message sound** and **Custom launcher icon**. To add one, turn on **Settings → Advanced → Expert mode** in Manager and use **Choose patches**.
 4. **Keep one source.** Don't add the remote source and a local copy together, and don't mix in Messenger patches from other sources.
 
-Prefer a local source? Download [`patches-0.26.0.mpp`](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.26.0) and add it through **Sources > + > Local**. It won't update itself. The `.mpp` file is a patch bundle, not a Messenger APK. Morphe Desktop 1.19.1 or newer can load the same source too.
+Prefer a local source? Download [`patches-0.27.0.mpp`](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.27.0) and add it through **Sources > + > Local**. It won't update itself. The `.mpp` file is a patch bundle, not a Messenger APK. Morphe Desktop 1.19.1 or newer can load the same source too.
 
 ## Settings
 
 Long-press Messenger's icon on your home screen and tap **Patch controls**. The **HushMessenger** row in Messenger's Menu tab and side menu opens the same screen, and so does the **HushMessenger settings** icon in your app drawer. **App > Hide app drawer icon** hides that icon without touching Messenger. Inside Messenger, a long press on the Messenger logo at the top of Chats or on the Menu tab's title opens settings too, even while changes are paused. The long-press shortcuts appear once Messenger has started, and a Root Mount install has no drawer icon. The App tab can switch off the Menu row, the icon shortcuts or the logo long press, but never the last way in that's still on.
 
-**Pause all changes** turns every switch off at once without forgetting your choices. Changes to the Meta AI and bottom tabs, bubbles, your font and **Restore old emoji drawer** need **Restart Messenger**. Inbox options show up with the next chat list Messenger builds. While a restart is waiting, a bar at the top of settings says how many and has the button, and after the restart settings open again on the page you left. The button is also on the App tab and in the icon's long-press menu. If Messenger crashes three times near startup, safe mode pauses the controls. Open settings and tap **Resume**.
+**Pause all changes** turns every switch off at once without forgetting your choices. Changes to the Meta AI and bottom tabs, bubbles, your font and **Restore old emoji drawer** need **Restart Messenger**. Inbox options show up with the next chat list Messenger builds. While a restart is waiting, a bar at the top of settings says how many and has the button, and after the restart settings open again on the page you left. The button is also on the App tab and in the icon's long-press menu. If Messenger crashes three times near startup, safe mode pauses the controls. Open settings and tap **Resume**. **App > Log out** signs you out the same way Messenger's own Log out does.
 
 The **Controls** tab groups the switches into sections that fold up under their headers. They start closed, and the ones you open stay open. The search box finds every word you type, in any order, and opens whatever section a match sits in. A switch that's on shows when Messenger last checked it. The **App** tab has the restart button at the top, then **Quick setups** (Quiet, Privacy or Back to defaults in one tap), appearance, **Save choices to a file** and **Restore choices from a file**, and **Copy setup**, which copies your versions and switch states with no chats or account details in it. **Report a problem** opens a new GitHub issue with your versions, phone model and the switches that are on already filled in. Issues are public, so look it over before you send it. **Check for updates** is off by default. When it's on, it asks GitHub at most once an hour and sends nothing but the request.
 
@@ -115,6 +115,7 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Hide Your story when sharing | Sharing into Messenger from another app, the Send to list no longer offers Your story, so a tap on Add can't post it. Chats and groups stay. |
 | Allow chat bubbles | **Stock**, **Chat heads** or **Android bubbles** (Android 11 and newer). See [Chat heads and bubbles](#chat-heads-and-bubbles). |
 | Unlock app icons | Every icon in Messenger's App icon setting becomes selectable without a subscription. |
+| Square profile pictures | Profile pictures show as squares instead of circles. Turn on **Round the corners** for rounded squares. Restart Messenger after a change. |
 | Material You theme | In dark mode on Android 12 and newer, Messenger takes the accent color from your wallpaper. A **Pure black dark mode** switch sits under Appearance. |
 | Use your own font | Replaces Meta's font with your phone's, or with a .ttf or .otf file you pick, with size and position adjustments. Restart Messenger after a change. |
 | Bold and italic text | Adds Bold and Italic to the text selection menu. They change the letters A to Z, accented ones included, and Bold changes digits too. Other alphabets stay as they are. On a Samsung phone, turn them on once under **Manage apps** in that menu. |
@@ -166,14 +167,14 @@ With **Hide read receipts** on, a chat you open stays unread on your phone, beca
 | --- | --- |
 | Package | `com.facebook.orca` |
 | Version | `584.1.0.61.98` |
-| Version codes, arm64-v8a | `346816935`, `346816937`, `346816939`, `346816940`, `346816951`, `346816955`, `346816969`, `346816972`, `346816973`, `346817004`, `346817005`, `346817021`, `346817022`, `346817023`, `346817024` |
+| Version codes, arm64-v8a | `346816935`, `346816937`, `346816939`, `346816940`, `346816951`, `346816955`, `346816969`, `346816972`, `346816973`, `346817004`, `346817005`, `346817008`, `346817021`, `346817022`, `346817023`, `346817024`, `346817025`, `346817026` |
 | Version codes, armeabi-v7a | `346816949`, `346816966`, `346817019` |
 | Icons for every screen density | `346816935`, `346816951`, `346817004`, `346817021` |
-| Icons for one screen density | 120-160 dpi `346816969`, `346817005`, `346817022`. 240 dpi `346816937`, `346817023`. 320 dpi `346817024`. 480 dpi `346816939`, `346816955`, `346816972` and every armeabi-v7a build. 640 dpi `346816940`, `346816973` |
+| Icons for one screen density | 120-160 dpi `346816969`, `346817005`, `346817022`. 240 dpi `346816937`, `346817023`. 320 dpi `346817024`. 480 dpi `346816939`, `346816955`, `346816972`, `346817008`, `346817025` and every armeabi-v7a build. 640 dpi `346816940`, `346816973`, `346817026` |
 | Minimum Android version | Android 9 (API 28) |
 | APKMirror download | [584.1.0.61.98](https://www.apkmirror.com/apk/facebook-2/messenger/facebook-messenger-584-1-0-61-98-release/) |
 
-HushMessenger takes all 18 builds APKMirror lists for 584.1.0.61.98. The patch checks the version code before it changes anything and stops on a build that isn't listed. Older Messenger versions aren't supported by current bundles. v0.26.0 still takes 584.0.0.49.98, v0.25.0 takes 583.0.0.29.95 and v0.23.0 takes 582.0.0.61.92.
+HushMessenger takes all 21 builds APKMirror lists for 584.1.0.61.98. The patch checks the version code before it changes anything and stops on a build that isn't listed. Older Messenger versions aren't supported by current bundles. v0.26.0 still takes 584.0.0.49.98, v0.25.0 takes 583.0.0.29.95 and v0.23.0 takes 582.0.0.61.92.
 
 SHA-256 of the stock APKs the checks ran against:
 
@@ -191,21 +192,24 @@ SHA-256 of the stock APKs the checks ran against:
 346816973  408e8d6eaed0e4d05b0d4f9e1d7c2dfa58ac670a70af6ac25ee911227615757b
 346817004  d5dbfd946a634ba16b5c600dc8773eb30e860a9f25acb6eb8c0c4e66fe8f78b4
 346817005  635f2f6dd2ff5acb5a4fde275afe6a342fae07927d95f0e8f09b1727deea8498
+346817008  6856b2547ef156fc49239e51c02eac90edb791b11c7e23298d32bc4b662829fa
 346817019  ac74c2cdaed9a3149b20e5b6fa6cd60943b3414aa918fe3f18c347d083650e73
 346817021  3bf305f38645dc35a85a25a153ad11d2ac30db61c0ab37dcb61e808fc8d1c661
 346817022  4c647f78f5b2865f1385ceadc124c4e244c22c157a66d19208dc814bde207ed5
 346817023  6f189f035d72b532ad0286b0e6d766aaeb0c4465e71beabb143f9118d3bd02e5
 346817024  c5dcc7ef13eb1edba576953468c6a4493cfe6a52000fbf32bac958a5254e628a
+346817025  5172d0c9154e9d6e9d9a48f2cd07db31cb49ca5a9220332eca77ea9230d0b306
+346817026  e7287c33dfa4627fa91d09012082d5bb70e9dd98286c4469b543a2dd74c06125
 ```
 
 On Windows, compare your file with `Get-FileHash -Algorithm SHA256 .\messenger.apk`. Meta sometimes publishes different APKs under one version name.
 
 ## Verify a download
 
-The [v0.26.0 release](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.26.0) ships `SHA256SUMS.txt` beside the bundle. Compare its `.mpp` hash with your download.
+The [v0.27.0 release](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.27.0) ships `SHA256SUMS.txt` beside the bundle. Compare its `.mpp` hash with your download.
 
 ```text
-3c43ed798c5c1cc24ec7b4bac56bcd404a07fa7551c90380576d994047c65eac  patches-0.26.0.mpp
+362f6be6b4f53b4f7819dd89a990c4a7b6b734dff8f7b59f7cabd259a745cf0e  patches-0.27.0.mpp
 ```
 
 `SHA256SUMS.txt.sig` is an SSH signature made with the project's release key. Its fingerprint is `SHA256:Z+UfHy7IUbtgNRO/wHkIr68+u4I+SIKPY9avfx/VAPU` and its public half is in [`scripts/release_signers`](scripts/release_signers). Morphe doesn't check this signature, so checking it is up to you. Download the three files from the same tag and run this in a terminal (OpenSSH 8.1 or newer, which Windows 10 and later include). In PowerShell, wrap it in `cmd /c "..."`.

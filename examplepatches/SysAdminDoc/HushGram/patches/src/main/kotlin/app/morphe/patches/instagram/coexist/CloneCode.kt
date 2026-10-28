@@ -353,9 +353,18 @@ internal fun BytecodePatchContext.planClone(clone: String, authorities: Collecti
     val sorter = Sorter(pools, authorities)
     val types = LinkedHashSet<String>()
     classesLoadingString(INSTAGRAM).mapTo(types) { it.type }
+    // A prefix lookup reads the patcher's whole string index, once per authority (#173). Asking once
+    // for every content URI and sorting the answer here gives each authority the same classes, since
+    // the index holds exactly a class's const-string loads, which is what this reads back.
+    val uris = classDefByStrings("content://", StringComparisonType.STARTS_WITH).map { classDef ->
+        classDef.type to classDef.methods.flatMap { method ->
+            method.implementation?.instructions?.filter { it.isStringLoad() }?.map { it.string() }.orEmpty()
+        }.filter { it.startsWith("content://") }
+    }
     for (authority in authorities) {
         classDefByStrings(authority, StringComparisonType.EQUALS).mapTo(types) { it.type }
-        classDefByStrings("content://$authority", StringComparisonType.STARTS_WITH).mapTo(types) { it.type }
+        val prefix = "content://$authority"
+        uris.filter { (_, texts) -> texts.any { it.startsWith(prefix) } }.mapTo(types) { (type, _) -> type }
     }
     types.removeAll { it.startsWith(EXTENSION_ROOT) }
 

@@ -70,14 +70,21 @@ public class SettingsAccessibilityTest {
     }
 
     @Test
-    public void everySectionTitleIsAHeadingAndNothingElseIs() {
+    public void everySectionTitleAndInlineHeadingIsAHeadingAndNothingElseIs() {
         int headings = 0;
+        int inline = 0;
         for (View row : rows(SettingsL10nTest.show(controller.get()))) {
             boolean section = item(row) instanceof PreferenceCategory;
-            assertEquals(item(row) + " heading", section, node(row).isHeading());
+            boolean subheading = item(row) instanceof SettingsRows.Subheading;
+            assertEquals(item(row) + " heading", section || subheading, node(row).isHeading());
             if (section) headings++;
+            if (subheading) {
+                inline++;
+                assertFalse(item(row) + " can be tapped", node(row).isClickable());
+            }
         }
         assertTrue("no section on the screen", headings >= 5);
+        assertTrue("no inline heading on the screen", inline >= 1);
     }
 
     @Test

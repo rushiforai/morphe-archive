@@ -347,7 +347,7 @@ Profiles	Profiller
 Show if a profile follows you	Bir profilin seni takip edip etmediğini göster
 Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	Birinin profilinde adının yanına, zamirleri varsa onlardan sonra, Seni takip ediyor ya da Seni takip etmiyor ekler. Instagram kontrol edene kadar hiçbir şey görünmez.
 Mark who doesn't follow you back	Seni geri takip etmeyenleri işaretle
-On your own Following list, adds Doesn't follow you after the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.	Kendi Takip edilenler listende, seni geri takip etmeyen her hesabın adından sonra Seni takip etmiyor ekler. Instagram kontrol edene kadar hiçbir şey görünmez.
+On your own Following list, adds Doesn't follow you before the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.	Kendi Takip edilenler listende, seni geri takip etmeyen her hesabın adından önce Seni takip etmiyor ekler. Instagram kontrol edene kadar hiçbir şey görünmez.
 Put accounts that don't follow you back first	Seni geri takip etmeyen hesapları başa al
 On your own Following list, moves the accounts that don't follow you back to the top and keeps Instagram's order within each group. Accounts Instagram hasn't checked yet stay below.	Kendi Takip edilenler listende, seni geri takip etmeyen hesapları en üste taşır ve her grubun içinde Instagram'ın sırasını korur. Instagram'ın henüz kontrol etmediği hesaplar altta kalır.
 Follows you	Seni takip ediyor
@@ -532,6 +532,8 @@ Screenshots and screen recordings work wherever Instagram blocks them, like disa
 Turns the switches that keep what you do to yourself on or off in one go, like View stories anonymously and Hide that you're typing. Each one keeps its own switch.	Yaptıklarını kendine saklayan anahtarları, Hikayeleri anonim olarak izle ve Yazdığını gizle gibi, tek seferde açar veya kapatır. Her biri kendi anahtarını korur.
 View live anonymously	Canlı yayınları anonim izle
 Photos and videos sent as view once or replayable stay in the chat so you can open them again. Open the chat again to update ones already loaded.	Tek seferlik veya tekrar oynatılabilir gönderilen fotoğraflar ve videolar sohbette kalır, böylece tekrar açabilirsin. Önceden yüklenenleri güncellemek için sohbeti yeniden aç.
+Swipe through a chat's reels	Bir sohbetin reels videolarında kaydır
+Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Back takes you to the chat.	Bir sohbetten açtığın bir reels videosunda yukarı kaydırınca, önerilen videolardan önce o sohbette paylaşılan diğer videolar gelir. Geri tuşu seni sohbete döndürür.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	İndir'in altına Kapağı indir ekler. Bir reel'in oynatılmadan önce gösterdiği hareketsiz görüntüyü en büyük boyutunda kaydeder.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	İndir'in altına Sesi indir ekler. Reel'in sesini bir ses dosyası olarak kaydeder.
 After 20 reels, swiping in Reels stops until Instagram has been in the background for 15 minutes. A reel you open from a message or a post still plays.	20 reel'den sonra Instagram 15 dakika arka planda kalana kadar Reels'te kaydırma durur. Bir mesajdan veya gönderiden açtığın reel yine oynar.
@@ -919,7 +921,7 @@ Space under the tab bar	Sekme çubuğunun altındaki boşluk
 A little more	Biraz daha
 More	Daha fazla
 Hide the tab bar as you scroll	Kaydırırken sekme çubuğunu gizle
-Scrolling a list down slides the pill out of the way. Scrolling up, reaching the top, or changing tab brings it back. Restart Instagram after changing it.	Bir listeyi aşağı kaydırmak çubuğu yoldan çeker. Yukarı kaydırmak, en üste ulaşmak veya sekme değiştirmek onu geri getirir. Değiştirdikten sonra Instagram'ı yeniden başlatın.
+Scrolling a list down slides the tab bar out of the way. Scrolling up, reaching the top, or changing tab brings it back. It works with or without Glass tab bar. Restart Instagram after changing it.	Bir listeyi aşağı kaydırmak sekme çubuğunu yoldan çeker. Yukarı kaydırmak, en üste ulaşmak veya sekme değiştirmek onu geri getirir. Cam sekme çubuğu açık da kapalı da çalışır. Değiştirdikten sonra Instagram'ı yeniden başlatın.
 Hide the tab bar on Reels	Reels'te sekme çubuğunu gizle
 # context: a choice in the Hide the tab bar on Reels list under Glass tab bar; the bar is never hidden there
 Never	Hiçbir zaman
@@ -1023,8 +1025,19 @@ Active at %1$s	%1$s'de aktifti
 Active yesterday at %1$s	Dün %1$s'de aktifti
 Active %1$s at %2$s	%1$s %2$s'de aktifti
 Rounded corners on posts	Gönderilerde yuvarlak köşeler
-Rounds the corners of a post's photo, video and carousel pages in Home and Following. Posts you scroll to after a change show it. Stories, profiles, Explore and Reels stay as they were.	Ana Sayfa ve Takip Edilenler'de bir gönderinin fotoğraf, video ve kaydırmalı albüm sayfalarının köşelerini yuvarlar. Bir değişiklikten sonra kaydırdığın gönderilerde görünür. Hikayeler, profiller, Keşfet ve Reels olduğu gibi kalır.
+Rounds the corners of a post's photo, video and carousel pages in Home and Following. Posts you scroll to after a change show it. Stories, profiles and Explore stay as they were.	Ana Sayfa ve Takip Edilenler'de bir gönderinin fotoğraf, video ve kaydırmalı albüm sayfalarının köşelerini yuvarlar. Bir değişiklikten sonra kaydırdığın gönderilerde görünür. Hikayeler, profiller ve Keşfet olduğu gibi kalır.
 Corner size	Köşe boyutu
+Rounded corners on Reels	Reels'te yuvarlak köşeler
+Seek bar on stories	Hikayelerde arama çubuğu
+Shows a bar near the bottom of a video story. Drag it to jump to any point in the video. Photos don't get one.	Video hikayenin altına yakın bir çubuk gösterir. Videoda istediğin noktaya atlamak için sürükle. Fotoğraflarda görünmez.
+Thicker story progress bar	Daha kalın hikaye ilerleme çubuğu
+Draws the bar along the top of a story as thick as the choice below. Its segments and timing stay as they were.	Bir hikayenin üstündeki çubuğu aşağıdaki seçim kadar kalın çizer. Bölümleri ve zamanlaması olduğu gibi kalır.
+Thickness	Kalınlık
+Twice as thick	İki kat kalın
+Three times as thick	Üç kat kalın
+Rounds the corners of a reel's video in the Reels tab and wherever a reel opens full screen. The seek bar, captions and buttons stay whole.	Reels sekmesinde ve bir reel'in tam ekran açıldığı her yerde reel videosunun köşelerini yuvarlar. Arama çubuğu, altyazılar ve düğmeler bütün kalır.
+Peek at the next carousel page	Sonraki kaydırmalı sayfaya göz at
+A carousel post's page sits a little in from the edges, with the start of the next page showing at the right.	Kaydırmalı bir gönderinin sayfası kenarlardan biraz içeride durur ve sağda sonraki sayfanın başı görünür.
 Large	Büyük
 Small	Küçük
 # context: a toast shown once when safe mode has paused HushGram on its own after crashes at start
@@ -1216,6 +1229,7 @@ New	Yeni
 App icon	Uygulama simgesi
 Instagram on black	Siyah üzerinde Instagram
 Instagram on plum	Mürdüm üzerinde Instagram
+Instagram in black on white	Beyaz üzerinde siyah Instagram
 Instagram's own	Instagram'ın kendi simgesi
 Instagram's own. Pick another to change the icon on your home screen and in the app drawer.	Instagram'ın kendi simgesi. Ana ekrandaki ve uygulama çekmecesindeki simgeyi değiştirmek için başka birini seç.
 %1$s. It shows once you leave Instagram. If the icon is gone from your home screen, add it again from the app drawer.	%1$s. Instagram'dan çıktığında görünür. Simge ana ekrandan kaybolursa uygulama çekmecesinden yeniden ekle.
@@ -1257,3 +1271,22 @@ Instagram picks the tab bar for your account, and it can switch between the two 
 Group Instagram's notifications, and take suggestions off the Notifications page.	Instagram bildirimlerini grupla ve önerileri Bildirimler sayfasından kaldır.
 Take suggestions and Featured off the Notifications page.	Önerileri ve Öne Çıkanlar'ı Bildirimler sayfasından kaldır.
 Version warnings	Sürüm uyarıları
+Pause HushGram, lock these settings, or make a report when something breaks.	HushGram'u duraklat, bu ayarları kilitle veya bir sorun olduğunda rapor oluştur.
+Choose a folder	Klasör seç
+Saves go to Movies and Pictures. Pick any folder instead, a hidden one too, and every photo and video goes there.	Kaydedilenler Movies ve Pictures klasörlerine gider. Bunun yerine gizli olanlar dahil herhangi bir klasör seç, her fotoğraf ve video oraya gitsin.
+Photos and videos go to %1$s. Tap to pick another folder.	Fotoğraflar ve videolar %1$s klasörüne gider. Başka bir klasör seçmek için dokun.
+HushGram can't reach %1$s anymore, so saves go to Movies and Pictures. Pick the folder again.	HushGram artık %1$s klasörüne erişemiyor, bu yüzden kaydedilenler Movies ve Pictures klasörlerine gidiyor. Klasörü yeniden seç.
+Use Movies and Pictures	Movies ve Pictures kullan
+Stop using the folder you picked. Saves go back to Movies and Pictures.	Seçtiğin klasörü kullanmayı bırak. Kaydedilenler yeniden Movies ve Pictures klasörlerine gider.
+Couldn't use that folder. Saves still go where they did.	Bu klasör kullanılamadı. Kaydedilenler eskisi gibi aynı yere gidiyor.
+Saves go to Movies and Pictures again.	Kaydedilenler yeniden Movies ve Pictures klasörlerine gidiyor.
+%1$s didn't take this save, so it went to Movies and Pictures.	%1$s bu kaydı kabul etmedi, bu yüzden Movies ve Pictures klasörlerine gitti.
+Start reels with sound	Reel'leri sesli başlat
+A reel you tap open from a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Ana Sayfa'daki bir gönderiden açtığınız reel sesli oynar ve geri döndüğünüzde Ana Sayfa yeniden sessize alınır. Telefonunuzun zil modu ve ses düzeyi yine geçerlidir.
+Keep your place in Home	Ana sayfadaki yerini koru
+Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	Instagram'a döndüğünde, ne kadar uzak kalmış olursan ol, Ana sayfa bulunduğun gönderide kalır. Yenilemek için aşağı çekmek yine de yeniden yükler.
+Filter the Stories tray by verified accounts	Hikaye sırasını doğrulanmış hesaplara göre filtrele
+The row of stories at the top of Home keeps only the accounts the choice below names, by Instagram's verified badge. Your own story stays. Turn it off to see every story.	Ana sayfanın üstündeki hikaye sırası, Instagram'ın doğrulama rozetine göre yalnızca aşağıdaki seçimin belirttiği hesapları tutar. Kendi hikayen kalır. Tüm hikayeleri görmek için kapat.
+Stories to keep	Tutulacak hikayeler
+Only verified accounts	Yalnızca doğrulanmış hesaplar
+Only accounts that aren't verified	Yalnızca doğrulanmamış hesaplar

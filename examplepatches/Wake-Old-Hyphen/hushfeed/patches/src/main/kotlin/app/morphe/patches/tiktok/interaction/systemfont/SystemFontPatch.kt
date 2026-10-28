@@ -8,6 +8,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.methodCall
 import app.morphe.util.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.tiktok.misc.settings.configurableBytecodePatch as bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -144,30 +145,7 @@ val systemFontPatch = bytecodePatch(
         // WebView, drawn in TikTok's web font, so the engine never sees them (#7). Every
         // page-finished and page-visible callback of TikTok's WebViewClients hands the page to
         // the extension, which styles TikTok's own pages and leaves every other site alone.
-        fun isClient(type: String): Boolean {
-            var current: String? = classDefByOrNull(type)?.superclass
-            repeat(32) {
-                val parent = current ?: return false
-                if (parent == WEB_VIEW_CLIENT) return true
-                current = classDefByOrNull(parent)?.superclass
-            }
-            return false
-        }
-        val candidateCallbacks = (WebViewPageFinishedFingerprint.matchAll() + WebViewPageCommitVisibleFingerprint.matchAll())
-            .map { it.originalMethod }
-            .distinct()
-        val pageCallbacks = candidateCallbacks.filter { isClient(it.definingClass) }
-        if (pageCallbacks.isEmpty()) {
-            throw PatchException(
-                "$PATCH: no WebViewClient onPageFinished or onPageCommitVisible implementation found.",
-            )
-        }
-        pageCallbacks.forEach { callback ->
-            mutableClassDefBy(callback.definingClass).findMutableMethodOf(callback).addInstruction(
-                0,
-                "invoke-static/range { p1 .. p2 }, $WEB_FONT_CLASS_DESCRIPTOR->onPageFinished($WEB_VIEW$STRING)V",
-            )
-        }
+        hookWebPageCallbacks(PATCH, "$WEB_FONT_CLASS_DESCRIPTOR->onPageFinished($WEB_VIEW$STRING)V")
 
         // Use system emoji. TikTok's fonts carry no emoji, so an emoji already falls through to
         // the device's emoji font, except where androidx EmojiCompat steps in: TikTok starts it
@@ -200,6 +178,39 @@ private const val WEB_VIEW = "Landroid/webkit/WebView;"
 private const val WEB_VIEW_CLIENT = "Landroid/webkit/WebViewClient;"
 private const val STRING = "Ljava/lang/String;"
 private val PAGE_CALLBACK_NAMES = setOf("onPageFinished", "onPageCommitVisible")
+
+/**
+ * Calls [target], a static `(WebView, String)V` extension method, at the top of every
+ * `onPageFinished` and `onPageCommitVisible` of TikTok's WebViewClients, with the page's WebView
+ * and URL. Use system font and AMOLED dark theme both style TikTok's web pages this way, and
+ * when both are applied each callback calls both.
+ */
+internal fun BytecodePatchContext.hookWebPageCallbacks(patch: String, target: String) {
+    fun isClient(type: String): Boolean {
+        var current: String? = classDefByOrNull(type)?.superclass
+        repeat(32) {
+            val parent = current ?: return false
+            if (parent == WEB_VIEW_CLIENT) return true
+            current = classDefByOrNull(parent)?.superclass
+        }
+        return false
+    }
+    val candidateCallbacks = (WebViewPageFinishedFingerprint.matchAll() + WebViewPageCommitVisibleFingerprint.matchAll())
+        .map { it.originalMethod }
+        .distinct()
+    val pageCallbacks = candidateCallbacks.filter { isClient(it.definingClass) }
+    if (pageCallbacks.isEmpty()) {
+        throw PatchException(
+            "$patch: no WebViewClient onPageFinished or onPageCommitVisible implementation found.",
+        )
+    }
+    pageCallbacks.forEach { callback ->
+        mutableClassDefBy(callback.definingClass).findMutableMethodOf(callback).addInstruction(
+            0,
+            "invoke-static/range { p1 .. p2 }, $target",
+        )
+    }
+}
 
 /**
  * The `onPageFinished(WebView, String)` and `onPageCommitVisible(WebView, String)` methods with

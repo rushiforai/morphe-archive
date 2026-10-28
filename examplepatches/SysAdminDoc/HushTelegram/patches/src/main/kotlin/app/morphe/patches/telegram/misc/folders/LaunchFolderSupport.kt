@@ -5,9 +5,13 @@
 package app.morphe.patches.telegram.misc.folders
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.telegram.misc.chattypefolders.CLIENT_USER_ID
 import app.morphe.patches.telegram.misc.chattypefolders.CONTROLLER_INSTANCE
 import app.morphe.patches.telegram.misc.chattypefolders.LOCAL_FILTER
@@ -34,6 +38,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
@@ -54,8 +59,30 @@ private const val GET_ARGUMENTS = "getArguments()$BUNDLE"
 private const val GET_ACCOUNT = "getCurrentAccount()I"
 private val MOVES = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
 
+/** FilterTabsView.addTab(id, stableId, title, entities, noanimate, isDefault, locked), after its owner. */
+private const val ADD_TAB_TAKES = "(II$STRING${LIST}ZZZ)V"
+private const val ALL_CHATS_TAB = "$LAUNCH_FOLDER->allChatsTab(${OBJECT}II$STRING${LIST}III)V"
+private const val TABS_ADDED = "$LAUNCH_FOLDER->tabsAdded(${OBJECT}I)Z"
+private const val EDITING = "$LAUNCH_FOLDER->editing(${OBJECT}I)Z"
+private const val SKIPS_DONE = "$LAUNCH_FOLDER->skipsDone(${OBJECT}I)Z"
+/** A folder's stable id, the one its tab is added with. */
+private const val LOCAL_STABLE = "$LOCAL_FILTER->localId:I"
+private const val ARCHIVED_CHATS = "Lorg/telegram/messenger/R\$string;->ArchivedChats:I"
+private const val GET_STRING = "Lorg/telegram/messenger/LocaleController;->getString(I)$STRING"
+/** The folder id Telegram's archive row opens a chat list with. */
+private const val ARCHIVE_FOLDER = 1
+
 /** The call that lets the extension pick the first tab: one instruction. */
 internal const val LAUNCH_FOLDER_SIZE = 1
+
+/** What Hide All Chats adds to updateFilterTabs: the answer read after the tabs are added, two instructions. */
+internal const val TABS_ADDED_SIZE = 2
+
+/** What Hide All Chats puts first in the strip's setIsEditing: two instructions. */
+internal const val EDITING_SIZE = 2
+
+/** What Hide All Chats puts first in the chat list's Done button call: four instructions. */
+internal const val SKIPS_DONE_SIZE = 4
 
 /** What the stubs reach in this build's chat list, each a field or method reference. */
 internal class LaunchRefs(
@@ -230,6 +257,190 @@ private fun BytecodePatchContext.firstTabs(): LaunchFolderPlan {
     return LaunchFolderPlan(method, at, self, refs, null)
 }
 
+/** What Hide All Chats' stubs reach beyond the folder pick's, each a method reference. */
+internal class AllChatsRefs(
+    /** FilterTabsView.addTab. */
+    val addTab: String,
+    /** FilterTabsView.getCurrentTabStableId(). */
+    val stable: String,
+    /** FilterTabsView.selectTabWithStableId(int). */
+    val selectStable: String,
+    /** BaseFragment.presentFragment(BaseFragment). */
+    val present: String,
+)
+
+/**
+ * Where Hide All Chats goes, found and checked before anything is edited, or [missing], why this
+ * build can't leave All Chats out: updateFilterTabs' call adding All Chats ([allChats]) and its
+ * question whether the page moves ([update], read from register [answer]), the strip's
+ * setIsEditing and the chat list's Done button call.
+ */
+internal class AllChatsPlan(
+    val tabs: MutableMethod?,
+    val allChats: Int,
+    val update: Int,
+    val answer: Int,
+    val self: Int,
+    val editing: MutableMethod?,
+    val done: MutableMethod?,
+    val refs: AllChatsRefs?,
+    val missing: String?,
+) {
+    fun apply(into: (MutableMethod) -> MutableMethod = { it }) {
+        val build = tabs?.let(into) ?: return
+        val edit = into(editing!!)
+        val shown = into(done!!)
+        val add = build.implementation!!.instructions[allChats] as RegisterRangeInstruction
+        val before = build.implementation!!.instructions.size
+        // The later edit first, so the earlier index still holds.
+        build.addInstructions(update, """
+            invoke-static {v$self, v$answer}, $TABS_ADDED
+            move-result v$answer
+        """)
+        build.replaceInstruction(allChats, "invoke-static/range {v${add.startRegister} .. v${add.startRegister + 7}}, $ALL_CHATS_TAB")
+        // smali drops an instruction it can't build and only logs it.
+        fits(build.implementation!!.instructions.size - before == TABS_ADDED_SIZE &&
+            build.getInstruction(allChats).opcode == Opcode.INVOKE_STATIC_RANGE, "the tabs without All Chats didn't compile whole")
+
+        val editingAt = edit.implementation!!.registerCount - 2
+        val editBefore = edit.implementation!!.instructions.size
+        edit.addInstructions(0, """
+            invoke-static/range {v$editingAt .. v${editingAt + 1}}, $EDITING
+            move-result v${editingAt + 1}
+        """)
+        fits(edit.implementation!!.instructions.size - editBefore == EDITING_SIZE, "the tab drag guard didn't compile whole")
+
+        val shownAt = shown.implementation!!.registerCount - 2
+        val shownBefore = shown.implementation!!.instructions.size
+        shown.addInstructionsWithLabels(0, """
+            invoke-static/range {v$shownAt .. v${shownAt + 1}}, $SKIPS_DONE
+            move-result v0
+            if-eqz v0, :hush_stock
+            return-void
+        """, ExternalLabel("hush_stock", shown.getInstruction(0)))
+        fits(shown.implementation!!.instructions.size - shownBefore == SKIPS_DONE_SIZE, "the Done button guard didn't compile whole")
+    }
+
+    /** The same edits on copies, as [LaunchFolderPlan.rehearse] does. */
+    fun rehearse() = try {
+        apply { MutableMethod(ImmutableMethod.of(it)) }
+    } catch (failed: RuntimeException) {
+        throw Unpicked("leaving All Chats out doesn't compile (${failed.javaClass.simpleName}: ${failed.message})")
+    }
+}
+
+/** Hide All Chats' runtime, the extension's own like the folder pick's. */
+internal fun BytecodePatchContext.requireAllChatsRuntime() {
+    requireStatusMethod("hideAllChats")
+    controlHook(LAUNCH_FOLDER, "allChatsTab", listOf(OBJECT, "I", "I", STRING, LIST, "I", "I", "I"), "V")
+    controlHook(LAUNCH_FOLDER, "tabsAdded", listOf(OBJECT, "I"), "Z")
+    controlHook(LAUNCH_FOLDER, "editing", listOf(OBJECT, "I"), "Z")
+    controlHook(LAUNCH_FOLDER, "skipsDone", listOf(OBJECT, "I"), "Z")
+    controlHook(LAUNCH_FOLDER, "strip", listOf(OBJECT), OBJECT)
+    for (name in listOf("selectedType", "selectedId", "currentStable")) controlHook(LAUNCH_FOLDER, name, listOf(OBJECT), "I")
+    controlHook(LAUNCH_FOLDER, "selectByStable", listOf(OBJECT, "I"), "Z")
+    controlHook(LAUNCH_FOLDER, "folderStable", listOf("I", "I"), "I")
+    controlHook(LAUNCH_FOLDER, "addTab", listOf(OBJECT, "I", "I", STRING, LIST, "Z", "Z", "Z"), "V")
+    controlHook(LAUNCH_FOLDER, "presentArchive", listOf(OBJECT), "Z")
+    controlHook(LAUNCH_FOLDER, "telegramArchiveTitle", emptyList(), STRING)
+}
+
+/**
+ * updateFilterTabs adds All Chats from the default folder, then the others. With the switch on
+ * the extension stands in for the All Chats call and may leave it out. Once every tab is added,
+ * updateFilterTabs asks whether the page moves to another folder, comparing places that All Chats'
+ * absence shifts by one, so the extension answers that and sets the selected tab. Dragging tabs
+ * writes the folder order by place too, so the strip's setIsEditing and the chat list's Done
+ * button ask first. Built on the folder pick's plan, which has to be there: anything else and the
+ * switch is left out.
+ */
+internal fun BytecodePatchContext.resolveAllChats(launch: LaunchFolderPlan): AllChatsPlan = try {
+    if (launch.missing != null) throw Unpicked("the folder pick isn't there to build on")
+    allChats(launch).also { it.rehearse() }
+} catch (unpicked: Unpicked) {
+    AllChatsPlan(null, 0, 0, 0, 0, null, null, null, unpicked.message)
+} catch (failed: RuntimeException) {
+    AllChatsPlan(null, 0, 0, 0, 0, null, null, null, "the folder tabs' build can't be read (${failed.javaClass.simpleName}: ${failed.message})")
+}
+
+private fun BytecodePatchContext.allChats(launch: LaunchFolderPlan): AllChatsPlan {
+    val method = launch.tabs!!
+    val launchRefs = launch.refs!!
+    val list = launchRefs.list
+    val strip = launchRefs.tabs.substringBefore("->")
+    val self = launch.self
+    val body = method.controlBody()
+    val flow = ControlFlow.of(method)
+    fun calls(index: Int, owner: String, takes: String) = body[index].controlRef()?.let { it.startsWith("$owner->") && it.endsWith(takes) } == true
+
+    // All Chats is the tab added right after its label is read, ahead of the other folders' call.
+    val label = body.indexOfFirst { it.opcode == Opcode.SGET && it.controlRef() == FILTER_ALL_CHATS }
+    val adds = body.indices.filter { body[it].opcode == Opcode.INVOKE_VIRTUAL_RANGE && calls(it, strip, ADD_TAB_TAKES) }
+    fits(label > launch.at && adds.size == 2 && adds[0] > label && body[adds[0]].controlRef() == body[adds[1]].controlRef() &&
+        (body[adds[0]] as RegisterRangeInstruction).registerCount == 8, "the All Chats tab's call changed")
+    val allChats = adds[0]
+
+    // The question once the tabs are added: the empty tabs' answer, which a moved page sets too,
+    // decides whether the chat list shows the selected tab's chats.
+    val answer = (body[launch.at - 1] as OneRegisterInstruction).registerA
+    val update = body.indices.filter { index ->
+        val test = body[index]
+        val target = (flow.normal[index] - (index + 1)).singleOrNull()
+        index > adds[1] && test.opcode == Opcode.IF_EQZ && (test as OneRegisterInstruction).registerA == answer && target != null &&
+            target > 0 && body[target - 1].opcode == Opcode.INVOKE_VIRTUAL && calls(target - 1, list, "(Z)V") &&
+            body[target - 1].namedRegisters().first() == self
+    }.singleOrNull()
+    fits(update != null && update - 1 > adds[1], "the folder tabs' page update changed")
+    val updateAt = update!!
+    fits(self <= 15 && answer <= 15, "the folder tabs' page update keeps its registers out of reach")
+    fits(updateAt in flow.normal[updateAt - 1] && flow.normal.withIndex().none { (index, next) -> index != updateAt - 1 && updateAt in next } &&
+        flow.exceptional.none { updateAt in it }, "something jumps into the folder tabs' page update")
+    fits(holdsThis(method, flow, self, updateAt), "the folder tabs' page update doesn't read the chat list's own tabs")
+
+    // The strip's editing switch, which the chat list always follows with its Done button.
+    val pairs = body.indices.filter { index ->
+        index + 1 < body.size && body[index].opcode == Opcode.INVOKE_VIRTUAL && body[index].controlRef() == "$strip->setIsEditing(Z)V" &&
+            body[index + 1].opcode == Opcode.INVOKE_VIRTUAL && calls(index + 1, list, "(Z)V") &&
+            body[index + 1].namedRegisters() == listOf(self, body[index].namedRegisters()[1])
+    }
+    fits(pairs.size == 1, "the tab strip's editing changed")
+    val editing = startsHook(strip, body[pairs.single()].controlRef()!!, "the tab strip's editing")
+    val done = startsHook(list, body[pairs.single() + 1].controlRef()!!, "the chat list's Done button")
+    fits(done.implementation!!.registerCount > 2, "the chat list's Done button has no register to answer in")
+
+    // The stable id the strip selects tabs by, read right after it's asked for.
+    val stableAt = body.indices.firstOrNull { body[it].opcode == Opcode.INVOKE_VIRTUAL && calls(it, strip, "->getCurrentTabStableId()I") } ?: -1
+    fits(stableAt >= 0 && body.getOrNull(stableAt + 1)?.opcode == Opcode.MOVE_RESULT, "the folder tabs' stable id changed")
+    val stableId = (body[stableAt + 1] as OneRegisterInstruction).registerA
+    val selects = body.indices.filter { it > stableAt + 1 && body[it].opcode == Opcode.INVOKE_VIRTUAL && calls(it, strip, "(I)Z") &&
+        body[it].namedRegisters().getOrNull(1) == stableId }.map { body[it].controlRef()!! }.distinct()
+    fits(selects.size == 1, "the folder tabs' stable id selection changed")
+
+    val base = launchRefs.arguments.substringBefore("->")
+    val present = inherited(list, "presentFragment($base)Z")
+    fits(present != null, "the chat list can't open another one")
+    val refs = AllChatsRefs(body[allChats].controlRef()!!, body[stableAt].controlRef()!!, selects.single(), present!!)
+    for ((reference, static) in listOf(refs.addTab to false, refs.stable to false, refs.selectStable to false, present to false,
+        "$list-><init>($BUNDLE)V" to false, LOCAL_STABLE to false, ARCHIVED_CHATS to true, GET_STRING to true)) {
+        try {
+            requireReachable(reference, static)
+        } catch (failed: PatchException) {
+            throw Unpicked("$reference isn't reachable from the extension")
+        }
+    }
+    return AllChatsPlan(method, allChats, update, answer, self, editing, done, refs, null)
+}
+
+/** [reference], an instance method on [owner] taking one boolean, that nothing jumps back to the start of. */
+private fun BytecodePatchContext.startsHook(owner: String, reference: String, what: String): MutableMethod {
+    val method = mutableClassDefByOrNull(owner)?.methods?.singleOrNull { it.toString() == reference }
+    fits(method != null && !AccessFlags.STATIC.isSet(method.accessFlags) && method.implementation != null &&
+        method.parameterTypes.map(CharSequence::toString) == listOf("Z") && method.returnType == "V", "$what changed")
+    val flow = ControlFlow.of(method!!)
+    fits(flow.normal.none { 0 in it } && flow.exceptional.none { 0 in it }, "something jumps back to the start of $what")
+    return method
+}
+
 private fun Method.isTabBuild() = !AccessFlags.STATIC.isSet(accessFlags) && returnType == "V" &&
     parameterTypes.map(CharSequence::toString) == listOf("Z", "Z") && controlBody().let { body ->
         body.any { it.controlRef() == DIALOG_FILTERS } && body.any { it.controlRef() == FILTER_ALL_CHATS } &&
@@ -375,4 +586,91 @@ internal fun BytecodePatchContext.writeLaunchFolderStubs(refs: LaunchRefs) {
     )) {
         writeStub(LAUNCH_FOLDER, stub, 3, folderAt + read)
     }
+}
+
+/** Gives LaunchFolder's Hide All Chats stubs this build's tab strip, pages and archive. */
+internal fun BytecodePatchContext.writeAllChatsStubs(launch: LaunchRefs, refs: AllChatsRefs) {
+    writeStub(LAUNCH_FOLDER, "strip", 1, """
+        check-cast p0, ${launch.list}
+        iget-object p0, p0, ${launch.strip}
+        return-object p0
+    """)
+    writeStub(LAUNCH_FOLDER, "selectedType", 3, """
+        check-cast p0, ${launch.list}
+        const/4 v0, -0x1
+        iget-object v1, p0, ${launch.pages}
+        if-eqz v1, :hush_none
+        array-length p0, v1
+        if-eqz p0, :hush_none
+        const/4 p0, 0x0
+        aget-object v1, v1, p0
+        if-eqz v1, :hush_none
+        iget v0, v1, ${launch.selectedType}
+        :hush_none
+        return v0
+    """)
+    writeStub(LAUNCH_FOLDER, "selectedId", 2, """
+        check-cast p0, ${launch.list}
+        const/4 v0, -0x1
+        iget-object p0, p0, ${launch.strip}
+        if-eqz p0, :hush_none
+        iget v0, p0, ${launch.selected}
+        :hush_none
+        return v0
+    """)
+    writeStub(LAUNCH_FOLDER, "currentStable", 2, """
+        check-cast p0, ${launch.list}
+        const/4 v0, -0x1
+        iget-object p0, p0, ${launch.strip}
+        if-eqz p0, :hush_none
+        invoke-virtual {p0}, ${refs.stable}
+        move-result v0
+        :hush_none
+        return v0
+    """)
+    writeStub(LAUNCH_FOLDER, "selectByStable", 3, """
+        check-cast p0, ${launch.list}
+        const/4 v0, 0x0
+        iget-object p0, p0, ${launch.strip}
+        if-eqz p0, :hush_none
+        invoke-virtual {p0, p1}, ${refs.selectStable}
+        move-result v0
+        :hush_none
+        return v0
+    """)
+    writeStub(LAUNCH_FOLDER, "folderStable", 3, """
+        invoke-static {p0}, $CONTROLLER_INSTANCE
+        move-result-object v0
+        invoke-virtual {v0}, $DIALOG_FILTERS
+        move-result-object v0
+        invoke-virtual {v0, p1}, $LIST->get(I)$OBJECT
+        move-result-object v0
+        check-cast v0, $LOCAL_FILTER
+        iget v0, v0, $LOCAL_STABLE
+        return v0
+    """)
+    writeStub(LAUNCH_FOLDER, "addTab", 8, """
+        check-cast p0, ${refs.addTab.substringBefore("->")}
+        invoke-virtual/range {p0 .. p7}, ${refs.addTab}
+        return-void
+    """)
+    writeStub(LAUNCH_FOLDER, "presentArchive", 4, """
+        new-instance v0, $BUNDLE
+        invoke-direct {v0}, $BUNDLE-><init>()V
+        const-string v1, "folderId"
+        const/4 v2, $ARCHIVE_FOLDER
+        invoke-virtual {v0, v1, v2}, $BUNDLE->putInt(${STRING}I)V
+        new-instance v1, ${launch.list}
+        invoke-direct {v1, v0}, ${launch.list}-><init>($BUNDLE)V
+        check-cast p0, ${refs.present.substringBefore("->")}
+        invoke-virtual {p0, v1}, ${refs.present}
+        move-result v0
+        return v0
+    """)
+    writeStub(LAUNCH_FOLDER, "telegramArchiveTitle", 1, """
+        sget v0, $ARCHIVED_CHATS
+        invoke-static {v0}, $GET_STRING
+        move-result-object v0
+        return-object v0
+    """)
 }

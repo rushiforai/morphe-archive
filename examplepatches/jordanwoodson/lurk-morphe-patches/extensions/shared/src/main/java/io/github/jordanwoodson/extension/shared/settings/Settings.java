@@ -42,7 +42,13 @@ public final class Settings {
     static final String AUTO_PAUSED = "auto_paused";
     static final String CRASH_STREAK = "crash_streak";
     private static final String SHORTCUT_STAMP = "shortcut";
+    /** Never changes: launchers keep pinned shortcuts by ID. */
     private static final String SHORTCUT_ID = "lurk_settings";
+    /**
+     * The link a patched app's JavaScript passes to React Native's Linking.openURL for its Lurk row (Kick's account
+     * menu). Only the app's own openURL looks for it ({@link #openLink(String)}); no activity declares it.
+     */
+    static final String LINK = "lurk://settings";
     /** A crash this soon after the process started counts towards pausing Lurk. */
     static final long EARLY_CRASH_MS = 60_000;
     /** Early crashes in a row that pause Lurk. */
@@ -50,7 +56,9 @@ public final class Settings {
 
     private static volatile Context context;
     private static volatile Registry registry;
-    private static Object openAction;
+    /** {@link #openAction(Class)}'s proxies, by the function interface they implement. */
+    private static final Map<Class<?>, Object> OPEN_ACTIONS = new HashMap<>();
+    private static volatile Class<?> kotlinFunction0;
     private static boolean initialized;
 
     /** Whether this process runs paused, read once: pausing applies from the next start. Null until read. */
@@ -165,31 +173,63 @@ public final class Settings {
      * Injection point. A {@code kotlin.jvm.functions.Function0} that opens the settings screen, for use as
      * a Compose onClick. Made through a proxy, since the extension doesn't compile against Kotlin.
      */
-    public static synchronized Object openAction() {
-        if (openAction == null) {
+    public static Object openAction() {
+        Class<?> function0 = kotlinFunction0;
+        if (function0 == null) {
             try {
-                Class<?> function0 = Class.forName("kotlin.jvm.functions.Function0", false,
+                kotlinFunction0 = function0 = Class.forName("kotlin.jvm.functions.Function0", false,
                         Settings.class.getClassLoader());
-                openAction = Proxy.newProxyInstance(function0.getClassLoader(), new Class<?>[]{function0},
-                        (proxy, method, args) -> {
-                            switch (method.getName()) {
-                                case "invoke":
-                                    Activity activity = ResumedActivityTracker.current();
-                                    open(activity != null ? activity : context());
-                                    return null;
-                                case "equals":
-                                    return proxy == args[0];
-                                case "hashCode":
-                                    return System.identityHashCode(proxy);
-                                default:
-                                    return "Lurk settings";
-                            }
-                        });
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException("Lurk: no Kotlin Function0 in this app", e);
             }
         }
-        return openAction;
+        return openAction(function0);
+    }
+
+    /**
+     * Injection point. Like {@link #openAction()}, for an app whose R8 renamed Kotlin's Function0: an object of
+     * {@code function0}, an interface whose one method is {@code invoke()}, that opens the settings screen.
+     */
+    public static synchronized Object openAction(Class<?> function0) {
+        Object action = OPEN_ACTIONS.get(function0);
+        if (action == null) {
+            action = Proxy.newProxyInstance(function0.getClassLoader(), new Class<?>[]{function0},
+                    (proxy, method, args) -> {
+                        switch (method.getName()) {
+                            case "invoke":
+                                openScreen();
+                                return null;
+                            case "equals":
+                                return proxy == args[0];
+                            case "hashCode":
+                                return System.identityHashCode(proxy);
+                            default:
+                                return "Lurk settings";
+                        }
+                    });
+            OPEN_ACTIONS.put(function0, action);
+        }
+        return action;
+    }
+
+    /**
+     * Injection point. Opens the settings screen over the app's resumed activity, in its task, or in a task of
+     * its own when no activity is resumed. For a row the patches add to the app's own screens.
+     */
+    public static void openScreen() {
+        Activity activity = ResumedActivityTracker.current();
+        open(activity != null ? activity : context());
+    }
+
+    /**
+     * Injection point, at the start of React Native's Linking.openURL. Whether {@code url} is Lurk's own link
+     * ({@link #LINK}), which the patched JavaScript opens from the app's menu; if so the settings screen opens
+     * and the app's openURL does nothing else.
+     */
+    public static boolean openLink(String url) {
+        if (!LINK.equals(url)) return false;
+        openScreen();
+        return true;
     }
 
     /** The value of the choice or text {@code key}: as changed on the screen, its patch-time default, or "". */
@@ -474,8 +514,12 @@ public final class Settings {
     }
 
     /**
-     * A launcher shortcut (long-press the app icon) to the settings screen. An existing one is updated once
-     * per app or Lurk version, or when its label changed, so it never keeps an old label or icon.
+     * A launcher shortcut (long-press the app icon) to the settings screen, always with the same ID so pinned
+     * copies keep working. Launchers show only the first few of an app's shortcuts, by rank, and an app that
+     * posts conversation shortcuts (Twitch, one per whisper) pushes each new one to the top. So on Android 11
+     * and newer the shortcut is pushed to the top again on every start, which also updates it; on older
+     * versions, where the apps don't push, it is added once and updated once per app or Lurk version, or when
+     * its label changed, so it never keeps an old label or icon.
      */
     private static void publishShortcut() {
         Context current = context;
@@ -492,7 +536,13 @@ public final class Settings {
                     .setLongLabel(longLabel)
                     .setIcon(Icon.createWithResource(current, current.getApplicationInfo().icon))
                     .setIntent(intent)
+                    .setRank(0)
                     .build();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                // Not rate-limited, unlike add and update: rank 0, the app's other shortcuts move down one.
+                manager.pushDynamicShortcut(shortcut);
+                return;
+            }
             ShortcutInfo existing = null;
             for (ShortcutInfo published : manager.getDynamicShortcuts()) {
                 if (SHORTCUT_ID.equals(published.getId())) existing = published;

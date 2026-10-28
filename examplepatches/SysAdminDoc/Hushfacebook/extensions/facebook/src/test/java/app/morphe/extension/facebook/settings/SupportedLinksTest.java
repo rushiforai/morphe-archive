@@ -370,7 +370,7 @@ public class SupportedLinksTest {
         HushfacebookPreferenceFragment page = show(true);
         Preference row = page.findPreference(KEY);
         PreferenceGroup links = row.getParent();
-        assertEquals("Links", String.valueOf(links.getTitle()));
+        assertEquals("Links and sharing", String.valueOf(links.getTitle()));
         assertEquals(Settings.OPEN_LINKS_EXTERNALLY.key, links.getPreference(0).getKey());
         assertEquals(Settings.SANITIZE_SHARING_LINKS.key, links.getPreference(1).getKey());
         assertEquals(Settings.SHARE_POST_OWN_LINK.key, links.getPreference(2).getKey());

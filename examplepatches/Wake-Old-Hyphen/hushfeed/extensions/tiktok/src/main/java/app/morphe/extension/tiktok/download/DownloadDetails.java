@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -38,12 +39,18 @@ final class DownloadDetails {
     }
 
     DownloadDetails(Object aweme, boolean json) {
+        this(aweme, json, false);
+    }
+
+    /** {@code photo} links a photo post the way TikTok's web does, under /photo/ rather than /video/. */
+    DownloadDetails(Object aweme, boolean json, boolean photo) {
         this.json = json;
         Object author = Reflect.property(aweme, "getAuthor", "author");
         String handle = value(Reflect.string(author, "getUniqueId", "uniqueId"), 256);
         id = value(Reflect.string(aweme, "getAid", "aid"), 128);
         link = value(handle.isEmpty() || id.isEmpty() ? ExternalDownloader.shareUrl(aweme)
-                : "https://www.tiktok.com/@" + Uri.encode(handle) + "/video/" + Uri.encode(id), 4096);
+                : "https://www.tiktok.com/@" + Uri.encode(handle) + (photo ? "/photo/" : "/video/")
+                        + Uri.encode(id), 4096);
         creator = handle.isEmpty() ? "" : "@" + handle;
         Object created = Reflect.property(aweme, "getCreateTime", "createTime");
         long time = created instanceof Number ? ((Number) created).longValue() : 0;
@@ -60,21 +67,53 @@ final class DownloadDetails {
     }
 
     String text() {
+        return text(null, null);
+    }
+
+    /**
+     * With {@code requested} set, a photo post's file: the photos the save asked for and the ones
+     * that landed, numbered from 1 like the photos' own names.
+     */
+    String text(List<Integer> requested, List<Integer> saved) {
         return "Creator: " + (creator.isEmpty() ? "Unknown" : creator)
                 + "\nLink: " + link
                 + "\nPublished: " + (published.isEmpty() ? "Unknown" : published)
+                + (requested == null ? "" : "\nPhotos asked for: " + numbers(requested)
+                        + "\nPhotos saved: " + numbers(saved))
                 + "\n\nCaption:\n" + caption + "\n";
     }
 
     /** The same details for scripts and archive tools. A value the post didn't have is null. */
     String json() {
+        return json(null, null);
+    }
+
+    String json(List<Integer> requested, List<Integer> saved) {
         return "{\n"
                 + "  \"id\": " + quote(id) + ",\n"
                 + "  \"creator\": " + quote(creator) + ",\n"
                 + "  \"link\": " + quote(link) + ",\n"
                 + "  \"published\": " + quote(published) + ",\n"
+                + (requested == null ? "" : "  \"photos_requested\": [" + numbers(requested) + "],\n"
+                        + "  \"photos_saved\": [" + numbers(saved) + "],\n")
                 + "  \"caption\": " + quote(caption) + "\n"
                 + "}\n";
+    }
+
+    /** The file's text in the chosen form, for a photo post when {@code requested} is set. */
+    String content(List<Integer> requested, List<Integer> saved) {
+        return json ? json(requested, saved) : text(requested, saved);
+    }
+
+    String mime() { return json ? "application/json" : "text/plain"; }
+
+    private static String numbers(List<Integer> numbers) {
+        StringBuilder joined = new StringBuilder();
+        for (int number : numbers) {
+            if (joined.length() > 0) joined.append(", ");
+            joined.append(number);
+        }
+        return joined.toString();
     }
 
     String creator() { return creator; }
@@ -112,8 +151,7 @@ final class DownloadDetails {
             }
             int dot = video.name.lastIndexOf('.');
             String stem = dot > 0 ? video.name.substring(0, dot) : video.name;
-            MediaFileWriter.publish(context, temporary, stem + extension(),
-                    json ? "application/json" : "text/plain", path, false);
+            MediaFileWriter.publish(context, temporary, stem + extension(), mime(), path, false);
         } finally {
             if (!MediaCache.delete(temporary)) Logger.printInfo(() -> "Could not remove the details temporary file");
         }

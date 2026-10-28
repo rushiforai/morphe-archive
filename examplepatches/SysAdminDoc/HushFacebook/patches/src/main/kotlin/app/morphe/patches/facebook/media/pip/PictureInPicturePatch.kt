@@ -209,7 +209,7 @@ val pictureInPicturePatch = bytecodePatch(
     name = "Picture-in-picture",
     description = "Keeps reels and videos from the Reels and Video tabs, or full screen, playing in a small " +
         "window when you leave Facebook, so you can watch while using another app. Needs Android 12 or later. " +
-        "Starts off. Turn it on in Hushfacebook settings > Playback.",
+        "Starts off. Turn it on in Hushfacebook settings > Video and audio.",
 ) {
     category("Playback")
     dependsOn(settingsPatch)

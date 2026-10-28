@@ -62,6 +62,17 @@ val hideFolderCountersPatch = bytecodePatch(
         } catch (failed: Exception) {
             "the folder pick's stubs don't build (${failed.javaClass.simpleName}: ${failed.message})"
         }
+        // Hide All Chats builds on the folder pick, and a build without its shape leaves only that switch out.
+        requireAllChatsRuntime()
+        val allChats = if (missing == null) resolveAllChats(launch) else null
+        val shown = allChats?.let {
+            it.missing ?: try {
+                writeAllChatsStubs(launch.refs!!, it.refs!!)
+                null
+            } catch (failed: Exception) {
+                "the tabs without All Chats' stubs don't build (${failed.javaClass.simpleName}: ${failed.message})"
+            }
+        } ?: missing
         // Hidden chats ride along the same way, each switch left out on its own.
         requireHiddenChatsRuntime()
         val hidden = resolveHiddenChats()
@@ -84,6 +95,13 @@ val hideFolderCountersPatch = bytecodePatch(
         insertCounterAnswer(counter)
         enableStatus("hideFolderCounters")
         if (missing == null) {
+            // Ahead of the folder pick, whose instruction would move the later indices.
+            if (shown == null) {
+                allChats!!.apply()
+                enableCapability("hideAllChats")
+            } else {
+                patchLog.warning("Hide folder tab counters: $shown. The patch goes on without hiding All Chats.")
+            }
             launch.apply()
             enableCapability("launchFolder")
         } else {

@@ -14,25 +14,199 @@ private const val TARGET_CLASS = "Lcom/x/ui/common/p2;"
 private const val VISIBILITY_CLASS = "Lcom/x/ui/common/o2;"
 private const val CONTENT_CLASS = "Lcom/x/ui/common/m2;"
 private const val HAZE_NODE_CLASS = "Ldev/chrisbanes/haze/x;"
+private const val HAZE_BLUR_CLASS = "Ldev/chrisbanes/haze/blur/f;"
+private const val HAZE_CALLBACK_CLASS = "Landroidx/compose/foundation/gestures/k;"
+private const val GRAPHICS_LAYER_CLASS = "Landroidx/compose/ui/graphics/layer/d;"
 
 private const val EXTENSION_CLASS =
     "Lapp/serajr/extension/navigationbar/PersistentNavigationHaze;"
 
 private const val GEOMETRY_LOG_TAG = "NavHazeGeometry"
-private const val DRAW_LOG_TAG = "NavHazeDraw"
 
 private fun debugNavHaze(message: String) {
     if (DEBUG) println("FixNavigationBarHaze -> $message")
 }
 
+/*
+ * Uses only v3 and v4.
+ *
+ * W(): these registers are available at method entry and
+ * immediately before the G1() invocation.
+ *
+ * G1(): these registers are available immediately before P1().
+ *
+ * No original argument registers are modified.
+ */
+/*
+ * Entry-only geometry snapshot. W() has 10 registers (v0..v7 locals),
+ * so v3..v7 are free before its original first instruction.
+ * Does not modify T, U, V or any render-state field.
+ */
+private fun geometrySnapshotLog(): String = """
+    new-instance v3, Ljava/lang/StringBuilder;
+    invoke-direct {v3}, Ljava/lang/StringBuilder;-><init>()V
+    const-string v4, "node="
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-static {p0}, Ljava/lang/System;->identityHashCode(Ljava/lang/Object;)I
+    move-result v4
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    const-string v4, " T="
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    iget-wide v5, p0, Ldev/chrisbanes/haze/x;->T:J
+    invoke-static {v5, v6}, Ljava/lang/Long;->toHexString(J)Ljava/lang/String;
+    move-result-object v4
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    const-string v4, " U="
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    iget-wide v5, p0, Ldev/chrisbanes/haze/x;->U:J
+    invoke-static {v5, v6}, Ljava/lang/Long;->toHexString(J)Ljava/lang/String;
+    move-result-object v4
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    const-string v4, " V="
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    iget-wide v5, p0, Ldev/chrisbanes/haze/x;->V:J
+    invoke-static {v5, v6}, Ljava/lang/Long;->toHexString(J)Ljava/lang/String;
+    move-result-object v4
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    const-string v4, " k0="
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    iget-boolean v4, p0, Ldev/chrisbanes/haze/x;->k0:Z
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+    invoke-virtual {v3}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+    move-result-object v4
+    const-string v7, "NavHazeSnapshot"
+    invoke-static {v7, v4}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+""".trimIndent()
+
+private fun rendererStateLog(): String = """
+    new-instance v3, Ljava/lang/StringBuilder;
+    invoke-direct {v3}, Ljava/lang/StringBuilder;-><init>()V
+    const-string v4, "node="
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-static {p0}, Ljava/lang/System;->identityHashCode(Ljava/lang/Object;)I
+    move-result v4
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    const-string v4, " I1="
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v3, v0}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+    const-string v4, " p2="
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-virtual {v3, p2}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+    const-string v4, " k0="
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    iget-boolean v4, p0, Ldev/chrisbanes/haze/x;->k0:Z
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+    const-string v4, " F="
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    iget-boolean v4, p0, Ldev/chrisbanes/haze/x;->F:Z
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+    const-string v4, " rendererIsH0="
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    iget-object v5, p0, Ldev/chrisbanes/haze/x;->f0:Ldev/chrisbanes/haze/blur/f;
+    const/4 v6, 0x0
+    if-eqz v5, :b5_no_renderer
+    iget-object v5, v5, Ldev/chrisbanes/haze/blur/f;->i:Ldev/chrisbanes/haze/blur/e;
+    instance-of v6, v5, Ldev/chrisbanes/haze/blur/h0;
+    :b5_no_renderer
+    invoke-virtual {v3, v6}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+    const-string v4, " rendererIsC0="
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    instance-of v6, v5, Ldev/chrisbanes/haze/blur/c0;
+    invoke-virtual {v3, v6}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+    const-string v4, " rendererIsU="
+    invoke-virtual {v3, v4}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    instance-of v6, v5, Ldev/chrisbanes/haze/blur/u;
+    invoke-virtual {v3, v6}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+    invoke-virtual {v3}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+    move-result-object v4
+    const-string v5, "NavHazeState"
+    invoke-static {v5, v4}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+""".trimIndent()
+
+private fun cleanupEntryLog(): String = """
+    invoke-static {p0}, Ljava/lang/System;->identityHashCode(Ljava/lang/Object;)I
+    move-result v0
+    invoke-static {v0}, Ljava/lang/Integer;->toString(I)Ljava/lang/String;
+    move-result-object v1
+    const-string v0, "NavHazeCleanup"
+    invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+""".trimIndent()
+
+private fun safeDrawLog(tag: String): String = """
+    invoke-static {p0}, Ljava/lang/System;->identityHashCode(Ljava/lang/Object;)I
+    move-result v3
+    invoke-static {v3}, Ljava/lang/Integer;->toString(I)Ljava/lang/String;
+    move-result-object v4
+    const-string v3, "$tag"
+    invoke-static {v3, v4}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+""".trimIndent()
+
+/*
+ * Phase B6: sampled, read-only snapshot immediately before the actual
+ * GraphicsLayer draw call. Only the Haze-specific synthetic lambda arm
+ * is patched. v8/v9/v12..v15 are dead at each of the three draw sites.
+ * The sampling window (first 100 ms per second) limits log volume.
+ */
+private fun hazeLayerDrawLog(site: Int): String = """
+    invoke-static {}, Landroid/os/SystemClock;->uptimeMillis()J
+    move-result-wide v12
+    const-wide/16 v14, 0x3e8
+    rem-long/2addr v12, v14
+    const-wide/16 v14, 0x64
+    cmp-long v8, v12, v14
+    if-gez v8, :b6_skip_draw_log_$site
+    new-instance v8, Ljava/lang/StringBuilder;
+    invoke-direct {v8}, Ljava/lang/StringBuilder;-><init>()V
+    const-string v9, "layer="
+    invoke-virtual {v8, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-static {v11}, Ljava/lang/System;->identityHashCode(Ljava/lang/Object;)I
+    move-result v9
+    invoke-virtual {v8, v9}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+    const-string v9, " released="
+    invoke-virtual {v8, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    iget-boolean v9, v11, Landroidx/compose/ui/graphics/layer/d;->s:Z
+    invoke-virtual {v8, v9}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+    const-string v9, " size="
+    invoke-virtual {v8, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    iget-wide v12, v11, Landroidx/compose/ui/graphics/layer/d;->u:J
+    invoke-static {v12, v13}, Ljava/lang/Long;->toHexString(J)Ljava/lang/String;
+    move-result-object v9
+    invoke-virtual {v8, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    const-string v9, " clip="
+    invoke-virtual {v8, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    iget-boolean v9, v11, Landroidx/compose/ui/graphics/layer/d;->A:Z
+    invoke-virtual {v8, v9}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+    iget-object v12, v11, Landroidx/compose/ui/graphics/layer/d;->a:Landroidx/compose/ui/graphics/layer/f;
+    const-string v9, " alpha="
+    invoke-virtual {v8, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-interface {v12}, Landroidx/compose/ui/graphics/layer/f;->a()F
+    move-result v13
+    invoke-virtual {v8, v13}, Ljava/lang/StringBuilder;->append(F)Ljava/lang/StringBuilder;
+    const-string v9, " effect="
+    invoke-virtual {v8, v9}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    invoke-interface {v12}, Landroidx/compose/ui/graphics/layer/f;->b()Landroidx/compose/ui/graphics/e1;
+    move-result-object v13
+    if-eqz v13, :b6_effect_null_$site
+    const/4 v14, 0x1
+    goto :b6_effect_ready_$site
+    :b6_effect_null_$site
+    const/4 v14, 0x0
+    :b6_effect_ready_$site
+    invoke-virtual {v8, v14}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+    invoke-virtual {v8}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+    move-result-object v9
+    const-string v8, "NavHazeLayer"
+    invoke-static {v8, v9}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
+    :b6_skip_draw_log_$site
+""".trimIndent()
+
 @Suppress("unused")
 val fixNavigationBarHazePatch = bytecodePatch(
     name = "Fix Navigation Bar Haze",
-    description = "Phase B3 diagnostics: monitors bottom bar behavior, HazeEffect geometry, and draw paths on X 12.35!",
+    description = "Phase B6 diagnostics: samples Haze GraphicsLayer draw state while preserving stock behavior on X 12.35!",
     default = false
 ) {
     compatibleWith(Constants.COMPATIBILITY_X)
-
     extendWith("extensions/navigation.mpe")
 
     execute {
@@ -40,10 +214,12 @@ val fixNavigationBarHazePatch = bytecodePatch(
         var visibilityMethod: Method? = null
         var contentMethod: Method? = null
         var sizeMethod: Method? = null
-
         var hazeSizeMethod: Method? = null
         var hazeOffsetMethod: Method? = null
         var hazeDrawMethod: Method? = null
+        var hazeRenderMethod: Method? = null
+        var hazeCleanupMethod: Method? = null
+        var hazeCallbackMethod: Method? = null
 
         classDefForEach { classDef ->
             when (classDef.type.toString()) {
@@ -57,9 +233,7 @@ val fixNavigationBarHazePatch = bytecodePatch(
                                 "Lkotlin/jvm/functions/Function1;",
                                 "Landroidx/compose/ui/Modifier;",
                                 "Landroidx/compose/runtime/internal/g;",
-                                "Z",
-                                "Z",
-                                "Z",
+                                "Z", "Z", "Z",
                                 "Landroidx/compose/runtime/internal/g;",
                                 "Landroidx/compose/runtime/Composer;",
                                 "I"
@@ -93,6 +267,15 @@ val fixNavigationBarHazePatch = bytecodePatch(
                     }
                 }
 
+                HAZE_CALLBACK_CLASS -> {
+                    hazeCallbackMethod = classDef.methods.firstOrNull { method ->
+                        method.name == "invoke" &&
+                            method.returnType == "Ljava/lang/Object;" &&
+                            method.parameterTypes.map { it.toString() } ==
+                                listOf("Ljava/lang/Object;")
+                    }
+                }
+
                 HAZE_NODE_CLASS -> {
                     hazeSizeMethod = classDef.methods.firstOrNull { method ->
                         method.name == "X1" &&
@@ -113,15 +296,26 @@ val fixNavigationBarHazePatch = bytecodePatch(
                                 "Landroidx/compose/ui/node/k0;"
                             )
                     }
+
+                    hazeCleanupMethod = classDef.methods.firstOrNull { method ->
+                        method.name == "B1" && method.returnType == "V" &&
+                            method.parameterTypes.isEmpty()
+                    }
+
+                    hazeRenderMethod = classDef.methods.firstOrNull { method ->
+                        method.name == "G1" &&
+                            method.returnType == "V" &&
+                            method.parameterTypes.map { it.toString() } == listOf(
+                                "Landroidx/compose/ui/node/k0;",
+                                "Z"
+                            )
+                    }
                 }
             }
         }
 
-        // ============================================================
-        // PHASE A — VALIDATED DIAGNOSTIC HOOKS
-        // ============================================================
+        // PHASE A — ORIGINAL DIAGNOSTICS
 
-        // Hook 1: Initialize the navigation Haze extension.
         val originalTarget = targetMethod
             ?: error("FixNavigationBarHaze: p2.a() not found.")
 
@@ -129,16 +323,12 @@ val fixNavigationBarHazePatch = bytecodePatch(
             .methods.firstOrNull { it.toString() == originalTarget.toString() }
             ?: error("FixNavigationBarHaze: mutable p2.a() not found.")
 
-        require(mutableTarget.implementation?.registerCount == 37) {
-            "FixNavigationBarHaze: unexpected p2.a() register layout."
-        }
-
+        require(mutableTarget.implementation?.registerCount == 37)
         mutableTarget.addInstructions(
             0,
             "invoke-static {}, ${EXTENSION_CLASS}->initialize()V"
         )
 
-        // Hook 2: Monitor bottom bar visibility changes.
         val originalVisibility = visibilityMethod
             ?: error("FixNavigationBarHaze: o2.setVisible(Z) not found.")
 
@@ -146,16 +336,12 @@ val fixNavigationBarHazePatch = bytecodePatch(
             .methods.firstOrNull { it.toString() == originalVisibility.toString() }
             ?: error("FixNavigationBarHaze: mutable o2.setVisible(Z) not found.")
 
-        require(mutableVisibility.implementation?.registerCount == 2) {
-            "FixNavigationBarHaze: unexpected o2.setVisible(Z) register layout."
-        }
-
+        require(mutableVisibility.implementation?.registerCount == 2)
         mutableVisibility.addInstructions(
             0,
             "invoke-static {p1}, ${EXTENSION_CLASS}->onBottomBarVisibilityChanged(Z)V"
         )
 
-        // Hook 3: Monitor bottom bar content composition.
         val originalContent = contentMethod
             ?: error("FixNavigationBarHaze: m2.invoke() not found.")
 
@@ -163,16 +349,12 @@ val fixNavigationBarHazePatch = bytecodePatch(
             .methods.firstOrNull { it.toString() == originalContent.toString() }
             ?: error("FixNavigationBarHaze: mutable m2.invoke() not found.")
 
-        require(mutableContent.implementation?.registerCount == 22) {
-            "FixNavigationBarHaze: unexpected m2.invoke() register layout."
-        }
-
+        require(mutableContent.implementation?.registerCount == 22)
         mutableContent.addInstructions(
             0,
             "invoke-static {}, ${EXTENSION_CLASS}->onBottomBarContentComposed()V"
         )
 
-        // Hook 4: Monitor the animated bottom bar size.
         val originalSize = sizeMethod
             ?: error("FixNavigationBarHaze: o2.getSize() not found.")
 
@@ -181,38 +363,26 @@ val fixNavigationBarHazePatch = bytecodePatch(
             ?: error("FixNavigationBarHaze: mutable o2.getSize() not found.")
 
         val sizeImplementation = mutableSize.implementation
-            ?: error("FixNavigationBarHaze: o2.getSize() has no implementation.")
-
-        debugNavHaze(
-            "o2.getSize() registerCount=${sizeImplementation.registerCount}"
-        )
+            ?: error("FixNavigationBarHaze: getSize() implementation missing.")
 
         val sizeInstructions = sizeImplementation.instructions.toList()
-
         val returnIndex = sizeInstructions.indexOfLast {
             it.opcode == Opcode.RETURN
         }
 
-        require(returnIndex >= 0) {
-            "FixNavigationBarHaze: o2.getSize() return not found."
-        }
+        require(returnIndex >= 0)
 
         val returnInstruction = sizeInstructions[returnIndex]
             as? OneRegisterInstruction
-            ?: error("FixNavigationBarHaze: unexpected getSize() return instruction.")
-
-        val resultRegister = returnInstruction.registerA
+            ?: error("FixNavigationBarHaze: unexpected getSize() return.")
 
         mutableSize.addInstructions(
             returnIndex,
-            "invoke-static {v$resultRegister}, ${EXTENSION_CLASS}->onBottomBarSizeChanged(I)V"
+            "invoke-static {v${returnInstruction.registerA}}, " +
+                "${EXTENSION_CLASS}->onBottomBarSizeChanged(I)V"
         )
 
-        debugNavHaze("Four Phase A diagnostic hooks installed.")
-
-        // ============================================================
-        // PHASE B2 — HAZE EFFECT GEOMETRY DIAGNOSTICS
-        // ============================================================
+        // PHASE B2 — GEOMETRY DIAGNOSTICS
 
         fun installGeometryHook(
             original: Method?,
@@ -221,46 +391,30 @@ val fixNavigationBarHazePatch = bytecodePatch(
             geometryLabel: String
         ) {
             val target = original
-                ?: error(
-                    "FixNavigationBarHaze: haze.x.$methodName(J) not found."
-                )
+                ?: error("FixNavigationBarHaze: $methodName not found.")
 
             val mutable = mutableClassDefBy(target.definingClass)
-                .methods.firstOrNull {
-                    it.toString() == target.toString()
-                }
-                ?: error(
-                    "FixNavigationBarHaze: mutable haze.x.$methodName(J) not found."
-                )
+                .methods.firstOrNull { it.toString() == target.toString() }
+                ?: error("FixNavigationBarHaze: mutable $methodName not found.")
 
             val implementation = mutable.implementation
-                ?: error(
-                    "FixNavigationBarHaze: haze.x.$methodName(J) has no implementation."
-                )
+                ?: error("FixNavigationBarHaze: $methodName implementation missing.")
 
-            require(implementation.registerCount == 5) {
-                "FixNavigationBarHaze: unexpected $methodName(J) register layout."
-            }
+            require(implementation.registerCount == 5)
 
             val instructions = implementation.instructions.toList()
-
-            val writeIndices = instructions.indices.filter { index ->
-                instructions[index].opcode == Opcode.IPUT_WIDE
+            val writeIndices = instructions.indices.filter {
+                instructions[it].opcode == Opcode.IPUT_WIDE
             }
 
-            require(writeIndices.size == 1) {
-                "FixNavigationBarHaze: unexpected $methodName(J) geometry writes."
-            }
+            require(writeIndices.size == 1)
 
             val writeIndex = writeIndices.single()
+            val reference = (instructions[writeIndex]
+                as? ReferenceInstruction)?.reference?.toString()
 
-            val fieldReference =
-                (instructions[writeIndex] as? ReferenceInstruction)
-                    ?.reference
-                    ?.toString()
-
-            require(fieldReference == "$HAZE_NODE_CLASS->$fieldName:J") {
-                "FixNavigationBarHaze: unexpected $methodName(J) field: $fieldReference"
+            require(reference == "$HAZE_NODE_CLASS->$fieldName:J") {
+                "FixNavigationBarHaze: unexpected field $reference"
             }
 
             mutable.addInstructions(
@@ -268,193 +422,159 @@ val fixNavigationBarHazePatch = bytecodePatch(
                 """
                 new-instance v0, Ljava/lang/StringBuilder;
                 invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
-
                 const-string v1, "$geometryLabel node="
                 invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-
                 invoke-static {p0}, Ljava/lang/System;->identityHashCode(Ljava/lang/Object;)I
                 move-result v1
-
                 invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
-
                 const-string v1, " value="
                 invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-
                 invoke-static {p1, p2}, Ljava/lang/Long;->toHexString(J)Ljava/lang/String;
                 move-result-object v1
-
                 invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-
                 invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
                 move-result-object v0
-
                 const-string v1, "$GEOMETRY_LOG_TAG"
                 invoke-static {v1, v0}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
                 """.trimIndent()
             )
-
-            debugNavHaze(
-                "$methodName(J) $geometryLabel diagnostic hook installed."
-            )
         }
 
-        // Hook 5: Track calculated HazeEffect size.
-        installGeometryHook(
-            original = hazeSizeMethod,
-            methodName = "X1",
-            fieldName = "U",
-            geometryLabel = "Size"
-        )
+        installGeometryHook(hazeSizeMethod, "X1", "U", "Size")
+        installGeometryHook(hazeOffsetMethod, "W1", "V", "Offset")
 
-        // Hook 6: Track calculated HazeEffect offset.
-        installGeometryHook(
-            original = hazeOffsetMethod,
-            methodName = "W1",
-            fieldName = "V",
-            geometryLabel = "Offset"
-        )
-
-        debugNavHaze("Phase B2 geometry diagnostics installed.")
-
-        // ============================================================
-        // PHASE B3 — HAZE EFFECT DRAW PATH DIAGNOSTICS
-        // ============================================================
+        // PHASE B3-SAFE — DRAW METHOD
 
         val originalDraw = hazeDrawMethod
-            ?: error("FixNavigationBarHaze: haze.x.W(k0) not found.")
+            ?: error("FixNavigationBarHaze: haze.x.W() not found.")
 
         val mutableDraw = mutableClassDefBy(originalDraw.definingClass)
             .methods.firstOrNull { it.toString() == originalDraw.toString() }
-            ?: error("FixNavigationBarHaze: mutable haze.x.W(k0) not found.")
+            ?: error("FixNavigationBarHaze: mutable haze.x.W() not found.")
 
-        val drawImplementation = mutableDraw.implementation
-            ?: error("FixNavigationBarHaze: haze.x.W(k0) has no implementation.")
+        require(mutableDraw.implementation?.registerCount == 10)
 
-        require(drawImplementation.registerCount == 10) {
-            "FixNavigationBarHaze: unexpected haze.x.W(k0) register layout."
-        }
+        val drawInstructions = mutableDraw.implementation!!
+            .instructions.toList()
 
-        val drawInstructions = drawImplementation.instructions.toList()
-
-        fun findDrawCallIndex(
-            methodReference: String
-        ): Int {
-            val matches = drawInstructions.indices.filter { index ->
-                val instruction = drawInstructions[index]
-
-                instruction.opcode == Opcode.INVOKE_VIRTUAL &&
-                    (instruction as? ReferenceInstruction)
-                        ?.reference
-                        ?.toString() == methodReference
-            }
-
-            require(matches.size == 1) {
-                "FixNavigationBarHaze: expected one call to $methodReference, found ${matches.size}."
-            }
-
-            return matches.single()
-        }
-
-        val g1Index = findDrawCallIndex(
-            "${HAZE_NODE_CLASS}->G1(Landroidx/compose/ui/node/k0;Z)V"
-        )
-
-        val d1Index = findDrawCallIndex(
-            "${HAZE_NODE_CLASS}->D1(Landroidx/compose/ui/node/k0;)V"
-        )
-
-        val drawContentReference =
-            "Lcom/x/urt/items/post/e;->h(Landroidx/compose/ui/node/k0;)V"
-
-        val drawContentIndices = drawInstructions.indices.filter { index ->
+        val g1Indices = drawInstructions.indices.filter { index ->
             val instruction = drawInstructions[index]
-
-            instruction.opcode == Opcode.INVOKE_STATIC &&
+            instruction.opcode == Opcode.INVOKE_VIRTUAL &&
                 (instruction as? ReferenceInstruction)
-                    ?.reference
-                    ?.toString() == drawContentReference
+                    ?.reference?.toString()?.contains(
+                        "$HAZE_NODE_CLASS->G1("
+                    ) == true
         }
 
-        require(drawContentIndices.size == 3) {
-            "FixNavigationBarHaze: unexpected drawContent() call layout."
+        require(g1Indices.size == 1) {
+            "FixNavigationBarHaze: expected exactly one G1 call in W()."
         }
 
-        // The last drawContent() call is the fallback reached when
-        // either T or U contains the packed NaN sentinel.
-        val invalidGeometryIndex = drawContentIndices.last()
-
-        // Generate logging code using only registers v3 and v4.
-        // These registers are dead at the selected call sites.
-        //
-        // p0 is never modified, and p1/v0 retain their original
-        // values for the subsequent drawing call.
-
-        fun drawPathLog(path: String): String =
-            """
-            invoke-static {p0}, Ljava/lang/System;->identityHashCode(Ljava/lang/Object;)I
-            move-result v3
-
-            invoke-static {v3}, Ljava/lang/Integer;->toString(I)Ljava/lang/String;
-            move-result-object v3
-
-            const-string v4, "$path node="
-            invoke-virtual {v4, v3}, Ljava/lang/String;->concat(Ljava/lang/String;)Ljava/lang/String;
-            move-result-object v3
-
-            const-string v4, "$DRAW_LOG_TAG"
-            invoke-static {v4, v3}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
-            """.trimIndent()
-
-        // Install hooks from the highest original index downward.
-        // This avoids shifting the positions of earlier call sites.
-
-        val drawHooks = listOf(
-            invalidGeometryIndex to drawPathLog("INVALID_GEOMETRY"),
-            d1Index to drawPathLog("D1"),
-            g1Index to drawPathLog("G1")
+        // Insert at the later index first.
+        mutableDraw.addInstructions(
+            g1Indices.single(),
+            safeDrawLog("NavHazeG1")
         )
 
-        drawHooks.sortedByDescending { it.first }.forEach { (index, code) ->
-            mutableDraw.addInstructions(index, code)
-        }
-
-        // Entry hook: v0/v1 are safe because the original first
-        // instruction initializes v0 immediately afterward.
-        //
-        // This records every invocation, including cases where the
-        // node is detached and no rendering path is executed.
-
+        // Method-entry diagnostics; both snippets use only dead locals.
         mutableDraw.addInstructions(
             0,
-            """
-            invoke-static {p0}, Ljava/lang/System;->identityHashCode(Ljava/lang/Object;)I
-            move-result v0
-
-            invoke-static {v0}, Ljava/lang/Integer;->toString(I)Ljava/lang/String;
-            move-result-object v0
-
-            const-string v1, "ENTER node="
-            invoke-virtual {v1, v0}, Ljava/lang/String;->concat(Ljava/lang/String;)Ljava/lang/String;
-            move-result-object v0
-
-            const-string v1, "$DRAW_LOG_TAG"
-            invoke-static {v1, v0}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
-            """.trimIndent()
+            safeDrawLog("NavHazeEnter") + "\n" + geometrySnapshotLog()
         )
 
-        debugNavHaze("Phase B3 draw diagnostics installed.")
+        // PHASE B3-SAFE — RENDER ACTIVATION
 
-        // ============================================================
-        // SAFETY
-        // ============================================================
+        val originalRender = hazeRenderMethod
+            ?: error("FixNavigationBarHaze: haze.x.G1() not found.")
 
-        // Preserve the original bottom bar visibility animation.
-        // Preserve native edge-to-edge behavior.
-        // Preserve the original HazeEffect rendering implementation.
-        // Do not modify k2.a() or inject additional Compose nodes.
-        //
-        // All Phase B3 changes are diagnostic only.
+        val mutableRender = mutableClassDefBy(originalRender.definingClass)
+            .methods.firstOrNull { it.toString() == originalRender.toString() }
+            ?: error("FixNavigationBarHaze: mutable haze.x.G1() not found.")
 
-        debugNavHaze("All seven diagnostic hooks installed.")
+        require(mutableRender.implementation?.registerCount == 12)
+
+        val renderInstructions = mutableRender.implementation!!
+            .instructions.toList()
+
+        // B5: Read I1's EXISTING move-result. Do not call I1 again.
+        val i1CallIndices = renderInstructions.indices.filter { index ->
+            val instruction = renderInstructions[index]
+            instruction.opcode == Opcode.INVOKE_VIRTUAL &&
+                (instruction as? ReferenceInstruction)?.reference?.toString() ==
+                "$HAZE_NODE_CLASS->I1()Z"
+        }
+        require(i1CallIndices.size == 1) {
+            "FixNavigationBarHaze: expected exactly one I1() call in G1()."
+        }
+        val i1ResultIndex = i1CallIndices.single() + 1
+        require(i1ResultIndex < renderInstructions.size &&
+            renderInstructions[i1ResultIndex].opcode == Opcode.MOVE_RESULT &&
+            (renderInstructions[i1ResultIndex] as? OneRegisterInstruction)?.registerA == 0
+        ) { "FixNavigationBarHaze: unexpected I1() result register in G1()." }
+
+        // B4.1: Keep the verified P1 hook. E1/F1 instrumentation is
+        // deferred until their exact call sites and register liveness
+        // are verified in the target APK.
+        val p1Indices = renderInstructions.indices.filter { index ->
+            val instruction = renderInstructions[index]
+            instruction.opcode == Opcode.INVOKE_VIRTUAL &&
+                (instruction as? ReferenceInstruction)
+                    ?.reference?.toString()?.contains(
+                        "$HAZE_NODE_CLASS->P1("
+                    ) == true
+        }
+
+        require(p1Indices.size == 1) {
+            "FixNavigationBarHaze: expected exactly one P1 call in G1()."
+        }
+
+        // Insert later index first to preserve original instruction positions.
+        mutableRender.addInstructions(
+            p1Indices.single(),
+            safeDrawLog("NavHazeActive")
+        )
+        mutableRender.addInstructions(
+            i1ResultIndex + 1,
+            rendererStateLog()
+        )
+
+        val originalCleanup = hazeCleanupMethod
+            ?: error("FixNavigationBarHaze: haze.x.B1() not found.")
+        val mutableCleanup = mutableClassDefBy(originalCleanup.definingClass)
+            .methods.firstOrNull { it.toString() == originalCleanup.toString() }
+            ?: error("FixNavigationBarHaze: mutable haze.x.B1() not found.")
+        require(mutableCleanup.implementation?.registerCount == 3)
+        mutableCleanup.addInstructions(0, cleanupEntryLog())
+
+        // PHASE B6 — FINAL DRAW-SITE SNAPSHOTS
+        val originalCallback = hazeCallbackMethod
+            ?: error("FixNavigationBarHaze: gestures.k.invoke(Object) not found.")
+        val mutableCallback = mutableClassDefBy(originalCallback.definingClass)
+            .methods.firstOrNull { it.toString() == originalCallback.toString() }
+            ?: error("FixNavigationBarHaze: mutable gestures.k.invoke() not found.")
+        val callbackImpl = mutableCallback.implementation
+            ?: error("FixNavigationBarHaze: gestures.k.invoke() implementation missing.")
+        require(callbackImpl.registerCount == 28) {
+            "FixNavigationBarHaze: unexpected gestures.k.invoke() register layout."
+        }
+        val callbackInstructions = callbackImpl.instructions.toList()
+        val drawCalls = callbackInstructions.indices.filter { index ->
+            callbackInstructions[index].opcode == Opcode.INVOKE_STATIC &&
+                (callbackInstructions[index] as? ReferenceInstruction)
+                    ?.reference?.toString() ==
+                "Landroidx/media3/common/audio/h;->q(" +
+                    "Landroidx/compose/ui/graphics/drawscope/d;" +
+                    "$GRAPHICS_LAYER_CLASS)V"
+        }
+        require(drawCalls.size == 3) {
+            "FixNavigationBarHaze: expected 3 Haze GraphicsLayer draw sites, found ${drawCalls.size}."
+        }
+        // The three calls are in the synthetic a=3 branch; the other
+        // switch arms have no GraphicsLayer draw call.
+        drawCalls.asReversed().forEachIndexed { site, index ->
+            mutableCallback.addInstructions(index, hazeLayerDrawLog(site))
+        }
+
+        debugNavHaze("Phase B6 diagnostics installed.")
     }
 }

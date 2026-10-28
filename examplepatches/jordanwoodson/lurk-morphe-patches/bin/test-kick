@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Check that Kick's code calls every expected extension hook, then run the actual injected bundle loader and the
-# player hooks (PlayerProbe) on the scratch Android emulator.
+# Check that Kick's code calls every expected extension hook, then run the actual injected bundle loader, the
+# player hooks (PlayerProbe) and the Lurk link in Linking.openURL (SettingsLinkProbe) on the scratch Android emulator.
 source "$(dirname "$0")/lib/common.sh"
 [[ $# == 1 && -f "$1" ]] || die "usage: bash bin/test-kick <patched.apk>"
 serial=${ANDROID_SERIAL:-emulator-5580}
@@ -14,7 +14,8 @@ mapfile -t hooks < <(sed -e 's/#.*//' -e 's/[[:space:]]//g' -e '/^$/d' "$ROOT/te
 python3 -I "$ROOT/tests/verify_extension_calls.py" "$1" "${hooks[@]}"
 
 javac --release 17 -classpath "$ANDROID_HOME/platforms/android-36/android.jar" \
-    -d "$out/classes" "$ROOT/tests/kick/BundleProbe.java" "$ROOT/tests/kick/PlayerProbe.java"
+    -d "$out/classes" "$ROOT/tests/kick/BundleProbe.java" "$ROOT/tests/kick/PlayerProbe.java" \
+    "$ROOT/tests/kick/SettingsLinkProbe.java"
 "$(build_tool d8)" --min-api 29 --lib "$ANDROID_HOME/platforms/android-36/android.jar" \
     --output "$out/dex" "$out/classes/"*.class
 (cd "$out/dex" && jar cf "$out/probe.jar" classes.dex)
@@ -36,3 +37,8 @@ printf '%s\n' "$result"
 [[ "$result" == *"PASS: Show video stats"* || "$result" == *"SKIP: Show video stats"* ]] &&
     [[ "$result" == *"PASS: Mute stitched live ads"* || "$result" == *"SKIP: Mute stitched live ads"* ]] &&
     [[ "$result" != *"Exception"* && "$result" != *"Error"* ]] || die "player probe did not pass"
+result=$(adb -s "$serial" shell "CLASSPATH=$remote/probe.jar:$remote/app.apk app_process /system/bin SettingsLinkProbe $remote/app.apk" 2>&1) ||
+    true
+printf '%s\n' "$result"
+[[ "$result" == *"PASS: Lurk in account menu link"* || "$result" == *"SKIP: Lurk in account menu"* ]] ||
+    die "settings link probe did not pass"

@@ -30,6 +30,7 @@ import android.preference.PreferenceCategory;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
+import android.provider.DocumentsContract;
 import android.preference.TwoStatePreference;
 import android.text.Layout;
 import android.text.Editable;
@@ -105,11 +106,13 @@ import app.hushgram.extension.instagram.misc.SettingsRows;
 import app.hushgram.extension.instagram.misc.SpoofLocation;
 import app.hushgram.extension.instagram.share.ShareSheetActions;
 import app.hushgram.extension.instagram.share.SharingDomain;
+import app.hushgram.extension.instagram.stories.StoryBarThickness;
 import app.hushgram.extension.instagram.stories.StoryEmoji;
 import app.hushgram.extension.instagram.stories.StoryFonts;
 import app.hushgram.extension.instagram.stories.StoryRingColor;
 import app.hushgram.extension.instagram.stories.StoryRingSize;
 import app.hushgram.extension.instagram.stories.StoryTimeMode;
+import app.hushgram.extension.instagram.stories.TrayBadge;
 import app.hushgram.extension.instagram.profile.FollowLabelPlace;
 import app.hushgram.extension.instagram.profile.ProfileTabs;
 import app.hushgram.extension.instagram.misc.GlassCorners;
@@ -144,6 +147,7 @@ import app.hushgram.extension.instagram.download.ReelSoundButton;
 import app.hushgram.extension.instagram.download.SaveControl;
 import app.hushgram.extension.instagram.download.SaveLeftovers;
 import app.hushgram.extension.instagram.download.SaveFolder;
+import app.hushgram.extension.instagram.download.SaveTree;
 import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.Logger;
 import app.hushgram.extension.shared.Utils;
@@ -222,6 +226,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private static final int PICK_FONT = 0x484d;
     private static final int PICK_STORY_FONT = 0x484e;
     private static final int PICK_STORY_EMOJI = 0x484f;
+    private static final int PICK_SAVE_FOLDER = 0x4850;
     /** Framework fragment callbacks run on the main thread. Never reuse a code across pages. */
     private static int documentSequence = PICK_FONT;
     private int documentRequest;
@@ -294,6 +299,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     /** The Downloads section, where the running saves are listed, or null when no download patch is in. */
     @Nullable
     PreferenceCategory downloads;
+    /** Choose a folder (#333) and Use Movies and Pictures, under Save folder. */
+    @Nullable Row saveTree;
+    @Nullable Row galleryFolders;
     @Nullable PreferenceCategory recovery;
     @Nullable private Row interruptedSaves;
     @Nullable private Row lastCarouselSave;
@@ -614,6 +622,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.STORY_RING && (Settings.STORY_RING_SCALE.key.equals(key)
                             || Settings.STORY_RING_COLOR.key.equals(key));
                     belongs |= family == PatchFamily.ROUNDED_POST_CORNERS && Settings.ROUNDED_CORNER_SIZE.key.equals(key);
+                    belongs |= family == PatchFamily.STORY_PROGRESS_BAR && Settings.STORY_BAR_THICKNESS.key.equals(key);
+                    belongs |= family == PatchFamily.STORIES_TRAY && Settings.TRAY_BADGE.key.equals(key);
                     belongs |= family == PatchFamily.REEL_TAP_AND_VOLUME && Settings.REEL_TAP_CHOICE.key.equals(key);
                     belongs |= family == PatchFamily.REEL_DECLUTTER && (Settings.BURN_IN_GUARD.key.equals(key)
                             || Settings.BURN_IN_WAIT.key.equals(key) || Settings.BURN_IN_STAY_DIM.key.equals(key));
@@ -689,20 +699,17 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 if (row.getIcon() == null) mark(row, SettingsIcons.forKey(key, iconOf(group)));
             }
             searchableRows.put(group, rows);
-            if (group != recovery) {
-                group.setKey(CATEGORY_ROW_KEY + iconOf(group));
-                mark(group, iconOf(group));
-                group.setOnPreferenceClickListener(tapped -> {
-                    toggleCategory(group);
-                    return true;
-                });
-            }
+            group.setKey(CATEGORY_ROW_KEY + iconOf(group));
+            mark(group, iconOf(group));
+            group.setOnPreferenceClickListener(tapped -> {
+                toggleCategory(group);
+                return true;
+            });
         }
         // After every row is known: a first open counts them all as seen, so a fresh install has no dots.
         NewRowDots.start(context, searchableRows);
         Set<String> available = new HashSet<>();
         for (PreferenceCategory group : searchableRows.keySet()) {
-            if (group == recovery) continue;
             available.add(group.getKey());
             NewRowDots.opens(group, group);
         }
@@ -1222,7 +1229,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         int matches = 0;
         for (Map.Entry<PreferenceCategory, List<Preference>> section : searchableRows.entrySet()) {
             PreferenceCategory group = section.getKey();
-            boolean expanded = !listing || group == recovery || expandedCategories.contains(group.getKey());
+            // Pause, the lock and an interrupted save stay in reach: their section opens and can't fold,
+            // and stays open after, so unlocking doesn't fold the row just tapped.
+            boolean held = listing && group == recovery && recoveryHeldOpen();
+            if (held) expandedCategories.add(group.getKey());
+            boolean expanded = !listing || expandedCategories.contains(group.getKey());
             boolean filled = false;
             for (Preference row : section.getValue()) {
                 String text = searchText(group.getTitle()) + " " + searchText(row.getTitle()) + " "
@@ -1248,7 +1259,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     else if (!expanded && lastCarouselSave.getParent() == group) group.removePreference(lastCarouselSave);
                 }
             }
-            if (group instanceof Heading) ((Heading) group).display(listing && group != recovery, expanded);
+            if (group instanceof Heading) ((Heading) group).display(listing && !held, expanded);
             if (filled) {
                 if (group.getParent() != screen) screen.addPreference(group);
             } else if (group.getParent() == screen) screen.removePreference(group);
@@ -1307,6 +1318,17 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         } finally {
             showingLock = false;
         }
+        // The lock can close on its own clock, and a save can stop while the page is away: refold.
+        if (recovery instanceof Heading && recovery.getParent() != null && categoryPages()
+                && searchQuery.trim().isEmpty() && ((Heading) recovery).collapsible == recoveryHeldOpen()) {
+            filterSettings();
+        }
+    }
+
+    /** Whether Pause and diagnostics must stay open: HushGram is paused, the lock holds, or a save was interrupted. */
+    private boolean recoveryHeldOpen() {
+        return HushgramPause.isPaused() || BaseSettings.PAUSED.savedValue() || SettingsLock.locked()
+                || interruptedSaves != null;
     }
 
     /** Greys out [row] while the settings are locked, unless it changes nothing or it's the lock itself. */
@@ -1594,6 +1616,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     void showConfiguration() {
         refreshFontRows();
         boolean busy = changingConfiguration || documentRequest != 0 || ExportStatus.CONFIGURATION.active() || Fonts.importActive();
+        showSaveTree(busy);
         if (exportConfiguration != null) {
             exportConfiguration.setEnabled(!busy);
             ExportStatus.State state = ExportStatus.CONFIGURATION.state();
@@ -1689,6 +1712,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             if (result == Activity.RESULT_OK) keepPickedFont(request, data == null ? null : data.getData(), revision);
             return;
         }
+        if (request == PICK_SAVE_FOLDER) {
+            documentRequest = 0;
+            documentCode = 0;
+            if (result == Activity.RESULT_OK) keepSaveFolder(data == null ? null : data.getData());
+            showConfiguration();
+            return;
+        }
         if (request != EXPORT_CONFIGURATION && request != IMPORT_CONFIGURATION) return;
         documentRequest = 0;
         documentCode = 0;
@@ -1743,6 +1773,98 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             showConfiguration();
             Utils.showToastLong(L10n.t("This phone has no file picker. Your settings haven't changed."));
         }
+    }
+
+    /** Choose a folder (#333): Android's folder picker, starting in the folder picked before. */
+    Row saveTreeRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(Settings.SAVE_TREE.key);
+        row.setPersistent(false);
+        row.actsAtOnce = true;
+        row.setTitle(L10n.t("Choose a folder"));
+        row.setOnPreferenceClickListener(p -> {
+            pickSaveFolder();
+            return true;
+        });
+        saveTree = row;
+        return row;
+    }
+
+    /** Use Movies and Pictures: forgets the picked folder, there only while one is picked. */
+    Row galleryFoldersRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(GALLERY_FOLDERS);
+        row.setPersistent(false);
+        row.actsAtOnce = true;
+        row.setTitle(L10n.t("Use Movies and Pictures"));
+        row.setSummary(L10n.t("Stop using the folder you picked. Saves go back to Movies and Pictures."));
+        row.setOnPreferenceClickListener(p -> {
+            if (!allowMutation() || !SaveTree.picked()) return true;
+            SaveTree.forget(p.getContext());
+            showConfiguration();
+            Utils.showToastShort(L10n.t("Saves go to Movies and Pictures again."));
+            return true;
+        });
+        galleryFolders = row;
+        return row;
+    }
+
+    static final String GALLERY_FOLDERS = "hushgram_gallery_folders";
+
+    private void pickSaveFolder() {
+        if (documentRequest != 0 || changingConfiguration || ExportStatus.CONFIGURATION.active() || Fonts.importActive()) return;
+        if (!allowMutation()) return;
+        if (documentSequence == Integer.MAX_VALUE) {
+            Utils.showToastLong(L10n.t("Couldn't start that. Try again."));
+            return;
+        }
+        documentRequest = PICK_SAVE_FOLDER;
+        documentCode = ++documentSequence;
+        showConfiguration();
+        Intent picker = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+                | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
+        Uri current = SaveTree.saved();
+        if (current != null) picker.putExtra(DocumentsContract.EXTRA_INITIAL_URI, SaveTree.root(current));
+        try {
+            startActivityForResult(picker, documentCode);
+        } catch (ActivityNotFoundException | SecurityException failure) {
+            documentRequest = 0;
+            documentCode = 0;
+            showConfiguration();
+            Utils.showToastLong(L10n.t("This phone has no file picker. Your settings haven't changed."));
+        }
+    }
+
+    /** The picker's answer [tree]: kept, and said where saves go now, or said it couldn't be. */
+    private void keepSaveFolder(@Nullable Uri tree) {
+        Context context = getContext();
+        if (context == null || !allowMutation()) return;
+        if (!SaveTree.keep(context, tree)) {
+            Utils.showToastLong(L10n.t("Couldn't use that folder. Saves still go where they did."));
+            return;
+        }
+        Utils.showToastShort(L10n.f("Folder set to %1$s.", L10n.isolate(SaveTree.label(context, tree))));
+    }
+
+    /** What the two folder rows say and allow now, for the picked folder or none. */
+    private void showSaveTree(boolean busy) {
+        Row row = saveTree;
+        if (row != null) {
+            Context context = row.getContext();
+            Uri picked = SaveTree.saved();
+            row.setEnabled(!busy);
+            if (!SaveTree.picked()) {
+                row.setSummary(L10n.t("Saves go to Movies and Pictures. Pick any folder instead, a hidden one too, "
+                        + "and every photo and video goes there."));
+            } else if (SaveTree.reachable(context)) {
+                row.setSummary(L10n.f("Photos and videos go to %1$s. Tap to pick another folder.",
+                        L10n.isolate(SaveTree.label(context, picked))));
+            } else {
+                row.setSummary(SaveTree.lostMessage(context, picked));
+            }
+        }
+        if (galleryFolders != null) galleryFolders.setEnabled(!busy && SaveTree.picked());
     }
 
     private static boolean isFontRequest(int request) {
@@ -3143,6 +3265,19 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     }
 
     /**
+     * Hands [changed] the activity under HushGram settings each time [row] is flipped. Settings are a
+     * dialog over Instagram's screen, which never resumes when they close, so a helper that decides as
+     * an activity resumes hears of the change here.
+     */
+    static SwitchPreference onFlip(SwitchPreference row, java.util.function.Consumer<Activity> changed) {
+        row.setOnPreferenceChangeListener((preference, value) -> {
+            changed.accept(activityOf(preference.getContext()));
+            return true;
+        });
+        return row;
+    }
+
+    /**
      * The quality a video save asks for. The list's values are the setting's own names, which is
      * what the shared page syncs a list by, and the summary says what the choice does.
      */
@@ -3646,6 +3781,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             case HUSHGRAM: return "HushGram";
             case DARK: return L10n.t("Instagram on black");
             case PLUM: return L10n.t("Instagram on plum");
+            case LIGHT: return L10n.t("Instagram in black on white");
             default: return L10n.t("Instagram's own");
         }
     }
@@ -3965,7 +4101,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return row;
     }
 
-    /** How round Rounded corners on posts cuts a post's corners. Its summary is the size chosen. */
+    /** How round Rounded corners on posts and on Reels cut their corners. Its summary is the size chosen. */
     static CornerSizeRow cornerSizeRow(Context context) {
         CornerSizeRow row = new CornerSizeRow(context);
         row.setKey(Settings.ROUNDED_CORNER_SIZE.key);
@@ -3988,6 +4124,56 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     /** What the list calls [size]. */
     static String cornerSizeLabel(CornerSize size) {
         return size == CornerSize.LARGE ? L10n.t("Large") : L10n.t("Small");
+    }
+
+    /** How much thicker Thicker story progress bar draws the bar. Its summary is the choice. */
+    static StoryBarRow storyBarRow(Context context) {
+        StoryBarRow row = new StoryBarRow(context);
+        row.setKey(Settings.STORY_BAR_THICKNESS.key);
+        row.setTitle(L10n.t("Thickness"));
+        row.setDialogTitle(L10n.t("Thickness"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        StoryBarThickness[] choices = StoryBarThickness.values();
+        CharSequence[] entries = new CharSequence[choices.length];
+        CharSequence[] values = new CharSequence[choices.length];
+        for (int i = 0; i < choices.length; i++) {
+            entries[i] = storyBarLabel(choices[i]);
+            values[i] = choices[i].name();
+        }
+        row.setEntries(entries);
+        row.setEntryValues(values);
+        row.setValue(Settings.STORY_BAR_THICKNESS.savedValue().name());
+        return row;
+    }
+
+    /** What the list calls [thickness]. */
+    static String storyBarLabel(StoryBarThickness thickness) {
+        return thickness == StoryBarThickness.THREE_TIMES ? L10n.t("Three times as thick") : L10n.t("Twice as thick");
+    }
+
+    /** Which stories Filter the Stories tray by verified accounts keeps (#340). Its summary is the choice. */
+    static TrayBadgeRow trayBadgeRow(Context context) {
+        TrayBadgeRow row = new TrayBadgeRow(context);
+        row.setKey(Settings.TRAY_BADGE.key);
+        row.setTitle(L10n.t("Stories to keep"));
+        row.setDialogTitle(L10n.t("Stories to keep"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        TrayBadge[] choices = TrayBadge.values();
+        CharSequence[] entries = new CharSequence[choices.length];
+        CharSequence[] values = new CharSequence[choices.length];
+        for (int i = 0; i < choices.length; i++) {
+            entries[i] = trayBadgeLabel(choices[i]);
+            values[i] = choices[i].name();
+        }
+        row.setEntries(entries);
+        row.setEntryValues(values);
+        row.setValue(Settings.TRAY_BADGE.savedValue().name());
+        return row;
+    }
+
+    /** What the list calls [badge]. */
+    static String trayBadgeLabel(TrayBadge badge) {
+        return badge == TrayBadge.VERIFIED ? L10n.t("Only verified accounts") : L10n.t("Only accounts that aren't verified");
     }
 
     /** How long Hold to download's fingers stay down. Its summary is the time chosen. */
@@ -6446,6 +6632,70 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 if (candidate.name().equals(value)) size = candidate;
             }
             setSummary(cornerSizeLabel(size));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    static final class StoryBarRow extends ListPreference {
+        StoryBarRow(Context context) {
+            super(context);
+        }
+
+        /** The summary is the thickness chosen. */
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            StoryBarThickness thickness = StoryBarThickness.TWICE;
+            for (StoryBarThickness candidate : StoryBarThickness.values()) {
+                if (candidate.name().equals(value)) thickness = candidate;
+            }
+            setSummary(storyBarLabel(thickness));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    static final class TrayBadgeRow extends ListPreference {
+        TrayBadgeRow(Context context) {
+            super(context);
+        }
+
+        /** The summary is the choice. */
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            TrayBadge badge = TrayBadge.UNVERIFIED;
+            for (TrayBadge candidate : TrayBadge.values()) {
+                if (candidate.name().equals(value)) badge = candidate;
+            }
+            setSummary(trayBadgeLabel(badge));
         }
 
         @Override

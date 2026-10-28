@@ -88,6 +88,26 @@ internal object EdgeSpeedupReleaseFingerprint : Fingerprint(
 )
 
 /**
+ * The hold gesture's touch listener: the feed's onTouch that hands the finger's position to the
+ * edge speed-up ability, (F, F)V. It sees every move while the video is held (it reads them for
+ * the pull-down lock), and no other onTouch calls the ability that way.
+ */
+internal fun Method.callsEdgeSpeedupAbility() = implementation?.instructions?.any { instruction ->
+    instruction.getReference<MethodReference>()?.let {
+        it.definingClass.endsWith(EDGE_SPEEDUP_ABILITY) && it.parameterTypes == listOf("F", "F") && it.returnType == "V"
+    } == true
+} == true
+
+internal const val EDGE_SPEEDUP_ABILITY = "/feed/longvideo/edgespeedup/EdgeSpeedupAbility;"
+
+internal object EdgeSpeedupTouchFingerprint : Fingerprint(
+    name = "onTouch",
+    returnType = "Z",
+    parameters = listOf("Landroid/view/View;", "Landroid/view/MotionEvent;"),
+    custom = { method, _ -> method.callsEdgeSpeedupAbility() },
+)
+
+/**
  * The feed's receiver for the event the press method posts: it reads the event's map and
  * shows either the plain speed banner or, with the lock on, the lock banner. The map's keys
  * are read here and nowhere else together.

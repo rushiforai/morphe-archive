@@ -12,10 +12,24 @@ In addition, patches for some apps contain additional features that were not pre
 
 ### All clients
 * Client ID, redirect URI and user agent are all patchable.
-    * By default, redirect URI and user agent are set to the values used by RedReader.
-    * See https://github.com/ReVanced/revanced-patches/pull/4551 for context.
+    * By default, `Spoof client` uses RedReader 1.27's client ID, redirect URI and user agent. Leave the OAuth client ID option empty to use its default.
+    * Custom patch options override these defaults. In Boost 1.14.0 and up, saved values in the native API settings override the patch-provided defaults.
 
 ### Boost for Reddit
+* All Boost patches are selected by default. Individual patches can be deselected before patching and also disabled in the app settings. Patch-selection defaults do not change saved settings or runtime preference defaults.
+* **Fix profile About scrolling** prevents the first swipe from stopping early while the profile header is expanded. Nested scrolling is disabled only for the About tab's inner lists; their horizontal scrolling and other profile tabs are unchanged.
+* **Log exceptions** records errors reported through Boost's existing exception handler to a private file instead of showing error toasts. It also depends on Morphe's upstream fatal-crash logger. **Settings > Morphe > Exception log** lists non-fatal reports, with **Fatal crash logs** alongside it in Diagnostics.
+    * Logs are excluded from Android app backups. Common credential-bearing lines are redacted from non-fatal logs (crash logs have no filtering), but other personal or request data can remain, so review saved copies before sharing.
+    * If app initialization or private storage is unavailable, logging failures are reported to Logcat without showing a toast.
+* **Import and export OAuth tokens** adds an editable JSON field and a **Save** button under **Settings > Morphe > OAuth tokens**. It displays the selected account's tokens for copying. Replace or edit the JSON to sign in or add an account without the browser login flow. There are no file import/export controls.
+    * **Save** checks the access-token owner with Reddit, validates the refresh token using Boost's configured OAuth client, and obtains fresh tokens before adding or updating the verified account. An expired access token can be restored with a valid refresh token. Boost then restarts with that account selected.
+    * Tokens are bound to their OAuth client. Configure the same client ID in Boost's native API settings before importing; the patch does not change API settings automatically.
+    * The JSON contains **unencrypted account credentials**. Copy it only into trusted apps and clear clipboard copies after use. The screen uses Android's secure-window flag to block screenshots and screen recording. The editor disables autofill, content capture and Android view-state saving, and asks keyboards not to learn its contents.
+    * The JSON requires string fields `access_token` and `refresh_token`. The selected account's JSON also includes `version: 1`, `username` and `client_id`; these metadata fields are optional when replacing tokens.
+* Image-upload features are separate patches:
+    * **Use Reddit for image uploads** selects Reddit hosting for image posts and galleries, without changing editor attachments.
+    * **Configure editor image hosting** adds an editor-hosting setting for Imgur Free or ImgBB. It does not change post or gallery hosting.
+    * **Preview images in the editor** adds previews of supported image URLs without changing upload providers.
 * The content of deleted Reddit posts and comments can be loaded from [Project Arctic Shift](https://github.com/ArthurHeitmann/arctic_shift).
     * This only works for text and images, and not all content can be restored. Videos are unlikely to be available.
     * Posts/comments that were deleted are marked as follows:
@@ -33,7 +47,6 @@ In addition, patches for some apps contain additional features that were not pre
         * Caching is implemented to try and limit the impact of this.
 * Imgur images and albums are automatically loaded from the Wayback Machine if a 404 is detected.
 * The context menu for posts now contains additional options for opening a site in the Wayback Machine or archive.is. This is useful for if the undeleting functionality has issues or you want to bypass a content paywall.
-* Fixes audio in downloaded videos for all videos using a proper MPD parser. The official fix fixes this for new videos but breaks it for older ones.
 
 ### reddit is fun
 * Imgur album URLs are rewritten to use the newer format.
@@ -44,34 +57,25 @@ In addition, patches for some apps contain additional features that were not pre
 1. Install [Morphe Manager](https://morphe.software/) and switch it to advanced/expert mode.
 2. Click [this link](https://morphe.software/add-source?github=wchill/patcheddit) to add this patch source to Morphe Manager.
 3. In Morphe Manager, find the app you want to patch.
-   * The supported apps are Boost, RIF, Sync, Relay, BaconReader, Joey, Infinity+, Continuum, and the cygnusx1 fork of Slide.
+   * The supported apps are Boost, RIF, Sync, Relay, BaconReader, Joey, and Infinity+.
 4. Get the APK for your preferred, supported 3rd party reddit app. If you don't have it, you can download it from in the app. APKM bundles (aka split APKs) will also work.
    * You should get the last available version for your reddit app, unless you are patching Relay. Relay v10.2.40 should be used instead of the latest.
-   * Continuum and the cygnusx1 fork of Slide need to be downloaded manually from their respective GitHub releases pages, as they are not available on the Play Store.
-       * Continuum: https://github.com/cygnusx-1-org/continuum/releases
-       * Slide (cygnusx1 fork): https://github.com/cygnusx-1-org/slide/releases
 5. Select desired patches, then patch.
-   * You will need to have an OAuth client ID from https://www.reddit.com/prefs/apps/, however reddit is no longer issuing new ones without an approval process that usually results in denial. In order to work around this, see the subsection `What if I don't have a client ID?` below.
-   * Make sure that the redirect URI in `Spoof client` options and on https://www.reddit.com/prefs/apps/ match. If you don't know what to set the redirect URI/user agent to, use the values from `What if I don't have a client ID?`
+   * `Spoof client` includes RedReader 1.27 defaults, so you do not need to supply a client ID. See `What if I don't have a client ID?` below.
+   * If you use a custom OAuth client ID, make sure its redirect URI matches the one in `Spoof client` options and on https://www.reddit.com/prefs/apps/.
 6. Once patching is complete, install the app and set it up as usual.
 
 For assistance with patching, please post a thread in [/r/Patcheddit](https://www.reddit.com/r/Patcheddit/) or [/r/MorpheApp](https://www.reddit.com/r/MorpheApp/). Only use the GitHub issue tracker for legitimate bug reports or feature requests.
 
 ### What if I don't have a client ID?
 
-You can use the client ID from other working 3rd party reddit apps (sadly not the official one). I recommend using the one from RedReader, as they have a special deal with reddit to use the API for free due to accessibility reasons. (The same steps can be followed with other apps such as Infinity+, but the developer will pay for the API calls you use and I do not recommend this.)
+Use the [RedReader 1.27](https://github.com/QuantumBadger/RedReader/releases/tag/v1.27) defaults included in `Spoof client`:
 
-1. Install RedReader from the Play Store and login with it.
-2. After you login, you should get an email with the title `You’ve authorized a new app in your Reddit account`. Look for `App ID`: in that email; note the random looking string as it will be used in the next step.
-   * You can uninstall RedReader after this if you want.
-3. In Morphe Manager, make sure you set these values for the `Spoof client` patch. Make sure there are no extra spaces or slashes at the end.
-   * `OAuth client ID` - set this to the random looking string from the email.
-   * `Redirect URI` - set this to `redreader://rr_oauth_redir` (or the appropriate value if you got the client ID from a different app).
-   * `User agent` - set this to `org.quantumbadger.redreader/1.25.1`. Ignore the description that says what the user agent format should be.
-   * Depending on your app, you may not need to set all of these values for it to work, but it is highly recommended that you do so.
-4. Select your other desired patches and patch as normal.
+* Leave `OAuth client ID` empty.
+* Keep `Redirect URI` set to `redreader://rr_oauth_redir`.
+* Keep `User agent` set to `org.quantumbadger.redreader/1.27`.
 
-If you're wondering why I'm asking you to go through these steps instead of just including the client ID in the patch, it's because including the client ID in the patch would make it accessible to web scrapers and would likely result in the client ID being revoked, breaking the patch for everyone.
+For another client's credentials, enter its client ID and matching redirect URI and user agent instead.
 
 ### Resolving login problems
 
@@ -112,7 +116,6 @@ I get a `null: null` error when I open the app
 * Your client ID is incorrect, check that you copied it correctly.
 
 
-
 ## 🧑‍💻 Development
 
 To develop and release Patcheddit, some things need to be considered:
@@ -127,6 +130,26 @@ and updating the version of Patcheddit. It is triggered by pushing to the `dev` 
 The workflow uses the `publish` task to publish the release of Patcheddit
 - The `buildAndroid` task is used to build Patcheddit so that it can be used on Android.
 The `publish` task depends on the `buildAndroid` task, so it will be run automatically when publishing a release.
+
+### Updating Boost bindings
+
+Boost settings XML and layouts are stored under `patches/src/main/resources/boost/`, in `xml/` and `layout/`. Each feature includes its files through the internal `AddResources` patch. Settings entries are imported from these XML resources only when their feature patch is selected; UI XML is not generated in Kotlin.
+
+The extension uses Jackson for all JSON processing, bundled and shadowed under `app.morphe.extension.boost.libraries`, with its APIs preserved during shrinking. It does not depend on Boost's R8-reduced JSON libraries or bundle Gson. Native JRAW JSON objects remain behind the `NativeJsonModel` / `NativeJsonNode` adapters; they are not cast to the private Jackson tree types. Boost's own JSON libraries and callers, and the patcher's build-time Gson dependency, are left unchanged.
+
+Boost's compile-only Kotlin API is in `extensions/boost/stub/src/main/kotlin`. Feature code uses stable class and member names; patches use the matching typed `BoostApi` catalog rather than loading Android stub classes on the patcher JVM:
+
+```kotlin
+val fingerprint = BoostApi.DrawerActivity.setupBottomNavigation.fingerprint()
+```
+
+`patches/src/main/resources/boost/bindings.json` contains the version-specific native targets. Its keys are stable adapter descriptors; its values are complete native class, method and field descriptors, including declaring owners. For an obfuscation-only update, change the target values and declared version, update `AppCompatibility`, and refresh the partial library `boost/mapping.txt` when needed. Do not rename the adapter API or feature code to match obfuscated symbols.
+
+`staticMethods` and `staticFields` describe the adapter API's dispatch. `injectedMethods` identifies bridges cloned from native factories. All targets, prototypes, dispatch kinds and instance receivers are checked against the input APK. Missing or conflicting bindings stop patching. Native signature or behavior changes can still require adapter or patch changes.
+
+Only the extension payload is rebound; the app is not deobfuscated, and placeholder stubs are never packaged. Native callbacks are renamed through the same bindings. Reflective field access uses `BoostFieldNames`, whose non-constant values are resolved during binding, so callers do not embed obfuscated names or precompute hashes for renamed strings.
+
+Extension preparation does not prune classes by reachability. It retains all payload classes except duplicate copies supplied by Boost itself. The final verifier also checks native app references to extension classes so a missing helper stops patching instead of causing a runtime class-loading failure.
 
 ## 📚 Everything else
 
@@ -152,5 +175,7 @@ Patcheddit is licensed under the [GNU General Public License v3.0](LICENSE), wit
   Derivatives must adopt a distinct identity unrelated to "Patcheddit".
 
 The Morphe project (https://github.com/MorpheApp) may use code from this project without displaying the attribution notice.
+
+The Boost for Reddit project (https://github.com/rubenmayayo/boost-for-reddit) is authorized to use any Patcheddit-originated source code under Apache 2.0 license terms.
 
 See the [LICENSE](LICENSE) file for the full GPLv3 terms and the [NOTICE](NOTICE) file for full conditions of GPLv3 Section 7

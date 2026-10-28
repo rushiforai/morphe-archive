@@ -67,7 +67,7 @@ val skipSilentPartsPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Skip silent parts",
     description = "Plays videos, reels and stories past the silent stretches in their sound, so talks and how-tos " +
-        "get to the point sooner. Starts off. Turn it on in Hushfacebook settings > Playback. With Resume long " +
+        "get to the point sooner. Starts off. Turn it on in Hushfacebook settings > Video and audio. With Resume long " +
         "videos patched too, a video's menu can keep the silent parts in that one video.",
 ) {
     category("Playback")

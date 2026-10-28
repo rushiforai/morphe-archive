@@ -15,6 +15,9 @@ import java.util.Map;
 /** Adds an in-viewer rotate control and rotates only ChMate's image canvas. */
 public final class ImageViewerRotationButton {
     private static final int BUTTON_ID = 0x48415254;
+    static final String MENU_KEY = "imageViewerRotationInMenu";
+    private static final int ACTION_TAG = 0x48415256;
+    private static final int MENU_ID = 0x48415255;
     private static final String LOG_TAG = "HaiagaruImageRotate";
 
     private ImageViewerRotationButton() {}
@@ -50,8 +53,37 @@ public final class ImageViewerRotationButton {
         root.addView(button, params);
         button.bringToFront();
         android.util.Log.i(LOG_TAG, "Rotation button installed on " + root.getClass().getName());
-        button.setOnClickListener(new RotationClickListener(activity, root, imageViewClassName));
+        RotationClickListener action = new RotationClickListener(activity, root, imageViewClassName);
+        root.setTag(ACTION_TAG, action);
+        button.setOnClickListener(action);
         synchronizeControlsVisibility(activity, root, button);
+    }
+
+    /** Add to the native overflow without replacing its other commands. */
+    public static void prepareMenu(Activity activity, android.view.Menu menu) {
+        if (activity == null || menu == null) return;
+        android.view.MenuItem item = menu.findItem(MENU_ID);
+        if (item == null) {
+            item = menu.add(android.view.Menu.NONE, MENU_ID, android.view.Menu.NONE, "画像を右に回転");
+            item.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER);
+            item.setOnMenuItemClickListener(selected -> {
+                rotate(activity);
+                return true;
+            });
+        }
+        item.setVisible(Haiagaru.imageRotationButtonEnabled(activity)
+                && VideoViewerSettings.prefs(activity).getBoolean(MENU_KEY, true));
+    }
+
+    public static boolean handleMenu(Activity activity, android.view.MenuItem item) {
+        if(item == null || item.getItemId() != MENU_ID) return false;
+        rotate(activity); return true;
+    }
+    private static void rotate(Activity activity) {
+        View root = activity.findViewById(android.R.id.content);
+        if(root == null) return;
+        Object action = root.getTag(ACTION_TAG);
+        if(action instanceof RotationClickListener) ((RotationClickListener)action).onClick(root);
     }
 
     /** Follow the native counter's visibility without replacing image gesture listeners. */
@@ -64,7 +96,7 @@ public final class ImageViewerRotationButton {
 
             @Override
             public boolean onPreDraw() {
-                if (!Haiagaru.imageRotationButtonEnabled(activity)) {
+                if (!Haiagaru.imageRotationButtonEnabled(activity) || VideoViewerSettings.prefs(activity).getBoolean(MENU_KEY, true)) {
                     if (button.getVisibility() != View.GONE) button.setVisibility(View.GONE);
                     return true;
                 }

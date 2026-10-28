@@ -730,8 +730,9 @@ public final class TwitchEmotes {
                 if (!TwitchThirdParty.beginObject(reader)) continue;
                 String id = null;
                 String code = null;
-                // data.animated and the first file's size, as { animated, ratio }.
+                // data.animated and the first file's size, as { animated, ratio }, and data.owner's name.
                 float[] data = {0, 0};
+                String[] owner = {null};
                 while (reader.hasNext()) {
                     switch (reader.nextName()) {
                         case "id":
@@ -741,14 +742,14 @@ public final class TwitchEmotes {
                             code = TwitchThirdParty.string(reader);
                             break;
                         case "data":
-                            parse7tvData(reader, data);
+                            parse7tvData(reader, data, owner);
                             break;
                         default:
                             reader.skipValue();
                     }
                 }
                 reader.endObject();
-                add(out, SEVENTV, id, code, data[0] != 0, data[1]);
+                add(out, SEVENTV, id, code, data[0] != 0, data[1], owner[0]);
             }
             reader.endArray();
         }
@@ -756,13 +757,17 @@ public final class TwitchEmotes {
         return out.toArray(NONE);
     }
 
-    /** 7TV emote data: { "animated", "host": { "files": [ { "width", "height" } ] } }. */
-    private static void parse7tvData(JsonReader reader, float[] data) throws IOException {
+    /**
+     * 7TV emote data: { "animated", "owner": { "display_name" }, "host": { "files": [ { "width", "height" } ] } }.
+     */
+    private static void parse7tvData(JsonReader reader, float[] data, String[] owner) throws IOException {
         if (!TwitchThirdParty.beginObject(reader)) return;
         while (reader.hasNext()) {
             String name = reader.nextName();
             if ("animated".equals(name)) {
                 data[0] = TwitchThirdParty.bool(reader) ? 1 : 0;
+            } else if ("owner".equals(name)) {
+                owner[0] = displayName(reader, "display_name");
             } else if ("host".equals(name)) {
                 if (!TwitchThirdParty.beginObject(reader)) continue;
                 while (reader.hasNext()) {
@@ -826,6 +831,7 @@ public final class TwitchEmotes {
             if (!TwitchThirdParty.beginObject(reader)) continue;
             String id = null;
             String code = null;
+            String owner = null;
             boolean animated = false;
             boolean modifier = false;
             while (reader.hasNext()) {
@@ -842,13 +848,17 @@ public final class TwitchEmotes {
                     case "modifier":
                         modifier = TwitchThirdParty.bool(reader);
                         break;
+                    case "user":
+                        // Shared emotes: who uploaded it. A channel's own emotes have no user.
+                        owner = displayName(reader, "displayName");
+                        break;
                     default:
                         reader.skipValue();
                 }
             }
             reader.endObject();
             // Modifiers (w!, h!, ...) change the emote next to them in BetterTTV's own client; skip them.
-            if (!modifier) add(out, BTTV, id, code, animated, 0);
+            if (!modifier) add(out, BTTV, id, code, animated, 0, owner);
         }
         reader.endArray();
     }
@@ -905,6 +915,7 @@ public final class TwitchEmotes {
                 if (!TwitchThirdParty.beginObject(reader)) continue;
                 String id = null;
                 String code = null;
+                String owner = null;
                 boolean animated = false;
                 boolean modifier = false;
                 long width = 0;
@@ -916,6 +927,9 @@ public final class TwitchEmotes {
                             break;
                         case "name":
                             code = TwitchThirdParty.string(reader);
+                            break;
+                        case "owner":
+                            owner = displayName(reader, "display_name");
                             break;
                         case "width":
                             width = TwitchThirdParty.number(reader, 0);
@@ -935,14 +949,27 @@ public final class TwitchEmotes {
                     }
                 }
                 reader.endObject();
-                if (!modifier) add(out, FFZ, id, code, animated, width > 0 && height > 0 ? (float) width / height : 0);
+                if (!modifier) add(out, FFZ, id, code, animated, width > 0 && height > 0 ? (float) width / height : 0, owner);
             }
             reader.endArray();
         }
         reader.endObject();
     }
 
-    private static void add(List<Emote> out, int provider, String id, String code, boolean animated, float ratio) {
+    /** An object's {@code field} string (a display name), or null; skips anything that isn't an object. */
+    private static String displayName(JsonReader reader, String field) throws IOException {
+        if (!TwitchThirdParty.beginObject(reader)) return null;
+        String name = null;
+        while (reader.hasNext()) {
+            if (field.equals(reader.nextName())) name = TwitchThirdParty.string(reader);
+            else reader.skipValue();
+        }
+        reader.endObject();
+        return name == null || name.isEmpty() || name.length() > 64 ? null : name;
+    }
+
+    private static void add(List<Emote> out, int provider, String id, String code, boolean animated, float ratio,
+                            String owner) {
         if (id == null || code == null || id.isEmpty() || id.length() > 64 || code.isEmpty() || code.length() > 100) return;
         for (int i = 0; i < id.length(); i++) {
             char c = id.charAt(i);
@@ -952,8 +979,52 @@ public final class TwitchEmotes {
             if (Character.isWhitespace(code.charAt(i))) return;
         }
         char tag = TAGS[provider];
-        out.add(new Emote(code, ID_PREFIX + tag + (animated ? 'a' : 's') + '_' + id));
+        out.add(new Emote(code, ID_PREFIX + tag + (animated ? 'a' : 's') + '_' + id, owner));
         if (ratio > 0 && (ratio < 0.95f || ratio > 1.05f)) RATIOS.put(tag + id, ratio);
+    }
+
+    /**
+     * Emote and badge info: { service name, "channel" or "global" (null if no list holds it now), owner's name or
+     * null } of the third-party emote whose image URL (as {@link #url} made it) is {@code url}, or null for any
+     * other URL. The channel whose chat connected last is preferred, then any channel, then the global list.
+     */
+    static String[] describe(String url) {
+        if (url == null) return null;
+        int provider;
+        String cdn;
+        if (url.startsWith(CDN_7TV)) {
+            provider = SEVENTV;
+            cdn = CDN_7TV;
+        } else if (url.startsWith(CDN_BTTV)) {
+            provider = BTTV;
+            cdn = CDN_BTTV;
+        } else if (url.startsWith(CDN_FFZ)) {
+            provider = FFZ;
+            cdn = CDN_FFZ;
+        } else {
+            return null;
+        }
+        int end = url.indexOf('/', cdn.length());
+        if (end <= cdn.length()) return null;
+        String suffix = "_" + url.substring(cdn.length(), end);
+        Object current = chatChannel;
+        String preferred = current == null ? null : key(provider, String.valueOf(current));
+        String[] found = null;
+        int rank = 0;
+        for (Map.Entry<String, Entry> entry : SETS.entrySet()) {
+            String key = entry.getKey();
+            if (key.charAt(0) != TAGS[provider]) continue;
+            int candidate = key.equals(preferred) ? 3 : key.endsWith(":" + GLOBAL) ? 1 : 2;
+            if (candidate <= rank) continue;
+            for (Emote emote : entry.getValue().emotes) {
+                if (emote.id.endsWith(suffix) && emote.id.length() == ID_PREFIX.length() + 2 + suffix.length()) {
+                    found = new String[]{NAMES[provider], candidate == 1 ? "global" : "channel", emote.owner};
+                    rank = candidate;
+                    break;
+                }
+            }
+        }
+        return found != null ? found : new String[]{NAMES[provider], null, null};
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -1020,10 +1091,13 @@ public final class TwitchEmotes {
     static final class Emote {
         final String code;
         final String id;
+        /** The display name of who made or added it, when the service's list says; else null. */
+        final String owner;
 
-        Emote(String code, String id) {
+        Emote(String code, String id, String owner) {
             this.code = code;
             this.id = id;
+            this.owner = owner;
         }
     }
 

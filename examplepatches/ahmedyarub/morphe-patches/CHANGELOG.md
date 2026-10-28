@@ -1,3 +1,15 @@
+## [1.21.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.20.1...v1.21.0) (2026-10-27)
+
+### ✨ New Features
+
+* **Instagram:** Support 453.0.0.55.79 ([59da263](https://github.com/ahmedyarub/morphe-patches/commit/59da26339bb0da7a72a4314f820764d336d209f8))
+
+## [1.21.0-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.20.1...v1.21.0-dev.1) (2026-10-27)
+
+### ✨ New Features
+
+* **Instagram:** Support 453.0.0.55.79 ([59da263](https://github.com/ahmedyarub/morphe-patches/commit/59da26339bb0da7a72a4314f820764d336d209f8))
+
 ## [1.20.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.20.0...v1.20.1) (2026-10-24)
 
 ### 🐛 Bug Fixes

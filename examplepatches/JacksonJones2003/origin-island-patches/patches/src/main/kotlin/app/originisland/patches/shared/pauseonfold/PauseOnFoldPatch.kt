@@ -3,6 +3,7 @@ package app.originisland.patches.shared.pauseonfold
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.originisland.patches.shared.Constants.COMPATIBILITY_LASTWAVE
 import app.originisland.patches.shared.Constants.COMPATIBILITY_YOUTUBE
 import app.originisland.patches.shared.Constants.COMPATIBILITY_YOUTUBE_MUSIC
 import app.originisland.patches.shared.mediasession.MediaSessionSetPlaybackStateFingerprint
@@ -18,7 +19,7 @@ val pauseOnFoldPatch = bytecodePatch(
     description = "Pauses what plays when a foldable phone is closed.",
     default = true
 ) {
-    compatibleWith(COMPATIBILITY_YOUTUBE, COMPATIBILITY_YOUTUBE_MUSIC)
+    compatibleWith(COMPATIBILITY_YOUTUBE, COMPATIBILITY_YOUTUBE_MUSIC, COMPATIBILITY_LASTWAVE)
 
     extendWith("extensions/extension.mpe")
 

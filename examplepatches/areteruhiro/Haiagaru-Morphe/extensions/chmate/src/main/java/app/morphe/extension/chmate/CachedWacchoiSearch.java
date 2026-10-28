@@ -32,6 +32,7 @@ public final class CachedWacchoiSearch {
             LinearLayout root = new LinearLayout(context); root.setOrientation(LinearLayout.VERTICAL);
             int[] colors = HaiagaruUi.toolTabHeaderColors(context);
             root.setBackgroundColor(colors[0]);
+            CachedSearchOrder.addControl(root,fragment,nativeView);
             if (!fragment.getClass().getName().equals("jp.syoboi.a2chMate.fragment.SearchFragment")) {
                 // Modern native search is edge-to-edge. Reserve the bars for the
                 // wrapper control, then pass reduced insets to the Compose child.
@@ -274,7 +275,7 @@ public final class CachedWacchoiSearch {
         return text == null ? "" : text.toString().replaceAll("\\s+", "").trim();
     }
     private interface Query { String get() throws Exception; void set(String value) throws Exception; }
-    private static boolean refreshComposeForm(View view) {
+    static boolean refreshComposeForm(View view) {
         try {
             Method redraw = view.getClass().getMethod("haiagaruRefreshCachedSearchForm");
             Object previous = view.getTag(REFRESH_TAG);

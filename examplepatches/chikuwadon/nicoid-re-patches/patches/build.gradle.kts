@@ -188,7 +188,7 @@ val verifyPopupCallbacks = tasks.register<JavaExec>("verifyPopupCallbacks") {
     args(layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile.absolutePath)
 }
 val compileMaintenanceVerification = tasks.register<JavaCompile>("compileMaintenanceVerification") {
-    source(rootProject.file("porting/tests/VerifyMaintenancePayload.java"), rootProject.file("porting/tests/VerifyIssueSettingsPayload.java"))
+    source(rootProject.file("porting/tests/VerifyInvocationContracts.java"), rootProject.file("porting/tests/VerifyMaintenancePayload.java"), rootProject.file("porting/tests/VerifyIssueSettingsPayload.java"))
     classpath = sourceSets["main"].compileClasspath
     destinationDirectory.set(layout.buildDirectory.dir("nicoid/maintenance-verification-classes"))
     options.release.set(8)
@@ -204,6 +204,13 @@ val verifyExplicitQueues = tasks.register<JavaExec>("verifyExplicitQueues") {
     classpath = files(compileMaintenanceVerification.flatMap { it.destinationDirectory }) + sourceSets["main"].compileClasspath
     mainClass.set("VerifyIssueSettingsPayload")
     args(rootProject.file("patches/src/main/resources/nicoid/method-delta.dex").absolutePath)
+}
+val verifyInvocationContracts = tasks.register<JavaExec>("verifyInvocationContracts") {
+    dependsOn(mergeNicoidHelpersDex, compileMaintenanceVerification)
+    classpath = files(compileMaintenanceVerification.flatMap { it.destinationDirectory }) + sourceSets["main"].compileClasspath
+    mainClass.set("VerifyInvocationContracts")
+    args(layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile.absolutePath,
+        rootProject.file("patches/src/main/resources/nicoid/method-delta.dex").absolutePath)
 }
 val compileSettingsIntegrityTests = tasks.register<JavaCompile>("compileSettingsIntegrityTests") {
     dependsOn(compileNicoidHelpers)
@@ -270,7 +277,7 @@ val verifyHistorySort = tasks.register<JavaExec>("verifyHistorySort") {
     mainClass.set("e.e.a.HistorySortRulesTest")
 }
 val prepareNicoidHelpers = tasks.register("prepareNicoidHelpers") {
-    dependsOn(verifyPopupCallbacks, verifyDialogArguments, verifyListClickRouting, verifyMaintenancePayload, verifyExplicitQueues, verifySettingsIntegrity, verifySeriesQueue, verifyCacheMode, verifyPlaybackMenu, verifyHistorySort, verifyHistoryMetadata, verifyHistorySortOptions, verifyOtherSettingsOrder, verifyCrashDiagnostics)
+    dependsOn(verifyInvocationContracts, verifyPopupCallbacks, verifyDialogArguments, verifyListClickRouting, verifyMaintenancePayload, verifyExplicitQueues, verifySettingsIntegrity, verifySeriesQueue, verifyCacheMode, verifyPlaybackMenu, verifyHistorySort, verifyHistoryMetadata, verifyHistorySortOptions, verifyOtherSettingsOrder, verifyCrashDiagnostics)
     doLast {
         val dex = layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile
         check(dex.isFile && dex.readBytes().take(4).toByteArray().contentEquals(byteArrayOf(0x64, 0x65, 0x78, 0x0a))) {

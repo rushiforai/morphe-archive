@@ -341,6 +341,18 @@ public class ChatTypeFoldersTest {
         assertEquals(REMOVED, turn(false));
     }
 
+    @Test public void foldersKeepTheirTypeOrderWhateverOrderTheServerAnswersIn() {
+        telegram.with(0, 0, "All chats");
+        telegram.offline = true;
+        turn(true);
+        // Seen on a phone: the answers came back Bots, Private, Channels, Groups, and the tabs followed them.
+        Collections.reverse(telegram.held);
+
+        assertEquals(MADE, reconnect());
+        assertEquals(Arrays.asList(0, 2, 3, 4, 5), ids(telegram.folders));
+        assertEquals(Collections.singletonList(Arrays.asList(0, 2, 3, 4, 5)), telegram.orders);
+    }
+
     @Test public void aFolderLimitTelegramsServerKeepsTurnsTheRestDownLater() {
         telegram.offline = true;
         turn(true);

@@ -11,6 +11,7 @@ import app.morphe.patches.facebook.feed.BASE_MODEL_WITH_TREE
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.GRAPHQL_STORY
 import app.morphe.patches.facebook.feed.TREE_JNI
+import app.morphe.patches.facebook.feed.aidetected.GRAPHQL_STORY_ATTACHMENT
 import app.morphe.patches.facebook.feed.aidetected.attachmentsAccessors
 import app.morphe.patches.facebook.feed.hasPublicTypeTag
 import app.morphe.patches.facebook.feed.resolveStatic
@@ -37,7 +38,7 @@ import org.junit.Test
  * and skips without it.
  */
 class PostTextFixtureTest {
-    private val kept = setOf(GRAPHQL_STORY, GRAPHQL_TEXT_WITH_ENTITIES, BASE_MODEL_WITH_TREE, TREE_JNI)
+    private val kept = setOf(GRAPHQL_STORY, GRAPHQL_STORY_ATTACHMENT, GRAPHQL_TEXT_WITH_ENTITIES, BASE_MODEL_WITH_TREE, TREE_JNI)
 
     /** The static `(BaseModelWithTree)String` helpers [toString] calls, by reference. */
     private fun staticStringReaders(toString: Method): List<MethodReference> =
@@ -113,6 +114,9 @@ class PostTextFixtureTest {
                 assertEquals("${bundle.name}: ${actors.map { it.name }}", 1, actors.size)
                 val attachments = attachmentsAccessors(story)
                 assertEquals("${bundle.name}: ${attachments.map { it.name }}", 1, attachments.size)
+                // A link card's headline (#255): the attachment's one accessor of its action links.
+                val actionLinks = actionLinksAccessors(kept(GRAPHQL_STORY_ATTACHMENT))
+                assertEquals("${bundle.name}: ${actionLinks.map { it.name }}", 1, actionLinks.size)
 
                 val context = PatchContexts.of(classes.values + owners.values + ExtensionDex.classDef(POST_TEXT) +
                     ExtensionDex.classDef(POST_SOURCES) + ExtensionDex.classDef(SETTINGS_STATUS))
@@ -120,6 +124,7 @@ class PostTextFixtureTest {
                 val stubs = listOf(
                     Triple(POST_TEXT, MESSAGE_STUB, message),
                     Triple(POST_TEXT, ATTACHED_STORY_STUB, attached.single()),
+                    Triple(POST_TEXT, ACTION_LINKS_STUB, actionLinks.single()),
                     Triple(POST_SOURCES, ACTORS_STUB, actors.single()),
                     Triple(POST_SOURCES, SOURCE_ATTACHMENTS_STUB, attachments.single()),
                 )
@@ -128,7 +133,7 @@ class PostTextFixtureTest {
                         .implementation!!.instructions.toList()
                     assertEquals("${bundle.name}: $stub's first instruction", Opcode.CHECK_CAST, body[0].opcode)
                     val call = (body[1] as ReferenceInstruction).reference as MethodReference
-                    assertEquals("${bundle.name}: what $stub calls", "$GRAPHQL_STORY->${accessor.name}()${accessor.returnType}",
+                    assertEquals("${bundle.name}: what $stub calls", "${accessor.definingClass}->${accessor.name}()${accessor.returnType}",
                         "${call.definingClass}->${call.name}(${call.parameterTypes.joinToString("")})${call.returnType}")
                     assertEquals(Opcode.RETURN_OBJECT, body[3].opcode)
                 }
@@ -137,8 +142,8 @@ class PostTextFixtureTest {
                 assertEquals("${bundle.name}: postWords() answers true", listOf(Opcode.CONST_4, 1),
                     listOf(answer.opcode, (answer as NarrowLiteralInstruction).narrowLiteral))
 
-                checked[version] = "${message.name}(), ${attached.single().name}(), ${actors.single().name}() and " +
-                    "${attachments.single().name}()"
+                checked[version] = "${message.name}(), ${attached.single().name}(), ${actors.single().name}(), " +
+                    "${attachments.single().name}() and ${actionLinks.single().name}()"
             }
         }
         assertEquals("a declared build went unchecked: $checked", versions, checked.keys)

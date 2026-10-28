@@ -47,7 +47,7 @@ val hideTabsPatch = bytecodePatch(
     name = "Hide tabs",
     description = "Takes the tabs you pick off the tab bar, such as Friends, Marketplace, Groups, Gaming or " +
         "Events, so the bar only has what you use. Each page stays in the Menu. Starts off. Turn on the ones you " +
-        "want in Hushfacebook settings > Appearance, then restart Facebook.",
+        "want in Hushfacebook settings > Tabs and navigation, then restart Facebook.",
     default = true,
 ) {
     category("Navigation")

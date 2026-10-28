@@ -53,6 +53,8 @@ import app.morphe.extension.facebook.download.CommentGifForTests;
 import app.morphe.extension.facebook.download.MediaDownload;
 import app.morphe.extension.facebook.download.PhotoMenuItemForTests;
 import app.morphe.extension.facebook.download.PlayerSourcesForTests;
+import app.morphe.extension.facebook.download.PostActionButtonsForTests;
+import app.morphe.extension.facebook.download.ReelCaptionForTests;
 import app.morphe.extension.facebook.download.ReelDownload;
 import app.morphe.extension.facebook.download.VideoMenuItemForTests;
 import app.morphe.extension.facebook.emoji.SystemEmoji;
@@ -237,6 +239,8 @@ public class ColdStartHooksTest {
         assertFalse("a search page built before the context lost its ad", SearchAdFilterForTests.dropsAnAd());
         assertFalse("a profile row drawn before the context was left out", ProfileAdFilterForTests.hidesASponsoredStory());
         assertFalse("a note bubble laid out before the context was left out", ProfileNotesForTests.hidesANote());
+        assertFalse("a post row built before the context got Save", PostActionButtonsForTests.addsSave());
+        assertFalse("a post row built before the context got Download", PostActionButtonsForTests.addsDownload());
         assertFalse("a Marketplace feed query sent before the context skipped its ads",
                 MarketplaceAdFilterForTests.asksTheFeedToSkipAds());
         assertFalse("a Marketplace ads query sent before the context was held back",
@@ -250,6 +254,7 @@ public class ColdStartHooksTest {
         assertFalse(MediaDownload.offersSave(false));
         assertTrue("Facebook's own yes has to stand", MediaDownload.offersSave(true));
         assertFalse(ReelDownload.showsButton());
+        assertFalse("a reel's More sheet built before the context got Copy caption", ReelCaptionForTests.addsTheRow());
         assertNull(ReelDeclutter.filterChips(Arrays.asList(new TypedFeedUnit("XFBFBShortsRemixAttribution"))));
         assertFalse("a Reels tab audio line drawn before the context came off", ReelDeclutter.hideAudioLine());
         assertFalse("a slow connection message posted before the context was held back",
@@ -373,6 +378,8 @@ public class ColdStartHooksTest {
                 CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS));
         assertFalse("a feed post drawn before the context lost its inline comments",
                 CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS));
+        assertFalse("a comment drawn before the context lost its dislike",
+                CommentSheetOptions.holdsCommentButton(CommentSheetOptions.DOWNVOTE));
         assertFalse("a comment with a shop link drawn before the context was left out",
                 CommentSheetOptions.hidesComment(new GraphQLComment("https://s.shopee.vn/9zKs")));
         assertFalse("a comment sheet built before the context opened at full height",

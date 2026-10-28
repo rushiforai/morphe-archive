@@ -39,6 +39,34 @@ public final class VoicePlayer {
         }
     }
 
+    /**
+     * Asked where the full player shows Add to Profile, right after it reads whether it shows your
+     * own profile list, which hides that button and Remove from Profile. A voice message the switch
+     * put in the player can't go on a profile, so the player hides them for it too.
+     *
+     * @param mine non-zero when the player shows your own profile list
+     * @return whether the player hides both profile buttons
+     */
+    public static boolean keepsProfileOut(int mine) {
+        if (mine != 0) return true;
+        try {
+            Object playing = playing();
+            if (playing == null) return false;
+            if (!hidesProfile(false, isMusic(playing), isVoice(playing), once(playing))) return false;
+            HookStatus.counted(FamilyNames.VOICE_MUSIC_PLAYER, "no Add to Profile for voice");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.VOICE_MUSIC_PLAYER, "profile buttons", failure);
+            return false;
+        }
+    }
+
+    /** Your own list hides the profile buttons; so does a voice message, wherever the player shows one. */
+    static boolean hidesProfile(boolean mine, boolean music, boolean voice, boolean once) {
+        if (mine) return true;
+        return !music && plays(false, voice, once);
+    }
+
     /** Music always plays in the player; a voice message only with the switch on, and never a view-once one. */
     static boolean plays(boolean music, boolean voice, boolean once) {
         if (music) return true;
@@ -64,4 +92,7 @@ public final class VoicePlayer {
 
     /** Whether the voice message plays once and disappears. Replaced when patching. */
     public static boolean once(Object message) { return true; }
+
+    /** The message playing now, or null. Replaced when patching. */
+    public static Object playing() { return null; }
 }

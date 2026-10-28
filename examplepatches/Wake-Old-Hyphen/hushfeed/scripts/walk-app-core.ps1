@@ -1,8 +1,8 @@
 <#
 .SYNOPSIS
-    The parts of the whole-app walk that don't need a phone: reading a UI dump, refusing taps on
-    controls that act on someone's account, finding TikTok crashes in logcat and turning what the
-    walk reached into PASS, PARTIAL or FAIL.
+    The parts of the whole-app walk that don't need a phone: each app's labels and planned
+    screens, reading a UI dump, refusing taps on controls that act on someone's account, finding
+    the app's crashes in logcat and turning what the walk reached into PASS, PARTIAL or FAIL.
 
 .DESCRIPTION
     Dot-sourced by walk-app.ps1, which drives the phone, and by test-walk-app.ps1, which feeds
@@ -38,6 +38,76 @@ $WalkLabels = @{
     ActivityTitle = '^(Activit(y|ies)|Attivit\xE0)$'
     ProfileMenu = '^(Profile menu|Men\xF9 del profilo)$'
     SettingsAndPrivacy = '^(Settings and privacy|Impostazioni e privacy)$'
+}
+
+# What a fresh install can show before its bottom tabs: PineDrama's sign-in sheet (Close) and its
+# age question (At least 18, then Continue). None of them signs in or acts on an account.
+$WalkLaunchGateLabel = '^(Close|At least 18|Continue)$'
+
+# PineDrama's labels, read off its 47.5.3 bottom bar, top tabs and feed buttons. Its Home has no
+# For You: Short Video carries the swipe feed with comment and share buttons, Drama the series.
+$PineDramaWalkLabels = @{
+    Home = '^Home$'
+    Discover = '^Discover$'
+    Rewards = '^Rewards$'
+    Inbox = '^Inbox$'
+    Profile = '^Profile$'
+    ShortVideo = '^Short Video$'
+    Following = '^Following$'
+    Drama = '^Drama$'
+    Search = '^Search$'
+    CommentsButton = $WalkLabels.CommentsButton
+    CommentsSheet = $WalkLabels.CommentsSheet
+    ShareButton = $WalkLabels.ShareButton
+    ShareSheet = $WalkLabels.ShareSheet
+    ProfileMenu = $WalkLabels.ProfileMenu
+    SettingsAndPrivacy = $WalkLabels.SettingsAndPrivacy
+}
+
+# What the walk opens in each app a bundle declares. MainFeed is swiped first, OtherFeeds are
+# visited from it and Tabs are the bottom tabs after Home. The receipt's profile name comes from
+# walk-receipt.ps1's $WalkProfilePackages.
+$WalkProfiles = @{
+    'com.zhiliaoapp.musically' = @{
+        Package = 'com.zhiliaoapp.musically'; App = 'TikTok'; Labels = $WalkLabels
+        MainFeed = 'ForYou'; MainFeedName = 'For You'; OtherFeeds = @('Following'); Tabs = @('Friends', 'Inbox', 'Profile'); Activity = $true
+    }
+    'com.ss.android.ttmd.video' = @{
+        Package = 'com.ss.android.ttmd.video'; App = 'PineDrama'; Labels = $PineDramaWalkLabels
+        MainFeed = 'ShortVideo'; MainFeedName = 'Short Video'; OtherFeeds = @('Following', 'Drama'); Tabs = @('Discover', 'Rewards', 'Inbox', 'Profile'); Activity = $false
+    }
+}
+
+function Get-WalkProfile {
+    <#
+    .SYNOPSIS
+        The walk profile for -Package, or an error naming the packages a walk knows.
+    #>
+    param([Parameter(Mandatory = $true)][string]$Package)
+    if (-not $WalkProfiles.ContainsKey($Package)) {
+        throw "There's no walk profile for $Package. Known: $((@($WalkProfiles.Keys) | Sort-Object) -join ', ')."
+    }
+    $WalkProfiles[$Package]
+}
+
+function Get-WalkPlannedScreens {
+    <#
+    .SYNOPSIS
+        Every screen a PASS walk of this profile reaches, in walk order.
+    #>
+    param([Parameter(Mandatory = $true)][hashtable]$AppProfile, [Parameter(Mandatory = $true)][string[]]$HushfeedPages)
+    $screens = [Collections.Generic.List[string]]::new()
+    $screens.Add('launch'); $screens.Add("feed: $($AppProfile.MainFeedName)")
+    $screens.Add('sheet: comments'); $screens.Add('sheet: share')
+    foreach ($feed in $AppProfile.OtherFeeds) { $screens.Add("feed: $feed") }
+    $screens.Add('search')
+    foreach ($tab in $AppProfile.Tabs) {
+        $screens.Add("tab: $tab")
+        if ($tab -eq 'Inbox' -and $AppProfile.Activity) { $screens.Add('inbox: Activity') }
+    }
+    $screens.Add('settings: Hushfeed'); $screens.Add('settings: Search settings')
+    foreach ($page in $HushfeedPages) { $screens.Add("settings: $page") }
+    $screens.ToArray()
 }
 
 function Get-HushfeedTranslations {

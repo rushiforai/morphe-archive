@@ -99,9 +99,11 @@ public class ReadReceiptsTest {
         Settings.preferences.edit().putBoolean(KEY, true).commit();
         Settings.noteMessageSent(session, thread);
         long wallClock = System.currentTimeMillis();
-        // Robolectric's wall clock follows uptime, so deep sleep advances only elapsed real time here.
+        // Robolectric's wall clock follows uptime, so deep sleep advances only elapsed real time here. It can
+        // still tick a millisecond on its own (seen once in a full gate run), so hold it under the window
+        // rather than at exactly zero: a wall-clock expiry couldn't have fired either way.
         ShadowSystemClock.simulateDeepSleep(Duration.ofMillis(Settings.REPLY_READ_MS));
-        assertEquals(wallClock, System.currentTimeMillis());
+        assertTrue(System.currentTimeMillis() - wallClock < Settings.REPLY_READ_MS / 2);
         assertTrue(Settings.hideChatSeen(session, thread));
     }
 

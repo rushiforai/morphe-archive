@@ -42,7 +42,7 @@ body:
     attributes:
       label: Its version
       description: Morphe Manager shows its version in its own settings. If you picked "Something else", name the program too.
-      placeholder: Morphe Manager 2.0.0
+      placeholder: Morphe Manager 2.2.0
     validations:
       required: true
   - type: dropdown
@@ -126,7 +126,7 @@ body:
       label: Diagnostic report
       description: |
         This answers most of our questions, so please add it if you can. It works with Debug logging off and then still names your build, the patches in it and what each one has counted. For the most detail, long-press Facebook's icon, tap Hushfacebook, turn on Debug logging, do the thing that goes wrong, then come back, tap Export diagnostic report and pick Save full report. If you have the new category pages, these controls are under More settings, then Pause, backup and diagnostics. That saves a text file in Download/Hushfacebook on your phone. Drag it into this box. If you can't get the file off your phone, pick Copy quick report instead and paste the shorter report here.
-        Facebook crashes before you can open the settings? Look in Download/Hushfacebook for the newest file that starts with crash- and drag that in instead. It's there unless you turned off Save crashes to Downloads under Privacy.
+        Facebook crashes before you can open the settings? Look in Download/Hushfacebook for the newest file that starts with crash- and drag that in instead. It's there unless you turned off Save crashes to Downloads under Pause, backup and diagnostics > Troubleshooting.
         The report leaves out links, Facebook addresses, long ID numbers, cookies, sign-in tokens and Authorization headers, JSON included. It can't spot a name or message written anywhere else, so read it and remove anything private before you post it.
   - type: textarea
     id: additional_context

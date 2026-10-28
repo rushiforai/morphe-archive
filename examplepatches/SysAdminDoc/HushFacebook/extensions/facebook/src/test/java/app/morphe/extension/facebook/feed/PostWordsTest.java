@@ -532,4 +532,65 @@ public class PostWordsTest {
         assertFalse(first == PostWords.rules("spoiler", "teams"));
         assertFalse(first == PostWords.rules("spoilers", "team"));
     }
+
+    private static PostWords.Preview preview(String sample, String hide, String keep, boolean whole) {
+        return PostWords.preview(sample, hide, keep, whole).verdict;
+    }
+
+    /** The word dialog's sample is judged as a post's words are: folding, keep first, patterns, whole words. */
+    @Test
+    public void aSampleIsJudgedTheWayAPostIs() throws Exception {
+        assertEquals(PostWords.Preview.HIDDEN, preview("Big SPOILER ahead", "spoiler", "", false));
+        assertEquals(PostWords.Preview.HIDDEN, preview("ＳＰＯＩＬＥＲ", "spoiler", "", false));
+        assertEquals(PostWords.Preview.KEPT, preview("spoiler for the team", "spoiler", "team", false));
+        assertEquals(PostWords.Preview.KEPT, preview("A spoilers thread", "/spoilers?/", "/\\bthread\\b/", false));
+        assertEquals(PostWords.Preview.HIDDEN, preview("A spoilers thread", "/spoilers?/", "", false));
+        assertEquals(PostWords.Preview.NO_MATCH, preview("a quiet day", "spoiler", "team", false));
+        assertEquals(PostWords.Preview.HIDDEN, preview("chatter", "hat", "", false));
+        assertEquals(PostWords.Preview.NO_MATCH, preview("chatter", "hat", "", true));
+        assertEquals(PostWords.Preview.HIDDEN, preview("that hat", "hat", "", true));
+        assertEquals(PostWords.Preview.NOTHING_TO_HIDE, preview("spoiler", "", "team", false));
+        assertEquals(PostWords.Preview.NO_MATCH, preview("   ", "spoiler", "", false));
+        assertEquals(PostWords.Preview.NO_MATCH, preview(null, "spoiler", null, false));
+        // One slow pattern fits the post's budget at the sample's cap, so take enough of them to
+        // run it out between them.
+        String longest = repeat("a", PostWords.PREVIEW_MAX_CODE_POINTS);
+        long each = stepsFor("(?:a|aa|aaa|aaaa|aaaaa)*b0", longest);
+        assertTrue("a list can't hold enough of them: " + each, PostWords.STEPS_PER_POST / each + 2 <= PostWords.MAX_PATTERNS);
+        StringBuilder slow = new StringBuilder();
+        for (long k = 0; k <= PostWords.STEPS_PER_POST / each + 1; k++) {
+            slow.append(k == 0 ? "" : "\n").append("/(?:a|aa|aaa|aaaa|aaaaa)*b").append(k).append('/');
+        }
+        assertEquals(PostWords.Preview.TOO_SLOW, preview(longest, slow.toString(), "", false));
+    }
+
+    /** A sample past the cap is read up to it, whole code points only, and says it was cut. */
+    @Test
+    public void aLongSampleIsCutAtTheCapAndSaysSo() {
+        String filler = repeat("a", PostWords.PREVIEW_MAX_CODE_POINTS);
+        PostWords.PreviewResult past = PostWords.preview(filler + " spoiler", "spoiler", "", false);
+        assertEquals(PostWords.Preview.NO_MATCH, past.verdict);
+        assertTrue(past.cut);
+        PostWords.PreviewResult within = PostWords.preview(repeat("a", PostWords.PREVIEW_MAX_CODE_POINTS - 8) + " spoiler",
+                "spoiler", "", false);
+        assertEquals(PostWords.Preview.HIDDEN, within.verdict);
+        assertFalse(within.cut);
+        // The cap counts code points: each emoji is two chars, and none is split at the cut.
+        String faces = repeat("😀", PostWords.PREVIEW_MAX_CODE_POINTS);
+        PostWords.PreviewResult emoji = PostWords.preview(faces + "spoiler", "😀😀\nspoiler", "", false);
+        assertEquals(PostWords.Preview.HIDDEN, emoji.verdict);
+        assertTrue(emoji.cut);
+        assertEquals(PostWords.Preview.NO_MATCH, preview(faces + "spoiler", "spoiler", "", false));
+        assertFalse(PostWords.preview(faces, "spoiler", "", false).cut);
+    }
+
+    /** Trying a sample leaves the feed's cached rules and its count of hidden posts alone. */
+    @Test
+    public void aPreviewTouchesNothingTheFeedKeeps() {
+        PostWords.Rules saved = PostWords.rules("spoiler", "team");
+        int hidden = PostWords.hiddenSinceStart();
+        assertEquals(PostWords.Preview.HIDDEN, preview("spoiler and draft", "spoiler\ndraft", "", true));
+        assertSame(saved, PostWords.rules("spoiler", "team"));
+        assertEquals(hidden, PostWords.hiddenSinceStart());
+    }
 }

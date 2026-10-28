@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceCategory xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="Media uploads">
+    <Preference
+        android:icon="@drawable/ic_photo_outline_24dp"
+        android:key="morphe_boost_image_hosting_settings"
+        android:title="Editor image hosting"
+        android:summary="Images added to text: Imgur - default"
+        android:fragment="app.morphe.extension.boost.settings.EditorImageHostingFragment" />
+</PreferenceCategory>

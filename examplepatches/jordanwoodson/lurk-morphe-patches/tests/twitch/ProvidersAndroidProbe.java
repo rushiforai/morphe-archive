@@ -38,8 +38,15 @@ public final class ProvidersAndroidProbe {
   check(call("TwitchEmotes","cdnUrl",cdnTypes,id,false,4f).equals("https://cdn.7tv.app/emote/wide123/4x_static.png"),"animation off selects static image");
   Object bttv=parse("TwitchEmotes","parseBttvUser","{\"channelEmotes\":[{\"id\":\"one\",\"code\":\"Channel\"}],\"sharedEmotes\":[{\"id\":\"two\",\"code\":\"Shared\"}]}");
   check(length(bttv)==2&&field(Array.get(bttv,1),"code").equals("Shared"),"BTTV channel and shared lists");
-  String[] badge=(String[])parse("TwitchBadges","parseFfzBadge","{\"id\":12,\"name\":\"Badge\",\"color\":\"#123456\",\"urls\":{\"2\":\"https://cdn.frankerfacez.com/2\",\"4\":\"https://cdn.frankerfacez.com/4\"}}");
-  check(badge[0].equals("12")&&badge[2].equals("#123456")&&badge[3].endsWith("/4"),"FFZ ID color and4x preference");
+  // Emote and badge info: who made or added an emote, as each service's list names them.
+  Object owned=parse("TwitchEmotes","parse7tvSet","{\"emotes\":[{\"id\":\"abc1\",\"name\":\"Alias\",\"data\":{\"name\":\"Original\",\"owner\":{\"username\":\"maker\",\"display_name\":\"Maker\"}}},{\"id\":\"abc2\",\"name\":\"NoOwner\",\"data\":{\"owner\":null}}]}");
+  check(field(Array.get(owned,0),"owner").equals("Maker")&&field(Array.get(owned,1),"owner")==null,"7TV owner display name");
+  owned=parse("TwitchEmotes","parseBttvUser","{\"channelEmotes\":[{\"id\":\"one\",\"code\":\"Channel\"}],\"sharedEmotes\":[{\"id\":\"two\",\"code\":\"Shared\",\"user\":{\"name\":\"sharer\",\"displayName\":\"Sharer\"}}]}");
+  check(field(Array.get(owned,0),"owner")==null&&field(Array.get(owned,1),"owner").equals("Sharer"),"BTTV shared emote's user");
+  owned=parse("TwitchEmotes","parseFfz","{\"sets\":{\"1\":{\"emoticons\":[{\"id\":123,\"name\":\"Good\",\"owner\":{\"_id\":1,\"name\":\"potato\",\"display_name\":\"Potato\"}}]}}}");
+  check(field(Array.get(owned,0),"owner").equals("Potato"),"FFZ owner display name");
+  String[] badge=(String[])parse("TwitchBadges","parseFfzBadge","{\"id\":12,\"name\":\"Badge\",\"title\":\"Badge Title\",\"color\":\"#123456\",\"urls\":{\"2\":\"https://cdn.frankerfacez.com/2\",\"4\":\"https://cdn.frankerfacez.com/4\"}}");
+  check(badge[0].equals("12")&&badge[2].equals("#123456")&&badge[3].endsWith("/4")&&badge[4].equals("Badge Title"),"FFZ ID color title and4x preference");
   // Badge holders are Twitch user IDs, which pass 2^31: numbers or strings, kept as 64-bit and sorted.
   long[] ids=(long[])parse("TwitchBadges","parseIds","[\"3000000000\",12,\"x\",2147483648,\"99\"]");
   check(Arrays.equals(ids,new long[]{12L,99L,2147483648L,3000000000L}),"badge holder IDs above 2^31: "+Arrays.toString(ids));

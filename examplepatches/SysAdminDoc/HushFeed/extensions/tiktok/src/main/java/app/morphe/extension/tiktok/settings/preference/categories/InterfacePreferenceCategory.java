@@ -317,6 +317,15 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                         new String[]{"off", "newest", "oldest", "longest", "shortest", "most_viewed",
                                 "least_viewed", "most_liked", "least_liked"})
                         .withNote("Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there."));
+                if (SettingsStatus.likedGridSortEnabled) {
+                    addPreference(new ChoicePreference(context, "Sort loaded videos on Liked grids",
+                            Settings.LIKED_GRID_SORT,
+                            new String[]{"Same as profile grids", "Original order", "Newest first", "Oldest first",
+                                    "Longest first", "Shortest first", "Most viewed first", "Least viewed first",
+                                    "Most liked first", "Least liked first"},
+                            new String[]{"profile", "off", "newest", "oldest", "longest", "shortest", "most_viewed",
+                                    "least_viewed", "most_liked", "least_liked"}));
+                }
             }
         }
         if (SettingsStatus.authorRegionEnabled) {
@@ -453,6 +462,14 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                         "Hide Footnotes",
                         "Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.",
                         Settings.HIDE_FOOTNOTES
+                ));
+            }
+            if (SettingsStatus.followingSkylightEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide the LIVE row on Following",
+                        "Hide the row of LIVE and story circles across the top of the Following feed, and the pill that counts them. For You is left as it is.",
+                        Settings.HIDE_FOLLOWING_LIVE_ROW
                 ));
             }
             addPreference(new TogglePreference(
@@ -658,6 +675,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display, or pinch the screen.",
                     Settings.HIDE_CLEAR_DISPLAY_CONTROLS
             ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Keep the progress bar",
+                    "Hide the Clear display controls leaves the progress bar in sight, so you can still see and drag it.",
+                    Settings.KEEP_CLEAR_DISPLAY_SEEK_BAR
+            ));
         }
         // #232: below the controls row, which stays right under the automatic switch for #84.
         if (SettingsStatus.automaticClearDisplayEnabled) {
@@ -790,14 +813,16 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             // Long press's actions, which GestureActions runs the same way for both gestures. The
             // speed toggle changes the playing video's speed, so it needs the Playback speed patch's
             // player bridge, and Clear display posts TikTok's own event through Remember clear
-            // display's bridge (#136).
-            List<String> tapLabels = new ArrayList<>(Arrays.asList("TikTok default", "Do nothing", "Open comments",
+            // display's bridge (#136). Like or unlike is the double tap's own: TikTok's default
+            // already likes, and only ever likes (#248).
+            List<String> tapLabels = new ArrayList<>(Arrays.asList("TikTok default", "Do nothing",
+                    "Like or unlike the video", "Open comments",
                     "Save the original sound", "Copy the video link", "Copy the sound link",
                     "Find the sound on YouTube Music", "Set a sleep timer that closes TikTok",
                     "Save the frame on screen as a photo", "Save the video's cover", "Open the search page"));
-            List<String> tapValues = new ArrayList<>(Arrays.asList("default", "nothing", "comments", "original_sound",
-                    "copy_link", "copy_sound_link", "youtube_music", "sleep_timer", "save_frame", "save_cover",
-                    "open_search"));
+            List<String> tapValues = new ArrayList<>(Arrays.asList("default", "nothing", "like_toggle", "comments",
+                    "original_sound", "copy_link", "copy_sound_link", "youtube_music", "sleep_timer", "save_frame",
+                    "save_cover", "open_search"));
             if (SettingsStatus.liveSpeedEnabled) {
                 tapLabels.add("Speed up this video, double tap again to undo");
                 tapValues.add("speed_toggle");

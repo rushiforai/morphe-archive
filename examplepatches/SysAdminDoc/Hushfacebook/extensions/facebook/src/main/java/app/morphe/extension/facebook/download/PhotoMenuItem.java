@@ -120,9 +120,25 @@ public final class PhotoMenuItem {
                     () -> "Save photo tapped after its switch went off");
                 return null;
             }
+            return save(context, photos, "on a post's menu");
+        } catch (Throwable t) {
+            // It runs inside Facebook's click dispatch, on the thread that draws the app.
+            HookStatus.threw(FamilyNames.PHOTO_DOWNLOAD, "post menu photo tap", t);
+            Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "the Save photo tap failed", t);
+            return null;
+        }
+    }
+
+    /**
+     * Saves [photos], or says they didn't start. [where] names the tap in the report, and the
+     * caller asks its own switches first. Answers the thread running the saves, or null when none
+     * started.
+     */
+    static Thread save(Context context, List<Photo> photos, String where) {
+        try {
             Context application = context == null ? Utils.getContext() : context.getApplicationContext();
             Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE,
-                () -> "Save photo tapped on a post's menu, " + photos.size() + " photo(s)");
+                () -> "Save photo tapped " + where + ", " + photos.size() + " photo(s)");
             if (MediaDownload.busy(application)) return null;
             List<String> urls = new ArrayList<>();
             List<PostDetails> details = new ArrayList<>();
@@ -152,6 +168,20 @@ public final class PhotoMenuItem {
      */
     static List<Photo> photosOf(Object item, String attachmentsGetter, String mediaGetter,
                                 String attachedStoryGetter, String subattachmentsGetter) {
+        return photosOf(item, attachmentsGetter, mediaGetter, attachedStoryGetter, subattachmentsGetter, MAX_PHOTOS, true);
+    }
+
+    /**
+     * Whether [item] holds a photo {@link #photosOf} would find, read without what the file name
+     * needs, for a check that runs each time a post's row is built.
+     */
+    static boolean holdsPhoto(Object item, String attachmentsGetter, String mediaGetter,
+                              String attachedStoryGetter, String subattachmentsGetter) {
+        return !photosOf(item, attachmentsGetter, mediaGetter, attachedStoryGetter, subattachmentsGetter, 1, false).isEmpty();
+    }
+
+    private static List<Photo> photosOf(Object item, String attachmentsGetter, String mediaGetter,
+                                        String attachedStoryGetter, String subattachmentsGetter, int max, boolean details) {
         if (item == null) return Collections.emptyList();
         List<Object> attachments = new ArrayList<>();
         Object story = null;
@@ -170,21 +200,21 @@ public final class PhotoMenuItem {
             Object subattachments = call(attachment, subattachmentsGetter);
             if (subattachments instanceof List && !((List<?>) subattachments).isEmpty()) {
                 for (Object sub : (List<?>) subattachments) {
-                    if (sub != null) addPhoto(photos, call(sub, mediaGetter), story);
+                    if (sub != null) addPhoto(photos, call(sub, mediaGetter), story, max, details);
                 }
             } else {
-                addPhoto(photos, call(attachment, mediaGetter), story);
+                addPhoto(photos, call(attachment, mediaGetter), story, max, details);
             }
-            if (photos.size() >= MAX_PHOTOS) break;
+            if (photos.size() >= max) break;
         }
         return photos;
     }
 
-    private static void addPhoto(List<Photo> photos, Object media, Object story) {
-        if (media == null || photos.size() >= MAX_PHOTOS || !PHOTO_TYPE.equals(typeName(media))) return;
+    private static void addPhoto(List<Photo> photos, Object media, Object story, int max, boolean details) {
+        if (media == null || photos.size() >= max || !PHOTO_TYPE.equals(typeName(media))) return;
         String url = PhotoSave.largest(media);
         if (url == null) return;
-        photos.add(new Photo(url, PostDetails.read(PostDetails.string(media, PostDetails.ID), media, story)));
+        photos.add(new Photo(url, details ? PostDetails.read(PostDetails.string(media, PostDetails.ID), media, story) : null));
     }
 
     /** The post [item] is, followed through the posts it shares, or null when it's no post. */

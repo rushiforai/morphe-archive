@@ -585,18 +585,23 @@ public final class TranslucentBars {
      * A bar's frost, in the overlay of the view under it: the part of that view the bar covers,
      * recorded before each frame and drawn blurred, so it lands over the feed and under the bar.
      * The recording draws the view, overlay included, and the frost skips itself while it does.
+     * The blur sits inside [node], which clips it and fades it: a blurred node drawn at less than
+     * full alpha spreads its clamped edge a blur's reach past its own box, the strip left above a
+     * tab bar sliding away (#250).
      */
     @RequiresApi(Build.VERSION_CODES.S)
     static final class Frost extends Drawable {
         final View host;
-        private final RenderNode node = new RenderNode("Hushfacebook frost");
+        final RenderNode node = new RenderNode("Hushfacebook frost");
+        final RenderNode blur = new RenderNode("Hushfacebook frost blur");
         private final int[] origin = new int[2];
         private boolean recording;
         int frame;
 
         Frost(View host, float radius) {
             this.host = host;
-            node.setRenderEffect(RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP));
+            blur.setRenderEffect(RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP));
+            blur.setClipToBounds(true);
             node.setClipToBounds(true);
             setBounds(0, 0, host.getWidth(), host.getHeight());
             host.getOverlay().add(this);
@@ -615,15 +620,18 @@ public final class TranslucentBars {
             int height = area.height();
             node.setPosition(left, top, left + width, top + height);
             node.setAlpha(shown);
-            RecordingCanvas canvas = node.beginRecording(width, height);
+            blur.setPosition(0, 0, width, height);
+            RecordingCanvas canvas = blur.beginRecording(width, height);
             recording = true;
             try {
                 canvas.translate(-left - host.getScrollX(), -top - host.getScrollY());
                 host.draw(canvas);
             } finally {
                 recording = false;
-                node.endRecording();
+                blur.endRecording();
             }
+            node.beginRecording(width, height).drawRenderNode(blur);
+            node.endRecording();
         }
 
         /** Draws nothing this frame, for a bar out of sight. */
@@ -632,11 +640,13 @@ public final class TranslucentBars {
             node.setPosition(0, 0, 0, 0);
             node.beginRecording(0, 0);
             node.endRecording();
+            blur.discardDisplayList();
         }
 
         void remove() {
             host.getOverlay().remove(this);
             node.discardDisplayList();
+            blur.discardDisplayList();
         }
 
         @Override

@@ -8,6 +8,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.string
@@ -89,10 +90,20 @@ internal object ThreadSummariesFingerprint : Fingerprint(
  * them in an unmodifiable list, and goes on to collect the unread chats' keys in a linked set.
  * Nothing else that reads the store does all three. The store is checked against its readers
  * afterwards. Its snapshot feeds the unread badge and, through a method of its own, the unread
- * counts on the inbox's folder tabs. It is not the list the inbox draws its rows from.
+ * counts on the inbox's folder tabs. It is not the list the inbox draws its rows from. The wrap is
+ * a filter as well, which [badgeReadAt] needs anyway, so the patcher's index picks the classes to
+ * read rather than every method being decoded (#173).
  */
 internal object InboxBadgeFingerprint : Fingerprint(
     returnType = "L",
+    filters = listOf(
+        methodCall(
+            definingClass = "Ljava/util/Collections;",
+            name = "unmodifiableList",
+            parameters = listOf("Ljava/util/List;"),
+            returnType = "Ljava/util/List;",
+        ),
+    ),
     custom = { method, _ ->
         !AccessFlags.STATIC.isSet(method.accessFlags) && method.badgeReadAt() != null
     },

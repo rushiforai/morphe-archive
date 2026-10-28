@@ -585,6 +585,67 @@ public class VideoOverlayHiderTest {
         }
     }
 
+    /**
+     * Issue #262: the Following tab's LIVE row sits outside the cells and goes only with its own
+     * switch, comes back when the switch goes off, and its absence on For You isn't a broken build.
+     * The folded row's pill is a sibling and goes with it.
+     */
+    @Test
+    public void theFollowingLiveRowGoesWithItsSwitchAndComesBack() {
+        int cellId = 0x7f0a0b21;
+        int rowId = 0x7f0a0b22;
+        int pillId = 0x7f0a0b23;
+        VideoOverlayHider.resolveForTests("view_rootview", cellId);
+        VideoOverlayHider.resolveForTests("47.5.3:id9", rowId);
+        VideoOverlayHider.resolveForTests("47.5.3:wsy", pillId);
+        HookStatus.clear();
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout feed = new FrameLayout(activity);
+            FrameLayout cell = new FrameLayout(activity);
+            cell.setId(cellId);
+            feed.addView(cell);
+            activity.setContentView(feed);
+
+            Settings.HIDE_FOLLOWING_LIVE_ROW.save(true);
+            VideoOverlayHider.applyTo(activity);
+            assertTrue("For You, which has no row, called the overlay hooks broken: "
+                            + HookStatus.missing("overlay"),
+                    HookStatus.missing("overlay").stream().noneMatch(line -> line.contains("47.5.3:id9")));
+
+            FrameLayout row = new FrameLayout(activity);
+            row.setId(rowId);
+            feed.addView(row);
+            FrameLayout pill = new FrameLayout(activity);
+            pill.setId(pillId);
+            feed.addView(pill);
+            Settings.HIDE_FEED_SURVEYS.save(true);
+            Settings.HIDE_FOLLOWING_LIVE_ROW.save(false);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals("another switch took the row", View.VISIBLE, row.getVisibility());
+            assertEquals("another switch took the pill", View.VISIBLE, pill.getVisibility());
+
+            Settings.HIDE_FEED_SURVEYS.save(false);
+            Settings.HIDE_FOLLOWING_LIVE_ROW.save(true);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, row.getVisibility());
+            assertEquals("the folded row's pill stayed", View.GONE, pill.getVisibility());
+
+            Settings.HIDE_FOLLOWING_LIVE_ROW.save(false);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals("the row stayed gone with its switch off", View.VISIBLE, row.getVisibility());
+            assertEquals("the pill stayed gone with its switch off", View.VISIBLE, pill.getVisibility());
+        } finally {
+            Settings.HIDE_FOLLOWING_LIVE_ROW.resetToDefault();
+            Settings.HIDE_FEED_SURVEYS.resetToDefault();
+            VideoOverlayHider.resolveForTests("view_rootview", 0);
+            VideoOverlayHider.resolveForTests("47.5.3:id9", 0);
+            VideoOverlayHider.resolveForTests("47.5.3:wsy", 0);
+            HookStatus.clear();
+        }
+    }
+
     @Test
     public void aPassHidesEveryCellsCaptionAndColumnAndPutsThemBack() {
         // The feed keeps the previous and next cells inflated beside the one on screen,
@@ -2867,6 +2928,57 @@ public class VideoOverlayHiderTest {
             assertEquals(1f, seekBar.getAlpha(), 0f);
         } finally {
             app.morphe.extension.shared.settings.PausedProcess.set(false);
+            Settings.HIDE_CLEAR_DISPLAY_CONTROLS.save(false);
+        }
+    }
+
+    /**
+     * Keep the progress bar (#237): the exit button and the playback row still go, but the
+     * progress bar stays fully in sight on a cleared screen.
+     */
+    @Test
+    public void keepTheProgressBarLeavesItInSightWhileTheOtherControlsGo() {
+        // The same ids as the test above: other ids left the exit button in place, read from
+        // the static id cache that test filled.
+        int exitId = 0x7f0a0c01;
+        int playbackId = 0x7f0a0c02;
+        int seekBarId = 0x7f0a0c03;
+        VideoOverlayHider.resolveForTests("47.5.3:e9s", exitId);
+        VideoOverlayHider.resolveForTests("47.5.3:l7a", playbackId);
+        VideoOverlayHider.resolveForTests("video_seek_bar", seekBarId);
+        Settings.HIDE_CLEAR_DISPLAY_CONTROLS.save(true);
+        Settings.KEEP_CLEAR_DISPLAY_SEEK_BAR.save(true);
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout root = new FrameLayout(activity);
+            FrameLayout clearBar = new FrameLayout(activity);
+            View exit = new View(activity);
+            exit.setId(exitId);
+            clearBar.addView(exit);
+            LinearLayout playback = new LinearLayout(activity);
+            playback.setId(playbackId);
+            clearBar.addView(playback);
+            root.addView(clearBar);
+            View seekBar = new View(activity);
+            seekBar.setId(seekBarId);
+            root.addView(seekBar);
+            activity.setContentView(root);
+
+            clearBar.setVisibility(View.GONE);
+            VideoOverlayHider.applyTo(activity);
+            clearBar.setVisibility(View.VISIBLE);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, exit.getVisibility());
+            assertEquals(View.GONE, playback.getVisibility());
+            assertEquals(View.VISIBLE, seekBar.getVisibility());
+            assertEquals("the kept progress bar went see-through", 1f, seekBar.getAlpha(), 0f);
+
+            Settings.KEEP_CLEAR_DISPLAY_SEEK_BAR.save(false);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(0f, seekBar.getAlpha(), 0f);
+        } finally {
+            Settings.KEEP_CLEAR_DISPLAY_SEEK_BAR.save(false);
             Settings.HIDE_CLEAR_DISPLAY_CONTROLS.save(false);
         }
     }

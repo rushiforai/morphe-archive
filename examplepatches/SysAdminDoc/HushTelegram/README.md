@@ -1,10 +1,10 @@
 ![HushTelegram. Keep the chat. Cut the noise.](assets/readme-hero.png)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.0.20-7CE6C4" alt="Version 0.0.20">
+  <img src="https://img.shields.io/badge/version-0.0.21-7CE6C4" alt="Version 0.0.21">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
-  <img src="https://img.shields.io/badge/Telegram-13.1.0-2AABEE" alt="Telegram 13.1.0">
+  <img src="https://img.shields.io/badge/Telegram-13.1.1%20Play%20%7C%2013.1.0%20telegram.org-2AABEE" alt="Telegram 13.1.1 from Google Play and 13.1.0 from telegram.org">
   <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.2.0%2B-8A2BE2" alt="For Morphe Manager 2.2.0 or newer">
 </p>
 
@@ -22,7 +22,7 @@
 
 HushTelegram is a set of [Morphe](https://morphe.software) patches for Telegram on Android. It takes the sponsored messages and search ads out of Telegram and keeps the app's usage reports on your phone. Everything else is a switch in its own settings screen, so you can hide Stories and the Premium upsells, keep messages other people delete, translate a whole chat, get notifications through UnifiedPush, go AMOLED black and plenty more. It doesn't give away paid Premium features. A second switch under Save downloaded files, off until you turn it on, also saves downloaded files and songs from chats that don't allow saving. Protected photos and videos, self-destructing media and secret chats still follow Telegram's rules.
 
-The latest release is [v0.0.20](https://github.com/SysAdminDoc/HushTelegram/releases/tag/v0.0.20), with 67 patches for Telegram 13.1.0, both telegram.org's build and the one from Google Play. That release works with Morphe Manager 2.0.0 and up, and the next one will need 2.2.0. The version badge follows the source on main, which can be ahead of the release. What changed in each version is in the [changelog](CHANGELOG.md).
+The latest release is [v0.0.21](https://github.com/SysAdminDoc/HushTelegram/releases/tag/v0.0.21), with 67 patches for Telegram 13.1.1 from Google Play and Telegram 13.1.0 from telegram.org. It needs Morphe Manager 2.2.0 or newer. The version badge follows the source on main, which can be ahead of the release. What changed in each version is in the [changelog](CHANGELOG.md).
 
 **[Add HushTelegram to Morphe Manager](https://morphe.software/add-source?github=SysAdminDoc%2FHushTelegram)** | [Download a release](https://github.com/SysAdminDoc/HushTelegram/releases/latest) | [Browse the patches](#patches)
 
@@ -33,7 +33,7 @@ The latest release is [v0.0.20](https://github.com/SysAdminDoc/HushTelegram/rele
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.2.0 or newer.
 2. Open the [add-source link](https://morphe.software/add-source?github=SysAdminDoc%2FHushTelegram) on your phone to add HushTelegram as a patch source.
-3. Get Telegram 13.1.0. The [Google Play](https://play.google.com/store/apps/details?id=org.telegram.messenger) build (version code 72291) works, and so does telegram.org's build (version code 72299) from its [Download button](https://telegram.org/android) or a mirror such as [APKMirror](https://www.apkmirror.com/apk/telegram-fz-llc/telegram/). telegram.org hands out whatever is newest, so check the [checksum](#supported-telegram-builds) before you patch.
+3. Get Telegram 13.1.1 from [Google Play](https://play.google.com/store/apps/details?id=org.telegram.messenger) (version code 72371), or Telegram 13.1.0 from telegram.org (version code 72299) from its [Download button](https://telegram.org/android) or a mirror such as [APKMirror](https://www.apkmirror.com/apk/telegram-fz-llc/telegram/). telegram.org hands out whatever is newest, so check the [checksum](#supported-telegram-builds) before you patch.
 4. Pick the file in Morphe Manager, keep the default selection and patch. It has every patch that comes with a switch.
 5. Four patches start unselected: Use registered Telegram API credentials, Use registered Maps API key, HushTelegram icon and name, and Black and white launch logo. To add one, turn on **Settings > Advanced > Expert mode** in Morphe Manager and fill in its options before you patch.
 
@@ -53,7 +53,7 @@ The home page is search plus one short list of sections. Tap a section to open i
 
 The current release has 67 patches. Each description is the one Morphe Manager shows, and it says which page of HushTelegram settings holds the switch and whether it starts on or off. The table runs in the order of those pages.
 
-Two descriptions are behind the app. Since 0.0.20, `Save downloaded files` has a second switch under it, **Also save from chats that don't allow saving**, which starts off. With both on, files and songs from those chats get a copy too, so only use it where the owner is fine with that. Secret chats and self-destructing media always stay in Telegram. Photos and videos aren't part of either switch, protected or not. Below them, the **Gallery folder** row picks where Save to Gallery puts photos and videos on Android 10 and newer. Telegram's Pictures/Telegram and Movies/Telegram are the default, and you can switch to DCIM/Telegram or to DCIM/Telegram/Photos and DCIM/Telegram/Videos.
+Two descriptions are behind the app. Since 0.0.20, `Save downloaded files` has a second switch under it, **Also save from chats that don't allow saving**, which starts off. With both on, files and songs from those chats get a copy too, and so does each photo and video you open or auto-download there, so only use it where the owner is fine with that. Secret chats and self-destructing media always stay in Telegram. In ordinary chats, photos and videos still go through Save to Gallery. Below them, the **Gallery folder** row picks where Save to Gallery puts photos and videos on Android 10 and newer. Telegram's Pictures/Telegram and Movies/Telegram are the default, and you can switch to DCIM/Telegram or to DCIM/Telegram/Photos and DCIM/Telegram/Videos.
 
 `Translate with an outside service` also has a **Translate into** row under Translation service. Telegram's language is the default. Tap it to pick any of the 250 or so languages Google's web translate knows, Persian and others Telegram's own list leaves out included. There's a search at the top, and Translate here and Translate this chat both write in the language you pick.
 
@@ -174,13 +174,13 @@ The About and Licenses screens link to `github.com`, `gitlab.com` and `www.gnu.o
 
 ## Supported Telegram builds
 
-The current release patches Telegram 13.1.0 in two builds, and the patched app needs Android 9 or newer. telegram.org's build is `org.telegram.messenger.web` with version code 72299, and its APK carries every phone architecture. The Google Play build is `org.telegram.messenger` with version code 72291, the one most people already have on their phone. Morphe Manager warns about any other build, the public beta included.
+The current release patches two Telegram builds, and the patched app needs Android 9 or newer. telegram.org's build is Telegram 13.1.0, `org.telegram.messenger.web` with version code 72299, and its APK carries every phone architecture. The Google Play build is Telegram 13.1.1, `org.telegram.messenger` with version code 72371, the one most people already have on their phone. The two don't always share a version, since telegram.org updates its download on its own schedule. Morphe Manager warns about any other build, the public beta included.
 
 SHA-256 of the stock APKs the release was checked against:
 
 ```text
 web    4c122bca5edb997e38fc65360c33e6e726e6f1b31ba23987df0adad0e323a9d8
-play   60a1a317118914138ec3252803de92a3b9aaad7a8a7898737cdca6349543acdf
+play   e57dab9bb832c741c56796884dbf0f71d828f17b443600d14cebd57666ad0522
 ```
 
 On Windows, check yours with `Get-FileHash -Algorithm SHA256 .\Telegram.apk`. Each [release](https://github.com/SysAdminDoc/HushTelegram/releases) also ships `SHA256SUMS.txt` for its `.mpp` bundle, which is a patch bundle and not a Telegram APK.

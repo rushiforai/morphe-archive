@@ -68,6 +68,16 @@ assert.equal(modules.store.useChatStore('channel'),store,'original store identit
 const lines=modules.store.useChatSelector(store,s=>s.lines);assert.deepEqual(Array.from(lines),[visible]);
 assert.equal(modules.store.useChatSelector(store,s=>s.lines),lines,'stable filtered snapshot');assert.equal(state.lines.length,2,'store not mutated');
 modules.body.MessageBody({body:'hello',action:true});assert.equal(bodyProps.action,false);
+{
+ // chat_text_size: any whole percent from 50 to 200 scales message text; 0 (Twitch's default) and others don't.
+ const before=config,flat=s=>Object.assign({},...[s].flat(10).filter(Boolean));
+ const size=scale=>{config={...before,scale};global.LurkTwitchChat.invalidate();return flat(modules.body.MessageBody({body:'hello'}).props.style).fontSize;};
+ assert.ok(Math.abs(size(115)-16.1)<1e-9,'115% (an original choice) still scales');
+ assert.ok(Math.abs(size(90)-12.6)<1e-9,'finer sizes scale');
+ assert.ok(Math.abs(size(200)-28)<1e-9,'largest size scales');
+ for(const stock of [0,100,49,201,87.5,'90'])assert.equal(size(stock),14,'no scaling for '+JSON.stringify(stock));
+ config=before;global.LurkTwitchChat.invalidate();
+}
 const delayed={...msg,id:'delayed'};assert.equal(global[1998063107](delayed,{kind:'delete',targetMsgId:'delayed'}),false);assert.equal(delayed.deleted,true);
 const unrelated={...delayed};render({message:unrelated,channelID:'other-room',chatStore:store});
 assert.equal(rowProps.message,unrelated,'delayed proof cannot cross stores through matching IDs/content');

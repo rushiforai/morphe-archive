@@ -37,7 +37,7 @@
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('tiktok-whole-app-v1', 'pinedrama-47.5.3-capabilities-v1', 'pinedrama-47.5.3-core-walk-v1', 'pinedrama-47.5.3-core-walk-v2', IgnoreCase = $false)][string]$Profile = 'tiktok-whole-app-v1',
+    [ValidateSet('tiktok-whole-app-v1', 'pinedrama-47.5.3-audit-v1', 'pinedrama-47.5.3-capabilities-v1', 'pinedrama-47.5.3-core-walk-v1', 'pinedrama-47.5.3-core-walk-v2', IgnoreCase = $false)][string]$Profile = 'tiktok-whole-app-v1',
     [string]$Serial,
     [string]$LeaseDir = $env:HUSHFEED_DEVICE_LEASE_DIR,
     [string]$ChatIdentity = $env:HUSHFEED_CHAT_IDENTITY,

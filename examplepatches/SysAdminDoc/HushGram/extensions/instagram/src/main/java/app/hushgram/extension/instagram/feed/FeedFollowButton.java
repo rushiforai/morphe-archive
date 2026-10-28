@@ -4,7 +4,10 @@
  */
 package app.hushgram.extension.instagram.feed;
 
+import android.app.Activity;
 import android.content.Context;
+
+import androidx.annotation.Nullable;
 
 import java.util.function.BooleanSupplier;
 
@@ -54,6 +57,11 @@ public final class FeedFollowButton {
         HIDER.install(context, SettingsStatus.feedFollow());
     }
 
+    /** The switch was flipped in HushGram settings, a dialog over [activity]: the screen under it decides now. */
+    public static void switchChanged(@Nullable Activity activity) {
+        HIDER.switchChanged(activity);
+    }
+
     /** Keeps native ineligibility and suppresses only the feed header's Subscribe while wanted. */
     public static boolean showSubscribe(int eligible) {
         return showSubscribe(eligible, HIDER::wanted);
@@ -74,5 +82,13 @@ public final class FeedFollowButton {
 
     static ViewHider hider() {
         return HIDER;
+    }
+
+    public static boolean listeningForTests(Activity activity) {
+        return HIDER.listeningForTests(activity);
+    }
+
+    public static void resetForTests() {
+        HIDER.resetForTests();
     }
 }

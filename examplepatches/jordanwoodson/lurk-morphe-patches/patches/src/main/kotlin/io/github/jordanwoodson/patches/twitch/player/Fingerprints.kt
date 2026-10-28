@@ -181,3 +181,37 @@ internal object VerticalShareActionFingerprint : Fingerprint(
         resourceLiteral(ResourceType.DRAWABLE, "share_android"),
     ),
 )
+
+// Fill screen: the native player's display types (AspectRatio, ForceCrop, MatchWidth), an enum whose
+// constants keep their names.
+internal object PlayerDisplayTypeFingerprint : Fingerprint(
+    name = "<clinit>", strings = listOf("AspectRatio", "ForceCrop", "MatchWidth"),
+)
+
+// Fill screen: the native player view delegate (player_view_delegate) finding its video container, error
+// frame and captions.
+internal object PlayerViewDelegateFingerprint : Fingerprint(
+    name = "<init>", returnType = "V",
+    filters = listOf(
+        resourceLiteral(ResourceType.ID, "playback_view_container"),
+        resourceLiteral(ResourceType.ID, "error_frame"),
+        resourceLiteral(ResourceType.ID, "cc_tv"),
+    ),
+)
+
+// Fill screen: Twitch's insets listener for its full-screen containers, the theatre's among them. It pads the
+// view by the WindowInsetsCompat types systemBars | ime | displayCutout (0x28f), or without the cutout (0x20f).
+internal object FullscreenInsetsFingerprint : Fingerprint(
+    name = "onApplyWindowInsets", returnType = "L", parameters = listOf("Landroid/view/View;", "L"),
+    filters = listOf(
+        literal(0x28f),
+        literal(0x20f),
+        methodCall(smali = "Landroid/view/View;->setPadding(IIII)V"),
+    ),
+)
+
+// Fill screen: the React Native player's surface sizing for its player view (the class keeps its name).
+internal object RNSurfaceMeasureFingerprint : Fingerprint(
+    definingClass = "Lcom/twitchrn/player/PlaybackSurface;", name = "measureForContent", returnType = "V",
+    parameters = listOf("I", "I", "F", "Lcom/amazonaws/ivs/player/ResizeMode;"),
+)

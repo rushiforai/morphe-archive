@@ -16,12 +16,15 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
+import android.provider.DocumentsContract;
 import android.view.WindowManager;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -34,6 +37,8 @@ import java.util.List;
 
 import app.hushgram.extension.instagram.download.DownloadHistory;
 import app.hushgram.extension.instagram.download.DownloadQuality;
+import app.hushgram.extension.instagram.download.SaveTree;
+import app.hushgram.extension.instagram.download.SaveTreeTest;
 import app.hushgram.extension.instagram.download.SavesForTests;
 import app.hushgram.extension.instagram.reels.HiddenSounds;
 import app.hushgram.extension.shared.L10n;
@@ -51,6 +56,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.shadows.ShadowToast;
@@ -674,6 +680,115 @@ public class DownloadSettingsTest {
             }
             assertEquals(name + 1, account);
             assertTrue(ConfigurationBackup.eligible().containsKey(Settings.SAVE_FOLDER_PER_ACCOUNT.key));
+        }
+    }
+
+    /**
+     * Choose a folder and Use Movies and Pictures sit right under Save folder (#333). Choose opens
+     * Android's folder picker, the folder picked becomes where saves go and the row says so, a
+     * cancelled picker changes nothing, and Use Movies and Pictures, there only once a folder is
+     * picked, puts saves back. The folder picked never goes in a settings file.
+     */
+    @Test
+    public void chooseAFolderPicksWhereSavesGoAndUseMoviesAndPicturesPutsThemBack() throws Exception {
+        SaveTreeTest.install();
+        Uri tree = SaveTreeTest.TREE;
+        String label = L10n.isolate("Download/.Insta");
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.VIDEO_DOWNLOAD);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushgramPreferenceFragment page = pageIn(controller);
+            PreferenceGroup downloads = section(page.getPreferenceScreen(), "Downloads");
+            int choose = -1;
+            int gallery = -1;
+            for (int i = 0; i < downloads.getPreferenceCount(); i++) {
+                String key = downloads.getPreference(i).getKey();
+                if (Settings.SAVE_TREE.key.equals(key)) choose = i;
+                if (HushgramPreferenceFragment.GALLERY_FOLDERS.equals(key)) gallery = i;
+            }
+            assertEquals("the folder choice isn't the last pair in Downloads", downloads.getPreferenceCount() - 2, choose);
+            assertEquals(choose + 1, gallery);
+            Preference chooseRow = downloads.getPreference(choose);
+            Preference galleryRow = downloads.getPreference(gallery);
+            assertEquals("Choose a folder", String.valueOf(chooseRow.getTitle()));
+            assertTrue(String.valueOf(chooseRow.getSummary()),
+                    String.valueOf(chooseRow.getSummary()).startsWith("Saves go to Movies and Pictures."));
+            assertEquals("Use Movies and Pictures", String.valueOf(galleryRow.getTitle()));
+            assertFalse("Use Movies and Pictures works with no folder picked", galleryRow.isEnabled());
+
+            assertTrue(chooseRow.getOnPreferenceClickListener().onPreferenceClick(chooseRow));
+            ShadowActivity.IntentForResult asked = Shadows.shadowOf(controller.get()).getNextStartedActivityForResult();
+            assertNotNull("no folder picker opened", asked);
+            assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, asked.intent.getAction());
+            assertTrue("the picker's grant can't be kept",
+                    (asked.intent.getFlags() & Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION) != 0);
+            assertFalse("Choose a folder works again while the picker is open", chooseRow.isEnabled());
+            page.onActivityResult(asked.requestCode, Activity.RESULT_OK, new Intent().setData(tree));
+            ShadowLooper.idleMainLooper();
+            assertEquals(tree.toString(), Settings.SAVE_TREE.get());
+            assertEquals("Folder set to " + label + ".", ShadowToast.getTextOfLatestToast());
+            assertEquals(L10n.f("Photos and videos go to %1$s. Tap to pick another folder.", label),
+                    String.valueOf(chooseRow.getSummary()));
+            assertTrue(chooseRow.isEnabled());
+            assertTrue(galleryRow.isEnabled());
+
+            assertFalse(ConfigurationBackup.eligible().containsKey(Settings.SAVE_TREE.key));
+            String exported = new String(ConfigurationBackup.export(), StandardCharsets.UTF_8);
+            assertFalse("the folder picked went into a settings file", exported.contains(Settings.SAVE_TREE.key));
+            assertFalse("the folder picked went into a settings file", exported.contains("externalstorage"));
+
+            assertTrue(chooseRow.getOnPreferenceClickListener().onPreferenceClick(chooseRow));
+            asked = Shadows.shadowOf(controller.get()).getNextStartedActivityForResult();
+            assertEquals("the picker doesn't start in the folder picked", SaveTree.root(tree),
+                    asked.intent.getParcelableExtra(DocumentsContract.EXTRA_INITIAL_URI));
+            page.onActivityResult(asked.requestCode, Activity.RESULT_CANCELED, null);
+            assertEquals("a cancelled picker changed the folder", tree.toString(), Settings.SAVE_TREE.get());
+
+            assertTrue(galleryRow.getOnPreferenceClickListener().onPreferenceClick(galleryRow));
+            ShadowLooper.idleMainLooper();
+            assertEquals("", Settings.SAVE_TREE.get());
+            assertEquals("Saves go to Movies and Pictures again.", ShadowToast.getTextOfLatestToast());
+            assertFalse(galleryRow.isEnabled());
+            assertTrue(String.valueOf(chooseRow.getSummary()).startsWith("Saves go to Movies and Pictures."));
+        } finally {
+            SaveTree.forget(RuntimeEnvironment.getApplication());
+        }
+    }
+
+    /** A folder whose grant went: the row says saves went back, and to pick it again. */
+    @Test
+    public void aFolderOutOfReachSaysSoOnItsRow() {
+        SaveTreeTest.install();
+        Context context = RuntimeEnvironment.getApplication();
+        assertTrue(SaveTree.keep(context, SaveTreeTest.TREE));
+        context.getContentResolver().releasePersistableUriPermission(SaveTreeTest.TREE,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.VIDEO_DOWNLOAD);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Preference row = pageIn(controller).findPreference(Settings.SAVE_TREE.key);
+            assertEquals(L10n.f("HushGram can't reach %1$s anymore, so saves go to Movies and Pictures. Pick the folder again.",
+                    L10n.isolate("Download/.Insta")), String.valueOf(row.getSummary()));
+        } finally {
+            SaveTree.forget(context);
+        }
+    }
+
+    /** A folder deleted in Files keeps its grant, but its row says saves went back, not that they go there. */
+    @Test
+    public void aDeletedFolderSaysSoOnItsRow() {
+        SaveTreeTest.Tree tree = SaveTreeTest.install();
+        Context context = RuntimeEnvironment.getApplication();
+        assertTrue(SaveTree.keep(context, SaveTreeTest.TREE));
+        tree.deleteFolder();
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.VIDEO_DOWNLOAD);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushgramPreferenceFragment page = pageIn(controller);
+            Preference row = page.findPreference(Settings.SAVE_TREE.key);
+            assertEquals(L10n.f("HushGram can't reach %1$s anymore, so saves go to Movies and Pictures. Pick the folder again.",
+                    L10n.isolate("Download/.Insta")), String.valueOf(row.getSummary()));
+            assertTrue("Use Movies and Pictures can't be tapped for a deleted folder",
+                    page.findPreference(HushgramPreferenceFragment.GALLERY_FOLDERS).isEnabled());
+        } finally {
+            SaveTree.forget(context);
         }
     }
 

@@ -6,7 +6,7 @@ counts=collections.Counter()
 def png():
  def chunk(k,b): return struct.pack('>I',len(b))+k+b+struct.pack('>I',zlib.crc32(k+b)&0xffffffff)
  return b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',320,240,8,2,0,0,0))+chunk(b'IDAT',zlib.compress((b'\0'+b'\x30\x90\xe0'*320)*240))+chunk(b'IEND',b'')
-gif=base64.b64decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')
+gif=base64.b64decode('R0lGODlhAQABAIAAAAAAAP///yH5BAAKAAAAIf8LTkVUU0NBUEUyLjADAQAAACwAAAAAAQABAAACAkQBACH5BAAKAAAALAAAAAABAAEAAAICRAEAOw==')
 class Handler(http.server.BaseHTTPRequestHandler):
  def log_message(self,*args): pass
  def do_GET(self):
@@ -58,7 +58,7 @@ try:
  rpc.preference('videoTapControls',False);rpc.controls(False);rpc.press(0);rpc.press(1);time.sleep(.1);check(not rpc.state()['controls'],'tap control OFF leaves bar hidden')
  rpc.preference('videoTapControls',True);rpc.press(0);rpc.press(1);time.sleep(.1);check(rpc.state()['controls'],'tap control ON shows bar once');rpc.controls(False)
  check(rpc.native_gestures_off(),'ChMate gestures OFF does not start recognition');rpc.toolbar_swipe();time.sleep(.3);check(rpc.state()['url'].endswith('/clip.mp4'),'toolbar drag does not switch media')
- rpc.show_settings();time.sleep(.5);result=rpc.check_settings();check(result==8,'eight real settings switches save and restore their values');time.sleep(.3)
+ rpc.show_settings();time.sleep(.5);result=rpc.check_settings();check(result==9,'nine real settings switches save and restore their values');time.sleep(.3)
  wait_state('/clip.mp4','VideoViewerActivity',True)
  print('VIDEO_SWIPE_STATE',rpc.state(),flush=True);rpc.swipe(-1,False);check(wait_state('/two.gif','GifViewerActivity',True)['index']==3,'video to next GIF')
  rpc.swipe(-1,False);time.sleep(.3);check(rpc.state()['url'].endswith('/two.gif'),'last item does not wrap')
@@ -86,6 +86,13 @@ try:
   check(state['count']==3 and state['index']==1,'thumbnail preserves selected media in full-thread gallery')
   snapshot=rpc.thread_snapshot_reuse();check(snapshot['count']==3 and snapshot['index']==1,'thread snapshot reused for 100 interaction lookups')
   rpc.swipe(-1,False);check(wait_state('/clip.mp4','VideoViewerActivity',True)['index']==2,'whole-thread swipe crosses posts even when same-response swipe is OFF')
+ rpc.native_multi();wait_state('/a.png','ImagesViewer2Activity');time.sleep(1)
+ subprocess.run([adb,'-s',serial,'shell','input','swipe','1650','600','250','600','300'],check=True);wait_state('/b.png','ImagesViewer2Activity');check(True,'actual standard pager changes current media independently of launch Intent')
+ if package.endswith('242'):check(rpc.native_model_registered()==1,'screen-local native ViewModel follows actual pager index')
+ rpc.preference('mediaSwipeWholeThread',True);rpc.preference('mediaSwipeNavigation',True)
+ rpc.swipe(-1,False);wait_state('/clip.mp4','VideoViewerActivity',True);check(True,'thread gallery takes priority over same-response gestures after native paging')
+ rpc.native_gif_page();wait_state('/one.gif','ImagesViewer2Activity');time.sleep(.5)
+ rpc.swipe(-1,False);wait_state('/clip.mp4','VideoViewerActivity',True);check(True,'standard GIF gesture crosses to next thread video with both options ON')
  print(json.dumps({'checks':len(checks),'passed':checks,'requests':dict(counts)},ensure_ascii=False),flush=True)
  pathlib.Path('build/media-gallery-runtime-result.json').write_text(json.dumps({'checks':checks,'requests':dict(counts)},ensure_ascii=False,indent=2),encoding='utf-8')
 finally:

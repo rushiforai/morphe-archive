@@ -30,6 +30,7 @@ public final class FamilyNames {
     public static final String POST_TIME = "Show a post's exact time";
     public static final String HIDDEN_LIKE_COUNTS = "Show hidden like counts";
     public static final String BACK_LEAVES_HOME = "Back leaves Home";
+    public static final String HOME_PLACE = "Keep your place in Home";
     public static final String STORY_LOOP = "Loop a story";
     public static final String STORY_SOUND = "Start stories with sound";
     public static final String STORY_SWIPE_REPLY = "Stop swipe up to reply";
@@ -49,6 +50,8 @@ public final class FamilyNames {
     public static final String MESSAGES_LOCK = "Lock your messages";
     public static final String STORIES_TRAY = "Hide suggested stories";
     public static final String STORY_RING = "Story ring size";
+    public static final String STORY_PROGRESS_BAR = "Thicker story progress bar";
+    public static final String STORY_SEEK_BAR = "Seek bar on stories";
     public static final String FEED_REELS = "Hide Reels in the feed";
     public static final String FEED_SUGGESTIONS = "Hide suggested posts";
     public static final String HOME_FEED = "Hide the home feed";
@@ -111,6 +114,7 @@ public final class FamilyNames {
     public static final String REEL_SEEK_BAR = "Keep a seek bar on Reels";
     public static final String REEL_BLUR_BARS = "Blur the bars around Reels";
     public static final String REEL_TAP_AND_VOLUME = "Control taps and volume on Reels";
+    public static final String REEL_SOUND = "Start reels with sound";
     public static final String REEL_AUTO_SCROLL = "Keep Reels auto scroll on";
     public static final String REEL_SCROLLING = "Stop Reels scrolling";
     public static final String SWIPE_TO_PROFILE = "Swipe left to open the profile";
@@ -130,6 +134,7 @@ public final class FamilyNames {
     public static final String SCREENSHOT_REPORTS = "Don't report screenshots";
     public static final String SCREENSHOT_BLOCK = "Allow screenshots";
     public static final String KEEP_IN_CHAT = "Keep in chat";
+    public static final String CHAT_REELS = "Swipe through a chat's reels";
     public static final String ASK_BEFORE_CALL = "Ask before a call";
     public static final String MESSAGE_BOX = "Message box buttons";
     public static final String ASK_BEFORE_LIKE = "Ask before a like";

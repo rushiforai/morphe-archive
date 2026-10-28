@@ -1,3 +1,39 @@
+## [1.3.2](https://github.com/Okazakee/iptv-morphe-patches/compare/v1.3.1...v1.3.2) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* name the French build separately in Morphe ([ceac4a3](https://github.com/Okazakee/iptv-morphe-patches/commit/ceac4a361bb033a23368034c9b3dd171812a73cf))
+
+## [1.3.2-dev.1](https://github.com/Okazakee/iptv-morphe-patches/compare/v1.3.1...v1.3.2-dev.1) (2026-10-27)
+
+### 🐛 Bug Fixes
+
+* name the French build separately in Morphe ([ceac4a3](https://github.com/Okazakee/iptv-morphe-patches/commit/ceac4a361bb033a23368034c9b3dd171812a73cf))
+
+## [1.3.1](https://github.com/Okazakee/iptv-morphe-patches/compare/v1.3.0...v1.3.1) (2026-10-27)
+
+### 🚀 Updated App Support
+
+* add per-version compatibility notes and release history ([43b6417](https://github.com/Okazakee/iptv-morphe-patches/commit/43b6417f289235a8e61034a6d464e075a18ad72e))
+
+## [1.3.1-dev.1](https://github.com/Okazakee/iptv-morphe-patches/compare/v1.3.0...v1.3.1-dev.1) (2026-10-27)
+
+### 🚀 Updated App Support
+
+* add per-version compatibility notes and release history ([43b6417](https://github.com/Okazakee/iptv-morphe-patches/commit/43b6417f289235a8e61034a6d464e075a18ad72e))
+
+## [1.3.0](https://github.com/Okazakee/iptv-morphe-patches/compare/v1.2.0...v1.3.0) (2026-10-27)
+
+### ✨ New Features
+
+* support app 2.7.24 ([635f21c](https://github.com/Okazakee/iptv-morphe-patches/commit/635f21c56c5ba375f57b5b27cb6e915f85e045c3))
+
+## [1.3.0-dev.1](https://github.com/Okazakee/iptv-morphe-patches/compare/v1.2.0...v1.3.0-dev.1) (2026-10-27)
+
+### ✨ New Features
+
+* support app 2.7.24 ([635f21c](https://github.com/Okazakee/iptv-morphe-patches/commit/635f21c56c5ba375f57b5b27cb6e915f85e045c3))
+
 ## [1.2.0](https://github.com/Okazakee/iptv-morphe-patches/compare/v1.1.0...v1.2.0) (2026-10-19)
 
 ### ✨ New Features

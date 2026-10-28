@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.SystemClock;
+import android.text.SpannableString;
 import android.view.View;
 import android.widget.FrameLayout;
 
@@ -67,6 +68,8 @@ import app.morphe.extension.facebook.download.MediaDownload;
 import app.morphe.extension.facebook.download.PhotoMenuItemForTests;
 import app.morphe.extension.facebook.download.PhotoSave;
 import app.morphe.extension.facebook.download.PlayerSourcesForTests;
+import app.morphe.extension.facebook.download.PostActionButtonsForTests;
+import app.morphe.extension.facebook.download.ReelCaptionForTests;
 import app.morphe.extension.facebook.download.ReelDownload;
 import app.morphe.extension.facebook.download.SaveRulesForTests;
 import app.morphe.extension.facebook.download.StoryPhoto;
@@ -81,6 +84,7 @@ import app.morphe.extension.facebook.feed.FollowingHome;
 import app.morphe.extension.facebook.feed.GroupPosts;
 import app.morphe.extension.facebook.feed.ReturnRefresh;
 import app.morphe.extension.facebook.feed.FeedGuardForTests;
+import app.morphe.extension.facebook.feed.FullPostText;
 import app.morphe.extension.facebook.feed.MetaAiQuestions;
 import app.morphe.extension.facebook.feed.NotificationFooter;
 import app.morphe.extension.facebook.feed.PostDates;
@@ -474,6 +478,8 @@ public class PausedHooksTest {
                 MetaAiQuestions::hidesQuestionsBelowCaption));
         // A post header's yes to rotating its subtitle is answered as a no, so it keeps the one line.
         probes.put(PatchFamily.POST_DATES, Collections.singletonList(() -> !PostDates.cycling(true)));
+        // A post's cut text is answered with null, so Facebook keeps the whole text with no See more.
+        probes.put(PatchFamily.FULL_POST_TEXT, Collections.singletonList(() -> FullPostText.cut(new SpannableString("x")) == null));
         // A post marked for automatic translation reads as one to translate on request, and the
         // reels footer hears a caption can't be translated by itself, so it asks for nothing.
         probes.put(PatchFamily.AUTO_TRANSLATION, Arrays.asList(AutoTranslationForTests::keepsThePost,
@@ -527,6 +533,11 @@ public class PausedHooksTest {
                 Collections.singletonList(ProfileAdFilterForTests::hidesASponsoredStory));
         // The note bubble over a profile picture is left out of its Bloks children.
         probes.put(PatchFamily.PROFILE_NOTES, Collections.singletonList(ProfileNotesForTests::hidesANote));
+        // A post's row gets Save and loses Like, and a video post's row gets Download.
+        probes.put(PatchFamily.POST_ACTION_BUTTONS, Arrays.asList(
+                PostActionButtonsForTests::addsSave,
+                PostActionButtonsForTests::hidesLike,
+                PostActionButtonsForTests::addsDownload));
         // Marketplace's feed query asks to skip its ads, an ads-only query isn't sent, and a search
         // answer loses its ad.
         probes.put(PatchFamily.SPONSORED_MARKETPLACE, Arrays.asList(
@@ -586,9 +597,10 @@ public class PausedHooksTest {
                     FeedVideoAlone.feedVideoTapped();
                     return FeedVideoAlone.holdsBack(new Object());
                 },
-                // So does a reel's data source as the reels viewer opens from the feed.
+                // So does a reel's data source as the reels viewer opens from the feed. A feed reel's
+                // origin: an ordinary video post's ("newsfeed::feed_story") keeps Facebook's answer (#237).
                 () -> {
-                    FeedVideoAlone.reelsViewerOpening("newsfeed::feed_story");
+                    FeedVideoAlone.reelsViewerOpening("newsfeed::fb_shorts_native_in_feed_unit");
                     return FeedVideoAlone.seedOnly(new Object());
                 },
                 // And that viewer's list shows no loading page after the video.
@@ -702,8 +714,8 @@ public class PausedHooksTest {
                 () -> StoryPhoto.menuTitle(new UnmarkedPhotoStoryCard()) != null,
                 // The recorder runs in every player Facebook builds, not only in stories.
                 PlayerSourcesForTests::recordsAPlayer));
-        // Every reel's sidebar gets the Download button.
-        probes.put(PatchFamily.REEL_DOWNLOAD, Collections.singletonList(ReelDownload::showsButton));
+        // Every reel's sidebar gets the Download button, and a reel whose caption was seen gets Copy caption.
+        probes.put(PatchFamily.REEL_DOWNLOAD, Arrays.asList(ReelDownload::showsButton, ReelCaptionForTests::addsTheRow));
         // A video post's menu gets Download to phone, and the video recorder keeps a player.
         // Its copied-link option reads the clipboard as a screen comes to the front.
         probes.put(PatchFamily.VIDEO_DOWNLOAD, Arrays.asList(
@@ -802,6 +814,7 @@ public class PausedHooksTest {
                 () -> !CommentSheetOptions.viewMoreRepliesTextOnly(true),
                 () -> CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS),
                 () -> CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS),
+                () -> CommentSheetOptions.holdsCommentButton(CommentSheetOptions.DOWNVOTE),
                 () -> CommentSheetOptions.hidesComment(new GraphQLComment("https://s.shopee.vn/9zKs")),
                 () -> CommentSheetOptions.hidesComment(new GraphQLComment("Big SPOILER inside")),
                 () -> CommentSheetOptions.incomingTypers(3) == 0,

@@ -110,7 +110,7 @@ The top bar with search and Messenger stays put while you scroll down, instead o
 # context: switch title under Appearance, after Keep the top bar on screen; a big screen is a tablet or the inner screen of a folding phone, and the phone layout is the one Facebook shows on a normal phone
 Phone layout on big screens	大屏幕上使用手机布局
 # context: description of that switch; on a big screen Facebook keeps the tab bar at the top in a wider layout, so the tab bar switches above it do nothing there
-A tablet or an unfolded phone gets the layout Facebook uses on a phone, so the tab bar switches above work on the big screen too. Facebook's wider big screen layout goes away. Off by default, since it hasn't been tried on a big screen yet. Restart Facebook to see the change.	平板或展开的折叠屏手机会使用 Facebook 在手机上的布局，这样上面的标签栏开关在大屏幕上也能生效。Facebook 较宽的大屏幕布局将不再出现。默认关闭，因为尚未在大屏幕上试过。重启 Facebook 后可看到更改。
+A tablet or an unfolded phone gets the layout Facebook uses on a phone, so the tab bar choices above work on the big screen too. Facebook's wider big screen layout goes away. Off by default, since it hasn't been tried on a big screen yet. Restart Facebook to see the change.	平板或展开的折叠屏手机会使用 Facebook 在手机上的布局，这样上面的标签栏选项在大屏幕上也能生效。Facebook 较宽的大屏幕布局将不再出现。默认关闭，因为尚未在大屏幕上试过。重启 Facebook 后可看到更改。
 # context: switch title under Appearance, after Phone layout on big screens; it makes Facebook's top bar (search and Messenger) and its tab bar partly transparent
 See-through bars	透明栏
 # context: description of that switch; the feed is the list of posts on Home, and blurred means frosted like glass
@@ -191,7 +191,7 @@ Reels show up in four places, and each one has its own control.	Reels 会出现�
 Reels in the feed	动态中的 Reels
 In News feed, Hide Reels in the feed blocks the rows of reels between posts.	在“动态消息”中，“隐藏动态中的 Reels”会屏蔽帖子之间的 Reels 行。
 Reels that play by themselves	自动播放的 Reels
-In Playback, Tap to play blocks autoplay, so reels and other videos wait for your tap.	在“播放”中，“点按播放”会屏蔽自动播放，这样 Reels 和其他视频会等你点按后才播放。
+In Video and audio, Tap to play blocks autoplay, so reels and other videos wait for your tap.	在“视频和音频”中，“点按播放”会屏蔽自动播放，这样 Reels 和其他视频会等你点按后才播放。
 The Reels tab	Reels 标签页
 # context: map line without the patch; %1$s is the patch's English name in Morphe Manager
 Facebook's own setting blocks it. Open Settings, Tab bar, Customize the bar and choose Hide next to Reels, which some accounts call Video. If neither is listed, choose the %1$s patch in Morphe Manager and patch again.	由 Facebook 自己的设置来屏蔽。打开“设置”，进入“标签栏”和“自定义标签栏”，然后在 Reels（部分账号称为“视频”）旁选择“隐藏”。如果两者都没有列出，请在 Morphe Manager 中选择 %1$s 修补项，然后重新修补。
@@ -357,7 +357,6 @@ Stops sending Facebook your list of watched reels. It uses the list to rank your
 # context: switch title under Reels and Watch; the Reels tab shows the most recently posted reels before older ones
 Newest reels first	最新 Reels 优先
 # context: summary of that switch; "loaded" means the reels the app has already downloaded in the background, "placed" means reels already lined up as the next ones
-The Reels tab plays the newest posted of the reels Facebook has loaded for you first, instead of its own pick. It can't fetch newer ones, and reels already placed stay put. Off by default, since it hasn't been tried on a real account yet.	Reels 标签页会在 Facebook 已为你加载的 Reels 中优先播放最新发布的，而不是 Facebook 自己挑选的顺序。它无法获取更新的 Reels，已排好的 Reels 保持原位。默认关闭，因为还没有在真实账号上试过。
 # context: what stays in while Hushfacebook is paused, shown before the patch's name in brackets; the patch raises the app's version number so Google Play never offers an update
 Meta's apps can install beside this one	Meta 的应用可与此应用并存安装
 Messenger, Facebook Lite, Business Suite and Workplace can install next to this Facebook. Their shared permissions no longer clash.	Messenger、Facebook Lite、Business Suite 和 Workplace 可以与这个 Facebook 并存安装。它们共用的权限不再冲突。
@@ -464,7 +463,6 @@ Hide Meta AI in search	隐藏搜索中的 Meta AI
 # context: summary of that switch; Meta AI and Ask Meta AI are Meta's own names, as Facebook shows them
 Search no longer shows Meta AI answers or Ask Meta AI prompts, or sends your search to Meta AI. Results for people, groups, pages and posts stay.	搜索不再显示 Meta AI 的回答或“询问 Meta AI”提示，也不再把你的搜索发送给 Meta AI。用户、小组、公共主页和帖子的结果保留。
 # context: settings section heading for the Default comment order switch and its list
-Comments	评论
 # context: switch title; on, a post's comments open in the order chosen in the list below it
 Default comment order	默认评论排序
 # context: summary of that switch; a link to a comment is one from a notification, say
@@ -477,6 +475,8 @@ Hides Meta AI's summary at the top of comments and the comment summary under a p
 Hide comments under posts	隐藏帖子下方的评论
 # context: summary of that switch; Comment is the post's Comment button
 Feed posts stop showing a few comments under their buttons. Tap Comment to read them all.	动态中的帖子不再在按钮下方显示评论。点按“评论”即可查看全部。
+Hide dislike on comments	隐藏评论的踩按钮
+Takes the thumbs-down off comments. Like and Reply stay.	去掉评论旁的踩按钮。赞和回复保留。
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	仅“赞”
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -538,6 +538,24 @@ Hides ads between posts on someone's profile or a Page. Their own posts stay.	�
 Hide profile notes	隐藏个人主页上的便签
 # context: summary of that switch
 Hides the note bubble that sits on profile pictures. Applies the next time you open a profile.	隐藏头像上的便签气泡。下次打开个人主页时生效。
+# context: switch title under News feed; Save is Facebook's own button that keeps a post in your saved items
+Save button under posts	帖子下方的收藏按钮
+# context: summary of that switch; Like, Comment and Share are the buttons under a post
+Adds Facebook's own Save button next to Like, Comment and Share under posts. A saved post shows its bookmark filled in.	在帖子下方的赞、评论和分享旁边添加 Facebook 自带的收藏按钮。已收藏的帖子会显示实心书签。
+# context: switch title under News feed; a button that saves a post's video or photos to the phone
+Download button under posts	帖子下方的下载按钮
+# context: summary of that switch; Downloads is the name of Hushfacebook's settings page for saving media
+Adds a Download button under posts with a video or photos. It saves the video, the photo, or every photo of an album, using the Downloads settings.	在含有视频或照片的帖子下方添加下载按钮。它会按照下载设置保存视频、照片或相册中的每张照片。
+# context: switch title under News feed; Like is Facebook's own button under a post
+Hide Like under posts	隐藏帖子下方的赞
+# context: switch title under News feed; Comment is Facebook's own button under a post
+Hide Comment under posts	隐藏帖子下方的评论
+# context: switch title under News feed; Share is Facebook's own button under a post
+Hide Share under posts	隐藏帖子下方的分享
+# context: switch title under News feed; Send is Facebook's own button under a post that sends it in a chat
+Hide Send under posts	隐藏帖子下方的发送
+# context: summary shared by those four switches
+Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	从动态中帖子下方的按钮行里移除这个按钮。其他按钮保留，所有按钮都隐藏的帖子不显示按钮行。
 # context: what stays in while Hushfacebook is paused, followed by the patch name in brackets; the row in Facebook's own Menu that opens Hushfacebook settings
 # context: a short message when the Hushfacebook row in Facebook's Menu couldn't open the settings
 Hushfacebook settings can't open here. Long-press the Facebook logo instead.	Hushfacebook 设置无法在这里打开。请改为长按 Facebook 徽标。
@@ -744,7 +762,6 @@ Active. Events, Notifications and Profile/Menu stay. Find Hushfacebook settings 
 # context: Settings overview, category navigation and search.
 Ads, suggestions and word filters	广告、推荐和字词筛选
 Cleaner reels and video controls	更清爽的 Reels 和视频控制
-Tap to play, quality and resume	点按播放、画质和继续播放
 Quality, format and file names	画质、格式和文件名
 No matching settings	没有匹配的设置
 %1$d setting found	找到 %1$d 项设置
@@ -834,7 +851,7 @@ Videos play at the lowest quality Facebook offers for each.	视频按 Facebook �
 Videos play at the best quality up to %1$s that Facebook offers for each, or the closest above.	视频按 Facebook 为每个视频提供的不超过 %1$s 的最佳画质播放，没有则用其以上最接近的画质。
 Videos play at the highest quality Facebook offers for each.	视频按 Facebook 为每个视频提供的最高画质播放。
 Facebook will pick the quality videos play at.	Facebook 将选择视频的播放画质。
-Playback quality will be set to %1$s.	播放画质将设为 %1$s。
+Default quality will be set to %1$s.	默认画质将设为 %1$s。
 # context: import preview and toast sentence when a settings file sets the Reels quality to follow the playback quality
 Reels will play at the same quality as other videos.	Reels 将以与其他视频相同的画质播放。
 # context: import preview and toast sentence; %1$s is a Reels quality choice such as Up to 720p
@@ -941,6 +958,8 @@ Hides the row of Meta AI questions under some posts. The post, its link card and
 Keep post dates	保留帖子日期
 # context: description of that switch; the rotating details are the texts Facebook's newer post header takes turns showing on that line
 Shows the post's date under the poster's name instead of Facebook's rotating details, which can go blank on some phones.	在发布者姓名下方显示帖子日期，而不是 Facebook 轮换显示的详情（在某些手机上可能变成空白）。
+Show full post text	显示完整帖子文字
+Posts in the feed show all of their text, so there's no See more to tap.	动态中的帖子会显示全部文字，不用再点“展开”。
 # context: switch title under News feed; the Feeds header is the row at the top of the Feeds tab with Feeds, the menu and search, and the filters under it, All, Favorites, Friends, Groups and Pages
 Hide the Feeds header	隐藏“动态”页眉
 # context: description of that switch; the Feeds tab is where Facebook lists posts by those filters, and the title row is the one with the tab's name
@@ -963,6 +982,16 @@ Couldn't open an app for this link	无法为此链接打开应用
 Video link	视频链接
 # context: Toast after a long press on the reel button copied its link
 Link copied	链接已复制
+# context: row title in a reel's three-dot More menu; the caption is the text under the reel
+Copy caption	复制说明文字
+# context: Clipboard label of a copied reel caption
+Reel caption	Reels 说明文字
+# context: Toast after Copy caption copied a reel's caption
+Caption copied	已复制说明文字
+# context: switch title under Saving reels on the Reels and Watch page
+Copy reel captions	复制 Reels 说明文字
+# context: summary of that switch; More is the reel's three-dot menu, See more is the link that opens a long caption
+A reel's More menu gets Copy caption, which copies the whole caption, even the part behind See more.	Reels 的“更多”菜单会多出“复制说明文字”，可复制完整的说明文字，包括“展开”后隐藏的部分。
 # context: Toast when a reel's link can't be built
 Couldn't find this reel's link	找不到此 Reels 的链接
 # context: Toast when a feed video's link can't be built
@@ -1174,16 +1203,16 @@ With Block Instant Games ads on, a game's rewarded ad counts as watched. No ad p
 Reels quality	Reels 画质
 # context: title of the list that picks the quality video stories start at
 Stories quality	快拍画质
-# context: first choice in the Reels and Stories quality lists: follow the Playback quality row; use this language's name for that row
-Same as Playback quality	与播放画质相同
+# context: first choice in the Reels and Stories quality lists: follow the Default quality row
+Same as default	与默认相同
 # context: summary of the Reels quality list when it follows the Playback quality row
-Reels follow the Playback quality row.	Reels 沿用“播放画质”一行的设置。
+Reels follow the Default quality row.	Reels 沿用“默认画质”一行的设置。
 # context: summary of the Stories quality list when it follows the Playback quality row
-Video stories follow the Playback quality row.	视频快拍沿用“播放画质”一行的设置。
+Video stories follow the Default quality row.	视频快拍沿用“默认画质”一行的设置。
 # context: summary of the Reels quality list when it has a quality of its own; %1$s is that choice, such as Highest or Up to 720p
-%1$s for reels, whatever Playback quality is set to.	Reels 使用“%1$s”，不论“播放画质”如何设置。
+%1$s for reels, whatever Default quality is set to.	Reels 使用“%1$s”，不论“默认画质”如何设置。
 # context: summary of the Stories quality list when it has a quality of its own; %1$s is that choice, such as Highest or Up to 720p
-%1$s for video stories, whatever Playback quality is set to.	视频快拍使用“%1$s”，不论“播放画质”如何设置。
+%1$s for video stories, whatever Default quality is set to.	视频快拍使用“%1$s”，不论“默认画质”如何设置。
 # context: title of the row naming a folder inside the save folder that video saves go in
 Video subfolder	视频子文件夹
 # context: title of the row naming a folder inside the save folder that photo saves go in
@@ -1274,6 +1303,8 @@ Hides short posts shown as big text on a colored background.	隐藏以彩色背�
 Hide reposts	隐藏转发的帖子
 # context: summary of the Hide reposts switch; a caption is what the sharer wrote above the shared post
 Hides posts that share another post, with or without a caption. Original posts stay. Off by default, since it hasn't been tried on a real feed yet.	隐藏分享了另一条帖子的帖子，无论有无附言。原创帖子保留。默认关闭，因为尚未在真实动态上试过。
+Hide posts from Pages	隐藏公共主页的帖子
+Hides posts written by Pages, the ones you follow too. Posts from friends and groups stay, and so does a friend's share of a Page's post.	隐藏公共主页发布的帖子，包括你关注的主页。好友和小组的帖子会保留，好友分享的公共主页帖子也会保留。
 # context: switch title in Privacy: asks for the phone's own screen lock before Facebook shows
 Lock Facebook	锁定 Facebook
 Save crashes to Downloads	将崩溃记录保存到“下载”
@@ -1345,12 +1376,16 @@ Red	红色
 Indigo	靛蓝
 # context: Accent color choice, a yellow-orange
 Amber	琥珀色
-# context: summary of the Accent color row, greyed out because the Material You theme patch is in the build
-Material You theme is in this build and picks Facebook's colors, so this has no effect.	此版本包含 Material You 主题，由它选择 Facebook 的颜色，所以此项不起作用。
+# context: summary of the Accent color row at Facebook blue while the Material You theme patch is in the build
+Material You uses your wallpaper's accent. Pick a color to use it instead.	Material You 使用壁纸的强调色。选择一种颜色即可改用它。
+# context: summary of the Accent color row while the Material You theme patch is in the build; %1$s is a color name such as Teal
+Material You uses %1$s in place of your wallpaper's accent. Restart Facebook to see the change.	Material You 使用%1$s代替壁纸的强调色。重启 Facebook 后可看到更改。
+# context: the Accent color list's first choice while the Material You theme patch is in the build: keep the phone's own wallpaper color
+Wallpaper accent	壁纸强调色
 # context: summary of the Accent color row at its default
 Links, buttons, switches and the selected tab keep Facebook's blue.	链接、按钮、开关和选中的标签页保持 Facebook 蓝。
 # context: summary of the Accent color row; %1$s is a color name such as Teal
-Links, buttons, switches and the selected tab use %1$s instead of Facebook's blue. Restart Facebook to see the change. If the Material You theme is added, it takes over.	链接、按钮、开关和选中的标签页使用%1$s，而不是 Facebook 蓝。重启 Facebook 后可看到更改。如果加入了 Material You 主题，则以它为准。
+Links, buttons, switches and the selected tab use %1$s instead of Facebook's blue. Restart Facebook to see the change.	链接、按钮、开关和选中的标签页使用%1$s，而不是 Facebook 蓝。重启 Facebook 后可看到更改。
 # context: what a settings import changes: Facebook goes back to its own blue
 Facebook will keep its own blue.	Facebook 将保持它自己的蓝色。
 # context: what a settings import changes; %1$s is a color name such as Teal
@@ -1687,6 +1722,14 @@ Takes the numbers away from under a reel's Like, Comment and Share icons. The ic
 # context: Reels and Watch switch for the dedicated WhatsApp sidebar button, independent of the Share menu
 Hide WhatsApp on reels	隐藏 Reels 上的 WhatsApp
 Hides the WhatsApp button beside reels and videos. WhatsApp stays in the Share menu. A change shows from the next video.	隐藏 Reels 和视频侧边的 WhatsApp 按钮。分享菜单中仍保留 WhatsApp。更改从下一个视频起生效。
+# context: switch title under Reels and Watch; Like is Facebook's own label for that button down a reel's right side, so use Facebook's wording in your language
+Hide Like on reels	隐藏 Reels 上的“赞”
+# context: switch title under Reels and Watch; Comment is Facebook's own label for that button down a reel's right side, so use Facebook's wording in your language
+Hide Comment on reels	隐藏 Reels 上的“评论”
+# context: switch title under Reels and Watch; Share is Facebook's own label for that button down a reel's right side, so use Facebook's wording in your language
+Hide Share on reels	隐藏 Reels 上的“分享”
+# context: summary shared by the Like, Comment and Share switches on reels
+Takes this button off the side of reels. The buttons above it move down. A change shows from the next reel.	从 Reels 侧边移除这个按钮。上方的按钮会下移。从下一个 Reel 开始生效。
 # context: switch title under Reels and Watch; Save is Facebook's own label for the bookmark button down a reel's right side, so use Facebook's wording in your language
 Hide Save on reels	隐藏 Reels 上的“收藏”
 # context: summary of that switch; the buttons under it are Download and More
@@ -1933,3 +1976,108 @@ Saving, playback and anonymous viewing	保存、播放和匿名浏览
 Sorting, replies and reactions	排序、回复和心情
 Expanded	已展开
 Collapsed	已折叠
+Ads and suggestions	广告和推荐
+Feed layout	动态布局
+Content filters	内容过滤
+Reels tab and ads	Reels 标签和广告
+On reels and videos	在 Reels 和视频上
+Video controls	视频控制
+Saving reels	保存 Reels
+Autoplay and resume	自动播放和继续播放
+Video quality	视频画质
+Sound	声音
+Controls and picture-in-picture	控制和画中画
+Tab bar	标签栏
+Top bar	顶栏
+Tabs to hide	要隐藏的标签
+Dots and counts	圆点和计数
+Text and emoji	文字和表情
+Colors and theme	颜色和主题
+Screen and motion	屏幕和动效
+App icon and header	应用图标和标题栏
+Backup and restore	备份和恢复
+Troubleshooting	故障排查
+Help and restart	帮助和重启
+Support the project	支持这个项目
+Video and audio	视频和音频
+Comments and writing	评论和撰写
+Tabs and navigation	标签和导航
+Links and sharing	链接和分享
+Chats and Messenger	聊天和 Messenger
+Built-in changes	内置更改
+Autoplay, quality and sound	自动播放、画质和声音
+Tab bar, top bar, hidden tabs and dots	标签栏、顶栏、隐藏的标签和圆点
+Default quality	默认画质
+Tab bar position	标签栏位置
+Tab bar while scrolling	滚动时的标签栏
+At the bottom	在底部
+At the top	在顶部
+Hides while scrolling	滚动时隐藏
+Stays on screen	始终显示
+Facebook decides where the tab bar goes on your account. Restart Facebook after you change this.	由 Facebook 决定你账号上标签栏的位置。更改后请重启 Facebook。
+Facebook decides whether the bottom tab bar slides away as you scroll. Restart Facebook after you change this.	由 Facebook 决定底部标签栏在滚动时是否滑走。更改后请重启 Facebook。
+# context: heading above a text field under a word list being edited, where a person types text to test the lists on
+Try the lists on some text	用一段文字试试这两个列表
+# context: hint inside that test field
+Text of a post	帖子的文字
+# context: line under the test field when the Words to hide list is empty
+The hide list is empty, so no post would be hidden.	“要隐藏的字词”是空的，所以不会隐藏任何帖子。
+# context: line under the test field before anything is typed in it
+Type or paste a post's text to see what these lists would do with it. It isn't saved.	输入或粘贴一条帖子的文字，看看这两个列表会怎么处理它。文字不会被保存。
+# context: line under the test field: the lists would hide a post with the typed text
+A post with this text would be hidden.	含这段文字的帖子会被隐藏。
+# context: line under the test field: the Words that keep a post list matches the typed text
+A post with this text would stay, because the keep list matches it.	含这段文字的帖子会保留，因为“保留帖子的字词”与它匹配。
+# context: line under the test field: the lists' patterns (regular expressions) ran out of time on the typed text, and such a post stays
+A post with this text would stay, because the patterns took too long on it.	含这段文字的帖子会保留，因为模式处理它用时太长。
+# context: line under the test field: no word, phrase or pattern of either list matches the typed text
+A post with this text would stay. Nothing on either list matches it.	含这段文字的帖子会保留。两个列表都没有匹配项。
+# context: added after one of those lines when the typed text was too long; %1$d is how many characters were read
+Only the first %1$d characters were checked.	只检查了前 %1$d 个字符。
+Save on	保存位置
+Phone storage	手机存储
+SD card that isn't in the phone	不在手机中的 SD 卡
+Videos and photos are saved on the phone's storage.	视频和照片保存在手机存储中。
+Videos and photos are saved on the phone's storage. Put in an SD card to save on it instead.	视频和照片保存在手机存储中。插入 SD 卡即可改为保存到卡上。
+The SD card you picked isn't in the phone, so videos and photos are saved on the phone's storage until it's back.	你选择的 SD 卡不在手机中，因此在它插回之前，视频和照片会保存在手机存储中。
+Videos and photos are saved on %1$s, in the same folders. Saves you already have stay where they are.	视频和照片保存在 %1$s 上，文件夹不变。已保存的内容留在原处。
+Pause reels while comments are open	打开评论时暂停 Reels
+A reel stops while you read its comments and plays on from the same spot when you close them.	阅读 Reels 的评论时它会暂停，关闭评论后从原处继续播放。
+Sort loaded reels	排序已加载的 Reels
+The Reels tab plays the reels Facebook has loaded for you in the order picked below, instead of its own pick. It can't fetch more, and reels already placed stay put. Off by default, since it hasn't been tried on a real account yet.	Reels 标签页会按下方选择的顺序播放 Facebook 已为你加载的 Reels，而不是 Facebook 自己挑选的顺序。它无法获取更多 Reels，已排好的 Reels 保持原位。默认关闭，因为还没有在真实账号上试过。
+Reels order	Reels 排序
+Most liked	最多心情
+Of the reels Facebook has loaded, the ones with the most reactions play first.	在 Facebook 已加载的 Reels 中，心情最多的优先播放。
+Of the reels Facebook has loaded, the newest posted play first.	在 Facebook 已加载的 Reels 中，最新发布的优先播放。
+Reels order will be set to %1$s.	Reels 排序将设为 %1$s。
+Cast button on feed videos	动态视频上的投屏按钮
+Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	为动态中的视频添加投屏按钮。它会把视频交给你已安装的投屏应用（如 Web Video Caster），由它发送到电视。Facebook 已不再自带投屏功能。
+Cast this video	投屏此视频
+# context: title of the row that holds a color code for the count badges on the tabs
+Badge color	徽章颜色
+# context: title of the row that holds a color code for the Facebook logo at the top of Home
+Logo color	标志颜色
+# context: dialog message of the Logo color row; keep #RRGGBB and #2ECC71 as they are
+A color code (#RRGGBB) for the Facebook logo at the top of Home, like #2ECC71. Leave it blank for Facebook's blue.	首页顶部 Facebook 标志的颜色代码（#RRGGBB），例如 #2ECC71。留空则使用 Facebook 的蓝色。
+# context: dialog message of the Badge color row; keep #RRGGBB and #2ECC71 as they are
+A color code (#RRGGBB) for the count badges on the tabs, like #2ECC71. Leave it blank for Facebook's red.	标签上数字徽章的颜色代码（#RRGGBB），例如 #2ECC71。留空则使用 Facebook 的红色。
+# context: summary of the Logo color row while it's blank
+The Facebook logo keeps its blue. Type a color code to change it.	Facebook 标志保持蓝色。输入颜色代码即可更改。
+# context: summary of the Badge color row while it's blank
+Badges keep Facebook's red. Type a color code to change it.	徽章保持 Facebook 的红色。输入颜色代码即可更改。
+# context: summary of the Logo color row; %1$s is a color code like #2ECC71
+The Facebook logo at the top of Home is %1$s. Restart Facebook to see the change.	首页顶部的 Facebook 标志为 %1$s。重启 Facebook 后可看到变化。
+# context: summary of the Badge color row; %1$s is a color code like #2ECC71
+Count badges on the tabs are %1$s. Restart Facebook to see the change.	标签上的数字徽章为 %1$s。重启 Facebook 后可看到变化。
+# context: shown when Save is tapped on the Badge or Logo color row with text that isn't a color code; %1$s is what was typed; keep #RRGGBB and #2ECC71 as they are
+"%1$s" isn't a color. Type a six-digit color code (#RRGGBB), like #2ECC71, or leave it blank for Facebook's own.	“%1$s”不是颜色。请输入六位颜色代码（#RRGGBB），例如 #2ECC71，或留空以使用 Facebook 的颜色。
+# context: shown when Save is tapped on the Badge or Logo color row with a see-through color; %1$s is what was typed; keep #RRGGBB and #2ECC71 as they are
+%1$s is see-through. Type a solid six-digit color code (#RRGGBB), like #2ECC71.	%1$s 是透明的。请输入不透明的六位颜色代码（#RRGGBB），例如 #2ECC71。
+# context: import preview sentence: the file sets the Badge color row back to blank; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, badges will be Facebook's red.	如果你修补的 Facebook 包含“徽章和标志颜色”，徽章将使用 Facebook 的红色。
+# context: import preview sentence: the file sets the Logo color row back to blank; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, the logo will be Facebook's blue.	如果你修补的 Facebook 包含“徽章和标志颜色”，标志将使用 Facebook 的蓝色。
+# context: import preview sentence: the file sets the Badge color row; %1$s is a color code like #2ECC71; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, badges will be %1$s.	如果你修补的 Facebook 包含“徽章和标志颜色”，徽章将为 %1$s。
+# context: import preview sentence: the file sets the Logo color row; %1$s is a color code like #2ECC71; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, the logo will be %1$s.	如果你修补的 Facebook 包含“徽章和标志颜色”，标志将为 %1$s。

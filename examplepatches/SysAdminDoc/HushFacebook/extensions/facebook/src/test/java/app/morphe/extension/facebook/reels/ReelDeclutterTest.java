@@ -32,6 +32,7 @@ import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.HushfacebookPause;
 import app.morphe.extension.shared.settings.PauseForTests;
 import app.morphe.extension.shared.settings.SettingReadsForTests;
@@ -69,6 +70,9 @@ public class ReelDeclutterTest {
         Settings.HIDE_REEL_COUNTS.resetToDefault();
         Settings.HIDE_REEL_SAVE_BUTTON.resetToDefault();
         Settings.HIDE_REEL_WHATSAPP_BUTTON.resetToDefault();
+        Settings.HIDE_REEL_LIKE_BUTTON.resetToDefault();
+        Settings.HIDE_REEL_COMMENT_BUTTON.resetToDefault();
+        Settings.HIDE_REEL_SHARE_BUTTON.resetToDefault();
         Settings.HIDE_REEL_SOUND_BUTTON.resetToDefault();
         Settings.HIDE_REEL_AUDIO_LINE.resetToDefault();
         Settings.HIDE_SLOW_CONNECTION_MESSAGE.resetToDefault();
@@ -624,6 +628,41 @@ public class ReelDeclutterTest {
             SettingReadsForTests.mend(Settings.HIDE_REEL_WHATSAPP_BUTTON);
         }
         assertEquals(Arrays.asList("a working '" + ReelDeclutter.WHATSAPP_BUTTON + "' hook (it threw "
+                + NullPointerException.class.getName() + ")"), HookStatus.missing(FamilyNames.REEL_DECLUTTER));
+    }
+
+    @Test
+    public void likeCommentAndShareEachHaveTheirOwnSwitch() {
+        BooleanSetting[] switches = {Settings.HIDE_REEL_LIKE_BUTTON, Settings.HIDE_REEL_COMMENT_BUTTON,
+                Settings.HIDE_REEL_SHARE_BUTTON};
+        SidebarIcon[] icons = {SidebarIcon.LIKE, SidebarIcon.COMMENT, SidebarIcon.SHARE};
+        String[] buttons = {ReelDeclutter.LIKE_BUTTON, ReelDeclutter.COMMENT_BUTTON, ReelDeclutter.SHARE_BUTTON};
+        for (int i = 0; i < switches.length; i++) {
+            assertFalse(switches[i].key, switches[i].defaultValue);
+            assertFalse(switches[i].key, ReelDeclutter.hideSidebarButton(icons[i]));
+            switches[i].save(true);
+            for (SidebarIcon icon : SidebarIcon.values()) {
+                assertEquals(switches[i].key + " " + icon, icon == icons[i], ReelDeclutter.hideSidebarButton(icon));
+            }
+            assertFalse("a string was taken for the enum", ReelDeclutter.hideSidebarButton(icons[i].name()));
+            assertTrue(line(ReelDeclutter.SIDEBAR_ROUTE), line(ReelDeclutter.SIDEBAR_ROUTE).contains("Last reason: " + buttons[i]));
+            PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+            assertFalse("paused skipped " + icons[i], ReelDeclutter.hideSidebarButton(icons[i]));
+            PauseForTests.resume();
+            switches[i].save(false);
+            assertFalse("off did not bring " + icons[i] + " back", ReelDeclutter.hideSidebarButton(icons[i]));
+        }
+    }
+
+    @Test
+    public void anUnreadableLikeSwitchBuildsTheButtonAndNamesItsOwnHook() {
+        SettingReadsForTests.breakReads(Settings.HIDE_REEL_LIKE_BUTTON);
+        try {
+            assertFalse(ReelDeclutter.hideSidebarButton(SidebarIcon.LIKE));
+        } finally {
+            SettingReadsForTests.mend(Settings.HIDE_REEL_LIKE_BUTTON);
+        }
+        assertEquals(Arrays.asList("a working '" + ReelDeclutter.LIKE_BUTTON + "' hook (it threw "
                 + NullPointerException.class.getName() + ")"), HookStatus.missing(FamilyNames.REEL_DECLUTTER));
     }
 

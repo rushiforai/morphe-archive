@@ -1,49 +1,39 @@
 package app.morphe.patches.reddit.customclients.boostforreddit.fix.slink
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.reddit.customclients.AppCompatibility
 import app.morphe.patches.reddit.customclients.RESOLVE_S_LINK_METHOD
 import app.morphe.patches.reddit.customclients.SET_ACCESS_TOKEN_METHOD
-import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
-import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
+import app.morphe.patches.reddit.customclients.ExtensionPatches
 import app.morphe.patches.reddit.customclients.fixSLinksPatch
+import app.morphe.patches.reddit.customclients.boostforreddit.wrapHook
 
-const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/boostforreddit/FixSLinksPatch;"
+const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/boost/FixSLinksPatch;"
 
 @Suppress("unused")
 val fixSlinksPatch = fixSLinksPatch(
-    extensionPatch = sharedExtensionPatch,
+    extensionPatch = ExtensionPatches.Boost,
 ) {
-    compatibleWith(*BoostCompatible)
+    compatibleWith(*AppCompatibility.Boost)
 
     execute {
         // region Patch navigation handler.
 
-        handleNavigationFingerprint.method.apply {
-            val urlRegister = "p1"
-            val tempRegister = "v1"
-
-            addInstructionsWithLabels(
-                0,
-                """
-                    invoke-static { $urlRegister }, $EXTENSION_CLASS_DESCRIPTOR->$RESOLVE_S_LINK_METHOD
-                    move-result $tempRegister
-                    if-eqz $tempRegister, :continue
-                    return $tempRegister
-                """,
-                ExternalLabel("continue", getInstruction(0)),
-            )
-        }
+        HandleNavigationFingerprint.wrapHook(
+            before = """
+                invoke-static {p1}, $EXTENSION_CLASS_DESCRIPTOR->$RESOLVE_S_LINK_METHOD
+                move-result v0
+                if-eqz v0, :morphe_native_navigation
+                return v0
+                :morphe_native_navigation
+            """,
+        )
 
         // endregion
 
         // region Patch set access token.
 
-        getOAuthAccessTokenFingerprint.method.addInstruction(
-            3,
-            "invoke-static { v0 }, $EXTENSION_CLASS_DESCRIPTOR->$SET_ACCESS_TOKEN_METHOD",
+        GetOAuthAccessTokenFingerprint.wrapHook(
+            after = "invoke-static {v0}, $EXTENSION_CLASS_DESCRIPTOR->$SET_ACCESS_TOKEN_METHOD",
         )
 
         // endregion

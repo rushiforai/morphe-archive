@@ -1,9 +1,14 @@
 package app.morphe.extension.tiktok.settings;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import app.morphe.extension.tiktok.SettingsContextRule;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -33,6 +38,24 @@ public class SettingsRowVisibilityTest {
 
         Settings.HIDE_SETTINGS_ROW.save(false);
         assertTrue(TikTokActivityHook.showSettingsRow());
+    }
+
+    @Test
+    public void theRowGoesFirstOnlyWhileItShows() {
+        Object row = new Object();
+        List<Object> rows = new ArrayList<>(Arrays.asList("a", "b"));
+        TikTokActivityHook.addSettingsRowFirst(rows, row);
+        assertEquals(Arrays.asList(row, "a", "b"), rows);
+
+        Settings.HIDE_SETTINGS_ROW.save(true);
+        rows = new ArrayList<>(Arrays.asList("a", "b"));
+        TikTokActivityHook.addSettingsRowFirst(rows, row);
+        TikTokActivityHook.addSettingsRowLast(rows, row);
+        assertEquals(Arrays.asList("a", "b"), rows);
+
+        Settings.HIDE_SETTINGS_ROW.save(false);
+        TikTokActivityHook.addSettingsRowLast(rows, row);
+        assertEquals(Arrays.asList("a", "b", row), rows);
     }
 
     @Test

@@ -15,7 +15,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## Patches list
 
 <!-- PATCHES_START -->
-> **[v1.5.3](https://github.com/dieroboter/morphe-patches/releases/tag/v1.5.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;41 patches total
+> **[v1.5.4](https://github.com/dieroboter/morphe-patches/releases/tag/v1.5.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;44 patches total
 <details>
 <summary>File Manager&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -53,12 +53,12 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 </details>
 
 <details>
-<summary>Geometry Dash Meltdown&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>Geometry Dash Meltdown&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **Supported versions:**
 
-| 2.2.147 |
+| 2.2.148 |
 | :---: |
 
 | Patch | Description | Options |
@@ -66,17 +66,18 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Disable AppMetrica activation](#disable-appmetrica-activation) | Makes AppMetrica.activateReporter a no-op, so the AppMetrica reporter the Yandex mediation glue sets up is never activated and its events are dropped. |  |
 | [Disable ad consent flow](#disable-ad-consent-flow) | Flips the AppLovin terms-and-privacy flow in LiteRobTopActivity.setupGAM from enabled to disabled, so the first-launch ad consent dialog never appears. |  |
 | [Disable banner and interstitial ads](#disable-banner-and-interstitial-ads) | No-ops the native bridge methods that show banner and interstitial ads (LiteRobTopActivity._enableBanner / _showInterstitial) and makes _hasCachedInterstitial report false. Rewarded video ads are left working. |  |
-| [Strip ad tracking permissions](#strip-ad-tracking-permissions) | Removes the ad identifier permissions (AD_ID and the Ad Services permissions: ad ID, attribution and topics) from the manifest. |  |
+| [Disable rate prompts](#disable-rate-prompts) | Makes AppRater.tryShowRateDialog a no-op, so the 'Thanks for playing!' rate prompt never shows. The explicit rate action is untouched. |  |
+| [Strip ad tracking permissions](#strip-ad-tracking-permissions) | Removes the ad identifier permissions (AD_ID and the Ad Services permissions: ad ID, attribution and topics) and the Amazon PrivacyPass attestation permission from the manifest. |  |
 
 </details>
 
 <details>
-<summary>Geometry Dash SubZero&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>Geometry Dash SubZero&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **Supported versions:**
 
-| 2.2.147 |
+| 2.2.148 |
 | :---: |
 
 | Patch | Description | Options |
@@ -84,17 +85,18 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Disable AppMetrica activation](#disable-appmetrica-activation) | Makes AppMetrica.activateReporter a no-op, so the AppMetrica reporter the Yandex mediation glue sets up is never activated and its events are dropped. |  |
 | [Disable ad consent flow](#disable-ad-consent-flow) | Flips the AppLovin terms-and-privacy flow in LiteRobTopActivity.setupGAM from enabled to disabled, so the first-launch ad consent dialog never appears. |  |
 | [Disable banner and interstitial ads](#disable-banner-and-interstitial-ads) | No-ops the native bridge methods that show banner and interstitial ads (LiteRobTopActivity._enableBanner / _showInterstitial) and makes _hasCachedInterstitial report false. Rewarded video ads are left working. |  |
-| [Strip ad tracking permissions](#strip-ad-tracking-permissions) | Removes the ad identifier permissions (AD_ID and the Ad Services permissions: ad ID, attribution and topics) from the manifest. |  |
+| [Disable rate prompts](#disable-rate-prompts) | Makes AppRater.tryShowRateDialog a no-op, so the 'Thanks for playing!' rate prompt never shows. The explicit rate action is untouched. |  |
+| [Strip ad tracking permissions](#strip-ad-tracking-permissions) | Removes the ad identifier permissions (AD_ID and the Ad Services permissions: ad ID, attribution and topics) and the Amazon PrivacyPass attestation permission from the manifest. |  |
 
 </details>
 
 <details>
-<summary>Geometry Dash World&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>Geometry Dash World&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **Supported versions:**
 
-| 2.2.147 |
+| 2.2.148 |
 | :---: |
 
 | Patch | Description | Options |
@@ -102,7 +104,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Disable AppMetrica activation](#disable-appmetrica-activation) | Makes AppMetrica.activateReporter a no-op, so the AppMetrica reporter the Yandex mediation glue sets up is never activated and its events are dropped. |  |
 | [Disable ad consent flow](#disable-ad-consent-flow) | Flips the AppLovin terms-and-privacy flow in LiteRobTopActivity.setupGAM from enabled to disabled, so the first-launch ad consent dialog never appears. |  |
 | [Disable banner and interstitial ads](#disable-banner-and-interstitial-ads) | No-ops the native bridge methods that show banner and interstitial ads (LiteRobTopActivity._enableBanner / _showInterstitial) and makes _hasCachedInterstitial report false. Rewarded video ads are left working. |  |
-| [Strip ad tracking permissions](#strip-ad-tracking-permissions) | Removes the ad identifier permissions (AD_ID and the Ad Services permissions: ad ID, attribution and topics) from the manifest. |  |
+| [Disable rate prompts](#disable-rate-prompts) | Makes AppRater.tryShowRateDialog a no-op, so the 'Thanks for playing!' rate prompt never shows. The explicit rate action is untouched. |  |
+| [Strip ad tracking permissions](#strip-ad-tracking-permissions) | Removes the ad identifier permissions (AD_ID and the Ad Services permissions: ad ID, attribution and topics) and the Amazon PrivacyPass attestation permission from the manifest. |  |
 
 </details>
 

@@ -18,12 +18,14 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.lightBackgroundSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.lockAfterSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.photoNameSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.reelsOrderSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.seenKeepSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.playbackQualitySummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.qualitySummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.accentSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.textSizeSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.quietHourLabel;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.saveStorageSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.saveToSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.sendAppSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.showAllText;
@@ -36,12 +38,14 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.ceilingSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.packResult;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.wordsEditorLine;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.wordsPreviewLine;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.wordsRefusal;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.wordsSummary;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -49,6 +53,7 @@ import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -57,6 +62,7 @@ import androidx.annotation.Nullable;
 import java.util.function.Consumer;
 
 import app.morphe.extension.facebook.comments.CommentOrder;
+import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
 import app.morphe.extension.facebook.download.PostDetails;
@@ -208,6 +214,15 @@ final class ValueRows {
          * pack adds go into the open dialog's text as ordinary lines, and nothing is saved until Save.
          */
         @Nullable Runnable choosePack;
+        /**
+         * Text to try the lists on, under the list. It's never saved, kept across a rotation or
+         * logged, and judging it touches none of the feed's counts.
+         */
+        @Nullable private EditText sample;
+        /** What the lists as typed, with the other list as saved, would make of a post saying [sample]. */
+        @Nullable private TextView verdict;
+        private final Handler previewTimer = new Handler(Looper.getMainLooper());
+        private final Runnable preview = this::showPreview;
 
         WordsRow(Context context, boolean hides) {
             super(context);
@@ -216,9 +231,32 @@ final class ValueRows {
                 @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
                 @Override public void onTextChanged(CharSequence text, int start, int before, int after) {
                     if (count != null) count.setText(wordsEditorLine(PostWords.size(text.toString(), otherBytes)));
+                    previewSoon();
                 }
                 @Override public void afterTextChanged(android.text.Editable text) { }
             });
+        }
+
+        /** Judges the sample once typing pauses, so a long list isn't folded again on every key. */
+        private void previewSoon() {
+            previewTimer.removeCallbacks(preview);
+            if (verdict != null) previewTimer.postDelayed(preview, 250);
+        }
+
+        private void showPreview() {
+            if (sample == null || verdict == null) return;
+            String typed = getEditText().getText().toString();
+            String other = (hides ? Settings.KEPT_WORDS : Settings.HIDDEN_WORDS).savedValue();
+            String text = sample.getText().toString();
+            // Saved values, not what a paused Facebook reads, so the preview shows what the lists do once unpaused.
+            PostWords.PreviewResult result = PostWords.preview(text, hides ? typed : other, hides ? other : typed,
+                    Settings.POST_WORDS_WHOLE_WORDS.savedValue());
+            verdict.setText(wordsPreviewLine(result, text.trim().isEmpty()));
+            // With the keyboard up, the scroll follows the caret and leaves the line under the field out of sight.
+            if (sample.hasFocus()) {
+                TextView line = verdict;
+                line.post(() -> line.requestRectangleOnScreen(new Rect(0, 0, line.getWidth(), line.getHeight()), true));
+            }
         }
 
         int otherListBytes() {
@@ -270,7 +308,8 @@ final class ValueRows {
             count.setTextSize(14);
             count.setTextColor(colors.summary);
             count.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
-            if (choosePack == null) return scrollingBody(context, help, count, getEditText());
+            View[] tryIt = sampleParts(context, colors);
+            if (choosePack == null) return scrollingBody(context, help, count, getEditText(), tryIt[0], tryIt[1], tryIt[2]);
             Button packs = new Button(context);
             packs.setText(L10n.t("Add a topic pack"));
             packs.setAllCaps(false);
@@ -283,7 +322,42 @@ final class ValueRows {
             packs.setPadding(0, 0, 0, 0);
             packs.setGravity(android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL);
             packs.setOnClickListener(ignored -> choosePack.run());
-            return scrollingBody(context, help, count, packs, getEditText());
+            return scrollingBody(context, help, count, packs, getEditText(), tryIt[0], tryIt[1], tryIt[2]);
+        }
+
+        /** The sample's heading, its field and the line that says what the lists make of it. */
+        private View[] sampleParts(Context context, ScreenColors colors) {
+            float density = context.getResources().getDisplayMetrics().density;
+            TextView heading = new TextView(context);
+            heading.setText(L10n.t("Try the lists on some text"));
+            heading.setTextSize(14);
+            heading.setTextColor(colors.heading);
+            heading.setPadding(0, Math.round(18 * density), 0, Math.round(6 * density));
+            heading.setAccessibilityHeading(true);
+            EditText field = new EditText(context);
+            field.setHint(L10n.t("Text of a post"));
+            field.setMinLines(2);
+            field.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+            field.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(PostWords.PREVIEW_MAX_CODE_POINTS * 2)});
+            // Nothing typed here outlives the dialog, not even in the saved state a rotation keeps.
+            field.setSaveEnabled(false);
+            colors.paintField(field);
+            field.addTextChangedListener(new android.text.TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
+                @Override public void onTextChanged(CharSequence text, int start, int before, int after) {
+                    previewSoon();
+                }
+                @Override public void afterTextChanged(android.text.Editable text) { }
+            });
+            TextView said = new TextView(context);
+            said.setTextSize(14);
+            said.setTextColor(colors.summary);
+            said.setPadding(0, Math.round(6 * density), 0, 0);
+            said.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+            sample = field;
+            verdict = said;
+            said.setText(wordsPreviewLine(null, true));
+            return new View[]{heading, field, said};
         }
 
         /**
@@ -315,6 +389,9 @@ final class ValueRows {
         @Override protected void onDialogClosed(boolean positive) {
             super.onDialogClosed(positive);
             count = null;
+            previewTimer.removeCallbacks(preview);
+            sample = null;
+            verdict = null;
         }
 
         /** Its edit dialog takes the screen's colours, as the folder's does. */
@@ -614,6 +691,45 @@ final class ValueRows {
     }
 
     /**
+     * The Save on row (#274): the phone's storage or an SD card. Its summary follows its value,
+     * whoever sets it, and names the card the list showed for it.
+     */
+    static final class SaveStorageRow extends PlainSummaryList {
+        SaveStorageRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            String value = getValue();
+            int index = value == null ? -1 : findIndexOfValue(value);
+            CharSequence[] entries = getEntries();
+            String label = index < 0 || entries == null ? null : String.valueOf(entries[index]);
+            setSummary(saveStorageSummary(value, label, entries != null && entries.length > 1));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
      * The download action's row. Its summary follows its value, whoever sets it: the person or the
      * shared page syncing it from the setting.
      */
@@ -732,6 +848,60 @@ final class ValueRows {
                         return;
                     }
                     // As Android's own button does: the click, then the close, each posted in turn.
+                    Handler main = new Handler(Looper.getMainLooper());
+                    main.post(() -> onClick(dialog, DialogInterface.BUTTON_POSITIVE));
+                    main.post(dialog::dismiss);
+                });
+            }
+            fitAboveKeyboard(getDialog());
+        }
+    }
+
+    /**
+     * A Badge and logo colors row (#263): a color code. Save turns down one
+     * {@link app.morphe.extension.facebook.theme.MarkColors} refuses with the dialog still open, as
+     * the Background color row does, and its summary follows the code.
+     */
+    static final class MarkColorRow extends EditTextPreference {
+        /** Says why Save was refused. The page sets it, since its dialogs close with it. */
+        @Nullable Consumer<String> refused;
+
+        /** Whether it's the logo's row rather than the badges'. */
+        final boolean logo;
+
+        MarkColorRow(Context context, boolean logo) {
+            super(context);
+            this.logo = logo;
+        }
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            setSummary(HushfacebookPreferenceFragment.markColorSummary(logo, text));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its edit dialog takes the screen's colours, as the Background color row's does. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) {
+                AlertDialog dialog = (AlertDialog) getDialog();
+                ScreenColors.dialog(dialog);
+                dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(button -> {
+                    String why = app.morphe.extension.facebook.theme.MarkColors.problem(
+                            getEditText().getText().toString());
+                    if (why != null) {
+                        if (refused != null) refused.accept(why);
+                        return;
+                    }
                     Handler main = new Handler(Looper.getMainLooper());
                     main.post(() -> onClick(dialog, DialogInterface.BUTTON_POSITIVE));
                     main.post(dialog::dismiss);
@@ -940,6 +1110,41 @@ final class ValueRows {
         }
     }
 
+    /** The Reels order row, built like the comment order's: its summary follows its value. */
+    static final class ReelsOrderRow extends PlainSummaryList {
+        ReelsOrderRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            ReelsOrder order = ReelsOrder.NEWEST;
+            for (ReelsOrder candidate : ReelsOrder.values()) {
+                if (candidate.name().equals(getValue())) order = candidate;
+            }
+            setSummary(reelsOrderSummary(order));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
     /**
      * The app lock's time away row. Its summary follows its value, whoever sets it: the person, the
      * shared page syncing it from the setting, or an import.
@@ -1123,19 +1328,12 @@ final class ValueRows {
      * page syncing it from the setting, or an import.
      */
     static final class AccentRow extends PlainSummaryList {
-        /** Whether the Material You theme is in the build, so it picks the colors and this row does nothing. */
+        /** Whether the Material You theme is in the build, so the pick takes the wallpaper accent's place (#272). */
         private final boolean materialYou;
 
         AccentRow(Context context, boolean materialYou) {
             super(context);
             this.materialYou = materialYou;
-            setEnabled(!materialYou);
-        }
-
-        /** The shared page enables every row it syncs from a setting; with Material You this one stays off. */
-        @Override
-        public void setEnabled(boolean enabled) {
-            super.setEnabled(enabled && !materialYou);
         }
 
         @Override
@@ -1145,15 +1343,11 @@ final class ValueRows {
         }
 
         void showSummary() {
-            if (materialYou) {
-                setSummary(L10n.t("Material You theme is in this build and picks Facebook's colors, so this has no effect."));
-                return;
-            }
             AccentColor.Preset accent = AccentColor.Preset.FACEBOOK;
             for (AccentColor.Preset candidate : AccentColor.Preset.values()) {
                 if (candidate.name().equals(getValue())) accent = candidate;
             }
-            setSummary(accentSummary(accent));
+            setSummary(accentSummary(accent, materialYou));
         }
 
         @Override

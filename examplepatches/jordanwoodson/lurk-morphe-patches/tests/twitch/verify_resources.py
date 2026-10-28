@@ -55,9 +55,21 @@ def verify(root, stock, *, label=None, package=None, privacy=False, icon=False, 
         colors = {e.get(A + "fillColor", "").lower() for e in foreground.iter("path")}
         assert colors == {"#9146ff"}, f"Wrong Twitch icon color: {colors}"
     if settings:
-        entries = [e for e in app.findall("activity") if e.get(A + "name") ==
-                   "io.github.jordanwoodson.extension.shared.settings.SettingsActivity"]
+        activity = "io.github.jordanwoodson.extension.shared.settings.SettingsActivity"
+        entries = [e for e in app.findall("activity") if e.get(A + "name") == activity]
         assert len(entries) == 1 and entries[0].get(A + "exported") == "false"
+        assert entries[0].find("intent-filter") is None, "The settings activity has an intent filter"
+        # Its one way in from outside: the alias App info opens, for APPLICATION_PREFERENCES only.
+        aliases = [e for e in app.findall("activity-alias") if e.get(A + "targetActivity") == activity]
+        assert len(aliases) == 1 and aliases[0].get(A + "exported") == "true", "Missing App info alias"
+        filters = aliases[0].findall("intent-filter")
+        assert len(filters) == 1 and \
+            [e.get(A + "name") for e in filters[0].findall("action")] == ["android.intent.action.APPLICATION_PREFERENCES"] and \
+            [e.get(A + "name") for e in filters[0].findall("category")] == ["android.intent.category.DEFAULT"] and \
+            filters[0].find("data") is None, "The App info alias answers more than APPLICATION_PREFERENCES"
+        assert aliases[0].get(A + "permission") is None
+        children = list(app)
+        assert children.index(aliases[0]) > children.index(entries[0]), "The alias comes before its target"
 
 
 if __name__ == "__main__":

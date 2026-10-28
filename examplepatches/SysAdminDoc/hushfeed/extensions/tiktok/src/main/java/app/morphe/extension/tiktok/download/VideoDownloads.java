@@ -349,6 +349,8 @@ final class VideoDownloads {
                 } else if (published[0] == null) {
                     Utils.showToastLong(outcome.stop == SaveProgress.Stop.SERVER_WAIT
                             ? SaveProgress.message(outcome, "")
+                            : outcome.stop == SaveProgress.Stop.NETWORK
+                            ? L10n.t("The save stopped when you left Wi-Fi. Save it again on Wi-Fi.")
                             : L10n.t("The video couldn't be saved. Try again, or choose Automatic."));
                 } else {
                     // The video's own words when everything landed or only a track is missing,

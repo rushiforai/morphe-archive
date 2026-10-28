@@ -20,6 +20,20 @@ object Constants {
         )
     )
 
+    // EZVIZ 7.6.1.0824 (version code 1961), distributed as an XAPK.
+    val EZVIZ_COMPATIBILITY = Compatibility(
+        name = "EZVIZ",
+        packageName = "com.ezviz",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x00A0E9,
+        targets = listOf(
+            AppTarget(
+                version = "7.6.1.0824",
+                versionCode = 1961
+            )
+        )
+    )
+
     // HTTP Sniffer 2.5.2-ad_mob (version code 170), distributed as an XAPK.
     val HTTPMOCK_COMPATIBILITY = Compatibility(
         name = "HTTP Sniffer",
@@ -30,6 +44,20 @@ object Constants {
             AppTarget(
                 version = "2.5.2-ad_mob",
                 versionCode = 170
+            )
+        )
+    )
+
+    // 1.1.1.1 6.38.11 (version code 5703), distributed as an APKM.
+    val WARP_COMPATIBILITY = Compatibility(
+        name = "1.1.1.1",
+        packageName = "com.cloudflare.onedotonedotonedotone",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xF48120,
+        targets = listOf(
+            AppTarget(
+                version = "6.38.11",
+                versionCode = 5703
             )
         )
     )

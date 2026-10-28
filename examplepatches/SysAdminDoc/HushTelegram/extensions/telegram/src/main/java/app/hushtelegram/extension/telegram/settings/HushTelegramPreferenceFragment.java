@@ -91,6 +91,7 @@ import app.hushtelegram.extension.telegram.misc.KeepEdits;
 import app.hushtelegram.extension.telegram.misc.LaunchFolder;
 import app.hushtelegram.extension.telegram.misc.OutsideTranslate;
 import app.hushtelegram.extension.telegram.misc.StickerSize;
+import app.hushtelegram.extension.telegram.misc.StorageFolder;
 import app.hushtelegram.extension.telegram.misc.UnifiedPush;
 
 /**
@@ -220,6 +221,9 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         showSupportedLinks();
         showPushApp();
         if (localNotificationStatus != null) localNotificationStatus.setSummary(notificationSummary(FirebasePush.localStatus(getContext())));
+        // Back from All files access, the row says what Android gives now.
+        Preference storage = findPreference(Settings.STORAGE_FOLDER.key);
+        if (storage != null) storage.setSummary(storageFolderSummary(StorageFolder.allFilesAccess()));
     }
 
     @Override
@@ -408,6 +412,13 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                                 + "own pick, and the folder order doesn't change. If that folder is gone, renamed or locked, "
                                 + "All Chats opens as usual.")));
                 folderTabs.addPreference(launchFolderRow(context));
+            }
+            if (PatchFamily.Capability.HIDE_ALL_CHATS.installed()) {
+                folderTabs.addPreference(toggle(context, Settings.HIDE_ALL_CHATS, L10n.t("Hide All Chats"),
+                        L10n.t("The folder tabs leave out All Chats, so the chat list opens on the folder picked above or "
+                                + "your first one. Archived Chats moves to the chat list's menu, and to the side menu when "
+                                + "that's on. Tabs can't be dragged into a new order while this is on. Restart Telegram to "
+                                + "see the change.")));
             }
             if (PatchFamily.Capability.HIDDEN_CHATS.installed()) {
                 SwitchPreference hide = toggle(context, Settings.HIDDEN_CHATS, L10n.t("Hide picked chats"),
@@ -662,7 +673,42 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             if (PatchFamily.Capability.GALLERY_FOLDER.installed()) {
                 on(pages, PatchFamily.SAVE_DOWNLOADS).addPreference(galleryFolderRow(context));
             }
+            // Before Android 11 Telegram already keeps its files in Internal storage/Telegram.
+            if (PatchFamily.Capability.STORAGE_FOLDER.installed() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                SwitchPreference storage = toggle(context, Settings.STORAGE_FOLDER,
+                        L10n.t("Keep Telegram's files in internal storage"), storageFolderSummary(StorageFolder.allFilesAccess()));
+                storage.setOnPreferenceChangeListener((row, value) -> {
+                    if (Boolean.TRUE.equals(value) && !StorageFolder.allFilesAccess()) openAllFilesAccess(context);
+                    return true;
+                });
+                on(pages, PatchFamily.SAVE_DOWNLOADS).addPreference(storage);
+            }
         }
+    }
+
+    /** What the storage folder switch does, then whether Android gives Telegram the access it needs, read when the page shows. */
+    static String storageFolderSummary(boolean access) {
+        return L10n.t("New photos, videos and files Telegram downloads go to Internal storage/Telegram, where file managers"
+                + " and other apps can open them, instead of Android/data. Files downloaded before stay in Android/data."
+                + " Needs All files access and a restart.")
+                + "\n" + (access ? L10n.t("All files access is on.")
+                : L10n.t("All files access is off, so Telegram's files stay in Android/data. Turning this on opens the setting."));
+    }
+
+    /** Android's All files access page for Telegram, or the list of every app's when that won't open. Opening either changes nothing. */
+    static void openAllFilesAccess(Context context) {
+        Intent app = new Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                Uri.parse("package:" + context.getPackageName()));
+        Intent list = new Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+        for (Intent intent : new Intent[]{app, list}) {
+            try {
+                context.startActivity(intent);
+                return;
+            } catch (ActivityNotFoundException | SecurityException exception) {
+                Logger.printException(() -> "Could not open all files access", exception);
+            }
+        }
+        Utils.showToastLong(L10n.t("Couldn't open All files access."));
     }
 
     /** The Notifications page: the status on this phone and the two push switches lead. */

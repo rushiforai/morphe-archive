@@ -67,16 +67,16 @@ public class SectionJumpTest {
             titles.add(header.getTitle().toString());
         }
         List<String> expected = java.util.Arrays.asList("Opening Facebook", "News feed", "Stories", "Reels and Watch",
-                "Playback", "Downloads", "Comments", "Writing", "Chats", "Menu", "Meta's other products", "Search",
-                "Marketplace", "Notifications", "Links", "Privacy", "Updates", "Appearance", "Set when you patched",
-                "Pause, backup and diagnostics", "About");
+                "Video and audio", "Downloads", "Comments and writing", "Chats and Messenger", "Menu",
+                "Meta's other products", "Search", "Marketplace", "Notifications", "Links and sharing", "Privacy", "Updates",
+                "Tabs and navigation", "Appearance", "Built-in changes", "Pause, backup and diagnostics", "About");
         assertEquals(expected, titles);
         assertEquals(21, titles.size());
         assertEquals(SettingsNavigation.SUPPORT, ((Preference) list.getItemAtPosition(21)).getKey());
         assertEquals(23, list.getCount());
         assertFalse(titles.contains("More settings"));
         assertTrue(titles.contains("Downloads"));
-        assertTrue(titles.contains("Links"));
+        assertTrue(titles.contains("Links and sharing"));
     }
 
     @Test

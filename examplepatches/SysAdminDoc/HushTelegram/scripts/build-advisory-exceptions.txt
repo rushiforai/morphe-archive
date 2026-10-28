@@ -5,3 +5,4 @@
 # Use an OSV id or one of its aliases. The date is the last accepted day, at most 90 days out.
 # Give at least three words explaining why this build's use is unaffected. Expired exceptions
 # cover nothing; exceptions for advisories the build no longer has must be removed.
+GHSA-xxph-c9ww-hj94 com.google.guava:guava 2027-01-25 Only :patches:patcherProvidedClasspath has the vulnerable Guava (33.5.0-jre). That configuration records what morphe-patcher 2.0.1 brings into Morphe Manager and the CLI, and rewriting it here wouldn't change their Guava. Nothing in the patches or extensions deserializes a Java stream into a Guava collection, and every graph this build owns resolves 33.7.2. Drop this when a patcher release moves to 33.7.2.

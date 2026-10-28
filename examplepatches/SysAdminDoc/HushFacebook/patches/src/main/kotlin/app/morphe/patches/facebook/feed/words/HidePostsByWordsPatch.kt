@@ -10,6 +10,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.facebook.feed.BASE_MODEL_WITH_TREE
 import app.morphe.patches.facebook.feed.GRAPHQL_STORY
 import app.morphe.patches.facebook.feed.TREE_JNI
+import app.morphe.patches.facebook.feed.aidetected.GRAPHQL_STORY_ATTACHMENT
 import app.morphe.patches.facebook.feed.fillStoryModelStub
 import app.morphe.patches.facebook.feed.hasPublicTypeTag
 import app.morphe.patches.facebook.feed.hook.feedFilterHookPatch
@@ -22,10 +23,11 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 
-/** The extension class that reads a post's text, and the two accessors this patch fills in. */
+/** The extension class that reads a post's text, and the three accessors this patch fills in. */
 internal const val POST_TEXT = "$EXTENSION_PACKAGE/feed/PostText;"
 internal const val MESSAGE_STUB = "message"
 internal const val ATTACHED_STORY_STUB = "attachedStory"
+internal const val ACTION_LINKS_STUB = "actionLinks"
 
 internal const val PATCH = "Hide posts by words"
 
@@ -50,7 +52,8 @@ internal const val PATCH = "Hide posts by words"
  * ceiling reads a story's feedback and the feedback's reactors through PostReactions' two stubs (see
  * ReactionAnchors.kt), and counts them with the kept `getCachedInt(int)`. Its Hide reposts switch
  * needs nothing more: it asks the shared post accessor whether a story wraps another, and reads
- * no text.
+ * no text. Its Hide posts from Pages switch (#262) reads the authors stub too, and asks each
+ * author's kept `getTypeName()` whether it's a Page.
  *
  * The lists live in Hushfacebook's settings on the phone. Nothing here reads a post until a
  * switch is on and its list has something in it, and nothing of the text, the names or the lists
@@ -60,7 +63,8 @@ internal const val PATCH = "Hide posts by words"
 val hidePostsByWordsPatch = bytecodePatch(
     name = "Hide posts by words",
     description = "Hides feed posts with words you list, or from people, Pages or sites you list, so you skip " +
-        "topics you're tired of. Photo, video, link and colored background posts can go too. Starts off. Turn it " +
+        "topics you're tired of. Photo, video, link and colored background posts, or every post a Page wrote, can " +
+        "go too. Starts off. Turn it " +
         "on in Hushfacebook settings > News feed.",
     default = true,
 ) {
@@ -103,6 +107,17 @@ val hidePostsByWordsPatch = bytecodePatch(
 
         fillStoryModelStub(POST_TEXT, MESSAGE_STUB, message)
         fillStoryModelStub(POST_TEXT, ATTACHED_STORY_STUB, attached)
+        // A link card's headline on 584 (#255). A build without it still reads the card's own title.
+        val actionLinks = classDefByOrNull(GRAPHQL_STORY_ATTACHMENT)?.let(::actionLinksAccessors).orEmpty()
+        val actionLinksAccessor = actionLinks.singleOrNull()
+        if (actionLinksAccessor != null) {
+            fillStoryModelStub(POST_TEXT, ACTION_LINKS_STUB, actionLinksAccessor)
+        } else {
+            patchLog.warning(
+                "$PATCH: GraphQLStoryAttachment has ${actionLinks.size} accessors of $ACTION_LINKS_FIELD as " +
+                    "$ACTION_LINK_TYPE, expected one. The patch goes on without link card headlines from them.",
+            )
+        }
         try {
             fillPostSourceStubs(story)
         } catch (moved: PatchException) {

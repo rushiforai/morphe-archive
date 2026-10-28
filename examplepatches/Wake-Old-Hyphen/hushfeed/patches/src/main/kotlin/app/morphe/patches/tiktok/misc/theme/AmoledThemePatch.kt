@@ -43,6 +43,8 @@ val amoledThemePatch = resourcePatch(
     dependsOn(amoledComposeCardsPatch { background })
     // The comment bar under an opened post is see-through in every theme, so a photo showed through it (#171).
     dependsOn(amoledInputBarPatch { background })
+    // Activity center and the history pages are TikTok web pages, out of the resources' reach (#263).
+    dependsOn(amoledWebPagesPatch { background })
     execute {
         val packageRoot = get("res").parentFile
         val decodedRoots = decodedPackageRoots(packageRoot)

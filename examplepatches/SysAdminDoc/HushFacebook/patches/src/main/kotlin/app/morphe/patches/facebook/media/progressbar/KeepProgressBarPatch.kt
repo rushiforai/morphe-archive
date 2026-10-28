@@ -288,7 +288,7 @@ val keepProgressBarPatch = bytecodePatch(
     description = "Keeps every reel's progress bar full size and moving smoothly, with the time above it, so you can " +
         "drag it without tapping first. Also keeps a full-screen video's controls on screen until you tap, and " +
         "another switch lets a tap anywhere on the bar jump there. Starts off. Turn it on in Hushfacebook settings > " +
-        "Playback.",
+        "Video and audio.",
     default = true,
 ) {
     category("Playback")

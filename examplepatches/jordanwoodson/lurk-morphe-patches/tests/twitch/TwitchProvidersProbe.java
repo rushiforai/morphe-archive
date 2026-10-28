@@ -18,10 +18,11 @@ public final class TwitchProvidersProbe {
         Method m = TwitchEmotes.class.getDeclaredMethod("addEmotes", String.class, Map.class);
         m.setAccessible(true); return (String)m.invoke(null,text,codes);
     }
-    static void seed(String scope, String code, String id) throws Exception {
+    static void seed(String scope, String code, String id) throws Exception { seed(scope, code, id, null); }
+    static void seed(String scope, String code, String id, String owner) throws Exception {
         Class<?> emote = Class.forName(ROOT + "TwitchEmotes$Emote");
-        Constructor<?> c = emote.getDeclaredConstructors()[0]; c.setAccessible(true);
-        Object array = Array.newInstance(emote, 1); Array.set(array,0,c.newInstance(code,id));
+        Constructor<?> c = emote.getDeclaredConstructor(String.class,String.class,String.class); c.setAccessible(true);
+        Object array = Array.newInstance(emote, 1); Array.set(array,0,c.newInstance(code,id,owner));
         Constructor<?> e = Class.forName(ROOT + "TwitchEmotes$Entry").getDeclaredConstructors()[0]; e.setAccessible(true);
         // Reflection reaches a private Entry type; only this known String-keyed cache write needs the cast.
         @SuppressWarnings("unchecked") Map<String,Object> sets = (Map<String,Object>)field("TwitchEmotes","SETS");
@@ -101,14 +102,32 @@ public final class TwitchProvidersProbe {
                 check(((Set)field("TwitchEmotes","LOADING")).isEmpty(),"dispose completion cleared loading");
                 break;
             }
+            case "describe": {
+                // Emote and badge info: which list a chat emote image came from, from its CDN URL.
+                Method describe=TwitchEmotes.class.getDeclaredMethod("describe",String.class);describe.setAccessible(true);
+                seed("123","Kappa","lurk7s_abc","Maker");
+                seed("global","Other","lurk7a_xyz",null);
+                String[] found=(String[])describe.invoke(null,"https://cdn.7tv.app/emote/abc/2x.png");
+                check(found[0].equals("7TV")&&"channel".equals(found[1])&&"Maker".equals(found[2]),"channel emote and its owner");
+                found=(String[])describe.invoke(null,"https://cdn.7tv.app/emote/xyz/2x.gif");
+                check("global".equals(found[1])&&found[2]==null,"global emote without an owner");
+                seed("456","Kappa","lurk7s_abc","Another");
+                TwitchEmotes.onChatChannel("123");
+                check("Maker".equals(((String[])describe.invoke(null,"https://cdn.7tv.app/emote/abc/3x.png"))[2]),"the channel whose chat is open wins");
+                found=(String[])describe.invoke(null,"https://cdn.7tv.app/emote/bc/2x.png");
+                check(found[0].equals("7TV")&&found[1]==null,"an ID's tail is not the ID");
+                check(describe.invoke(null,"https://static-cdn.jtvnw.net/emoticons/v2/25/default/dark/2.0")==null,"Twitch emotes aren't third-party");
+                check(describe.invoke(null,"https://cdn.7tv.app/emote/abc")==null,"a URL without a file isn't an emote image");
+                break;
+            }
             case "cache-bound": {
                 Class<?> emote=Class.forName(ROOT+"TwitchEmotes$Emote");Object empty=Array.newInstance(emote,0);
                 Method put=TwitchEmotes.class.getDeclaredMethod("put",String.class,empty.getClass(),long.class);put.setAccessible(true);
                 for(int i=0;i<100;i++)put.invoke(null,"7:"+i,empty,3600000L);
                 check(((Map)field("TwitchEmotes","SETS")).size()<=39,"fresh room caches are bounded");
-                Method add=TwitchEmotes.class.getDeclaredMethod("add",List.class,int.class,String.class,String.class,boolean.class,float.class);add.setAccessible(true);
+                Method add=TwitchEmotes.class.getDeclaredMethod("add",List.class,int.class,String.class,String.class,boolean.class,float.class,String.class);add.setAccessible(true);
                 List emotes=new ArrayList();
-                for(int i=0;i<9000;i++)add.invoke(null,emotes,0,"wide"+i,"Wide"+i,false,2f);
+                for(int i=0;i<9000;i++)add.invoke(null,emotes,0,"wide"+i,"Wide"+i,false,2f,null);
                 check(((Map)field("TwitchEmotes","RATIOS")).size()<=8192,"wide-emote metadata cache is bounded");
                 break;
             }

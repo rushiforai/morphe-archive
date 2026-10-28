@@ -73,7 +73,8 @@ final class MediaBudget {
      * for any of them, or the job's time is up. Still an IOException to every single-file caller.
      */
     static final class StopException extends IOException {
-        enum Reason { SPACE, TIME, SERVER_WAIT, CANCELLED }
+        /** NETWORK: Save only on Wi-Fi, and the network turned metered or went unknown. */
+        enum Reason { SPACE, TIME, SERVER_WAIT, CANCELLED, NETWORK }
         final Reason reason;
         final boolean space;
 

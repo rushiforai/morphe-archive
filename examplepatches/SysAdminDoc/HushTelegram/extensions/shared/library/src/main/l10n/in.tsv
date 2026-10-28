@@ -884,6 +884,12 @@ Open a folder at launch	Buka folder saat aplikasi dimulai
 The chat list opens on the folder you pick below instead of All Chats. Each account keeps its own pick, and the folder order doesn't change. If that folder is gone, renamed or locked, All Chats opens as usual.	Daftar obrolan terbuka di folder yang Anda pilih di bawah, bukan di Semua Obrolan. Setiap akun menyimpan pilihannya sendiri, dan urutan folder tidak berubah. Jika folder itu sudah tidak ada, diganti namanya, atau terkunci, Semua Obrolan terbuka seperti biasa.
 # context: Row under Open a folder at launch. Its summary is the picked folder's name, and a tap lists All Chats and the account's folders to pick from
 Folder to open	Folder yang dibuka
+# context: Switch on the Chat list page under Open a folder at launch, off by default, and it restarts Telegram. All Chats is Telegram's name for the first folder tab (FilterAllChats): use Telegram's translation
+Hide All Chats	Sembunyikan Semua Obrolan
+# context: Summary of Hide All Chats. All Chats (FilterAllChats) and Archived Chats (ArchivedChats) are Telegram's names: use Telegram's translations. The side menu is HushTelegram's menu that slides in from the left
+The folder tabs leave out All Chats, so the chat list opens on the folder picked above or your first one. Archived Chats moves to the chat list's menu, and to the side menu when that's on. Tabs can't be dragged into a new order while this is on. Restart Telegram to see the change.	Tab folder tidak lagi menampilkan Semua Obrolan, jadi daftar obrolan terbuka di folder yang dipilih di atas atau folder pertama Anda. Obrolan yang diarsipkan pindah ke menu daftar obrolan, dan ke menu samping jika aktif. Selama ini aktif, tab tidak bisa diseret ke urutan baru. Mulai ulang Telegram untuk melihat perubahannya.
+# context: Toast when someone starts dragging folder tabs while Hide All Chats is on. Keep it to two short lines
+Turn off Hide All Chats to drag tabs	Matikan Sembunyikan Semua Obrolan untuk menggeser tab
 # context: Telegram's own name for the folder tab with every chat (FilterAllChats). Use Telegram's translation
 All Chats	Semua Obrolan
 # context: Toast when Folder to open is tapped and the account has no chat folders
@@ -894,6 +900,8 @@ Couldn't save the folder. Try again in a moment.	Folder tidak dapat disimpan. Co
 Couldn't read your folders.	Folder Anda tidak dapat dibaca.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that opens the chat list on a picked folder
 which folder the chat list opens on	folder tempat daftar obrolan terbuka
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that hides the All Chats tab. All Chats is Telegram's name for the first folder tab (FilterAllChats): use the same name as the Hide All Chats switch
+the All Chats tab	tab Semua Obrolan
 # context: Switch on the Chat list page under Hide folder tab counters, off by default. With it on, the chats the user ticks in Chats to hide stop showing in the chat list
 Hide picked chats	Sembunyikan obrolan pilihan
 # context: Summary of Hide picked chats. All Chats is Telegram's own name for the first folder tab and Archived Chats Telegram's name for the archive (ArchivedChats): use Telegram's translations. The app badge is the unread count on the app's icon
@@ -949,3 +957,15 @@ The translation language will change.	Bahasa terjemahan akan berubah.
 # context: A screen reader's state for a settings section heading that opens and closes in place.
 Expanded	Diluaskan
 Collapsed	Diciutkan
+# context: Switch title under Save downloaded files. It moves the folder Telegram keeps its own downloads in from Android/data to the phone's main storage.
+Keep Telegram's files in internal storage	Simpan file Telegram di penyimpanan internal
+# context: Summary under that switch. Internal storage/Telegram and Android/data are folder paths: translate Internal storage as Android's Files app does, keep Telegram and Android/data as they are. All files access is Android's name for the special app access page.
+New photos, videos and files Telegram downloads go to Internal storage/Telegram, where file managers and other apps can open them, instead of Android/data. Files downloaded before stay in Android/data. Needs All files access and a restart.	Foto, video, dan file baru yang diunduh Telegram masuk ke Penyimpanan internal/Telegram, tempat pengelola file dan aplikasi lain bisa membukanya, bukan ke Android/data. File yang diunduh sebelumnya tetap di Android/data. Perlu Akses semua file dan mulai ulang.
+# context: Second line of that summary when Android has given Telegram All files access.
+All files access is on.	Akses semua file aktif.
+# context: Second line of that summary when Android hasn't given Telegram All files access. Android/data is a folder path, keep it as it is.
+All files access is off, so Telegram's files stay in Android/data. Turning this on opens the setting.	Akses semua file nonaktif, jadi file Telegram tetap di Android/data. Mengaktifkan ini akan membuka setelannya.
+# context: Toast when Android's All files access page couldn't be opened. Keep it short: a toast shows two short lines.
+Couldn't open All files access.	Akses semua file tak bisa dibuka.
+# context: Noun phrase in a status line. It names the part of Save downloaded files that keeps Telegram's own folder in the phone's main storage.
+Telegram's own files in internal storage	file Telegram sendiri di penyimpanan internal

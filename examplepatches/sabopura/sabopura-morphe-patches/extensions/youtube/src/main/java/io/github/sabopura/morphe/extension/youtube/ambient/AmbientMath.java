@@ -373,6 +373,51 @@ final class AmbientMath {
         }
     }
 
+    /** Lays a white haze over the picture, like frosted glass in front of it. */
+    static void frost(int[] pixels, int length, float amount) {
+        int keep = Math.round((1f - amount) * 256);
+        int add = Math.round(amount * 255 * 256);
+        for (int i = 0; i < length; i++) {
+            int c = pixels[i];
+            int r = (((c >> 16) & 0xFF) * keep + add) >> 8;
+            int g = (((c >> 8) & 0xFF) * keep + add) >> 8;
+            int b = ((c & 0xFF) * keep + add) >> 8;
+            pixels[i] = (c & 0xFF000000) | (r << 16) | (g << 8) | b;
+        }
+    }
+
+    /**
+     * Fills {@code out} with the picture scaled to cover it (centre-cropped, like a wallpaper),
+     * sampling the nearest source pixel; the blur afterwards smooths it.
+     */
+    static void cover(int[] source, int sourceWidth, int sourceHeight, int[] out, int width,
+                      int height) {
+        float scale = Math.max(width / (float) sourceWidth, height / (float) sourceHeight);
+        float offsetX = (sourceWidth - width / scale) / 2f;
+        float offsetY = (sourceHeight - height / scale) / 2f;
+        for (int y = 0; y < height; y++) {
+            int sy = clamp(Math.round(offsetY + (y + 0.5f) / scale - 0.5f), 0, sourceHeight - 1);
+            int row = sy * sourceWidth;
+            for (int x = 0; x < width; x++) {
+                int sx = clamp(Math.round(offsetX + (x + 0.5f) / scale - 0.5f), 0,
+                        sourceWidth - 1);
+                out[y * width + x] = 0xFF000000 | source[row + sx];
+            }
+        }
+    }
+
+    /** Multiplies the brightness of every pixel. */
+    static void scaleBrightness(int[] pixels, int length, float factor) {
+        int f = Math.round(factor * 256);
+        for (int i = 0; i < length; i++) {
+            int c = pixels[i];
+            int r = Math.min(255, (((c >> 16) & 0xFF) * f) >> 8);
+            int g = Math.min(255, (((c >> 8) & 0xFF) * f) >> 8);
+            int b = Math.min(255, ((c & 0xFF) * f) >> 8);
+            pixels[i] = (c & 0xFF000000) | (r << 16) | (g << 8) | b;
+        }
+    }
+
     /** Mean absolute channel difference (0-255) used to skip work on static pictures. */
     static int meanDifference(int[] first, int[] second, int length) {
         long total = 0;

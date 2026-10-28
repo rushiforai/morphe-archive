@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <app.morphe.extension.boost.upload.EditorImageHostPreference
+        android:key="morphe_boost_external_image_host"
+        android:title="Image host"
+        android:dialogTitle="Editor image host"
+        android:defaultValue="imgur_free" />
+    <app.morphe.extension.boost.upload.ImgBbApiKeyPreference
+        android:key="morphe_boost_imgbb_api_key"
+        android:title="ImgBB API key"
+        android:dependency="morphe_boost_external_image_host"
+        android:dialogTitle="Personal ImgBB API key"
+        android:dialogMessage="Required when using ImgBB. Leave empty to clear the saved key."
+        android:dialogLayout="@layout/morphe_boost_imgbb_api_key_dialog"
+        android:defaultValue="" />
+</PreferenceScreen>

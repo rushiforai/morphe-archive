@@ -127,7 +127,9 @@ internal const val WATCH_HEADER = "$FULL_HEIGHT_COMMENTS->watchHeader(Landroid/v
  * sheet's [FEEDBACK_PARAMS], whose watch-and-comment boolean is the one its toString prints after
  * [WATCH_AND_COMMENT] (583 arm64 `A0l`). First thing in it, the extension is handed those views,
  * that id and that boolean, and hides the header of a watch-and-comment sheet, or one holding a
- * video. A post's header, its reactions, is neither and stays.
+ * video. A post's header, its reactions, is neither and stays. The same hook tells Pause reels while
+ * comments are open (#266) that a sheet opened, whatever the full-height switch says; it pauses the
+ * reel through Tap to play's player bridge and plays it on once the sheet's views leave the window.
  *
  * In the default selection with its switch off, so nothing changes until it's turned on.
  */
@@ -137,7 +139,8 @@ val fullHeightCommentsPatch = bytecodePatch(
     name = "Open comments at full height",
     description = "Opens the comment sheet at the full height of the screen instead of part way up, on posts, " +
         "videos, reels and stories. On reels and videos, Comment opens that sheet instead of the split view. " +
-        "Starts off. Turn it on in Hushfacebook settings > Comments.",
+        "A second switch pauses a reel while its comments are open. Both start off. Turn them on in " +
+        "Hushfacebook settings > Comments and writing.",
 ) {
     category("Comments")
     dependsOn(settingsPatch, facebookExtensionPatch)

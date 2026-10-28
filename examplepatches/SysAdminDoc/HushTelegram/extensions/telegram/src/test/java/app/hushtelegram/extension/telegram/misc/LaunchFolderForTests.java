@@ -48,6 +48,7 @@ public final class LaunchFolderForTests {
         @Override public String folderName(int account, int index) { return index == 0 ? "All Chats" : names[index - 1]; }
         @Override public boolean folderLocked(int account, int index) { return false; }
         @Override public boolean folderDefault(int account, int index) { return index == 0; }
+        @Override public boolean archiveReachable() { return true; }
     }
 
     /** Telegram signed in as [user], 0 for no one, with these folders after All Chats. {@link #restore} undoes it. */
@@ -87,5 +88,29 @@ public final class LaunchFolderForTests {
             picks.edit().clear().commit();
         }
         return telegram.selected == 1;
+    }
+
+    /** With Work as a folder to open, whether a new main chat list's tabs are built without All Chats. */
+    public static boolean leavesOutAllChats() {
+        LaunchFolder.Telegram real = LaunchFolder.telegram;
+        Object strip = new Object();
+        boolean[] added = {false};
+        LaunchFolder.telegram = new Folders(1000, "Work") {
+            @Override public Object strip(Object list) { return strip; }
+
+            @Override public void addTab(Object tabs, int id, int stableId, String title, java.util.ArrayList<?> entities,
+                                         boolean noAnimation, boolean isDefault, boolean locked) {
+                added[0] = true;
+            }
+        };
+        try {
+            LaunchFolder.firstTabs(new Object());
+            LaunchFolder.allChatsTab(strip, 0, 100, "All Chats", new java.util.ArrayList<>(), 1, 1, 0);
+        } finally {
+            LaunchFolder.telegram = real;
+            // The list is gone, so the side menu mustn't offer its archive to a later test.
+            LaunchFolder.resetForTests();
+        }
+        return !added[0];
     }
 }

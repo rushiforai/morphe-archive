@@ -1,21 +1,20 @@
 package app.morphe.patches.reddit.customclients.boostforreddit.fix.slink
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.reddit.customclients.boostforreddit.bindings.BoostApi
+
 import com.android.tools.smali.dexlib2.AccessFlags
 
-internal val getOAuthAccessTokenFingerprint = Fingerprint(
-    definingClass = "Lnet/dean/jraw/http/oauth/OAuthData;",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    returnType = "Ljava/lang/String",
+internal val GetOAuthAccessTokenFingerprint = BoostApi.OAuthData.getAccessToken.fingerprint(
     strings = listOf("access_token"),
+    accessFlags = listOf(AccessFlags.PUBLIC),
 )
 
-internal val handleNavigationFingerprint = Fingerprint(
+internal val HandleNavigationFingerprint = BoostApi.Navigation.handleNavigation.fingerprint(
     strings = listOf(
         "android.intent.action.SEARCH",
         "subscription",
         "sort",
         "period",
         "boostforreddit.com/themes",
-    )
+    ),
 )

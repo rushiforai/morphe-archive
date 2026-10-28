@@ -42,10 +42,10 @@ val telegramVoiceToMusicPatch = bytecodePatch(
                 iget-object v0, p0, Lorg/telegram/messenger/MessageObject;->messageOwner:Lorg/telegram/tgnet/TLRPC${'$'}Message;
                 invoke-static { v0 }, Lorg/telegram/messenger/MessageObject;->isVoiceMessage(Lorg/telegram/tgnet/TLRPC${'$'}Message;)Z
                 move-result v0
-                if-eqz v0, :not_voice
+                if-eqz v0, :morphe_voice_to_music_not_voice
                 const/4 v0, 0x1
                 return v0
-                :not_voice
+                :morphe_voice_to_music_not_voice
                 nop
             """,
         )

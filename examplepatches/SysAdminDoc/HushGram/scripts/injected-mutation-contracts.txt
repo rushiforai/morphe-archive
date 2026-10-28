@@ -570,6 +570,12 @@ once-call Lapp/hushgram/extension/instagram/direct/LastActive;->exact(J)Ljava/la
 # on 452). Left out, a finished story moves on; twice or elsewhere, it isn't the answer the patch
 # wrote.
 once-call Lapp/hushgram/extension/instagram/stories/StoryLoop;->loop(I)Z in instance (Lcom/instagram/model/reels/ReelItem;)Z holding const:0x810ff8000155de
+# Swipe through a chat's reels answers the read of Instagram's own chat reels flag through chain(),
+# right after it in the test taking the session that the opener of a reel shared in a chat asks
+# (02JG.A00 on 452.1, #350). Its sibling tests share the shape, so the rule names the flag. Left
+# out, a reel opened from a chat swipes on to suggested reels; twice or elsewhere, it isn't the
+# answer the patch wrote.
+once-call Lapp/hushgram/extension/instagram/direct/ChatReels;->chain(I)Z in instance (Lcom/instagram/common/session/UserSession;)Z holding const:0x81155f00006ed0
 # Restore trust on re-signed builds puts its call first in the package signer reader, which its
 # fingerprint picks by the SigningInfo and PackageInfo calls it makes. The reader holds no string,
 # so the rule holds the old signatures array it reads, which 28 methods read on 449. Of
@@ -1898,6 +1904,29 @@ once-call Lapp/hushgram/extension/instagram/feed/HiddenLikeCounts;->sawCount(Lja
 # Back scrolls Home up and reloads it first; twice or elsewhere, it isn't the hook the patch wrote.
 # NativeBackLeavesHomeTest checks where it lands on all seven 450 builds.
 once-call Lapp/hushgram/extension/instagram/feed/BackLeavesHome;->leave()I in instance ()Z calling static Ljava/lang/System;->currentTimeMillis()J class-holding MainFeedFragment.scrollToTopWithReason.
+# Keep your place in Home hands HomePlace.timeAway the time away right before Home's warm-start check
+# (02xG.A0F on 452, the instance (Integer)Z loading "MainFeedFragment.onHotStart") asks whether that time is
+# under the minimum for a reload, and reads the answer back into the same pair (#354). Left out, Home
+# reloads and jumps to the top after 30 seconds away; twice or elsewhere, it isn't the hook the patch wrote.
+once-call Lapp/hushgram/extension/instagram/feed/HomePlace;->timeAway(J)J in instance (Ljava/lang/Integer;)Z holding MainFeedFragment.onHotStart
+# The same check hands HomePlace.reload the answer it settled on and its "nothing to do" value right after
+# logging it, and reads what comes back into the register its compare reads. Left out, the instant feed and
+# the server timers still reload Home after a long return; twice or elsewhere, it isn't the hook the patch wrote.
+once-call Lapp/hushgram/extension/instagram/feed/HomePlace;->reload(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; in instance (Ljava/lang/Integer;)Z holding MainFeedFragment.onHotStart
+# Instagram's background reload alarm (02oE.onAlarm on 452, logging "bg_refresh_fired") asks
+# HomePlace.skipBackgroundReload first thing and returns when it says to. Left out, Home reloads in the
+# background 30 seconds after you leave, so the return lands at the top; twice or elsewhere, it isn't the hook.
+once-call Lapp/hushgram/extension/instagram/feed/HomePlace;->skipBackgroundReload()Z in instance ()V holding bg_refresh_fired
+# Instagram's app reset timer (ActivityBackstackManager.A05 on 452, its one static (manager, reset, long)V)
+# asks HomePlace.skipAppReset first thing and returns when it says to. Left out, Instagram closes what
+# was open and sends the next return to the top of Home a minute after you leave; twice or elsewhere,
+# it isn't the hook the patch wrote.
+start-call Lapp/hushgram/extension/instagram/feed/HomePlace;->skipAppReset()Z in static (Lcom/instagram/mainactivity/appentry/appreset/ActivityBackstackManager;L*;J)V class-holding app_reset_default_type
+once-call Lapp/hushgram/extension/instagram/feed/HomePlace;->skipAppReset()Z in static (Lcom/instagram/mainactivity/appentry/appreset/ActivityBackstackManager;L*;J)V class-holding app_reset_default_type
+# Its onAppForegrounded hands HomePlace.appResetPlan the reset it picks on return (the one (double) call
+# answering a reset) and reads what comes back into the same register. Left out, a return the server
+# scores for a reset still lands at the top of Home; twice or elsewhere, it isn't the hook the patch wrote.
+once-call Lapp/hushgram/extension/instagram/feed/HomePlace;->appResetPlan(Ljava/lang/Object;)Ljava/lang/Object; in instance ()V calling instance LX/*;->*(D)LX/*; class-holding app_reset_default_type
 # Each like row that reads a post's hidden-count flag and then asks that method hands HiddenLikeCounts.rowRead
 # the post's data and the flag it just read, once, so the poster is noted by that post's own count and not
 # another's.
@@ -2039,6 +2068,26 @@ once-call Lapp/hushgram/extension/instagram/stories/StorySound;->pausing(Ljava/l
 once-call Lapp/hushgram/extension/instagram/stories/StorySound;->paused(Ljava/lang/Object;I)I in instance ()V holding ReelViewerFragment.onPause
 start-call Lapp/hushgram/extension/instagram/stories/StorySound;->resuming(Ljava/lang/Object;)I in instance ()V holding ReelViewerFragment.onResume
 once-call Lapp/hushgram/extension/instagram/stories/StorySound;->resuming(Ljava/lang/Object;)I in instance ()V holding ReelViewerFragment.onResume
+# Seek bar on stories tells StorySeekBar the story viewer came and went, once in each, right after
+# ReelViewerFragment's onResume and onPause hand on to their superclass's (#355). Left out, no bar
+# shows and none goes away; twice or elsewhere, it isn't the call the patch wrote.
+# StorySeekBarHookTest checks on the 452 fixtures that each call sits right after the super call.
+once-call Lapp/hushgram/extension/instagram/stories/StorySeekBar;->resumed(Ljava/lang/Object;)V in instance ()V holding ReelViewerFragment.onResume
+once-call Lapp/hushgram/extension/instagram/stories/StorySeekBar;->paused(Ljava/lang/Object;)V in instance ()V holding ReelViewerFragment.onPause
+# Start reels with sound asks ReelSound.wanted() once, right after the Reels viewer's onCreate
+# (the one holding ClipsViewerFragment.onCreate) calls its super, and on a yes hands the viewer's
+# source to ReelSound.startWithSound() and tells ReelSound.opened() whether the sound was on, in
+# the same onCreate. The viewer's onPause asks ReelSound.pausing() first and ReelSound.paused()
+# once, and its onResume asks ReelSound.resuming() first, so a reel opened from Home puts the
+# sound back before the feed resumes (#342). Left out, reels open as Instagram's sound says.
+once-call Lapp/hushgram/extension/instagram/reels/ReelSound;->wanted()I in instance (Landroid/os/Bundle;)V holding ClipsViewerFragment.onCreate
+once-call Lapp/hushgram/extension/instagram/reels/ReelSound;->startWithSound(Ljava/lang/Object;Ljava/lang/Object;)I in instance (Landroid/os/Bundle;)V holding ClipsViewerFragment.onCreate
+once-call Lapp/hushgram/extension/instagram/reels/ReelSound;->opened(Ljava/lang/Object;I)V in instance (Landroid/os/Bundle;)V holding ClipsViewerFragment.onCreate
+start-call Lapp/hushgram/extension/instagram/reels/ReelSound;->pausing(Ljava/lang/Object;)I in instance ()V holding onOfflineViewerPaused\sfailed android_purge_26_q3_ClipsViewerPiPDelegate_onPause
+once-call Lapp/hushgram/extension/instagram/reels/ReelSound;->pausing(Ljava/lang/Object;)I in instance ()V holding onOfflineViewerPaused\sfailed android_purge_26_q3_ClipsViewerPiPDelegate_onPause
+once-call Lapp/hushgram/extension/instagram/reels/ReelSound;->paused(Ljava/lang/Object;I)I in instance ()V holding onOfflineViewerPaused\sfailed android_purge_26_q3_ClipsViewerPiPDelegate_onPause
+start-call Lapp/hushgram/extension/instagram/reels/ReelSound;->resuming(Ljava/lang/Object;)I in instance ()V holding ClipsViewerFragment.onResume:initializeAdsDelivery
+once-call Lapp/hushgram/extension/instagram/reels/ReelSound;->resuming(Ljava/lang/Object;)I in instance ()V holding ClipsViewerFragment.onResume:initializeAdsDelivery
 # Stop swipe up to reply asks StorySwipeReply.keepsSwipe() first thing in the reply composer's
 # swipe listener, the one instance ()Z method that reads a Redex class's EditText field and focuses
 # it (0Axw.GKf on 452, 0BfY.GKr on its other build 385810231), and once in the story viewer's item delegate,

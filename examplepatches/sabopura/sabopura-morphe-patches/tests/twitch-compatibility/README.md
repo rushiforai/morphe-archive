@@ -16,7 +16,7 @@ JSON has zero failed patches and all steps succeeded; process exit code alone
 does not establish patch success.
 
 Run this pair for every declared target (currently 30.7.2 / 3007026,
-31.6.0 / 3106006 and 31.7.0 / 3107006) and for the 31.5.2 / 3105026 fixture. 31.5.2 is no
+31.7.0 / 3107006 and 31.8.0 / 3108006) and for the 31.5.2 / 3105026 fixture. 31.5.2 is no
 longer a declared target, so it is patched with `--force`; it stays because the device probes
 below use its obfuscated names. This verifier checks actual DEX wiring, field accessibility,
 native claim submission, original chat-return coverage, intact chat arguments,
@@ -75,11 +75,11 @@ adb -s emulator-5554 shell am instrument -w io.github.sabopura.deviceprobe/io.gi
 
 | Probe | Versions | What it exercises |
 | --- | --- | --- |
-| `AdsProbe` | 31.6.0 / 31.7.0 | Block ads layers, a real stitched pre-roll replaced through the wrapped IVS HTTP client |
+| `AdsProbe` | 31.7.0 / 31.8.0 | Block ads layers, a real stitched pre-roll replaced through the wrapped IVS HTTP client |
 | `GestureProbe` | all | Twitch's real theatre views (drag container, theatre layout, patched player root, controls) over a Twitch activity; injected swipes and taps for brightness, volume, chat scrolling inside the theatre, a scrolling list underneath the theatre (it must not take the swipe), the mini player and brightness restore |
 | `SpeedProbe` | all | Twitch's IVS player on a real live stream and VOD: the audible player is chosen over a newer muted preview, VOD speed, live catch-up back to 1x, the reset on another VOD |
 | `NavProbe` | all | Twitch's home frame (`viewer_landing`) with Twitch's insets; navigation bar default, top and hidden |
-| `LandscapeProbe` | all | The live theatre's landscape layout with Twitch's ConstraintSet: chat width and background. Pass `-e set el9 -e percent r` on 30.7.2, `-e set w9a -e percent s` on 31.6.0 and `-e set gaa -e percent s` on 31.7.0 (defaults are the 31.5.2 names `s9a`/`s`) |
+| `LandscapeProbe` | all | The live theatre's landscape layout with Twitch's ConstraintSet: chat width and background. Pass `-e set el9 -e percent r` on 30.7.2, `-e set gaa -e percent s` on 31.7.0 and `-e set j9a -e percent s` on 31.8.0 (defaults are the 31.5.2 names `s9a`/`s`) |
 | `ChatProbe` | 31.5.2 | Real native chat rows bound with each chat setting (fixture names as in `LayoutProbe`) |
 | `DanmakuProbe` | 31.5.2 | Twitch's parsed live chat message objects fed to the danmaku layer in the real player layout |
 | `DeclutterProbe` | all (unfollow part 31.5.2 / 30.7.2, highlight part 31.5.2) | Each "Hide" option against the layouts where Twitch shows the view (the home feed's stories shelf and button included); bottom bar tabs leave no gap; the unfollow heart leaves the button list under the player, and Twitch's own chat header builder still puts Follow only on channels not followed; hype trains and pinned messages dropped in Twitch's own highlight filter, while polls, removals and everything with the options off go on (each call must come back within 3 s), and no event is turned into text |

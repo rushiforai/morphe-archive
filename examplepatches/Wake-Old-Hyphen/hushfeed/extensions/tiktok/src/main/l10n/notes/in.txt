@@ -1,41 +1,66 @@
-## Unreleased
+## 0.80.0 (2026-10-27)
 
-* **Pengaturan:** Sakelar baru mengeluarkan baris Hushfeed dari Pengaturan dan privasi TikTok. Setelah itu, tekan lama Untuk Kamu untuk membuka pengaturan (#264).
-* **Komentar:** Komentar tinggi penuh sekarang berhenti di bawah bilah status, tidak lagi menutupi jam dan baterai, dan juga terbuka penuh di video pertama setelah TikTok dibuka (#261).
-* **Feed:** Bilah bawah feed utama kini punya pil kaca melayang dengan lensa yang bergeser di antara tab, gestur geser jari, getaran opsional, dan pengaturan baru di Antarmuka untuk kekuatan blur, opasitas kaca, tinggi pil, dan sudut (#259).
-* **Patching:** Patch yang punya pengaturan sekarang punya opsi Morphe untuk nilai awalnya, jadi build bisa langsung datang dengan sakelar pilihanmu menyala. Terima kasih @XEGARE (#256).
-* **Pengaturan:** Kategori terbuka dan tertutup tepat di bawah barisnya di daftar utama. Pencarian menampilkan kontrol di daftar yang sama, dan kategori yang terbuka tetap terbuka setelah layar diputar atau aplikasi dimulai ulang.
-* **Pengaturan:** Kartu besar di halaman utama diganti daftar ringkas selebar layar. Pengaturan cepat dihapus.
+* **TikTok:** Sembunyikan kontrol Tampilan bersih punya sakelar baru yang menjaga bilah progres tetap tampil, jadi kamu masih bisa melihat dan menggesernya (#237).
+* **TikTok:** Ketuk dua kali sekarang bisa menyukai dan membatalkan suka. Ketuk dua kali pada video yang sudah kamu sukai akan menarik kembali sukanya (#248).
+* **TikTok:** Geser ke kiri atau kanan sambil menahan video untuk memilih kecepatan saat ditahan, dari setengah kecepatan sampai tiga kali. Secara bawaan nonaktif (#248).
+* **TikTok:** Kisi Disukai punya urutan sendiri, dan tombol urutan di kisi Disukai hanya mengubah urutan itu (#180).
+* **TikTok:** Setiap judul Hushfeed sekarang menampilkan warna sian dan merah TikTok dalam gradasi yang bergerak pelan.
+* **TikTok:** Preset Feed tenang sudah dihapus. Semua filternya tetap ada di Filter feed, dan apa pun yang sempat ia aktifkan tetap aktif.
+* **TikTok:** Ketuk dua kali dan Tekan lama bisa membuka halaman pencarian TikTok, bahkan saat tombol pencarian feed disembunyikan (#251).
+* **TikTok:** Sakelar baru melipat kotak pencarian komentar menjadi tombol kaca pembesar di kiri atas (#254).
+* **TikTok:** Sakelar baru mengeluarkan baris Hushfeed dari Pengaturan dan privasi TikTok. Setelah itu, tekan lama Untuk Kamu untuk membuka pengaturan (#264).
+* **TikTok:** @nama pengguna yang diketik di bio seseorang sekarang menjadi tautan. Ketuk, dan profil itu terbuka (#247).
+* **TikTok:** Bilah bawah feed utama bisa berupa pil kaca melayang, dengan lensa yang bergeser di antara tab dan pengaturan baru untuk keburaman, opasitas, tinggi, dan sudut (#259).
+* **TikTok:** Patch yang punya pengaturan punya opsi Morphe untuk nilai awalnya, jadi build bisa langsung datang dengan sakelar pilihanmu menyala. Terima kasih kepada @XEGARE (#256).
+* **TikTok:** Sakelar baru menyembunyikan baris lingkaran LIVE dan cerita di bagian atas Mengikuti, tanpa meninggalkan pita kosong (#262).
+* **TikTok:** Sakelar baru menghentikan lembar Bagikan ke yang dibuka TikTok beberapa detik setelah menyimpan video. PineDrama juga mendapatkannya.
+* **TikTok:** Menyimpan foto asli dari postingan foto juga menyimpan keterangan, kreator, tautan, dan tanggal postingannya dalam satu berkas.
+* **TikTok:** Pencarian pengaturan mengenal nama sehari-hari seperti autoplay, PiP, dan AI, dan menemukan baris pilihan lewat opsi apa pun di dalamnya.
+* **TikTok:** Kunci feed pada jam tertentu mengunci feed dengan sendirinya selama jam yang kamu pilih, dan panel kunci menyebut kapan feed terbuka lagi.
+* **TikTok:** Simpan hanya lewat Wi-Fi menjaga penyimpanan tidak memakai data seluler. Penyimpanan menunggu Wi-Fi sampai 30 menit, dan kamu bisa membatalkannya dari Unduhan.
+* **TikTok:** Di PineDrama, sakelar Kotak masuk sekarang berfungsi, termasuk Sembunyikan percakapan (#156).
+* **TikTok:** Di PineDrama, baris versi di pengaturan menyebut PineDrama dan build-nya, bukan TikTok (#156).
+* **TikTok:** Hasil pencarian pengaturan yang jauh di bawah halaman sekarang terbuka tepat di barisnya.
+* **TikTok:** Dengan Bilah bawah tembus pandang aktif, baris Geser ke atas untuk melewati pada kartu akun yang disarankan kembali berada di atas tab (#261).
+* **TikTok:** Pil tab melayang sedikit lebih tinggi, jadi ikon Beranda dan namanya tetap di dalam sorotan, dan garis progres tidak lagi menumpang di atasnya (#259).
+* **TikTok:** Dengan Tampilan bersih otomatis aktif, membuka video kedua dari Favorit, Disukai, atau profil tidak lagi membuat bilah pencarian berkedip (#84).
+* **TikTok:** Dengan tema gelap AMOLED aktif, kartu pusat aktivitas juga menjadi hitam (#263).
+* **TikTok:** Sembunyikan pemberitahuan konten belum terverifikasi juga menghapus strip Hati-hati dari video yang dikirim kepadamu lewat pesan (#258).
+* **TikTok:** Tekan lama pada bio orang lain sekarang menyalinnya (#247).
+* **TikTok:** Komentar tinggi penuh sekarang berhenti di bawah bilah status, dan juga terbuka penuh di video pertama setelah TikTok dimulai (#261).
+* **TikTok:** Kategori pengaturan terbuka dan tertutup tepat di bawah barisnya, dan kategori yang kamu buka tetap terbuka setelah layar diputar atau aplikasi dimulai ulang.
+* **TikTok:** Kartu besar di halaman utama pengaturan sekarang berupa daftar ringkas, dan Pengaturan cepat sudah dihapus.
 * **TikTok:** Hushfeed kini butuh Morphe Manager 2.2.0 atau yang lebih baru, atau morphe-desktop 1.19.1 di komputer.
-* **Pemeriksaan:** Tambahkan pengujian alur dasar PineDrama untuk peluncuran, membuka dan menutup pengaturan di tempat, dan kembali. Verifikasi lengkap belum selesai.
-* **Pemeriksaan:** Setiap label pratinjau LIVE dan drama yang dipakai bilah bawah tembus pandang diperiksa terhadap APK TikTok yang didukung.
-* **Feed:** Bendera dan kode negara tetap berada di samping nama yang ditulis dari kanan ke kiri (#258).
-* **Feed:** Dengan bilah bawah tembus pandang aktif, nama dan baris "Ketuk untuk menonton" pada pratinjau LIVE dan drama mini tetap di atas tab (#250).
-* **Kisi:** Kontrol pengurutan memiliki area sentuh minimal 48 dp.
-* **Kisi:** Kontrol pengurutan disembunyikan saat kisi dilepas dari tampilan dan ditampilkan kembali saat kisi kembali.
-* **Kisi:** Urutan saat ini tetap dipertahankan jika perubahan pengurutan gagal disimpan.
-* **Kisi:** Memilih Urutan asli membuat menu pengurutan kisi saat ini tetap tersedia (#180).
-* **Komentar:** Komentar di samping video memakai lebar yang sama untuk tata letak dan pemeriksaan pembentukan ulang (#253).
-* **Kotak masuk:** Jika Cerita didahulukan, foto chat yang digunakan ulang kini membuka Cerita kreator yang sedang ditampilkan pada ketukan pertama (#233).
-* **Playback:** Keep the source video paused when a comment link opens another page. Leaving the tap-to-start cover for another tab also keeps its feed paused (#257).
-* **Diagnostik:** Laporan notifikasi menghitung tahap pendaftaran dan penayangan tanpa menyertakan isi pesan (#126, #222, #86).
-* **Perekaman layar:** TikTok tetap tersedia dalam pilihan aplikasi terbaru untuk perekaman di Android 14 dan yang lebih baru.
-* **Pemeriksaan:** Audit perpindahan otomatis mengikuti pemutaran TikTok tanpa memberi label pada tiap video. Klip yang belum selesai dan pemutaran yang tidak tersedia tetap tidak dapat disimpulkan.
+* **TikTok:** Uji coba rilis kini mencakup PineDrama juga, dari feed dan lembarnya sampai setiap bagian Hushfeed.
+* **TikTok:** PineDrama punya audit patch sendiri, dan sebuah rilis butuh audit dan uji coba yang bersih untuk setiap aplikasi yang didukungnya.
+* **TikTok:** Setiap pratinjau LIVE dan label drama yang digeser Bilah bawah tembus pandang diperiksa terhadap build TikTok yang didukung.
+* **TikTok:** Bendera dan kode negara tetap berada di samping nama yang ditulis dari kanan ke kiri (#258).
+* **TikTok:** Dengan Bilah bawah tembus pandang aktif, nama dan baris Ketuk untuk menonton pada pratinjau LIVE dan drama mini tetap di atas tab (#250).
+* **TikTok:** Kontrol urutan kisi sekarang lebih besar, jadi lebih mudah diketuk.
+* **TikTok:** Kontrol urutan kisi disembunyikan saat kisinya tidak tampil dan kembali bersama kisinya.
+* **TikTok:** Jika perubahan urutan gagal disimpan, kisi tetap memakai urutan yang lama.
+* **TikTok:** Memilih Urutan asli membuat menu urutan kisi tetap tersedia (#180).
+* **TikTok:** Komentar di samping video sekarang mengukur lebarnya dengan cara yang sama setiap kali (#253).
+* **TikTok:** Di Kotak masuk, foto chat yang dipakai ulang membuka Cerita kreator saat ini pada ketukan pertama jika Cerita dahulu aktif (#233).
+* **TikTok:** Video tetap dijeda saat tautan di komentarnya membuka halaman lain (#257).
+* **TikTok:** Laporan notifikasi di Diagnostik menghitung notifikasi tanpa menyimpan isinya (#126, #222, #86).
+* **TikTok:** TikTok tetap ada di daftar yang ditampilkan Android saat kamu merekam satu aplikasi.
+* **TikTok:** Audit perpindahan otomatis mengikuti pemutar video itu sendiri, bukan label per video.
 * **TikTok:** Tahan sakelar di pencarian pengaturan untuk menampilkan dan menyorot kontrolnya di daftar utama (#248).
-* **Diagnostik:** Catatan callback frame pertama menyimpan keterkaitan sumber dan waktu monoton untuk pemeriksaan saat pemutaran dimulai (#150).
-* **Pemeriksaan build:** Pemeriksaan rilis mewajibkan bukti APK dan pengujian aplikasi yang sesuai untuk setiap paket yang dinyatakan. Penelusuran memverifikasi build terpasang dan opsi patch.
-* **TikTok:** Recording recovery exports use bulk writes to avoid long waits when saving large files.
-* **TikTok:** Recovery Retry keeps the recording's original stop reason instead of saying TikTok closed. Recovery dialogs follow Hushfeed's theme.
-* **TikTok:** Screen recordings check storage as they run and keep recovery files until the saved copy is verified. Interrupted recordings can be retried, exported or deleted.
-* **Build checks:** Patch audits now check the installed APK and selected patches. Results from a different package or an excluded patch stay historical.
-* **Pemeriksaan build:** Audit patch memeriksa kelengkapan diagnostik sebelum melaporkan sakelar yang hilang. Tanpa video, pemeriksaan terkait tetap tidak dapat disimpulkan. Pemeriksaan wilayah komentator memakai jejak cache saat ini.
-* **TikTok:** Rekaman layar mempertahankan waktu yang berbeda untuk frame awal saat perekaman suara dimulai.
-* **TikTok:** Rekaman layar mempertahankan frame video pertama saat encoder audio mulai bekerja.
-* **Pemeriksaan build:** Audit patch tidak lagi memvalidasi build jika input yang dapat dijalankan berubah. Pengujian ulang sebagian tetap menyimpan pemeriksaan lama sebagai riwayat.
-* **TikTok:** Perekaman layar melepaskan sumber daya audio saat suara gagal dimulai. Pemberitahuan penyimpanan kini menyatakan jika rekaman tidak memiliki suara.
-* **TikTok:** Perekaman layar kini meminta Android menangkap suara aplikasi yang dipatch saja.
-* **TikTok:** Pembersihan Service+ kini memeriksa entri pertama pratinjau LIVE, sesuai dengan cara TikTok menampilkannya (#94).
-* **TikTok:** Jeda saat komentar dibuka dapat mengenali bingkai pertama yang sedang diputar sebelum laporan progres pertama tiba (#151).
+* **TikTok:** Pemeriksaan saat dimulai mencatat pemutar mana yang menggambar frame pertama (#150).
+* **TikTok:** Sebuah rilis butuh bukti yang cocok untuk setiap aplikasi yang didukungnya.
+* **TikTok:** Mengekspor rekaman yang dipulihkan lebih cepat untuk berkas besar.
+* **TikTok:** Coba lagi pada pemulihan mempertahankan alasan berhenti asli rekaman, dan dialog pemulihan mengikuti tema Hushfeed.
+* **TikTok:** Rekaman layar memeriksa penyimpanan selagi berjalan dan menyimpan berkas pemulihan sampai salinan yang tersimpan terverifikasi.
+* **TikTok:** Audit patch memeriksa aplikasi yang terpasang dan patch mana yang dipilih.
+* **TikTok:** Audit patch menunggu laporan diagnostik lengkap sebelum menyebut sebuah sakelar hilang.
+* **TikTok:** Beberapa frame pertama rekaman layar masing-masing mempertahankan waktunya sendiri selagi suara mulai.
+* **TikTok:** Rekaman layar mempertahankan frame video pertamanya selagi suara mulai disiapkan.
+* **TikTok:** Audit patch berhenti dihitung untuk sebuah build begitu kode yang dijalankannya berubah.
+* **TikTok:** Perekaman layar melepaskan audionya saat suara gagal dimulai, dan pemberitahuan simpan menyebutkan jika tidak ada suara.
+* **TikTok:** Perekaman layar meminta Android menangkap suara aplikasi yang dipatch saja.
+* **TikTok:** Pembersihan Service+ memeriksa entri pertama pratinjau LIVE yang sama dengan yang ditampilkan TikTok (#94).
+* **TikTok:** Jeda komentar bisa mengetahui bahwa frame pertama sedang diputar sebelum pembaruan progres pertama dari TikTok (#151).
 
 ## 0.79.0 (2026-10-24)
 

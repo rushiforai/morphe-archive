@@ -70,7 +70,7 @@ final class SaveProgress {
     }
 
     /** Why a run ended before its last file when it was not Cancel. */
-    enum Stop { NONE, NO_SPACE, NO_TIME, SERVER_WAIT }
+    enum Stop { NONE, NO_SPACE, NO_TIME, SERVER_WAIT, NETWORK }
 
     /** What a run of steps came to. */
     static final class Outcome {
@@ -235,6 +235,8 @@ final class SaveProgress {
     }
 
     private String progressText() {
+        MediaJobScheduler.Job queued = job;
+        if (!started && queued != null && queued.parked()) return L10n.t("Waiting for Wi-Fi");
         if (!started && fileCount) return L10n.quantity(Utils.getContext(), total,
                 "Waiting to save one file", "Waiting to save %1$s files");
         if (!started) return total == 1 ? L10n.t("Waiting to save video")
@@ -275,6 +277,11 @@ final class SaveProgress {
 
     int total() {
         return total;
+    }
+
+    /** The row says what it's waiting for again: a worker, or Wi-Fi under Save only on Wi-Fi. */
+    void refreshText() {
+        updateTransfer();
     }
 
     /** What the row says now, for the Downloads page's list of saves (#27). */
@@ -350,6 +357,7 @@ final class SaveProgress {
                             case SPACE: stop = Stop.NO_SPACE; break;
                             case TIME: stop = Stop.NO_TIME; break;
                             case SERVER_WAIT: stop = Stop.SERVER_WAIT; break;
+                            case NETWORK: stop = Stop.NETWORK; break;
                             case CANCELLED: break;
                         }
                         if (stop != Stop.NONE) for (int rest = index; rest < total; rest++) unsaved.add(rest);
@@ -378,6 +386,7 @@ final class SaveProgress {
         if (outcome.stop == Stop.NO_SPACE) return L10n.f("Saved %1$s of %2$s, the rest need more free space", saved, total);
         if (outcome.stop == Stop.NO_TIME) return L10n.f("Saved %1$s of %2$s, the rest ran out of time", saved, total);
         if (outcome.stop == Stop.SERVER_WAIT) return L10n.f("Saved %1$s of %2$s. The server asked us to wait. Try again later.", saved, total);
+        if (outcome.stop == Stop.NETWORK) return L10n.f("Saved %1$s of %2$s. The rest stopped when you left Wi-Fi. Save again on Wi-Fi.", saved, total);
         if (outcome.cancelled > 0 && outcome.skipped > 0) {
             return L10n.f("Saved %1$s of %2$s, %3$s skipped and the rest cancelled", saved, total, skipped);
         }

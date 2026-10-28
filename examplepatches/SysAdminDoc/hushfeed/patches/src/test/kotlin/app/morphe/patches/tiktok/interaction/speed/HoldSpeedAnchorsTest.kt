@@ -198,6 +198,36 @@ class HoldSpeedAnchorsTest {
     }
 
     @Test
+    fun `each declared build carries the sites sliding the hold speed hooks`() {
+        Fixtures.forEachDeclared { apk ->
+            val app = load(apk)
+            val (press, release) = gestureMethods(app, apk)
+            // Press and release each open on the held flag and write it, so their hooks run once.
+            val pressAt = press.holdGuardEnd("press")
+            val releaseAt = release.holdGuardEnd("release")
+            assertTrue("${apk.name}: the press guard ends early, at $pressAt", pressAt in 1..12)
+            assertTrue("${apk.name}: the release guard ends early, at $releaseAt", releaseAt in 1..12)
+            // The press plays the hold speed through one public (F)V call on a public component.
+            val apply = press.holdApplyCall()
+            assertTrue("${apk.name}: the component is public", app.getValue(component).accessFlags and 0x1 != 0)
+            assertTrue(
+                "${apk.name}: ${apply.name} is public",
+                app.getValue(component).methods.single {
+                    it.name == apply.name && it.parameterTypes == listOf("F")
+                }.accessFlags and 0x1 != 0,
+            )
+            // One instance onTouch hands the finger to the edge speed-up ability.
+            val touches = app.values.asSequence().flatMap { it.methods.asSequence() }.filter { method ->
+                method.name == "onTouch" && method.returnType == "Z" &&
+                    method.parameterTypes == listOf("Landroid/view/View;", "Landroid/view/MotionEvent;") &&
+                    method.callsEdgeSpeedupAbility()
+            }.toList()
+            assertEquals("${apk.name}: touch listeners ${touches.map { it.definingClass }}", 1, touches.size)
+            assertTrue("${apk.name}: the touch listener is an instance method", touches.single().accessFlags and 0x8 == 0)
+        }
+    }
+
+    @Test
     fun `every retained fixture has the gesture's literals read only as floats`() {
         val apks = Fixtures.apks()
         assertTrue("fixtures: ${apks.map { it.name }}", apks.containsAll(Fixtures.declared()))

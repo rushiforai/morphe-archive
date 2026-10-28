@@ -215,6 +215,7 @@
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/DataSaverDownloads.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/SaveDownloads.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/GalleryFolder.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/StorageFolder.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/ChatTypeFolders.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/AiTranslate.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/settings/TranslateServiceEditor.java",

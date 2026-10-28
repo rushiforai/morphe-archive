@@ -86,8 +86,8 @@ private val appIconResourcesPatch = resourcePatch {
 }
 
 /**
- * A home screen icon picked in HushGram's settings (#284): Instagram's own, HushGram's mark, or
- * Instagram's glyph on black or on plum. Included in the default selection with Instagram's icon
+ * A home screen icon picked in HushGram's settings (#284): Instagram's own, HushGram's mark,
+ * Instagram's glyph on black or on plum, or a black glyph on white (#353). Included in the default selection with Instagram's icon
  * picked.
  *
  * Android shows one icon per enabled launcher activity, so the patch adds an alias per icon next to
@@ -102,7 +102,7 @@ private val appIconResourcesPatch = resourcePatch {
 val pickAppIconPatch = bytecodePatch(
     name = "Pick the app icon",
     description = "Lets you pick the icon Instagram shows on your home screen: Instagram's own, HushGram's, or " +
-        "Instagram's glyph on black or on plum. The new icon shows once you leave Instagram, and you may need to add it to " +
+        "Instagram's glyph on black, on plum, or in black on white. The new icon shows once you leave Instagram, and you may need to add it to " +
         "your home screen again from the app drawer. Starts on Instagram's own. Pick one in HushGram settings > Layout.",
     default = true,
 ) {

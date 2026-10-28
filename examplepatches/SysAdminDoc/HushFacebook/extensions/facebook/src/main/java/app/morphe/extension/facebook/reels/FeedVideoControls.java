@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import app.morphe.extension.facebook.download.OpenInAnotherApp;
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.facebook.settings.SettingsStatus;
@@ -36,9 +37,10 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 
 /**
- * A separate play/pause button on a feed video's own visible surface. Facebook keeps its video
- * taps and fullscreen controls. The Tap to play patch supplies these bridges independently of
- * its autoplay switch and of Hold a feed video for 2x.
+ * A separate play/pause button on a feed video's own visible surface, and a cast button across
+ * from it (#182). Facebook keeps its video taps and fullscreen controls. The Tap to play patch
+ * supplies these bridges independently of its autoplay switch and of Hold a feed video for 2x.
+ * The cast button also needs the video patch, whose player record holds the file it hands over.
  */
 public final class FeedVideoControls {
     private static final String FAMILY = FamilyNames.TAP_TO_PLAY;
@@ -53,6 +55,7 @@ public final class FeedVideoControls {
         boolean eligible(Object params);
         boolean playing(Object player);
         void command(Object player, boolean play);
+        void cast(View from, String videoId);
     }
 
     private static final Players PATCHED = new Players() {
@@ -63,9 +66,11 @@ public final class FeedVideoControls {
         public boolean eligible(Object params) { return ordinaryVideo(params); }
         public boolean playing(Object player) { return isPlaying(player); }
         public void command(Object player, boolean play) { commandPlayer(player, play); }
+        public void cast(View from, String videoId) { OpenInAnotherApp.cast(from.getContext(), videoId); }
     };
     static volatile Players access = PATCHED;
     @Nullable static volatile Boolean inBuildForTests;
+    @Nullable static volatile Boolean videoPatchInBuildForTests;
 
     private FeedVideoControls() { }
 
@@ -145,17 +150,28 @@ public final class FeedVideoControls {
         }
     }
 
-    private static boolean on() {
+    private static boolean inBuild() {
         Boolean forced = inBuildForTests;
-        return (forced != null ? forced : SettingsStatus.tapToPlay()) && Utils.settingsReady()
-                && Settings.INLINE_FEED_VIDEO_CONTROLS.get();
+        return (forced != null ? forced : SettingsStatus.tapToPlay()) && Utils.settingsReady();
+    }
+
+    private static boolean playOn() {
+        return inBuild() && Settings.INLINE_FEED_VIDEO_CONTROLS.get();
+    }
+
+    private static boolean castOn() {
+        if (!inBuild()) return false;
+        Boolean forced = videoPatchInBuildForTests;
+        return (forced != null ? forced : SettingsStatus.videoDownload()) && Settings.FEED_VIDEO_CAST_BUTTON.get();
     }
 
     private static void refresh(Control control) {
         try {
             Object player = control.player.get();
             ViewGroup container = control.expected.get();
-            if (!on() || control.released || player == null || container == null
+            boolean play = playOn();
+            boolean cast = castOn();
+            if ((!play && !cast) || control.released || player == null || container == null
                     || access.view(player) != container) {
                 control.remove(true);
                 return;
@@ -165,41 +181,55 @@ public final class FeedVideoControls {
                 control.remove(false);
                 return;
             }
-            Target target = target(control);
+            Target target = target(control, play && cast);
             if (target == null) {
                 control.remove(false);
                 return;
             }
-            Button current = control.button;
-            if (current != null && (current.generation != control.generation
-                    || current.params.get() != target.params || current.surface.get() != target.surface
-                    || !current.videoId.equals(target.videoId)
-                    || current.getParent() != target.content)) {
-                control.remove(false);
-                current = null;
-            }
-            if (current == null) {
-                current = new Button(control, target);
-                control.button = current;
-                target.content.addView(current, new FrameLayout.LayoutParams(target.size, target.size,
-                        Gravity.LEFT | Gravity.TOP));
-                HookStatus.bound(FAMILY, "inline feed button");
-            }
-            FrameLayout.LayoutParams layout = (FrameLayout.LayoutParams) current.getLayoutParams();
-            if (layout.leftMargin != target.left || layout.topMargin != target.top) {
-                layout.leftMargin = target.left;
-                layout.topMargin = target.top;
-                current.setLayoutParams(layout);
-            }
-            current.state(access.playing(player));
+            control.button = place(control, control.button, play ? target : null, false);
+            control.cast = place(control, control.cast, cast ? target : null, true);
+            if (control.button != null) control.button.state(access.playing(player));
         } catch (Throwable failure) {
             control.remove(true);
             HookStatus.threw(FAMILY, "inline feed button", failure);
         }
     }
 
+    /** Keeps, makes or drops one button for [target]: null takes it off. Answers what's showing. */
     @Nullable
-    private static Target target(Control control) {
+    private static Button place(Control control, @Nullable Button current, @Nullable Target target, boolean cast) {
+        if (current != null && (target == null || current.generation != control.generation
+                || current.params.get() != target.params || current.surface.get() != target.surface
+                || !current.videoId.equals(target.videoId)
+                || current.getParent() != target.content)) {
+            detach(current);
+            current = null;
+        }
+        if (target == null) return null;
+        if (current == null) {
+            current = new Button(control, target, cast);
+            target.content.addView(current, new FrameLayout.LayoutParams(target.size, target.size,
+                    Gravity.LEFT | Gravity.TOP));
+            HookStatus.bound(FAMILY, cast ? "inline cast button" : "inline feed button");
+        }
+        int left = cast ? target.right : target.left;
+        FrameLayout.LayoutParams layout = (FrameLayout.LayoutParams) current.getLayoutParams();
+        if (layout.leftMargin != left || layout.topMargin != target.top) {
+            layout.leftMargin = left;
+            layout.topMargin = target.top;
+            current.setLayoutParams(layout);
+        }
+        return current;
+    }
+
+    private static void detach(View button) {
+        ViewParent parent = button.getParent();
+        if (parent instanceof ViewGroup) ((ViewGroup) parent).removeView(button);
+    }
+
+    /** Where the buttons go on the video [control] shows, or null when none fit. [both] needs room for two. */
+    @Nullable
+    private static Target target(Control control, boolean both) {
         Object player = control.player.get();
         ViewGroup container = control.expected.get();
         if (player == null || container == null || control.released || access.view(player) != container
@@ -243,11 +273,12 @@ public final class FeedVideoControls {
         float density = container.getResources().getDisplayMetrics().density;
         int size = Math.round(48 * density);
         int margin = Math.round(8 * density);
-        if (visible.width() < size + margin * 2 || visible.height() < size + margin * 2) return null;
+        int across = both ? size * 2 + margin * 3 : size + margin * 2;
+        if (visible.width() < across || visible.height() < size + margin * 2) return null;
         int[] at = new int[2];
         content.getLocationInWindow(at);
         return new Target(params, id, surface, (FrameLayout) content, size,
-                visible.left - at[0] + margin, visible.top - at[1] + margin);
+                visible.left - at[0] + margin, visible.right - at[0] - margin - size, visible.top - at[1] + margin);
     }
 
     private static void surfaces(View view, List<View> found) {
@@ -276,13 +307,19 @@ public final class FeedVideoControls {
         }
         Control control = button.control;
         try {
-            if (!on() || control.button != button || control.generation != button.generation) return;
-            Target current = target(control);
+            if (!(button.cast ? castOn() : playOn()) || (button.cast ? control.cast : control.button) != button
+                    || control.generation != button.generation) return;
+            Target current = target(control, false);
             Object player = control.player.get();
             if (current == null || player == null || current.params != button.params.get()
                     || !button.videoId.equals(current.videoId) || current.surface != button.surface.get()
                     || button.getParent() != current.content) {
                 control.remove(false);
+                return;
+            }
+            if (button.cast) {
+                access.cast(button, button.videoId);
+                HookStatus.counted(FAMILY, "inline cast");
                 return;
             }
             access.command(player, !access.playing(player));
@@ -299,10 +336,10 @@ public final class FeedVideoControls {
         final String videoId;
         final View surface;
         final FrameLayout content;
-        final int size, left, top;
-        Target(Object params, String videoId, View surface, FrameLayout content, int size, int left, int top) {
+        final int size, left, right, top;
+        Target(Object params, String videoId, View surface, FrameLayout content, int size, int left, int right, int top) {
             this.params = params; this.videoId = videoId; this.surface = surface; this.content = content;
-            this.size = size; this.left = left; this.top = top;
+            this.size = size; this.left = left; this.right = right; this.top = top;
         }
     }
 
@@ -315,6 +352,7 @@ public final class FeedVideoControls {
         private WeakReference<ViewGroup> observed = new WeakReference<>(null);
         private WeakReference<ViewTreeObserver> observer = new WeakReference<>(null);
         @Nullable Button button;
+        @Nullable Button cast;
         Control(Object player) { this.player = new WeakReference<>(player); }
         void observe(ViewGroup view) {
             ViewTreeObserver next = view.getViewTreeObserver();
@@ -326,11 +364,10 @@ public final class FeedVideoControls {
             next.addOnPreDrawListener(this);
         }
         void remove(boolean listeners) {
-            if (button != null) {
-                ViewParent parent = button.getParent();
-                if (parent instanceof ViewGroup) ((ViewGroup) parent).removeView(button);
-                button = null;
-            }
+            if (button != null) detach(button);
+            if (cast != null) detach(cast);
+            button = null;
+            cast = null;
             if (!listeners) return;
             ViewGroup view = observed.get();
             if (view != null) view.removeOnAttachStateChangeListener(this);
@@ -344,9 +381,13 @@ public final class FeedVideoControls {
         public void onViewDetachedFromWindow(View view) { generation++; remove(false); }
     }
 
-    /** A 48 dp target with a rounded dark background and a high-contrast play or pause symbol. */
+    /**
+     * A 48 dp target with a rounded dark background and a high-contrast symbol: play or pause, or
+     * the cast one for [cast].
+     */
     static final class Button extends View {
         final Control control;
+        final boolean cast;
         final long generation;
         final WeakReference<Object> params;
         final String videoId;
@@ -355,9 +396,10 @@ public final class FeedVideoControls {
         final RectF rect = new RectF();
         final Path path = new Path();
         boolean playing;
-        Button(Control control, Target target) {
+        Button(Control control, Target target, boolean cast) {
             super(target.content.getContext());
             this.control = control;
+            this.cast = cast;
             generation = control.generation;
             params = new WeakReference<>(target.params);
             videoId = target.videoId;
@@ -365,10 +407,15 @@ public final class FeedVideoControls {
             setClickable(true);
             setFocusable(true);
             setOnClickListener(view -> click(this));
-            state(false);
+            if (cast) {
+                setContentDescription(L10n.t("Cast this video"));
+                setTooltipText(getContentDescription());
+            } else {
+                state(false);
+            }
         }
         void state(boolean value) {
-            if (getContentDescription() != null && playing == value) return;
+            if (cast || getContentDescription() != null && playing == value) return;
             playing = value;
             setContentDescription(L10n.t(value ? "Pause feed video" : "Play feed video"));
             setTooltipText(getContentDescription());
@@ -381,7 +428,9 @@ public final class FeedVideoControls {
             float radius = 8 * getResources().getDisplayMetrics().density;
             canvas.drawRoundRect(rect, radius, radius, paint);
             paint.setColor(0xFFFFFFFF);
-            if (playing) {
+            if (cast) {
+                drawCast(canvas, w, h);
+            } else if (playing) {
                 canvas.drawRect(w * .32f, h * .28f, w * .44f, h * .72f, paint);
                 canvas.drawRect(w * .56f, h * .28f, w * .68f, h * .72f, paint);
             } else {
@@ -393,12 +442,49 @@ public final class FeedVideoControls {
                 canvas.drawPath(path, paint);
             }
         }
+        /** The usual cast symbol: a screen outline open at its lower left, with signal arcs there. */
+        private void drawCast(Canvas canvas, float w, float h) {
+            float stroke = w * .06f;
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(stroke);
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            path.reset();
+            path.moveTo(w * .26f, h * .40f);
+            path.lineTo(w * .26f, h * .28f);
+            path.lineTo(w * .76f, h * .28f);
+            path.lineTo(w * .76f, h * .72f);
+            path.lineTo(w * .56f, h * .72f);
+            canvas.drawPath(path, paint);
+            float x = w * .26f, y = h * .72f;
+            for (float r : new float[] {w * .14f, w * .26f}) {
+                rect.set(x - r, y - r, x + r, y + r);
+                canvas.drawArc(rect, 270, 90, false, paint);
+            }
+            paint.setStyle(Paint.Style.FILL);
+            canvas.drawCircle(x + stroke * .5f, y - stroke * .5f, stroke * .9f, paint);
+        }
+    }
+
+    /** Every player that has attached a video and not been dropped yet, for Pause reels while comments are open. */
+    public static List<Object> knownPlayers() {
+        List<Object> found = new ArrayList<>();
+        synchronized (players) {
+            for (Object player : players.keySet()) if (player != null) found.add(player);
+        }
+        return found;
     }
 
     @Nullable static View showing(Object player) {
         synchronized (players) {
             Control control = players.get(player);
             return control == null ? null : control.button;
+        }
+    }
+
+    @Nullable static View showingCast(Object player) {
+        synchronized (players) {
+            Control control = players.get(player);
+            return control == null ? null : control.cast;
         }
     }
 
@@ -410,5 +496,6 @@ public final class FeedVideoControls {
         }
         access = PATCHED;
         inBuildForTests = null;
+        videoPatchInBuildForTests = null;
     }
 }

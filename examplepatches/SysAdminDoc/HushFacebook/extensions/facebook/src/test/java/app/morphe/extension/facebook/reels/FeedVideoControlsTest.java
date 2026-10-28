@@ -53,6 +53,7 @@ public class FeedVideoControlsTest {
     private FrameLayout row;
     private final Player player = new Player();
     private final List<Boolean> commands = new ArrayList<>();
+    private final List<String> casts = new ArrayList<>();
     private boolean fail;
 
     private static final class Media { String id = "video"; boolean ordinary = true; }
@@ -82,6 +83,10 @@ public class FeedVideoControlsTest {
                 commands.add(play);
                 ((Player) of).playing = play;
             }
+            public void cast(View from, String videoId) {
+                assertTrue(from == FeedVideoControls.showingCast(player));
+                casts.add(videoId);
+            }
         };
         Settings.TAP_TO_PLAY.save(false);
         Settings.INLINE_FEED_VIDEO_CONTROLS.save(true);
@@ -103,6 +108,7 @@ public class FeedVideoControlsTest {
     @After public void restore() {
         FeedVideoControls.reset();
         Settings.INLINE_FEED_VIDEO_CONTROLS.resetToDefault();
+        Settings.FEED_VIDEO_CAST_BUTTON.resetToDefault();
         Settings.TAP_TO_PLAY.resetToDefault();
         PauseForTests.resume();
         HookStatus.clear();
@@ -135,6 +141,108 @@ public class FeedVideoControlsTest {
     private static void drain() { shadowOf(Looper.getMainLooper()).idle(); }
 
     private View button() { return FeedVideoControls.showing(player); }
+
+    private View cast() { return FeedVideoControls.showingCast(player); }
+
+    private void castOn() {
+        FeedVideoControls.videoPatchInBuildForTests = true;
+        Settings.FEED_VIDEO_CAST_BUTTON.save(true);
+        FeedVideoControls.settingsChanged();
+        drain();
+    }
+
+    private static FrameLayout.LayoutParams at(View button) {
+        return (FrameLayout.LayoutParams) button.getLayoutParams();
+    }
+
+    @Test public void castButtonSitsAcrossFromPlayAndHandsOverTheVideoOnScreen() {
+        assertNull("the cast button starts off", cast());
+        castOn();
+        assertNotNull(cast());
+        assertEquals("Cast this video", cast().getContentDescription());
+        assertTrue(cast().getParent() == button().getParent());
+        // 1080 px wide surface at mdpi: a 48 px button 8 px in from each side, same row.
+        assertEquals(8, at(button()).leftMargin);
+        assertEquals(1080 - 8 - 48, at(cast()).leftMargin);
+        assertEquals(at(button()).topMargin, at(cast()).topMargin);
+        cast().performClick();
+        assertEquals(java.util.Arrays.asList("video"), casts);
+        assertTrue("a cast tap never plays or pauses", commands.isEmpty());
+        button().performClick();
+        assertEquals(java.util.Arrays.asList(true), commands);
+        assertEquals(1, casts.size());
+    }
+
+    @Test public void castButtonStandsAloneWhenPlayPauseIsOff() {
+        Settings.INLINE_FEED_VIDEO_CONTROLS.save(false);
+        castOn();
+        assertNull(button());
+        assertNotNull(cast());
+        cast().performClick();
+        assertEquals(java.util.Arrays.asList("video"), casts);
+    }
+
+    @Test public void castButtonNeedsItsSwitchTheVideoPatchAndNoPause() {
+        castOn();
+        View old = cast();
+        Settings.FEED_VIDEO_CAST_BUTTON.save(false);
+        old.performClick();
+        drain();
+        assertNull(cast());
+        assertNotNull("play/pause stays", button());
+        castOn();
+        FeedVideoControls.videoPatchInBuildForTests = false;
+        FeedVideoControls.settingsChanged();
+        drain();
+        assertNull("no player record to hand over without the video patch", cast());
+        castOn();
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        FeedVideoControls.settingsChanged();
+        drain();
+        assertNull(cast());
+        PauseForTests.resume();
+        castOn();
+        FeedVideoControls.inBuildForTests = false;
+        FeedVideoControls.settingsChanged();
+        drain();
+        assertNull(cast());
+        assertTrue(casts.isEmpty());
+    }
+
+    @Test public void oldCastClickNeverSendsAnotherVideo() {
+        castOn();
+        View old = cast();
+        player.params.id = "another video";
+        old.performClick();
+        assertTrue(casts.isEmpty());
+        assertNull(cast());
+        FeedVideoControls.changed(player);
+        drain();
+        View next = cast();
+        assertNotNull(next);
+        player.params = new Media();
+        FeedVideoControls.rebound(player);
+        next.performClick();
+        assertTrue(casts.isEmpty());
+        drain();
+        cast().performClick();
+        assertEquals(java.util.Arrays.asList("video"), casts);
+    }
+
+    @Test public void aSurfaceTooNarrowForTwoButtonsGetsNeitherButOneFits() {
+        player.view.removeAllViews();
+        place(player.view, new SurfaceView(activity), 0, 0, 100, 600);
+        layout();
+        castOn();
+        FeedVideoControls.changed(player);
+        drain();
+        assertNull(button());
+        assertNull(cast());
+        Settings.INLINE_FEED_VIDEO_CONTROLS.save(false);
+        drain();
+        assertNotNull(cast());
+        assertEquals(100 - 8 - 48, at(cast()).leftMargin);
+    }
 
     @Test public void buttonStartsPausesAndResumesWithoutChangingNativeTaps() {
         assertNotNull(button());

@@ -51,6 +51,16 @@ public class SwitchLabelsTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
             for (BooleanSetting setting : SettingsBackup.ALLOWLIST) {
+                TabBarChoices.Pair pair = TabBarChoices.Pair.forKey(setting.key);
+                if (pair != null) {
+                    // A tab bar pair is one row of choices, and search still finds it by each switch's name.
+                    assertNull(setting.key, page.findPreference(setting.key));
+                    android.preference.Preference row = page.findPreference(pair.rowKey);
+                    assertNotNull(setting.key, row);
+                    assertTrue(setting.key, java.util.Arrays.asList(pair.aliases()).contains(SwitchLabels.title(setting)));
+                    assertTrue(setting.key, java.util.Arrays.asList(SettingsRows.aliases(row)).contains(SwitchLabels.title(setting)));
+                    continue;
+                }
                 assertNotNull(setting.key, page.findPreference(setting.key));
                 assertEquals(setting.key, SwitchLabels.title(setting), page.findPreference(setting.key).getTitle());
             }

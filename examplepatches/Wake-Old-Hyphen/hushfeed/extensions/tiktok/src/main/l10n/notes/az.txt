@@ -1,41 +1,66 @@
-## Unreleased
+## 0.80.0 (2026-10-27)
 
-* **Parametrlər:** Yeni keçid Hushfeed sətrini TikTok-un Parametrlər və məxfilik siyahısından çıxarır. Bundan sonra ayarları açmaq üçün Sənin üçün düyməsini basılı saxlayın (#264).
-* **Şərhlər:** Tam hündürlükdə şərhlər artıq saat və batareyanın üstünə çıxmır, status panelinin altında dayanır, TikTok-u açandan sonrakı ilk videoda da tam hündürlükdə açılır (#261).
-* **Lent:** Əsas lentin alt panelinə şüşə kapsul əlavə olunur: tablar arasında sürüşən linza, barmaqla sürüşdürmə jesti, istəyə görə titrəmə və Interfeys bölməsində bulanıqlıq, şüşə şəffaflığı, kapsul hündürlüyü və künclər üçün yeni parametrlər (#259).
-* **Yamaqlama:** Ayarları olan yamaqların indi başlanğıc dəyərlərini seçən Morphe seçimləri var, belə ki, quraşdırma istədiyiniz açarlar artıq açıq halda gələ bilər. @XEGARE-ə təşəkkürlər (#256).
-* **Parametrlər:** Kateqoriyalar əsas siyahıdakı sətirlərinin altında açılıb bağlanır. Axtarış idarəetmələri elə həmin siyahıda göstərir, açıq kateqoriyalar ekran dönəndə və yenidən başladanda açıq qalır.
-* **Parametrlər:** Böyük ana səhifə kartları yığcam, tam enli siyahı ilə əvəz edilib. Sürətli quruluşlar silinib.
+* **TikTok:** Təmiz ekran idarəetmələrini gizlət seçiminin yeni keçidi irəliləyiş çubuğunu ekranda saxlayır, beləliklə onu görə və sürüşdürə bilərsiniz (#237).
+* **TikTok:** İki dəfə toxunma artıq bəyənə və bəyənməni geri də ala bilir. Artıq bəyəndiyiniz videoya iki dəfə toxunsanız, bəyənmə geri götürülür (#248).
+* **TikTok:** Videonu basıb saxlayarkən sola və ya sağa sürüşdürüb saxlama sürətini seçin, yarım sürətdən üç qatadək. Standart olaraq söndürülüb (#248).
+* **TikTok:** Bəyənilənlər torlarının öz sıralaması var və Bəyənilənlər torundakı sıralama düyməsi yalnız həmin sıranı dəyişir (#180).
+* **TikTok:** Hushfeed-in hər başlığı indi TikTok-un mavi və qırmızı rənglərini yavaş hərəkət edən gradientdə göstərir.
+* **TikTok:** Sakit lent hazır ayarı silinib. Onun bütün filtrləri hələ də Lent filtrindədir və onun açdığı hər şey açıq qalır.
+* **TikTok:** İki dəfə toxunma və Basıb saxlama lentdəki axtarış düyməsi gizli olsa belə TikTok-un axtarış səhifəsini aça bilir (#251).
+* **TikTok:** Yeni keçid şərh axtarış qutusunu yuxarı solda böyüdücü şüşə düyməsinə yığır (#254).
+* **TikTok:** Yeni keçid Hushfeed sətrini TikTok-un Parametrlər və məxfilik siyahısından çıxarır. Bundan sonra ayarları açmaq üçün Sənin üçün düyməsini basıb saxlayın (#264).
+* **TikTok:** Kiminsə bioqrafiyasına yazılmış @istifadəçi adı indi keçiddir. Toxunun, həmin profil açılır (#247).
+* **TikTok:** Əsas lentin alt paneli üzən şüşə kapsul ola bilər: tablar arasında sürüşən linza, bulanıqlıq, şəffaflıq, hündürlük və künclər üçün yeni ayarlarla (#259).
+* **TikTok:** Ayarları olan yamaqların başlanğıc dəyərləri üçün Morphe seçimləri var, beləliklə quraşdırma sizin açarlarınız artıq açıq halda gələ bilər. @XEGARE-yə təşəkkür (#256).
+* **TikTok:** Yeni keçid İzlədiklərimin yuxarısındakı LIVE və hekayə dairələri cərgəsini boş zolaq qoymadan gizlədir (#262).
+* **TikTok:** Yeni keçid TikTok-un videonu yadda saxladıqdan bir neçə saniyə sonra açdığı Paylaş vərəqini dayandırır. PineDrama da bunu alır.
+* **TikTok:** Foto paylaşımının orijinal fotolarını yadda saxlayanda onun başlığı, müəllifi, keçidi və paylaşım tarixi də bir faylda saxlanır.
+* **TikTok:** Ayar axtarışı autoplay, PiP və AI kimi gündəlik adları tanıyır və seçim sətrini onun istənilən variantı ilə tapır.
+* **TikTok:** Lenti müəyyən saatlarda kilidlə seçdiyiniz saatlarda lenti özü kilidləyir və kilid paneli onun nə vaxt yenidən açılacağını göstərir.
+* **TikTok:** Yalnız Wi-Fi ilə yadda saxla yadda saxlamaları mobil məlumatdan kənarda saxlayır. Yadda saxlama Wi-Fi üçün 30 dəqiqəyə qədər gözləyir və onu Yükləmələrdən ləğv edə bilərsiniz.
+* **TikTok:** PineDrama-da Gələnlər qutusu açarları indi işləyir, Söhbətləri gizlət də daxil olmaqla (#156).
+* **TikTok:** PineDrama-da ayarlardakı versiya sətri TikTok əvəzinə PineDrama-nı və onun quruluşunu göstərir (#156).
+* **TikTok:** Səhifənin aşağısında olan ayar axtarışı nəticəsi indi birbaşa öz sətrində açılır.
+* **TikTok:** Şəffaf alt panel açıq olanda təklif olunan hesab kartlarındakı Keçmək üçün yuxarı sürüşdürün sətri yenidən tabların üstündə durur (#261).
+* **TikTok:** Üzən tab kapsulu bir az hündürdür, beləliklə Ana səhifə ikonu və adı vurğunun içində qalır və irəliləyiş xətti artıq onun üstündə getmir (#259).
+* **TikTok:** Avtomatik Təmiz ekran açıq olanda Favoritlərdən, Bəyənilənlərdən və ya profildən ikinci videonu açmaq artıq axtarış çubuğunu yanıb-söndürmür (#84).
+* **TikTok:** AMOLED tünd mövzu açıq olanda fəaliyyət mərkəzinin kartı da qara olur (#263).
+* **TikTok:** Doğrulanmamış məzmun bildirişlərini gizlət mesajlarda sizinlə paylaşılan videolardan Ehtiyatlı olun zolağını da götürür (#258).
+* **TikTok:** Başqasının bioqrafiyasını basıb saxlamaq indi onu kopyalayır (#247).
+* **TikTok:** Tam hündürlükdə şərhlər indi status panelinin altında dayanır və TikTok-u açandan sonrakı ilk videoda da tam hündürlükdə açılır (#261).
+* **TikTok:** Ayar kateqoriyaları öz sətirlərinin altında açılıb bağlanır və açdığınız kateqoriya ekran fırlanandan və ya yenidən başladandan sonra da açıq qalır.
+* **TikTok:** Ayarların ana səhifəsindəki böyük kartlar indi yığcam siyahıdır və Sürətli quruluşlar silinib.
 * **TikTok:** Hushfeed indi Morphe Manager 2.2.0 və ya daha yenisini, kompüterdə isə morphe-desktop 1.19.1 tələb edir.
-* **Yoxlamalar:** PineDrama üçün açılış, ayarların yerində açılıb bağlanması və geri qayıtma üzrə əsas yoxlama əlavə edilib. Tam uyğunluq yoxlaması tamamlanmayıb.
-* **Yoxlamalar:** Şəffaf alt panelin istifadə etdiyi hər LIVE önizləmə və dram yazısı dəstəklənən TikTok APK-sı ilə yoxlanılır.
-* **Lent:** Ölkə bayraqları və kodları sağdan sola yazılan adların yanında qalır (#258).
-* **Lent:** Şəffaf alt panel açıq olanda LIVE önizləmələrinin və mini dramların adı və "Baxmaq üçün toxunun" sətri tabların üstündə qalır (#250).
-* **Tor görünüşü:** Sıralama düyməsinin toxunma sahəsi ən azı 48 dp olur.
-* **Tor görünüşü:** Tor ayrıldıqda sıralama düyməsi gizlənir, tor qayıdanda yenidən görünür.
-* **Tor görünüşü:** Yeni sıralama yadda saxlanmasa, cari sıra dəyişmir.
-* **Tor görünüşü:** İlkin sıra seçildikdə cari torun sıralama menyusu əlçatan qalır (#180).
-* **Şərhlər:** Videonun yanındakı şərhlər düzən və yenidən qurma yoxlamalarında eyni eni istifadə edir (#253).
-* **Gələnlər:** Hekayəni əvvəl aç seçimi aktiv olduqda, təkrar istifadə edilən söhbət şəkli ilk toxunuşda cari müəllifin Hekayəsini açır (#233).
-* **Playback:** Keep the source video paused when a comment link opens another page. Leaving the tap-to-start cover for another tab also keeps its feed paused (#257).
-* **Diaqnostika:** Bildiriş hesabatları mesaj məzmununu daxil etmədən qeydiyyat və göstərilmə mərhələlərini sayır (#126, #222, #86).
-* **Ekran qeydi:** Android 14 və daha yeni versiyalarda TikTok ekran qeydi üçün son tətbiqlər siyahısında qalır.
-* **Yoxlamalar:** Avtomatik keçid auditi videolara ayrıca etiket vermədən yerli oynatmanı izləyir. Bitməyən videolar və izlənə bilməyən oynatma üçün nəticə qeyri-müəyyən qalır.
-* **TikTok:** Ayar axtarışında keçidi basılı saxlayın ki, onun idarəetməsi əsas siyahıda göstərilsin və vurğulansın (#248).
-* **Diaqnostika:** İlk kadr çağırışının qeydləri başlanğıc yoxlamaları üçün mənbə əlaqəsini və monoton vaxt nişanlarını saxlayır (#150).
-* **Qurma yoxlamaları:** Buraxılış yoxlamaları göstərilən hər paket üçün uyğun APK və tətbiqdaxili yoxlama sübutu tələb edir. Tətbiq gəzintisi quraşdırılmış qurmanı və yamaq seçimlərini yoxlayır.
-* **TikTok:** Recording recovery exports use bulk writes to avoid long waits when saving large files.
-* **TikTok:** Recovery Retry keeps the recording's original stop reason instead of saying TikTok closed. Recovery dialogs follow Hushfeed's theme.
-* **TikTok:** Screen recordings check storage as they run and keep recovery files until the saved copy is verified. Interrupted recordings can be retried, exported or deleted.
-* **Build checks:** Patch audits now check the installed APK and selected patches. Results from a different package or an excluded patch stay historical.
-* **Qurma yoxlamaları:** Yamaq auditi çatışmayan keçidləri bildirməzdən əvvəl diaqnostikanın tamlığını yoxlayır. Video yoxdursa, əlaqəli yoxlamalar qeyri-müəyyən qalır. Şərhçi bölgəsi cari keş izinə əsasən yoxlanılır.
-* **TikTok:** Səs işə düşərkən ekran yazısının ilk kadrları ayrı vaxt nişanlarını saxlayır.
-* **TikTok:** Səs kodlayıcısı işə düşərkən ekran yazılarının ilk video kadrları saxlanılır.
-* **Qurma yoxlamaları:** İcra olunan girişlər dəyişəndə yamaq auditi artıq qurmanı təsdiqləmir. Qismən təkrar yoxlamalar köhnə nəticələri tarixi saxlayır.
-* **TikTok:** Səs başlaya bilməyəndə ekran yazısı səs resurslarını azad edir. Saxlama bildirişi indi yazıda səs olmadığını göstərir.
-* **TikTok:** Ekran yazısı indi Android-dən yalnız yamaqlanmış tətbiqin səsini yazmağı istəyir.
-* **TikTok:** Service+ təmizlənməsi indi LIVE önizləməsinin ilk elementini TikTok-un göstərmə qaydasına uyğun yoxlayır (#94).
-* **TikTok:** Şərhlər açılarkən fasilə funksiyası ilk irəliləyiş hesabatı gəlməzdən əvvəl oxunan ilk kadrı müəyyən edə bilir (#151).
+* **TikTok:** Buraxılış gəzintisi indi PineDrama-nı da əhatə edir, onun lentlərindən və vərəqlərindən Hushfeed-in hər bölməsinə qədər.
+* **TikTok:** PineDrama-nın öz yamaq auditi var və buraxılış dəstəklədiyi hər tətbiq üçün təmiz audit və gəzinti tələb edir.
+* **TikTok:** Şəffaf alt panelin yerini dəyişdirdiyi hər LIVE önizləmə və dram yazısı dəstəklənən TikTok quruluşu ilə yoxlanılır.
+* **TikTok:** Ölkə bayraqları və kodları sağdan sola yazılan adların yanında qalır (#258).
+* **TikTok:** Şəffaf alt panel açıq olanda LIVE önizləmələrinin və mini dramların adı və Baxmaq üçün toxunun sətri tabların üstündə qalır (#250).
+* **TikTok:** Tor sıralama idarəetməsi böyüdülüb, beləliklə ona toxunmaq asandır.
+* **TikTok:** Tor sıralama idarəetməsi torun özü görünmədiyi müddətdə gizlənir və tor qayıdanda geri gəlir.
+* **TikTok:** Sıralama dəyişikliyi yadda saxlanmasa, tor əvvəlki sırasını saxlayır.
+* **TikTok:** İlkin sıra seçiləndə torun sıralama menyusu əlçatan qalır (#180).
+* **TikTok:** Videonun yanındakı şərhlər onun enini həmişə eyni cür ölçür (#253).
+* **TikTok:** Gələnlər qutusunda Hekayəni əvvəl aç aktiv olanda təkrar istifadə edilən söhbət şəkli ilk toxunuşda cari müəllifin Hekayəsini açır (#233).
+* **TikTok:** Şərhlərdəki keçid başqa səhifə açanda video fasilədə qalır (#257).
+* **TikTok:** Diaqnostikadakı bildiriş hesabatları bildirişlərin nə yazdığını yadda saxlamadan onları sayır (#126, #222, #86).
+* **TikTok:** Tək bir tətbiqi yazanda TikTok Android-in göstərdiyi siyahıda qalır.
+* **TikTok:** Avtomatik keçid auditi hər video üçün etiketlərə deyil, oynatıcının özünə əməl edir.
+* **TikTok:** Ayar axtarışındakı keçidi basıb saxlayın ki, onun idarəetməsi əsas siyahıda göstərilsin və vurğulansın (#248).
+* **TikTok:** Başlanğıc yoxlamaları ilk kadrı hansı oynatıcının çəkdiyini qeyd edir (#150).
+* **TikTok:** Buraxılış dəstəklədiyi hər tətbiq üçün uyğun sübut tələb edir.
+* **TikTok:** Bərpa edilmiş qeydi ixrac etmək böyük fayllar üçün daha sürətlidir.
+* **TikTok:** Bərpada Yenidən cəhd qeydin ilkin dayanma səbəbini saxlayır və bərpa dialoqları Hushfeed mövzusuna uyğun gəlir.
+* **TikTok:** Ekran yazıları işləyərkən yaddaşı yoxlayır və yadda saxlanmış nüsxə təsdiqlənənə qədər bərpa fayllarını saxlayır.
+* **TikTok:** Yamaq auditləri quraşdırılmış tətbiqi və hansı yamaqların seçildiyini yoxlayır.
+* **TikTok:** Yamaq auditi açarı çatışmır adlandırmazdan əvvəl diaqnostika hesabatının tam olmasını gözləyir.
+* **TikTok:** Ekran yazısının ilk kadrları səs başlayarkən hər biri öz vaxt nişanını saxlayır.
+* **TikTok:** Ekran yazıları səs başlayarkən ilk video kadrlarını saxlayır.
+* **TikTok:** Yamaq auditi işlədiyi kod dəyişən kimi quraşdırma üçün sayılmağı dayandırır.
+* **TikTok:** Ekran yazısı səs başlaya bilməyəndə səs resurslarını azad edir və saxlama bildirişi səs olmadığını bildirir.
+* **TikTok:** Ekran yazısı Android-dən yalnız yamaqlanmış tətbiqin səsini tutmağı istəyir.
+* **TikTok:** Service+ təmizlənməsi TikTok-un göstərdiyi eyni ilk LIVE önizləmə elementini yoxlayır (#94).
+* **TikTok:** Şərh fasiləsi TikTok-un ilk irəliləyiş yenilənməsindən əvvəl ilk kadrın oynadığını bilə bilir (#151).
 
 ## 0.79.0 (2026-10-24)
 

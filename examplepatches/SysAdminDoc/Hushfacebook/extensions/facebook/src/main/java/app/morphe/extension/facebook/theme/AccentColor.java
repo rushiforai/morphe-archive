@@ -53,7 +53,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * Facebook's server or a screen's JavaScript, and get the same rules.
  *
  * <p>While the Material You theme is in the build it decides every colour this class would, so this
- * steps aside.
+ * steps aside and hands it the picked accent instead ({@link #onWallpaper}), which takes the place of
+ * the wallpaper's.
  */
 public final class AccentColor {
 
@@ -244,6 +245,23 @@ public final class AccentColor {
         Preset preset = Settings.ACCENT_COLOR.get();
         if (preset == Preset.FACEBOOK || SettingsStatus.materialYouTheme()) return null;
         return preset;
+    }
+
+    /**
+     * The accent the row picked for the Material You theme (#272), or null for Facebook's blue, which
+     * there means the wallpaper's accent, and without this patch in the build.
+     */
+    @Nullable
+    static Preset pickedForMaterialYou() {
+        if (!SettingsStatus.accentColor() || !Utils.settingsReady()) return null;
+        Preset preset = Settings.ACCENT_COLOR.get();
+        return preset == Preset.FACEBOOK ? null : preset;
+    }
+
+    /** {@code wallpaper} with {@code preset}'s tones as its accent and its own greys, or as it is for no preset. */
+    static TonePalette onWallpaper(TonePalette wallpaper, @Nullable Preset preset) {
+        if (preset == null || preset == Preset.FACEBOOK) return wallpaper;
+        return wallpaper.withAccent(palette(preset).family(TonePalette.ACCENT));
     }
 
     /**

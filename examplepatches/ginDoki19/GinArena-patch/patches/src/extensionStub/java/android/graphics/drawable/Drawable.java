@@ -8,6 +8,8 @@ public abstract class Drawable {
     }
     public Drawable mutate() { throw new RuntimeException(); }
     public abstract void setColorFilter(ColorFilter colorFilter);
+    public ColorFilter getColorFilter() { throw new RuntimeException(); }
+    public void invalidateSelf() {}
     public ConstantState getConstantState() { throw new RuntimeException(); }
     public int getIntrinsicWidth() { throw new RuntimeException(); }
     public int getIntrinsicHeight() { throw new RuntimeException(); }

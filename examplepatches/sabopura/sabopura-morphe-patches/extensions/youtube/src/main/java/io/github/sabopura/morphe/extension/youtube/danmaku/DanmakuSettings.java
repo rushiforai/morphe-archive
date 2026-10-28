@@ -59,16 +59,18 @@ public final class DanmakuSettings {
     private static final String SMOOTH_MOTION = "danmaku_smooth_motion";
     private static final String SHOW_STATS = "danmaku_show_stats";
     private static final String SEPARATE_LAYER = "danmaku_separate_layer";
+    private static final String MAX_FPS = "danmaku_max_fps";
 
     private static final String[] ALL_KEYS = {
             MASTER, REGULAR, LIVE, PREMIERE, STREAM, REGULAR_MODE, STREAM_COMMENT_MODE,
             EXCLUDE_LONG, MAX_LENGTH, NG_WORDS, MERGE_DUPLICATES, HIGHLIGHT_PAID,
             FONT_SIZE, BOLD, TEXT_STYLE, OPACITY, DURATION, SPEED_MODE, COVERAGE, CROWD_MODE,
-            SMALL_PLAYER, SMALL_PLAYER_SCALE, MAX_COMMENTS, SMOOTH_MOTION, SHOW_STATS, SEPARATE_LAYER
+            SMALL_PLAYER, SMALL_PLAYER_SCALE, MAX_COMMENTS, SMOOTH_MOTION, SHOW_STATS, SEPARATE_LAYER,
+            MAX_FPS
     };
     private static final String[] NUMERIC_KEYS = {
             REGULAR_MODE, STREAM_COMMENT_MODE, MAX_LENGTH, FONT_SIZE, TEXT_STYLE, OPACITY,
-            DURATION, SPEED_MODE, COVERAGE, CROWD_MODE, SMALL_PLAYER_SCALE, MAX_COMMENTS
+            DURATION, SPEED_MODE, COVERAGE, CROWD_MODE, SMALL_PLAYER_SCALE, MAX_COMMENTS, MAX_FPS
     };
     private static final Set<String> FETCH_KEYS = new HashSet<>(Arrays.asList(
             MASTER, REGULAR, LIVE, PREMIERE, STREAM_COMMENT_MODE, MAX_COMMENTS));
@@ -107,6 +109,8 @@ public final class DanmakuSettings {
     private static volatile boolean smoothMotion = true;
     private static volatile boolean showStats;
     private static volatile boolean separateLayer = true;
+    /** 0 = the display's highest rate, otherwise the most comment frames per second. */
+    private static volatile int maxFps;
     private static volatile boolean highlightPaid = true;
     private static volatile int fontSize = 22;
     private static volatile boolean bold = true;
@@ -160,6 +164,7 @@ public final class DanmakuSettings {
         smoothMotion = prefs.getBoolean(SMOOTH_MOTION, true);
         showStats = prefs.getBoolean(SHOW_STATS, false);
         separateLayer = prefs.getBoolean(SEPARATE_LAYER, true);
+        maxFps = getInt(prefs, MAX_FPS, 0) == 60 ? 60 : 0;
         highlightPaid = prefs.getBoolean(HIGHLIGHT_PAID, true);
         fontSize = clamp(getInt(prefs, FONT_SIZE, DanmakuController.configFontSizeSp()), 12, 48);
         bold = prefs.getBoolean(BOLD, true);
@@ -316,6 +321,8 @@ public final class DanmakuSettings {
     static boolean isSmoothMotion() { return smoothMotion; }
     static boolean isShowStats() { return showStats; }
     static boolean isSeparateLayer() { return separateLayer; }
+
+    static int getMaxFps() { return maxFps; }
     static boolean shouldHighlightPaid() { return highlightPaid; }
     static int getFontSize() { return fontSize; }
     static boolean isBold() { return bold; }

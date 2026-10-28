@@ -62,6 +62,41 @@ final class SettingsRows {
         }
     }
 
+    /**
+     * A small heading inside a section, above the controls it names, as "Video quality" sits over
+     * the quality rows. It saves nothing and answers no tap. A screen reader announces it as a
+     * heading, and search reads it as part of each row under it without listing it alone.
+     */
+    static final class Subheading extends Preference {
+        Subheading(Context context) {
+            super(context);
+            setSelectable(false);
+            setPersistent(false);
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            view.setAccessibilityHeading(true);
+            showAllText(view);
+            ScreenColors.heading(view);
+        }
+    }
+
+    private static final String ALIASES = "search_aliases";
+
+    /** Earlier names search still finds [row] by, after it was renamed or took over other rows. */
+    static void alias(Preference row, CharSequence... names) {
+        row.getExtras().putCharSequenceArray(ALIASES, names);
+    }
+
+    /** The earlier names [row] answers to in search, or none. */
+    static CharSequence[] aliases(Preference row) {
+        Bundle extras = row.peekExtras();
+        CharSequence[] names = extras == null ? null : extras.getCharSequenceArray(ALIASES);
+        return names == null ? new CharSequence[0] : names;
+    }
+
     /** A row of text, which a screen reader calls a button when a tap does something. */
     static final class Row extends Preference implements ImmediateAction {
         /** Set on a row whose tap does what it says at once, which then goes without a chevron. */
@@ -172,10 +207,8 @@ final class SettingsRows {
 
     /** A switch row, which a screen reader calls a switch and reads as on or off. */
     static final class Toggle extends SwitchPreference {
-        /** The switch this one works under, if any, and the summary it shows while that switch is on. */
+        /** The switch this one works under, if any, and the summary it shows while that switch is off. */
         @Nullable private BooleanSetting needs;
-        /** False when it works only while [needs] is off instead. */
-        private boolean needsOn = true;
         @Nullable private CharSequence plain;
 
         Toggle(Context context) {
@@ -193,12 +226,6 @@ final class SettingsRows {
             return this;
         }
 
-        /** The same for a switch that [other] overrides: greyed out while it's on, and named to turn off. */
-        Toggle needsOff(BooleanSetting other) {
-            needsOn = false;
-            return needs(other);
-        }
-
         @Override
         public void setEnabled(boolean enabled) {
             super.setEnabled(enabled);
@@ -207,8 +234,7 @@ final class SettingsRows {
 
         private void showSummary() {
             if (needs == null) return;
-            String note = L10n.f(needsOn ? "Turn on %1$s to use this." : "Turn off %1$s to use this.",
-                    L10n.isolate(SwitchLabels.title(needs)));
+            String note = L10n.f("Turn on %1$s to use this.", L10n.isolate(SwitchLabels.title(needs)));
             setSummary(isEnabled() ? plain : plain + " " + note);
         }
 

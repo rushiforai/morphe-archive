@@ -238,7 +238,7 @@ val removeAdsAndTrackingPatch = bytecodePatch(
         "The app then phones home only to its own Jazz API.",
 ) {
     compatibleWith(COMPATIBILITY_SIMOSA)
-    dependsOn(disableAutoCollectionResourcePatch)
+    dependsOn(disableAutoCollectionResourcePatch, restoreStreakWithoutAdPatch)
 
     execute {
         val returnFalse = """

@@ -21,6 +21,7 @@ import app.morphe.patches.telegram.misc.chattypefolders.USER_CONFIG
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.extension.localRegisterCount
+import app.morphe.util.ControlFlow
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -79,7 +80,9 @@ class LaunchFolderFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val context = PatchContexts.of((ExtensionDex.classes() + folderCounterHosts(build) + menuHosts(build)).distinctBy { it.type })
-            val refs = context.resolveLaunchFolder().refs!!
+            val launch = context.resolveLaunchFolder()
+            val refs = launch.refs!!
+            val all = context.resolveAllChats(launch).refs!!
             assertEquals(name, emptyList<String>(), PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) })
             val stubs = context.mutableClassDefBy(LAUNCH_FOLDER).methods.associateBy { it.name }
             // Each one whole: smali drops what it can't build, and the count shows it.
@@ -95,6 +98,16 @@ class LaunchFolderFixtureTest {
                 "folderName" to (9 to listOf("$LOCAL_FILTER->name:Ljava/lang/String;")),
                 "folderLocked" to (9 to listOf("$LOCAL_FILTER->locked:Z")),
                 "folderDefault" to (10 to listOf("$LOCAL_FILTER->isDefault()Z")),
+                "strip" to (3 to listOf(refs.strip)),
+                "selectedType" to (11 to listOf(refs.pages, refs.selectedType)),
+                "selectedId" to (6 to listOf(refs.strip, refs.selected)),
+                "currentStable" to (7 to listOf(refs.strip, all.stable)),
+                "selectByStable" to (7 to listOf(refs.strip, all.selectStable)),
+                "folderStable" to (9 to listOf("$LOCAL_FILTER->localId:I")),
+                "addTab" to (3 to listOf(all.addTab)),
+                "presentArchive" to (11 to listOf("${refs.list}-><init>(Landroid/os/Bundle;)V", all.present)),
+                "telegramArchiveTitle" to (4 to listOf("Lorg/telegram/messenger/R\$string;->ArchivedChats:I",
+                    "Lorg/telegram/messenger/LocaleController;->getString(I)Ljava/lang/String;")),
             )
             for ((stub, want) in expected) {
                 val body = stubs.getValue(stub).body()
@@ -108,7 +121,119 @@ class LaunchFolderFixtureTest {
             assertEquals(listOf(4, 4), select.map { it.namedRegisters().first() })
             assertEquals(1, statusOf(context, "hideFolderCounters"))
             assertEquals(1, statusOf(context, "launchFolder"))
-            assertEquals(1, context.tabBuild(launchFolderList(build)).body().count { it.ref() == "$LAUNCH_FOLDER->firstTabs(Ljava/lang/Object;)V" })
+            assertEquals(1, statusOf(context, "hideAllChats"))
+            val tabs = context.tabBuild(launchFolderList(build)).body()
+            assertEquals(1, tabs.count { it.ref() == "$LAUNCH_FOLDER->firstTabs(Ljava/lang/Object;)V" })
+            assertEquals(1, tabs.count { it.ref() == ALL_CHATS_TAB_HOOK })
+            assertEquals(1, tabs.count { it.ref() == TABS_ADDED_HOOK })
+            assertEquals("$name: the other folders' tabs still go in through Telegram's call", 1, tabs.count { it.ref() == all.addTab })
+        }
+    }
+
+    @Test fun `Hide All Chats stands in for the All Chats tab, answers the page update and guards tab dragging`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = PatchContexts.of(ExtensionDex.classes() + launchFolderHosts(build))
+            context.requireLaunchFolderRuntime()
+            context.requireAllChatsRuntime()
+            val launch = context.resolveLaunchFolder()
+            val plan = context.resolveAllChats(launch)
+            assertNull("$name: ${plan.missing}", plan.missing)
+            val method = plan.tabs!!
+            val editing = plan.editing!!
+            val done = plan.done!!
+            val stock = method.body().map(::operands)
+            val stockEditing = editing.body().map(::operands)
+            val stockDone = done.body().map(::operands)
+            val add = method.body()[plan.allChats]
+            assertEquals(Opcode.INVOKE_VIRTUAL_RANGE, add.opcode)
+            assertEquals(plan.refs!!.addTab, add.ref())
+            assertEquals("$name: All Chats is the tab added right after its title is read", 1,
+                method.body().take(plan.allChats).count { it.ref() == "Lorg/telegram/messenger/R\$string;->FilterAllChats:I" })
+            plan.apply()
+
+            val body = method.body()
+            assertEquals("$name: the answer is two instructions", stock.size + TABS_ADDED_SIZE, body.size)
+            // The call keeps its registers, now the extension's.
+            assertEquals(Opcode.INVOKE_STATIC_RANGE, body[plan.allChats].opcode)
+            assertEquals(ALL_CHATS_TAB_HOOK, body[plan.allChats].ref())
+            assertEquals(stock[plan.allChats][1], body[plan.allChats].namedRegisters())
+            // Asked just before Telegram's own question whether the page moves, and the question reads the answer.
+            assertEquals(TABS_ADDED_HOOK, body[plan.update].ref())
+            assertEquals(listOf(plan.self, plan.answer), body[plan.update].namedRegisters())
+            assertEquals(Opcode.MOVE_RESULT, body[plan.update + 1].opcode)
+            assertEquals(listOf(plan.answer), body[plan.update + 1].namedRegisters())
+            assertEquals(Opcode.IF_EQZ, body[plan.update + 2].opcode)
+            assertEquals(listOf(plan.answer), body[plan.update + 2].namedRegisters())
+            assertEquals("$name: Telegram's own code is unchanged around it",
+                stock.filterIndexed { i, _ -> i != plan.allChats },
+                body.filterIndexed { i, _ -> i != plan.allChats && i != plan.update && i != plan.update + 1 }.map(::operands))
+
+            // The strip's setIsEditing asks first and edits only on a yes.
+            val edit = editing.body()
+            val editRegisters = editing.implementation!!.registerCount
+            assertEquals("$name: setIsEditing", stockEditing.size + EDITING_SIZE, edit.size)
+            assertEquals("$LAUNCH_FOLDER->editing(Ljava/lang/Object;I)Z", edit[0].ref())
+            assertEquals(listOf(editRegisters - 2, editRegisters - 1), edit[0].namedRegisters())
+            assertEquals(Opcode.MOVE_RESULT, edit[1].opcode)
+            assertEquals(listOf(editRegisters - 1), edit[1].namedRegisters())
+            assertEquals(stockEditing, edit.drop(EDITING_SIZE).map(::operands))
+
+            // The Done button returns before anything when editing was turned down.
+            val shown = done.body()
+            val doneRegisters = done.implementation!!.registerCount
+            assertEquals("$name: the Done button", stockDone.size + SKIPS_DONE_SIZE, shown.size)
+            assertEquals("$LAUNCH_FOLDER->skipsDone(Ljava/lang/Object;I)Z", shown[0].ref())
+            assertEquals(listOf(doneRegisters - 2, doneRegisters - 1), shown[0].namedRegisters())
+            assertEquals(listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID), shown.subList(1, 4).map { it.opcode })
+            assertEquals("$name: a no runs the stock call", listOf(3, 4), ControlFlow.of(done).normal[2].sorted())
+            assertEquals(stockDone, shown.drop(SKIPS_DONE_SIZE).map(::operands))
+
+            val refs = plan.refs!!
+            val strip = launch.refs!!.tabs.substringBefore("->")
+            assertEquals(strip, editing.definingClass)
+            assertEquals(launch.refs!!.list, done.definingClass)
+            assertTrue(refs.stable, refs.stable == "$strip->getCurrentTabStableId()I")
+            assertTrue(refs.selectStable, refs.selectStable.startsWith("$strip->") && refs.selectStable.endsWith("(I)Z"))
+            assertTrue(refs.present, refs.present.contains("->presentFragment(") && refs.present.endsWith(")Z"))
+        }
+    }
+
+    @Test fun `a chat list whose tabs changed leaves only Hide All Chats out`() {
+        class Case(val name: String, val reason: String, val hosts: (List<ClassDef>) -> List<ClassDef> = { it },
+                   val context: (BytecodePatchContext) -> Unit = { })
+        val cases = listOf(
+            Case("no archive title", "isn't reachable from the extension", hosts = { hosts ->
+                hosts.filter { it.type != "Lorg/telegram/messenger/LocaleController;" }
+            }),
+            Case("a jump to the Done button's start", "something jumps back to the start of the chat list's Done button", context = { context ->
+                val done = context.resolveAllChats(context.resolveLaunchFolder()).done!!
+                done.addInstructionsWithLabels(done.body().size, "goto/16 :hush_in", ExternalLabel("hush_in", done.getInstruction(0)))
+            }),
+            Case("a jump into the page update", "something jumps into the folder tabs' page update", context = { context ->
+                val plan = context.resolveAllChats(context.resolveLaunchFolder())
+                val method = plan.tabs!!
+                method.addInstructionsWithLabels(method.body().size, "goto/16 :hush_in", ExternalLabel("hush_in", method.getInstruction(plan.update)))
+            }),
+        )
+        for (build in Fixtures.declaredBuilds()) for (case in cases) {
+            val where = "${build.name} ${case.name}"
+            val hosts = (folderCounterHosts(build) + menuHosts(build)).distinctBy { it.type }
+            val context = PatchContexts.of((ExtensionDex.classes() + case.hosts(hosts)).distinctBy { it.type })
+            context.requireLaunchFolderRuntime()
+            context.requireAllChatsRuntime()
+            case.context(context)
+            val list = launchFolderList(build)
+            val before = context.tabBuild(list).body().map(::operands)
+            val warnings = PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) }
+            val left = warnings.single { it.contains("without hiding All Chats") }
+            assertTrue("$where: $left", left.contains(case.reason))
+            assertTrue("$where: $warnings", warnings.none { it.contains("without opening a folder at launch") })
+            assertEquals(where, 1, statusOf(context, "launchFolder"))
+            assertEquals(where, 0, statusOf(context, "hideAllChats"))
+            val after = context.tabBuild(list).body()
+            assertEquals("$where: only the pick goes in", before.size + LAUNCH_FOLDER_SIZE, after.size)
+            assertTrue(where, after.none { it.ref() == ALL_CHATS_TAB_HOOK || it.ref() == TABS_ADDED_HOOK })
         }
     }
 
@@ -179,6 +304,7 @@ class LaunchFolderFixtureTest {
             assertTrue(warnings.toString(), warnings.any { it.contains("without hiding chats") })
             assertEquals(1, statusOf(context, "hideFolderCounters"))
             assertEquals(0, statusOf(context, "launchFolder"))
+            assertEquals(0, statusOf(context, "hideAllChats"))
             assertTrue(context.mutableClassDefBy(LAUNCH_FOLDER).methods.single { it.name == "select" }.body().none { it.opcode == Opcode.IPUT })
         }
     }
@@ -188,6 +314,9 @@ class LaunchFolderFixtureTest {
 
     private fun operands(instruction: Instruction): List<Any?> = listOf(instruction.opcode, instruction.namedRegisters(), instruction.ref())
 }
+
+private const val ALL_CHATS_TAB_HOOK = "$LAUNCH_FOLDER->allChatsTab(Ljava/lang/Object;IILjava/lang/String;Ljava/util/ArrayList;III)V"
+private const val TABS_ADDED_HOOK = "$LAUNCH_FOLDER->tabsAdded(Ljava/lang/Object;I)Z"
 
 private val LAUNCH_FOLDER_HOSTS = ConcurrentHashMap<String, List<ClassDef>>()
 private val LAUNCH_FOLDER_LISTS = ConcurrentHashMap<String, String>()
@@ -209,9 +338,10 @@ internal fun launchFolderHosts(build: File): List<ClassDef> = LAUNCH_FOLDER_HOST
     val list = launchFolderList(build)
     val first = FixtureDex.classes(build, setOf(list)).getValue(list)
     val tabs = first.methods.single { it.isTabBuildLike() }
-    // The dialog and notification classes are for the hidden chats' stubs, which go in with the same patch.
+    // The dialog and notification classes are for the hidden chats' stubs, which go in with the same patch, and
+    // the strings and locale for Hide All Chats' archive title.
     val wanted = mutableSetOf(list, MESSAGES_CONTROLLER, LOCAL_FILTER, USER_CONFIG, "Lorg/telegram/tgnet/TLRPC\$Dialog;",
-        "Lorg/telegram/messenger/NotificationCenter;")
+        "Lorg/telegram/messenger/NotificationCenter;", "Lorg/telegram/messenger/R\$string;", "Lorg/telegram/messenger/LocaleController;")
     for (instruction in tabs.body()) {
         val field = (instruction as? ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.FieldReference ?: continue
         if (field.definingClass == list || field.definingClass.startsWith("Lorg/telegram/ui/")) {

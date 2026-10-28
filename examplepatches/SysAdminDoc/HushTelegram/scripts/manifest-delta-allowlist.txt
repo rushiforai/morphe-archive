@@ -12,7 +12,7 @@
 # a way it doesn't list. A line nothing produces any more fails the receipt as well, so this
 # cannot quietly outlive the change it approved.
 #
-# Three changes are approved.
+# Four changes are approved.
 #
 # HushTelegram settings adds an alias of Telegram's launcher activity that answers
 # android.intent.action.APPLICATION_PREFERENCES, so Android's App info page for Telegram shows
@@ -27,9 +27,15 @@
 # there is no token to match. The service is the spec's RAISE_TO_FOREGROUND binding: it hands out
 # an empty binder while signed up and nothing otherwise, and reaches no data either way.
 #
+# Save downloaded files asks for MANAGE_EXTERNAL_STORAGE so its storage folder switch (#7) can keep
+# Telegram's own files in Internal storage/Telegram, as Telegram did before Android 11. Declaring it
+# grants nothing: Android gives it only after the person turns on All files access for Telegram in
+# its settings page, and the folder stays in Android/data until then or while the switch is off.
+#
 # Nothing else is approved. A patch that asks for any permission, drops one, or changes what other
 # apps can reach still stops the release until somebody says why.
 
 exported-added activity-alias:app.hushtelegram.extension.telegram.settings.OpenSettings
 exported-added receiver:app.hushtelegram.extension.telegram.misc.UnifiedPushReceiver
 exported-added service:app.hushtelegram.extension.telegram.misc.UnifiedPushRaise
+permission-added android.permission.MANAGE_EXTERNAL_STORAGE

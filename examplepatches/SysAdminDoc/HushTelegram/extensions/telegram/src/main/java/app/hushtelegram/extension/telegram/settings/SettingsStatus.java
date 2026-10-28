@@ -90,6 +90,7 @@ public final class SettingsStatus {
     public static boolean reactionEffectsOff() { return false; }
     public static boolean hideFolderCounters() { return false; }
     public static boolean launchFolder() { return false; }
+    public static boolean hideAllChats() { return false; }
     public static boolean hiddenChats() { return false; }
     public static boolean forwardHideSender() { return false; }
     public static boolean voiceMusicPlayer() { return false; }
@@ -120,6 +121,7 @@ public final class SettingsStatus {
     public static boolean dataSaverDownloads() { return false; }
     public static boolean saveDownloads() { return false; }
     public static boolean galleryFolder() { return false; }
+    public static boolean storageFolder() { return false; }
     public static boolean chatTypeFolders() { return false; }
     public static boolean storyRequests() { return false; }
     public static boolean storyBar() { return false; }

@@ -63,6 +63,11 @@ public class DownloadsPatch {
         return removeWatermark;
     }
 
+    /** True to leave TikTok's post-save Share to sheet unbuilt; the save and its notice are untouched. */
+    public static boolean skipPostDownloadShareSheet() {
+        return Settings.SKIP_POST_DOWNLOAD_SHARE_SHEET.get();
+    }
+
     public static void patchVideoObject(Video video) {
         if (video == null) return;
 

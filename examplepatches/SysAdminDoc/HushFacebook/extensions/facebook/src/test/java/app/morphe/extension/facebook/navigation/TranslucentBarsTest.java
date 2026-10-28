@@ -42,7 +42,8 @@ import app.morphe.extension.shared.settings.PauseForTests;
  * See-through bars (#124): each background that spans a bar gets its alpha scaled, small ones and
  * touch ripples keep theirs, Facebook setting a fill again is scaled again, and off, paused or a
  * hidden bar gives Facebook's own alpha back. With the tab bar at the top both stacked rows count
- * (#171). Android 11 here, so no frost: where it may go is checked on its own.
+ * (#171). Android 11 here, so no frost: where it may go is checked on its own, and its nodes on
+ * Android 14 (#250).
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -149,6 +150,25 @@ public class TranslucentBarsTest {
         area = new Rect(0, 1340, 720, 1600);
         TranslucentBars.keepInside(area, new Rect(), 1600);
         assertEquals("no rows on screen leaves it as it was", new Rect(0, 1340, 720, 1600), area);
+    }
+
+    @Test
+    @Config(sdk = 34) // not 33: ColdStartHooksTest needs that sandbox to itself
+    public void aFadingFrostIsClippedToItsBoxOutsideTheBlur() {
+        // #250: a blurred node drawn half faded spread its clamped edge above a tab bar sliding away.
+        TranslucentBarsForTests screen = new TranslucentBarsForTests();
+        int[] origin = new int[2];
+        screen.page.getLocationInWindow(origin);
+        TranslucentBars.Frost frost = new TranslucentBars.Frost(screen.page, 47f);
+        frost.update(new Rect(0, 1440, 720, 1600), 0.5f, 1);
+        assertEquals("the fade is on the clipping node", 0.5f, frost.node.getAlpha(), 0f);
+        assertEquals(1440 - origin[1], frost.node.getTop());
+        assertEquals(1600 - origin[1], frost.node.getBottom());
+        assertEquals("the blur itself is drawn whole", 1f, frost.blur.getAlpha(), 0f);
+        assertEquals(0, frost.blur.getTop());
+        assertEquals(160, frost.blur.getBottom());
+        assertEquals(720, frost.blur.getRight());
+        frost.remove();
     }
 
     @Test

@@ -1,14 +1,18 @@
 package app.template.patches.mxplayer
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.COMPATIBILITY_MX_PLAYER_AD
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 @Suppress("unused")
 val removeAdsAndBloatPatch = bytecodePatch(
@@ -176,10 +180,23 @@ val removeAdsAndBloatPatch = bytecodePatch(
                 openAdsClass.requireMethod("f", "V", listOf("Landroid/app/Activity;")),
             )
 
+            // WelcomeAdFeatureFlag (`Ltel;`): `b()Z` and `a()Z` are inverted disable flags (`return !z;`,
+            // where `true` = Welcome Ad / cache DISABLED). Returning `true` sets `ActivityWelcomeMX.q0 = !tel.b()`
+            // to `false`, completely preventing `WelcomeScreenAdFragment` (`yel`, "MX Player / Amazon") from
+            // ever displaying on cold start or stacking/deadlocking across multi-theme `recreate()` cycles!
             val welcomeFlagClass = WelcomeAdEnabledFingerprint.classDef
-            welcomeFlagClass.returnBoolean(WelcomeAdEnabledFingerprint.method, false)
+            welcomeFlagClass.returnBoolean(WelcomeAdEnabledFingerprint.method, true)
             welcomeFlagClass.returnBoolean(
                 welcomeFlagClass.requireMethod("a", "Z", emptyList()),
+                true,
+            )
+
+            // Defense-in-depth: disarm `AppOpenAdManager.p()V` & `o()Z` so no caller can ever trigger
+            // Welcome-Ad Room DB queries or CloudFront `HEAD` validation coroutines.
+            val appOpenAdManagerClass = AppOpenAdManagerPrepareFingerprint.classDef
+            appOpenAdManagerClass.returnVoid(AppOpenAdManagerPrepareFingerprint.method)
+            appOpenAdManagerClass.returnBoolean(
+                appOpenAdManagerClass.requireMethod("o", "Z", emptyList()),
                 false,
             )
 
@@ -209,10 +226,47 @@ val removeAdsAndBloatPatch = bytecodePatch(
             val pauseHookMethod = screenClass.methods.firstOrNull {
                 it.parameterTypes.isEmpty() && it.returnType == "V" && it.containsString("local_pause_recomm")
             } ?: throw PatchException("ActivityScreen pause recommendation method not found")
+            val subscribeEntryMethod = screenClass.methods.firstOrNull { candidate ->
+                candidate.parameterTypes.isEmpty() &&
+                    candidate.returnType == "V" &&
+                    candidate.instructions.any { insn ->
+                        val ref = (insn as? ReferenceInstruction)?.reference
+                        (ref as? TypeReference)?.type == "Lcom/airbnb/lottie/LottieAnimationView;" ||
+                            (ref as? MethodReference)?.definingClass == "Lcom/airbnb/lottie/LottieAnimationView;"
+                    }
+            } ?: throw PatchException("ActivityScreen Lottie subscribe-entry method not found")
+            val pauseAdSetupMethod = screenClass.methods.firstOrNull {
+                it.parameterTypes.isEmpty() && it.returnType == "V" && it.containsString("preloadCustom")
+            } ?: throw PatchException("ActivityScreen pause-ad setup method not found")
+            val pauseAdRefreshMethod = screenClass.methods.firstOrNull { candidate ->
+                candidate.parameterTypes.isEmpty() &&
+                    candidate.returnType == "V" &&
+                    candidate.instructions.any { insn ->
+                        val fRef = (insn as? ReferenceInstruction)?.reference as? FieldReference
+                        fRef?.definingClass == "Lcom/mxplay/monetize/v2/nativead/LoadedStatue;"
+                    }
+            } ?: throw PatchException("ActivityScreen pause-ad refresh method not found")
+            val localToOnlineRecomGate = screenClass.methods.firstOrNull { candidate ->
+                candidate.parameterTypes.isEmpty() &&
+                    candidate.returnType == "Z" &&
+                    candidate.instructions.any { insn ->
+                        val mRef = (insn as? ReferenceInstruction)?.reference as? MethodReference
+                        mRef?.name == "isLocalToOnlineRecom" && mRef.returnType == "Z"
+                    }
+            } ?: throw PatchException("ActivityScreen isLocalToOnlineRecom gate method not found")
+            val progressChangedMethod = screenClass.requireMethod(
+                "onProgressChanged",
+                "V",
+                listOf("Landroid/widget/SeekBar;", "I", "Z"),
+            )
 
             screenClass.returnVoid(preRollMethod)
             screenClass.returnVoid(playerBannerMethod)
             screenClass.returnVoid(midRollMethod)
+            screenClass.returnVoid(subscribeEntryMethod)
+            screenClass.returnVoid(pauseAdSetupMethod)
+            screenClass.returnVoid(pauseAdRefreshMethod)
+            screenClass.returnBoolean(localToOnlineRecomGate, false)
             val pauseMethodName = pauseHookMethod.name
             screenClass.replaceMethodBody(
                 method = pauseHookMethod,
@@ -222,6 +276,19 @@ val removeAdsAndBloatPatch = bytecodePatch(
                     return-void
                 """.trimIndent(),
             )
+            screenClass.replaceMethodBody(
+                method = progressChangedMethod,
+                localRegisters = 0,
+                smaliInstructions = """
+                    invoke-super {p0, p1, p2, p3}, $BASE_ACTIVITY_SCREEN_CLASS->onProgressChanged(Landroid/widget/SeekBar;IZ)V
+                    return-void
+                """.trimIndent(),
+            )
+
+            // Disarm `playback` / `playback_end` (`localStarPlaySP`) background network telemetry
+            // posted on video start and completion while keeping local stream history intact.
+            val starPlayTelemetryClass = PlaybackStarPlayTelemetryFingerprint.classDef
+            starPlayTelemetryClass.returnVoid(PlaybackStarPlayTelemetryFingerprint.method)
         }
 
         // =========================================================================
@@ -369,6 +436,175 @@ val removeAdsAndBloatPatch = bytecodePatch(
 
             // Remove online Zodiac App Themes and wire in-memory 1-tap Classic Themes offline & online.
             installCleanClassicThemeEngine()
+
+            // =========================================================================
+            // 6. Cold-Start, Theme-Switch & Runtime Smoothness Optimizations (3.4.1)
+            // =========================================================================
+            // 6a. `SkinResourcePackHelper.a()V`: runs on every cold start and every theme `recreate()`;
+            //     for `external_skin_local_classic_*`, stock fires an HTTP check for `"classic_..."` and
+            //     scans/deletes files in the skin directory. Disarming makes theme recreates instant.
+            val skinPackHelperClass = SkinResourcePackCheckFingerprint.classDef
+            skinPackHelperClass.returnVoid(SkinResourcePackCheckFingerprint.method)
+
+            // 6b. `GdprUtil.a()Z -> true` (`isNotGDPRRegion()`) + surgical call-site override inside
+            //     `App.attachBaseContext`:
+            //     - Keeping `GdprUtil.a()` `true` globally preserves the 2-line fast path in
+            //       `ActivityWelcomeMX.u7()` (avoiding double `setContentView` splash flash + `sp7.h(true)`
+            //       `FirebaseAnalytics.getInstance` wakeup), skips `w27.e()`'s cold-start `sp7.d(...)`
+            //       call, and returns `false` on line 1 of `sp7.b(...)` in `ActivityScreen.onCreate`.
+            //     - Replacing ONLY the single `invoke-static {}, Lsp7;->a()Z` + `move-result vX` inside
+            //       `App.attachBaseContext` with `const/4 vX, 0x0` still routes `attachBaseContext` into
+            //       the lightweight 7-initializer fast path (skipping `AppsFlyer`, `FacebookSdk`,
+            //       `AccountKit`, `CleverTap`, and `Amazon PlayReady DRM`).
+            val gdprUtilClass = GdprForeignCheckFingerprint.classDef
+            val gdprUtilType = gdprUtilClass.type
+            val gdprMethodName = GdprForeignCheckFingerprint.method.name
+            gdprUtilClass.returnBoolean(GdprForeignCheckFingerprint.method, true)
+
+            val attachMethod = AppAttachBaseContextFingerprint.method
+            val attachInsns = attachMethod.instructions.toList()
+            val sp7CallIdx = attachInsns.indexOfFirst { insn ->
+                insn.opcode == Opcode.INVOKE_STATIC &&
+                    ((insn as? ReferenceInstruction)?.reference as? MethodReference)?.let { ref ->
+                        ref.definingClass == gdprUtilType &&
+                            ref.name == gdprMethodName &&
+                            ref.parameterTypes.isEmpty() &&
+                            ref.returnType == "Z"
+                    } == true
+            }
+            if (sp7CallIdx < 0 || sp7CallIdx + 1 >= attachInsns.size || attachInsns[sp7CallIdx + 1].opcode != Opcode.MOVE_RESULT) {
+                throw PatchException("Expected Lsp7;->a()Z + move-result in App.attachBaseContext")
+            }
+            val destReg = (attachInsns[sp7CallIdx + 1] as OneRegisterInstruction).registerA
+            attachMethod.removeInstructions(sp7CallIdx, 2)
+            attachMethod.addInstructions(sp7CallIdx, "const/4 v$destReg, 0x0")
+
+            // 6c. `DefaultMultiTypeViewCache.a(ds4$a)V -> return-void`: stops `ActivityWelcomeMX.g5()` from
+            //     background-inflating 49 disabled OTT streaming card layouts + 10 OTT RecyclerViews and
+            //     posting 59 messages onto the Main UI Looper during launch and folder scrolling, while
+            //     keeping `ds4` and its `LayoutInflater` (`ds4.c`) non-null for `fvc.onCreateViewHolder`.
+            val ottViewCacheClass = OttViewPreinflateEnqueueFingerprint.classDef
+            ottViewCacheClass.returnVoid(OttViewPreinflateEnqueueFingerprint.method)
+
+            // 6d. `ANRWatchDog.run()V -> return-void`: skips startup `getHistoricalProcessExitReasons` IPC
+            //     and background 3000ms main-thread ping polling.
+            val anrWatchDogClass = AnrWatchDogRunFingerprint.classDef
+            anrWatchDogClass.returnVoid(AnrWatchDogRunFingerprint.method)
+
+            // 6e. Disarm Amazon Minerva telemetry (`AMXPMetricInitializer.c` + `AMXPMetricEmitter` disabled flag).
+            val amxpInitClass = AmxpMetricInitFingerprint.classDef
+            amxpInitClass.returnVoid(AmxpMetricInitFingerprint.method)
+            val amxpEmitterClass = AmxpMetricEmitterClinitFingerprint.classDef
+            AmxpMetricEmitterClinitFingerprint.method.appendBeforeReturnVoid(
+                """
+                    const/4 v0, 0x1
+                    sput-boolean v0, ${amxpEmitterClass.type}->d:Z
+                """.trimIndent(),
+            )
+
+            // 6f. Disarm `FeatureMan2` (`rq6.c(Application)V`) network fetch while keeping `FeatureMan1` (`qq6`)
+            //     intact so `pq6.m` remains initialized.
+            val featureMan2Class = FeatureMan2InitFingerprint.classDef
+            featureMan2Class.returnVoid(
+                featureMan2Class.requireMethod("c", "V", listOf("Landroid/app/Application;")),
+            )
+
+            // 6g. Disarm `TrackerInitializer`, `App.X()`, `TrackingUtil` (`lvj`) static dispatchers,
+            //     and `TrackingConst` (`Ldvj;`) lifecycle callbacks so 6 analytics pipelines
+            //     (`evt.mxplay.com`, `falcon`, `search/tracking`, `gaana`, Firebase, Facebook) never
+            //     boot on startup, every scroll/click telemetry call is a 0-alloc no-op, and
+            //     `onActivityStopped` never blocks the Main Thread on `ActivityManager.getRunningAppProcesses()`.
+            val trackerInitClass = TrackerInitializerFingerprint.classDef
+            trackerInitClass.returnVoid(TrackerInitializerFingerprint.method)
+            val mxAppClass = MxAppInitTrackingFingerprint.classDef
+            mxAppClass.returnVoid(MxAppInitTrackingFingerprint.method)
+            val trackingUtilClass = TrackingUtilClinitFingerprint.classDef
+            trackingUtilClass.methods
+                .filter {
+                    AccessFlags.STATIC.isSet(it.accessFlags) &&
+                        it.returnType == "V" &&
+                        it.name != "<clinit>" &&
+                        it.name != "a"
+                }
+                .toList()
+                .forEach(trackingUtilClass::returnVoid)
+
+            val trackingLifecycleClass = TrackingLifecycleCallbackFingerprint.classDef
+            trackingLifecycleClass.returnVoid(TrackingLifecycleCallbackFingerprint.method)
+            trackingLifecycleClass.returnVoid(
+                trackingLifecycleClass.requireMethod("onActivityResumed", "V", listOf("Landroid/app/Activity;")),
+            )
+
+            // 6h. Disarm `App.t()` background bloat (`InAppPush` 5-second repeating timer, startup
+            //     `GetGroupDetailsWithCache` HTTP fetch, `ComScore` `Analytics.start` / UX pings, and
+            //     `CleverTap` `ActivityLifecycleCallback` on every Activity create/resume/pause)
+            //     while keeping `App.t()` itself intact for Network Stream (`jxk.a`) and Chromecast!
+            val inAppPushClass = InAppPushRunFingerprint.classDef
+            inAppPushClass.returnVoid(InAppPushRunFingerprint.method)
+            inAppPushClass.returnVoid(inAppPushClass.requireMethod("c", "V", emptyList()))
+
+            val subGroupFetchClass = SubscriptionGroupFetchFingerprint.classDef
+            subGroupFetchClass.returnVoid(SubscriptionGroupFetchFingerprint.method)
+
+            val comScoreClass = ComScoreClinitFingerprint.classDef
+            ComScoreClinitFingerprint.method.appendBeforeReturnVoid(
+                """
+                    const/4 v0, 0x1
+                    sput-boolean v0, ${comScoreClass.type}->c:Z
+                """.trimIndent(),
+            )
+            comScoreClass.returnVoid(comScoreClass.requireMethod("a", "V", listOf("Z")))
+            comScoreClass.returnVoid(comScoreClass.requireMethod("b", "V", emptyList()))
+
+            val cleverTapLifecycleClass = CleverTapLifecycleCallbackFingerprint.classDef
+            cleverTapLifecycleClass.returnVoid(CleverTapLifecycleCallbackFingerprint.method)
+            cleverTapLifecycleClass.returnVoid(
+                cleverTapLifecycleClass.requireMethod("onActivityResumed", "V", listOf("Landroid/app/Activity;")),
+            )
+            cleverTapLifecycleClass.returnVoid(
+                cleverTapLifecycleClass.requireMethod("onActivityPaused", "V", listOf("Landroid/app/Activity;")),
+            )
+            val cleverTapOuterType = cleverTapLifecycleClass.type.substringBefore('$') + ";"
+            val cleverTapOuterClass = mutableClassDefBy(cleverTapOuterType)
+            cleverTapOuterClass.methods.firstOrNull { it.name == "<clinit>" && it.parameterTypes.isEmpty() }
+                ?.appendBeforeReturnVoid(
+                    """
+                        const/4 v0, 0x1
+                        sput-boolean v0, $cleverTapOuterType->a:Z
+                    """.trimIndent(),
+                )
+
+            // 6i. Disarm `AdInitializer` (`Llq;->a()V`) callback invoked from `ActivityWelcomeMX.onCreate`
+            //     so cold launches and theme recreates never register `hif.b` or spawn `gd4.h` ad workers.
+            val adInitCallbackClass = AdInitializerCallbackFingerprint.classDef
+            adInitCallbackClass.returnVoid(AdInitializerCallbackFingerprint.method)
+
+            // Promote inner classes of stripped outer classes to PUBLIC so BytecodeMode.STRIP_SAFE
+            // never triggers cross-DEX package-private IllegalAccessError even on Android 7.0–7.1 (API 24–25).
+            val innerPrefixesToPromote = listOf(
+                "Lcom/mxtech/videoplayer/ad/ActivityScreen\$",
+                "Lcom/mxtech/videoplayer/ad/App\$",
+                "Lcom/mxtech/videoplayer/ad/online/abtest/LocalOnlyExitAdTest\$",
+                "Lcom/mxtech/videoplayer/ad/online/ad/appopen/AppOpenAdManager\$",
+                "Lcom/mxtech/videoplayer/ad/online/ad/appopen/AppOpenAdRequestManager\$validateAdUrl\$1;",
+                "Lcom/mxtech/videoplayer/ad/online/theme/SkinResourcePackHelper\$",
+                "Lcom/mxtech/videoplayer/ad/online/theme/ui/ThemeListViewModel\$",
+                "Lcom/mxtech/videoplayer/ad/push/a\$",
+                "Lcom/mxtech/videoplayer/ad/subscriptions/ui/GetGroupDetailsWithCache\$",
+                "${ottViewCacheClass.type.dropLast(1)}\$",
+                "${anrWatchDogClass.type.dropLast(1)}\$",
+                "${trackingUtilClass.type.dropLast(1)}\$",
+                "${comScoreClass.type.dropLast(1)}\$",
+            )
+            classDefForEach { classDef ->
+                if (!AccessFlags.PUBLIC.isSet(classDef.accessFlags) &&
+                    innerPrefixesToPromote.any(classDef.type::startsWith)
+                ) {
+                    mutableClassDefBy(classDef).let {
+                        it.accessFlags = (it.accessFlags and AccessFlags.PRIVATE.value.inv() and AccessFlags.PROTECTED.value.inv()) or AccessFlags.PUBLIC.value
+                    }
+                }
+            }
         }
     }
 }

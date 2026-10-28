@@ -57,7 +57,8 @@ try {
         oldNativeSchema = { param($w) $w.build.nativeBuildSchema = 1 }
         historicalBuild = { param($w) $w.build.status = 'historical' }
         missingNativeIdentity = { param($w) $w.build = $null }
-        unimplementedProfile = { param($w) $w.profile = 'pinedrama-whole-app-v1' }
+        unknownProfile = { param($w) $w.profile = 'facebook-whole-app-v1' }
+        profileOfAnotherPackage = { param($w) $w.profile = 'pinedrama-whole-app-v1' }
         unresolvedProblem = { param($w) $w.problems = @('A screen failed') }
     }
     foreach ($case in $identityCases.GetEnumerator()) {
@@ -75,6 +76,28 @@ try {
     $pine.ExpectedSourceApk = $native.SourceApk | ConvertTo-Json | ConvertFrom-Json
     $pine.ExpectedSourceApk.package = 'com.ss.android.ttmd.video'
     Assert-WalkContract (-not (Test-WalkReceipt -Path $walkPath -BundlePath $bundle @pine).Valid) 'A TikTok walk qualified another package with the same version.'
+    # PineDrama's own profile backs a walk of PineDrama, and only of PineDrama.
+    Write-Walk
+    $pineWalk = Get-Content -LiteralPath $walkPath -Raw | ConvertFrom-Json
+    $pineWalk.profile = 'pinedrama-whole-app-v1'
+    $pineWalk.installed.package = $pineWalk.build.apk.package = $pineWalk.build.sourceApk.package = 'com.ss.android.ttmd.video'
+    [IO.File]::WriteAllText($walkPath, ($pineWalk | ConvertTo-Json -Depth 20))
+    $pineGood = Test-WalkReceipt -Path $walkPath -BundlePath $bundle @pine
+    Assert-WalkContract $pineGood.Valid "A full PASS PineDrama walk was refused: $($pineGood.Reason)"
+    Assert-WalkContract (-not (Test-WalkReceipt -Path $walkPath -BundlePath $bundle @expected).Valid) 'A PineDrama walk qualified TikTok.'
+    $pineWalk.profile = 'tiktok-whole-app-v1'
+    [IO.File]::WriteAllText($walkPath, ($pineWalk | ConvertTo-Json -Depth 20))
+    Assert-WalkContract (-not (Test-WalkReceipt -Path $walkPath -BundlePath $bundle @pine).Valid) 'A TikTok-profile walk qualified PineDrama.'
+    $tiktokPath = Join-Path $work 'tiktok-walk.json'
+    Write-Walk
+    Copy-Item -LiteralPath $walkPath -Destination $tiktokPath
+    $pineWalk.profile = 'pinedrama-whole-app-v1'
+    $pinePath = Join-Path $work 'pinedrama-walk.json'
+    [IO.File]::WriteAllText($pinePath, ($pineWalk | ConvertTo-Json -Depth 20))
+    Assert-WalkContract ((Find-WalkReceiptPath -Paths @($pinePath, $tiktokPath) -Package 'com.ss.android.ttmd.video') -ceq $pinePath) 'The PineDrama receipt was not picked out of the walks.'
+    Assert-WalkContract ((Find-WalkReceiptPath -Paths @($pinePath, $tiktokPath) -Package 'com.zhiliaoapp.musically') -ceq $tiktokPath) 'The TikTok receipt was not picked out of the walks.'
+    Assert-WalkContract ($null -eq (Find-WalkReceiptPath -Paths @($tiktokPath, $tiktokPath) -Package 'com.zhiliaoapp.musically')) 'Two receipts for one package were taken as one.'
+    Assert-WalkContract ($null -eq (Find-WalkReceiptPath -Paths @($tiktokPath) -Package 'com.ss.android.ttmd.video')) 'A package with no walk found a receipt.'
     Write-Walk @{ schema = 1 }
     Assert-WalkContract ((Read-WalkReceipt -Path $walkPath).Historical) 'A historical walk stopped being readable.'
     Assert-WalkContract (-not (Test-WalkReceipt -Path $walkPath -BundlePath $bundle @expected).Valid) 'A historical walk authorized a new publication.'
@@ -120,13 +143,16 @@ try {
     Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-$single = [pscustomobject]@{ PackageName = 'com.zhiliaoapp.musically'; PackageVersions = @('47.5.3'); OtherPackages = @() }
-Assert-WalkContract (-not (Get-WalkPublicationProblem $single)) 'The implemented single global target was refused before receipt validation.'
+$tiktokTarget = [pscustomobject]@{ PackageName = 'com.zhiliaoapp.musically'; PackageVersions = @('47.5.3') }
+$pineTarget = [pscustomobject]@{ PackageName = 'com.ss.android.ttmd.video'; PackageVersions = @('47.5.3') }
+foreach ($covered in @(, @($tiktokTarget)), @(, @($tiktokTarget, $pineTarget)), @(, @($pineTarget))) {
+    Assert-WalkContract (-not (Get-WalkPublicationProblem $covered[0])) 'Declared packages that each have a walk profile were refused before receipt validation.'
+}
 foreach ($coverage in @(
-        [pscustomobject]@{ PackageName = $single.PackageName; PackageVersions = $single.PackageVersions; OtherPackages = @('com.ss.android.ttmd.video') },
-        [pscustomobject]@{ PackageName = $single.PackageName; PackageVersions = @('47.5.3','47.6.0'); OtherPackages = @() },
-        [pscustomobject]@{ PackageName = 'com.ss.android.ttmd.video'; PackageVersions = @('47.5.3'); OtherPackages = @() })) {
-    Assert-WalkContract ([bool](Get-WalkPublicationProblem $coverage)) 'One global walk authorized another package or target version.'
+        @(, @($tiktokTarget, [pscustomobject]@{ PackageName = 'com.example.other'; PackageVersions = @('1.0') })),
+        @(, @([pscustomobject]@{ PackageName = $tiktokTarget.PackageName; PackageVersions = @('47.5.3','47.6.0') })),
+        @(, @()))) {
+    Assert-WalkContract ([bool](Get-WalkPublicationProblem $coverage[0])) 'A package with no walk profile, or two versions behind one walk, was authorized.'
 }
 
 # The existing published release reader stays pinned to its exact historical document.
@@ -140,7 +166,7 @@ Assert-WalkContract (-not (Test-FrozenLegacyReceipt -Receipt $frozen -ReceiptPat
 $releaseText = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'release/release.ps1'))
 $publishAt = $releaseText.IndexOf("'publish' {")
 $assetsAt = $releaseText.IndexOf('$receipt.source.commit -ne $head', $publishAt)
-$walkAt = $releaseText.IndexOf('$walked = Test-WalkReceipt -Path $Walk', $publishAt)
+$walkAt = $releaseText.IndexOf('$walked = Test-WalkReceipt -Path $walkPath', $publishAt)
 $refuseAt = $releaseText.IndexOf('if (-not $walked.Valid) {', $publishAt)
 foreach ($later in @('github-notes', 'Invoke-ReleasePublication -Root')) {
     $laterAt = $releaseText.IndexOf($later, $publishAt)
@@ -148,6 +174,8 @@ foreach ($later in @('github-notes', 'Invoke-ReleasePublication -Root')) {
         "release.ps1 -Stage publish reaches $later before it holds the bundle to its walk."
 }
 Assert-WalkContract ($releaseText -match '(?m)^\s*\[string\]\$Walk,') 'release.ps1 has no -Walk.'
-$coverageAt = $releaseText.IndexOf('Get-WalkPublicationProblem $target', $publishAt)
+$coverageAt = $releaseText.IndexOf('Get-WalkPublicationProblem $declaredTargets', $publishAt)
+$perPackageAt = $releaseText.IndexOf('foreach ($declared in $declaredTargets)', $publishAt)
+Assert-WalkContract ($perPackageAt -gt $coverageAt -and $perPackageAt -lt $walkAt) 'Publication does not walk-check every declared package.'
 Assert-WalkContract ($coverageAt -gt $assetsAt -and $coverageAt -lt $walkAt) 'Publication skipped the per-package/version coverage guard.'
 Write-Host '[scripts] walk receipt contracts passed'

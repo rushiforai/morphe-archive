@@ -55,7 +55,7 @@ val frameStepPatch = bytecodePatch(
     name = "Frame step",
     description = "With a reel or video paused, a tap on its right side steps one frame forward and a tap on its " +
         "left side one frame back, so you can stop on the exact moment you want. Starts off. Turn it on in " +
-        "Hushfacebook settings > Playback.",
+        "Hushfacebook settings > Video and audio.",
     default = true,
 ) {
     category("Playback")

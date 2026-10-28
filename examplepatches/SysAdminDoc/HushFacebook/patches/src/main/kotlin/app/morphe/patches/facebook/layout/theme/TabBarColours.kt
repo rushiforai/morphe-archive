@@ -8,6 +8,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -153,7 +154,9 @@ internal fun lineColourPaint(layout: ClassDef): FieldReference {
 internal fun lineColourReads(method: Method, paint: FieldReference): List<Int> {
     val code = method.implementation?.instructions?.toList() ?: return emptyList()
     return code.indices.mapNotNull { at ->
-        if (code[at].opcode != Opcode.IGET_OBJECT || code[at].field()?.toString() != paint.toString()) return@mapNotNull null
+        if (code[at].opcode != Opcode.IGET_OBJECT) return@mapNotNull null
+        val field = code[at].field()
+        if (field?.name != paint.name || field.toString() != paint.toString()) return@mapNotNull null
         val holder = (code[at] as OneRegisterInstruction).registerA
         val colour = (at + 1..minOf(code.lastIndex, at + SET_COLOR_WINDOW)).firstNotNullOfOrNull { next ->
             if (code[next].called()?.toString() != PAINT_SET_COLOR) return@firstNotNullOfOrNull null
@@ -189,8 +192,8 @@ internal fun BytecodePatchContext.selectedTabColourHook(): () -> Unit {
         classDefByOrNull(type)?.let { AccessFlags.ABSTRACT.isSet(it.accessFlags) && !AccessFlags.INTERFACE.isSet(it.accessFlags) } == true
     }
     val readers = mutableListOf<Pair<String, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
+    classDefForEachReferencing(names = listOf(colour.name)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
         classDef.methods.filterTo(mutableListOf()) { selectedTabColourReads(it, colour).isNotEmpty() }
             .forEach { readers += classDef.type to it }
     }
@@ -201,8 +204,8 @@ internal fun BytecodePatchContext.selectedTabColourHook(): () -> Unit {
     }
     val paint = lineColourPaint(layout)
     val lines = mutableListOf<Pair<String, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
+    classDefForEachReferencing(names = listOf(paint.name)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
         // The provider's setter also colours this Paint, with the colour read above; it's done already.
         classDef.methods.filter { method ->
             lineColourReads(method, paint).isNotEmpty() && readers.none { it.first == classDef.type && it.second.sameSignature(method) }

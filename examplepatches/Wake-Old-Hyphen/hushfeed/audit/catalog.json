@@ -765,6 +765,12 @@
     "default": "off",
     "type": "string",
     "row": "Sort loaded videos on profile grids"
+   },
+   {
+    "key": "liked_grid_sort",
+    "default": "profile",
+    "type": "string",
+    "row": "Sort loaded videos on Liked grids"
    }
   ],
   "surface": "feed",
@@ -1390,7 +1396,7 @@
    },
    {
     "id": "blocks-contacts-query",
-    "what": "With the switch on, opening the Friends tab and the Inbox makes TikTok query the contacts provider and the blocker logs that it answered with an empty cursor.",
+    "what": "The blocker TikTok's rewired contact queries go through answers the contacts provider with an empty cursor and logs it while the switch is on, and passes the query to the provider when it's off. TikTok reads contacts on its own schedule, so the check calls that entry point with the arguments those call sites pass.",
     "steps": [
      {
       "set": {
@@ -1398,28 +1404,37 @@
       }
      },
      {
-      "restart": true
-     },
-     {
       "open": "feed"
      },
      {
-      "open": "friends"
-     },
-     {
-      "wait": 8000
-     },
-     {
-      "open": "inbox"
-     },
-     {
-      "wait": 8000
+      "probe": "privacy-call",
+      "extras": {
+       "which": "contacts"
+      },
+      "expect": "^ok privacy-call contacts rows=0 cursor=MatrixCursor$",
+      "waitMs": 2000
      },
      {
       "log": "Contact list blocker: blocked a query to content://com\\.android\\.contacts",
-      "fromStep": 2,
-      "within": 3000,
-      "precondition": true
+      "fromStep": 3,
+      "within": 3000
+     },
+     {
+      "set": {
+       "block_contact_list": "false"
+      }
+     },
+     {
+      "probe": "privacy-call",
+      "extras": {
+       "which": "contacts"
+      },
+      "expect": "^ok privacy-call contacts rows=\\d+ cursor=(?!MatrixCursor$)\\w+$",
+      "waitMs": 2000
+     },
+     {
+      "logNot": "Contact list blocker: blocked",
+      "within": 2000
      }
     ],
     "auto": true
@@ -1483,7 +1498,7 @@
    },
    {
     "id": "blocks-package-listing",
-    "what": "With the switch on from the start, the diagnostic export records that TikTok's package-list calls were answered empty.",
+    "what": "The blocker TikTok's rewired app-list calls go through answers the package list, the application list and the launcher enumeration empty while the switch is on, and still finds the share targets the share sheet needs. With it off the same calls see the phone's apps. TikTok scans on its own schedule, so the check calls those entry points with the arguments the call sites pass.",
     "steps": [
      {
       "set": {
@@ -1491,25 +1506,37 @@
       }
      },
      {
-      "restart": true
-     },
-     {
       "open": "feed"
      },
      {
-      "wait": 8000
+      "probe": "privacy-call",
+      "extras": {
+       "which": "apps"
+      },
+      "expect": "^ok privacy-call apps packages=0 applications=0 launcher=0 share=[1-9]\\d*$",
+      "waitMs": 2000
      },
      {
-      "open": "profile"
+      "log": "Installed apps blocker: blocked the launcher enumeration",
+      "fromStep": 3,
+      "within": 3000
      },
      {
-      "wait": 4000
+      "set": {
+       "block_installed_apps": "false"
+      }
      },
      {
-      "probe": "report",
-      "expect": "Installed apps blocker: blocked (getInstalledPackages|getInstalledApplications|the launcher enumeration)",
-      "waitMs": 10000,
-      "precondition": true
+      "probe": "privacy-call",
+      "extras": {
+       "which": "apps"
+      },
+      "expect": "^ok privacy-call apps packages=[1-9]\\d* applications=[1-9]\\d* launcher=[1-9]\\d* share=[1-9]\\d*$",
+      "waitMs": 2000
+     },
+     {
+      "logNot": "Installed apps blocker: blocked",
+      "within": 2000
      }
     ],
     "auto": true
@@ -1559,7 +1586,7 @@
   "checks": [
    {
     "id": "live-bubble",
-    "what": "With Hide the LIVE bubble on, the bubble's check returns early (debug line 'Block popups: skipped the LIVE bubble'). TikTok only runs that check when its server sends a bubble, so no line in 20 seconds is inconclusive.",
+    "what": "The LIVE bubble's check starts with Hushfeed's hook: with Hide the LIVE bubble on the hook answers true (skip the bubble) and logs 'Block popups: skipped the LIVE bubble', with it off it answers false. TikTok only runs that check when its server sends a bubble, so the check calls the hook directly.",
     "steps": [
      {
       "set": {
@@ -1567,17 +1594,35 @@
       }
      },
      {
-      "restart": true
+      "open": "feed"
+     },
+     {
+      "probe": "call",
+      "extras": {
+       "class": "app.morphe.extension.tiktok.popups.PopupSwitches",
+       "method": "hideLiveBubble"
+      },
+      "expect": "^ok call hideLiveBubble -> true$",
+      "waitMs": 1500
      },
      {
       "log": "Block popups: skipped the LIVE bubble",
-      "within": 20000,
-      "precondition": true
+      "fromStep": 3,
+      "within": 3000
      },
      {
       "set": {
        "hide_live_bubble": "false"
       }
+     },
+     {
+      "probe": "call",
+      "extras": {
+       "class": "app.morphe.extension.tiktok.popups.PopupSwitches",
+       "method": "hideLiveBubble"
+      },
+      "expect": "^ok call hideLiveBubble -> false$",
+      "waitMs": 1500
      }
     ],
     "auto": true
@@ -3739,6 +3784,12 @@
     "default": false,
     "type": "bool",
     "row": "Show download progress"
+   },
+   {
+    "key": "skip_post_download_share_sheet",
+    "default": false,
+    "type": "bool",
+    "row": "Skip the Share to sheet after a save"
    }
   ],
   "surface": "downloads",
@@ -4923,11 +4974,11 @@
    },
    {
     "id": "length-limit",
-    "what": "With Maximum video length 20, the filter removes videos over 20 seconds from what TikTok sends (its own item line says FILTER(QualityFilter)).",
+    "what": "With Maximum video length 3, the filter removes the videos over 3 seconds from what TikTok sends (its own item line says FILTER(QualityFilter)). Nearly every video runs longer, so the line doesn't depend on which videos the feed happens to serve.",
     "steps": [
      {
       "set": {
-       "max_video_seconds": "20",
+       "max_video_seconds": "3",
        "morphe_debug": "true"
       }
      },
@@ -5560,7 +5611,7 @@
    },
    {
     "id": "fit-decision-recorded",
-    "what": "With Fit on, the feed cell sizing goes through VideoFit and the export records a Fit decision with TikTok's size, the space and the outcome.",
+    "what": "With Fit on, the feed cell sizing goes through VideoFit and the export records a Fit decision with TikTok's size, the space and the outcome. It swipes three times, since a photo post records no decision.",
     "steps": [
      {
       "set": {
@@ -5578,6 +5629,18 @@
       "wait": 2000
      },
      {
+      "swipe": "up"
+     },
+     {
+      "wait": 2000
+     },
+     {
+      "swipe": "up"
+     },
+     {
+      "wait": 2000
+     },
+     {
       "probe": "report",
       "expect": "Fit, feed: TikTok\\'s size \\d+x\\d+, space \\d+x\\d+, (left as it was|made \\d+x\\d+)",
       "waitMs": 10000
@@ -5587,13 +5650,25 @@
    },
    {
     "id": "fill-decision-recorded",
-    "what": "With Fill on (and Fit off) the export records a Fill decision instead.",
+    "what": "With Fill on (and Fit off) the export records a Fill decision instead. It swipes three times, since a photo post records no decision.",
     "steps": [
      {
       "set": {
        "fit_video_to_screen": "false",
        "fill_video_to_screen": "true"
       }
+     },
+     {
+      "swipe": "up"
+     },
+     {
+      "wait": 2000
+     },
+     {
+      "swipe": "up"
+     },
+     {
+      "wait": 2000
      },
      {
       "swipe": "up"
@@ -8277,6 +8352,12 @@
     "default": false,
     "type": "bool",
     "row": "Hide Footnotes"
+   },
+   {
+    "key": "hide_following_live_row",
+    "default": false,
+    "type": "bool",
+    "row": "Hide the LIVE row on Following"
    },
    {
     "key": "hide_feed_report_button",

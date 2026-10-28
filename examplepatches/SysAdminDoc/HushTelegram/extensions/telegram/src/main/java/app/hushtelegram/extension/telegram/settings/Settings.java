@@ -271,6 +271,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_launch_folder", FALSE);
 
     /**
+     * The folder tabs leave out All Chats while the account has another folder to open, and the side
+     * menu gets an Archived Chats row ({@link app.hushtelegram.extension.telegram.misc.LaunchFolder}).
+     * Each chat list reads it once as its tabs are first built, so a restart shows the change.
+     */
+    public static final BooleanSetting HIDE_ALL_CHATS =
+            new BooleanSetting("hushtelegram_hide_all_chats", FALSE, true);
+
+    /**
      * The chats picked for each account leave the chat list, its folders and the archive
      * ({@link app.hushtelegram.extension.telegram.misc.HiddenChats}). The picks themselves stay on
      * this phone, outside the settings.
@@ -471,6 +479,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SAVE_RESTRICTED_DOWNLOADS =
             new BooleanSetting("hushtelegram_save_restricted_downloads", FALSE);
+
+    /**
+     * On Android 11 and up with All files access, Telegram's own Telegram Images, Video, Documents
+     * and the rest live in Internal storage/Telegram instead of Android/data (#7). Read once when
+     * Telegram sets up its folders, so it needs a restart.
+     */
+    public static final BooleanSetting STORAGE_FOLDER =
+            new BooleanSetting("hushtelegram_storage_folder", FALSE, true);
 
     /**
      * Which folders Telegram's Save to gallery puts photos and videos in, one of

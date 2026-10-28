@@ -603,6 +603,61 @@ public final class PostWords {
         return !found.hidesNothing() && found.judge(Arrays.asList(text)).hides();
     }
 
+    /** The most of a sample {@link #preview} reads, in code points. The rest is left out and said so. */
+    public static final int PREVIEW_MAX_CODE_POINTS = 16_384;
+
+    /** What {@link #preview} makes of a sample. */
+    public enum Preview {
+        /** A hide phrase or pattern matches and no keep one does. */
+        HIDDEN,
+        /** A keep phrase or pattern matches, so a post like it stays. */
+        KEPT,
+        /** Nothing on either list matches. */
+        NO_MATCH,
+        /** The patterns ran out of steps, and a post that does that stays. */
+        TOO_SLOW,
+        /** The hide list holds nothing, so no post is read at all. */
+        NOTHING_TO_HIDE
+    }
+
+    /** A preview's verdict, and whether the sample was longer than {@link #PREVIEW_MAX_CODE_POINTS}. */
+    public static final class PreviewResult {
+        public final Preview verdict;
+        public final boolean cut;
+
+        PreviewResult(Preview verdict, boolean cut) {
+            this.verdict = verdict;
+            this.cut = cut;
+        }
+    }
+
+    /**
+     * What lists that may not be saved yet make of a typed sample, judged as a post's words are,
+     * on the same step budget. It builds its own rules, so the feed's cached ones, the count of
+     * hidden posts and the words report are left as they were, and it keeps nothing of the sample.
+     */
+    public static PreviewResult preview(@Nullable String sample, @Nullable String hideStored,
+                                        @Nullable String keepStored, boolean wholeWords) {
+        String text = sample == null ? "" : sample;
+        boolean cut = text.codePointCount(0, text.length()) > PREVIEW_MAX_CODE_POINTS;
+        if (cut) text = text.substring(0, text.offsetByCodePoints(0, PREVIEW_MAX_CODE_POINTS));
+        Rules draft = new Rules(hideStored == null ? "" : hideStored, keepStored == null ? "" : keepStored, wholeWords);
+        if (draft.hidesNothing()) return new PreviewResult(Preview.NOTHING_TO_HIDE, cut);
+        if (text.trim().isEmpty()) return new PreviewResult(Preview.NO_MATCH, cut);
+        switch (draft.judge(Arrays.asList(text))) {
+            case HIDE:
+            case HIDE_PATTERN:
+                return new PreviewResult(Preview.HIDDEN, cut);
+            case KEEP:
+            case KEEP_PATTERN:
+                return new PreviewResult(Preview.KEPT, cut);
+            case TOO_SLOW:
+                return new PreviewResult(Preview.TOO_SLOW, cut);
+            default:
+                return new PreviewResult(Preview.NO_MATCH, cut);
+        }
+    }
+
     /** Where the line starting at [start] ends: the next line break, or the end of the text. */
     private static int lineEnd(String text, int start) {
         int newline = text.indexOf('\n', start);

@@ -62,6 +62,14 @@ final class MediaJobScheduler {
     private static final ArrayDeque<Ended> ENDED = new ArrayDeque<>();
     /** The job this worker thread is running, so what its save tells the reader is kept with it. */
     private static final ThreadLocal<Job> CURRENT = new ThreadLocal<>();
+    /**
+     * Network saves waiting for an unmetered network under Save only on Wi-Fi, oldest first. Off
+     * the executor, so they hold no worker and no slot in its line, and their time starts only
+     * when they run. Guarded by itself.
+     */
+    private static final ArrayList<Job> PARKED = new ArrayList<>();
+    /** The longest a save waits for an unmetered network before it gives up. */
+    static final long MAX_PARK_MS = 30L * 60_000L;
 
     static {
         // A save mostly tells the reader how it went with a toast from its worker thread.
@@ -116,15 +124,27 @@ final class MediaJobScheduler {
         private final AtomicInteger state = new AtomicInteger(WAITING);
         /** The last thing this save told the reader while it ran. */
         private volatile String said;
+        /** Fetches from the network, so Save only on Wi-Fi holds it; false for work on the phone alone. */
+        final boolean network;
+        /** Waiting for an unmetered network, off the executor. */
+        private volatile boolean parked;
+        /** When it first waited for one, for its bound; 0 before it ever did. */
+        private long parkedSince;
 
         private Job(String label, String key, Runnable work, Runnable done, int ahead,
-                SaveRecords.Record record) {
+                SaveRecords.Record record, boolean network) {
             this.label = label;
             this.key = key;
             this.work = work;
             this.done = done;
             this.ahead = ahead;
             this.record = record;
+            this.network = network;
+        }
+
+        /** Waiting for Wi-Fi rather than for a worker. */
+        boolean parked() {
+            return parked;
         }
 
         /** True until a worker takes it, and false for good once it is cancelled. */
@@ -150,6 +170,9 @@ final class MediaJobScheduler {
         }
 
         @Override public void run() {
+            // The network turned metered while it waited in line: back to waiting for Wi-Fi,
+            // which gives the worker back before its time starts.
+            if (network && waiting() && !SaveNetwork.allowed() && park(this)) return;
             // A cancel that won the race has already ended the job, done included.
             if (!state.compareAndSet(WAITING, RUNNING)) return;
             // A file this save publishes is written down against its record as it lands.
@@ -177,6 +200,10 @@ final class MediaJobScheduler {
         }
 
         private void end() {
+            synchronized (PARKED) {
+                PARKED.remove(this);
+                parked = false;
+            }
             ADMITTED.decrementAndGet();
             LIVE.remove(this);
             if (key != null) BY_KEY.remove(key, this);
@@ -187,7 +214,21 @@ final class MediaJobScheduler {
             } finally {
                 // Over, whichever way: the record closes whether the save worked or not.
                 SaveRecords.close(record);
+                // A place in the executor's line came free for a save that waited for Wi-Fi.
+                if (!PARKED.isEmpty() && SaveNetwork.allowed()) releaseParked();
             }
+        }
+
+        /** Ends a save that waited for Wi-Fi past its bound, saying so. False once it has left. */
+        boolean giveUp() {
+            synchronized (PARKED) {
+                if (!parked || !state.compareAndSet(WAITING, OVER)) return false;
+            }
+            String message = L10n.t("Stopped waiting for Wi-Fi after 30 minutes. Save it again when you're on Wi-Fi.");
+            remember(new Ended(label, message, false, false));
+            end();
+            Utils.showToastLong(message);
+            return true;
         }
     }
 
@@ -205,20 +246,37 @@ final class MediaJobScheduler {
         return submit(label, key, 1, work, done);
     }
 
+    /** As above, for work on the phone alone, which Save only on Wi-Fi never holds back. */
+    static Job submitLocal(String label, String key, Runnable work, Runnable done) {
+        return submit(label, key, 1, false, work, done);
+    }
+
     /**
      * As above, for a save of {@code files} files, which is what the start after a closed TikTok
      * counts it against when some of them never landed.
      */
     static Job submit(String label, String key, int files, Runnable work, Runnable done) {
+        return submit(label, key, files, true, work, done);
+    }
+
+    /**
+     * As above. A {@code network} save under Save only on Wi-Fi on a metered or unknown network
+     * waits for an unmetered one, off the executor, for up to {@link #MAX_PARK_MS}.
+     */
+    static Job submit(String label, String key, int files, boolean network, Runnable work, Runnable done) {
         if (work == null) throw new NullPointerException("work");
         int limit = applyLimit();
         int before = ADMITTED.getAndIncrement();
         Job job = new Job(label, key, work, done, Math.max(0, before - limit + 1),
-                SaveRecords.open(label, files));
+                SaveRecords.open(label, files), network);
         LIVE.add(job);
         if (key != null) BY_KEY.put(key, job);
         try {
-            EXECUTOR.execute(job);
+            if (network && !SaveNetwork.allowed()) {
+                if (!park(job)) throw new RejectedExecutionException("Too many saves are waiting for Wi-Fi");
+            } else {
+                EXECUTOR.execute(job);
+            }
             SaveRecords.accepted(job.record);
             return job;
         } catch (RejectedExecutionException error) {
@@ -231,6 +289,59 @@ final class MediaJobScheduler {
     }
 
     /**
+     * Puts a save that is still waiting in line for Wi-Fi, where it holds no worker. Its bound
+     * runs from the first time it waited, so a network that flaps can't keep it waiting forever.
+     * False when the line for Wi-Fi is full; true too for a save a cancel already ended.
+     */
+    private static boolean park(Job job) {
+        boolean first;
+        synchronized (PARKED) {
+            if (!job.waiting()) return true;
+            if (PARKED.contains(job)) return true;
+            if (PARKED.size() >= MAX_QUEUED_JOBS) return false;
+            PARKED.add(job);
+            job.parked = true;
+            first = job.parkedSince == 0L;
+            if (first) job.parkedSince = System.currentTimeMillis();
+        }
+        if (first) Utils.runOnMainThreadDelayed(job::giveUp, MAX_PARK_MS);
+        SaveProgress progress = job.progress;
+        if (progress != null) progress.refreshText();
+        // The network may have turned unmetered between the check and the park.
+        if (SaveNetwork.allowed()) releaseParked();
+        return true;
+    }
+
+    /**
+     * Hands the saves waiting for Wi-Fi to the executor, oldest first, once a network allows
+     * them. One the executor's full line refuses stays waiting, and goes when a save ends.
+     */
+    static void releaseParked() {
+        List<Job> going = new ArrayList<>();
+        synchronized (PARKED) {
+            while (!PARKED.isEmpty()) {
+                Job job = PARKED.get(0);
+                if (!job.waiting()) {
+                    PARKED.remove(0);
+                    continue;
+                }
+                try {
+                    EXECUTOR.execute(job);
+                } catch (RejectedExecutionException full) {
+                    break;
+                }
+                PARKED.remove(0);
+                job.parked = false;
+                going.add(job);
+            }
+        }
+        for (Job job : going) {
+            SaveProgress progress = job.progress;
+            if (progress != null) progress.refreshText();
+        }
+    }
+
+    /**
      * The word an accepted save gets at once, for a save with no progress row of its own.
      * {@code starting} is said when a worker is free, and null says nothing for a save whose
      * own start speaks a moment later. A save that has to wait says {@code waiting} and how
@@ -238,11 +349,12 @@ final class MediaJobScheduler {
      */
     static void acknowledge(Job job, String starting, String waiting) {
         if (job == null) return;
-        if (job.ahead == 0) {
+        boolean forWifi = job.parked();
+        if (job.ahead == 0 && !forWifi) {
             if (starting != null) Utils.showToastShort(starting);
             return;
         }
-        String line = L10n.quantity(Utils.getContext(), job.ahead,
+        String line = forWifi ? L10n.t("Waiting for Wi-Fi") : L10n.quantity(Utils.getContext(), job.ahead,
                 "Starts after one other save", "Starts after %1$s other saves");
         // Two lines, each translated whole: what the save is, then what it waits for.
         String text = waiting == null ? line : waiting + "\n" + line;
@@ -252,6 +364,7 @@ final class MediaJobScheduler {
     /** What a second request for something already accepted is told: what the first is doing. */
     static String busyMessage(String key) {
         Job job = key == null ? null : BY_KEY.get(key);
+        if (job != null && job.parked()) return L10n.t("The last one is still waiting for Wi-Fi");
         return job != null && job.waiting()
                 ? L10n.t("The last one is still waiting to start")
                 : L10n.t("Still saving the last one");
@@ -288,6 +401,15 @@ final class MediaJobScheduler {
         synchronized (ENDED) {
             ENDED.clear();
         }
+    }
+
+    /**
+     * The save running on this thread fetches from the network, so Save only on Wi-Fi governs
+     * its transfers. False off a worker thread: a share link or a LIVE isn't a save in line.
+     */
+    static boolean currentFetchesNetwork() {
+        Job job = CURRENT.get();
+        return job != null && job.network;
     }
 
     /**
@@ -361,6 +483,13 @@ final class MediaJobScheduler {
      */
     static boolean idle() {
         return ADMITTED.get() == 0 && EXECUTOR.getActiveCount() == 0 && EXECUTOR.getQueue().isEmpty();
+    }
+
+    /** For the tests: the saves waiting for Wi-Fi, in order. */
+    static List<Job> parkedForTests() {
+        synchronized (PARKED) {
+            return new ArrayList<>(PARKED);
+        }
     }
 
 }

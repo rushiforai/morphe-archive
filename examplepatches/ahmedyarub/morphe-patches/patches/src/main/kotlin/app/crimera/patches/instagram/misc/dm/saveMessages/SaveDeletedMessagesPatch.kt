@@ -34,6 +34,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -163,19 +164,48 @@ private fun hookMqttPostprocess() {
 /** Hook 4: the SQLite DAO hide, at entry, so the stored copy still exists when the hook fires. */
 context(patchContext: BytecodePatchContext)
 private fun hookDatabaseHide() {
+    val threadKey = "Lcom/instagram/model/direct/DirectThreadKey;"
     DirectItemDbHideFingerprint.method.apply {
-        // (DirectThreadKey, server id, client id): the two ids are the second and third parameters.
-        val serverId = declaredParameterRegister(this, 1)
-        val clientId = declaredParameterRegister(this, 2)
         val registers = getFreeRegisterProvider(index = 0, numberOfFreeRegistersNeeded = 2)
         val first = registers.getFreeRegister4Bit()
         val second = registers.getFreeRegister4Bit()
 
+        val loadIds =
+            if (parameterTypes.map { it.toString() } == listOf(threadKey, "Ljava/lang/String;", "Ljava/lang/String;")) {
+                // Up to 452 (DirectThreadKey, server id, client id): the ids are the second and third parameters.
+                """
+                move-object/from16 v$first, v${declaredParameterRegister(this, 1)}
+                move-object/from16 v$second, v${declaredParameterRegister(this, 2)}
+                """
+            } else {
+                // From 453 the hide runs as a task built with (..., DirectThreadKey, server id,
+                // client id); the fields the constructor stores those two in are read in run().
+                val task = patchContext.mutableClassDefBy(definingClass)
+                val constructor = task.methods.single { it.name == "<init>" }
+                val keyIndex = constructor.parameterTypes.indexOfFirst { it.toString() == threadKey }
+                if (keyIndex < 0 || constructor.parameterTypes.getOrNull(keyIndex + 1)?.toString() != "Ljava/lang/String;" ||
+                    constructor.parameterTypes.getOrNull(keyIndex + 2)?.toString() != "Ljava/lang/String;"
+                ) {
+                    throw PatchException("The message hide task is not built with a thread key and two ids")
+                }
+                fun fieldOf(parameter: Int): FieldReference {
+                    val register = declaredParameterRegister(constructor, parameter)
+                    return constructor.implementation!!.instructions.first { instruction ->
+                        instruction.opcode == Opcode.IPUT_OBJECT && (instruction as TwoRegisterInstruction).registerA == register
+                    }.getReference<FieldReference>()!!
+                }
+                """
+                move-object/from16 v$first, p0
+                iget-object v$first, v$first, ${fieldOf(keyIndex + 1)}
+                move-object/from16 v$second, p0
+                iget-object v$second, v$second, ${fieldOf(keyIndex + 2)}
+                """
+            }
+
         addInstructions(
             0,
             """
-            move-object/from16 v$first, v$serverId
-            move-object/from16 v$second, v$clientId
+            $loadIds
             invoke-static { v$first, v$second }, $HOOK_CLASS->onMessageHiddenFromDb(Ljava/lang/String;Ljava/lang/String;)V
             """,
         )

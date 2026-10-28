@@ -250,7 +250,7 @@ private fun parseAndValidateMxCodecElf(entryName: String, bytes: ByteArray): Str
     }
     if (!bytes.containsSequence(CODEC_3_1_0_MARKER)) {
         throw PatchException(
-            "Outdated custom codec '$entryName': MX Player 3.3.1–3.4.1 requires Custom Codec v3.1.0 " +
+            "Outdated custom codec '$entryName': MX Player 3.4.1 requires Custom Codec v3.1.0 " +
                 "(FFmpeg 4.2 + dav1d, e.g. aio-v3.1.0_r1.zip).",
         )
     }

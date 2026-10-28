@@ -50,7 +50,7 @@ final class AppPages {
             Set<PatchFamily> build) {
         if (build.contains(PatchFamily.MESSENGER_CARD) || build.contains(PatchFamily.CHAT_LIST)
                 || build.contains(PatchFamily.MESSENGER_ICON) || build.contains(PatchFamily.ORIGINAL_CHAT_MEDIA)) {
-            PreferenceCategory chats = category(screen, L10n.t("Chats"));
+            PreferenceCategory chats = category(screen, L10n.t("Chats and Messenger"));
             if (build.contains(PatchFamily.MESSENGER_CARD)) {
                 chats.addPreference(toggle(context, Settings.HIDE_GET_MESSENGER_CARD,
                         L10n.t("Hides the card at the top of Chats that asks you to get Messenger, once Messenger is installed. "
@@ -366,7 +366,7 @@ final class AppPages {
             Set<PatchFamily> build) {
         // In every build: Android checks Facebook's links against Meta's signing key, which no
         // re-signed build has, whatever its patches.
-        PreferenceCategory links = category(screen, L10n.t("Links"));
+        PreferenceCategory links = category(screen, L10n.t("Links and sharing"));
         if (build.contains(PatchFamily.EXTERNAL_BROWSER)) {
             links.addPreference(toggle(context, Settings.OPEN_LINKS_EXTERNALLY,
                     L10n.t("Open web links in your browser. Facebook's own pages stay in the app.")));
@@ -546,11 +546,7 @@ final class AppPages {
         });
         privacy.addPreference(lock);
         privacy.addPreference(lockAfterRow(context));
-        // The settings entry's own too: it's what a Facebook that won't open can still send.
-        privacy.addPreference(toggle(context, Settings.SAVE_CRASH_FILE,
-                L10n.t("When Facebook crashes, the error goes in a text file in Download/Hushfacebook, so you can send it with a "
-                        + "bug report even if Facebook won't open. Links and IDs are left out. The newest five are kept.")));
-        // The settings entry's own as well: it watches Facebook's screens from the application hook.
+        // The settings entry's own too: it watches Facebook's screens from the application hook.
         privacy.addPreference(toggle(context, Settings.CLOSE_WHEN_LEFT,
                 L10n.t("A few seconds after you leave Facebook, it closes all the way and leaves your recent apps, so it "
                         + "isn't running in the background. It waits for uploads and saves to finish first. Notifications "

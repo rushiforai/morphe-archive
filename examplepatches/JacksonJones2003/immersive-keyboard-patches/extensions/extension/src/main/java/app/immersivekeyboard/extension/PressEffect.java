@@ -28,11 +28,11 @@ import java.util.WeakHashMap;
  */
 @SuppressWarnings("unused")
 public final class PressEffect {
-    private static final long FLASH_RISE_MS = 70;
-    private static final long FLASH_FADE_MS = 380;
+    static final long FLASH_RISE_MS = 70;
+    static final long FLASH_FADE_MS = 380;
     /** Peak strength of the light on dark glass, where it shows most. */
-    private static final int FLASH_PEAK_ALPHA_DARK = 30;
-    private static final int FLASH_PEAK_ALPHA_LIGHT = 48;
+    static final int FLASH_PEAK_ALPHA_DARK = 30;
+    static final int FLASH_PEAK_ALPHA_LIGHT = 48;
     private static final float FLASH_RADIUS_FRACTION = 0.55f;
     /** How far the pressed key shrinks; neighbours shrink less with distance. */
     private static final float PRESS_DEPTH = 0.06f;

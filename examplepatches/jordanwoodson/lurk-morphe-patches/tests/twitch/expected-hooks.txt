@@ -11,6 +11,10 @@
 # Settings patch: settings and the React Native bundle loader at Application.onCreate.
 TwitchPrivacy.initSettingsOnce
 TwitchBundle.init
+# Settings patch: the Lurk row in Twitch's Settings, Compose version (its onClick) and list version (row, tap).
+Settings.openAction
+TwitchSettingsRow.addMenuRow
+TwitchSettingsRow.menuRowClicked
 
 # if asset:assets/lurk-hermes.json
 # Hermes patches: the prepared React Native bundle.
@@ -23,6 +27,12 @@ TwitchStartup.watchStart
 # if refresh_stream vod_chapters latency_badge force_landscape
 # The player-view attach hook these patches share.
 TwitchPlayerViews.attached
+
+# if fill_screen
+# The native player's video sizing, the full-screen containers' insets and the React Native surface sizing.
+TwitchFillScreen.measure
+TwitchFillScreen.insetTypes
+TwitchFillScreen.surfaceResizeMode
 
 # if fix_notifications
 TwitchNotifications.firebaseHeader
@@ -108,10 +118,18 @@ TwitchChatKeywords.onLiveMessage
 # if chat_appearance
 TwitchChatStyle.beginLine
 TwitchChatStyle.bindRow
+TwitchChatStyle.emoteScale
+TwitchChatStyle.imageSize
 TwitchChatStyle.landscapeChat
 TwitchChatStyle.landscapeChatGuide
 TwitchChatStyle.markLine
 TwitchChatStyle.onMessage
+
+# if chat_emote_info
+TwitchChatInfo.badges
+TwitchChatInfo.message
+TwitchChatInfo.twitchChannelBadge
+TwitchChatInfo.twitchGlobalBadge
 
 # if chat_overlay
 TwitchChatOverlay.channel

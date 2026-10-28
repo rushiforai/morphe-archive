@@ -70,6 +70,7 @@ public class OpenInAnotherAppTest {
         PauseForTests.resume();
         Settings.OPEN_IN_ANOTHER_APP.resetToDefault();
         Settings.DOWNLOAD_VIDEOS.resetToDefault();
+        Settings.FEED_VIDEO_CAST_BUTTON.resetToDefault();
         Shadows.shadowOf((Application) context).checkActivities(false);
         LogBufferManager.clearLogBuffer();
         HookStatus.clear();
@@ -204,6 +205,69 @@ public class OpenInAnotherAppTest {
         Settings.OPEN_IN_ANOTHER_APP.save(false);
 
         tap(menu);
+
+        assertNull(Shadows.shadowOf((Application) context).getNextStartedActivity());
+        assertEquals(0, ShadowToast.shownToastCount());
+    }
+
+    /** Records a player for [id] through the video patch's recorder, the way a feed video does. */
+    private static void played(String id, String hd) {
+        PlayerSources.rememberVideo(new PlayerSourcesForTests.Params(id,
+                new PlayerSourcesForTests.HdSource(hd, null)), "videoId", "hd", "manifest");
+    }
+
+    private void cast(String videoId) {
+        OpenInAnotherApp.cast(context, videoId);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+    }
+
+    @Test
+    public void castButtonHandsOverTheFileItsPlayerRecordedWithDownloadOff() {
+        Settings.DOWNLOAD_VIDEOS.save(false);
+        Settings.FEED_VIDEO_CAST_BUTTON.save(true);
+        played("2718281828459045", HD);
+
+        cast("2718281828459045");
+
+        Intent started = Shadows.shadowOf((Application) context).getNextStartedActivity();
+        assertNotNull("the cast button's switch alone records the player", started);
+        Intent view = started.getParcelableExtra(Intent.EXTRA_INTENT);
+        assertEquals(HD, view.getData().toString());
+        assertEquals(OpenInAnotherApp.VIDEO_TYPE, view.getType());
+    }
+
+    @Test
+    public void castButtonHandsOverOnlyThatVideosFile() {
+        Settings.FEED_VIDEO_CAST_BUTTON.save(true);
+        played("3141592653589793", HD);
+
+        cast("1414213562373095");
+
+        assertNull("another video's file never goes out", Shadows.shadowOf((Application) context).getNextStartedActivity());
+        assertEquals("Couldn't find a file for this video. Play it for a moment, then try again.",
+                ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test
+    public void castButtonWithItsSwitchOffDoesNothingAndRecordsNothing() {
+        Settings.DOWNLOAD_VIDEOS.save(false);
+        Settings.FEED_VIDEO_CAST_BUTTON.save(false);
+        played("1618033988749894", HD);
+        assertNull("both switches off, no player work", PlayerSources.byId("1618033988749894"));
+
+        cast("1618033988749894");
+
+        assertNull(Shadows.shadowOf((Application) context).getNextStartedActivity());
+        assertEquals(0, ShadowToast.shownToastCount());
+    }
+
+    @Test
+    public void castButtonPausedDoesNothing() {
+        Settings.FEED_VIDEO_CAST_BUTTON.save(true);
+        played("1732050807568877", HD);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+
+        cast("1732050807568877");
 
         assertNull(Shadows.shadowOf((Application) context).getNextStartedActivity());
         assertEquals(0, ShadowToast.shownToastCount());

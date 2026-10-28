@@ -188,7 +188,12 @@ final class VideoConvert {
         return us <= 0 ? 0 : bytes * 8L * 1000L / us;
     }
 
-    /** The encoder's format, naming {@code mode} only when it is one (MediaFormat.removeKey is API 29). */
+    /**
+     * The encoder's format, naming {@code mode} only when it is one (MediaFormat.removeKey is API 29).
+     * It names BT.709 limited range SDR, as {@link MusicVideo}'s encoder does: a surface encoder left
+     * to itself picks its own matrix and may leave the file untagged, and another app that reads the
+     * picture with a different matrix shifts its colors.
+     */
     static MediaFormat encoderFormat(int width, int height, int bitrate, int mode, int frameRate) {
         MediaFormat format = MediaFormat.createVideoFormat(AVC, width, height);
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
@@ -196,6 +201,9 @@ final class VideoConvert {
         if (mode >= 0) format.setInteger(MediaFormat.KEY_BITRATE_MODE, mode);
         format.setInteger(MediaFormat.KEY_FRAME_RATE, frameRate);
         format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, KEY_FRAME_EVERY_S);
+        format.setInteger(MediaFormat.KEY_COLOR_STANDARD, MediaFormat.COLOR_STANDARD_BT709);
+        format.setInteger(MediaFormat.KEY_COLOR_RANGE, MediaFormat.COLOR_RANGE_LIMITED);
+        format.setInteger(MediaFormat.KEY_COLOR_TRANSFER, MediaFormat.COLOR_TRANSFER_SDR_VIDEO);
         return format;
     }
 

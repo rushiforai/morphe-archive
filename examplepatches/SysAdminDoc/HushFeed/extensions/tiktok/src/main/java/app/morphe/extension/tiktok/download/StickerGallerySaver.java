@@ -516,6 +516,9 @@ public final class StickerGallerySaver {
                 if (refusal.reason == MediaBudget.StopException.Reason.SERVER_WAIT) {
                     return SaveResult.failure(L10n.t("The server asked us to wait. Try again later."));
                 }
+                if (refusal.reason == MediaBudget.StopException.Reason.NETWORK) {
+                    return SaveResult.failure(L10n.t("The save stopped when you left Wi-Fi. Save it again on Wi-Fi."));
+                }
                 if (refusal.reason == MediaBudget.StopException.Reason.CANCELLED) {
                     return SaveResult.failure(L10n.t("Save cancelled. Nothing was saved."));
                 }

@@ -44,17 +44,17 @@ public final class SoulHistoryActivity extends Activity {
         page.setOrientation(LinearLayout.VERTICAL);
         int pad = PdbUi.dp(this, 16);
         page.setPadding(pad, PdbUi.dp(this, 12), pad, 0);
-        page.setBackgroundColor(PdbUi.color(this, "bg", 0xFFFFFFFF));
+        page.setBackgroundColor(PdbUi.pageBg(this));
 
-        TextView title = PdbUi.text(this,
-            "Soul history", 22, "gray_01", 0xFF1C1C1E);
+        TextView title = PdbUi.text(this, "Soul history", 22,
+            null, PdbUi.mainText(this));
         title.setPadding(0, 0, 0, PdbUi.dp(this, 2));
         page.addView(title);
 
         TextView sub = PdbUi.text(this,
             "Local record \u00b7 newest first \u00b7 tap = profile \u00b7 "
                 + "long-press = copy id",
-            12, "gray_03", 0xFF8E8E93);
+            12, null, PdbUi.subText(this));
         sub.setPadding(0, 0, 0, PdbUi.dp(this, 6));
         page.addView(sub);
 
@@ -63,12 +63,12 @@ public final class SoulHistoryActivity extends Activity {
 
         java.util.List<PdbUi.SoulRow> rows = PdbUi.soulHistory();
         if (rows.isEmpty()) {
-            LinearLayout emptyCard = PdbUi.card(this);
+            LinearLayout emptyCard = PdbUi.themedCard(this);
             emptyCard.setPadding(PdbUi.dp(this, 16), PdbUi.dp(this, 16),
                 PdbUi.dp(this, 16), PdbUi.dp(this, 16));
             emptyCard.addView(PdbUi.text(this,
                 "No history yet \u2014 swipe the Soul feed and come back.",
-                14, "gray_02", 0xFF3A3A3C));
+                14, null, PdbUi.subText(this)));
             list.addView(emptyCard, PdbUi.cardParams(this));
         }
         int shown = 0;
@@ -87,7 +87,7 @@ public final class SoulHistoryActivity extends Activity {
 
     /** One card row: who + when, tap = profile, long-press = copy, Chat pill. */
     private View row(final PdbUi.SoulRow r) {
-        LinearLayout row = PdbUi.card(this);
+        LinearLayout row = PdbUi.themedCard(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
         int pad = PdbUi.dp(this, 14);
@@ -98,7 +98,7 @@ public final class SoulHistoryActivity extends Activity {
 
         TextView name = PdbUi.text(this,
             (r.action.equals("like") ? "\uD83E\uDDE1 " : "") + r.name,
-            15, "gray_01", 0xFF1C1C1E);
+            15, null, PdbUi.mainText(this));
         name.setTypeface(name.getTypeface(), r.action.equals("like")
             ? Typeface.BOLD : Typeface.NORMAL);
         textCol.addView(name);
@@ -106,7 +106,7 @@ public final class SoulHistoryActivity extends Activity {
         String when = android.text.format.DateUtils.getRelativeTimeSpanString(
             r.ts).toString();
         TextView meta = PdbUi.text(this,
-            "#" + r.id + "  \u00b7  " + when, 12, "gray_03", 0xFF8E8E93);
+            "#" + r.id + "  \u00b7  " + when, 12, null, PdbUi.subText(this));
         meta.setPadding(0, PdbUi.dp(this, 2), 0, 0);
         textCol.addView(meta);
 
@@ -123,7 +123,7 @@ public final class SoulHistoryActivity extends Activity {
         chat.setPadding(PdbUi.dp(this, 18), PdbUi.dp(this, 8),
             PdbUi.dp(this, 18), PdbUi.dp(this, 8));
         GradientDrawable pill = new GradientDrawable();
-        pill.setColor(PdbUi.color(this, "main", 0xFF6C5CE7));
+        pill.setColor(0xFF6C5CE7);
         pill.setCornerRadius(PdbUi.dp(this, 20));
         chat.setBackground(pill);
         chat.setOnClickListener(v -> PdbTools.openChat(this, r.id));

@@ -1005,6 +1005,9 @@ public final class MaterialYouTheme {
 
     /** Where the palette came from and how colourful its accent is. No colours: they follow the wallpaper. */
     static String reportLine(@Nullable TonePalette p) {
+        if (p != null && p.accentPicked) {
+            return (p.dynamic ? "wallpaper palette" : "Facebook's palette") + "; the Accent color row's accent in place of the phone's";
+        }
         if (p == null || !p.dynamic) return "Facebook's blue palette: no wallpaper palette before Android 12, or it couldn't be read";
         String chroma = String.format(Locale.US, "%.1f", p.accentChroma);
         return p.accentReplaced
@@ -1039,8 +1042,13 @@ public final class MaterialYouTheme {
     }
 
     static void reload(Context context) {
-        palette = TonePalette.of(context);
+        palette = phonePalette(context);
         publish();
+    }
+
+    /** The phone's palette, with the accent the Accent color row picked in place of the wallpaper's (#272). */
+    public static TonePalette phonePalette(Context context) {
+        return AccentColor.onWallpaper(TonePalette.of(context), AccentColor.pickedForMaterialYou());
     }
 
     /** Package-visible for tests: puts a palette in use and writes the route three fields from it. */

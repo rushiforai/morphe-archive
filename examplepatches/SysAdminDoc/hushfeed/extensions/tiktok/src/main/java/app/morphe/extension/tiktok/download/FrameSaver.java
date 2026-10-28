@@ -295,7 +295,7 @@ public final class FrameSaver {
      */
     static void publish(Context app, Bitmap frame, String name) {
         String path = DownloadsPatch.getPhotoDownloadPath();
-        MediaJobScheduler.Job job = MediaJobScheduler.submit(LABEL, null, () -> {
+        MediaJobScheduler.Job job = MediaJobScheduler.submitLocal(LABEL, null, () -> {
             File temp = null;
             try {
                 MediaBudget.checkDiskSpace(app.getCacheDir(), -1L);

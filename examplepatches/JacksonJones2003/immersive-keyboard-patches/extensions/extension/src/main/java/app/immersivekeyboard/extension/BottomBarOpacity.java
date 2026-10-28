@@ -97,6 +97,7 @@ public final class BottomBarOpacity {
             }
             state.drawBlur(inputView, canvas);
             state.drawGlassBehind(inputView, canvas);
+            state.fillBesideKeyboard(inputView, canvas);
             if (state.drawPanelsIntoStrip(inputView, canvas)) {
                 // The strip now shows the keyboard's own backgrounds; Gboard's plain fill
                 // would only cover them.
@@ -167,6 +168,11 @@ public final class BottomBarOpacity {
                         bottomRadius, bottomRadius, bottomRadius, bottomRadius},
                 Path.Direction.CW);
         return true;
+    }
+
+    /** Blur radius set in GboardWu's Frosted Glass settings, in pixels. */
+    static int frostedBlurRadiusPx(Context context) {
+        return FrostedGlass.read(context).blurRadiusPx;
     }
 
     private static int withAlpha(int color, int alpha) {
@@ -319,6 +325,9 @@ public final class BottomBarOpacity {
             lastRefresh = now;
             cachedFallback = fallback;
             settings = FrostedGlass.read(inputView.getContext());
+            FrostedFallback.ensure(inputView, settings.enabled, settings.blurRadiusPx,
+                    settings.customAlpha, settings.cornerRadiusDp
+                            * inputView.getResources().getDisplayMetrics().density);
             squareKeyboardBlur(inputView);
             keyboardTop = findKeyboardTop(inputView);
             keyboardHidden = isKeyboardHidden(inputView);
@@ -682,8 +691,13 @@ public final class BottomBarOpacity {
             float density = inputView.getResources().getDisplayMetrics().density;
             float stripTop = inputView.getHeight() - padding;
             List<View> panels = new ArrayList<>();
-            collectPanels(inputView, originX + inputView.getWidth() / 2f,
-                    originY + stripTop - 2f * density, inputView.getWidth() * 0.8f, panels);
+            float sampleX = originX + inputView.getWidth() / 2f;
+            float sampleY = originY + stripTop - 2f * density;
+            collectPanels(inputView, sampleX, sampleY, inputView.getWidth() * 0.8f, panels);
+            // Panels Gboard opens over the keyboard, like the toolbar's "more" menu, live
+            // outside InputView but are what sits just above the strip while they are open.
+            collectOverlayPanels(inputView.getRootView(), inputView, sampleX, sampleY,
+                    inputView.getWidth() * 0.8f, panels);
             if (panels.isEmpty()) {
                 return false;
             }
@@ -728,6 +742,35 @@ public final class BottomBarOpacity {
                     collectPanels(group.getChildAt(index), windowX, windowY, minWidth, out);
                 }
             }
+        }
+
+        /** Like collectPanels, but for the views outside InputView, which drew underneath. */
+        private void collectOverlayPanels(View view, View inputView, float windowX,
+                float windowY, float minWidth, List<View> out) {
+            if (view == inputView || view.getVisibility() != View.VISIBLE) {
+                return;
+            }
+            if (!isAncestor(view, inputView)) {
+                collectPanels(view, windowX, windowY, minWidth, out);
+                return;
+            }
+            if (view instanceof ViewGroup) {
+                ViewGroup group = (ViewGroup) view;
+                for (int index = 0; index < group.getChildCount(); index++) {
+                    collectOverlayPanels(group.getChildAt(index), inputView, windowX, windowY,
+                            minWidth, out);
+                }
+            }
+        }
+
+        private static boolean isAncestor(View ancestor, View view) {
+            for (ViewParent parent = view.getParent(); parent != null;
+                    parent = parent.getParent()) {
+                if (parent == ancestor) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /** Alpha of a view as drawn, including that of its parents up to InputView. */
@@ -1052,6 +1095,91 @@ public final class BottomBarOpacity {
             }
             GlassPanel.drawBehind(canvas, 0, topInInputView(inputView), inputView.getWidth(),
                     inputView.getHeight(), inputView.getResources().getDisplayMetrics().density);
+        }
+
+        /**
+         * In one-handed mode the keys shrink to one side and Gboard puts its side buttons in
+         * the space left over. That space has no panel behind it, so it shows the bare blur
+         * next to the tinted keyboard. Fills it with the keyboard's own tint, sampled from the
+         * toolbar and the keys beside it, within the glass's rounded top corners.
+         */
+        void fillBesideKeyboard(View inputView, Canvas canvas) {
+            if (keyboardTop == NO_TOP) {
+                return;
+            }
+            View holder = findByClass(inputView, ".KeyboardHolder");
+            if (holder == null || !(holder.getParent() instanceof View)) {
+                return;
+            }
+            View row = (View) holder.getParent();
+            if (holder.getWidth() >= row.getWidth() - 1) {
+                return;
+            }
+            inputView.getLocationInWindow(origin);
+            row.getLocationInWindow(location);
+            float rowLeft = location[0] - origin[0];
+            float rowRight = rowLeft + row.getWidth();
+            float bottom = location[1] - origin[1] + row.getHeight();
+            holder.getLocationInWindow(location);
+            float holderLeft = location[0] - origin[0];
+            float holderRight = holderLeft + holder.getWidth();
+            float sampleX = location[0] + holder.getWidth() / 2f;
+            float top = topInInputView(inputView);
+            float split = top;
+            int headerColor = 0;
+            View header = find(inputView, HEADER_AREA_TAG);
+            if (header != null && header.isShown() && header.getHeight() > 0) {
+                header.getLocationInWindow(location);
+                float headerBottom = location[1] - origin[1]
+                        + header.getHeight() * header.getScaleY();
+                if (headerBottom > top && headerBottom < bottom) {
+                    split = headerBottom;
+                    headerColor = sampleAt(inputView, sampleX, origin[1] + (top + split) / 2f);
+                }
+            }
+            int bodyColor = sampleAt(inputView, sampleX, origin[1] + (split + bottom) / 2f);
+            float radius = settings.cornerRadiusDp
+                    * inputView.getResources().getDisplayMetrics().density;
+            cornerPath.rewind();
+            cornerPath.addRoundRect(0, top, inputView.getWidth(), bottom,
+                    new float[]{radius, radius, radius, radius, 0, 0, 0, 0},
+                    Path.Direction.CW);
+            int save = canvas.save();
+            canvas.clipPath(cornerPath);
+            fillColumn(canvas, rowLeft, holderLeft, top, split, headerColor);
+            fillColumn(canvas, holderRight, rowRight, top, split, headerColor);
+            fillColumn(canvas, rowLeft, holderLeft, split, bottom, bodyColor);
+            fillColumn(canvas, holderRight, rowRight, split, bottom, bodyColor);
+            canvas.restoreToCount(save);
+        }
+
+        private void fillColumn(Canvas canvas, float left, float right, float top, float bottom,
+                int color) {
+            if (right - left < 1f || bottom - top < 1f || Color.alpha(color) == 0
+                    || Color.alpha(color) >= OPAQUE) {
+                return;
+            }
+            cornerPaint.setColor(color);
+            canvas.drawRect(left, top, right, bottom, cornerPaint);
+        }
+
+        private static View findByClass(View view, String suffix) {
+            if (view.getVisibility() != View.VISIBLE) {
+                return null;
+            }
+            if (view.getClass().getName().endsWith(suffix)) {
+                return view;
+            }
+            if (view instanceof ViewGroup) {
+                ViewGroup group = (ViewGroup) view;
+                for (int index = 0; index < group.getChildCount(); index++) {
+                    View found = findByClass(group.getChildAt(index), suffix);
+                    if (found != null) {
+                        return found;
+                    }
+                }
+            }
+            return null;
         }
 
         /** Glass Panel rim over the finished keyboard, when that patch is applied. */

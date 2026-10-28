@@ -29,7 +29,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * <p>The card comes off each section's item list through the walk every page filter shares
  * ({@link ReelSections}), the lists the screen reads, so it never reaches the viewer. While the
  * switch is on, every item the walk reads is counted on the report's Kinds line: a mid-card by its
- * type, anything else as {@link #NOT_A_MID_CARD}. So a report names any other card too.
+ * type, anything else as {@link #NOT_A_MID_CARD} followed by its class name. So a report names any
+ * other card too, and a photo card among the reels (#267) shows up as a class of its own.
  *
  * <p>Off, paused, before the settings are ready, or when anything fails, the page goes on as
  * Facebook sent it.
@@ -122,7 +123,8 @@ public final class ReelMidCards {
      * anything else. Never throws.
      */
     static String kindOf(@Nullable Object item, String midCardClass, Types types) {
-        if (item == null || !isOfClass(item, midCardClass)) return NOT_A_MID_CARD;
+        if (item == null) return NOT_A_MID_CARD;
+        if (!isOfClass(item, midCardClass)) return NOT_A_MID_CARD + " " + shortClassName(item);
 
         Object type;
         try {
@@ -139,6 +141,12 @@ public final class ReelMidCards {
 
         HookStatus.bound(FamilyNames.REEL_DECLUTTER, "mid-card type");
         return MID_CARD + ((Enum<?>) type).name();
+    }
+
+    /** [item]'s class name after its package, for example {@code 8bO} for {@code X.8bO}. */
+    static String shortClassName(Object item) {
+        String name = item.getClass().getName();
+        return name.substring(name.lastIndexOf('.') + 1);
     }
 
     /** Whether [item] is the class named [className] or extends it. */

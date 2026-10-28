@@ -1,3 +1,49 @@
+## [1.15.0](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.14.4...v1.15.0) (2026-10-27)
+
+### Kick
+
+#### ✨ New Features
+
+* add Lurk to Kick's account menu ([1029527](https://github.com/jordanwoodson/lurk-morphe-patches/commit/1029527f2ff18e41b1f5a59e6961ad0ddd0aaeae))
+
+### Twitch
+
+#### ✨ New Features
+
+* add a Lurk row to Twitch's Settings screen ([25e332d](https://github.com/jordanwoodson/lurk-morphe-patches/commit/25e332d8b04ec50bc820123e5aeafafd9ca31936))
+* add **Emote and badge info** ([edfbe95](https://github.com/jordanwoodson/lurk-morphe-patches/commit/edfbe95ec5684553b42d9098657a278c90473f4a))
+* add **Fill screen** ([e1c7972](https://github.com/jordanwoodson/lurk-morphe-patches/commit/e1c7972b3cff1ea6a68ab48ab1326d71671b3cbc))
+* **Chat appearance:** emote, badge and text sizes, message spacing ([ec946cc](https://github.com/jordanwoodson/lurk-morphe-patches/commit/ec946cc1995be80d2219a7284b794ef23871caa2))
+
+### Shared
+
+#### ✨ New Features
+
+* **settings:** open Lurk settings from App info and keep the shortcut on top ([166a1a8](https://github.com/jordanwoodson/lurk-morphe-patches/commit/166a1a8242514f61f77d50051559d1f7b6d8ebe8))
+
+## [1.15.0-dev.1](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.14.4...v1.15.0-dev.1) (2026-10-27)
+
+### Kick
+
+#### ✨ New Features
+
+* add Lurk to Kick's account menu ([1029527](https://github.com/jordanwoodson/lurk-morphe-patches/commit/1029527f2ff18e41b1f5a59e6961ad0ddd0aaeae))
+
+### Twitch
+
+#### ✨ New Features
+
+* add a Lurk row to Twitch's Settings screen ([25e332d](https://github.com/jordanwoodson/lurk-morphe-patches/commit/25e332d8b04ec50bc820123e5aeafafd9ca31936))
+* add **Emote and badge info** ([edfbe95](https://github.com/jordanwoodson/lurk-morphe-patches/commit/edfbe95ec5684553b42d9098657a278c90473f4a))
+* add **Fill screen** ([e1c7972](https://github.com/jordanwoodson/lurk-morphe-patches/commit/e1c7972b3cff1ea6a68ab48ab1326d71671b3cbc))
+* **Chat appearance:** emote, badge and text sizes, message spacing ([ec946cc](https://github.com/jordanwoodson/lurk-morphe-patches/commit/ec946cc1995be80d2219a7284b794ef23871caa2))
+
+### Shared
+
+#### ✨ New Features
+
+* **settings:** open Lurk settings from App info and keep the shortcut on top ([166a1a8](https://github.com/jordanwoodson/lurk-morphe-patches/commit/166a1a8242514f61f77d50051559d1f7b6d8ebe8))
+
 ## [1.14.4](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.14.3...v1.14.4) (2026-10-25)
 
 ### Kick

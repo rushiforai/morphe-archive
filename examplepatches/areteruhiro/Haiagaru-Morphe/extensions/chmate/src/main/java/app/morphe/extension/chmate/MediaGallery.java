@@ -29,5 +29,10 @@ final class MediaGallery {
     static int step(float dx,float dy,float threshold) {
         return Math.abs(dx)>=threshold&&Math.abs(dx)>Math.abs(dy)*1.5f?(dx<0?1:-1):0;
     }
+    static int threadStep(float dx,float dy,float threshold) {
+        int horizontal=step(dx,dy,threshold);
+        if(horizontal!=0)return horizontal;
+        return Math.abs(dy)>=threshold&&Math.abs(dy)>Math.abs(dx)*1.5f?(dy<0?1:-1):0;
+    }
     private MediaGallery(){}
 }

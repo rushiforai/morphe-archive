@@ -131,4 +131,13 @@ public class VideoConvertTest {
         assertEquals(30, plain.getInteger(MediaFormat.KEY_FRAME_RATE));
         assertEquals("in the encoder's own mode", VideoConvert.modeName(-1));
     }
+
+    /** The H.264 file is tagged BT.709 limited range SDR, so a phone's own encoder can't pick another matrix. */
+    @Test
+    public void theEncoderNamesItsColors() {
+        MediaFormat format = VideoConvert.encoderFormat(1080, 1920, 12_000_000, -1, 30);
+        assertEquals(MediaFormat.COLOR_STANDARD_BT709, format.getInteger(MediaFormat.KEY_COLOR_STANDARD));
+        assertEquals(MediaFormat.COLOR_RANGE_LIMITED, format.getInteger(MediaFormat.KEY_COLOR_RANGE));
+        assertEquals(MediaFormat.COLOR_TRANSFER_SDR_VIDEO, format.getInteger(MediaFormat.KEY_COLOR_TRANSFER));
+    }
 }

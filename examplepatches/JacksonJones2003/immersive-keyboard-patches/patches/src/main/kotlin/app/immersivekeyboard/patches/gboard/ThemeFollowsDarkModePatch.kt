@@ -14,12 +14,15 @@ val themeFollowsDarkModePatch = bytecodePatch(
     name = "Theme Follows Dark Mode",
     description = "Adds a \"Light & dark pair\" menu to the top of Gboard's Themes screen. " +
         "Choose a theme for light mode and one for dark mode, and the keyboard switches " +
-        "between them when the system dark mode changes.",
+        "between them when the system dark mode changes. It can switch the wallpaper " +
+        "between a light and a dark image too.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
 
     extendWith("extensions/extension.mpe")
+
+    dependsOn(wallpaperPermissionPatch)
 
     execute {
         // The parameter registers are reused right after the super call, so hook directly

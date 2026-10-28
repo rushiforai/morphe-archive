@@ -732,8 +732,9 @@ public final class GlassTabBar {
         try {
             if (!Utils.settingsReady()) return;
             if (!Settings.GLASS_TAB_BAR.get()) {
-                // Instagram's own bar can still slide across its tabs (#201).
+                // Instagram's own bar can still slide across its tabs (#201) and hide as you scroll (#343).
                 PlainTabSlide.apply(activity);
+                PlainScrollHide.apply(activity);
                 return;
             }
             View found = find(activity.getWindow().getDecorView(), TAB_BAR);
@@ -1130,6 +1131,7 @@ public final class GlassTabBar {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.GLASS_TAB_BAR, "restore", failure);
         }
+        PlainScrollHide.restoreAll();
     }
 
     /**

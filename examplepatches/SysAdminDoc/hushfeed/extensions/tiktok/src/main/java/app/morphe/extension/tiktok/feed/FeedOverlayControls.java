@@ -52,6 +52,17 @@ public final class FeedOverlayControls {
         return hide;
     }
 
+    /**
+     * Whether the Following tab's LIVE and stories row may open (#262). Asked with TikTok's own
+     * isShow at the top of the row's toggle, so false is the fold TikTok does when the row has
+     * nothing in it, and with the switch off TikTok's answer comes back untouched.
+     */
+    public static boolean skylightShown(boolean show) {
+        boolean hide = Settings.HIDE_FOLLOWING_LIVE_ROW.get();
+        if (show) HookStatus.bound("following live row", hide ? "row kept folded" : "row left");
+        return show && !hide;
+    }
+
     private static void bind(View view, BooleanSetting setting, boolean location, String name) {
         if (view == null) return;
         HookStatus.bound(name, "native control bind");

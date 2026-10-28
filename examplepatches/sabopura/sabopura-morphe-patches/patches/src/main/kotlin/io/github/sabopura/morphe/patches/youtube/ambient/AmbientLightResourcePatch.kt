@@ -56,6 +56,15 @@ private val englishStrings = linkedMapOf(
     "ambient_smoothing_title" to "Smoothing (flicker reduction)",
     "ambient_energy_saver_title" to "Save energy",
     "ambient_energy_saver_summary" to "Stop updating while paused or buffering and on still pictures",
+    "ambient_effects_title" to "How the light looks",
+    "ambient_picture_backdrop_title" to "Show the video behind the page",
+    "ambient_picture_backdrop_summary" to "Instead of a soft coloured glow, the page background shows the video itself, blurred as if seen through frosted glass",
+    "ambient_falloff_title" to "Darker towards the bottom",
+    "ambient_falloff_summary" to "The light is brightest just below the player and gets darker towards the bottom of the screen, as if it spilled out of the video",
+    "ambient_scene_wave_title" to "Spread the light on scene changes",
+    "ambient_scene_wave_summary" to "When the scene in the video changes, the new colours spread out from the player across the screen like a wave",
+    "ambient_breathe_title" to "Pulse slowly while paused",
+    "ambient_breathe_summary" to "While the video is paused, the light slowly gets brighter and dimmer. Uses a little more battery",
     "ambient_reset_title" to "Reset to defaults",
     "ambient_reset_summary" to "Restore every ambient light setting",
 )
@@ -99,6 +108,15 @@ private val japaneseStrings = linkedMapOf(
     "ambient_smoothing_title" to "なめらかさ（ちらつき軽減）",
     "ambient_energy_saver_title" to "省電力",
     "ambient_energy_saver_summary" to "一時停止・読み込み中や静止画では更新を止めます",
+    "ambient_effects_title" to "光の見せ方",
+    "ambient_picture_backdrop_title" to "背景に動画の映像を映す",
+    "ambient_picture_backdrop_summary" to "背景を、ぼんやりした色の光ではなく、動画の映像そのものをすりガラス越しに見たような表示にします",
+    "ambient_falloff_title" to "画面の下に行くほど暗くする",
+    "ambient_falloff_summary" to "プレーヤーのすぐ下がいちばん明るく、画面の下に向かってだんだん暗くなります。動画から光がこぼれているように見えます",
+    "ambient_scene_wave_title" to "場面が変わったら光を広げる",
+    "ambient_scene_wave_summary" to "動画の場面が切り替わったとき、新しい色の光がプレーヤーから波のように画面全体へ広がります",
+    "ambient_breathe_title" to "一時停止中は光をゆっくり明滅させる",
+    "ambient_breathe_summary" to "動画を止めている間、光がゆっくり明るくなったり暗くなったりします。電池を少し多く使います",
     "ambient_reset_title" to "初期設定に戻す",
     "ambient_reset_summary" to "アンビエントライトの設定をすべて初期値に戻します",
 )
@@ -109,6 +127,24 @@ private const val MAIN_PREFERENCES_XML = """<?xml version="1.0" encoding="utf-8"
         android:title="@string/ambient_enabled_title"
         android:summary="@string/ambient_enabled_summary"
         android:defaultValue="true" />
+    <PreferenceCategory android:title="@string/ambient_effects_title">
+        <SwitchPreference android:key="ambient_picture_backdrop"
+            android:title="@string/ambient_picture_backdrop_title"
+            android:summary="@string/ambient_picture_backdrop_summary"
+            android:defaultValue="false" android:dependency="ambient_enabled" />
+        <SwitchPreference android:key="ambient_falloff"
+            android:title="@string/ambient_falloff_title"
+            android:summary="@string/ambient_falloff_summary"
+            android:defaultValue="false" android:dependency="ambient_enabled" />
+        <SwitchPreference android:key="ambient_scene_wave"
+            android:title="@string/ambient_scene_wave_title"
+            android:summary="@string/ambient_scene_wave_summary"
+            android:defaultValue="false" android:dependency="ambient_enabled" />
+        <SwitchPreference android:key="ambient_breathe"
+            android:title="@string/ambient_breathe_title"
+            android:summary="@string/ambient_breathe_summary"
+            android:defaultValue="true" android:dependency="ambient_enabled" />
+    </PreferenceCategory>
     <Preference android:key="ambient_advanced"
         android:title="@string/ambient_advanced_title"
         android:summary="@string/ambient_advanced_summary"

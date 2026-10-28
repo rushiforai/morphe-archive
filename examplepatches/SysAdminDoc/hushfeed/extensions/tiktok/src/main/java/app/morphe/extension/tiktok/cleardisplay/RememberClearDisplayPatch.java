@@ -117,6 +117,20 @@ public final class RememberClearDisplayPatch {
      */
     private static WeakReference<Object> frontPage = new WeakReference<>(null);
     private static WeakReference<Object> stateOn = new WeakReference<>(null);
+    /**
+     * The video page opened last, until a clear lands on it, it goes, or {@link #PAGE_LIMIT_MS}
+     * passes. Leaving a cleared video page posts no exit, so the live state still says cleared as
+     * the next one opens, and with the clear carried TikTok's top bar on that page showed over its
+     * first frames until their state was taken (Favorites, S22 2026-10-27, #84).
+     */
+    private static WeakReference<Object> unclearedPage = new WeakReference<>(null);
+    private static volatile boolean pageUncleared;
+    private static final Runnable END_PAGE_HOLD = () -> {
+        if (!pageUncleared) return;
+        pageUncleared = false;
+        unclearedPage.clear();
+        VideoOverlayHider.refresh();
+    };
     private static final Runnable END_START = () -> {
         if (!starting) return;
         starting = false;
@@ -360,6 +374,7 @@ public final class RememberClearDisplayPatch {
         starting = true;
         startLimitArmed = false;
         MAIN.removeCallbacks(END_START);
+        endPageHold();
         openedPage.clear();
         frontPage.clear();
         stateOn.clear();
@@ -429,6 +444,10 @@ public final class RememberClearDisplayPatch {
      */
     public static void onPageOpened(Object page) {
         if (page != null && !(page instanceof Activity)) frontPage = new WeakReference<>(page);
+        unclearedPage = new WeakReference<>(page);
+        pageUncleared = true;
+        MAIN.removeCallbacks(END_PAGE_HOLD);
+        MAIN.postDelayed(END_PAGE_HOLD, PAGE_LIMIT_MS);
         if (carrying) return;
         Logger.printDebug(() -> "Clear display: video page opened, "
                 + (page instanceof Activity ? "its own window" : "in the main window"));
@@ -448,9 +467,24 @@ public final class RememberClearDisplayPatch {
     public static void onPageLeft(Object page) {
         // Back on it without a new view (a profile opened over it), it is the same viewer.
         if (page != null && frontPage.get() == page) frontPage.clear();
+        if (page != null && unclearedPage.get() == page) endPageHold();
         if (page == null || openedPage.get() != page) return;
         openedPage.clear();
         END_START.run();
+    }
+
+    /**
+     * Whether the video page opened last hasn't had a clear land on it yet. The live state can't
+     * say: it may still be the last page's, which ended with no exit.
+     */
+    public static boolean isPageUncleared() {
+        return pageUncleared;
+    }
+
+    private static void endPageHold() {
+        MAIN.removeCallbacks(END_PAGE_HOLD);
+        pageUncleared = false;
+        unclearedPage.clear();
     }
 
     private static void setCarrying(boolean carry) {
@@ -467,6 +501,7 @@ public final class RememberClearDisplayPatch {
             boolean accepted = event.accept(clear);
             if (dispatch != generation) return false;
             if (clear && !accepted) return false;
+            if (clear) endPageHold();
             if (clearNow != clear) {
                 clearNow = clear;
                 MAIN.post(VideoOverlayHider::refresh);
@@ -508,6 +543,7 @@ public final class RememberClearDisplayPatch {
         Logger.printDebug(() -> "Clear display event: type " + type + ", clear " + clear
                 + (event == nativeEvent ? ", posted by Hushfeed" : ""));
         if (event == nativeEvent) return;
+        if ((Boolean) clear) endPageHold();
         if (clearNow != (Boolean) clear) {
             clearNow = (Boolean) clear;
             MAIN.post(VideoOverlayHider::refresh);

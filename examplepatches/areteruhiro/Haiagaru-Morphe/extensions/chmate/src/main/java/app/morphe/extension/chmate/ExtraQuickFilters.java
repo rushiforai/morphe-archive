@@ -659,13 +659,16 @@ public final class ExtraQuickFilters {
     static ArrayList<String> threadMedia(Context context,String selected) {
         while(context instanceof android.content.ContextWrapper&&!(context instanceof Activity))
             context=((android.content.ContextWrapper)context).getBaseContext();
-        if(!(context instanceof Activity))return null;
+        Context source=context;
         ArrayList<String> found=null;
         for(WeakReference<Object> reference:new ArrayList<>(OWNERS))try{
-            Object fragment=reference.get();if(fragment==null||call(fragment,"getActivity",new Class<?>[0])!=context)continue;
+            Object fragment=reference.get();if(fragment==null)continue;
+            Object owner=call(fragment,"getActivity",new Class<?>[0]);
+            if(!(owner instanceof Activity)||((Activity)owner).isFinishing())continue;
+            if(source instanceof Activity?owner!=source:((Activity)owner).getApplicationContext()!=source.getApplicationContext())continue;
             View root=(View)call(fragment,"getView",new Class<?>[0]);
             android.graphics.Rect visible=new android.graphics.Rect();
-            if(root==null||!root.isShown()||!root.hasWindowFocus()||!root.getGlobalVisibleRect(visible)||visible.isEmpty())continue;
+            if(root==null||!root.isShown()||(!(source instanceof Activity)&&!root.hasWindowFocus())||!root.getGlobalVisibleRect(visible)||visible.isEmpty())continue;
             Object a=adapter(fragment),idx=index(a);
             Method flags=idx.getClass().getMethod(legacy(a)?"d":middle(a)?"a":"b",int.class);flags.setAccessible(true);
             List<?> rows=PopularReplies.fullList(field(a,legacy(a)?"K":middle(a)?"J":"o"));

@@ -165,6 +165,11 @@ public class InputTextPreference extends EditTextPreference {
         return this;
     }
 
+    /** Builds the summary again, for a note whose answer moved without the value changing. */
+    public void refreshSummary() {
+        rebuildSummary();
+    }
+
     @Override
     public void setText(String text) {
         super.setText(text);

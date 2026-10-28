@@ -86,6 +86,32 @@ public class FeedOverlayControlsTest {
         }
     }
 
+    /**
+     * Issue #262: the Following tab's LIVE row is kept folded only by its own switch. A fold
+     * TikTok asked for stays a fold, and Pause hands TikTok's answer back.
+     */
+    @Test public void theFollowingLiveRowIsFoldedOnlyByItsOwnSwitchAndHonoursPause() {
+        try {
+            assertEquals(Boolean.FALSE, Settings.HIDE_FOLLOWING_LIVE_ROW.defaultValue);
+            Settings.HIDE_FOOTNOTES.save(true);
+            assertTrue("another overlay switch folded the row", FeedOverlayControls.skylightShown(true));
+            assertFalse(FeedOverlayControls.skylightShown(false));
+            Settings.HIDE_FOOTNOTES.save(false);
+            Settings.HIDE_FOLLOWING_LIVE_ROW.save(true);
+            assertFalse(FeedOverlayControls.skylightShown(true));
+            assertFalse(FeedOverlayControls.skylightShown(false));
+            PausedProcess.set(true);
+            assertTrue("a paused Hushfeed still folded the row", FeedOverlayControls.skylightShown(true));
+            PausedProcess.set(false);
+            assertTrue(String.join(" ", HookStatus.report()).contains("following live row"));
+        } finally {
+            PausedProcess.set(false);
+            HookStatus.clear();
+            Settings.HIDE_FOLLOWING_LIVE_ROW.resetToDefault();
+            Settings.HIDE_FOOTNOTES.resetToDefault();
+        }
+    }
+
     @Test public void fullscreenOnlyHidesItsDedicatedRootAndKeepsNativeClickOnRestore() {
         try(Fixture f=new Fixture()) {
             int[] clicks={0};

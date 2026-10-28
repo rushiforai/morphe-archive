@@ -18,6 +18,8 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.buildName
+import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.patches.tiktok.shared.guardAtEntry
 import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -185,6 +187,29 @@ val downloadsPatch = bytecodePatch(
                 return v0
             """,
         )
+
+        // The Share to sheet after a save made by TikTok's own downloader. Required where
+        // PostDownloadShareSheetAnchorsTest holds the show method, left out with a note anywhere
+        // else. Leaving at its entry means the sheet is never built and For You's auto scroll is
+        // never paused for it; the share button and the Downloaded notice are other code.
+        val postDownloadSheet = try {
+            PostDownloadShareSheetFingerprint.method
+        } catch (problem: Exception) {
+            if (packageMetadata.buildName in declaredVersions()) throw problem
+            println("[Downloads] Left out the post-download Share to sheet on ${packageMetadata.buildName}: ${problem.message}")
+            null
+        }
+        if (postDownloadSheet != null) {
+            postDownloadSheet.guardAtEntry(
+                "Downloads",
+                "invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->skipPostDownloadShareSheet()Z",
+                "return-void",
+            )
+            SettingsStatusLoadFingerprint.method.addInstruction(
+                0,
+                "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enablePostDownloadShareSheet()V",
+            )
+        }
 
         AwemeGetVideoFingerprint.method.apply {
             // Every return, not only the last one written. The indices come back highest first,

@@ -28,6 +28,7 @@ public final class AmbientLightController {
     private static final String PAGE_TAG = "sabopura_ambient_page_glow";
     private static final int MAX_ANCESTOR_LEVELS = 8;
     private static final long INSTALL_CHECK_INTERVAL_MS = 1_000L;
+    private static final long HIDDEN_CHECK_INTERVAL_MS = 5_000L;
 
     private static final Handler mainHandler = new Handler(Looper.getMainLooper());
     private static WeakReference<ViewGroup> controlsRef = new WeakReference<>(null);
@@ -37,7 +38,7 @@ public final class AmbientLightController {
     private static int retryCount;
 
     /** Bumped with every bundle release so the settings screen can prove what is installed. */
-    static final String BUILD_VERSION = "1.8.1";
+    static final String BUILD_VERSION = "1.9.0";
     /** 1 = last capture succeeded, 0 = none yet, negative = failing (PixelCopy code). */
     static volatile int statusCapture;
     /** How the page light was drawn most recently. */
@@ -253,6 +254,11 @@ public final class AmbientLightController {
         @Override public void run() {
             ViewGroup controls = controlsRef.get();
             if (controls == null || !controls.isAttachedToWindow()) return;
+            if (!controls.isShown()) {
+                // Background playback or a covered player: check back now and then.
+                mainHandler.postDelayed(this, HIDDEN_CHECK_INTERVAL_MS);
+                return;
+            }
             ensureInstalled();
             AmbientLightView view = viewRef.get();
             if (view != null) view.onPlaybackTick();
@@ -267,6 +273,9 @@ public final class AmbientLightController {
         if (view != null) view.onPlaybackTick();
         if (now - lastInstallCheckMs >= INSTALL_CHECK_INTERVAL_MS) {
             lastInstallCheckMs = now;
+            ViewGroup controls = controlsRef.get();
+            // Media time keeps arriving during background playback; nothing to install then.
+            if (controls != null && !controls.isShown()) return;
             mainHandler.post(AmbientLightController::ensureInstalled);
             // Restart the maintenance timer if the player was rebuilt without attach().
             mainHandler.removeCallbacks(maintenance);
@@ -334,8 +343,13 @@ public final class AmbientLightController {
                 }
             } else {
                 int currentIndex = container.indexOfChild(view);
-                int branchIndex = container.indexOfChild(videoBranch);
-                if (currentIndex != branchIndex + 1) {
+                int expectedIndex = container.indexOfChild(videoBranch) + 1;
+                // The bars' light surfaces sit between the video and this layer.
+                while (expectedIndex < currentIndex
+                        && Views.isOwnSurface(container.getChildAt(expectedIndex))) {
+                    expectedIndex++;
+                }
+                if (currentIndex != expectedIndex) {
                     // Keep the layer directly above the video even if YouTube reorders.
                     container.removeView(view);
                     container.addView(view, Math.min(container.indexOfChild(videoBranch) + 1,

@@ -180,6 +180,8 @@ public final class SlideshowVideo {
                 if (saved[0] == null) {
                     Utils.showToastLong(outcome.stop == SaveProgress.Stop.SERVER_WAIT
                             ? SaveProgress.message(outcome, "")
+                            : outcome.stop == SaveProgress.Stop.NETWORK
+                            ? L10n.t("The save stopped when you left Wi-Fi. Save it again on Wi-Fi.")
                             : L10n.t("The video couldn't be made from these photos. Try again."));
                 } else {
                     if (checkSaved) SavedVideoArchive.rememberQuietly(app, id, saved[0], archiveGeneration);

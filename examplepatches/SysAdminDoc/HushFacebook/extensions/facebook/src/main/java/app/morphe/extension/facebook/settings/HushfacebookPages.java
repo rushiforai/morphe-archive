@@ -13,6 +13,7 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.category;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.info;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.mark;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.subheading;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.accentRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.textSizeRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.toggle;
@@ -51,8 +52,8 @@ import app.morphe.extension.shared.settings.preference.ClearLogBufferPreference;
 import app.morphe.extension.shared.settings.preference.ExportDiagnosticReportPreference;
 
 /**
- * The category pages about Hushfacebook itself: Updates, Appearance, Set when you patched, Pause,
- * backup and diagnostics, and About. Each method adds its section to the page
+ * The category pages about Hushfacebook itself: Updates, Tabs and navigation, Appearance, Built-in
+ * changes, Pause, backup and diagnostics, and About. Each method adds its section to the page
  * {@link HushfacebookPreferenceFragment#initialize} builds, and leaves it out when the build has none of
  * its patches, but for the sections every build has.
  */
@@ -79,16 +80,78 @@ final class HushfacebookPages {
         ReleaseCheck.watch(page);
     }
 
-    /** Appearance, in every build for Text size: the font, the emoji, where the tab bar goes, dark mode, haptics, screen transitions and the app icons. */
+    /**
+     * Tabs and navigation: where the tab bar goes and what it does as you scroll, the top bar's
+     * buttons, the tabs to hide and the dots on them. Left out when the build has none of them.
+     */
+    static void tabs(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
+            Set<PatchFamily> build) {
+        if (!build.contains(PatchFamily.BOTTOM_TAB_BAR) && !build.contains(PatchFamily.HIDDEN_TABS)
+                && !build.contains(PatchFamily.TAB_BADGES)) {
+            return;
+        }
+        PreferenceCategory tabs = category(screen, L10n.t("Tabs and navigation"));
+        if (build.contains(PatchFamily.BOTTOM_TAB_BAR)) {
+            subheading(tabs, L10n.t("Tab bar"));
+            // Facebook places the tab bar, and adds it to the views that scroll away, as its main
+            // screen starts, so both choices wait for a restart. Each row saves its two switches.
+            tabs.addPreference(TabBarChoices.row(page, context, TabBarChoices.Pair.POSITION));
+            tabs.addPreference(TabBarChoices.row(page, context, TabBarChoices.Pair.SCROLLING));
+            // Facebook decides on its big screen layout as its main screen starts, so a change waits for a restart.
+            tabs.addPreference(toggle(context, Settings.PHONE_LAYOUT_ON_BIG_SCREENS,
+                    L10n.t("A tablet or an unfolded phone gets the layout Facebook uses on a phone, so the tab bar choices "
+                            + "above work on the big screen too. Facebook's wider big screen layout goes away. Off by "
+                            + "default, since it hasn't been tried on a big screen yet. Restart Facebook to see the "
+                            + "change.")));
+            subheading(tabs, L10n.t("Top bar"));
+            // Asked each time Facebook moves the top bar, so it takes effect on the next scroll.
+            tabs.addPreference(toggle(context, Settings.KEEP_TOP_BAR,
+                    L10n.t("The top bar with search and Messenger stays put while you scroll down, instead of sliding away.")));
+            // Facebook builds the top bar as the main screen starts, so these two wait for a restart.
+            tabs.addPreference(toggle(context, Settings.HIDE_MESSENGER_BUTTON,
+                    L10n.t("Takes the Messenger button out of the top bar, and the buttons beside it close up the gap. "
+                            + "Restart Facebook to see the change.")));
+            // The count is set each time Facebook updates it, so a change shows with the next count.
+            tabs.addPreference(toggle(context, Settings.HIDE_MESSENGER_COUNT,
+                    L10n.t("Keeps the Messenger button but drops the unread count on it.")));
+            tabs.addPreference(toggle(context, Settings.HIDE_FACEBOOK_LOGO,
+                    L10n.t("Hides the Facebook logo in the top bar. The empty spot is the same size and still opens "
+                            + "Hushfacebook settings when you press and hold it. Restart Facebook to see the change.")));
+            tabs.addPreference(toggle(context, Settings.HIDE_CREATE_BUTTON,
+                    L10n.t("Takes the + button for making a post, reel or story out of the top bar. "
+                            + "Restart Facebook to see the change.")));
+        }
+        if (build.contains(PatchFamily.HIDDEN_TABS)) {
+            subheading(tabs, L10n.t("Tabs to hide"));
+            // Facebook builds the tab bar once, so a change waits for a restart.
+            for (HiddenTabs.Tab tab : HiddenTabs.Tab.values()) {
+                tabs.addPreference(toggle(context, tab.setting(),
+                        L10n.t("Removes this tab from the tab bar. Its page is still in the Menu. Restart Facebook to see the "
+                                + "change.")));
+            }
+        }
+        if (build.contains(PatchFamily.TAB_BADGES)) {
+            subheading(tabs, L10n.t("Dots and counts"));
+            // The tab bar asks for each tab's count as it changes, so a change shows the next time it asks.
+            for (TabBadges.Tab tab : TabBadges.Tab.values()) {
+                tabs.addPreference(toggle(context, tab.setting(), tab == TabBadges.Tab.OTHER
+                        ? L10n.t("No dot or count on Feeds, Gaming, Events and the other tabs not listed here. "
+                                + "The Reels tab has its own switch.")
+                        : L10n.t("No dot or count on this tab. Its page still shows what's new when you open it.")));
+            }
+            tabs.addPreference(toggle(context, Settings.HIDE_APP_ICON_COUNT,
+                    L10n.t("No number on Facebook's app icon. Notifications still arrive. Some launchers add their own count, "
+                            + "which this can't remove.")));
+        }
+    }
+
+    /** Appearance, in every build for Text size: the font, the emoji, the colors, the bars, motion and the app icons. */
     static void appearance(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
         PreferenceCategory appearance = category(screen, L10n.t("Appearance"));
+        subheading(appearance, L10n.t("Text and emoji"));
         // The settings entry's own, so every build has it. 100% is Facebook as it ships.
         appearance.addPreference(textSizeRow(context));
-        if (build.contains(PatchFamily.ACCENT_COLOR)) {
-            // Colours Facebook asks for as each screen builds, so a change shows fully after a restart.
-            appearance.addPreference(accentRow(context, build.contains(PatchFamily.MATERIAL_YOU_THEME)));
-        }
         if (build.contains(PatchFamily.SYSTEM_FONT)) {
             appearance.addPreference(toggle(context, Settings.USE_SYSTEM_FONT,
                     L10n.t("Draws Facebook's text in your phone's font, or in a font file you choose below. Restart Facebook to "
@@ -108,82 +171,15 @@ final class HushfacebookPages {
                     L10n.t("Shows your phone's own emoji instead of Facebook's. Reactions and stickers don't change. Restart "
                             + "Facebook to see the change.")));
         }
-        if (build.contains(PatchFamily.BOTTOM_TAB_BAR)) {
-            // Facebook places the tab bar as its main screen starts, so a change waits for a restart.
-            appearance.addPreference(toggle(context, Settings.BOTTOM_TAB_BAR,
-                    L10n.t("Moves Facebook's tab bar to the bottom, within thumb reach, on accounts that show it at the top. "
-                            + "Restart Facebook to see the change.")));
-            // Same override answered the other way; the bottom switch wins, so this one greys out under it.
-            appearance.addPreference(toggle(context, Settings.TOP_TAB_BAR,
-                    L10n.t("Moves Facebook's tab bar to the top, under the search row, as older Facebook had it. Restart "
-                            + "Facebook to see the change.")).needsOff(Settings.BOTTOM_TAB_BAR));
-            // Facebook adds the bar to the views that scroll away as its main screen starts.
-            appearance.addPreference(toggle(context, Settings.TAB_BAR_SCROLL_AWAY,
-                    L10n.t("The bottom tab bar hides as you scroll down and returns when you scroll up, for more room. Restart "
-                            + "Facebook to see the change.")));
-            // Same check as the switch above, answered no; that switch wins, so this one greys out under it.
-            appearance.addPreference(toggle(context, Settings.KEEP_TAB_BAR,
-                    L10n.t("The bottom tab bar stays put while you scroll, on accounts where Facebook slides it away. Restart "
-                            + "Facebook to see the change.")).needsOff(Settings.TAB_BAR_SCROLL_AWAY));
-            // Asked each time Facebook moves the top bar, so it takes effect on the next scroll.
-            appearance.addPreference(toggle(context, Settings.KEEP_TOP_BAR,
-                    L10n.t("The top bar with search and Messenger stays put while you scroll down, instead of sliding away.")));
-            // Facebook decides on its big screen layout as its main screen starts, so a change waits for a restart.
-            appearance.addPreference(toggle(context, Settings.PHONE_LAYOUT_ON_BIG_SCREENS,
-                    L10n.t("A tablet or an unfolded phone gets the layout Facebook uses on a phone, so the tab bar switches "
-                            + "above work on the big screen too. Facebook's wider big screen layout goes away. Off by "
-                            + "default, since it hasn't been tried on a big screen yet. Restart Facebook to see the "
-                            + "change.")));
-            // Asked as each frame of the main screen draws, so a change shows right away.
-            appearance.addPreference(toggle(context, Settings.TRANSLUCENT_BARS,
-                    L10n.t("The top bar and the tab bar turn see-through, so the feed shows through them as you scroll. "
-                            + "On Android 12 and newer the feed behind them is blurred.")));
-            // Asked as the main screen gets its focus back, so a change shows when these settings close.
-            appearance.addPreference(toggle(context, Settings.HIDE_STATUS_BAR,
-                    L10n.t("Takes the phone's status bar, with the time and battery, off Facebook's main screen, so "
-                            + "the app gets the whole screen. Swipe down from the top edge to see it for a moment.")));
-            // Facebook builds the top bar as the main screen starts, so these two wait for a restart.
-            appearance.addPreference(toggle(context, Settings.HIDE_MESSENGER_BUTTON,
-                    L10n.t("Takes the Messenger button out of the top bar, and the buttons beside it close up the gap. "
-                            + "Restart Facebook to see the change.")));
-            // The count is set each time Facebook updates it, so a change shows with the next count.
-            appearance.addPreference(toggle(context, Settings.HIDE_MESSENGER_COUNT,
-                    L10n.t("Keeps the Messenger button but drops the unread count on it.")));
-            appearance.addPreference(toggle(context, Settings.HIDE_FACEBOOK_LOGO,
-                    L10n.t("Hides the Facebook logo in the top bar. The empty spot is the same size and still opens "
-                            + "Hushfacebook settings when you press and hold it. Restart Facebook to see the change.")));
-            appearance.addPreference(toggle(context, Settings.HIDE_CREATE_BUTTON,
-                    L10n.t("Takes the + button for making a post, reel or story out of the top bar. "
-                            + "Restart Facebook to see the change.")));
+        subheading(appearance, L10n.t("Colors and theme"));
+        if (build.contains(PatchFamily.ACCENT_COLOR)) {
+            // Colours Facebook asks for as each screen builds, so a change shows fully after a restart.
+            appearance.addPreference(accentRow(context, build.contains(PatchFamily.MATERIAL_YOU_THEME)));
         }
-        if (build.contains(PatchFamily.HIDDEN_TABS)) {
-            // Facebook builds the tab bar once, so a change waits for a restart.
-            for (HiddenTabs.Tab tab : HiddenTabs.Tab.values()) {
-                appearance.addPreference(toggle(context, tab.setting(),
-                        L10n.t("Removes this tab from the tab bar. Its page is still in the Menu. Restart Facebook to see the "
-                                + "change.")));
-            }
-        }
-        if (build.contains(PatchFamily.TAB_BADGES)) {
-            // The tab bar asks for each tab's count as it changes, so a change shows the next time it asks.
-            for (TabBadges.Tab tab : TabBadges.Tab.values()) {
-                appearance.addPreference(toggle(context, tab.setting(), tab == TabBadges.Tab.OTHER
-                        ? L10n.t("No dot or count on Feeds, Gaming, Events and the other tabs not listed here. "
-                                + "The Reels tab has its own switch.")
-                        : L10n.t("No dot or count on this tab. Its page still shows what's new when you open it.")));
-            }
-            appearance.addPreference(toggle(context, Settings.HIDE_APP_ICON_COUNT,
-                    L10n.t("No number on Facebook's app icon. Notifications still arrive. Some launchers add their own count, "
-                            + "which this can't remove.")));
-        }
-        if (build.contains(PatchFamily.CARRIER_BANNERS)) {
-            // Asked each time Facebook shows its carrier banner, which it does as screens open and the mode changes.
-            appearance.addPreference(toggle(context, Settings.HIDE_DATA_MODE_BANNER,
-                    L10n.t("On carriers with Facebook Flex, hides the Data mode bar under the top bar and its button to "
-                            + "buy mobile data.")));
-            appearance.addPreference(toggle(context, Settings.HIDE_FREE_MODE_BANNER,
-                    L10n.t("On carriers with Facebook Flex, hides the purple Free mode bar. That bar is also how you go "
-                            + "back to Data mode, so turn this off when you want to switch.")));
+        if (build.contains(PatchFamily.MARK_COLORS)) {
+            // Colours Facebook asks for as each screen builds, so a change shows fully after a restart.
+            appearance.addPreference(page.markColorRow(context, false));
+            appearance.addPreference(page.markColorRow(context, true));
         }
         if (build.contains(PatchFamily.FORCE_DARK_MODE)) {
             // Facebook asks for dark mode as each screen applies its theme, so a change shows fully after a restart.
@@ -208,6 +204,26 @@ final class HushfacebookPages {
                     L10n.t("A thin gray line between posts in the feed, so posts without photos don't run together on "
                             + "the black page.")));
         }
+        subheading(appearance, L10n.t("Screen and motion"));
+        if (build.contains(PatchFamily.BOTTOM_TAB_BAR)) {
+            // Asked as each frame of the main screen draws, so a change shows right away.
+            appearance.addPreference(toggle(context, Settings.TRANSLUCENT_BARS,
+                    L10n.t("The top bar and the tab bar turn see-through, so the feed shows through them as you scroll. "
+                            + "On Android 12 and newer the feed behind them is blurred.")));
+            // Asked as the main screen gets its focus back, so a change shows when these settings close.
+            appearance.addPreference(toggle(context, Settings.HIDE_STATUS_BAR,
+                    L10n.t("Takes the phone's status bar, with the time and battery, off Facebook's main screen, so "
+                            + "the app gets the whole screen. Swipe down from the top edge to see it for a moment.")));
+        }
+        if (build.contains(PatchFamily.CARRIER_BANNERS)) {
+            // Asked each time Facebook shows its carrier banner, which it does as screens open and the mode changes.
+            appearance.addPreference(toggle(context, Settings.HIDE_DATA_MODE_BANNER,
+                    L10n.t("On carriers with Facebook Flex, hides the Data mode bar under the top bar and its button to "
+                            + "buy mobile data.")));
+            appearance.addPreference(toggle(context, Settings.HIDE_FREE_MODE_BANNER,
+                    L10n.t("On carriers with Facebook Flex, hides the purple Free mode bar. That bar is also how you go "
+                            + "back to Data mode, so turn this off when you want to switch.")));
+        }
         if (build.contains(PatchFamily.HAPTICS)) {
             appearance.addPreference(toggle(context, Settings.TURN_OFF_HAPTICS,
                     L10n.t("Stops the small vibrations Facebook makes when you tap or swipe. Your keyboard and phone vibrations "
@@ -219,6 +235,7 @@ final class HushfacebookPages {
                     L10n.t("Tabs, the Menu, photos and screens that open over Facebook appear at once instead of sliding or "
                             + "zooming in. Swiping between tabs still works.")));
         }
+        subheading(appearance, L10n.t("App icon and header"));
         if (build.contains(PatchFamily.APP_ICONS)) {
             // The App icon page asks as it opens. A picked icon is a launcher alias, so it outlives the switch.
             appearance.addPreference(toggle(context, Settings.UNLOCK_APP_ICONS,
@@ -244,14 +261,14 @@ final class HushfacebookPages {
         }
     }
 
-    /** Set when you patched: what the patches picked in Morphe Manager do, which no switch changes. */
+    /** Built-in changes: what the patches picked in Morphe Manager do, which no switch changes. */
     static void patched(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
         if (build.contains(PatchFamily.AD_PREFETCH) || build.contains(PatchFamily.AD_TELEMETRY)
                 || build.contains(PatchFamily.AUDIENCE_NETWORK) || build.contains(PatchFamily.AMOLED_THEME)
                 || build.contains(PatchFamily.MATERIAL_YOU_THEME) || build.contains(PatchFamily.RESTORE_TRUST)
                 || build.contains(PatchFamily.INSTALL_BESIDE_META_APPS)) {
-            PreferenceCategory patched = category(screen, L10n.t("Set when you patched"));
+            PreferenceCategory patched = category(screen, L10n.t("Built-in changes"));
             if (build.contains(PatchFamily.AD_PREFETCH)) {
                 patched.addPreference(mark(info(context, L10n.t(PatchFamily.AD_PREFETCH.staysWhilePaused),
                         L10n.t("Facebook no longer downloads ads, or the data it uses to pick them, in the background.")), SettingsIcons.BLOCK));
@@ -295,11 +312,8 @@ final class HushfacebookPages {
             Set<PatchFamily> build) {
         // Named for its rows: the screen's own title already says Hushfacebook.
         PreferenceCategory hushfacebook = category(screen, L10n.t("Pause, backup and diagnostics"));
-        hushfacebook.addPreference(mark(toggle(context, BaseSettings.PAUSED, L10n.t("Pause Hushfacebook"),
-                L10n.t("Try Facebook without Hushfacebook. From the next start, switches act as if off, except Debug "
-                        + "logging and Lock Facebook. Your choices stay saved.")),
-                SettingsIcons.PATCHED));
         String stays = PatchFamily.staysWhilePausedSummary(build);
+        subheading(hushfacebook, L10n.t("Backup and restore"));
         // Morphe Manager can export the patch choices and the signing key, not these switches.
         hushfacebook.addPreference(mark(new BackupRow(page, context, SettingsBackupPreference.EXPORT,
                 L10n.t("Export settings"),
@@ -311,6 +325,18 @@ final class HushfacebookPages {
                 L10n.t("Import settings"),
                 L10n.t("Choose a settings file you saved earlier. You'll see how many switches it changes before anything "
                         + "is applied.")), SettingsIcons.DOWNLOADS));
+        subheading(hushfacebook, L10n.t("Troubleshooting"));
+        // The settings entry's own: it's what a Facebook that won't open can still send.
+        hushfacebook.addPreference(mark(toggle(context, Settings.SAVE_CRASH_FILE,
+                L10n.t("When Facebook crashes, the error goes in a text file in Download/Hushfacebook, so you can send it with a "
+                        + "bug report even if Facebook won't open. Links and IDs are left out. The newest five are kept.")),
+                SettingsIcons.BUG));
+        // Pause is a troubleshooting step too. Every switch it turns off sits above it, crash saving
+        // included, and what stays on while paused sits below it.
+        hushfacebook.addPreference(mark(toggle(context, BaseSettings.PAUSED, L10n.t("Pause Hushfacebook"),
+                L10n.t("Try Facebook without Hushfacebook. From the next start, switches act as if off, except Debug "
+                        + "logging and Lock Facebook. Your choices stay saved.")),
+                SettingsIcons.PATCHED));
         // Debug logging also fills the exported report and turns on error toasts (Logger).
         hushfacebook.addPreference(mark(toggle(context, BaseSettings.DEBUG, L10n.t("Debug logging"),
                 L10n.t("Records what the patches do and shows error messages, to help with a bug report. Leave it off for "

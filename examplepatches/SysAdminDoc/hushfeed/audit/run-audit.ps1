@@ -4,13 +4,17 @@
 
 .DESCRIPTION
     The catalog holds one entry per patch with the checks that prove it does what its
-    description says. This script executes them and writes the results for the TikTok version
-    under test to audit/results/, so the next retarget can run the same checks and compare.
+    description says. Each declared app has its own: audit/catalog.json for TikTok and
+    audit/catalog-pinedrama.json for PineDrama, picked from the APK's package along with that
+    app's probe build, tabs and deep-link scheme (Get-AuditPackageProfile). This script executes
+    them and writes the results for the app version under test to audit/results/
+    (tiktok-<version>.json, pinedrama-<version>.json), so the next retarget can run the same
+    checks and compare.
 
     Steps are data. "apk" steps read the patched APK itself (emptied files, the manifest, the
     resource table, strings in the dex) and need no phone. Every other step drives the phone
     through adb and the verification probe (tools/verification-probe), which runs inside
-    TikTok and answers in logcat: "set" writes a Hushfeed setting, "probe" asks a question and
+    the patched app and answers in logcat: "set" writes a Hushfeed setting, "probe" asks a question and
     holds its answer to a regex, "log" waits for a logcat line, "shot" saves a screenshot for a
     person to judge against the check's review text. A check whose decisions are all
     expectations is marked auto; one with a "shot" ends as "review" until a verdict is merged
@@ -30,9 +34,10 @@
     tap anything labeled like an action that reaches other people (Follow, Message, Send,
     Post, Repost, Duet, Stitch, Go LIVE, Buy, Request).
 
-    Repeating it on a new TikTok version: patch the full catalog with scripts/patch-for-device.ps1
+    Repeating it on a new app version: patch the full catalog with scripts/patch-for-device.ps1
     (signed with the phone's key), build and install the probe with
-    tools/verification-probe/build.ps1 -Install, run this with -Apk and -Install, review the
+    tools/verification-probe/build.ps1 -Install (-Profile pinedrama-47.5.3-audit-v1 for
+    PineDrama), run this with -Apk and -Install, review the
     screenshots, merge the verdicts, then diff the new results file against the previous one.
     concepts/patch-development.md has the whole routine.
 
@@ -44,6 +49,9 @@
 
 .EXAMPLE
     audit/run-audit.ps1 -Apk C:\scratch\hushfeed-0.74.0-signed.apk -Serial <serial> -Only 'Hide the LIVE button,category:Comments'
+
+.EXAMPLE
+    audit/run-audit.ps1 -Validate -CatalogPackage com.ss.android.ttmd.video
 
 .EXAMPLE
     audit/run-audit.ps1 -ApplyVerdicts C:\scratch\verdicts.json -Results audit\results\tiktok-47.1.4.json -OutDir C:\scratch\evidence
@@ -68,19 +76,34 @@ param(
     [switch]$ValidateResults,
     [string]$BuildReceipt,
     [string]$Bundle,
-    [switch]$Validate
+    [switch]$Validate,
+    # The package whose catalog -Validate checks. A run reads it from -Apk.
+    [ValidateSet('com.zhiliaoapp.musically', 'com.ss.android.ttmd.video')][string]$CatalogPackage = 'com.zhiliaoapp.musically'
 )
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
-$package = 'com.zhiliaoapp.musically'
-if (-not $Catalog) { $Catalog = Join-Path $PSScriptRoot 'catalog.json' }
 . (Join-Path $PSScriptRoot 'evidence.ps1')
 . (Join-Path $root 'scripts/device-lease.ps1')
-$allCatalogEntries = Get-Content -LiteralPath $Catalog -Raw -Encoding UTF8 | ConvertFrom-Json
-$allCatalogEntries = @($allCatalogEntries)
-$catalogKeyProblems = @(Get-AuditCatalogProblems $allCatalogEntries)
-if ($catalogKeyProblems.Count) { throw ($catalogKeyProblems -join '; ') }
+. (Join-Path $root 'tools/verification-probe/profile.ps1')
+
+# The package decides the catalog, the results name, the probe build and the routes: the saved
+# run's app for -ApplyVerdicts and -ValidateResults, the APK's for a run, -Package for -Validate.
+function Import-AuditCatalog([string]$ForPackage) {
+    $script:auditProfile = Get-AuditPackageProfile $ForPackage
+    if ($null -eq $script:auditProfile) { throw "There is no audit profile for $ForPackage." }
+    $script:package = $ForPackage
+    $script:probeProfile = Get-VerificationProbeProfile -Profile $script:auditProfile.ProbeProfile
+    if (-not $script:Catalog) { $script:Catalog = Join-Path $root $script:auditProfile.Catalog }
+    $script:allCatalogEntries = @(Get-Content -LiteralPath $script:Catalog -Raw -Encoding UTF8 | ConvertFrom-Json)
+    $keyProblems = @(Get-AuditCatalogProblems $script:allCatalogEntries)
+    if ($keyProblems.Count) { throw ($keyProblems -join '; ') }
+}
+if (($ApplyVerdicts -or $ValidateResults) -and $Results) {
+    Import-AuditCatalog ([string](Get-Content -LiteralPath $Results -Raw -Encoding UTF8 | ConvertFrom-Json).app.package)
+} elseif ($Validate) {
+    Import-AuditCatalog $CatalogPackage
+}
 
 # Words on a control that reaches other people. A tap whose target starts with one of these is
 # refused. "Following" is on the list because on someone else's profile that button unfollows.
@@ -135,9 +158,12 @@ if ($Validate) {
     $problems = New-Object System.Collections.Generic.List[string]
     $entries = $allCatalogEntries
     $patchList = Get-Content -LiteralPath (Join-Path $root 'patches-list.json') -Raw | ConvertFrom-Json
-    $declared = @($patchList.patches | ForEach-Object { [string]$_.name })
     . (Join-Path $root 'scripts/patch-target.ps1')
-    $targetVersions = @((Get-PatchTarget -PatchList $patchList).PackageVersions)
+    # TikTok's catalog covers every patch, the PineDrama-only one through a check that it stays
+    # out of TikTok. Another package's catalog covers the patches that declare it.
+    $declared = if ($package -ceq 'com.zhiliaoapp.musically') { @($patchList.patches | ForEach-Object { [string]$_.name }) }
+        else { @(Get-PackagePatchNames -PatchList $patchList -PackageName $package) }
+    $targetVersions = @((Get-PatchTarget -PatchList $patchList -PackageName $package).PackageVersions)
     $named = @($entries | ForEach-Object { [string]$_.name })
     foreach ($name in $declared) { if ($named -notcontains $name) { $problems.Add("no entry for the patch '$name'") } }
     foreach ($name in $named) { if ($declared -notcontains $name) { $problems.Add("'$name' is not a patch in patches-list.json") } }
@@ -169,7 +195,7 @@ if ($Validate) {
                     'probe' { if ($actions -notcontains [string]$step.probe) { & $bad "the probe has no action '$($step.probe)'" } }
                     'open' {
                         $surface = [string]$step.open
-                        if ($surface -notin 'feed', 'profile', 'inbox', 'friends', 'settings', 'appinfo' -and $surface -notlike 'search:*' -and $surface -notlike 'url:*') { & $bad "can't open '$surface'" }
+                        if ($surface -notin @($auditProfile.Tabs.Keys) + @('settings', 'appinfo') -and $surface -notlike 'search:*' -and $surface -notlike 'url:*') { & $bad "can't open '$surface' in $($auditProfile.Label)" }
                     }
                     'swipe' { if ([string]$step.swipe -notin 'up', 'down', 'left', 'right') { & $bad "swipes '$($step.swipe)'" } }
                     'night' { if ([string]$step.night -notin 'yes', 'no') { & $bad "sets night mode '$($step.night)'" } }
@@ -260,6 +286,12 @@ function Resolve-AuditAapt2 {
 }
 
 $aapt2Exe = Resolve-AuditAapt2
+# What the APK is, read once.
+$badging = & $aapt2Exe dump badging $Apk 2>$null
+$apkPackage = if ("$badging" -match "package: name='([^']+)'") { $Matches[1] } else { '' }
+Import-AuditCatalog $apkPackage
+$versionName = if ("$badging" -match "versionName='([^']+)'") { $Matches[1] } else { 'unknown' }
+$versionCode = if ("$badging" -match "versionCode='([^']+)'") { $Matches[1] } else { 'unknown' }
 $catalogEntries = $allCatalogEntries
 $catalogOrder = @{}
 for ($i = 0; $i -lt $catalogEntries.Count; $i++) { $catalogOrder[[string]$catalogEntries[$i].name] = $i }
@@ -272,13 +304,7 @@ if ($Only) {
     if ($catalogEntries.Count -eq 0) { throw "Nothing in the catalog matches -Only $Only." }
 }
 
-# What the APK is, read once.
-$badging = & $aapt2Exe dump badging $Apk 2>$null
-$apkPackage = if ("$badging" -match "package: name='([^']+)'") { $Matches[1] } else { '' }
-if ($apkPackage -cne $package) { throw "The APK is $apkPackage, but this audit profile only drives $package." }
-$versionName = if ("$badging" -match "versionName='([^']+)'") { $Matches[1] } else { 'unknown' }
-$versionCode = if ("$badging" -match "versionCode='([^']+)'") { $Matches[1] } else { 'unknown' }
-if (-not $Results) { $Results = Join-Path $PSScriptRoot "results\tiktok-$versionName.json" }
+if (-not $Results) { $Results = Join-Path $PSScriptRoot "results\$($auditProfile.ResultsPrefix)-$versionName.json" }
 $stamp = [DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss')
 if (-not $OutDir) { $OutDir = Join-Path ([IO.Path]::GetTempPath()) "hushfeed-audit\$stamp" }
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
@@ -424,7 +450,11 @@ function Invoke-AuditProbe([string]$Action, $Extras, [int]$WaitMs = 3000, [strin
     }
     Invoke-DeviceShell ($parts -join ' ') | Out-Null
     $done = if ($Until) { $Until } else { "^(ok|failed) $([regex]::Escape($Action))\b" }
-    $deadline = [DateTime]::UtcNow.AddMilliseconds([Math]::Max($WaitMs, 800) + 4000)
+    # The report runs to dozens of pieces, and on a busy phone its completion line landed after
+    # a 7 second wait (two "registered" checks, S22 2026-10-27). The loop stops at that line, so a
+    # longer ceiling only costs time when the answer never comes.
+    $floorMs = if ($Action -eq 'report') { 20000 } else { 800 }
+    $deadline = [DateTime]::UtcNow.AddMilliseconds([Math]::Max($WaitMs, $floorMs) + 4000)
     $answer = @()
     do {
         Start-Sleep -Milliseconds 400
@@ -535,7 +565,7 @@ function Restart-TikTok {
     Invoke-DeviceShell "am force-stop $package" | Out-Null
     Start-Sleep -Milliseconds 800
     $marker = Write-Marker
-    Invoke-DeviceShell 'am instrument app.hushfeed.verification/.Probe' 2>&1 | Out-Null
+    Invoke-DeviceShell "am instrument $($probeProfile.ProbePackage)/$($probeProfile.Instrumentation)" 2>&1 | Out-Null
     Invoke-DeviceShell "monkey -p $package -c android.intent.category.LAUNCHER 1" 2>&1 | Out-Null
     $deadline = [DateTime]::UtcNow.AddSeconds(40)
     do {
@@ -602,7 +632,7 @@ function Invoke-DumpTapOnce($Target, [int]$HoldMs = 0) {
 
 function Open-Surface([string]$Where) {
     $script:settingsOpen = $Where -eq 'settings'
-    $tabs = @{ feed = '^Home'; friends = '^Friends'; inbox = '^Inbox'; profile = '^Profile' }
+    $tabs = $auditProfile.Tabs
     if ($tabs.ContainsKey($Where)) {
         # The tabs live on the main screen. Anything else in front (a search page a deep link
         # left on the back stack, a settings page, another app) costs a fresh start. On 47.1.4
@@ -622,7 +652,7 @@ function Open-Surface([string]$Where) {
         if (-not (Test-Pattern $answer '^ok settings')) { throw "could not open Hushfeed settings: $answer" }
     } elseif ($Where -like 'search:*') {
         $keyword = [uri]::EscapeDataString($Where.Substring(7))
-        Invoke-DeviceShell "am start -a android.intent.action.VIEW -d $(ConvertTo-DeviceQuoted "snssdk1233://search?keyword=$keyword") -p $package" | Out-Null
+        Invoke-DeviceShell "am start -a android.intent.action.VIEW -d $(ConvertTo-DeviceQuoted "$($auditProfile.Scheme)://search?keyword=$keyword") -p $package" | Out-Null
     } elseif ($Where -like 'url:*') {
         Invoke-DeviceShell "am start -a android.intent.action.VIEW -d $(ConvertTo-DeviceQuoted $Where.Substring(4)) -p $package" | Out-Null
     } elseif ($Where -eq 'appinfo') {

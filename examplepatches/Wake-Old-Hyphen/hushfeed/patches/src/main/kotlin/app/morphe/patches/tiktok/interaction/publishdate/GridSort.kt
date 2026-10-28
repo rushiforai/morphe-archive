@@ -11,6 +11,7 @@ import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.util.addInstruction
 import app.morphe.util.addInstructions
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.addInstructionsWithLabels
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
@@ -18,6 +19,8 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val PATCH = "Always show publish date"
@@ -52,6 +55,95 @@ internal object GridAdapterPageFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Ljava/util/List;"),
 )
+
+/**
+ * The grid adapter's constructor (#180), the one taking TikTok's number for the tab the grid is
+ * for (0 posts, 1 Liked, 4 and 25 Favorites, 14 private) as its only int. Both of TikTok's profile
+ * tab fragments build the adapter through it.
+ */
+internal object GridAdapterInitFingerprint : Fingerprint(
+    classFingerprint = GridAdapterTagFingerprint,
+    name = "<init>",
+    returnType = "V",
+    custom = { method, _ -> method.parameterTypes.count { it.toString() == "I" } == 1 },
+)
+
+/**
+ * The profile tab fragment's log name for its tab, which names tab 1 the favorite tab: TikTok's
+ * Liked tab, still called favorites inside the app. The anchors test reads the tab numbers here.
+ */
+internal object GridTabNameFingerprint : Fingerprint(
+    returnType = "Ljava/lang/String;",
+    strings = listOf("personal_favorite_tab", "others_favorite_tab"),
+)
+
+private fun registerSize(type: CharSequence) = if (type.toString() == "J" || type.toString() == "D") 2 else 1
+
+private val MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
+
+/**
+ * The int field [GridAdapterInitFingerprint]'s constructor keeps the tab number in: the one field
+ * of its class its int parameter is stored to, straight from the parameter's register or from the
+ * register it was moved to just before (47.5.3 does `move/from16 v0, p5` and stores v0). Null
+ * where that isn't one field, or where the constructor has no two spare registers to read it back
+ * with.
+ */
+internal fun gridTabField(init: Method): FieldReference? {
+    val implementation = init.implementation ?: return null
+    val types = init.parameterTypes
+    val at = types.indexOfFirst { it.toString() == "I" }
+    if (at < 0) return null
+    val ins = 1 + types.sumOf(::registerSize)
+    if (implementation.registerCount - ins < 2) return null
+    val register = implementation.registerCount - ins + 1 + types.take(at).sumOf(::registerSize)
+    val code = implementation.instructions.toList()
+    return code.indices
+        .filter { index ->
+            val put = code[index]
+            if (put.opcode != Opcode.IPUT) return@filter false
+            val source = (put as TwoRegisterInstruction).registerA
+            if (source == register) return@filter true
+            val move = code.getOrNull(index - 1) ?: return@filter false
+            move.opcode in MOVES && (move as TwoRegisterInstruction).registerA == source && move.registerB == register
+        }
+        .mapNotNull { code[it].getReference<FieldReference>() }
+        .filter { it.definingClass == init.definingClass && it.type == "I" }
+        .map { "${it.definingClass}->${it.name}:${it.type}" to it }
+        .distinctBy { it.first }
+        .singleOrNull()?.second
+}
+
+/**
+ * Hands each new grid adapter to the extension with its tab number (#180), so the Liked tab can
+ * follow its own order. Read back from the adapter's field before each return, once the adapter
+ * is built and in the two registers nothing reads after. Required on a declared build. On any
+ * other the Liked grid follows the profile grids' order as it did before.
+ */
+internal fun BytecodePatchContext.hookGridTab(versionName: String): Boolean {
+    val declared = versionName in declaredVersions()
+    val init = if (declared) GridAdapterInitFingerprint.method else GridAdapterInitFingerprint.methodOrNull
+    val field = init?.let(::gridTabField)
+    if (init == null || field == null) {
+        if (declared) throw PatchException("$PATCH: the grid adapter on $versionName keeps no tab number.")
+        println("[$PATCH] The Liked grid on $versionName follows the profile grids' order: no tab number found on the grid adapter.")
+        return false
+    }
+    init.implementation!!.instructions.withIndex()
+        .filter { it.value.opcode == Opcode.RETURN_VOID }
+        .map { it.index }
+        .reversed()
+        .forEach { index ->
+            init.addInstructionsAtControlFlowLabel(
+                index,
+                """
+                    move-object/from16 v0, p0
+                    iget v1, v0, ${field.definingClass}->${field.name}:${field.type}
+                    invoke-static { v0, v1 }, $GRID_SORT->tab(Ljava/lang/Object;I)V
+                """,
+            )
+        }
+    return true
+}
 
 /**
  * The profile grid fragment's cell click (#180), which opens the video page on the fragment's
@@ -153,6 +245,13 @@ internal fun BytecodePatchContext.hookGridSortOn(versionName: String): Boolean {
     if (!hookGridSort(versionName)) return false
     fillGridPageLoader(versionName)
     hookGridOpen(versionName)
+    if (hookGridTab(versionName)) {
+        SettingsStatusLoadFingerprint.method.addInstruction(
+            0,
+            "invoke-static {}, " +
+                "Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableLikedGridSort()V",
+        )
+    }
     SettingsStatusLoadFingerprint.method.addInstruction(
         0,
         "invoke-static {}, " +

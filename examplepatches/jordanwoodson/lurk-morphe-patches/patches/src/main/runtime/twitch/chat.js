@@ -92,7 +92,11 @@
         const date = new Date(ts);
         return (date.getHours() % 12 || 12) + ':' + ('0' + date.getMinutes()).slice(-2);
     }
-    function scale() { return config.appearance && [85,115,130].indexOf(config.scale) >= 0 ? config.scale / 100 : 1; }
+    // chat_text_size in percent; 0 (Twitch's default) and anything outside 50-200 leave the text as it is.
+    function scale() {
+        const s = config.scale;
+        return config.appearance && typeof s === 'number' && s >= 50 && s <= 200 && s % 1 === 0 ? s / 100 : 1;
+    }
     function textTree(tree, factor) {
         const R = owners.react;
         if (factor === 1 || !R.isValidElement(tree)) return tree;

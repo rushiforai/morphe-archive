@@ -65,6 +65,48 @@ Assert-WalkContract ('Activity status: turned off' -notmatch $WalkLabels.Activit
 Assert-WalkContract ('Aggiungi un commento...' -match $WalkLabels.CommentsSheet) "The comment field didn't mark the comment sheet."
 Assert-WalkContract ('Seguiti' -notmatch $WalkLabels.Friends -and 'Visualizza 18 risposte' -notmatch $WalkLabels.CommentsSheet) 'A label matched the wrong row.'
 
+# Each app the bundle declares has a walk profile, and every profile has a receipt profile.
+$pages = @('Feed filter', 'About Hushfeed')
+$tiktokPlan = Get-WalkPlannedScreens -AppProfile (Get-WalkProfile 'com.zhiliaoapp.musically') -HushfeedPages $pages
+Assert-WalkContract (($tiktokPlan -join '|') -ceq ('launch|feed: For You|sheet: comments|sheet: share|feed: Following|search|' +
+    'tab: Friends|tab: Inbox|inbox: Activity|tab: Profile|settings: Hushfeed|settings: Search settings|settings: Feed filter|settings: About Hushfeed')) `
+    "TikTok's walk plan changed: $($tiktokPlan -join ', ')"
+$pine = Get-WalkProfile 'com.ss.android.ttmd.video'
+$pinePlan = Get-WalkPlannedScreens -AppProfile $pine -HushfeedPages $pages
+Assert-WalkContract (($pinePlan -join '|') -ceq ('launch|feed: Short Video|sheet: comments|sheet: share|feed: Following|feed: Drama|search|' +
+    'tab: Discover|tab: Rewards|tab: Inbox|tab: Profile|settings: Hushfeed|settings: Search settings|settings: Feed filter|settings: About Hushfeed')) `
+    "PineDrama's walk plan is: $($pinePlan -join ', ')"
+foreach ($package in $WalkProfiles.Keys) {
+    Assert-WalkContract ((Get-WalkProfileName $package) -and $WalkProfilePackages[(Get-WalkProfileName $package)] -ceq $package) "$package has no walk receipt profile."
+    $walkProfile = Get-WalkProfile $package
+    foreach ($key in @('Home', $walkProfile.MainFeed) + @($walkProfile.OtherFeeds) + @($walkProfile.Tabs)) {
+        Assert-WalkContract ($walkProfile.Labels.ContainsKey($key)) "$package's profile has no label for $key."
+    }
+}
+$unknown = $false
+try { $null = Get-WalkProfile 'com.example.app' } catch { $unknown = $true }
+Assert-WalkContract $unknown 'An app with no walk profile got one.'
+# PineDrama 47.5.3's own labels, recorded off its bottom bar, Home's top tabs and a Short Video.
+$pineRecorded = @{
+    Home = 'Home'; Discover = 'Discover'; Rewards = 'Rewards'; Inbox = 'Inbox'; Profile = 'Profile'; ShortVideo = 'Short Video'
+    Following = 'Following'; Drama = 'Drama'; Search = 'Search'; CommentsButton = 'Read or add comments. 312 comments'
+    ShareButton = 'Share video. 58 shares'
+}
+foreach ($key in $pineRecorded.Keys) {
+    Assert-WalkContract ($pineRecorded[$key] -match $pine.Labels[$key]) "PineDrama's $key label doesn't match '$($pineRecorded[$key])'."
+    Assert-WalkContract (Test-WalkTapAllowed -Node ([pscustomobject]@{ Text = ''; Desc = $pineRecorded[$key] })) "The walk refused PineDrama's '$($pineRecorded[$key])'."
+}
+foreach ($label in 'Follow Dramawave', 'Like video. 1,204 likes', 'Add or remove this video from Favorites.', 'Play all (50 episodes)') {
+    Assert-WalkContract ($label -notmatch $pine.Labels.CommentsButton -and $label -notmatch $pine.Labels.ShareButton) "'$label' matched a PineDrama sheet button."
+}
+Assert-WalkContract ('AI fiction' -notmatch $pine.Labels.Drama -and 'Search dramas' -notmatch $pine.Labels.Search) 'A PineDrama label matched the wrong row.'
+foreach ($gate in 'Close', 'At least 18', 'Continue') {
+    Assert-WalkContract ($gate -match $WalkLaunchGateLabel -and (Test-WalkTapAllowed -Node ([pscustomobject]@{ Text = $gate; Desc = '' }))) "The launch gate '$gate' isn't tapped."
+}
+foreach ($gate in 'Continue with Google', 'Log in', 'Under 18', 'Close friends') {
+    Assert-WalkContract ($gate -notmatch $WalkLaunchGateLabel) "The launch gate label matched '$gate'."
+}
+
 # Hushfeed's titles in every language it ships, read from its translation tables.
 $root = Split-Path -Parent $PSScriptRoot
 $translations = Get-HushfeedTranslations -Root $root
@@ -112,6 +154,14 @@ Assert-WalkContract ($crashes[0].Detail -like 'java.lang.NullPointerException*')
 Assert-WalkContract (@(Get-WalkCrashes -Lines $logcat[0..0] + $logcat[4..6] + $logcat[12..12]).Count -eq 0) `
     "A force-stop or another app's crash counted as a TikTok crash."
 Assert-WalkContract (@(Get-WalkCrashes -Lines @()).Count -eq 0) 'No logcat found a crash.'
+# A PineDrama walk counts PineDrama's crashes, never TikTok's.
+$pineLogcat = @(
+    '10-27 21:40:02.000  5200  5200 E AndroidRuntime: FATAL EXCEPTION: main',
+    '10-27 21:40:02.000  5200  5200 E AndroidRuntime: Process: com.ss.android.ttmd.video, PID: 5200',
+    '10-27 21:40:02.000  5200  5200 E AndroidRuntime: java.lang.IllegalStateException: drama'
+) + $logcat[1..3]
+$pineCrashes = @(Get-WalkCrashes -Lines $pineLogcat -Package 'com.ss.android.ttmd.video')
+Assert-WalkContract ($pineCrashes.Count -eq 1 -and $pineCrashes[0].Process -ceq 'com.ss.android.ttmd.video') "A PineDrama walk found $($pineCrashes.Count) crashes."
 
 # The verdict, then the receipt it makes and whether publish takes it.
 $planned = @('launch', 'feed: For You', 'settings: Hushfeed', 'settings: Playback')

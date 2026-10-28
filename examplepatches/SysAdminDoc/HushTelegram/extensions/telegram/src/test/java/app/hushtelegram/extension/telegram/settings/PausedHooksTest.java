@@ -292,10 +292,12 @@ public class PausedHooksTest {
         // Reaction effects don't play.
         probes.put(PatchFamily.REACTION_EFFECTS_OFF, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.ReactionEffects.skipped()));
-        // Folder tabs show no unread counts, the chat list opens on the picked folder and leaves hidden chats out.
+        // Folder tabs show no unread counts, the chat list opens on the picked folder without All Chats
+        // and leaves hidden chats out.
         probes.put(PatchFamily.HIDE_FOLDER_COUNTERS, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.FolderTabs.countersHidden(),
                 app.hushtelegram.extension.telegram.misc.LaunchFolderForTests::opens,
+                app.hushtelegram.extension.telegram.misc.LaunchFolderForTests::leavesOutAllChats,
                 app.hushtelegram.extension.telegram.misc.HiddenChatsForTests::leavesOut));
         // New forwards start with the sender hidden.
         probes.put(PatchFamily.FORWARD_HIDE_SENDER, Collections.singletonList(

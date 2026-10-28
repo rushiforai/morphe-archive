@@ -23,6 +23,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /** The real read/parse/apply path must reject the whole import before any switch changes. */
@@ -63,7 +64,10 @@ public class SettingsBackupPropertyTest {
                 Map<String, Object> root = root(switches);
                 root.put("futureRoot", BoundedJsonGrammar.object(random, sample));
                 String text = BoundedJsonGrammar.render(root, random);
-                BoundedJsonGrammar.requireSize(text);
+                // Every switch the backup holds is in this case, so it outgrows the grammar's own budget as
+                // switches are added. It still has to be a file the import reads whole.
+                assertTrue(text.getBytes(StandardCharsets.UTF_8).length <= SettingsBackup.MAX_BYTES);
+                BoundedJsonGrammar.requireSize(BoundedJsonGrammar.render(root.get("futureRoot"), new Random(seed)));
                 if (sample % 2 == 0) text = '\uFEFF' + text;
                 SettingsBackup.Snapshot snapshot = SettingsBackup.parse(read(text));
                 assertEquals(expected, snapshot.values);

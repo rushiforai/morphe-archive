@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.15.0-dev.1",
+  "version": "1.20.0",
   "patches": [
     {
       "name": "Emoji Key On Right",
@@ -45,7 +45,7 @@
     },
     {
       "name": "Glass Panel",
-      "description": "Turns the translucent keyboard panel into glass. On vivo OriginOS it uses the system's own glass material, with real refraction, rim light and dispersion; elsewhere it draws lit edges and a sheen. Keys are left as they are. Works on top of Translucent Bottom Bar and Frosted Glass.",
+      "description": "Turns the translucent keyboard panel into glass. On vivo OriginOS it uses the system's own glass material, with real refraction, rim light and dispersion; elsewhere it draws lit edges and a sheen. Keys are left as they are. Works on top of Translucent Bottom Bar and Frosted Glass. Floating popups, like the keyboard switcher shown with a hardware keyboard, get the same glass.",
       "default": true,
       "category": null,
       "dependencies": [
@@ -88,7 +88,7 @@
     },
     {
       "name": "Glass Press Effect",
-      "description": "Adds vivo-style liquid glass touch feedback: a soft light blooms out from your finger across the keyboard background, and the keys around your finger dip and spring back with a small wobble while the rest of the keyboard stays still. When glide typing, the dip follows your finger.",
+      "description": "Adds vivo-style liquid glass touch feedback: a soft light blooms out from your finger across the keyboard background, and the keys around your finger dip and spring back with a small wobble while the rest of the keyboard stays still. When glide typing, the dip follows your finger. Floating popups light up the same way.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -170,10 +170,12 @@
     },
     {
       "name": "Theme Follows Dark Mode",
-      "description": "Adds a \"Light & dark pair\" menu to the top of Gboard's Themes screen. Choose a theme for light mode and one for dark mode, and the keyboard switches between them when the system dark mode changes.",
+      "description": "Adds a \"Light & dark pair\" menu to the top of Gboard's Themes screen. Choose a theme for light mode and one for dark mode, and the keyboard switches between them when the system dark mode changes. It can switch the wallpaper between a light and a dark image too.",
       "default": true,
       "category": null,
-      "dependencies": [],
+      "dependencies": [
+        "ResourcePatch"
+      ],
       "compatiblePackages": [
         {
           "packageName": "com.google.android.inputmethod.latin",

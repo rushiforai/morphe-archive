@@ -28,6 +28,14 @@ import io.github.jordanwoodson.patches.shared.settings.writeLocators
 import org.w3c.dom.Element
 
 private const val SETTINGS_ACTIVITY = "io.github.jordanwoodson.extension.shared.settings.SettingsActivity"
+
+/**
+ * The exported way into [SETTINGS_ACTIVITY], which stays non-exported. Android's App info page links to the
+ * activity of an app that handles APPLICATION_PREFERENCES ("Additional settings in the app", a gear on some
+ * phones). The alias answers only that action, and the activity reads nothing from the intent that starts it,
+ * so another app that starts it can only open the screen.
+ */
+private const val PREFERENCES_ALIAS = "io.github.jordanwoodson.extension.shared.settings.AppPreferences"
 private const val REACT_INSTANCE = "Lcom/facebook/react/runtime/ReactInstance;"
 
 /** The one match of this fingerprint, found the way [app]'s own patches find theirs ([LurkApp.matcher]). */
@@ -36,11 +44,11 @@ internal fun Fingerprint.matchIn(app: LurkApp, what: String): Match = app.matche
 
 /**
  * The body of an app's hidden settings patch, which every patch that can be switched at runtime depends on.
- * It declares the Lurk settings activity (opened from the launcher shortcut), starts the extension at the
- * beginning of Application.onCreate ([LurkApp.startup]), runs [extra] (another way into the screen, such as a
- * row in the app's own settings), and once every patch has registered its settings on [LurkApp.settings],
- * writes them into the extension as JSON. The matched names every patch recorded go to
- * `assets/lurk/locators.json`.
+ * It declares the Lurk settings activity (opened from the launcher shortcut the extension publishes) and the
+ * alias Android's App info page opens it through, starts the extension at the beginning of
+ * Application.onCreate ([LurkApp.startup]), runs [extra] (another way into the screen, such as a row in the
+ * app's own settings), and once every patch has registered its settings on [LurkApp.settings], writes them
+ * into the extension as JSON. The matched names every patch recorded go to `assets/lurk/locators.json`.
  */
 internal fun BytecodePatchBuilder.lurkSettings(app: LurkApp, extra: BytecodePatchContext.() -> Unit = {}) {
     compatibleWith(app.compatibility)
@@ -62,6 +70,25 @@ internal fun BytecodePatchBuilder.lurkSettings(app: LurkApp, extra: BytecodePatc
                             setAttribute("android:taskAffinity", "")
                             // Only for the window shown while it starts (dark, like the apps); the activity picks dark or light.
                             setAttribute("android:theme", "@android:style/Theme.DeviceDefault.NoActionBar")
+                        },
+                    )
+                    // After its target, as Android requires.
+                    application.appendChild(
+                        document.createElement("activity-alias").apply {
+                            setAttribute("android:name", PREFERENCES_ALIAS)
+                            setAttribute("android:targetActivity", SETTINGS_ACTIVITY)
+                            setAttribute("android:exported", "true")
+                            setAttribute("android:label", "Lurk")
+                            appendChild(
+                                document.createElement("intent-filter").apply {
+                                    appendChild(document.createElement("action").apply {
+                                        setAttribute("android:name", "android.intent.action.APPLICATION_PREFERENCES")
+                                    })
+                                    appendChild(document.createElement("category").apply {
+                                        setAttribute("android:name", "android.intent.category.DEFAULT")
+                                    })
+                                },
+                            )
                         },
                     )
                 }

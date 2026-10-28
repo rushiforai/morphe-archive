@@ -21,6 +21,9 @@ import org.robolectric.RobolectricTestRunner;
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.SettingsContextRule;
 import app.hushgram.extension.shared.diagnostics.FeedFilterCounters;
+import app.hushgram.extension.shared.settings.BaseSettings;
+import app.hushgram.extension.shared.settings.HushgramPause;
+import app.hushgram.extension.shared.settings.PauseForTests;
 
 /** What Hide suggested stories takes out of Home's stories tray, and when it hides the tray. */
 @RunWith(RobolectricTestRunner.class)
@@ -183,5 +186,121 @@ public class StoriesTrayTest {
             Settings.HIDE_STORIES_TRAY.save(false);
         }
         assertFalse(StoriesTray.keepTrayOutOfOverlay());
+    }
+
+    /** A tray item's owner, standing in for Instagram's User. */
+    static final class Owner {
+        final String id;
+        final Boolean verified;
+
+        Owner(String id, Boolean verified) {
+            this.id = id;
+            this.verified = verified;
+        }
+    }
+
+    /** A story of [owner]'s, which {@link #badged} reads the way the patch's stubs read a ReelResponseItem. */
+    static final class OwnedItem {
+        final ReelType reelType;
+        final Owner owner;
+
+        OwnedItem(ReelType reelType, Owner owner) {
+            this.reelType = reelType;
+            this.owner = owner;
+        }
+    }
+
+    private static Object badged(Object item) {
+        return StoriesTray.filter(item, it -> it instanceof OwnedItem ? ((OwnedItem) it).owner : null,
+                owner -> ((Owner) owner).verified, owner -> ((Owner) owner).id);
+    }
+
+    /**
+     * #340: with Filter the Stories tray by verified accounts on, Only accounts that aren't
+     * verified takes out the stories of verified owners and keeps the rest; Only verified accounts
+     * the reverse. Off to start, every story stays.
+     */
+    @Test
+    public void theBadgeChoiceKeepsOnlyItsOwnersStories() {
+        OwnedItem brand = new OwnedItem(ReelType.USER_REEL, new Owner("1", true));
+        OwnedItem friend = new OwnedItem(ReelType.USER_REEL, new Owner("2", false));
+        assertFalse(Settings.FILTER_TRAY_BY_BADGE.get());
+        assertEquals(TrayBadge.UNVERIFIED, Settings.TRAY_BADGE.get());
+        assertSame(brand, badged(brand));
+        assertSame(friend, badged(friend));
+
+        Settings.FILTER_TRAY_BY_BADGE.save(true);
+        try {
+            assertNull(badged(brand));
+            assertSame(friend, badged(friend));
+            Settings.TRAY_BADGE.save(TrayBadge.VERIFIED);
+            assertSame(brand, badged(brand));
+            assertNull(badged(friend));
+        } finally {
+            Settings.FILTER_TRAY_BY_BADGE.save(false);
+            Settings.TRAY_BADGE.resetToDefault();
+        }
+    }
+
+    /**
+     * Your own story stays whichever badge it has, and so does a story whose owner, badge or id
+     * Instagram didn't send. Only an account's story is read: a suggested one still goes by its own
+     * switch, and a highlight or a card stays.
+     */
+    @Test
+    public void yourOwnStoryAndUnknownOwnersStay() {
+        Settings.FEED_ACCOUNT.save("7");
+        Settings.FILTER_TRAY_BY_BADGE.save(true);
+        Settings.TRAY_BADGE.save(TrayBadge.VERIFIED);
+        try {
+            OwnedItem own = new OwnedItem(ReelType.USER_REEL, new Owner("7", false));
+            OwnedItem noBadge = new OwnedItem(ReelType.USER_REEL, new Owner("3", null));
+            OwnedItem noId = new OwnedItem(ReelType.USER_REEL, new Owner("", false));
+            OwnedItem noOwner = new OwnedItem(ReelType.USER_REEL, null);
+            OwnedItem highlight = new OwnedItem(ReelType.HIGHLIGHT_REEL, new Owner("4", false));
+            OwnedItem prompt = new OwnedItem(ReelType.PROMPT_STICKER_REEL, new Owner("5", false));
+            for (OwnedItem kept : new OwnedItem[]{own, noBadge, noId, noOwner, highlight, prompt}) {
+                assertSame(kept.reelType.name(), kept, badged(kept));
+            }
+            assertNull("a suggested story still goes", badged(new OwnedItem(ReelType.SUGGESTED_USER_REEL, new Owner("6", true))));
+        } finally {
+            Settings.FILTER_TRAY_BY_BADGE.save(false);
+            Settings.TRAY_BADGE.resetToDefault();
+            Settings.FEED_ACCOUNT.resetToDefault();
+        }
+    }
+
+    /** Paused, the switch reads off and every story stays; the choice outlives the pause. */
+    @Test
+    public void pausedEveryStoryStays() {
+        OwnedItem brand = new OwnedItem(ReelType.USER_REEL, new Owner("1", true));
+        Settings.FILTER_TRAY_BY_BADGE.save(true);
+        try {
+            BaseSettings.PAUSED.save(true);
+            PauseForTests.pause(HushgramPause.Reason.SWITCH);
+            assertSame(brand, badged(brand));
+            BaseSettings.PAUSED.save(false);
+            PauseForTests.resume();
+            assertNull(badged(brand));
+        } finally {
+            BaseSettings.PAUSED.save(false);
+            PauseForTests.resume();
+            Settings.FILTER_TRAY_BY_BADGE.save(false);
+        }
+    }
+
+    /** As built, before the patch writes the stubs, nothing is known about an owner and every story stays. */
+    @Test
+    public void unpatchedStubsKeepEveryStory() {
+        assertNull(StoriesTray.trayOwner(new Object()));
+        assertNull(StoriesTray.userVerified(new Object()));
+        assertNull(StoriesTray.userId(new Object()));
+        Settings.FILTER_TRAY_BY_BADGE.save(true);
+        try {
+            TrayItem story = new TrayItem(ReelType.USER_REEL);
+            assertSame(story, StoriesTray.filter(story));
+        } finally {
+            Settings.FILTER_TRAY_BY_BADGE.save(false);
+        }
     }
 }

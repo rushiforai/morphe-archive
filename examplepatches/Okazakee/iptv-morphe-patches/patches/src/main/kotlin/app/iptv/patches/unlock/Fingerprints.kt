@@ -4,6 +4,10 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
+// ---------------------------------------------------------------------------
+// Legacy app targets (<= 2.7.21)
+// ---------------------------------------------------------------------------
+
 /**
  * O7/j.A()Z checks Firebase Remote Config "subscription_needed"
  * If true, the app gates playlists/player behind paywall.
@@ -45,4 +49,35 @@ object ProEntitlementXFingerprint : Fingerprint(
     filters = listOf(
         string("pro")
     )
+)
+
+// ---------------------------------------------------------------------------
+// App target 2.7.24+ (rewritten subscription layer)
+// ---------------------------------------------------------------------------
+
+/**
+ * 2.7.24 dropped the small O7/j boolean getters and inlined the check in the
+ * coroutine gate, which reads the flag through this shared Remote Config
+ * boolean reader (`c(String)Z`). We hook the reader itself so only the
+ * "subscription_needed" key is forced to false; every other remote flag keeps
+ * its real value.
+ */
+object RemoteConfigBooleanReaderFingerprint : Fingerprint(
+    definingClass = "Ls43;",
+    name = "c",
+    parameters = listOf("Ljava/lang/String;"),
+    returnType = "Z",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
+)
+
+/**
+ * RevenueCat "pro" entitlement check in 2.7.24+ (previously O7/h.x()):
+ * awaits CustomerInfo, reads entitlements["pro"] and returns isActive().
+ */
+object ProEntitlement2724Fingerprint : Fingerprint(
+    definingClass = "Lqh7;",
+    name = "l",
+    parameters = listOf("Z", "Lel1;"),
+    returnType = "Ljava/lang/Object;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
 )

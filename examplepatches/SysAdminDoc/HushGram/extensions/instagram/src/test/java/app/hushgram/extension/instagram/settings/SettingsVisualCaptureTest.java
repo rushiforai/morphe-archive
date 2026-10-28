@@ -196,7 +196,7 @@ public class SettingsVisualCaptureTest {
         open();
         capturePage("00-overview", true);
         List<Preference> categories = categories();
-        assertEquals("Every category except recovery can expand in place", 22, categories.size());
+        assertEquals("Every category, Pause and diagnostics included, can expand in place", 23, categories.size());
         int number = 1;
         for (Preference category : categories) {
             tap(category);

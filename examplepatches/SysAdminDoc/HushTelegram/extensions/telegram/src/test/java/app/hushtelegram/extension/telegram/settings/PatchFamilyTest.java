@@ -407,14 +407,18 @@ public class PatchFamilyTest {
         assertEquals("Save downloaded files", family.patchName);
         assertEquals("saveDownloads", family.statusMethod);
         // The second switch lets chats that don't allow saving through, so it starts off like the first.
-        assertEquals(Arrays.asList(Settings.SAVE_DOWNLOADS, Settings.SAVE_RESTRICTED_DOWNLOADS), family.switches);
+        // The storage folder switch (#7) moves Telegram's own folder at startup, so it starts off and needs a restart.
+        assertEquals(Arrays.asList(Settings.SAVE_DOWNLOADS, Settings.SAVE_RESTRICTED_DOWNLOADS, Settings.STORAGE_FOLDER), family.switches);
         for (BooleanSetting setting : family.switches) {
             assertFalse(setting.key, setting.defaultValue);
-            // Each finished download reads the switches, so no restart is needed.
-            assertFalse(setting.key, setting.rebootApp);
+            // Each finished download reads the first two switches, so they need no restart.
+            assertEquals(setting.key, setting == Settings.STORAGE_FOLDER, setting.rebootApp);
         }
-        // The gallery folder choice (#30) rides on this patch as its one tracked target, and starts on Telegram's folders.
-        assertEquals(EnumSet.of(PatchFamily.Capability.GALLERY_FOLDER), family.expectedCapabilities());
+        // The gallery folder choice (#30) and the storage folder (#7) ride on this patch as its tracked targets,
+        // and both start on Telegram's folders.
+        assertEquals(EnumSet.of(PatchFamily.Capability.GALLERY_FOLDER, PatchFamily.Capability.STORAGE_FOLDER),
+                family.expectedCapabilities());
+        assertEquals("storageFolder", PatchFamily.Capability.STORAGE_FOLDER.statusMethod);
         assertEquals("galleryFolder", PatchFamily.Capability.GALLERY_FOLDER.statusMethod);
         assertEquals("", Settings.GALLERY_FOLDER.defaultValue);
         assertFalse(Settings.GALLERY_FOLDER.rebootApp);
@@ -468,15 +472,19 @@ public class PatchFamilyTest {
         PatchFamily family = PatchFamily.HIDE_FOLDER_COUNTERS;
         assertEquals("Hide folder tab counters", family.patchName);
         // The folder the chat list opens on and the hidden chats start off too, and each works with or without the others.
-        assertEquals(Arrays.asList(Settings.HIDE_FOLDER_COUNTERS, Settings.LAUNCH_FOLDER, Settings.HIDDEN_CHATS), family.switches);
+        assertEquals(Arrays.asList(Settings.HIDE_FOLDER_COUNTERS, Settings.LAUNCH_FOLDER, Settings.HIDE_ALL_CHATS,
+                Settings.HIDDEN_CHATS), family.switches);
         for (BooleanSetting setting : family.switches) {
             assertFalse(setting.key, setting.defaultValue);
             // The counters change at once, the folder pick is for the next chat list, and the hidden
-            // chats sort again when the switch flips, so none needs a restart.
-            assertFalse(setting.key, setting.rebootApp);
+            // chats sort again when the switch flips, so none needs a restart. Hiding All Chats does,
+            // since each chat list reads it once, at its first tab build.
+            assertEquals(setting.key, setting == Settings.HIDE_ALL_CHATS, setting.rebootApp);
         }
-        assertEquals(EnumSet.of(PatchFamily.Capability.LAUNCH_FOLDER, PatchFamily.Capability.HIDDEN_CHATS), family.expectedCapabilities());
+        assertEquals(EnumSet.of(PatchFamily.Capability.LAUNCH_FOLDER, PatchFamily.Capability.HIDE_ALL_CHATS,
+                PatchFamily.Capability.HIDDEN_CHATS), family.expectedCapabilities());
         assertEquals("launchFolder", PatchFamily.Capability.LAUNCH_FOLDER.statusMethod);
+        assertEquals("hideAllChats", PatchFamily.Capability.HIDE_ALL_CHATS.statusMethod);
         assertEquals("hiddenChats", PatchFamily.Capability.HIDDEN_CHATS.statusMethod);
         assertOnItsPage(family);
     }
@@ -941,7 +949,8 @@ public class PatchFamilyTest {
                 PatchFamily.HIDE_ADS.coverageSummary("usual"));
         List<String> report = PatchFamily.reportLines(build, false);
         assertTrue(report.toString(), report.contains(
-                "Save downloaded files coverage: switch only; missing: gallery folder for saved photos and videos"));
+                "Save downloaded files coverage: switch only; missing: gallery folder for saved photos and videos, "
+                        + "Telegram's own files in internal storage"));
         assertTrue(report.toString(), report.contains(
                 "Faster downloads coverage: switch only; missing: automatic downloads on Data Saver"));
         assertTrue(report.toString(), report.contains("Hide ads coverage: none; missing: channel ads, video ads, search ads"));
@@ -949,7 +958,8 @@ public class PatchFamilyTest {
         PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.GALLERY_FOLDER,
                 PatchFamily.Capability.DATA_SAVER_DOWNLOADS);
         report = PatchFamily.reportLines(build, false);
-        assertTrue(report.toString(), report.contains("Save downloaded files coverage: gallery folder for saved photos and videos"));
+        assertTrue(report.toString(), report.contains("Save downloaded files coverage: gallery folder for saved photos and videos; "
+                + "missing: Telegram's own files in internal storage"));
         assertTrue(report.toString(), report.contains("Faster downloads coverage: automatic downloads on Data Saver"));
     }
 

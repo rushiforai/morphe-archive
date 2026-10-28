@@ -300,6 +300,13 @@ public class SettingsStatus {
         downloadEnabled = true;
     }
 
+    /** Downloads found the Share to sheet TikTok opens after its own saves and hooked it. */
+    public static boolean postDownloadShareSheetEnabled = false;
+
+    public static void enablePostDownloadShareSheet() {
+        postDownloadShareSheetEnabled = true;
+    }
+
     public static void enableCustomOfflineVideos() {
         customOfflineVideosEnabled = true;
     }
@@ -343,6 +350,13 @@ public class SettingsStatus {
 
     public static void enableLiveSpeed() {
         liveSpeedEnabled = true;
+    }
+
+    /** The hold gesture's touch listener and apply call were found, so sliding can change its speed. */
+    public static boolean holdSpeedSlideEnabled = false;
+
+    public static void enableHoldSpeedSlide() {
+        holdSpeedSlideEnabled = true;
     }
 
     public static void enableLongPressSpeedLock() {
@@ -628,6 +642,13 @@ public class SettingsStatus {
         gridSortEnabled = true;
     }
 
+    /** The grid adapter hands over its tab number, so the Liked tab can have its own order (#180). */
+    public static boolean likedGridSortEnabled = false;
+
+    public static void enableLikedGridSort() {
+        likedGridSortEnabled = true;
+    }
+
     public static void enableFeedSidebarSwipe() {
         feedSidebarSwipeEnabled = true;
     }
@@ -653,6 +674,13 @@ public class SettingsStatus {
 
     public static void enableFootnotes() {
         footnotesEnabled = true;
+    }
+
+    /** Hide video overlays found the Following tab's LIVE and stories row toggle and hooked it (#262). */
+    public static boolean followingSkylightEnabled = false;
+
+    public static void enableFollowingSkylight() {
+        followingSkylightEnabled = true;
     }
 
     /** Hide video overlays found the music disc's two animation settings on this build and hooked them (#68). */

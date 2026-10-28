@@ -1,3 +1,30 @@
+## [1.5.4](https://github.com/dieroboter/morphe-patches/compare/v1.5.3...v1.5.4) (2026-10-28)
+
+### Updated App Support
+
+* Geometry Dash trio 2.2.148 support, strip ATTEST ([82c159d](https://github.com/dieroboter/morphe-patches/commit/82c159d84043959adb41ba6f5a96bdbbc7a64689))
+* drop Geometry Dash 2.2.147 support, keep 2.2.148 only ([4b7226c](https://github.com/dieroboter/morphe-patches/commit/4b7226c26767ac350f5edb3d1b57669dca224366))
+
+### New Features
+
+* Disable rate prompts for the Geometry Dash trio ([82c159d](https://github.com/dieroboter/morphe-patches/commit/82c159d84043959adb41ba6f5a96bdbbc7a64689))
+
+## [1.5.4-dev.2](https://github.com/dieroboter/morphe-patches/compare/v1.5.4-dev.1...v1.5.4-dev.2) (2026-10-28)
+
+### Updated App Support
+
+* drop Geometry Dash 2.2.147 support, keep 2.2.148 only ([4b7226c](https://github.com/dieroboter/morphe-patches/commit/4b7226c26767ac350f5edb3d1b57669dca224366))
+
+## [1.5.4-dev.1](https://github.com/dieroboter/morphe-patches/compare/v1.5.3...v1.5.4-dev.1) (2026-10-28)
+
+### Updated App Support
+
+* Geometry Dash trio 2.2.148 support, strip ATTEST ([82c159d](https://github.com/dieroboter/morphe-patches/commit/82c159d84043959adb41ba6f5a96bdbbc7a64689))
+
+### New Features
+
+* Disable rate prompts for the Geometry Dash trio ([82c159d](https://github.com/dieroboter/morphe-patches/commit/82c159d84043959adb41ba6f5a96bdbbc7a64689))
+
 ## [1.5.3](https://github.com/dieroboter/morphe-patches/compare/v1.5.2...v1.5.3) (2026-10-27)
 
 ### Bug Fixes
@@ -19,20 +46,20 @@
 
 ## [1.5.2](https://github.com/dieroboter/morphe-patches/compare/v1.5.1...v1.5.2) (2026-10-24)
 
-### Bug Fixes
+### New Features
 
 * Hide the GIF Maker home bar rate button too ([64e1bf8](https://github.com/dieroboter/morphe-patches/commit/64e1bf8dd6e7f80b130590805937aa010f516d2e))
 * Hide the VIP support, rate and share rows in GIF Maker settings ([6c42dcd](https://github.com/dieroboter/morphe-patches/commit/6c42dcdaa779c7eb88831aff708cc96bc4ee6eb7))
 
 ## [1.5.2-dev.2](https://github.com/dieroboter/morphe-patches/compare/v1.5.2-dev.1...v1.5.2-dev.2) (2026-10-23)
 
-### Bug Fixes
+### New Features
 
 * Hide the GIF Maker home bar rate button too ([64e1bf8](https://github.com/dieroboter/morphe-patches/commit/64e1bf8dd6e7f80b130590805937aa010f516d2e))
 
 ## [1.5.2-dev.1](https://github.com/dieroboter/morphe-patches/compare/v1.5.1...v1.5.2-dev.1) (2026-10-23)
 
-### Bug Fixes
+### New Features
 
 * Hide the VIP support, rate and share rows in GIF Maker settings ([6c42dcd](https://github.com/dieroboter/morphe-patches/commit/6c42dcdaa779c7eb88831aff708cc96bc4ee6eb7))
 
@@ -133,13 +160,10 @@
 
 ## [1.4.0-dev.1](https://github.com/dieroboter/morphe-patches/compare/v1.3.0...v1.4.0-dev.1) (2026-10-18)
 
-### Bug Fixes
-
-* **solitaire:** no-op MWAdNetController.verifyMAXMediation, the AppLovin mediation debugger entry [skip ci] ([e69d54d](https://github.com/dieroboter/morphe-patches/commit/e69d54dacecccd3e73af188fdc77d5bba392ff9a))
-
 ### New Features
 
 * Add Solitaire patches - disable all ads and ad components, disable analytics and tracking, remove ad and tracking components ([c21bf7b](https://github.com/dieroboter/morphe-patches/commit/c21bf7baa7edbf0c69ba0ef3d8c4beadbb35dd88))
+* **solitaire:** no-op MWAdNetController.verifyMAXMediation, the AppLovin mediation debugger entry [skip ci] ([e69d54d](https://github.com/dieroboter/morphe-patches/commit/e69d54dacecccd3e73af188fdc77d5bba392ff9a))
 
 ## [1.3.0](https://github.com/dieroboter/morphe-patches/compare/v1.2.1...v1.3.0) (2026-10-18)
 

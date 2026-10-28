@@ -28,6 +28,8 @@ import java.util.Map;
 
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.SettingsContextRule;
+import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.HushfacebookPause;
 import app.morphe.extension.shared.settings.PauseForTests;
 
@@ -47,6 +49,9 @@ public class PostSourcesTest {
         PauseForTests.resume();
         Settings.HIDE_POSTS_FROM_SOURCES.resetToDefault();
         Settings.HIDDEN_SOURCES.resetToDefault();
+        Settings.HIDE_PAGE_POSTS.resetToDefault();
+        FeedFilterCounters.clear();
+        HookStatus.clear();
     }
 
     private static BaseModelWithTree author(String id, String name) {
@@ -327,5 +332,88 @@ public class PostSourcesTest {
 
         PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
         assertNull(FeedFilter.sourcesReason(post, actors, attachments, s -> null));
+    }
+
+    /** An author that answers [type] from {@code getTypeName()}, as a Page or a person does. */
+    private static BaseModelWithTree typed(String type) {
+        return new BaseModelWithTree(type) {
+        };
+    }
+
+    @Test
+    public void aPostIsAPagesOnlyWhenEveryOneOfItsOwnAuthorsIsAPage() {
+        GraphQLStory page = story(null, Arrays.asList(typed("Page")), Collections.emptyList());
+        GraphQLStory twoPages = story(null, Arrays.asList(typed("Page"), typed("Page")), Collections.emptyList());
+        GraphQLStory withAFriend = story(null, Arrays.asList(typed("Page"), typed("User")), Collections.emptyList());
+        GraphQLStory friend = story(null, Arrays.asList(typed("User")), Collections.emptyList());
+        GraphQLStory friendSharesAPage = story(page, Arrays.asList(typed("User")), Collections.emptyList());
+        GraphQLStory unread = story(null, Arrays.asList(typed("Page"), typed(null)), Collections.emptyList());
+        GraphQLStory released = story(null, Arrays.asList(typed("Page").released()), Collections.emptyList());
+        GraphQLStory nobody = story(null, Collections.emptyList(), Collections.emptyList());
+
+        assertEquals(PostSources.PAGE, PostSources.authorKind(page, actors));
+        assertEquals(PostSources.PAGE, PostSources.authorKind(twoPages, actors));
+        assertEquals("User", PostSources.authorKind(withAFriend, actors));
+        assertEquals("User", PostSources.authorKind(friend, actors));
+        assertEquals("a share is its sharer's", "User", PostSources.authorKind(friendSharesAPage, actors));
+        assertEquals(PostSources.UNKNOWN_AUTHOR, PostSources.authorKind(unread, actors));
+        assertEquals("a released author isn't asked", PostSources.UNKNOWN_AUTHOR, PostSources.authorKind(released, actors));
+        assertEquals(PostSources.NO_AUTHORS, PostSources.authorKind(nobody, actors));
+        assertEquals(PostSources.Outcome.NOT_A_STORY.reason, PostSources.authorKind(new Object(), actors));
+        assertEquals(PostSources.Outcome.NO_UNIT.reason, PostSources.authorKind(null, actors));
+        assertEquals(PostSources.Outcome.NO_ACCESSOR.reason, PostSources.authorKind(page, PostSources.ACTORS));
+        assertEquals(PostSources.Outcome.READ_FAILED.reason, PostSources.authorKind(page, story -> {
+            throw new IllegalStateException("renamed");
+        }));
+    }
+
+    @Test
+    public void hidePostsFromPagesTakesAPagesPostAndCountsEveryKind() {
+        GraphQLStory page = story(null, Arrays.asList(typed("Page")), Collections.emptyList());
+        GraphQLStory friend = story(null, Arrays.asList(typed("User")), Collections.emptyList());
+        GraphQLStory share = story(page, Arrays.asList(typed("User")), Collections.emptyList());
+
+        assertEquals(PostSources.PAGE, FeedFilter.pagesReason(page, actors));
+        assertNull(FeedFilter.pagesReason(friend, actors));
+        assertNull("a friend's share of a Page's post stays", FeedFilter.pagesReason(share, actors));
+        assertEquals(FeedFilter.PAGES_ROUTE + ": 3 lists, 3 items, 1 removed. Last reason: Page. "
+                + "Removed: Page 1. Kinds: User 2, Page 1", line(FeedFilter.PAGES_ROUTE));
+    }
+
+    enum Category { ORGANIC }
+
+    /** The news feed guard with Hide posts by words in or left out, reading no text. */
+    private static boolean guard(Object unit, boolean wordsPatched) {
+        return FeedFilter.hideEdge(Category.ORGANIC, unit, true, true, story -> null, false, GenAiLabel.PATCHED, false,
+                ShowcaseType.PATCHED, wordsPatched, story -> null, story -> null);
+    }
+
+    @Test
+    public void theFeedGuardAsksAboutPagesOnlyWithTheSwitchOnAndNoPause() {
+        GraphQLStory page = story(null, Arrays.asList(typed("Page")), Collections.emptyList());
+        assertFalse("the switch starts off", Settings.HIDE_PAGE_POSTS.defaultValue);
+        assertFalse(guard(page, true));
+        assertNull("nothing read with the switch off", line(FeedFilter.PAGES_ROUTE));
+
+        Settings.HIDE_PAGE_POSTS.save(true);
+        assertFalse(guard(page, false));
+        assertNull("nothing read without Hide posts by words", line(FeedFilter.PAGES_ROUTE));
+
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse(guard(page, true));
+        assertNull("nothing read while paused", line(FeedFilter.PAGES_ROUTE));
+
+        PauseForTests.resume();
+        assertFalse("a build whose authors stub isn't filled keeps the post", guard(page, true));
+        assertEquals(FeedFilter.PAGES_ROUTE + ": 1 lists, 1 items, 0 removed. Kinds: "
+                + PostSources.Outcome.NO_ACCESSOR.reason + " 1", line(FeedFilter.PAGES_ROUTE));
+    }
+
+    /** The line a route wrote, or null when nothing counted on it. */
+    private static String line(String route) {
+        for (String reported : FeedFilterCounters.report()) {
+            if (reported.startsWith(route + ": ")) return reported;
+        }
+        return null;
     }
 }

@@ -1,3 +1,15 @@
+## [1.3.0](https://github.com/toidicakhia/morphe-app-patches/compare/v1.2.0...v1.3.0) (2026-10-28)
+
+### ✨ New Features
+
+* add 1.1.1.1 WARP patches ([92fff38](https://github.com/toidicakhia/morphe-app-patches/commit/92fff38d5d01d50efa30bf35ea56d909cd1c6d67))
+
+## [1.2.0](https://github.com/toidicakhia/morphe-app-patches/compare/v1.1.0...v1.2.0) (2026-10-27)
+
+### ✨ New Features
+
+* add EZVIZ ad removal and SSL unpinning patches ([91d3d08](https://github.com/toidicakhia/morphe-app-patches/commit/91d3d082bd91b24bc18ae8306f132d50edc8a0ed))
+
 ## [1.1.0](https://github.com/toidicakhia/morphe-app-patches/compare/v1.0.0...v1.1.0) (2026-10-24)
 
 ### ✨ New Features

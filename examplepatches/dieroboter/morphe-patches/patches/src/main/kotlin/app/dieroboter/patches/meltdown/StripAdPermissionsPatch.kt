@@ -9,7 +9,8 @@ private val AD_PERMISSIONS = setOf(
     "com.google.android.gms.permission.AD_ID",
     "android.permission.ACCESS_ADSERVICES_AD_ID",
     "android.permission.ACCESS_ADSERVICES_TOPICS",
-    "android.permission.ACCESS_ADSERVICES_ATTRIBUTION"
+    "android.permission.ACCESS_ADSERVICES_ATTRIBUTION",
+    "com.amazon.privacypass.ATTEST"
 )
 
 /**
@@ -17,14 +18,18 @@ private val AD_PERMISSIONS = setOf(
  *
  * Removes AD_ID and the three Ad Services permissions (ad ID, attribution,
  * topics), so the ad SDKs in the mediation stack get no advertising
- * identifier. READ_PHONE_STATE is deliberately left in place (it is the ad
- * SDKs' fallback device identifier, but stripping it is a separate call).
+ * identifier, plus the Amazon PrivacyPass attestation permission added in
+ * 2.2.148 (its only users are the AdMob/OMID ad-measurement internals,
+ * already dead once the ad patches run). READ_PHONE_STATE was deliberately
+ * left in place originally; the app itself removed it from the manifest in
+ * 2.2.148, so there is nothing left to strip there.
  */
 @Suppress("unused")
 val stripAdPermissionsPatch = resourcePatch(
     name = "Strip ad tracking permissions",
     description = "Removes the ad identifier permissions (AD_ID and the Ad Services " +
-        "permissions: ad ID, attribution and topics) from the manifest.",
+        "permissions: ad ID, attribution and topics) and the Amazon PrivacyPass " +
+        "attestation permission from the manifest.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_GEOMETRY_DASH_MELTDOWN)

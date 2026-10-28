@@ -1,0 +1,20 @@
+import pathlib,subprocess,sys,time
+source=pathlib.Path('scripts/media-gallery/run.py').read_text(encoding='utf-8-sig');exec(source.split('\ntry:\n rpc.setup',1)[0])
+try:
+ rpc.setup('http://10.0.2.2:'+str(server.server_port))
+ rpc.native_multi();wait_state('/a.png','ImagesViewer2Activity');time.sleep(.5)
+ check('1/4' in rpc.native_counter_text(),'native viewer first image shows full mixed-media total 1/4')
+ check(str(rpc.counter_remap()).startswith('PASS'),'native 1/2 and 2/2 map to correct full-gallery positions; fallback unchanged')
+ subprocess.run([adb,'-s',serial,'shell','input','swipe','1650','600','250','600','300'],check=True);wait_state('/b.png','ImagesViewer2Activity');time.sleep(.2)
+ check('2/4' in rpc.native_counter_text(),'native internal paging updates full-gallery counter to 2/4')
+ rpc.preference('mediaSwipeWholeThread',True);rpc.preference('mediaSwipeNavigation',True)
+ rpc.swipe(-1,False);wait_state('/clip.mp4','VideoViewerActivity',True)
+ check(rpc.state()['index']==2 and rpc.state()['count']==4,'video transition retains gallery index 3/4')
+ rpc.native_gif_page();wait_state('/one.gif','ImagesViewer2Activity');time.sleep(.3)
+ check('3/4' in rpc.native_counter_text(),'standard GIF counter uses full gallery 3/4')
+ subprocess.run([adb,'-s',serial,'shell','screencap','-p','/sdcard/haiagaru-media-counter-proof.png'],check=True)
+ subprocess.run([adb,'-s',serial,'pull','/sdcard/haiagaru-media-counter-proof.png','build/media-counter-proof.png'],check=True)
+ print('PASS_COUNTER_SUITE',len(checks),flush=True)
+finally:
+ try:rpc.cleanup()
+ finally:session.detach();server.shutdown()

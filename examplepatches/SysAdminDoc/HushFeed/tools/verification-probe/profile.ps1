@@ -1,9 +1,16 @@
-# The PineDrama profile is an inspection prerequisite, never a whole-app qualification.
+# The PineDrama capability and core-walk profiles are inspection prerequisites, never a
+# whole-app qualification. The PineDrama audit profile is the full probe retargeted at
+# PineDrama, so its own audit catalog and whole-app walk can run there.
 function Get-VerificationProbeProfile {
-    param([ValidateSet('tiktok-whole-app-v1', 'pinedrama-47.5.3-capabilities-v1', 'pinedrama-47.5.3-core-walk-v1', 'pinedrama-47.5.3-core-walk-v2', IgnoreCase = $false)][string]$Profile = 'tiktok-whole-app-v1')
+    param([ValidateSet('tiktok-whole-app-v1', 'pinedrama-47.5.3-audit-v1', 'pinedrama-47.5.3-capabilities-v1', 'pinedrama-47.5.3-core-walk-v1', 'pinedrama-47.5.3-core-walk-v2', IgnoreCase = $false)][string]$Profile = 'tiktok-whole-app-v1')
     if ($Profile -ceq 'tiktok-whole-app-v1') {
         return [pscustomobject]@{ Name = $Profile; Package = 'com.zhiliaoapp.musically'; ProbePackage = 'app.hushfeed.verification'
             Instrumentation = 'app.hushfeed.verification.Probe'; LogTag = 'HushfeedProbe'; Restricted = $false }
+    }
+    if ($Profile -ceq 'pinedrama-47.5.3-audit-v1') {
+        return [pscustomobject]@{ Name = $Profile; Package = 'com.ss.android.ttmd.video'; Version = '47.5.3'
+            ProbePackage = 'app.hushfeed.verification.pinedrama.audit'; Instrumentation = 'app.hushfeed.verification.Probe'
+            LogTag = 'HushfeedProbe'; Restricted = $false }
     }
     if ($Profile -cin @('pinedrama-47.5.3-core-walk-v1', 'pinedrama-47.5.3-core-walk-v2')) {
         return [pscustomobject]@{ Name = $Profile; Package = 'com.ss.android.ttmd.video'; Version = '47.5.3'
@@ -144,12 +151,23 @@ function ConvertFrom-PineDramaInspection {
 
 function Write-VerificationProbeManifest {
     param([Parameter(Mandatory = $true)][string]$Template, [Parameter(Mandatory = $true)][string]$Destination,
-        [ValidateSet('tiktok-whole-app-v1', 'pinedrama-47.5.3-capabilities-v1', 'pinedrama-47.5.3-core-walk-v1', 'pinedrama-47.5.3-core-walk-v2', IgnoreCase = $false)][string]$Profile = 'tiktok-whole-app-v1')
+        [ValidateSet('tiktok-whole-app-v1', 'pinedrama-47.5.3-audit-v1', 'pinedrama-47.5.3-capabilities-v1', 'pinedrama-47.5.3-core-walk-v1', 'pinedrama-47.5.3-core-walk-v2', IgnoreCase = $false)][string]$Profile = 'tiktok-whole-app-v1')
     $target = Get-VerificationProbeProfile $Profile
     $text = [IO.File]::ReadAllText($Template)
-    if (-not $target.Restricted) { [IO.File]::WriteAllText($Destination, $text, [Text.UTF8Encoding]::new($false)); return }
-    [xml]$xml = $text
     $android = 'http://schemas.android.com/apk/res/android'
+    if (-not $target.Restricted) {
+        if ($Profile -ceq 'tiktok-whole-app-v1') { [IO.File]::WriteAllText($Destination, $text, [Text.UTF8Encoding]::new($false)); return }
+        # The same probe, permissions and fixture service, installed under its own package and
+        # pointed at the other app, so both probes can sit on one phone.
+        [xml]$full = $text
+        $full.DocumentElement.SetAttribute('package', $target.ProbePackage)
+        foreach ($node in @($full.DocumentElement.SelectNodes('instrumentation'))) {
+            [void]$node.SetAttribute('targetPackage', $android, $target.Package)
+        }
+        $full.Save($Destination)
+        return
+    }
+    [xml]$xml = $text
     $xml.DocumentElement.SetAttribute('package', $target.ProbePackage)
     foreach ($node in @($xml.DocumentElement.SelectNodes('instrumentation'))) { [void]$xml.DocumentElement.RemoveChild($node) }
     $instrumentation = $xml.CreateElement('instrumentation')

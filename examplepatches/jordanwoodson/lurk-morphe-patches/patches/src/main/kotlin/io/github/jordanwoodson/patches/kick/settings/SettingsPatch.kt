@@ -21,7 +21,8 @@ internal fun Fingerprint.kickMatch(what: String): Match = matchAllOrNull()?.sing
     ?: throw PatchException("Kick $KICK_VERSION: expected exactly one $what")
 
 internal val kickSettingsPatch = bytecodePatch(
-    description = "Adds Lurk settings to Kick's launcher shortcut.",
+    description = "Adds Lurk settings to Kick: the Lurk settings launcher shortcut and the app settings link on " +
+        "Android's App info page. Lurk in account menu adds a row to Kick's own menu.",
 ) {
     lurkSettings(KICK)
 }

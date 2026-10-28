@@ -19,7 +19,8 @@ import app.morphe.extension.shared.diagnostics.BuildDetails;
  *
  * <p>The builds are TikTok's. PineDrama reports TikTok's version names, but its resource table is
  * its own and hands the same short names to unrelated views, so a build's name never resolves
- * there (#156).
+ * there (#156). A name for PineDrama's table puts {@value #PINEDRAMA_BUILD} before the build,
+ * {@code "pinedrama-47.5.3:d2v"}, and resolves on that PineDrama build alone.
  *
  * <p>A copy of TikTok that Morphe's Clone app renamed for Run beside the store app runs under
  * another package with TikTok's resource table, so the build asset's target package, which the
@@ -28,19 +29,25 @@ import app.morphe.extension.shared.diagnostics.BuildDetails;
 public final class BuildNames {
     /** The app whose builds the names are written for. */
     static final String NAMED_APP = "com.zhiliaoapp.musically";
+    static final String PINEDRAMA_APP = "com.ss.android.ttmd.video";
+    /** Written before a PineDrama build, so its names never meet TikTok's. */
+    static final String PINEDRAMA_BUILD = "pinedrama-";
 
     private static volatile String runningBuild;
     private static volatile String runningApp;
 
     /**
      * The entry name to look up in the running app, or null when the name is another build's or
-     * the app isn't TikTok.
+     * another app's.
      */
     public static String entryName(String name) {
         int colon = name.indexOf(':');
         if (colon < 0) return name;
         String build = runningBuild();
-        return build == null || !NAMED_APP.equals(runningApp) ? null : entryName(name, build);
+        if (build == null) return null;
+        String app = runningApp;
+        if (NAMED_APP.equals(app)) return entryName(name, build);
+        return PINEDRAMA_APP.equals(app) ? entryName(name, PINEDRAMA_BUILD + build) : null;
     }
 
     /** The entry name to look up on [build], or null when the name is another build's. */

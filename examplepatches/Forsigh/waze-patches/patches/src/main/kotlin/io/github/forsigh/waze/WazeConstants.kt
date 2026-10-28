@@ -48,6 +48,10 @@ object WazeConstants {
             // CONFIG_VALUE_* exists in its dex except AAP_USE_NORMAL_CAR_GPS_UPDATE_RATE, which
             // 5.25.90.900 had already renamed to GPS_ALIGN_AAP_AND_DEVICE_UPDATE_RATE (both recorded).
             AppTarget(version = "5.26.0.0"),
+            // Sixth target (versionCode 1030744): Forsigh's installed build, pulled from his phone on
+            // 2026-10-27. Added so the bundle stops skipping every row on the version people actually
+            // run, then verified row by row against that base.
+            AppTarget(version = "5.26.5.0"),
             // Experimental: attempt on any version / any architecture.
             AppTarget(version = null, isExperimental = true),
         ),

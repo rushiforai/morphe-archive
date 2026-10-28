@@ -1,5 +1,6 @@
 package app.morphe.extension.chmate;
 
+
 import android.content.*;
 import android.content.pm.*;
 import android.os.*;
@@ -335,5 +336,191 @@ private static void hideKnownLegacyAds(View view) {
     private static int dp(Context context, int value) {
         return Math.round(value * context.getResources().getDisplayMetrics().density);
     }
+    public static void normalizeImageUploadIntegrity242(Object[] state){
+        if(state==null||state.length<2||!(state[0] instanceof int[])||!(state[1] instanceof int[]))
+            throw new IllegalStateException("Unexpected ChMate image integrity state");
+        int[] actual=(int[])state[0],expected=(int[])state[1];
+        if(actual.length==0||expected.length==0)throw new IllegalStateException("Empty ChMate image integrity state");
+        expected[0]=actual[0];
+    }
+    public static Object invokePreIoImageUploader(Method method,Object receiver,Object[] arguments)throws Throwable{
+        return invokeImageUploader(method,receiver,arguments,"o.getMethodokhttp","c",1,3);
+    }
+    public static Object invokeCurrentImageUploader(Method method,Object receiver,Object[] arguments)throws Throwable{
+        return invokeImageUploader(method,receiver,arguments,"o.setHasVideoContent","b",3,2);
+    }
+    private static Object invokeImageUploader(Method method,Object receiver,Object[] arguments,
+            String owner,String name,int expectedIndex,int actualIndex)throws Throwable{
+        Class<?> type=Class.forName(owner,false,method.getDeclaringClass().getClassLoader());
+        Field field=type.getDeclaredField(name);field.setAccessible(true);Object[] state=(Object[])field.get(null);
+        if(state!=null&&state.length>Math.max(expectedIndex,actualIndex)
+                &&state[expectedIndex] instanceof int[]&&state[actualIndex] instanceof int[]){
+            int[] expected=(int[])state[expectedIndex],actual=(int[])state[actualIndex];
+            if(expected.length>0&&actual.length>0)expected[0]=actual[0];
+        }
+        try{return method.invoke(receiver,arguments);}catch(InvocationTargetException error){throw error.getCause()==null?error:error.getCause();}
+    }
+    public static Object invokePreIoTalkPoster(
+            java.lang.reflect.Method method,
+            Object target,
+            Object[] arguments
+    ) {
+        if (method == null) throw new NullPointerException("method");
+        normalizeGeneratedIntegrityState(target, "o.head", "e", "d");
+        try {
+            return method.invoke(target, arguments);
+        } catch (java.lang.reflect.InvocationTargetException error) {
+            return Haiagaru.<RuntimeException, Object>throwUnchecked(error.getCause());
+        } catch (Throwable error) {
+            return Haiagaru.<RuntimeException, Object>throwUnchecked(error);
+        }
+    }
+
+    /**
+     * Invokes 226's generated Talk session/key builder after repairing the same
+     * certificate-derived state used by its private string encoder.  This call
+     * runs before the posting method, so repairing only invokePreIoTalkPoster is
+     * too late: the encoder otherwise deliberately throws a bare NPE.
+     */
+    public static Object invokePreIoTalkAuthenticator(
+            java.lang.reflect.Method method,
+            Object target,
+            Object[] arguments
+    ) {
+        if (method == null) throw new NullPointerException("method");
+        normalizeGeneratedIntegrityState(target, "o.head", "e", "d");
+        try {
+            return method.invoke(target, arguments);
+        } catch (java.lang.reflect.InvocationTargetException error) {
+            Throwable cause = error.getCause();
+            if (!isGeneratedIntegrityFailure(cause)) {
+                return Haiagaru.<RuntimeException, Object>throwUnchecked(cause);
+            }
+            normalizeGeneratedIntegrityState(target, "o.head", "e", "d");
+            try {
+                return method.invoke(target, arguments);
+            } catch (java.lang.reflect.InvocationTargetException retryError) {
+                return Haiagaru.<RuntimeException, Object>throwUnchecked(retryError.getCause());
+            } catch (Throwable retryError) {
+                return Haiagaru.<RuntimeException, Object>throwUnchecked(retryError);
+            }
+        } catch (Throwable error) {
+            return Haiagaru.<RuntimeException, Object>throwUnchecked(error);
+        }
+    }
+
+    private static boolean isGeneratedIntegrityFailure(Throwable error) {
+        if (error instanceof ArithmeticException || error instanceof NullPointerException) return true;
+        if (!(error instanceof RuntimeException)) return false;
+        String message = error.getMessage();
+        return message != null && message.matches("-?\\d+");
+    }
+
+    private static void normalizeGeneratedIntegrityState(
+            Object owner,
+            String className,
+            String stateFieldName,
+            String timestampFieldName
+    ) {
+        if (owner == null) return;
+        try {
+            ClassLoader loader = owner.getClass().getClassLoader();
+            Class<?> stateClass = Class.forName(className, false, loader);
+            Field stateField = stateClass.getDeclaredField(stateFieldName);
+            stateField.setAccessible(true);
+            Object value = stateField.get(null);
+            if (!(value instanceof Object[])) return;
+            Object[] state = (Object[]) value;
+            if (state.length < 2 || !(state[0] instanceof int[]) || !(state[1] instanceof int[])) {
+                return;
+            }
+            int[] first = (int[]) state[0];
+            int[] second = (int[]) state[1];
+            if (first.length == 0 || second.length == 0) return;
+            second[0] = first[0];
+
+            Field timestampField = stateClass.getDeclaredField(timestampFieldName);
+            timestampField.setAccessible(true);
+            timestampField.setLong(null, System.currentTimeMillis() + 86_400_000L);
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to normalize generated Talk integrity state", error);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <E extends Throwable, T> T throwUnchecked(Throwable error) throws E {
+        throw (E) error;
+    }
+    public static void normalizeLegacyTalkAuthIntegrity(Object authClient) {
+        if (authClient == null) return;
+        normalizeLegacyTalkAuthIntegrity(authClient.getClass().getClassLoader());
+    }
+
+    /** Invokes the 191 generated Talk authenticator and repairs its refreshed cache once. */
+    public static Object invokeLegacyTalkAuthenticator(
+            java.lang.reflect.Method method,
+            Object target,
+            Object[] arguments
+    ) {
+        if (method == null) throw new NullPointerException("method");
+        // The generated Talk client can refresh its certificate-derived cache
+        // after construction.  Repair it at the actual invocation boundary as
+        // well, rather than relying solely on the constructor hook.
+        normalizeLegacyTalkAuthIntegrity(method.getDeclaringClass().getClassLoader());
+        try {
+            return method.invoke(target, arguments);
+        } catch (java.lang.reflect.InvocationTargetException error) {
+            Throwable cause = error.getCause();
+            // Depending on the generated DEX revision the failed integrity
+            // comparison is expressed either as divide-by-zero or throw-null.
+            if (!(cause instanceof ArithmeticException)
+                    && !(cause instanceof NullPointerException)) {
+                return Haiagaru.<RuntimeException, Object>throwUnchecked(cause);
+            }
+            // The generated client can replace its static certificate cache between
+            // construction and this reflected call.  Repair that refreshed state and
+            // retry only the authentication calculation once.
+            normalizeLegacyTalkAuthIntegrity(method.getDeclaringClass().getClassLoader());
+            try {
+                return method.invoke(target, arguments);
+            } catch (java.lang.reflect.InvocationTargetException retryError) {
+                return Haiagaru.<RuntimeException, Object>throwUnchecked(retryError.getCause());
+            } catch (Throwable retryError) {
+                return Haiagaru.<RuntimeException, Object>throwUnchecked(retryError);
+            }
+        } catch (Throwable error) {
+            return Haiagaru.<RuntimeException, Object>throwUnchecked(error);
+        }
+    }
+
+    private static void normalizeLegacyTalkAuthIntegrity(ClassLoader loader) {
+        try {
+            Class<?> stateClass = Class.forName("o.fm", false, loader);
+            Field stateField = stateClass.getDeclaredField("e");
+            stateField.setAccessible(true);
+            Object value = stateField.get(null);
+            if (!(value instanceof Object[])) return;
+            Object[] state = (Object[]) value;
+            if (state.length < 2 || !(state[0] instanceof int[]) || !(state[1] instanceof int[])) {
+                return;
+            }
+            int[] actual = (int[]) state[0];
+            int[] expected = (int[]) state[1];
+            if (actual.length == 0 || expected.length == 0) return;
+            expected[0] = actual[0];
+
+            // The generated method refreshes this state after roughly two seconds.
+            // Every wrapped call renews the cache, but other generated paths may
+            // reuse it after a day has passed. Avoid that arbitrary expiration for
+            // the lifetime of this process. Half of Long.MAX_VALUE leaves room for
+            // timestamp arithmetic in the generated method.
+            Field timestampField = stateClass.getDeclaredField("c");
+            timestampField.setAccessible(true);
+            timestampField.setLong(null, Long.MAX_VALUE / 2);
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to normalize legacy Talk authentication state", error);
+        }
+    }
+
     private Haiagaru() {}
 }

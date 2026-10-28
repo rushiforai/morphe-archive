@@ -173,7 +173,7 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
         for(int i=0;i<rows.length;i++){BoardEntry board=availableBoards.get(i);rows[i]=new String[]{board.code,board.label};}
         return rows;
     }
-    void reloadTemplateBoards(){if(!stopButton.isEnabled()){boardsRequested=true;loadBoards();}}
+    void reloadTemplateBoards(){boardsRequested=true;loadBoards(true);}
 
     private boolean startBackground(Intent args){
         if(!backgroundEnabled())return false;
@@ -405,7 +405,7 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
         searchUiChanged();
     }
     void loadBoardsOnDemand() {
-        if (!boardsRequested && FeatureSwitches.enabled("wacchoiSearchEnabled",true)) {
+        if (!boardsRequested) {
             boardsRequested = true; loadBoards();
         }
     }
@@ -509,6 +509,7 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
                 boardStatus.setText("板一覧の取得が終わってから選択してください");
                 return;
             }
+            restoredBoards=true;restoreAllBoards=false;
             WacchoiSearch.selectAllBoards(availableBoardCodes(), selectedBoards);
             renderBoardChoices();
         });
@@ -526,6 +527,7 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
             @Override public void afterTextChanged(android.text.Editable s) { }
         });
         selectAllBoards.setOnClickListener(v -> {
+            restoredBoards=true;restoreAllBoards=false;
             String filter = boardFilter.getText().toString().trim().toLowerCase(Locale.ROOT);
             int selected = 0;
             for (BoardEntry board : availableBoards) {
@@ -538,6 +540,7 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
             renderBoardChoices();
         });
         clearBoards.setOnClickListener(v -> {
+            restoredBoards=true;restoreAllBoards=false;
             selectedBoards.clear();
             renderBoardChoices();
         });
@@ -697,44 +700,26 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
     }
 
     private boolean boardListLoading;
-    private void loadBoards() {
+    private void applyBoardCatalog(List<HissiBoardCatalog.Entry> entries){
+        availableBoards.clear();Set<String> seen=new LinkedHashSet<>();
+        for(HissiBoardCatalog.Entry entry:entries){availableBoards.add(new BoardEntry(entry.code,entry.label));seen.add(entry.code);}
+        if(restoreAllBoards){selectedBoards.addAll(seen);restoreAllBoards=false;}
+        else if(!restoredBoards&&selectedBoards.isEmpty()&&seen.contains("android"))selectedBoards.add("android");
+        renderBoardChoices();
+    }
+    private void loadBoards(){loadBoards(false);}
+    private void loadBoards(boolean force){
         if(boardListLoading)return;
+        List<HissiBoardCatalog.Entry> cached=HissiBoardCatalog.peek();
+        if(!cached.isEmpty())applyBoardCatalog(cached);
         boardListLoading=true;
-        boardStatus.setText("Hissiから板一覧を取得しています…");
-        executor.submit(() -> {
-            try {
-                String html = fetch(ORIGIN + "/menu.php");
-                Matcher matcher = BOARD_LINK.matcher(html);
-                List<BoardEntry> loaded = new ArrayList<>();
-                Set<String> seen = new LinkedHashSet<>();
-                while (matcher.find()) {
-                    String code = matcher.group(1);
-                    if (!seen.add(code)) continue;
-                    String label = Html.fromHtml(matcher.group(2), Html.FROM_HTML_MODE_LEGACY)
-                            .toString().trim();
-                    if (!label.isEmpty()) loaded.add(new BoardEntry(code, label));
-                }
-                if (loaded.isEmpty()) throw new IllegalStateException("板一覧を読み取れませんでした");
-                runOnUiThread(() -> {
-                    if (isDestroyed()) return;
-                    boardListLoading=false;
-                    availableBoards.clear(); availableBoards.addAll(loaded);
-                    if(restoreAllBoards){selectedBoards.addAll(seen);restoreAllBoards=false;}
-                    else if (!restoredBoards && selectedBoards.isEmpty() && seen.contains("android")) selectedBoards.add("android");
-                    renderBoardChoices();
-                    boardStatus.setText(availableBoards.size() + "板を取得しました（選択中 "
-                            + selectedBoards.size() + "板）");
-                });
-            } catch (Exception error) {
-                runOnUiThread(() -> {
-                    if (isDestroyed()) return;
-                    boardListLoading=false;
-                    boardsRequested = false;
-                    boardStatus.setText("板一覧を取得できません: " + error.getMessage()
-                            + "。通信後に検索画面を開き直してください。");
-                });
-            }
-        });
+        boardStatus.setText(availableBoards.isEmpty()?"Hissiから板一覧を取得しています…":"取得済みの板一覧を表示しています。更新を確認中…");
+        HissiBoardCatalog.load(this,force,(entries,error)->runOnUiThread(()->{
+            if(isDestroyed())return;boardListLoading=false;
+            if(error==null){applyBoardCatalog(entries);boardStatus.setText(availableBoards.size()+"板を取得しました（選択中 "+selectedBoards.size()+"板）");}
+            else{boardsRequested=false;boardStatus.setText("板一覧を更新できません: "+error.getMessage()+(availableBoards.isEmpty()?"。「板一覧を再取得」でやり直せます。":"。取得済みの一覧から引き続き選択できます。"));}
+            searchUiChanged();
+        }));
     }
 
     private void renderBoardChoices() {
@@ -753,6 +738,7 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
             choice.setTag(board.code);
             choice.setChecked(selectedBoards.contains(board.code));
             choice.setOnCheckedChangeListener((button, checked) -> {
+                restoredBoards=true;restoreAllBoards=false;
                 if (checked) selectedBoards.add(board.code); else selectedBoards.remove(board.code);
                 boardStatus.setText(availableBoards.size() + "板を取得しました（選択中 "
                         + selectedBoards.size() + "板）");

@@ -112,8 +112,8 @@ public final class PlayerSources {
     }
 
     /**
-     * The video patch's copy of {@link #remember}, run behind Download any video's switch and
-     * counted on that patch's own line. With both patches in, a player is recorded twice with the
+     * The video patch's copy of {@link #remember}, run behind Download any video's switch or the
+     * feed cast button's, and counted on that patch's own line. With both patches in, a player is recorded twice with the
      * same source, which costs a map write.
      */
     public static void rememberVideo(Object params, String idField, String hdField, String manifestField) {
@@ -132,7 +132,9 @@ public final class PlayerSources {
             // Facebook can build a player before the settings are ready, and no switch can be
             // read then.
             if (!Utils.settingsReady()) return;
-            if (!(video ? Settings.DOWNLOAD_VIDEOS.get() : Settings.DOWNLOAD_STORIES.get())) return;
+            // The feed cast button hands over the file recorded here too (#182).
+            if (!(video ? Settings.DOWNLOAD_VIDEOS.get() || Settings.FEED_VIDEO_CAST_BUTTON.get()
+                    : Settings.DOWNLOAD_STORIES.get())) return;
 
             String videoId = RenditionPicker.fieldValue(params, idField);
             if (videoId == null || videoId.isEmpty()) return;

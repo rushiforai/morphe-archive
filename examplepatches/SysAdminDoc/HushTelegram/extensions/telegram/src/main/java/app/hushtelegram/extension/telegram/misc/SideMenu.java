@@ -41,8 +41,11 @@ public final class SideMenu {
     /** The action Telegram's launcher shortcut uses for a new message: its contact list with New Group and New Channel. */
     static final String NEW_MESSAGE = "new_dialog";
 
-    /** The rows under the name, in the order {@link #labels()} gives Telegram's words for the first six. */
-    enum Row { PROFILE, NEW_MESSAGE, CONTACTS, CALLS, SAVED, SETTINGS, HUSH }
+    /**
+     * The rows under the name, in the order {@link #labels()} gives Telegram's words for the first six.
+     * Archived Chats only shows while Hide All Chats has taken the archive's usual way in.
+     */
+    enum Row { PROFILE, NEW_MESSAGE, CONTACTS, CALLS, SAVED, SETTINGS, ARCHIVE, HUSH }
 
     /** English for the rows when Telegram's words aren't there, which is only outside a patched app. */
     static final String[] FALLBACK = {"My Profile", "New Message", "Contacts", "Calls", "Saved Messages", "Settings"};
@@ -154,6 +157,7 @@ public final class SideMenu {
             String own = telegram != null && i < telegram.length ? telegram[i] : null;
             words[i] = own == null || own.isEmpty() ? FALLBACK[i] : own;
         }
+        words[Row.ARCHIVE.ordinal()] = LaunchFolder.archiveTitle();
         words[Row.HUSH.ordinal()] = SettingsEntry.nativeSettingsTitle();
         return words;
     }
@@ -182,6 +186,9 @@ public final class SideMenu {
                 break;
             case SETTINGS:
                 opener.start(activity, link(activity, SETTINGS_LINK));
+                break;
+            case ARCHIVE:
+                if (!LaunchFolder.openArchive()) return;
                 break;
             case HUSH:
                 opener.hushSettings(activity);

@@ -76,6 +76,16 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                 return true;
             });
             addPreference(atOnce);
+            TogglePreference wifiOnly = new TogglePreference(context, "Save only on Wi-Fi",
+                    "Saves wait for Wi-Fi or another network that isn't metered, for up to 30 minutes, "
+                            + "and stop if you leave it. Saving a frame still works anywhere.",
+                    Settings.DOWNLOAD_UNMETERED_ONLY);
+            // Posted for the same reason: a save waiting for Wi-Fi goes once the switch is off.
+            wifiOnly.setOnPreferenceChangeListener((preference, value) -> {
+                Utils.runOnMainThread(SaveQueue::networkSettingChanged);
+                return true;
+            });
+            addPreference(wifiOnly);
             addPreference(new SectionHeadingPreference(context, "Files"));
             addPreference(new DownloadPathPreference(
                     context,
@@ -129,6 +139,15 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                         Settings.REMOVE_DOWNLOAD_WATERMARK
                 ));
             }
+            if (SettingsStatus.postDownloadShareSheetEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Skip the Share to sheet after a save",
+                        "TikTok opens a Share to sheet a few seconds after it saves a video. This stops "
+                                + "it. The share button and the saved notice stay as they are.",
+                        Settings.SKIP_POST_DOWNLOAD_SHARE_SHEET
+                ));
+            }
         }
         if (SettingsStatus.advancedDownloadsEnabled) {
             addPreference(new SectionHeadingPreference(context, "Video"));
@@ -167,9 +186,9 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                     Settings.PICK_GRID_VIDEOS));
             addPreference(new TogglePreference(context, "Save details beside the video",
                     "Saves the caption, creator, link and post date in a text file next to the "
-                            + "video. On Android 10 and later, the pair goes in Download or "
-                            + "Documents under the same folder name. Applies to saves made by "
-                            + "Hushfeed.",
+                            + "video, or one file for a photo post's original photos. On Android 10 "
+                            + "and later, they go in Download or Documents under the same folder "
+                            + "name. Applies to saves made by Hushfeed.",
                     Settings.DOWNLOAD_DETAILS));
             addPreference(new TogglePreference(context, "Save details as JSON",
                     "Saves the details file in JSON format instead of plain text. Useful if "

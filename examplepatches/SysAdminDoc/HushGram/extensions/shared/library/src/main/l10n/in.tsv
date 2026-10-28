@@ -347,7 +347,7 @@ Profiles	Profil
 Show if a profile follows you	Tampilkan apakah profil mengikuti kamu
 Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	Menambahkan Mengikuti kamu atau Tidak mengikuti kamu di samping nama di profil seseorang, setelah kata ganti mereka jika ada. Tidak ada yang muncul sampai Instagram memeriksanya.
 Mark who doesn't follow you back	Tandai yang tidak mengikuti balik kamu
-On your own Following list, adds Doesn't follow you after the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.	Di daftar Mengikuti milikmu sendiri, menambahkan Tidak mengikuti kamu setelah nama setiap akun yang tidak mengikuti balik kamu. Tidak ada yang muncul sampai Instagram memeriksanya.
+On your own Following list, adds Doesn't follow you before the name of each account that doesn't follow you back. Nothing shows until Instagram has checked.	Di daftar Mengikuti milikmu sendiri, menambahkan Tidak mengikuti kamu sebelum nama setiap akun yang tidak mengikuti balik kamu. Tidak ada yang muncul sampai Instagram memeriksanya.
 Put accounts that don't follow you back first	Tampilkan akun yang tidak mengikuti balik kamu lebih dulu
 On your own Following list, moves the accounts that don't follow you back to the top and keeps Instagram's order within each group. Accounts Instagram hasn't checked yet stay below.	Di daftar Mengikuti milikmu sendiri, memindahkan akun yang tidak mengikuti balik kamu ke atas dan mempertahankan urutan Instagram di setiap kelompok. Akun yang belum diperiksa Instagram tetap di bawah.
 Follows you	Mengikuti kamu
@@ -532,6 +532,8 @@ Screenshots and screen recordings work wherever Instagram blocks them, like disa
 Turns the switches that keep what you do to yourself on or off in one go, like View stories anonymously and Hide that you're typing. Each one keeps its own switch.	Menyalakan atau mematikan sekaligus sakelar yang merahasiakan aktivitas Anda, seperti Lihat cerita secara anonim dan Sembunyikan bahwa Anda sedang mengetik. Masing-masing tetap punya sakelarnya sendiri.
 View live anonymously	Tonton siaran langsung secara anonim
 Photos and videos sent as view once or replayable stay in the chat so you can open them again. Open the chat again to update ones already loaded.	Foto dan video yang dikirim sekali lihat atau bisa diputar ulang tetap ada di chat sehingga bisa kamu buka lagi. Buka chat lagi untuk memperbarui yang sudah dimuat.
+Swipe through a chat's reels	Geser melalui reel di chat
+Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Back takes you to the chat.	Menggeser ke atas pada reel yang kamu buka dari chat akan melewati reel lain yang dibagikan di chat itu sebelum reel yang disarankan. Kembali membawamu ke chat.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	Menambahkan Unduh sampul di bawah Unduh. Ini menyimpan gambar diam yang ditampilkan reel sebelum diputar, dalam ukuran terbesarnya.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	Menambahkan Unduh audio di bawah Unduh. Ini menyimpan suara reel sebagai file audio.
 After 20 reels, swiping in Reels stops until Instagram has been in the background for 15 minutes. A reel you open from a message or a post still plays.	Setelah 20 reel, menggeser di Reels berhenti sampai Instagram berada di latar belakang selama 15 menit. Reel yang Anda buka dari pesan atau postingan tetap diputar.
@@ -919,7 +921,7 @@ Space under the tab bar	Ruang di bawah bilah tab
 A little more	Sedikit lebih banyak
 More	Lebih banyak
 Hide the tab bar as you scroll	Sembunyikan bilah tab saat menggulir
-Scrolling a list down slides the pill out of the way. Scrolling up, reaching the top, or changing tab brings it back. Restart Instagram after changing it.	Menggulir daftar ke bawah menggeser pil keluar dari jalan. Menggulir ke atas, mencapai bagian atas, atau berpindah tab akan memunculkannya lagi. Mulai ulang Instagram setelah mengubahnya.
+Scrolling a list down slides the tab bar out of the way. Scrolling up, reaching the top, or changing tab brings it back. It works with or without Glass tab bar. Restart Instagram after changing it.	Menggulir daftar ke bawah menggeser bilah tab keluar dari jalan. Menggulir ke atas, mencapai bagian atas, atau berpindah tab akan memunculkannya lagi. Bisa dipakai dengan atau tanpa Bilah tab kaca. Mulai ulang Instagram setelah mengubahnya.
 Hide the tab bar on Reels	Sembunyikan bilah tab di Reels
 # context: a choice in the Hide the tab bar on Reels list under Glass tab bar; the bar is never hidden there
 Never	Tidak pernah
@@ -1023,8 +1025,19 @@ Active at %1$s	Aktif pukul %1$s
 Active yesterday at %1$s	Aktif kemarin pukul %1$s
 Active %1$s at %2$s	Aktif %1$s pukul %2$s
 Rounded corners on posts	Sudut membulat pada kiriman
-Rounds the corners of a post's photo, video and carousel pages in Home and Following. Posts you scroll to after a change show it. Stories, profiles, Explore and Reels stay as they were.	Membulatkan sudut foto, video, dan halaman carousel pada kiriman di Beranda dan Mengikuti. Kiriman yang kamu gulir setelah perubahan akan menampilkannya. Cerita, profil, Jelajahi, dan Reels tetap seperti semula.
+Rounds the corners of a post's photo, video and carousel pages in Home and Following. Posts you scroll to after a change show it. Stories, profiles and Explore stay as they were.	Membulatkan sudut foto, video, dan halaman carousel pada kiriman di Beranda dan Mengikuti. Kiriman yang kamu gulir setelah perubahan akan menampilkannya. Cerita, profil, dan Jelajahi tetap seperti semula.
 Corner size	Ukuran sudut
+Rounded corners on Reels	Sudut membulat pada Reels
+Seek bar on stories	Bilah geser di cerita
+Shows a bar near the bottom of a video story. Drag it to jump to any point in the video. Photos don't get one.	Menampilkan bilah di dekat bagian bawah cerita video. Geser bilahnya untuk melompat ke titik mana pun di video. Foto tidak mendapatkannya.
+Thicker story progress bar	Bilah progres cerita lebih tebal
+Draws the bar along the top of a story as thick as the choice below. Its segments and timing stay as they were.	Menggambar bilah di bagian atas cerita setebal pilihan di bawah. Segmen dan waktunya tetap seperti semula.
+Thickness	Ketebalan
+Twice as thick	Dua kali lebih tebal
+Three times as thick	Tiga kali lebih tebal
+Rounds the corners of a reel's video in the Reels tab and wherever a reel opens full screen. The seek bar, captions and buttons stay whole.	Membulatkan sudut video reel di tab Reels dan di mana pun reel dibuka layar penuh. Bilah geser, teks, dan tombol tetap utuh.
+Peek at the next carousel page	Intip halaman carousel berikutnya
+A carousel post's page sits a little in from the edges, with the start of the next page showing at the right.	Halaman postingan carousel sedikit menjorok dari tepi, dengan awal halaman berikutnya terlihat di kanan.
 Large	Besar
 Small	Kecil
 # context: a toast shown once when safe mode has paused HushGram on its own after crashes at start
@@ -1216,6 +1229,7 @@ New	Baru
 App icon	Ikon aplikasi
 Instagram on black	Instagram di atas hitam
 Instagram on plum	Instagram di atas ungu plum
+Instagram in black on white	Instagram hitam di atas putih
 Instagram's own	Bawaan Instagram
 Instagram's own. Pick another to change the icon on your home screen and in the app drawer.	Bawaan Instagram. Pilih yang lain untuk mengganti ikon di layar utama dan laci aplikasi.
 %1$s. It shows once you leave Instagram. If the icon is gone from your home screen, add it again from the app drawer.	%1$s. Ikon muncul setelah kamu keluar dari Instagram. Jika ikon hilang dari layar utama, tambahkan lagi dari laci aplikasi.
@@ -1257,3 +1271,22 @@ Instagram picks the tab bar for your account, and it can switch between the two 
 Group Instagram's notifications, and take suggestions off the Notifications page.	Kelompokkan notifikasi Instagram, dan hapus saran dari halaman Notifikasi.
 Take suggestions and Featured off the Notifications page.	Hapus saran dan Unggulan dari halaman Notifikasi.
 Version warnings	Peringatan versi
+Pause HushGram, lock these settings, or make a report when something breaks.	Jeda HushGram, kunci pengaturan ini, atau buat laporan saat ada yang rusak.
+Choose a folder	Pilih folder
+Saves go to Movies and Pictures. Pick any folder instead, a hidden one too, and every photo and video goes there.	Simpanan masuk ke Movies dan Pictures. Pilih folder mana saja sebagai gantinya, termasuk folder tersembunyi, dan setiap foto serta video akan masuk ke sana.
+Photos and videos go to %1$s. Tap to pick another folder.	Foto dan video masuk ke %1$s. Ketuk untuk memilih folder lain.
+HushGram can't reach %1$s anymore, so saves go to Movies and Pictures. Pick the folder again.	HushGram tidak bisa lagi menjangkau %1$s, jadi simpanan masuk ke Movies dan Pictures. Pilih foldernya lagi.
+Use Movies and Pictures	Gunakan Movies dan Pictures
+Stop using the folder you picked. Saves go back to Movies and Pictures.	Berhenti memakai folder yang kamu pilih. Simpanan kembali masuk ke Movies dan Pictures.
+Couldn't use that folder. Saves still go where they did.	Folder itu tidak bisa dipakai. Simpanan tetap masuk ke tempat sebelumnya.
+Saves go to Movies and Pictures again.	Simpanan kembali masuk ke Movies dan Pictures.
+%1$s didn't take this save, so it went to Movies and Pictures.	%1$s tidak menerima simpanan ini, jadi simpanan masuk ke Movies dan Pictures.
+Start reels with sound	Mulai reel dengan suara
+A reel you tap open from a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Reel yang kamu buka dari postingan di Beranda diputar dengan suara, dan Beranda kembali bisu saat kamu kembali. Mode dering dan volume ponselmu tetap berlaku.
+Keep your place in Home	Tetap di posisi Anda di Beranda
+Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	Saat kembali ke Instagram, Beranda tetap di postingan yang sedang Anda lihat, selama apa pun Anda pergi. Tarik ke bawah untuk menyegarkan tetap memuat ulang.
+Filter the Stories tray by verified accounts	Filter baris Cerita menurut akun terverifikasi
+The row of stories at the top of Home keeps only the accounts the choice below names, by Instagram's verified badge. Your own story stays. Turn it off to see every story.	Baris cerita di bagian atas Beranda hanya menyimpan akun yang disebut pilihan di bawah, menurut lencana terverifikasi Instagram. Cerita Anda sendiri tetap ada. Matikan untuk melihat semua cerita.
+Stories to keep	Cerita yang disimpan
+Only verified accounts	Hanya akun terverifikasi
+Only accounts that aren't verified	Hanya akun yang tidak terverifikasi

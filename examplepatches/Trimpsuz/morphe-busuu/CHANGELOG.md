@@ -1,3 +1,15 @@
+## [1.1.0](https://github.com/Trimpsuz/morphe-patches/compare/v1.0.1...v1.1.0) (2026-10-27)
+
+### ✨ New Features
+
+* firsty auto reward patch ([#19](https://github.com/Trimpsuz/morphe-patches/issues/19)) ([8fb1028](https://github.com/Trimpsuz/morphe-patches/commit/8fb1028d1e6dd5cceae7608fce91beffce4cfc49))
+
+## [1.1.0-dev.1](https://github.com/Trimpsuz/morphe-patches/compare/v1.0.1...v1.1.0-dev.1) (2026-10-27)
+
+### ✨ New Features
+
+* firsty auto reward patch ([#19](https://github.com/Trimpsuz/morphe-patches/issues/19)) ([8fb1028](https://github.com/Trimpsuz/morphe-patches/commit/8fb1028d1e6dd5cceae7608fce91beffce4cfc49))
+
 ## [1.0.1](https://github.com/Trimpsuz/morphe-patches/compare/v1.0.0...v1.0.1) (2026-06-14)
 
 ### 🐛 Bug Fixes

@@ -138,9 +138,9 @@ public class GestureActionsTest {
             ChoicePreference choice = (ChoicePreference) screen.findPreference("double_tap_action");
             assertNotNull(choice);
             // #136: it offered only nothing and comments, and Long press had all the rest.
-            assertArrayEquals(new String[]{"default", "nothing", "comments", "original_sound",
+            assertArrayEquals(new String[]{"default", "nothing", "like_toggle", "comments", "original_sound",
                     "copy_link", "copy_sound_link", "youtube_music", "sleep_timer", "save_frame",
-                    "save_cover"}, choice.getEntryValues());
+                    "save_cover", "open_search"}, choice.getEntryValues());
             assertEquals("every value needs a label to pick it by",
                     choice.getEntryValues().length, choice.getEntries().length);
             assertEquals("the row keeps its own name for TikTok's like",
@@ -221,7 +221,7 @@ public class GestureActionsTest {
 
     /**
      * The two rows offer the same actions, each under its own TikTok default, but for the like:
-     * TikTok's own double tap already likes.
+     * TikTok's own double tap already likes, so Double tap offers Like or unlike instead (#248).
      */
     @Test public void doubleTapAndLongPressOfferTheSameActions() {
         try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
@@ -236,7 +236,10 @@ public class GestureActionsTest {
             java.util.Set<String> longPressButTheLike = new java.util.TreeSet<>(longPress);
             assertTrue(longPressButTheLike.remove("like"));
             assertFalse(doubleTap.contains("like"));
-            assertEquals(longPressButTheLike, new java.util.TreeSet<>(doubleTap));
+            java.util.Set<String> doubleTapButTheToggle = new java.util.TreeSet<>(doubleTap);
+            assertTrue(doubleTapButTheToggle.remove("like_toggle"));
+            assertFalse(longPress.contains("like_toggle"));
+            assertEquals(longPressButTheLike, doubleTapButTheToggle);
         }
     }
 
@@ -511,7 +514,7 @@ public class GestureActionsTest {
             // #136: a like, the one thing a double tap did that a long press couldn't.
             assertArrayEquals(new String[]{"default", "nothing", "like", "comments", "original_sound",
                     "copy_link", "copy_sound_link", "youtube_music", "sleep_timer", "save_frame",
-                    "save_cover"}, choice.getEntryValues());
+                    "save_cover", "open_search"}, choice.getEntryValues());
             assertEquals("every value needs a label to pick it by",
                     choice.getEntryValues().length, choice.getEntries().length);
             assertEquals(L10n.t("Like the video"), String.valueOf(choice.getEntries()[2]));
@@ -610,6 +613,44 @@ public class GestureActionsTest {
             assertEquals(L10n.t("This video has no cover to save"), ShadowToast.getTextOfLatestToast());
         } finally {
             Settings.LONG_PRESS_ACTION.resetToDefault();
+            Settings.EDGE_SEEK.resetToDefault();
+        }
+    }
+
+    /**
+     * #251: Open the search page is on both gestures and sends TikTok's own search link to
+     * TikTok itself, so it works with the feed's search button hidden.
+     */
+    @Test public void openSearchSendsTikToksSearchLinkFromEitherGesture() {
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            Utils.setActivity(activity);
+            activity.setContentView(new FrameLayout(activity));
+            Settings.EDGE_SEEK.save(false);
+            var shadow = org.robolectric.Shadows.shadowOf(activity);
+
+            Settings.LONG_PRESS_ACTION.save("open_search");
+            assertTrue(GestureActions.takesLongPress("open_search"));
+            assertTrue(GestureActions.onLongPress(middleOf(activity)));
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            android.content.Intent pressed = shadow.getNextStartedActivity();
+            assertNotNull("a long press opened nothing", pressed);
+            assertEquals(android.content.Intent.ACTION_VIEW, pressed.getAction());
+            assertEquals(GestureActions.SEARCH_PAGE_URI, String.valueOf(pressed.getData()));
+            assertEquals("TikTok's own router, never a browser", activity.getPackageName(), pressed.getPackage());
+            assertTrue(String.valueOf(pressed.getData()).contains("enter_blank_page=1"));
+
+            Settings.LONG_PRESS_ACTION.save("default");
+            Settings.DOUBLE_TAP_ACTION.save("open_search");
+            assertTrue(GestureActions.onDoubleTap());
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            android.content.Intent tapped = shadow.getNextStartedActivity();
+            assertNotNull("a double tap opened nothing", tapped);
+            assertEquals(GestureActions.SEARCH_PAGE_URI, String.valueOf(tapped.getData()));
+        } finally {
+            Settings.LONG_PRESS_ACTION.resetToDefault();
+            Settings.DOUBLE_TAP_ACTION.resetToDefault();
             Settings.EDGE_SEEK.resetToDefault();
         }
     }

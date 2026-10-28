@@ -211,6 +211,7 @@ public final class XPostPreview {
     public static void onBound(Object object) {
         if (object == WRITING.get() || SiteCards.writing(object) || Looper.myLooper() != Looper.getMainLooper()) return;
         DirectBodySelection.prepare(object);
+        InlineGifPlayback.onBound(object);
         SiteCards.onBound(object);
         if (!(object instanceof TextView) || object instanceof EditText || !Haiagaru.xPostPreviewEnabled()) return;
         TextView view = (TextView) object;

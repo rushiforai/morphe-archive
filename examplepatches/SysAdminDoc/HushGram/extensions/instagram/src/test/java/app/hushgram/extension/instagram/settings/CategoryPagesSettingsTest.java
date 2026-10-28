@@ -245,20 +245,21 @@ public class CategoryPagesSettingsTest {
             assertTrue(everyday + " before Settings entry: " + categories, categories.indexOf(everyday) >= 0
                     && categories.indexOf(everyday) < entry);
         }
-        assertEquals(categories.toString(), List.of("Settings entry", "Set when you patched", "Settings backup"),
-                categories.subList(entry, entry + 3));
-        assertEquals(categories.toString(), "About", categories.get(categories.size() - 1));
+        assertEquals(categories.toString(), List.of("Settings entry", "Set when you patched", "Settings backup",
+                "Pause and diagnostics", "About"), categories.subList(entry, categories.size()));
         assertEquals("hushgram_settings_search", page.getPreferenceScreen().getPreference(0).getKey());
         assertEquals("hushgram_view_toggle", page.getPreferenceScreen().getPreference(1).getKey());
     }
 
-    @Test public void onTheCategoriesAreListedWithPauseStillOpen() throws Exception {
+    @Test public void onTheCategoriesAreListedWithPauseFoldedLikeTheRest() throws Exception {
         Settings.CATEGORY_PAGES.save(true);
         open();
         List<String> rows = shown(Preference.class);
-        assertTrue(rows.toString(), rows.containsAll(List.of("Settings entry", "Ads and privacy", "Feed", "Notifications")));
-        assertFalse("Pause and diagnostics stays a section", rows.contains("Pause and diagnostics"));
-        assertEquals(List.of("Pause and diagnostics"), shown(PreferenceCategory.class));
+        assertTrue(rows.toString(), rows.containsAll(List.of("Settings entry", "Ads and privacy", "Feed", "Notifications",
+                "Pause and diagnostics")));
+        assertEquals("nothing opens by itself while HushGram runs normally", List.of(), shown(PreferenceCategory.class));
+        assertNull(page.getPreferenceScreen().findPreference(BaseSettings.DEBUG.key));
+        assertTrue(categoryRow("Pause and diagnostics").getSummary().toString().contains("Pause HushGram"));
         assertTrue(categoryRow("Ads and privacy").getSummary().toString().contains("Hide ads"));
         // Rows off the screen are still the page's own, for syncing and saved choices.
         assertNotNull(page.findPreference(Settings.HIDE_ADS.key));
@@ -278,7 +279,7 @@ public class CategoryPagesSettingsTest {
         assertSame(feed, following.getParent());
         assertEquals(positionOf(feed) + 1, positionOf(feed.getPreference(0)));
         assertEquals(headers, shown(Preference.class));
-        assertEquals(List.of("Feed", "Pause and diagnostics"), shown(PreferenceCategory.class));
+        assertEquals(List.of("Feed"), shown(PreferenceCategory.class));
 
         tap(ads);
         assertTrue(feed.expanded);
@@ -366,7 +367,7 @@ public class CategoryPagesSettingsTest {
         assertSame(ads, page.getPreferenceScreen().findPreference(Settings.HIDE_ADS.key));
 
         page.searchSettings("");
-        assertEquals(List.of("Feed", "Notifications", "Pause and diagnostics"), shown(PreferenceCategory.class));
+        assertEquals(List.of("Feed", "Notifications"), shown(PreferenceCategory.class));
         assertEquals(headers, shown(Preference.class));
         assertSame(feed, categoryRow("Feed"));
         assertNull(page.getPreferenceScreen().findPreference(Settings.HIDE_ADS.key));
@@ -397,7 +398,7 @@ public class CategoryPagesSettingsTest {
         assertFalse(shown(PreferenceCategory.class).contains("Feed"));
         input.setText("");
         layoutPage();
-        assertEquals(List.of("Feed", "Pause and diagnostics"), shown(PreferenceCategory.class));
+        assertEquals(List.of("Feed"), shown(PreferenceCategory.class));
         assertSame(input, page.getView().findViewWithTag("hushgram-settings-search"));
         assertTrue(input.hasFocus());
         assertEquals("HushGram", toolbarTitle());
@@ -419,7 +420,7 @@ public class CategoryPagesSettingsTest {
 
         assertTrue("Back ends the search", page.closeCategory());
         layoutPage();
-        assertEquals(List.of("Feed", "Notifications", "Pause and diagnostics"), shown(PreferenceCategory.class));
+        assertEquals(List.of("Feed", "Notifications"), shown(PreferenceCategory.class));
         input = page.getView().findViewWithTag("hushgram-settings-search");
         assertNotNull(input);
         assertEquals("", input.getText().toString());
@@ -444,7 +445,7 @@ public class CategoryPagesSettingsTest {
         openDialog();
         touchMode(page.getView(), false);
         List<String> categories = shown(Preference.class);
-        assertEquals(22, categories.size());
+        assertEquals(23, categories.size());
         HushgramPreferenceFragment.Heading header = categoryRow(categories.get(categories.size() / 2));
         ListView list = page.getView().findViewById(android.R.id.list);
         list.setSelectionFromTop(positionOf(header), -8);
@@ -608,7 +609,7 @@ public class CategoryPagesSettingsTest {
         page = (HushgramPreferenceFragment) dialog.getChildFragmentManager()
                 .findFragmentById(SettingsDialog.CONTAINER_ID);
         layoutPage();
-        assertEquals(List.of("Feed", "Reels", "Pause and diagnostics"), shown(PreferenceCategory.class));
+        assertEquals(List.of("Feed", "Reels"), shown(PreferenceCategory.class));
         assertTrue(categoryRow("Feed").expanded);
         assertTrue(categoryRow("Reels").expanded);
         assertEquals("HushGram", toolbarTitle());
@@ -623,7 +624,7 @@ public class CategoryPagesSettingsTest {
                 .findFragmentById(SettingsDialog.CONTAINER_ID);
         layoutPage();
         assertEquals("expansions return without retaining what was searched",
-                List.of("Feed", "Reels", "Pause and diagnostics"),
+                List.of("Feed", "Reels"),
                 shown(PreferenceCategory.class));
         EditText input = page.getView().findViewWithTag("hushgram-settings-search");
         assertNotNull("the restored page starts at its search field", input);
@@ -653,7 +654,7 @@ public class CategoryPagesSettingsTest {
             list = page.getView().findViewById(android.R.id.list);
             assertEquals(position, list.getFirstVisiblePosition());
             assertEquals(top, list.getChildAt(0).getTop() - list.getPaddingTop());
-            if (pages) assertEquals(List.of("Pause and diagnostics"), shown(PreferenceCategory.class));
+            if (pages) assertEquals(List.of(), shown(PreferenceCategory.class));
             assertFalse("restoration adds no Back level", page.closeCategory());
             dialog.dismissAllowingStateLoss();
             controller.close();
