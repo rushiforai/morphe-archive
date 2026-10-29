@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val camScannerUnlockPremiumPatch = bytecodePatch(
     name = "Unlock Premium & Remove Watermarks - CamScanner (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing and subscription verification to unlock Premium scan quality, PDF watermark removal, and OCR export in CamScanner.",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing and subscription verification to unlock Premium scan quality, PDF watermark removal, and OCR export in CamScanner.",
 ) {
     compatibleWith(COMPATIBILITY_CAMSCANNER)
 

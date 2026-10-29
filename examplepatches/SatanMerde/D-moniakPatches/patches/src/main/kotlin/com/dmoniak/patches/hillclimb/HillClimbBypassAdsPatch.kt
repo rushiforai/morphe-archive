@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val hillClimbBypassAdsPatch = bytecodePatch(
     name = "Bypass Rewarded Ads - Hill Climb Racing (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips interstitial ads, banner ads, and intrusive commercial popups in Hill Climb Racing by neutralizing mediation SDK calls.",
+    description = "⚠️ [Experimental / Untested] Strips interstitial ads, banner ads, and intrusive commercial popups in Hill Climb Racing by neutralizing mediation SDK calls.",
 ) {
     compatibleWith(COMPATIBILITY_HILL_CLIMB)
 

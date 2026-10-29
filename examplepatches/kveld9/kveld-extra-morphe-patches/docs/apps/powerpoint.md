@@ -10,25 +10,17 @@ Technical documentation and patch catalog for Microsoft PowerPoint on Android.
 | :--- | :--- |
 | **Target App** | PowerPoint |
 | **Package Name** | `com.microsoft.office.powerpoint` |
-| **Target Version** | `16.0.20527.20034` |
+| **Target Version** | `Single pinned version (see README Patch Catalog)` |
 | **Target Package Format** | APKM |
 | **Primary Architecture** | `arm64-v8a` |
 | **Authoritative Source** | APKMirror |
-| **Download Target** | [PowerPoint 16.0.20527.20034 (arm64-v8a, 120-480dpi, versionCode 2005437911 / BUNDLE 5 S, Oct 8)](https://www.apkmirror.com/apk/microsoft-corporation/powerpoint/microsoft-powerpoint-16-0-20527-20034-release/microsoft-powerpoint-16-0-20527-20034-android-apk-download/) |
+| **Download Target** | [PowerPoint (arm64-v8a, 120-480dpi)](https://www.apkmirror.com/apk/microsoft-corporation/powerpoint/) |
 
 ---
 
 ## 2. Applied Patches Catalog
 
-| Patch Name | Typology | Default State | Dependencies | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| **Block Telemetry & Trackers** | `bytecodePatch` | `true` (Enabled) | `PowerPoint Telemetry Manifest Purge` | Neutralizes Microsoft OneDS/Aria lifecycle, aggregated-metric and failure-logging dispatch methods, nullifies ad measurement identifiers (AIFA, AppSetId), disables HockeyApp activities and DataTransport components, and strips advertising permissions. |
-| **PowerPoint Telemetry Manifest Purge** | `resourcePatch` | `false` (Opt-in) | None | Strips tracking/advertising permissions, disables telemetry, HockeyApp activity and DataTransport components, and injects opt-out metadata in AndroidManifest.xml. |
-| **Bypass Code Transparency** | `bytecodePatch` | `true` (Enabled) | None | Bypasses the code transparency checks. |
-| **Disable Login Requirement** | `bytecodePatch` | `true` (Enabled) | None | Removes login requirement and FTUX paywall screens. |
-| **PowerPoint Companion Native Slimmer** | `rawResourcePatch` | `false` (Opt-in) | None | Strips optional companion native binaries (React Native and Hermes JavaScript runtime stack) via in-situ zeroing. |
-| **Remove Shared User ID** | `resourcePatch` | `true` (Enabled) | None | Removes the sharedUserId attribute from the manifest to prevent installation conflicts. |
-| **Unlock 365 Family** | `bytecodePatch` | `true` (Enabled) | None | Unlocks Microsoft 365 Family subscription features locally. |
+The authoritative patch catalog with descriptions and options is generated in README.md from the built .mpp; see also patches-list.json.
 
 ---
 

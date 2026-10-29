@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val spotifyUnlockPremiumPatch = bytecodePatch(
     name = "Unlock Spotify Premium & Playback Restrictions - Spotify (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Débloque les fonctionnalités Premium sur Spotify : zapping illimité (skips), lecture à la demande sans mode aléatoire forcé (no shuffle), recherche libre sur la barre de lecture (scrubbing/seeking), répétition de pistes et suppression des publicités audio/visuelles.",
+    description = "⚠️ [Experimental / Untested] Unlocks Spotify Premium features: unlimited skips, on-demand playback without forced shuffle, seek/scrub bar support, track repeat, and removes audio/visual advertisements.",
 ) {
     compatibleWith(COMPATIBILITY_SPOTIFY)
 

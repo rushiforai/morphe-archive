@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val vpnLatUnlockLocationsPatch = bytecodePatch(
     name = "Unlock Premium Server Locations - VPN.lat (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing and installer check in VPN.lat. NOTE: Remote VPN tunnels and server bandwidth require server-side authentication.",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing and installer check in VPN.lat. NOTE: Remote VPN tunnels and server bandwidth require server-side authentication.",
 ) {
     compatibleWith(COMPATIBILITY_VPN_LAT)
 

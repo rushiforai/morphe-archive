@@ -68,6 +68,88 @@ public final class AmbientMathTest {
     }
 
     @Test
+    public void straightLightRunsDownAndUsesTheWholePicture() {
+        // 4 columns x 10 rows: left half red, right half blue, with a white border row at
+        // the bottom edge.
+        int w = 4;
+        int h = 10;
+        int[] source = new int[w * h];
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                source[y * w + x] = y == h - 1 ? 0xFFFFFFFF : x < 2 ? RED : BLUE;
+            }
+        }
+        int[] bounds = {0, 0, w, h};
+        int width = 8;
+        int height = 30;
+        int[] out = new int[width * height];
+        float[] video = {0f, 0f, 8f, 10f};
+        AmbientMath.composeStraight(source, w, bounds, out, width, height, video, 0.3f, 10f,
+                new int[AmbientMath.straightScratchLength(bounds)]);
+        // Straight down: the left stays red-ish, the right blue-ish, all the way.
+        for (int y = 11; y < height; y++) {
+            int left = out[y * width + 1];
+            int right = out[y * width + width - 2];
+            assertTrue(((left >> 16) & 0xFF) > (left & 0xFF));
+            assertTrue((right & 0xFF) > ((right >> 16) & 0xFF));
+        }
+        // The white border is only a small part of the colour, and less so farther away.
+        int near = AmbientMath.luma(out[10 * width + 1]);
+        int far = AmbientMath.luma(out[(height - 1) * width + 1]);
+        assertTrue(near < 140);
+        assertTrue(far <= near);
+    }
+
+    @Test
+    public void refinedBoundsFindTheExactBarEdge() {
+        // 16 x 8 picture: black bars 5 columns wide on the left and 3 on the right.
+        int w = 16;
+        int h = 8;
+        int[] picture = new int[w * h];
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) picture[y * w + x] = x < 5 || x >= 13 ? BLACK : RED;
+        }
+        // A 4x smaller sample saw the picture from sample column 1 to 3 (4..12 here).
+        int[] refined = AmbientMath.refineBounds(picture, w, h, new int[]{1, 0, 3, 2}, 4);
+        assertEquals(5, refined[0]);
+        assertEquals(13, refined[2]);
+        assertEquals(0, refined[1]);
+        assertEquals(h, refined[3]);
+    }
+
+    @Test
+    public void flatBordersAreTrimmedButPictureIsKept() {
+        // 6 x 10 picture with a flat white frame line at the bottom and a varied picture.
+        int w = 6;
+        int h = 10;
+        int[] source = new int[w * h];
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                source[y * w + x] = y == h - 1 ? 0xFFFFFFFF : (x + y) % 2 == 0 ? RED : BLUE;
+            }
+        }
+        int[] trimmed = AmbientMath.trimUniformEdges(source, w, new int[]{0, 0, w, h});
+        assertEquals(h - 1, trimmed[3]);
+        assertEquals(0, trimmed[1]);
+        assertEquals(0, trimmed[0]);
+        assertEquals(w, trimmed[2]);
+    }
+
+    @Test
+    public void distanceBlendKeepsSharpNearAndSoftFar() {
+        int width = 1;
+        int height = 20;
+        int[] sharp = new int[height];
+        int[] soft = new int[height];
+        Arrays.fill(sharp, RED);
+        Arrays.fill(soft, BLUE);
+        AmbientMath.blendByDistance(sharp, soft, width, height, new float[]{0f, 0f, 1f, 5f}, 10f);
+        assertEquals(RED, sharp[2]);
+        assertEquals(RED, sharp[4]);
+        assertEquals(BLUE, sharp[19]);
+    }
+
+    @Test
     public void blurPreservesUniformColourAndSmoothsEdges() {
         int width = 10;
         int height = 1;

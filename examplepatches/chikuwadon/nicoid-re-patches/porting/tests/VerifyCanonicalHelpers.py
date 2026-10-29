@@ -13,6 +13,9 @@ snapshot_path = repo / "porting/helpers-v1.9.3.zip"
 with ZipFile(snapshot_path) as archive:
     snapshot = {Path(n).name: archive.read(n) for n in archive.namelist()}
 
+with ZipFile(repo / "porting/helpers-1.9.11.zip") as archive:
+    snapshot.update({Path(n).name: archive.read(n) for n in archive.namelist()})
+
 actual = {p.stem for p in java.glob("*.java")}
 assert actual == set(manifest), "Update helper ownership when adding/removing a source family"
 

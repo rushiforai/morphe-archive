@@ -3,10 +3,10 @@
     Exercise walkthrough navigation and candidate reuse with device and artifact-reader stand-ins.
 .NOTES
     Copyright 2026 HushGram contributors. https://github.com/SysAdminDoc/HushGram
-    GPL-3.0-only.
+    GPL-3.0-only. The push gate starts every suite with -Root; this one reads the scripts beside it.
 #>
 [CmdletBinding()]
-param()
+param([string]$Root)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'walk-app.ps1')
 $checks=0
@@ -26,6 +26,7 @@ function Reset-Producer {
         current='home'; refuseAt=0; wrongBefore=$false; wrongAfter=$false; artifactDrift=$false; rejectProof=$false; wrongPackage=$false }
     $script:state.settingsMode='none'
     $script:state.expanded=$false; $script:state.expandBroken=$false; $script:state.foldBroken=$false; $script:state.headingTaps=0
+    $script:state.headingTop=300; $script:state.footStuck=$false; $script:state.headingTapYs=[Collections.Generic.List[int]]::new()
 }
 # Strict APK/report/PNG validation has its own real-byte fixtures. These tests cover the
 # producer's choice of operations and its propagation of each reader's refusal.
@@ -78,12 +79,17 @@ function Invoke-HushgramAdbCommand {
     elseif ($command -like 'shell input tap *') {
         if ($state.current -ceq 'settings-root') {
             $state.headingTaps++
+            $state.headingTapYs.Add([int]$Arguments[6])
             if (-not $state.expandBroken -and -not ($state.foldBroken -and $state.expanded)) { $state.expanded=-not $state.expanded }
         }
         else {
             $index=[int]([int]$Arguments[5]/100)
             $state.current=@('home','explore','reels','inbox','profile')[$index]
         }
+    }
+    # A slow lift from the list's 80% line brings a heading at its foot up into the list.
+    elseif ($command -like 'shell input swipe *' -and $state.current -ceq 'settings-root' -and [int]$Arguments[6] -le 800 -and -not $state.footStuck) {
+        $state.headingTop=[Math]::Min($state.headingTop, 300)
     }
     [pscustomobject]@{ ExitCode=0; Stdout=$output; Output=$output }
 }
@@ -93,9 +99,9 @@ function New-ProducerUi {
         $modeLabel=if($state.settingsMode -ceq 'flat') { 'Show settings by category' } else { 'Show all settings as a list' }
         $children="<node package='com.instagram.android' class='android.widget.EditText' hint='Search settings' enabled='true' visible-to-user='true' bounds='[0,100][700,150]' />"+
             "<node package='com.instagram.android' class='android.widget.TextView' text='$modeLabel' enabled='true' visible-to-user='true' bounds='[0,160][700,200]' />"+
-            "<node package='com.instagram.android' class='android.widget.ListView' resource-id='android:id/list' enabled='true' visible-to-user='true' bounds='[0,200][700,950]'>"+
-            "<node package='com.instagram.android' class='android.widget.TextView' text='Fixture category' clickable='true' enabled='true' visible-to-user='true' bounds='[0,300][700,400]' />"+
-            $(if ($state.expanded) { "<node package='com.instagram.android' class='android.widget.TextView' text='Known row' enabled='true' visible-to-user='true' bounds='[0,400][700,500]' />" })+
+            "<node package='com.instagram.android' class='android.widget.ListView' resource-id='android:id/list' scrollable='true' enabled='true' visible-to-user='true' bounds='[0,200][700,950]'>"+
+            "<node package='com.instagram.android' class='android.widget.TextView' text='Fixture category' clickable='true' enabled='true' visible-to-user='true' bounds='[0,$($state.headingTop)][700,$($state.headingTop+100)]' />"+
+            $(if ($state.expanded) { "<node package='com.instagram.android' class='android.widget.TextView' text='Known row' enabled='true' visible-to-user='true' bounds='[0,$($state.headingTop+100)][700,$($state.headingTop+200)]' />" })+
             '</node>'
         return [xml]"<hierarchy><node package='com.instagram.android' enabled='true' visible-to-user='true' bounds='[0,0][720,1000]'>$children</node></hierarchy>"
     }
@@ -200,6 +206,19 @@ try {
     $receipt=Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
     Assert-Producer ($receipt.result -ceq 'FAIL' -and $state.headingTaps -eq 2 -and
         @($receipt.problems | Where-Object { $_ -like '*still showed its rows after the fold tap*' }).Count -eq 1) 'A section that stayed open after its fold tap earned PASS.'
+    # A heading at the list's foot sits in the bottom gesture area on a gesture-navigation phone, where
+    # a tap or a swipe from it opens Recents (0.0.17's walk lost Instagram that way at Settings entry).
+    Reset-Producer; $state.settingsMode='pages'; $state.headingTop=850
+    $path=Invoke-WalkApp @arguments
+    $receipt=Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+    Assert-Producer ($receipt.result -ceq 'PASS' -and $state.headingTaps -eq 2 -and @($state.headingTapYs | Where-Object { $_ -gt 800 }).Count -eq 0 -and
+        @($state.calls | Where-Object { $_ -like 'shell input swipe *' }).Count -eq 1 -and
+        @($state.calls | Where-Object { $_ -like 'shell input swipe *' -and [int]($_ -split ' ')[4] -gt 800 }).Count -eq 0) 'A heading at the foot of the list was tapped or swiped from the gesture area.'
+    Reset-Producer; $state.settingsMode='pages'; $state.headingTop=850; $state.footStuck=$true
+    $path=Invoke-WalkApp @arguments
+    $receipt=Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+    Assert-Producer ($receipt.result -ceq 'FAIL' -and $state.headingTaps -eq 0 -and
+        @($receipt.problems | Where-Object { $_ -like '*stayed at the foot of the list*' }).Count -eq 1) 'A heading that would not lift out of the gesture area was tapped or earned PASS.'
 
     # Coordinates come from one visible, enabled native target and all ancestor clipping.
     Reset-Producer

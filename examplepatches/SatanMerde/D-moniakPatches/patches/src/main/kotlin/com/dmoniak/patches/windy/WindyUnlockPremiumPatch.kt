@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val windyUnlockPremiumPatch = bytecodePatch(
     name = "Unlock Windy Premium - Windy.com (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing to bypass in-app purchase verification for Windy Premium (1-hour forecast resolution, extended forecasts, and high-res satellite radar archive).",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app purchase verification for Windy Premium (1-hour forecast resolution, extended forecasts, and high-res satellite radar archive).",
 ) {
     compatibleWith(COMPATIBILITY_WINDY)
 

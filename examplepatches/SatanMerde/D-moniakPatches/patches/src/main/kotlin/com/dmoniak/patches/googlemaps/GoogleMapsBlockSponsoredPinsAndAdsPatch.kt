@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val googleMapsBlockSponsoredPinsAndAdsPatch = bytecodePatch(
     name = "Block Sponsored Pins & Search Ads - Google Maps (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes sponsored pins (promoted logos and commercial icons on the map), search suggestion ads, promoted place suggestions, and explore feed ads.",
+    description = "⚠️ [Experimental / Untested] Removes sponsored pins (promoted logos and commercial icons on the map), search suggestion ads, promoted place suggestions, and explore feed ads.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_MAPS)
 

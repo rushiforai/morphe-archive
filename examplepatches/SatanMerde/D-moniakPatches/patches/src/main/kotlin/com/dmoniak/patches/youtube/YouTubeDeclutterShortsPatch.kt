@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeDeclutterShortsPatch = bytecodePatch(
     name = "Declutter UI & Remove Shorts - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hides Shorts tab from bottom navigation bar, hides Shorts shelf from Home and Subscriptions feeds, hides Create button (+), hides Playables, and removes End Screen suggestions.",
+    description = "⚠️ [Experimental / Untested] Hides Shorts tab from bottom navigation bar, hides Shorts shelf from Home and Subscriptions feeds, hides Create button (+), hides Playables, and removes End Screen suggestions.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

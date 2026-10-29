@@ -10,23 +10,17 @@ Technical documentation and patch catalog for Instagram on Android.
 | :--- | :--- |
 | **Target App** | Instagram |
 | **Package Name** | `com.instagram.android` |
-| **Target Version** | `447.0.0.55.81` |
+| **Target Version** | `Single pinned version (see README Patch Catalog)` |
 | **Target Package Format** | APKM |
 | **Primary Architecture** | `arm64-v8a` |
 | **Authoritative Source** | APKMirror |
-| **Download Target** | [Instagram 447.0.0.55.81 (arm64-v8a, 120-480dpi, versionCode 385311891 / BUNDLE3 S, Sept 20)](https://www.apkmirror.com/apk/instagram/instagram-instagram/instagram-447-0-0-55-81-release/instagram-447-0-0-55-81-8-android-apk-download/) |
+| **Download Target** | [Instagram (arm64-v8a, 120-480dpi)](https://www.apkmirror.com/apk/instagram/instagram-instagram/) |
 
 ---
 
 ## 2. Applied Patches Catalog
 
-| Patch Name | Typology | Default State | Dependencies | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| **Block Telemetry & Trackers** | `bytecodePatch` | `true` (Enabled) | `Instagram Telemetry Manifest Purge` | Neutralizes Facebook Analytics2, DataTransport, FDID/PhoneId providers, and strips AD_ID permissions. |
-| **Instagram Telemetry Manifest Purge** | `resourcePatch` | `false` (Opt-in) | None | Strips tracking and advertising permissions, disables analytics services, content providers, and receivers in AndroidManifest.xml. |
-| **Block Crash & Diagnostics** | `bytecodePatch` | `false` (Opt-in) | `Instagram Crash & Diagnostics Manifest Purge` | Neutralizes crash-dump uploaders, Lacrima detector broadcasts, debug diagnostics, carrier preload trackers, and lead-ads entrypoints. |
-| **Instagram Crash & Diagnostics Manifest Purge** | `resourcePatch` | `false` (Opt-in) | None | Disables crash-dump upload services, Lacrima broadcast receivers, debug diagnostics, carrier preload trackers, and lead-ads activities in AndroidManifest.xml. |
-| **AR Effects Slimmer** | `rawResourcePatch` | `false` (Opt-in) | None | Strips ARCore native binaries (libarcore_sdk_c.so, libarcore_sdk_jni.so) and AR effect/face tracking asset models. |
+The authoritative patch catalog with descriptions and options is generated in README.md from the built .mpp; see also patches-list.json.
 
 ---
 

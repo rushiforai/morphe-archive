@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val claudeExportChatMarkdownPatch = bytecodePatch(
     name = "Export Full Chat & Copy Markdown - Claude AI (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Enables full conversation history export to Markdown, copying entire discussion threads with intact code blocks directly to clipboard in Claude AI.",
+    description = "⚠️ [Experimental / Untested] Enables full conversation history export to Markdown, copying entire discussion threads with intact code blocks directly to clipboard in Claude AI.",
 ) {
     compatibleWith(COMPATIBILITY_CLAUDE)
 

@@ -5,6 +5,10 @@
 package app.morphe.patches.shared.misc.ijiami
 
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.shared.readInt
+import app.morphe.patches.shared.readShort
+import app.morphe.patches.shared.writeInt
+import app.morphe.patches.shared.writeShort
 import kotlin.math.abs
 
 private const val REGISTERS_SIZE_OFFSET = 0
@@ -19,12 +23,15 @@ private const val OP_INVOKE_STATIC = 0x71
 private const val OP_MOVE_RESULT_OBJECT = 0x0c
 private const val OP_RETURN_VOID = 0x0e
 private const val OP_RETURN = 0x0f
+private const val OP_RETURN_WIDE = 0x10
 private const val OP_RETURN_OBJECT = 0x11
 private const val OP_CONST_4 = 0x12
 private const val OP_CONST_16 = 0x13
 private const val OP_CONST = 0x14
 private const val OP_CONST_STRING = 0x1a
 private const val OP_CONST_STRING_JUMBO = 0x1b
+
+private val PACKER_STUB_RETURNS = setOf(OP_RETURN, OP_RETURN_WIDE, OP_RETURN_OBJECT)
 
 private const val STRING = "Ljava/lang/String;"
 private const val BOXED_BOOLEAN = "Ljava/lang/Boolean;"
@@ -36,6 +43,11 @@ internal class IjiamiPayload(
     private val dexes: List<PayloadDex>,
     private val opaqueRanges: List<IntRange>,
 ) {
+    private val selected = mutableListOf<MethodBody>()
+
+    val editedPackerStubs
+        get() = selected.filter { it.isPackerStub && it.editedRange != null }.distinct()
+
     fun method(classDescriptor: String, name: String) =
         methodOrNull(classDescriptor, name)
             ?: throw PatchException("Method not found in payload: $classDescriptor->$name")
@@ -77,16 +89,6 @@ internal class IjiamiPayload(
         return PayloadMethods(bodies)
     }
 
-    fun methodsCalling(classDescriptor: String, calleeDescriptor: String, name: String, returning: String): PayloadMethods {
-        val selector = CallsMethod(calleeDescriptor, name, returning)
-        val bodies = bodiesMatching(classDescriptor, selector)
-        if (bodies.isEmpty()) {
-            throw PatchException("No method in $classDescriptor ${selector.criterion}")
-        }
-
-        return PayloadMethods(bodies)
-    }
-
     private fun bodiesMatching(classDescriptor: String, selector: MethodSelector): List<MethodBody> {
         val bodies = dexes.flatMap { it.bodiesMatching(classDescriptor, selector, opaqueRanges) }
         if (bodies.any { body -> opaqueRanges.any { body.range.overlaps(it) } }) {
@@ -96,6 +98,7 @@ internal class IjiamiPayload(
             )
         }
 
+        selected += bodies
         return bodies
     }
 
@@ -113,6 +116,7 @@ internal class IjiamiPayload(
             )
         }
 
+        selected += bodies
         return bodies
     }
 }
@@ -138,12 +142,13 @@ internal class PayloadMethods(private val bodies: List<MethodBody>) {
 }
 
 internal class MethodBody(
-    private val dex: PayloadDex,
+    val dex: PayloadDex,
     private val payload: ByteArray,
+    val classDescriptor: String,
     private val methodIndex: Int,
     private val codeOffset: Int,
     private val returnType: String,
-    private val description: String,
+    val description: String,
     private val opaqueRanges: List<IntRange>,
 ) {
     private val registers = payload.readShort(codeOffset + REGISTERS_SIZE_OFFSET)
@@ -155,6 +160,11 @@ internal class MethodBody(
         dex.start + ((instructionsOffset + instructionCodeUnits * 2 - dex.start + 3) and 3.inv())
 
     val range = codeOffset until instructionsOffset + instructionCodeUnits * 2
+
+    val isPackerStub = readsAsPackerStub()
+
+    var editedRange: IntRange? = null
+        private set
 
     fun returnVoid() {
         requireReturnType("V")
@@ -264,6 +274,19 @@ internal class MethodBody(
             false
         }
         if (replaced == 0) throw PatchException("$description loads no \"$old\"")
+        editedRange = instructionsOffset until instructionsOffset + instructionCodeUnits * 2
+    }
+
+    fun payloadBytes(range: IntRange) = payload.copyOfRange(range.first, range.last + 1)
+
+    private fun readsAsPackerStub(): Boolean {
+        val units = (0 until instructionCodeUnits).map { payload.readShort(instructionsOffset + it * 2) }
+        val stubUnits = when {
+            units.firstOrNull() == OP_RETURN_VOID -> 1
+            units.size >= 2 && units[0] == OP_CONST_4 && units[1] in PACKER_STUB_RETURNS -> 2
+            else -> return false
+        }
+        return units.drop(stubUnits).all { it == 0 }
     }
 
     fun returnConstant(value: Int, declared: String) {
@@ -324,10 +347,15 @@ internal class MethodBody(
         }
         payload.fill(0, instructionsOffset, instructionsOffset + instructionCodeUnits * 2)
         code.copyInto(payload, instructionsOffset)
-        if (tryCount > 0) relocateExceptionTableToNopTail(replacementCodeUnits)
+        val end = if (tryCount > 0) {
+            relocateExceptionTableToNopTail(replacementCodeUnits)
+        } else {
+            instructionsOffset + instructionCodeUnits * 2
+        }
+        editedRange = instructionsOffset until end
     }
 
-    private fun relocateExceptionTableToNopTail(replacementCodeUnits: Int) {
+    private fun relocateExceptionTableToNopTail(replacementCodeUnits: Int): Int {
         repeat(tryCount) { index ->
             payload.writeInt(tryItemsOffset + index * TRY_ITEM_SIZE, replacementCodeUnits + index)
             payload.writeShort(tryItemsOffset + index * TRY_ITEM_SIZE + 4, 1)
@@ -349,6 +377,7 @@ internal class MethodBody(
         if (opaqueRanges.any { (codeOffset until cursor).overlaps(it) }) {
             throw PatchException("Cannot rewrite $description: its exception table overlaps an opaque payload block")
         }
+        return cursor
     }
 }
 

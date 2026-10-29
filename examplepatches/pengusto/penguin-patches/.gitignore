@@ -135,3 +135,7 @@ local.properties
 *.keystore
 *.mpp
 *.mpe
+
+# Python build and acceptance helpers
+__pycache__/
+*.pyc

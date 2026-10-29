@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val geminiAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & UI Tweaks - Google Gemini (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes FLAG_SECURE window flags in Google Gemini to allow capturing chat responses and enhances privacy in floating assistant overlays.",
+    description = "⚠️ [Experimental / Untested] Removes FLAG_SECURE window flags in Google Gemini to allow capturing chat responses and enhances privacy in floating assistant overlays.",
 ) {
     compatibleWith(COMPATIBILITY_GEMINI)
 

@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val plagueIncUnlockAllGenesPatch = bytecodePatch(
     name = "Unlock All Genetic Genes - Plague Inc. (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks all 5 categories of genetic modification genes (DNA genes, Travel genes, Evolution genes, Mutation genes, Environment genes) for every plague.",
+    description = "⚠️ [Experimental / Untested] Unlocks all 5 categories of genetic modification genes (DNA genes, Travel genes, Evolution genes, Mutation genes, Environment genes) for every plague.",
 ) {
     compatibleWith(COMPATIBILITY_PLAGUE_INC, COMPATIBILITY_PLAGUE_INC_ALT)
 

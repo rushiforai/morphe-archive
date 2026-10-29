@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val worldMapQuizBlockAdsPatch = bytecodePatch(
     name = "Block Ads & Video Interruptions - World Map Quiz (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Eliminates full-screen interstitial video ads between quiz rounds, bottom banners, and promotional reward prompts in World Map Quiz.",
+    description = "⚠️ [Experimental / Untested] Eliminates full-screen interstitial video ads between quiz rounds, bottom banners, and promotional reward prompts in World Map Quiz.",
 ) {
     compatibleWith(COMPATIBILITY_WORLD_MAP_QUIZ)
 

@@ -5,6 +5,7 @@ import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -69,4 +70,19 @@ internal object LithoBackgroundBoundsLegacyFingerprint : Fingerprint(
             location = MatchAfterImmediately(),
         ),
     ),
+)
+
+/**
+ * onDraw of the player's time bar, the thin progress line along the bottom of the player that
+ * stays visible while the controls are hidden. Its class is the one that reads
+ * "timed_markers_width".
+ */
+internal object TimeBarOnDrawFingerprint : Fingerprint(
+    classFingerprint = Fingerprint(
+        returnType = "V",
+        filters = listOf(string("timed_markers_width")),
+    ),
+    name = "onDraw",
+    returnType = "V",
+    parameters = listOf("Landroid/graphics/Canvas;"),
 )

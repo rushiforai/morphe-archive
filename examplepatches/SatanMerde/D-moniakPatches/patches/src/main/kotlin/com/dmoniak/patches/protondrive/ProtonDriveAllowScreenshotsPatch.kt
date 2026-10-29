@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val protonDriveAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & Privacy - Proton Drive (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes Android FLAG_SECURE window restrictions in Proton Drive, allowing screenshots and screen recording of previewed documents and media.",
+    description = "⚠️ [Experimental / Untested] Removes Android FLAG_SECURE window restrictions in Proton Drive, allowing screenshots and screen recording of previewed documents and media.",
 ) {
     compatibleWith(COMPATIBILITY_PROTON_DRIVE)
 

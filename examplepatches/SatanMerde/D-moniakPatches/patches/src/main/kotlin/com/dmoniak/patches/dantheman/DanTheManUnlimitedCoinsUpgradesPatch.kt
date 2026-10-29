@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val danTheManUnlimitedCoinsUpgradesPatch = bytecodePatch(
     name = "Free Shopping & Billing Bypass - Dan The Man (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing SDK in Dan The Man to bypass in-app purchase verification, unlocking free shopping for coin packs, character bundles, and premium upgrades.",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing SDK in Dan The Man to bypass in-app purchase verification, unlocking free shopping for coin packs, character bundles, and premium upgrades.",
 ) {
     compatibleWith(COMPATIBILITY_DAN_THE_MAN)
 

@@ -10,23 +10,17 @@ Technical documentation and patch catalog for Microsoft Word on Android.
 | :--- | :--- |
 | **Target App** | Word |
 | **Package Name** | `com.microsoft.office.word` |
-| **Target Version** | `16.0.20527.20034` |
+| **Target Version** | `Single pinned version (see README Patch Catalog)` |
 | **Target Package Format** | APKM |
 | **Primary Architecture** | `arm64-v8a` |
 | **Authoritative Source** | APKMirror |
-| **Download Target** | [Word 16.0.20527.20034 (arm64-v8a, 120-480dpi, versionCode 2005437911, APKM)](https://www.apkmirror.com/apk/microsoft-corporation/word/microsoft-word-edit-documents-16-0-20527-20034-release/) |
+| **Download Target** | [Word (arm64-v8a, 120-480dpi)](https://www.apkmirror.com/apk/microsoft-corporation/word/) |
 
 ---
 
 ## 2. Applied Patches Catalog
 
-| Patch Name | Typology | Default State | Dependencies | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| **Unlock 365 Family** | `bytecodePatch` | `true` (Enabled) | None | Unlocks Microsoft 365 Family subscription features locally. |
-| **Bypass Code Transparency** | `bytecodePatch` | `true` (Enabled) | None | Bypasses the code transparency checks. |
-| **Remove Shared User ID** | `resourcePatch` | `true` (Enabled) | None | Removes the sharedUserId attribute from the manifest to prevent installation conflicts. |
-| **Disable Login Requirement** | `bytecodePatch` | `true` (Enabled) | None | Removes login requirement and FTUX paywall screens. |
-| **Block Telemetry & Trackers** | `bytecodePatch` + `resourcePatch` | `true` (Enabled) | None | Neutralizes OneDS/Aria dispatchers and ad identifiers; purges tracking manifest components. |
+The authoritative patch catalog with descriptions and options is generated in README.md from the built .mpp; see also patches-list.json.
 
 ---
 
@@ -45,7 +39,7 @@ Technical documentation and patch catalog for Microsoft Word on Android.
    - **How**: Completes first-run tasks immediately, marks FTUX as shown, and neutralizes sign-in/SSO gates.
 4. **Block Telemetry & Trackers**:
    - **Objective**: Silence analytics, crash-reporting, and ad-measurement SDKs.
-   - **How**: Stubs OneDS/Aria lifecycle and dispatch methods, blanks ad identifiers, and disables tracking manifest components with declarative opt-out flags.
+   - **How**: Stubs OneDS/Aria lifecycle and dispatch methods, blanks ad identifiers, disables tracking manifest components with declarative opt-out flags, and neutralizes Office early-telemetry dispatch (TelemetryHelper) so null strings from resigned installs never reach native code.
 
 ### B. Manifest Compatibility Layer (`resourcePatch`)
 

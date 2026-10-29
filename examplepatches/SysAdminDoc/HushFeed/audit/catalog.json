@@ -1415,7 +1415,7 @@
       "waitMs": 2000
      },
      {
-      "log": "Contact list blocker: blocked a query to content://com\\.android\\.contacts",
+      "log": "Contact list blocker: blocked a query to \\[url omitted\\]",
       "fromStep": 3,
       "within": 3000
      },
@@ -1441,7 +1441,7 @@
    },
    {
     "id": "lets-media-queries-through",
-    "what": "The blocker only refuses the contacts authority: a media store query is not logged as blocked while the feed plays.",
+    "what": "The blocker only refuses the contacts authority: with the switch on, a media store query through the same entry point reaches the provider (its own cursor, or a SecurityException without a media permission, never the blocker's empty MatrixCursor) and nothing is logged as blocked.",
     "steps": [
      {
       "set": {
@@ -1452,14 +1452,23 @@
       "open": "feed"
      },
      {
-      "logNot": "Contact list blocker: blocked a query to content://media",
-      "within": 6000
+      "probe": "privacy-call",
+      "extras": {
+       "which": "media"
+      },
+      "expect": "^ok privacy-call media rows=-?\\d+ cursor=(?!MatrixCursor$)\\w+$",
+      "waitMs": 2000
+     },
+     {
+      "logNot": "Contact list blocker: blocked",
+      "fromStep": 3,
+      "within": 1500
      }
     ],
     "auto": true
    }
   ],
-  "notes": "The 2026-09-17 device audit saw the contact blocker fire when the Friends tab opened. On TikTok 47.1.4 (2026-10-16) the Friends tab showed \"From your contacts\" cards matched on TikTok's server and made no local read in 15 seconds, so the check now turns the switch on before a restart and reads the log from the restart's marker (fromStep), which counts a read at start-up as well as one on Friends. On 47.5.3 (2026-10-23) Android's app-op record on the S22 showed one contacts read, at 09:15:55Z, while Hide inbox items' conversation-rows check had TikTok freshly restarted on the Inbox, and none during this check, then none in a rerun that opened Friends and the Inbox after a restart. TikTok syncs contacts on its own clock, so the check opens both and stays inconclusive between syncs. A process that never reads the contacts provider is inconclusive, not a failure: the patch log's intercepted site count is then the proof. Never open Find friends or a contacts page to force a read, since that's where TikTok asks to upload them. The log line is Logger.printInfo so it needs no debug. On 47.5.3 'blocks-contacts-query' read inconclusive twice (2026-10-23, S22): TikTok made its one contacts read of the session outside the check, as above."
+  "notes": "The 2026-09-17 device audit saw the contact blocker fire when the Friends tab opened. On TikTok 47.1.4 (2026-10-16) the Friends tab showed \"From your contacts\" cards matched on TikTok's server and made no local read in 15 seconds, so the check now turns the switch on before a restart and reads the log from the restart's marker (fromStep), which counts a read at start-up as well as one on Friends. On 47.5.3 (2026-10-23) Android's app-op record on the S22 showed one contacts read, at 09:15:55Z, while Hide inbox items' conversation-rows check had TikTok freshly restarted on the Inbox, and none during this check, then none in a rerun that opened Friends and the Inbox after a restart. TikTok syncs contacts on its own clock, so the check opens both and stays inconclusive between syncs. A process that never reads the contacts provider is inconclusive, not a failure: the patch log's intercepted site count is then the proof. Never open Find friends or a contacts page to force a read, since that's where TikTok asks to upload them. The log line is Logger.printInfo, which logs only with morphe_debug on (the runner turns it on for the run), and the logger replaces every URL with [url omitted], so the line can't name the authority: lets-media-queries-through reads the cursor type of a media query instead (2026-10-28). On 47.5.3 'blocks-contacts-query' read inconclusive twice (2026-10-23, S22): TikTok made its one contacts read of the session outside the check, as above."
  },
  {
   "name": "Block installed app scanning",

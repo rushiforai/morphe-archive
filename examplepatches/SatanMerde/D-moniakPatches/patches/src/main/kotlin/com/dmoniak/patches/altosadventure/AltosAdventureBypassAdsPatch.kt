@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val altosAdventureBypassAdsPatch = bytecodePatch(
     name = "Bypass Rewarded Ads - Alto's Adventure (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips interstitial video ads, death commercials, and promotional popups in Alto's Adventure by neutralizing mediation SDKs.",
+    description = "⚠️ [Experimental / Untested] Strips interstitial video ads, death commercials, and promotional popups in Alto's Adventure by neutralizing mediation SDKs.",
 ) {
     compatibleWith(COMPATIBILITY_ALTOS_ADVENTURE)
 

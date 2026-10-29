@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val vector2UnlockGearPatch = bytecodePatch(
     name = "Unlock Gear Matrix - Vector 2 (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks experimental equipment slots, booster upgrades, and datacore matrices in Vector 2 without research token gating. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Unlocks experimental equipment slots, booster upgrades, and datacore matrices in Vector 2 without research token gating. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_VECTOR_2)
 

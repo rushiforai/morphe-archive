@@ -38,7 +38,11 @@ with open(json_path, encoding="utf-8") as f:
 
 
 def pkg_emoji(pkg):
-    """Return a standard package emoji regardless of the package name."""
+    """The app's own icon from assets/icons/<package>.svg (or .png) next to the README, otherwise a package emoji."""
+    for ext in ("svg", "png"):
+        icon = f"assets/icons/{pkg}.{ext}"
+        if (readme_path.parent / icon).is_file():
+            return f'<img src="{icon}" width="20" height="20" align="top" alt="">'
     return "📦"
 
 # Group patches by package; patches with no compatiblePackages are universal.

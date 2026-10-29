@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val protonPassUnlockProFeaturesPatch = bytecodePatch(
     name = "Unlock Pro Vaults & 2FA Authenticator - Proton Pass (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks client-side Proton Pass Plus capabilities: built-in 2FA TOTP authenticator generation, unlimited custom vaults, custom item fields, and disables upgrade lock screens.",
+    description = "⚠️ [Experimental / Untested] Unlocks client-side Proton Pass Plus capabilities: built-in 2FA TOTP authenticator generation, unlimited custom vaults, custom item fields, and disables upgrade lock screens.",
 ) {
     compatibleWith(COMPATIBILITY_PROTON_PASS)
 

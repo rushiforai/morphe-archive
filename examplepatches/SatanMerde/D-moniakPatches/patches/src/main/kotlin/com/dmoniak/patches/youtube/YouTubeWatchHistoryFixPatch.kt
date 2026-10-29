@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeWatchHistoryFixPatch = bytecodePatch(
     name = "Fix Watch History & DNS Resolution - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Fixes broken or paused watch history when using private DNS, Pi-hole, or adblocking resolvers by rerouting playback tracking endpoints directly to fallback servers.",
+    description = "⚠️ [Experimental / Untested] Fixes broken or paused watch history when using private DNS, Pi-hole, or adblocking resolvers by rerouting playback tracking endpoints directly to fallback servers.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

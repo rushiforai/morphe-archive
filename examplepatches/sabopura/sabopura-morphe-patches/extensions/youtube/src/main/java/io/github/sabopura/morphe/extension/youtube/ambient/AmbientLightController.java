@@ -38,7 +38,7 @@ public final class AmbientLightController {
     private static int retryCount;
 
     /** Bumped with every bundle release so the settings screen can prove what is installed. */
-    static final String BUILD_VERSION = "1.9.0";
+    static final String BUILD_VERSION = "1.10.0";
     /** 1 = last capture succeeded, 0 = none yet, negative = failing (PixelCopy code). */
     static volatile int statusCapture;
     /** How the page light was drawn most recently. */
@@ -266,6 +266,75 @@ public final class AmbientLightController {
         }
     };
 
+    private static final long TIME_BAR_RECHECK_MS = 700L;
+    private static WeakReference<View> playButtonRef = new WeakReference<>(null);
+    private static int playButtonId;
+
+    /**
+     * Time bar hook: true skips drawing YouTube's thin progress line along the bottom of the
+     * player while the page light shows and the controls are hidden, so nothing separates
+     * the video from its light. With the controls shown the bar draws as usual.
+     */
+    public static boolean hideTimeBar(View timeBar) {
+        try {
+            if (!AmbientLightSettings.isEnabled() || !AmbientLightSettings.isHideTimeBarEnabled()) {
+                return false;
+            }
+            AmbientLightView view = viewRef.get();
+            if (view == null || !view.isPageLightShown()) return false;
+            if (!controlsVisible(timeBar)) return true;
+            // The bar is not always redrawn once the controls fade out (while paused, for
+            // one), so look again shortly; this stops as soon as the bar is hidden.
+            timeBar.postInvalidateDelayed(TIME_BAR_RECHECK_MS);
+            return false;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    /** Whether the player's play/pause button is on screen, i.e. the controls are showing. */
+    private static boolean controlsVisible(View timeBar) {
+        View button = playButtonRef.get();
+        if (button == null || !button.isAttachedToWindow()
+                || button.getRootView() != timeBar.getRootView()) {
+            if (playButtonId == 0) {
+                playButtonId = Views.resource(timeBar.getContext(), "id",
+                        "player_control_play_pause_replay_button");
+            }
+            // Without the resource the controls cannot be told apart: never hide then.
+            if (playButtonId == 0) return true;
+            // YouTube builds the controls the first time they are shown.
+            button = timeBar.getRootView().findViewById(playButtonId);
+            if (button == null) return false;
+            playButtonRef = new WeakReference<>(button);
+        }
+        if (!button.isShown()) return false;
+        // The controls fade in and out by alpha.
+        float alpha = 1f;
+        for (View current = button; current != null && alpha > 0.01f;
+             current = current.getParent() instanceof View ? (View) current.getParent() : null) {
+            alpha *= current.getAlpha();
+        }
+        return alpha > 0.01f;
+    }
+
+    /**
+     * With debug logging on for this tag (adb shell setprop log.tag.AmbientLight DEBUG), the
+     * diagnostics are written to the log every 15 seconds, so a device's view tree can be
+     * read without asking its owner to copy anything.
+     */
+    private static void logTreeForDebugging() {
+        if (!Log.isLoggable(TAG, Log.DEBUG)) return;
+        long now = SystemClock.uptimeMillis();
+        if (now - lastTreeLogUptime < 15_000L) return;
+        lastTreeLogUptime = now;
+        String text = diagnostics();
+        // Logcat cuts long lines; send the report in pieces.
+        for (int start = 0; start < text.length(); start += 3000) {
+            Log.d(TAG, "tree " + text.substring(start, Math.min(text.length(), start + 3000)));
+        }
+    }
+
     /** Media clock tick; may arrive on a player thread. */
     public static void onVideoTime() {
         long now = SystemClock.uptimeMillis();
@@ -291,9 +360,12 @@ public final class AmbientLightController {
         });
     }
 
+    private static long lastTreeLogUptime;
+
     private static void ensureInstalled() {
         ViewGroup controls = controlsRef.get();
         if (controls == null || !controls.isAttachedToWindow()) return;
+        logTreeForDebugging();
         if (!AmbientLightSettings.isEnabled()) {
             AmbientLightView existing = viewRef.get();
             if (existing != null) existing.onSettingsChanged();

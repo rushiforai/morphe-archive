@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val protonDriveAmoledDeclutterPatch = bytecodePatch(
     name = "AMOLED Black & Declutter - Proton Drive (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects pure OLED pitch black (#000000) into Proton Drive file vaults and hides storage quota warning banners and Proton Unlimited upgrade prompts.",
+    description = "⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into Proton Drive file vaults and hides storage quota warning banners and Proton Unlimited upgrade prompts.",
 ) {
     compatibleWith(COMPATIBILITY_PROTON_DRIVE)
 

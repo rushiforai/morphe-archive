@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val instagramDeclutterAntiDistractionPatch = bytecodePatch(
     name = "Anti-Distraction UI & Declutter - Instagram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hides Reels tab button, hides 'Suggested Posts' ('You're all caught up'), hides Shop tab, and hides explore distractions.",
+    description = "⚠️ [Experimental / Untested] Hides Reels tab button, hides 'Suggested Posts' ('You're all caught up'), hides Shop tab, and hides explore distractions.",
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 

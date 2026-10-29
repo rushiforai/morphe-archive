@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val sessionAmoledDeclutterPatch = bytecodePatch(
     name = "AMOLED Dark Theme - Session (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects true OLED pitch black (#000000) into Session chat threads, community rooms, and message views to maximize battery savings.",
+    description = "⚠️ [Experimental / Untested] Injects true OLED pitch black (#000000) into Session chat threads, community rooms, and message views to maximize battery savings.",
 ) {
     compatibleWith(COMPATIBILITY_SESSION)
 

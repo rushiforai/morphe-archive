@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val instagramUnlockDeveloperOptionsPatch = bytecodePatch(
     name = "Unlock Developer Options & Quick Experiments - Instagram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks Meta internal Employee Developer Options, Debug Mode, and Quick Experiment (QE) override menus in Instagram by long-pressing the home button or opening settings.",
+    description = "⚠️ [Experimental / Untested] Unlocks Meta internal Employee Developer Options, Debug Mode, and Quick Experiment (QE) override menus in Instagram by long-pressing the home button or opening settings.",
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 

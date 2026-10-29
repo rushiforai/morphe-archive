@@ -10,28 +10,17 @@ Technical documentation and patch catalog for NokoPrint on Android.
 | :--- | :--- |
 | **Target App** | NokoPrint - WiFi, Bluetooth, USB |
 | **Package Name** | `com.nokoprint` |
-| **Target Version** | `5.28.6` |
+| **Target Version** | `Single pinned version (see README Patch Catalog)` |
 | **Target Package Format** | XAPK bundle |
 | **Primary Architecture** | universal (`arm64-v8a` / `armeabi-v7a` / `x86` / `x86_64`) |
-| **Download Target** | [APKPure](https://d.apkpure.com/b/XAPK/com.nokoprint?versionCode=52806) |
+| **Download Target** | [APKPure](https://d.apkpure.com/b/XAPK/com.nokoprint) |
 | **Authoritative Source** | APKPure |
 
 ---
 
 ## 2. Applied Patches Catalog
 
-| Patch Name | Typology | Default State | Dependencies | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| **Block Ads (Setup)** | `resourcePatch` | `false` (Opt-in) | None | Removes ad screens and ad startup components. |
-| **Block Ads** | `bytecodePatch` | `true` (Enabled) | `Block Ads (Setup)` | Blocks ad loaders and unlocks ad-free status. |
-| **Remove Extra Files** | `rawResourcePatch` | `true` (Enabled) | None | Deletes hidden ad files and trackers to shrink the app. |
-| **Stop Background Sync (Setup)** | `resourcePatch` | `false` (Opt-in) | None | Turns off background alarms and schedulers. |
-| **Stop Background Sync** | `bytecodePatch` | `true` (Enabled) | `Stop Background Sync (Setup)` | Stops background tasks that drain the battery. |
-| **Block Trackers (Setup)** | `resourcePatch` | `false` (Opt-in) | None | Removes ad permissions and disables tracking components. |
-| **Block Trackers** | `bytecodePatch` | `true` (Enabled) | `Block Trackers (Setup)` | Blocks analytics and ad tracking. |
-| **Remove Extra Stores** | `resourcePatch` | `true` (Enabled) | None | Disables payment components for other app stores you do not use. |
-| **Printer-Compatible Connections** | `resourcePatch` | `true` (Enabled) | None | Keeps HTTP cleartext for LAN printers and driver downloads and trusts user certificates. |
-| **Skip Welcome Screen** | `bytecodePatch` | `true` (Enabled) | None | Skips the first-launch popup (the About menu still works). |
+The authoritative patch catalog with descriptions and options is generated in README.md from the built .mpp; see also patches-list.json.
 
 ---
 

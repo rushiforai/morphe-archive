@@ -95,13 +95,19 @@ class StoryMidcardsHookTest {
         assertEquals(0, borrowed)
     }
 
+    /** 453 has a second namer holding the midcard's name; the one the reel constructor asks is taken. */
+    @Test
+    fun theNamerTheReelAsksIsTaken() {
+        val found = PatchContexts.of(classes(twoMappers = true)).findStoryMidcards()
+        assertEquals("$names->A00", "${found.mapper.definingClass}->${found.mapper.name}")
+    }
+
     /** A build the patch can't read fails at patch time, saying what it found, before anything is written. */
     @Test
     fun aBuildThePatchCantReadFailsBeforeAnythingChanges() {
         val cases = listOf(
-            classes(name = "story_interstitial_something_else") to "expected one static (Integer)String holding \"$SUGGESTED_USERS_MIDCARD\", found 0",
-            classes(twoMappers = true) to "expected one static (Integer)String holding \"$SUGGESTED_USERS_MIDCARD\", found 2",
-            classes(reelNames = false) to "expected one reel constructor (Object, Integer, List, List) asking $names->A00, found 0",
+            classes(name = "story_interstitial_something_else") to "expected a static (Integer)String holding \"$SUGGESTED_USERS_MIDCARD\", found none",
+            classes(reelNames = false) to "holding \"$SUGGESTED_USERS_MIDCARD\" with one reel constructor (Object, Integer, List, List) asking it, found 0",
             classes(adders = false) to "nothing taking a list builds a midcard with $reel-><init>",
             classes(repository = "Lfixture/SomeOtherRepository;") to "none of the 3 midcard adder(s) asks $SUGGESTED_USERS_REPOSITORY",
         )

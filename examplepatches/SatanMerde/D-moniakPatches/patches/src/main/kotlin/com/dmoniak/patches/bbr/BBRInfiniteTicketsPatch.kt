@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val bbrInfiniteTicketsPatch = bytecodePatch(
     name = "Infinite Race Tickets - Beach Buggy Racing (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Prevents race ticket depletion in Beach Buggy Racing, allowing unlimited participation in Career events and Championships without waiting for ticket recharge. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Prevents race ticket depletion in Beach Buggy Racing, allowing unlimited participation in Career events and Championships without waiting for ticket recharge. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_BEACH_BUGGY_RACING)
 

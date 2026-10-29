@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val angryBirdsUnlockPowerupsLevelsPatch = bytecodePatch(
     name = "Free Shopping & Billing Bypass - Angry Birds (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing SDK in Angry Birds to bypass in-app purchase verification, unlocking free shopping for Mighty Eagle, power-up bundles, and episode packs.",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing SDK in Angry Birds to bypass in-app purchase verification, unlocking free shopping for Mighty Eagle, power-up bundles, and episode packs.",
 ) {
     compatibleWith(COMPATIBILITY_ANGRY_BIRDS_CLASSIC)
 

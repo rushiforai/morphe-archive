@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val shadesInfiniteEnergyPatch = bytecodePatch(
     name = "Infinite Energy - Shades Roguelike (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Prevents energy consumption when entering shadow rifts and acts in Shades: Shadow Fight Roguelike. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Prevents energy consumption when entering shadow rifts and acts in Shades: Shadow Fight Roguelike. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_SHADOW_FIGHT_SHADES)
 

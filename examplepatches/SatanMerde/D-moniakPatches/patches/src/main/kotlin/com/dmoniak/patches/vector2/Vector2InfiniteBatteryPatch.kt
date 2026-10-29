@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val vector2InfiniteBatteryPatch = bytecodePatch(
     name = "Infinite Battery & Shields - Vector 2 (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Prevents armor kit battery and shield depletion in Vector 2, keeping protective shields active against lasers, floor mines, and electric hazards. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Prevents armor kit battery and shield depletion in Vector 2, keeping protective shields active against lasers, floor mines, and electric hazards. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_VECTOR_2)
 

@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val plagueIncUnlockAllPlaguesPatch = bytecodePatch(
     name = "Unlock All Plagues & Disease Types - Plague Inc. (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks all standard disease types (Bacteria, Virus, Fungus, Parasite, Prion, Nano-Virus, Bio-Weapon) and special plagues (Neurax Worm, Necroa Virus, Simian Flu, Shadow Plague) without Brutal completion.",
+    description = "⚠️ [Experimental / Untested] Unlocks all standard disease types (Bacteria, Virus, Fungus, Parasite, Prion, Nano-Virus, Bio-Weapon) and special plagues (Neurax Worm, Necroa Virus, Simian Flu, Shadow Plague) without Brutal completion.",
 ) {
     compatibleWith(COMPATIBILITY_PLAGUE_INC, COMPATIBILITY_PLAGUE_INC_ALT)
 

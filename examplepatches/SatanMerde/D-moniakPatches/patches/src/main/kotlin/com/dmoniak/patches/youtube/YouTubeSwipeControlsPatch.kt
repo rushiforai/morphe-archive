@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeSwipeControlsPatch = bytecodePatch(
     name = "Swipe Controls - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Enables intuitive vertical swipe gestures during fullscreen video playback to adjust volume (right side) and brightness (left side).",
+    description = "⚠️ [Experimental / Untested] Enables intuitive vertical swipe gestures during fullscreen video playback to adjust volume (right side) and brightness (left side).",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

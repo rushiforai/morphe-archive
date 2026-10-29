@@ -1,0 +1,14 @@
+{
+  "case": "banner",
+  "mask": 64,
+  "user": 11,
+  "installed_apk_sha256": "3de300e4ef2395e8e87f7b3c0e0c140fb5eebe742aca2e0e1e2401b5b4acd4c8",
+  "native_sha256": "f7d19019147e976515a3de0cdc355a0cf6ba129a7e5f3c16218dedc221510199",
+  "engine_sha256": "d70bbedc2b157630f90123a32ca894a6fa1816ec10cda9f335bada0692b376ee",
+  "source": "e39a3d939f233a1721d6129343847e19afec8c93",
+  "display_size": "Physical size: 1080x1920",
+  "display_density": "Physical density: 420\nOverride density: 320",
+  "raw_unedited_adb_captures": true,
+  "captured_at": "2026-10-29T01:04:08.573902+00:00",
+  "quick_settings_opened_and_dismissal_retained": true
+}

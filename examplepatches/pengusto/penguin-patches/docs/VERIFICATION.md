@@ -29,3 +29,33 @@ Real Outlook server sync, physical-phone/Morphe Manager acceptance, full themes/
 The Calendar patch also recognizes paired table, section, row and cell tags without an html/body wrapper. Native Android HTML parsing needs explicit cell spaces and row breaks to avoid merging adjacent cell text. These replacements affect presentation only. Unmatched literal `<table>` text stays plain.
 
 13 native parser cases pass against the installed patched official Calendar 1.12.0, including table cells, uppercase row/header tags, entities and plain bracket text. Original-versus-patched day-list and editor screenshots show the same synthetic table event. A title-only UI save retains the exact table description; source-fork changes and their instrumentation are validated separately. No live Outlook synchronization is claimed.
+
+## Finamp native patches (2026-10-28)
+
+The original official Finamp 1.0.1 universal APK is pinned by SHA-256. Three
+optional selections produce ARM64 output: title validation, song artist order
+and bounded artist-page loading. All seven selections pass real Morphe Desktop
+1.18.1 / Patcher 1.15.1 and 1.19.1 / Patcher 2.0.1 application and retained-entry comparison. Four altered
+inputs fail without an output APK. Native resources are validated before release.
+
+The seven pinned source trees pass 224 overlapping Flutter tests (56 in the
+all-fix tree). The Android 15/API 35 synthetic fixture passes the same-key
+0 → 7 → 1 → 7 → 0 → 7 update chain, including login/theme retention, artist mode
+persistence across removal/reapply, actual title/credit UI and bounded requests.
+The original main Hive adapter remains unchanged.
+
+[Guide, provenance and limits](FINAMP_NATIVE.md),
+[repeatable checks](../tests/finamp/README.md),
+[recorded APK evidence](../tests/finamp/evidence/2026-10-28/README.md).
+Actual Android Manager 2.2.0 / Patcher 2.0.1 acceptance now passes on that API 35
+emulator: remote source download, default-off independent selections, four JVM
+exports (each single and all three), one ART all-three export, signature/native
+hash/retained-entry/alignment checks, and a GUI update/start retaining login,
+Dark theme and Metadata order. Controlled cached-input corruption fails visibly
+through a selected patch; restoring the original permits another successful ART
+run. No production patch change was needed.
+
+[Manager captures, normalized report and limits](../tests/finamp/evidence/2026-10-28-manager/README.md).
+Physical devices, other Android/Manager versions and real-library timing/RAM
+remain unverified. Pairwise masks were tested on Desktop. This native release
+is separate from the upstream redesign PRs and rebuilt debug preview.

@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val subwaySurfersUnlockCharactersBoardsPatch = bytecodePatch(
     name = "Free Shopping & Billing Bypass - Subway Surfers (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing SDK in Subway Surfers to bypass in-app purchase verification, enabling free purchases of coin packs, key bundles, and store items.",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing SDK in Subway Surfers to bypass in-app purchase verification, enabling free purchases of coin packs, key bundles, and store items.",
 ) {
     compatibleWith(COMPATIBILITY_SUBWAY_SURFERS)
 

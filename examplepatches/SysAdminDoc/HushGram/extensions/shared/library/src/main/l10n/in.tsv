@@ -1028,6 +1028,7 @@ Rounded corners on posts	Sudut membulat pada kiriman
 Rounds the corners of a post's photo, video and carousel pages in Home and Following. Posts you scroll to after a change show it. Stories, profiles and Explore stay as they were.	Membulatkan sudut foto, video, dan halaman carousel pada kiriman di Beranda dan Mengikuti. Kiriman yang kamu gulir setelah perubahan akan menampilkannya. Cerita, profil, dan Jelajahi tetap seperti semula.
 Corner size	Ukuran sudut
 Rounded corners on Reels	Sudut membulat pada Reels
+Rounded corners on stories	Sudut membulat pada cerita
 Seek bar on stories	Bilah geser di cerita
 Shows a bar near the bottom of a video story. Drag it to jump to any point in the video. Photos don't get one.	Menampilkan bilah di dekat bagian bawah cerita video. Geser bilahnya untuk melompat ke titik mana pun di video. Foto tidak mendapatkannya.
 Thicker story progress bar	Bilah progres cerita lebih tebal
@@ -1036,6 +1037,7 @@ Thickness	Ketebalan
 Twice as thick	Dua kali lebih tebal
 Three times as thick	Tiga kali lebih tebal
 Rounds the corners of a reel's video in the Reels tab and wherever a reel opens full screen. The seek bar, captions and buttons stay whole.	Membulatkan sudut video reel di tab Reels dan di mana pun reel dibuka layar penuh. Bilah geser, teks, dan tombol tetap utuh.
+Rounds the corners of a story's photo or video, from the tray, a profile or a highlight. The progress bar, names and stickers stay whole.	Membulatkan sudut foto atau video cerita, dari baris cerita, profil, atau sorotan. Bilah progres, nama, dan stiker tetap utuh.
 Peek at the next carousel page	Intip halaman carousel berikutnya
 A carousel post's page sits a little in from the edges, with the start of the next page showing at the right.	Halaman postingan carousel sedikit menjorok dari tepi, dengan awal halaman berikutnya terlihat di kanan.
 Large	Besar

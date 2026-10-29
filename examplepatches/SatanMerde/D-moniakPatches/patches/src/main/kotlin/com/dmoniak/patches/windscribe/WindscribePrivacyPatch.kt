@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val windscribePrivacyPatch = bytecodePatch(
     name = "Enhanced Privacy & Telemetry Blocker - Windscribe (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Neutralizes background diagnostic reporting, error analytics, and tracking telemetry endpoints for maximum anonymity.",
+    description = "⚠️ [Experimental / Untested] Neutralizes background diagnostic reporting, error analytics, and tracking telemetry endpoints for maximum anonymity.",
 ) {
     compatibleWith(COMPATIBILITY_WINDSCRIBE)
 

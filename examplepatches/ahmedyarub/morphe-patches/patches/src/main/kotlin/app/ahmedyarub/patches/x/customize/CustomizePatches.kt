@@ -23,6 +23,8 @@ import app.morphe.util.getReference
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -32,10 +34,10 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 // region Inline action bar
 
 /**
- * The action bar presenter, which copies a post's actions into the bar's state. 12.37 dropped the
- * font scaling flag it used to read; the payments flag is read in it in 12.36 and 12.37 alike.
+ * Where the action bar reads the payments flag. Up to 12.37 that is the bar's presenter itself, which
+ * copies a post's actions into the bar's state; from 12.38 it is a helper the presenter calls.
  */
-private object InlineActionBarPresenterFingerprint : Fingerprint(
+private object InlineActionBarPaymentsFlagFingerprint : Fingerprint(
     parameters = listOf("Landroidx/compose/runtime/Composer;"),
     strings = listOf("payments_posts_lpf_p2p_enabled"),
 )
@@ -65,7 +67,29 @@ val customizeInlineActionBarPatch = bytecodePatch(
         // The entries are gathered into an ArrayList, then made immutable in one call taking an
         // Iterable. They are filtered just before it. The timeline, the focal post, the media
         // viewer and DM previews all derive their bar from this state.
-        InlineActionBarPresenterFingerprint.method.apply {
+        val flag = InlineActionBarPaymentsFlagFingerprint.method
+        val presenter = if (flag.returnType != "Z") flag else {
+            val callers = mutableListOf<Pair<ClassDef, Method>>()
+            classDefForEach { classDef ->
+                if (!classDef.type.startsWith("Lcom/x/inlineactionbar/") || classDef.type == flag.definingClass) {
+                    return@classDefForEach
+                }
+                classDef.methods.filter { method ->
+                    method.implementation?.instructions?.any { instruction ->
+                        instruction.getReference<MethodReference>()?.let {
+                            it.definingClass == flag.definingClass && it.name == flag.name &&
+                                it.parameterTypes == flag.parameterTypes && it.returnType == flag.returnType
+                        } == true
+                    } == true
+                }.forEach { callers += classDef to it }
+            }
+            val (classDef, caller) = callers.singleOrNull()
+                ?: throw PatchException("Expected one action bar presenter, found ${callers.size}")
+            mutableClassDefBy(classDef).methods.first {
+                it.name == caller.name && it.parameterTypes == caller.parameterTypes && it.returnType == caller.returnType
+            }
+        }
+        presenter.apply {
             val toImmutable = instructions.first { instruction ->
                 instruction.opcode == Opcode.INVOKE_STATIC &&
                     instruction.getReference<MethodReference>()?.parameterTypes?.map { it.toString() } == listOf("Ljava/lang/Iterable;")

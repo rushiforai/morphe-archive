@@ -37,12 +37,14 @@ public final class AmbientLightSettings {
     public static final String SCENE_WAVE = "ambient_scene_wave";
     public static final String BREATHE = "ambient_breathe";
     public static final String PICTURE_BACKDROP = "ambient_picture_backdrop";
+    public static final String SOFT_LIGHT = "ambient_soft_light";
+    public static final String HIDE_TIME_BAR = "ambient_hide_time_bar";
 
     private static final String[] ALL_KEYS = {
             ENABLED, FULLSCREEN, SMALL_PLAYER, BLUR, SPREAD, EDGE_FADE, BRIGHTNESS, SATURATION,
             SMOOTHING, FRAME_RATE, QUALITY, BAR_DETECTION, FILL_BARS, ENERGY_SAVER,
             PAGE_GLOW, PAGE_STRENGTH, PAGE_SIZE, PAGE_COVER, LEVEL, INTERACTION_DIM, IDLE_DELAY,
-            FALLOFF, SCENE_WAVE, BREATHE, PICTURE_BACKDROP
+            FALLOFF, SCENE_WAVE, BREATHE, PICTURE_BACKDROP, SOFT_LIGHT, HIDE_TIME_BAR
     };
     private static final String[] NUMERIC_KEYS = {
             BLUR, SPREAD, EDGE_FADE, BRIGHTNESS, SATURATION, SMOOTHING, FRAME_RATE, QUALITY,
@@ -64,6 +66,8 @@ public final class AmbientLightSettings {
     private static volatile boolean sceneWave;
     private static volatile boolean breathe = true;
     private static volatile boolean pictureBackdrop;
+    private static volatile boolean softLight;
+    private static volatile boolean hideTimeBar;
     private static volatile boolean smallPlayer = true;
     private static volatile int blur = 60;
     private static volatile int spread = 30;
@@ -110,6 +114,8 @@ public final class AmbientLightSettings {
         sceneWave = prefs.getBoolean(SCENE_WAVE, false);
         breathe = prefs.getBoolean(BREATHE, true);
         pictureBackdrop = prefs.getBoolean(PICTURE_BACKDROP, false);
+        softLight = prefs.getBoolean(SOFT_LIGHT, false);
+        hideTimeBar = prefs.getBoolean(HIDE_TIME_BAR, false);
         smallPlayer = prefs.getBoolean(SMALL_PLAYER, true);
         blur = clamp(getInt(prefs, BLUR, AmbientLightController.configBlurPercent()), 0, 100);
         spread = clamp(getInt(prefs, SPREAD, AmbientLightController.configSpreadPercent()), 0, 100);
@@ -202,6 +208,8 @@ public final class AmbientLightSettings {
     static boolean isSceneWaveEnabled() { return sceneWave; }
     static boolean isBreatheEnabled() { return breathe; }
     static boolean isPictureBackdropEnabled() { return pictureBackdrop; }
+    static boolean isSoftLightEnabled() { return softLight; }
+    static boolean isHideTimeBarEnabled() { return hideTimeBar; }
     static boolean isFullscreenEnabled() { return fullscreen; }
     static boolean isSmallPlayerEnabled() { return smallPlayer; }
     static int getBlur() { return blur; }

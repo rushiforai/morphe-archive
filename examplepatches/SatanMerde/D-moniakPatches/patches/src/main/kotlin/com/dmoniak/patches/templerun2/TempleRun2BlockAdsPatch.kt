@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val templeRun2BlockAdsPatch = bytecodePatch(
     name = "Block Ads & Death Interstitials - Temple Run 2 (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Eliminates post-death full-screen ads, video revive popups, and banner ads in Temple Run 2 by intercepting mediation SDK calls.",
+    description = "⚠️ [Experimental / Untested] Eliminates post-death full-screen ads, video revive popups, and banner ads in Temple Run 2 by intercepting mediation SDK calls.",
 ) {
     compatibleWith(COMPATIBILITY_TEMPLE_RUN_2)
 

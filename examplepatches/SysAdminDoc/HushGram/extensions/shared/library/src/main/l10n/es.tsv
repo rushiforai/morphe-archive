@@ -1028,6 +1028,7 @@ Rounded corners on posts	Esquinas redondeadas en publicaciones
 Rounds the corners of a post's photo, video and carousel pages in Home and Following. Posts you scroll to after a change show it. Stories, profiles and Explore stay as they were.	Redondea las esquinas de la foto, el video y las páginas del carrusel de una publicación en Inicio y Siguiendo. Las publicaciones a las que llegues después de un cambio lo muestran. Las historias, los perfiles y Explorar se quedan como estaban.
 Corner size	Tamaño de las esquinas
 Rounded corners on Reels	Esquinas redondeadas en Reels
+Rounded corners on stories	Esquinas redondeadas en las historias
 Seek bar on stories	Barra de búsqueda en historias
 Shows a bar near the bottom of a video story. Drag it to jump to any point in the video. Photos don't get one.	Muestra una barra cerca de la parte inferior de una historia de video. Arrástrala para saltar a cualquier punto del video. Las fotos no la tienen.
 Thicker story progress bar	Barra de progreso de historias más gruesa
@@ -1036,6 +1037,7 @@ Thickness	Grosor
 Twice as thick	El doble de gruesa
 Three times as thick	Tres veces más gruesa
 Rounds the corners of a reel's video in the Reels tab and wherever a reel opens full screen. The seek bar, captions and buttons stay whole.	Redondea las esquinas del video de un reel en la pestaña Reels y dondequiera que un reel se abra a pantalla completa. La barra de progreso, los subtítulos y los botones quedan completos.
+Rounds the corners of a story's photo or video, from the tray, a profile or a highlight. The progress bar, names and stickers stay whole.	Redondea las esquinas de la foto o el video de una historia, desde la bandeja, un perfil o una historia destacada. La barra de progreso, los nombres y los stickers quedan completos.
 Peek at the next carousel page	Asomar la siguiente página del carrusel
 A carousel post's page sits a little in from the edges, with the start of the next page showing at the right.	La página de una publicación en carrusel queda un poco separada de los bordes, con el comienzo de la siguiente página a la derecha.
 Large	Grande

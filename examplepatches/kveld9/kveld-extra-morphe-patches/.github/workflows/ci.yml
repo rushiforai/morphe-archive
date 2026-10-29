@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+      - name: Verify contributors table
+        run: python3 .github/scripts/sync_contributors.py --check --repo $GITHUB_REPOSITORY
       - name: Setup Java
         uses: actions/setup-java@v6.1.0
         with:

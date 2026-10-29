@@ -85,3 +85,20 @@ val EzvizLegacyHttpClientConstructorFingerprint = Fingerprint(
         } == true
     }
 )
+
+val EzvizSignatureCheckFingerprint = Fingerprint(
+    name = "onCreate",
+    definingClass = "Lcom/ezviz/main/LoadingActivity;",
+    parameters = listOf("Landroid/os/Bundle;"),
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { instruction ->
+            instruction is ReferenceInstruction &&
+                (instruction.reference as? MethodReference)?.let { reference ->
+                    reference.definingClass == "Landroid/content/pm/Signature;" &&
+                        reference.name == "hashCode"
+                } == true
+        } == true
+    }
+)

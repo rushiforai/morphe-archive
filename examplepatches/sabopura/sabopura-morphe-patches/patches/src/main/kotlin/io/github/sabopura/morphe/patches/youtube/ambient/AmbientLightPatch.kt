@@ -1,7 +1,9 @@
 package io.github.sabopura.morphe.patches.youtube.ambient
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.intOption
@@ -18,6 +20,36 @@ private const val EXTENSION_CLASS =
 private const val SEE_THROUGH_CLASS =
     "Lio/github/sabopura/morphe/extension/youtube/ambient/SeeThroughPage;"
 private val logger = Logger.getLogger("Morphe.YouTube.AmbientLight")
+
+/**
+ * Lets "Hide the progress bar under the video" skip drawing the player's time bar while the
+ * controls are hidden. Optional: a missing time bar must never fail the patch.
+ */
+private fun BytecodePatchContext.hideTimeBarHook() {
+    val method = runCatching { TimeBarOnDrawFingerprint.method }.getOrNull()
+    if (method == null) {
+        logger.warning("Player time bar not found; it cannot be hidden")
+        return
+    }
+    try {
+        // The range form: "this" sits in a high register that plain invoke cannot address.
+        method.addInstructionsWithLabels(
+            0,
+            """
+                invoke-static/range { p0 .. p0 }, $EXTENSION_CLASS->hideTimeBar(Landroid/view/View;)Z
+                move-result v0
+                if-eqz v0, :draw_time_bar
+                return-void
+                :draw_time_bar
+                nop
+            """,
+        )
+    } catch (exception: Exception) {
+        logger.warning("Time bar hook skipped: ${exception.message}")
+        return
+    }
+    logger.info("Installed the time bar hook")
+}
 
 @Suppress("unused")
 val ambientLightPatch = bytecodePatch(
@@ -86,6 +118,7 @@ val ambientLightPatch = bytecodePatch(
         // see-through hook is optional and must never fail the whole patch.
         val match = runCatching { LithoBackgroundBoundsFingerprint.matchOrNull() }.getOrNull()
             ?: runCatching { LithoBackgroundBoundsLegacyFingerprint.matchOrNull() }.getOrNull()
+        hideTimeBarHook()
         if (match == null) {
             logger.warning("Litho background drawable not found; theater uses its fallback")
             return@execute

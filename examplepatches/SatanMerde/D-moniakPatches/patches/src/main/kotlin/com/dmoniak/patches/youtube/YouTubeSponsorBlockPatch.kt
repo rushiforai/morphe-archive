@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeSponsorBlockPatch = bytecodePatch(
     name = "SponsorBlock - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Automatically detects and skips sponsored video segments, sponsor intros/outros, self-promotions, interaction reminders, and filler music in YouTube videos via the community SponsorBlock API.",
+    description = "⚠️ [Experimental / Untested] Automatically detects and skips sponsored video segments, sponsor intros/outros, self-promotions, interaction reminders, and filler music in YouTube videos via the community SponsorBlock API.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

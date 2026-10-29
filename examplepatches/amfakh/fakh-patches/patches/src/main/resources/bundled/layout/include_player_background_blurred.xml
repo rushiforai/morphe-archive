@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@id/iv_blurred" android:visibility="gone" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:importantForAccessibility="no" />
+    <View android:visibility="gone" android:layout_width="match_parent" android:layout_height="match_parent" />
+    <View android:background="@color/bg" android:layout_width="match_parent" android:layout_height="match_parent" />
+</FrameLayout>

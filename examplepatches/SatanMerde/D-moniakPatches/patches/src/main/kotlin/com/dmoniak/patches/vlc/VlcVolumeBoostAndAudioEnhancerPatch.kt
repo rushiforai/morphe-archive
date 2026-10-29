@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val vlcVolumeBoostAndAudioEnhancerPatch = bytecodePatch(
     name = "200% Volume Boost & Audio Gain - VLC (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks 200% volume amplification (software preamp gain up to +12dB) for low-volume videos/audio and prevents volume ducking on notifications.",
+    description = "⚠️ [Experimental / Untested] Unlocks 200% volume amplification (software preamp gain up to +12dB) for low-volume videos/audio and prevents volume ducking on notifications.",
 ) {
     compatibleWith(COMPATIBILITY_VLC)
 

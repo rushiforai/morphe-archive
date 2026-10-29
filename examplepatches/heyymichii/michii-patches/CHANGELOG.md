@@ -1,3 +1,20 @@
+## [1.2.0](https://github.com/heyymichii/michii-patches/compare/v1.1.1...v1.2.0) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* Also hide posts from companies' and schools' activity ([7fc2364](https://github.com/heyymichii/michii-patches/commit/7fc236464ebf42d0fdde2678cf3e7d145be7a863))
+* Apply Material You to the Compose feed ([263e1d9](https://github.com/heyymichii/michii-patches/commit/263e1d919977905aa6e106985b9550cb60ad6fd3))
+* Handle range invokes in the Material You hooks ([915bae5](https://github.com/heyymichii/michii-patches/commit/915bae54dc84294cfe47f7fff1f40345fb214d28))
+* Tint backgrounds with Material You ([26fbcb4](https://github.com/heyymichii/michii-patches/commit/26fbcb4609caf1ffbee3c6f47f0efa22fa822e8e))
+
+### ✨ New Features
+
+* Add AMOLED black ([0f34d22](https://github.com/heyymichii/michii-patches/commit/0f34d22ae5d8b8eaa08b64b56a9c5e309a8292e7)), closes [#13](https://github.com/heyymichii/michii-patches/issues/13)
+* Add Material You patch ([4c14ce2](https://github.com/heyymichii/michii-patches/commit/4c14ce2299163d770e15bf61075c678d520befd5)), closes [#6](https://github.com/heyymichii/michii-patches/issues/6)
+* GmsCore support for Sign in with Google ([dca3d54](https://github.com/heyymichii/michii-patches/commit/dca3d540f4fc181deb07f4fc0e1060e005715682))
+* Hide posts from others' activity, "Recommended for you" and games ([e0d2c92](https://github.com/heyymichii/michii-patches/commit/e0d2c92a6aed277296c67e81cd09aa78ef530c82)), closes [#12](https://github.com/heyymichii/michii-patches/issues/12) [#14](https://github.com/heyymichii/michii-patches/issues/14) [#15](https://github.com/heyymichii/michii-patches/issues/15) [#16](https://github.com/heyymichii/michii-patches/issues/16)
+* Material You surfaces, Remove gaps and dividers, fix Me panel entry ([7cbc366](https://github.com/heyymichii/michii-patches/commit/7cbc366920980d9882fd490df740c0ecd8b4324a))
+
 ## [1.2.0-dev.3](https://github.com/heyymichii/michii-patches/compare/v1.2.0-dev.2...v1.2.0-dev.3) (2026-10-17)
 
 ### 🐛 Bug Fixes

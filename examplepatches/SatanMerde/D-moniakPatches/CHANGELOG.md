@@ -1,3 +1,9 @@
+## [1.52.21](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.20...v1.52.21) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* declare target version bounds for Truecaller and Shazam ([#15](https://github.com/SatanMerde/D-moniakPatches/issues/15)) ([e615c06](https://github.com/SatanMerde/D-moniakPatches/commit/e615c06c9694060c9f86fe2a86824b253c9acaf7))
+
 ## [1.52.20](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.19...v1.52.20) (2026-10-25)
 
 ### 🐛 Bug Fixes

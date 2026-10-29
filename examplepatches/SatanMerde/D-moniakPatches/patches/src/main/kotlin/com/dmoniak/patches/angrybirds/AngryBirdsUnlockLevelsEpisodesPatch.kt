@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val angryBirdsUnlockLevelsEpisodesPatch = bytecodePatch(
     name = "Unlock All Episodes & Golden Eggs - Angry Birds Classic (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks all legendary episodes, level packs, and Golden Egg secret stages in Angry Birds Classic.",
+    description = "⚠️ [Experimental / Untested] Unlocks all legendary episodes, level packs, and Golden Egg secret stages in Angry Birds Classic.",
 ) {
     compatibleWith(COMPATIBILITY_ANGRY_BIRDS)
 

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val snapchatStartOnChatPatch = bytecodePatch(
     name = "Start on Chat & Battery Saver - Snapchat (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Configures Snapchat to launch directly on the Chat conversation feed instead of opening the battery-draining camera viewfinder on startup.",
+    description = "⚠️ [Experimental / Untested] Configures Snapchat to launch directly on the Chat conversation feed instead of opening the battery-draining camera viewfinder on startup.",
 ) {
     compatibleWith(COMPATIBILITY_SNAPCHAT)
 

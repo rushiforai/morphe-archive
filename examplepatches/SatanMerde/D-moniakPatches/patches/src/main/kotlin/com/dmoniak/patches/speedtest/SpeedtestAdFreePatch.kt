@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val speedtestAdFreePatch = bytecodePatch(
     name = "Ad-Free Speedtest by Ookla (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes post-test video ads, top and bottom banner ads, and sponsored server promotions by neutralizing ad SDK calls.",
+    description = "⚠️ [Experimental / Untested] Removes post-test video ads, top and bottom banner ads, and sponsored server promotions by neutralizing ad SDK calls.",
 ) {
     compatibleWith(COMPATIBILITY_SPEEDTEST)
 

@@ -5,6 +5,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val VIP_CONFIG_CLASS = "Lcom/mock/sample/respository/model/VipConfigModel;"
 private const val LICENSE_CLIENT_CLASS = "Lcom/pairip/licensecheck/LicenseClient;"
@@ -75,9 +76,14 @@ val CheckLicenseFingerprint = Fingerprint(
 )
 
 val SecurityCheckFingerprint = Fingerprint(
-    definingClass = "Lo/jh6;",
-    name = "h",
     returnType = "Z",
-    parameters = listOf("Landroid/app/Activity;", "Lo/pm4;"),
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC)
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    custom = { method, _ ->
+        method.parameterTypes.firstOrNull() == "Landroid/app/Activity;" &&
+            method.implementation?.instructions?.any { instruction ->
+                instruction is ReferenceInstruction &&
+                    (instruction.reference as? StringReference)?.string
+                        ?.contains("SecurityCheckManager not initialized") == true
+            } == true
+    }
 )

@@ -24,3 +24,4 @@ include(":stubs:feeder")
 
 include(":stubs:kvaesitso")
 include(":stubs:clock")
+include(":stubs:readyou")

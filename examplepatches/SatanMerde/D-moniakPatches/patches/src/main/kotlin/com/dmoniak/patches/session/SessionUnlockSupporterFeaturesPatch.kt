@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val sessionUnlockSupporterFeaturesPatch = bytecodePatch(
     name = "Unlock Pro & Supporter Themes - Session (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks Session Supporter badges, animated community avatars, and custom premium accent themes in Session Private Messenger.",
+    description = "⚠️ [Experimental / Untested] Unlocks Session Supporter badges, animated community avatars, and custom premium accent themes in Session Private Messenger.",
 ) {
     compatibleWith(COMPATIBILITY_SESSION)
 

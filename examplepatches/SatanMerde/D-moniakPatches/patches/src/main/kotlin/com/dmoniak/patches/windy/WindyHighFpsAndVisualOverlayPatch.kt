@@ -12,7 +12,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val windyHighFpsAndVisualOverlayPatch = bytecodePatch(
     name = "120 FPS Smooth Radar Animations - Windy.com (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces 120Hz display refresh rate and unlocks high-framerate wind particle simulations and smooth satellite weather animation layers in Windy.",
+    description = "⚠️ [Experimental / Untested] Forces 120Hz display refresh rate and unlocks high-framerate wind particle simulations and smooth satellite weather animation layers in Windy.",
 ) {
     compatibleWith(COMPATIBILITY_WINDY)
 

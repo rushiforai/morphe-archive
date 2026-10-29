@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val telegramAllowRestrictedSavingPatch = bytecodePatch(
     name = "Allow Saving Restricted Media - Telegram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Bypasses 'Copying and forwarding is not allowed' channel restrictions, allowing users to save photos, videos, and copy text from restricted channels.",
+    description = "⚠️ [Experimental / Untested] Bypasses 'Copying and forwarding is not allowed' channel restrictions, allowing users to save photos, videos, and copy text from restricted channels.",
 ) {
     compatibleWith(COMPATIBILITY_TELEGRAM)
 

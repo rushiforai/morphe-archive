@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val vpnLatBlockAdsPatch = bytecodePatch(
     name = "Block Ads & Video Interruptions - VPN.lat (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips full-screen video ads on server connection/disconnection, bottom banner ads, and nag popups in VPN.lat.",
+    description = "⚠️ [Experimental / Untested] Strips full-screen video ads on server connection/disconnection, bottom banner ads, and nag popups in VPN.lat.",
 ) {
     compatibleWith(COMPATIBILITY_VPN_LAT)
 

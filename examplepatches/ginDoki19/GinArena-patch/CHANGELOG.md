@@ -1,3 +1,39 @@
+## [2.5.0](https://github.com/ginDoki19/GinArena-patch/compare/v2.4.2...v2.5.0) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* **1dm:** auto-hydrate cloud Hosts & filters UI, speed up local rebuild, and keep task in Recents on Back ([87ebd7c](https://github.com/ginDoki19/GinArena-patch/commit/87ebd7ca98defa4a431ceb613e3cdd2190bc1673))
+* **onedm:** fix VerifyError crash in AdBlock j12 and harden startup lifecycle ([70f96ab](https://github.com/ginDoki19/GinArena-patch/commit/70f96abfe82b5869cca951ebc35baed8d3c19ea6))
+
+### ✨ New Features
+
+* **onedm:** add 1DM 20.0 cold-start, battery, cloud adblocker & userscript suite ([0cdb0c9](https://github.com/ginDoki19/GinArena-patch/commit/0cdb0c9154b42218a2d2209032d980f707017e4f))
+* **sktech:** add SK Tech TV 2.7 clean-experience patch ([87bc9fb](https://github.com/ginDoki19/GinArena-patch/commit/87bc9fb9b46205fff1c0f12cb0080b36e04086ca))
+
+## [2.5.0-dev.4](https://github.com/ginDoki19/GinArena-patch/compare/v2.5.0-dev.3...v2.5.0-dev.4) (2026-10-28)
+
+### ✨ New Features
+
+* **sktech:** add SK Tech TV 2.7 clean-experience patch ([87bc9fb](https://github.com/ginDoki19/GinArena-patch/commit/87bc9fb9b46205fff1c0f12cb0080b36e04086ca))
+
+## [2.5.0-dev.3](https://github.com/ginDoki19/GinArena-patch/compare/v2.5.0-dev.2...v2.5.0-dev.3) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* **1dm:** auto-hydrate cloud Hosts & filters UI, speed up local rebuild, and keep task in Recents on Back ([87ebd7c](https://github.com/ginDoki19/GinArena-patch/commit/87ebd7ca98defa4a431ceb613e3cdd2190bc1673))
+
+## [2.5.0-dev.2](https://github.com/ginDoki19/GinArena-patch/compare/v2.5.0-dev.1...v2.5.0-dev.2) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* **onedm:** fix VerifyError crash in AdBlock j12 and harden startup lifecycle ([70f96ab](https://github.com/ginDoki19/GinArena-patch/commit/70f96abfe82b5869cca951ebc35baed8d3c19ea6))
+
+## [2.5.0-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.4.2...v2.5.0-dev.1) (2026-10-28)
+
+### ✨ New Features
+
+* **onedm:** add 1DM 20.0 cold-start, battery, cloud adblocker & userscript suite ([0cdb0c9](https://github.com/ginDoki19/GinArena-patch/commit/0cdb0c9154b42218a2d2209032d980f707017e4f))
+
 ## [2.4.2](https://github.com/ginDoki19/GinArena-patch/compare/v2.4.1...v2.4.2) (2026-10-27)
 
 ### 🐛 Bug Fixes

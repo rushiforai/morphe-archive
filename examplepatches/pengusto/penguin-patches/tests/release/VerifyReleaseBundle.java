@@ -10,7 +10,7 @@ import java.util.zip.ZipFile;
 class VerifyReleaseBundle {
     public static void main(String[] args) throws Exception {
         if (args.length != 2) throw new IllegalArgumentException("Pass current MPP and prior released MPP");
-        Set<String> modules = Set.of("extension", "kvaesitso", "clock", "calendarreminders", "tasks", "feeder");
+        Set<String> modules = Set.of("extension", "kvaesitso", "clock", "calendarreminders", "tasks", "feeder", "readyou");
         try (ZipFile current = new ZipFile(Path.of(args[0]).toFile());
              ZipFile prior = new ZipFile(Path.of(args[1]).toFile())) {
             Set<String> entries = new HashSet<>();

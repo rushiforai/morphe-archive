@@ -15,7 +15,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.8.1](https://github.com/LuckyToShine/czyeru/releases/tag/v1.8.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;59 patches total
+> **[v1.9.0](https://github.com/LuckyToShine/czyeru/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;60 patches total
 <details open>
 <summary>📦 Conexión Lince UVM&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -50,7 +50,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 </details>
 
 <details open>
-<summary>📦 TikTok&nbsp;&nbsp;•&nbsp;&nbsp;49 patches</summary>
+<summary>📦 TikTok&nbsp;&nbsp;•&nbsp;&nbsp;50 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -94,6 +94,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Hide quick comment reactions](#hide-quick-comment-reactions) | Hides TikTok's exposed quick emoji row in supported comment inputs. |  |
 | [Hide suggested accounts](#hide-suggested-accounts) | Removes suggested-account cards from profile and inbox surfaces. Thanks to tymmesyde for the original implementation. |  |
 | [Hold-and-slide 2x lock](#hold-and-slide-2x-lock) | Enables TikTok's native hold, slide down, and release gesture to lock 2x speed. |  |
+| [Inbox activity search](#inbox-activity-search) | Adds an option to show a search bar on the Activity notifications and New followers pages to filter by user, comment, or notification text. |  |
 | [Keep collections loaded](#keep-collections-loaded) | Adds an option to remember every collection you have loaded, so the collections page and the save sheet show them all right away instead of loading them page by page again. |  |
 | [Liked videos search](#liked-videos-search) | Adds an option to show a search bar on the liked videos page that filters loaded videos by description or creator. |  |
 | [Open external links directly](#open-external-links-directly) | Opens profile and story website links in the system browser instead of TikTok's in-app browser. Thanks to lyyako for the original implementation. |  |

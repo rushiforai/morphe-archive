@@ -203,7 +203,7 @@ class GroupNotificationsHookTest {
         val byShape = NOTIFY_SHAPES.associateWith { shape ->
             methods.count { method -> method.instructions().any { it.notifyCall() == shape } }
         }
-        assertEquals("${label}: methods posting by shape", mapOf(untagged to 9, tagged to 7), byShape)
+        assertEquals("${label}: methods posting by shape", mapOf(untagged to 10, tagged to 7), byShape)
         val cancelsByShape = CANCEL_SHAPES.associateWith { shape ->
             methods.count { method -> method.instructions().any { it.cancelCall() == shape } }
         }

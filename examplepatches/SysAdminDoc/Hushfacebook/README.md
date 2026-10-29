@@ -22,7 +22,7 @@ Each row in the [patch table](#patches) says how its switch starts. The ad filte
 
 This project has no connection to Meta or to the Morphe project. Neither endorses it, and neither wrote it.
 
-The latest release is [v0.18.1](https://github.com/SysAdminDoc/Hushfacebook/releases/tag/v0.18.1), with 102 patches. It includes all changes since v0.18.0, among them settings that open every section right on the main page, a play button for feed videos, Traditional Chinese, and a fix for the startup crash with `Newest reels first` on, as the [changelog](CHANGELOG.md) describes.
+The latest release is [v0.19.0](https://github.com/SysAdminDoc/Hushfacebook/releases/tag/v0.19.0), with 105 patches. It includes all changes since v0.18.1, among them Save and Download buttons under posts, switches that take Like, Comment, Share or Send off posts and reels, a cast button for feed videos and support for 32-bit phones, as the [changelog](CHANGELOG.md) describes.
 
 [Add to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2FHushfacebook) | [Download a release](https://github.com/SysAdminDoc/Hushfacebook/releases/latest) | [Browse the patches](#patches)
 

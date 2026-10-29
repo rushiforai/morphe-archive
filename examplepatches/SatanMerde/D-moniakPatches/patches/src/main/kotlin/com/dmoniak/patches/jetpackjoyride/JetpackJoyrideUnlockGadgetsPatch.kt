@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val jetpackJoyrideUnlockGadgetsPatch = bytecodePatch(
     name = "Unlock Gadgets & Upgrades - Jetpack Joyride (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks all Stash gadgets (Coin Magnet, Gravity Belt, Air Barrys, etc.) and maxes out vehicle coin magnets without spending coins.",
+    description = "⚠️ [Experimental / Untested] Unlocks all Stash gadgets (Coin Magnet, Gravity Belt, Air Barrys, etc.) and maxes out vehicle coin magnets without spending coins.",
 ) {
     compatibleWith(COMPATIBILITY_JETPACK_JOYRIDE)
 

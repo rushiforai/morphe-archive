@@ -1,0 +1,7 @@
+{
+  "case": "64-art-recovery",
+  "signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+  "signature_verified": true,
+  "alignment_16k_verified": true,
+  "native_entries_uncompressed": true
+}

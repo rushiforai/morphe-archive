@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val cutTheRopeUnlockSeasonsSuperpowersPatch = bytecodePatch(
     name = "Unlock All Boxes & Superpowers - Cut the Rope (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks all level boxes, seasons, Om Nom candies, and unlocks unlimited superpowers (candy magnets & telekinesis) in Cut the Rope.",
+    description = "⚠️ [Experimental / Untested] Unlocks all level boxes, seasons, Om Nom candies, and unlocks unlimited superpowers (candy magnets & telekinesis) in Cut the Rope.",
 ) {
     compatibleWith(COMPATIBILITY_CUT_THE_ROPE)
 

@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeGmsCoreSupportPatch = bytecodePatch(
     name = "GmsCore Support - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Redirects Google Play Services and account authentication calls to GmsCore (MicroG / app.revanced.android.gms) to allow logging in to YouTube without root.",
+    description = "⚠️ [Experimental / Untested] Redirects Google Play Services and account authentication calls to GmsCore (MicroG / app.revanced.android.gms) to allow logging in to YouTube without root.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

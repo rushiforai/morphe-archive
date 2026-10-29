@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val instagramSanitizeLinksAndOpenExternalPatch = bytecodePatch(
     name = "Sanitize Share Links & Open in External Browser - Instagram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips telemetry tracking parameters (?igsh=..., ?utm_...) from copied and shared Instagram URLs, and opens external web links directly in the system default browser instead of the in-app browser.",
+    description = "⚠️ [Experimental / Untested] Strips telemetry tracking parameters (?igsh=..., ?utm_...) from copied and shared Instagram URLs, and opens external web links directly in the system default browser instead of the in-app browser.",
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val sessionAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & Screen Security Bypass - Session (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes Android FLAG_SECURE window flags in Session Private Messenger, enabling screenshots, receipts saving, and screen recording inside conversations.",
+    description = "⚠️ [Experimental / Untested] Removes Android FLAG_SECURE window flags in Session Private Messenger, enabling screenshots, receipts saving, and screen recording inside conversations.",
 ) {
     compatibleWith(COMPATIBILITY_SESSION)
 

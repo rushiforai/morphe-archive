@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val undercoverAmoledThemeAndPrivacyPatch = bytecodePatch(
     name = "AMOLED Dark Theme & Privacy - Undercover (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Enforces dark mode and strips analytics telemetry (Firebase Analytics, App Measurement) in Undercover.",
+    description = "⚠️ [Experimental / Untested] Enforces dark mode and strips analytics telemetry (Firebase Analytics, App Measurement) in Undercover.",
 ) {
     compatibleWith(COMPATIBILITY_UNDERCOVER)
 

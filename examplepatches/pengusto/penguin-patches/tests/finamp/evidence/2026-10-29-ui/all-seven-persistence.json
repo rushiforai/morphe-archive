@@ -1,0 +1,12 @@
+{
+  "mask": 127,
+  "runtime": "art",
+  "installed_apk_sha256": "de7f9bfe2795033d75feccaab75e7d5fc42867eec5f589bf0906e0d27cae557c",
+  "existing_downloaded_tracks": 8,
+  "complete_download_items": 22,
+  "failed_download_items": 0,
+  "theme": "Dark",
+  "artist_order": "Metadata order",
+  "settings_and_login_readable_without_data_clear": true,
+  "capture_at": "2026-10-29T01:20:50.258972+00:00"
+}

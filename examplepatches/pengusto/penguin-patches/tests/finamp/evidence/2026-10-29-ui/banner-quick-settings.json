@@ -1,0 +1,173 @@
+{
+  "capturedAt": "2026-10-29T01:04:19.219162+00:00",
+  "serial": "emulator-5580",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Back",
+      "class": "android.view.View",
+      "bounds": "[0,48][112,160]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Quick Settings",
+      "class": "android.view.View",
+      "bounds": "[144,76][426,132]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Customize Finamp to your preferences with these core options. Come back here any time via Settings.",
+      "class": "android.view.View",
+      "bounds": "[0,160][1080,336]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "All Settings",
+      "class": "android.widget.Button",
+      "bounds": "[0,336][1080,448]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Accessibility",
+      "class": "android.widget.Button",
+      "bounds": "[0,448][1080,560]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Rearrange and hide tabs",
+      "class": "android.widget.Button",
+      "bounds": "[0,592][1080,704]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "App color theme (dark/light)",
+      "class": "android.view.View",
+      "bounds": "[0,720][1080,912]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Light",
+      "content-desc": "",
+      "class": "android.widget.Button",
+      "bounds": "[32,784][1032,896]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Use System Accent Color",
+      "class": "android.view.View",
+      "bounds": "[0,928][1080,1040]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Music Screen Display Type\nControls grid or list mode for all music screen tabs, excepting the home screen.",
+      "class": "android.view.View",
+      "bounds": "[0,1056][1080,1336]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Albums only in grid",
+      "content-desc": "",
+      "class": "android.widget.Button",
+      "bounds": "[32,1208][1032,1320]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Show text in grid view\nWhether or not to show the text (title, artist etc) on the grid music screen. Text is always shown on the home screen, ignoring this setting.",
+      "class": "android.widget.Switch",
+      "bounds": "[0,1336][1080,1536]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "true",
+      "checked": "true"
+    },
+    {
+      "text": "",
+      "content-desc": "Grid Tile Size\nSelect the size of items in grid view\n~4 columns (medium)",
+      "class": "android.view.View",
+      "bounds": "[0,1536][1080,1848]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "30%, 4",
+      "class": "android.widget.SeekBar",
+      "bounds": "[297,1680][393,1776]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "All layout & theme settings",
+      "class": "android.widget.Button",
+      "bounds": "[0,1848][1080,1920]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "e2fabbf6166887ae20a7209e2062e737c9793c9ced31f55c893e17e4db991b82"
+}

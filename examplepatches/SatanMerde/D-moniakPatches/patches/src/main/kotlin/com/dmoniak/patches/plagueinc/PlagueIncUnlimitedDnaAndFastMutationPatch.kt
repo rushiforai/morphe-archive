@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val plagueIncUnlimitedDnaAndFastMutationPatch = bytecodePatch(
     name = "Unlimited DNA Points & Fast Mutation - Plague Inc. (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks DNA points balance getter to provide 9999 DNA points and multiplies DNA points earned on orange and red biohazard bubble pops.",
+    description = "⚠️ [Experimental / Untested] Hooks DNA points balance getter to provide 9999 DNA points and multiplies DNA points earned on orange and red biohazard bubble pops.",
 ) {
     compatibleWith(COMPATIBILITY_PLAGUE_INC, COMPATIBILITY_PLAGUE_INC_ALT)
 

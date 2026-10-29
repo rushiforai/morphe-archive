@@ -1,0 +1,78 @@
+name: ⭐ Feature request | Yêu cầu tính năng
+description: Create a detailed request for a new feature. | Tạo một yêu cầu chi tiết cho một tính năng mới.
+title: "feat: "
+labels: ["Feature request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Feature request
+
+        Before creating a new feature request, please keep the following in mind:
+
+        - **Do not submit a duplicate feature request**: Search for existing feature requests [here](https://github.com/ElectroHeavenVN/morphe-patches/issues?q=label%3A%22Feature+request%22).
+
+        ---
+        # Yêu cầu tính năng
+
+        Trước khi tạo một yêu cầu tính năng mới, vui lòng lưu ý những điều sau:
+
+        - **Không gửi yêu cầu tính năng trùng lặp**: Tìm kiếm các yêu cầu tính năng hiện có [tại đây](https://github.com/ElectroHeavenVN/morphe-patches/issues?q=label%3A%22Feature+request%22).
+  - type: textarea
+    attributes:
+      label: Feature description | Mô tả tính năng
+      description: |
+        - Describe your feature in detail
+        - Add images, videos, links, examples, references, etc. if possible
+
+        ---
+        - Mô tả tính năng của bạn một cách chi tiết
+        - Thêm hình ảnh, video, liên kết, ví dụ, tham khảo, v.v. nếu có thể
+  - type: textarea
+    attributes:
+      label: Motivation | Động lực
+      description: |
+        A strong motivation is necessary for a feature request to be considered.
+
+        - Why should this feature be implemented? 
+        - What is the explicit use case?
+        - What are the benefits?
+        - What makes this feature important?
+
+        ---
+        Một động lực mạnh mẽ là cần thiết để một yêu cầu tính năng được xem xét.
+        
+        - Tại sao tính năng này nên được triển khai?
+        - Trường hợp sử dụng cụ thể là gì?
+        - Những lợi ích là gì?
+        - Điều gì làm cho tính năng này quan trọng?
+    validations:
+      required: true
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements | Xác nhận
+      description: |
+        Your feature request will be closed if you don't follow the checklist below.
+
+        ---
+        Yêu cầu tính năng của bạn sẽ bị đóng nếu bạn không tuân theo danh sách kiểm tra bên dưới.
+      options:
+        - label: |
+            I have checked all open and closed feature requests and this is not a duplicate.
+
+            ---
+            Tôi đã kiểm tra tất cả các yêu cầu tính năng đang mở và đã đóng và đây không phải là một bản sao.
+          required: true
+        - label: |
+            I have chosen an appropriate title.
+
+            ---
+            Tôi đã chọn một tiêu đề phù hợp.
+          required: true
+        - label: |
+            All requested information has been provided properly.
+
+            ---
+            Tất cả thông tin được yêu cầu đã được cung cấp đúng cách.
+          required: true

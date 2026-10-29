@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeVideoAndFeedAdBlockPatch = bytecodePatch(
     name = "Block Video & Feed Ads - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips pre-roll and mid-roll video advertisements, home feed sponsored cards, search result ads, shorts ads, and info card promos in YouTube.",
+    description = "⚠️ [Experimental / Untested] Strips pre-roll and mid-roll video advertisements, home feed sponsored cards, search result ads, shorts ads, and info card promos in YouTube.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

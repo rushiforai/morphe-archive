@@ -1,0 +1,787 @@
+{
+  "date": "2026-10-28",
+  "tooling": {
+    "desktop": "1.18.1",
+    "patcher": "1.15.1",
+    "java": "21",
+    "android": {
+      "version": "15",
+      "api": 35,
+      "abi": "arm64-v8a",
+      "kind": "disposable emulator"
+    },
+    "tested_patchers": [
+      {
+        "desktop": "1.18.1",
+        "patcher": "1.15.1"
+      },
+      {
+        "desktop": "1.19.1",
+        "patcher": "2.0.1",
+        "desktop_jar_sha256": "a51472252cd63b2eac635dbb5a154ff918bfc15268da89679feb3d760230c573"
+      }
+    ]
+  },
+  "bundle": {
+    "original_apk_sha256": "0fc61e5cb80d37b10a735851c2217cbc855b3f1a04bde577187658531ffef581",
+    "bundle_sha256": "e54f080aee4f2cde35df463ac09927547d73ecd4367b4477f0d69f1e5f71df30",
+    "masks": {
+      "1": {
+        "source": "6c1501ebdc0c6f89e359e0b3a048a97d5e3f0295",
+        "native_sha256": "226823e90e60d40a9f9c02a0d52fb7edd28421f1671ad50bbd4f86aaa541e3e0",
+        "native_bytes": 22283144,
+        "delta_bytes": 950603,
+        "verified": true
+      },
+      "2": {
+        "source": "cb88a9c77e1382488d23b52614f88c5739fbeedd",
+        "native_sha256": "0def3baaa1bbb6343206f5f69bde48e2bb9307efc15d5efb14327bc1bdfaeb22",
+        "native_bytes": 22283144,
+        "delta_bytes": 3530235,
+        "verified": true
+      },
+      "3": {
+        "source": "fd482788576a857719f89890788fd81e54bfbd04",
+        "native_sha256": "ef00aab3ac6909d6c09b6f3eccfc054e1d59075dfd2323f9236a39cc5d81319e",
+        "native_bytes": 22283144,
+        "delta_bytes": 3532795,
+        "verified": true
+      },
+      "4": {
+        "source": "2b38a855348e32457488f60c4ecfd2a424be6af4",
+        "native_sha256": "5149dc17ee0b1d077cfae52c05fb38a49b2f8174af4bcc0db0b21db246b4963d",
+        "native_bytes": 22283144,
+        "delta_bytes": 3094889,
+        "verified": true
+      },
+      "5": {
+        "source": "6944bc56e156dd9733509eac20626ffa34253888",
+        "native_sha256": "670be10886ce98e66bed005095cc876968f7cdc2474314e9ff34aa5d9725e55d",
+        "native_bytes": 22283144,
+        "delta_bytes": 3126571,
+        "verified": true
+      },
+      "6": {
+        "source": "0edcd44eea00f8d6f38ae2b893143c353d17b0a6",
+        "native_sha256": "2ebabeaa76841d76e2994281dde3cf02fcee65008dc1ddd4698b3d28596fe6a4",
+        "native_bytes": 22283144,
+        "delta_bytes": 3525878,
+        "verified": true
+      },
+      "7": {
+        "source": "20740d272b9fed9b5bf067ff5ca3291ef9332722",
+        "native_sha256": "9af3249be1360cdf3b7662137e2ca2daec90d004a59c978e9526edd42062c85e",
+        "native_bytes": 22283144,
+        "delta_bytes": 3519773,
+        "verified": true
+      }
+    }
+  },
+  "source_tests": {
+    "1": {
+      "passed": 4,
+      "source": "6c1501ebdc0c6f89e359e0b3a048a97d5e3f0295"
+    },
+    "2": {
+      "passed": 36,
+      "source": "cb88a9c77e1382488d23b52614f88c5739fbeedd"
+    },
+    "3": {
+      "passed": 40,
+      "source": "fd482788576a857719f89890788fd81e54bfbd04"
+    },
+    "4": {
+      "passed": 16,
+      "source": "2b38a855348e32457488f60c4ecfd2a424be6af4"
+    },
+    "5": {
+      "passed": 20,
+      "source": "6944bc56e156dd9733509eac20626ffa34253888"
+    },
+    "6": {
+      "passed": 52,
+      "source": "0edcd44eea00f8d6f38ae2b893143c353d17b0a6"
+    },
+    "7": {
+      "passed": 56,
+      "source": "20740d272b9fed9b5bf067ff5ca3291ef9332722"
+    }
+  },
+  "android_update_chain": {
+    "startedAt": "2026-10-28T17:53:31.196669+00:00",
+    "sequence": [
+      0,
+      7,
+      1,
+      7,
+      0,
+      7
+    ],
+    "stages": [
+      {
+        "index": 0,
+        "mask": 0,
+        "installed": {
+          "package": "com.unicornsonlsd.finamp",
+          "path": "/data/app/~~HzIPRNdIoGDHKnvJDjRJsA==/com.unicornsonlsd.finamp-A0jyqfJh7WXSeaMQQh5UOA==/base.apk",
+          "sha256": "a43d9464b2bc778b506575ab7a3a84c4368a94f6f51a9dff7902d2b7828a67a8"
+        },
+        "nativeSha256": "83de04b43bfcad7f1ae9aa69b433044f409d89957cccdc9deb6b6b0e85789607",
+        "login": {
+          "syntheticLibraryVisible": true,
+          "previousLoginPreserved": true,
+          "requiredPreservation": false,
+          "fixtureUrl": "http://127.0.0.1:18961"
+        },
+        "theme": "Dark",
+        "featureOffCredits": "1\n01 - Credit Order\nA Guest, B Guest, Z Lead\n4 Seconds",
+        "auxiliaryBox": {
+          "present": true,
+          "bytes": 119,
+          "sha256": "3b081be68a3684f441fd05a7d223ef35d3eea659e4500ab63e47fe375444797c"
+        },
+        "finishedAt": "2026-10-28T17:54:28.072762+00:00"
+      },
+      {
+        "index": 1,
+        "mask": 7,
+        "installed": {
+          "package": "com.unicornsonlsd.finamp",
+          "path": "/data/app/~~8b0ig61vAm05wr0lmpY-9A==/com.unicornsonlsd.finamp-voPro6sjnUgnEO1qFgia5w==/base.apk",
+          "sha256": "e803c57c25b28831645d7b668198804b2e712ca908f920b7c16ad5e2c7828261"
+        },
+        "nativeSha256": "9af3249be1360cdf3b7662137e2ca2daec90d004a59c978e9526edd42062c85e",
+        "login": {
+          "syntheticLibraryVisible": true,
+          "previousLoginPreserved": true,
+          "requiredPreservation": true,
+          "fixtureUrl": "http://127.0.0.1:18961"
+        },
+        "theme": "Dark",
+        "defaultCredits": "1\n01 - Credit Order\nZ Lead, A Guest, B Guest\n4 Seconds",
+        "core7": {
+          "login": {
+            "syntheticLibraryVisible": true,
+            "previousLoginPreserved": true,
+            "requiredPreservation": true,
+            "fixtureUrl": "http://127.0.0.1:18961"
+          },
+          "performance": {
+            "unbounded": [],
+            "bounded": [
+              {
+                "id": 732,
+                "time": "2026-10-28T17:55:41.601289Z",
+                "method": "GET",
+                "path": "/users/d3116553644b50389ebaf6c52f6128a5/items",
+                "query": {
+                  "includeitemtypes": [
+                    "Audio"
+                  ],
+                  "parentid": [
+                    "b16e0bc4a87c560f8bf0253856c6064b"
+                  ],
+                  "albumartistids": [
+                    "413a725312dc5c0f82fc2e0a9c06ca31"
+                  ],
+                  "recursive": [
+                    "true"
+                  ],
+                  "sortby": [
+                    "PlayCount,SortName"
+                  ],
+                  "sortorder": [
+                    "descending"
+                  ],
+                  "fields": [
+                    "ChildCount,DateCreated,DateLastMediaAdded,Etag,Genres,ParentId,ProviderIds,Tags,SortName"
+                  ],
+                  "limit": [
+                    "5"
+                  ]
+                },
+                "state": "completed",
+                "unboundedTrackQuery": false,
+                "artistTrackQuery": true,
+                "status": 200,
+                "elapsedMs": 0.919
+              },
+              {
+                "id": 736,
+                "time": "2026-10-28T17:55:41.698439Z",
+                "method": "GET",
+                "path": "/users/d3116553644b50389ebaf6c52f6128a5/items",
+                "query": {
+                  "includeitemtypes": [
+                    "Audio"
+                  ],
+                  "parentid": [
+                    "b16e0bc4a87c560f8bf0253856c6064b"
+                  ],
+                  "artistids": [
+                    "413a725312dc5c0f82fc2e0a9c06ca31"
+                  ],
+                  "recursive": [
+                    "true"
+                  ],
+                  "limit": [
+                    "1"
+                  ]
+                },
+                "state": "completed",
+                "unboundedTrackQuery": false,
+                "artistTrackQuery": true,
+                "status": 200,
+                "elapsedMs": 0.805
+              },
+              {
+                "id": 737,
+                "time": "2026-10-28T17:55:41.701984Z",
+                "method": "GET",
+                "path": "/users/d3116553644b50389ebaf6c52f6128a5/items",
+                "query": {
+                  "includeitemtypes": [
+                    "Audio"
+                  ],
+                  "parentid": [
+                    "b16e0bc4a87c560f8bf0253856c6064b"
+                  ],
+                  "artistids": [
+                    "413a725312dc5c0f82fc2e0a9c06ca31"
+                  ],
+                  "recursive": [
+                    "true"
+                  ],
+                  "sortby": [
+                    "PlayCount,SortName"
+                  ],
+                  "sortorder": [
+                    "descending"
+                  ],
+                  "fields": [
+                    "ChildCount,DateCreated,DateLastMediaAdded,Etag,Genres,ParentId,ProviderIds,Tags,SortName"
+                  ],
+                  "limit": [
+                    "5"
+                  ]
+                },
+                "state": "completed",
+                "unboundedTrackQuery": false,
+                "artistTrackQuery": true,
+                "status": 200,
+                "elapsedMs": 2.006
+              }
+            ],
+            "pending": 0,
+            "tracksVisibleWhileHeld": true,
+            "topTracksVisibleWhileHeld": true,
+            "captureAfterMs": 5481.9
+          },
+          "title": {
+            "empty": {
+              "value": "",
+              "saveEnabled": false,
+              "saveClickable": false,
+              "requiredError": true,
+              "observedBeforeHidingIme": true
+            },
+            "playlists": {
+              "value": "Playlists",
+              "saveEnabled": true,
+              "saveClickable": true,
+              "requiredError": false,
+              "observedBeforeHidingIme": true
+            },
+            "cleared": {
+              "value": "",
+              "saveEnabled": false,
+              "saveClickable": false,
+              "requiredError": true,
+              "observedBeforeHidingIme": true
+            },
+            "whitespace-boundary": {
+              "value": "   ",
+              "saveEnabled": true,
+              "saveClickable": true,
+              "requiredError": false,
+              "observedBeforeHidingIme": true
+            },
+            "saved": {
+              "value": "PenguinSyntheticTitle",
+              "saveEnabled": true,
+              "saveClickable": true,
+              "requiredError": false,
+              "observedBeforeHidingIme": true
+            },
+            "savedTitle": "PenguinSyntheticTitle",
+            "whitespaceProbeNotSaved": true,
+            "validityRule": "empty invalid; any nonempty value valid; no trim rule"
+          }
+        },
+        "selectedMetadataCredits": "1\n01 - Credit Order\nB Guest, Z Lead, A Guest\n4 Seconds",
+        "themeAfterColdRestart": "Dark",
+        "artistModeAfterColdRestart": "Metadata order",
+        "auxiliaryBox": {
+          "present": true,
+          "bytes": 23,
+          "sha256": "e776b3b310b2be7b347da12ed2e494325a25efc080cc8b4f70e7f3138012e4af"
+        },
+        "finishedAt": "2026-10-28T18:00:34.258538+00:00"
+      },
+      {
+        "index": 2,
+        "mask": 1,
+        "installed": {
+          "package": "com.unicornsonlsd.finamp",
+          "path": "/data/app/~~4Mfq0-Rb6KzQxl6zGVVbFA==/com.unicornsonlsd.finamp-fsFwjaab-aDurR1pDa0D7g==/base.apk",
+          "sha256": "86955f0fc838b2d6deb85c61a960cfc7ae47132366b39ca203d25c85aeed631e"
+        },
+        "nativeSha256": "226823e90e60d40a9f9c02a0d52fb7edd28421f1671ad50bbd4f86aaa541e3e0",
+        "login": {
+          "syntheticLibraryVisible": true,
+          "previousLoginPreserved": true,
+          "requiredPreservation": true,
+          "fixtureUrl": "http://127.0.0.1:18961"
+        },
+        "theme": "Dark",
+        "featureOffCredits": "1\n01 - Credit Order\nA Guest, B Guest, Z Lead\n4 Seconds",
+        "auxiliaryBox": {
+          "present": true,
+          "bytes": 23,
+          "sha256": "e776b3b310b2be7b347da12ed2e494325a25efc080cc8b4f70e7f3138012e4af"
+        },
+        "finishedAt": "2026-10-28T18:01:25.575223+00:00"
+      },
+      {
+        "index": 3,
+        "mask": 7,
+        "installed": {
+          "package": "com.unicornsonlsd.finamp",
+          "path": "/data/app/~~mlDVw3VYR7H5IqK5IfgL5Q==/com.unicornsonlsd.finamp-lVDZ2Udwk14WnMTG-GvS6A==/base.apk",
+          "sha256": "e803c57c25b28831645d7b668198804b2e712ca908f920b7c16ad5e2c7828261"
+        },
+        "nativeSha256": "9af3249be1360cdf3b7662137e2ca2daec90d004a59c978e9526edd42062c85e",
+        "login": {
+          "syntheticLibraryVisible": true,
+          "previousLoginPreserved": true,
+          "requiredPreservation": true,
+          "fixtureUrl": "http://127.0.0.1:18961"
+        },
+        "theme": "Dark",
+        "restoredArtistMode": "Metadata order",
+        "restoredCredits": "1\n01 - Credit Order\nB Guest, Z Lead, A Guest\n4 Seconds",
+        "auxiliaryBox": {
+          "present": true,
+          "bytes": 23,
+          "sha256": "e776b3b310b2be7b347da12ed2e494325a25efc080cc8b4f70e7f3138012e4af"
+        },
+        "finishedAt": "2026-10-28T18:03:03.862190+00:00"
+      },
+      {
+        "index": 4,
+        "mask": 0,
+        "installed": {
+          "package": "com.unicornsonlsd.finamp",
+          "path": "/data/app/~~fQb4-yaHOUalXunXQGjEfg==/com.unicornsonlsd.finamp--vffrnkdVfUJjjbo1o4aPg==/base.apk",
+          "sha256": "a43d9464b2bc778b506575ab7a3a84c4368a94f6f51a9dff7902d2b7828a67a8"
+        },
+        "nativeSha256": "83de04b43bfcad7f1ae9aa69b433044f409d89957cccdc9deb6b6b0e85789607",
+        "login": {
+          "syntheticLibraryVisible": true,
+          "previousLoginPreserved": true,
+          "requiredPreservation": true,
+          "fixtureUrl": "http://127.0.0.1:18961"
+        },
+        "theme": "Dark",
+        "featureOffCredits": "1\n01 - Credit Order\nA Guest, B Guest, Z Lead\n4 Seconds",
+        "auxiliaryBox": {
+          "present": true,
+          "bytes": 23,
+          "sha256": "e776b3b310b2be7b347da12ed2e494325a25efc080cc8b4f70e7f3138012e4af"
+        },
+        "finishedAt": "2026-10-28T18:03:57.948307+00:00"
+      },
+      {
+        "index": 5,
+        "mask": 7,
+        "installed": {
+          "package": "com.unicornsonlsd.finamp",
+          "path": "/data/app/~~tmazelMKmNZsf4wA-BhL6w==/com.unicornsonlsd.finamp-p_hdPyNpiPms5XwN4yE5Kw==/base.apk",
+          "sha256": "e803c57c25b28831645d7b668198804b2e712ca908f920b7c16ad5e2c7828261"
+        },
+        "nativeSha256": "9af3249be1360cdf3b7662137e2ca2daec90d004a59c978e9526edd42062c85e",
+        "login": {
+          "syntheticLibraryVisible": true,
+          "previousLoginPreserved": true,
+          "requiredPreservation": true,
+          "fixtureUrl": "http://127.0.0.1:18961"
+        },
+        "theme": "Dark",
+        "restoredArtistMode": "Metadata order",
+        "restoredCredits": "1\n01 - Credit Order\nB Guest, Z Lead, A Guest\n4 Seconds",
+        "auxiliaryBox": {
+          "present": true,
+          "bytes": 23,
+          "sha256": "e776b3b310b2be7b347da12ed2e494325a25efc080cc8b4f70e7f3138012e4af"
+        },
+        "finishedAt": "2026-10-28T18:05:41.022804+00:00"
+      }
+    ],
+    "sameSignerMetadata": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+    "onlyInstallRInsideChain": true,
+    "initialOldProofCleanupOutsideChain": true,
+    "sourceAndCliAllSevenNotClaimedByThisScript": true,
+    "outcome": "PASS",
+    "finishedAt": "2026-10-28T18:05:49.988361+00:00"
+  },
+  "limits": [
+    "No physical/OEM-device verification",
+    "No other Android versions verified",
+    "No on-device Morphe Manager patch execution",
+    "No live-server timing or RAM benchmark",
+    "Source rebuilds in different absolute directories may differ; published deltas replay exactly"
+  ],
+  "patch_matrix_1_18_1": {
+    "1": {
+      "selected": [
+        "Fix section title validation"
+      ],
+      "patcher_succeeded": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ],
+      "unsigned_apk_sha256": "901d7449b90ca1ab118608f21611777e2efae45092aa01401d6da7c41c93b0c8"
+    },
+    "2": {
+      "selected": [
+        "Song artist order"
+      ],
+      "patcher_succeeded": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ],
+      "unsigned_apk_sha256": "6eb2541e813a88316acdeafaff1ce7b2bf66efb80fcd44efb03666ed3b4246c6"
+    },
+    "3": {
+      "selected": [
+        "Fix section title validation",
+        "Song artist order"
+      ],
+      "patcher_succeeded": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ],
+      "unsigned_apk_sha256": "e9cd6062bcc3daab6e2a967adf3cb597d8d20c4253bd8b7e0dfa2f7ca09df3ed"
+    },
+    "4": {
+      "selected": [
+        "Load artist pages faster"
+      ],
+      "patcher_succeeded": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ],
+      "unsigned_apk_sha256": "b8da202fd4702694c2bc051181bf04ff280776e0f2e36048fc2009c232936942"
+    },
+    "5": {
+      "selected": [
+        "Fix section title validation",
+        "Load artist pages faster"
+      ],
+      "patcher_succeeded": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ],
+      "unsigned_apk_sha256": "46a918960391348a7ad4df38371ee9a36f5c2fa20a90adcf2320b1be02897d4d"
+    },
+    "6": {
+      "selected": [
+        "Song artist order",
+        "Load artist pages faster"
+      ],
+      "patcher_succeeded": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ],
+      "unsigned_apk_sha256": "19c8f0a5b2fc0d684a4aa3ed2db5d5c97d56f333aec4ee119d8aaf3df285866c"
+    },
+    "7": {
+      "selected": [
+        "Fix section title validation",
+        "Song artist order",
+        "Load artist pages faster"
+      ],
+      "patcher_succeeded": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ],
+      "unsigned_apk_sha256": "a070167634770fc6be8130ac1f624c62f481c84ff0f67f23a0ab146458e19094"
+    }
+  },
+  "rejected_inputs_1_18_1": {
+    "wrong-app": {
+      "rejected": true,
+      "output_created": false,
+      "exit_code": 1,
+      "mutant_sha256": "eeec6ed291e2b8f5998b399f9313de7d31e5b4ee20f678bbd6808947eb892137",
+      "guard": "unsupported or already patched ARM64 libapp.so",
+      "patcher_report_json_valid": true,
+      "selected_failure_names": [
+        "Song artist order"
+      ]
+    },
+    "wrong-engine": {
+      "rejected": true,
+      "output_created": false,
+      "exit_code": 1,
+      "mutant_sha256": "614a7ab28e61de1e092241b06b03b297ede9b52cf9d385584f4d8d477fa3be28",
+      "guard": "unsupported ARM64 libflutter.so",
+      "patcher_report_json_valid": true,
+      "selected_failure_names": [
+        "Song artist order"
+      ]
+    },
+    "missing-arm64": {
+      "rejected": true,
+      "output_created": false,
+      "exit_code": 1,
+      "mutant_sha256": "131fc2af817796c989fe19b388dd7920569f4f2e446e6d5e11a01f522c94cd50",
+      "guard": "missing required ARM64 libapp.so",
+      "patcher_report_json_valid": true,
+      "selected_failure_names": [
+        "Song artist order"
+      ]
+    },
+    "wrong-version": {
+      "rejected": true,
+      "output_created": false,
+      "exit_code": 1,
+      "mutant_sha256": "bf969cccad5cd36617c3d814e22662b1fd239540b3c91973131d53264e307892",
+      "guard": "unsupported app; use the original official Finamp 1.0.1 APK",
+      "patcher_report_json_valid": true,
+      "selected_failure_names": [
+        "Song artist order"
+      ]
+    }
+  },
+  "original_title_roundtrip": {
+    "startedAt": "2026-10-28T18:06:08.483748+00:00",
+    "extraSequence": [
+      7,
+      0,
+      7
+    ],
+    "onlyInstallR": true,
+    "purpose": "Original Playlists live-state regression before IME hide, not a new validity rule",
+    "originalInstalled": {
+      "package": "com.unicornsonlsd.finamp",
+      "path": "/data/app/~~uWPbaauYKoOW6FmjzyT07A==/com.unicornsonlsd.finamp-F6brqAV_6gBxjRaHKHDLVg==/base.apk",
+      "sha256": "a43d9464b2bc778b506575ab7a3a84c4368a94f6f51a9dff7902d2b7828a67a8"
+    },
+    "originalTheme": "Dark",
+    "clearedBeforeImeHide": {
+      "text": "",
+      "saveEnabled": true
+    },
+    "playlistsBeforeImeHide": {
+      "text": "Playlists",
+      "saveEnabled": false
+    },
+    "originalStaleSaveReproduced": true,
+    "noProbeTitleWasSaved": true,
+    "restoredInstalled": {
+      "package": "com.unicornsonlsd.finamp",
+      "path": "/data/app/~~4kLadhpWYizQx2Nxj0g-gw==/com.unicornsonlsd.finamp-SlcdOdKxKv3iVdZboVBL8A==/base.apk",
+      "sha256": "e803c57c25b28831645d7b668198804b2e712ca908f920b7c16ad5e2c7828261"
+    },
+    "restoredTheme": "Dark",
+    "restoredArtistMode": "Metadata order",
+    "artistMenuOptionsVisible": [
+      "Album artists first",
+      "Metadata order",
+      "First credited artist first",
+      "Alphabetical"
+    ],
+    "auxiliaryBox": {
+      "present": true,
+      "bytes": 23,
+      "sha256": "e776b3b310b2be7b347da12ed2e494325a25efc080cc8b4f70e7f3138012e4af",
+      "verifiedSizeFromStat": true
+    },
+    "finishedAt": "2026-10-28T18:09:42.833620+00:00",
+    "outcome": "PASS"
+  },
+  "patch_matrix_1_19_1": {
+    "1": {
+      "selected": [
+        "Fix section title validation"
+      ],
+      "patcher_succeeded": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ],
+      "unsigned_apk_sha256": "54ab07b58ecf92c17dc6a29a43300890675ec7b46f1dc8c032e924ec585ee366"
+    },
+    "2": {
+      "selected": [
+        "Song artist order"
+      ],
+      "patcher_succeeded": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ],
+      "unsigned_apk_sha256": "7b2953305324cbaaf2295726cee54d7e7a4f767f94101a9c88f60a37350d1185"
+    },
+    "3": {
+      "selected": [
+        "Fix section title validation",
+        "Song artist order"
+      ],
+      "patcher_succeeded": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ],
+      "unsigned_apk_sha256": "7b69f4e152606d18957d2cbe3ed56d3ed055a2e7ebf64b3d39e498fd03e40dbe"
+    },
+    "4": {
+      "selected": [
+        "Load artist pages faster"
+      ],
+      "patcher_succeeded": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ],
+      "unsigned_apk_sha256": "94867ae11b72170d3f56aa027982b4b8c986d8a55a24a42acbab6d06d302699b"
+    },
+    "5": {
+      "selected": [
+        "Fix section title validation",
+        "Load artist pages faster"
+      ],
+      "patcher_succeeded": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ],
+      "unsigned_apk_sha256": "46cd8ed54a0fa648ffe54f0ecf9da6ed3136d1248e05164900cbe818b8068c90"
+    },
+    "6": {
+      "selected": [
+        "Song artist order",
+        "Load artist pages faster"
+      ],
+      "patcher_succeeded": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ],
+      "unsigned_apk_sha256": "7e31f5d82ca1ffc060c66360a326ad9b07f29e8dfe0bda8626f2c3df876e21f6"
+    },
+    "7": {
+      "selected": [
+        "Fix section title validation",
+        "Song artist order",
+        "Load artist pages faster"
+      ],
+      "patcher_succeeded": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ],
+      "unsigned_apk_sha256": "4ef1119eca1bef1700f2146323400057540a5d34cc6f65b05ce19c01fe695e17"
+    }
+  },
+  "rejected_inputs_1_19_1": {
+    "wrong-app": {
+      "rejected": true,
+      "output_created": false,
+      "exit_code": 1,
+      "mutant_sha256": "eeec6ed291e2b8f5998b399f9313de7d31e5b4ee20f678bbd6808947eb892137",
+      "guard": "unsupported or already patched ARM64 libapp.so",
+      "patcher_report_json_valid": true,
+      "selected_failure_names": [
+        "Song artist order"
+      ]
+    },
+    "wrong-engine": {
+      "rejected": true,
+      "output_created": false,
+      "exit_code": 1,
+      "mutant_sha256": "614a7ab28e61de1e092241b06b03b297ede9b52cf9d385584f4d8d477fa3be28",
+      "guard": "unsupported ARM64 libflutter.so",
+      "patcher_report_json_valid": true,
+      "selected_failure_names": [
+        "Song artist order"
+      ]
+    },
+    "missing-arm64": {
+      "rejected": true,
+      "output_created": false,
+      "exit_code": 1,
+      "mutant_sha256": "131fc2af817796c989fe19b388dd7920569f4f2e446e6d5e11a01f522c94cd50",
+      "guard": "missing required ARM64 libapp.so",
+      "patcher_report_json_valid": true,
+      "selected_failure_names": [
+        "Song artist order"
+      ]
+    },
+    "wrong-version": {
+      "rejected": true,
+      "output_created": false,
+      "exit_code": 1,
+      "mutant_sha256": "bf969cccad5cd36617c3d814e22662b1fd239540b3c91973131d53264e307892",
+      "guard": "unsupported app; use the original official Finamp 1.0.1 APK",
+      "patcher_report_json_valid": true,
+      "selected_failure_names": [
+        "Song artist order"
+      ]
+    }
+  },
+  "python_codec_and_output_policy_tests": 7,
+  "http_fixture_tests_with_source_audit": 12,
+  "manager_source_review": {
+    "version": "2.2.0",
+    "patcher": "2.0.1",
+    "selected_finalizer_failure_required": true,
+    "on_device_execution": false
+  }
+}

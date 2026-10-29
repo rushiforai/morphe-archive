@@ -1,4 +1,4 @@
-# 👋🧩 HellveticaStandard Patches
+﻿# 👋🧩 HellveticaStandard Patches
 
 Morphe Patches by HellveticaStandard.
 
@@ -9,15 +9,15 @@ Patches for apps maintained by HellveticaStandard.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.3](https://github.com/HellveticaStandard/HellveticaPatches/releases/tag/v1.1.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.1.4](https://github.com/HellveticaStandard/HellveticaPatches/releases/tag/v1.1.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 Sankaku App&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 4.23 | 4.24 | 4.25 | 4.26 |
-| :---: | :---: | :---: | :---: |
+| 4.23 | 4.24 | 4.25 | 4.26 | 4.28 |
+| :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

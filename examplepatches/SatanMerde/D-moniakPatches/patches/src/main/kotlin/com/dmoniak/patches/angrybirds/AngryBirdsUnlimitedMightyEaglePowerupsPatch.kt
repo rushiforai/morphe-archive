@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val angryBirdsUnlimitedMightyEaglePowerupsPatch = bytecodePatch(
     name = "Unlimited Mighty Eagle & Power-ups - Angry Birds Classic (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks the Mighty Eagle permanently with zero cooldown timer, and provides unlimited power-ups (Sling Scope, King Sling, Super Seeds, Birdquake).",
+    description = "⚠️ [Experimental / Untested] Unlocks the Mighty Eagle permanently with zero cooldown timer, and provides unlimited power-ups (Sling Scope, King Sling, Super Seeds, Birdquake).",
 ) {
     compatibleWith(COMPATIBILITY_ANGRY_BIRDS)
 

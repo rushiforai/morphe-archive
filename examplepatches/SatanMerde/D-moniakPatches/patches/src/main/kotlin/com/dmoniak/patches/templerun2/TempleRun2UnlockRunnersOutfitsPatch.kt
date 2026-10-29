@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val templeRun2UnlockRunnersOutfitsPatch = bytecodePatch(
     name = "Free Shopping & Billing Bypass - Temple Run 2 (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing SDK in Temple Run 2 to bypass in-app purchase verification, enabling free shopping for gem packs, coin vaults, and runner bundles.",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing SDK in Temple Run 2 to bypass in-app purchase verification, enabling free shopping for gem packs, coin vaults, and runner bundles.",
 ) {
     compatibleWith(COMPATIBILITY_TEMPLE_RUN_2)
 

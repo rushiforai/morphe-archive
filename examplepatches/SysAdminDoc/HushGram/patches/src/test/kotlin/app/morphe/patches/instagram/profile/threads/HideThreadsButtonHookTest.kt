@@ -314,7 +314,7 @@ class HideThreadsButtonHookTest {
     /** A Create button the patch can't place fails at patch time, saying what it found. */
     @Test
     fun aCreateButtonThePatchCantPlaceFails() {
-        val notOne = "expected one Create button stored with its id 0x7f0b30b9, found"
+        val notOne = "expected one Create button stored with its id 0x${CREATE_BUTTON_ID.toString(16)}, found"
         val guarded = "$profileBar->Ady guards the Create button with something other than a flag of $USER_DETAIL"
         val cases = listOf(
             createClasses(stores = 0) to "$notOne 0",

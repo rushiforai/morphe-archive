@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val crossyRoadBlockAdsPatch = bytecodePatch(
     name = "Block Ads & Video Interruptions - Crossy Road (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips post-death video commercials, prize machine ads, and banner popups in Crossy Road.",
+    description = "⚠️ [Experimental / Untested] Strips post-death video commercials, prize machine ads, and banner popups in Crossy Road.",
 ) {
     compatibleWith(COMPATIBILITY_CROSSY_ROAD)
 

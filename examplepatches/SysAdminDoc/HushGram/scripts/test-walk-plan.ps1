@@ -3,16 +3,17 @@
     Verify category selection and visible destination evidence without a device.
 .NOTES
     Copyright 2026 HushGram contributors. https://github.com/SysAdminDoc/HushGram
-    GPL-3.0-only. CaptureWorkRoot optionally points to saved local work captures.
+    GPL-3.0-only. CaptureWorkRoot optionally points to saved local work captures. Root is the
+    checkout the push gate tests, the one above this script by default.
 #>
 [CmdletBinding()]
-param([string]$CaptureWorkRoot)
+param([string]$CaptureWorkRoot, [string]$Root)
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'walk-plan.ps1')
 $script:checks = 0
 $script:package = 'com.instagram.android'
-$repo = Split-Path $PSScriptRoot -Parent
+$repo = if ($Root) { $Root } else { Split-Path $PSScriptRoot -Parent }
 $catalogPath = Join-Path $repo 'patches-list.json'
 $policyPath = Join-Path $PSScriptRoot 'walk-categories.json'
 $catalogText = Get-Content -LiteralPath $catalogPath -Raw
@@ -192,6 +193,16 @@ try {
     foreach ($category in $policy.categories) {
         foreach ($title in @($category.title) + @($category.anchors.title)) {
             Assert-PlanTest ($settingsSource.Contains('L10n.t("' + $title + '"')) "Walk policy text '$title' ($($category.id)) is not a settings title in the source."
+        }
+    }
+    # The walk expands a heading and wants a verified row within a screen of it; an anchor 14 rows down failed 0.0.17's walk.
+    foreach ($selection in @(, $all) + @(, $defaults)) {
+        foreach ($destination in @($selection | Where-Object { $_.kind -ceq 'settings' -and $_.page })) {
+            $builder = ($policy.categories | Where-Object id -CEQ $destination.id).builder
+            $builderPath = Join-Path $repo "extensions\instagram\src\main\java\app\hushgram\extension\instagram\settings\$builder.java"
+            $texts = @([regex]::Matches((Get-Content -LiteralPath $builderPath -Raw), 'L10n\.t\("((?:[^"\\]|\\.)*)"') | ForEach-Object { $_.Groups[1].Value })
+            $first = @($destination.anchors | ForEach-Object { [Array]::IndexOf($texts, [string]$_) } | Where-Object { $_ -ge 0 } | Sort-Object)[0]
+            Assert-PlanTest ($null -ne $first -and $first -le 10) "Walk anchors for '$($destination.id)' start at text $first of $builder; one must sit in the first rows under the heading."
         }
     }
     Assert-PlanTest (@($defaults | Where-Object kind -CEQ 'settings').Count -eq 23) 'Default patches must require all 23 headings.'

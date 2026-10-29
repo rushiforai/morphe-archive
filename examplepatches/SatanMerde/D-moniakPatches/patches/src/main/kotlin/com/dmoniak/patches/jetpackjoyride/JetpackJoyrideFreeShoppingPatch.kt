@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val jetpackJoyrideFreeShoppingPatch = bytecodePatch(
     name = "Free Shopping & Billing Bypass - Jetpack Joyride (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Intercepte les vérifications d'achats Google Play Billing dans Jetpack Joyride pour obtenir gratuitement les packs de pièces, le doubleur de pièces permanent, les jetpacks, costumes et améliorations du Stash.",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing purchase verification in Jetpack Joyride to unlock coin packs, permanent coin doubler, jetpacks, costumes, and Stash upgrades for free.",
 ) {
     compatibleWith(COMPATIBILITY_JETPACK_JOYRIDE)
 

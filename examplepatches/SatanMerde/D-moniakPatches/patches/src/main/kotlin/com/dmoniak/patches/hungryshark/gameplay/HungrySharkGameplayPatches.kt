@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val hungrySharkInfiniteBoostPatch = bytecodePatch(
     name = "Infinite Boost - Hungry Shark (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Disables boost meter depletion in Hungry Shark World and Hungry Shark Evolution, granting unlimited turbo swimming and continuous dash attacks without waiting for recharge. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Disables boost meter depletion in Hungry Shark World and Hungry Shark Evolution, granting unlimited turbo swimming and continuous dash attacks without waiting for recharge. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(
         COMPATIBILITY_HUNGRY_SHARK_WORLD,
@@ -27,7 +27,7 @@ val hungrySharkInfiniteBoostPatch = bytecodePatch(
 @Suppress("unused")
 val hungrySharkFastGoldRushPatch = bytecodePatch(
     name = "Fast Gold Rush - Hungry Shark (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Accelerates Gold Rush gauge filling in Hungry Shark World and Evolution, triggering frenzy coin multipliers and invulnerability much faster. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Accelerates Gold Rush gauge filling in Hungry Shark World and Evolution, triggering frenzy coin multipliers and invulnerability much faster. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(
         COMPATIBILITY_HUNGRY_SHARK_WORLD,

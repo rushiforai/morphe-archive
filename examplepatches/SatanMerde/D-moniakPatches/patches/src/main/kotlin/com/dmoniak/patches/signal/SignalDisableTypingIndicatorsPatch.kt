@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val signalDisableTypingIndicatorsPatch = bytecodePatch(
     name = "Enhanced Privacy & Disable Typing - Signal (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Prevents sending outgoing typing indicators and suppresses read receipt delivery confirmations for enhanced conversation privacy.",
+    description = "⚠️ [Experimental / Untested] Prevents sending outgoing typing indicators and suppresses read receipt delivery confirmations for enhanced conversation privacy.",
 ) {
     compatibleWith(COMPATIBILITY_SIGNAL)
 

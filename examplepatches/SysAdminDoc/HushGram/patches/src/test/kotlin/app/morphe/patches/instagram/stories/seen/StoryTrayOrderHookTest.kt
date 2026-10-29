@@ -9,6 +9,7 @@ import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.stories.autoadvance.STORY_VIEWER
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -206,7 +207,7 @@ class StoryTrayOrderHookTest {
         val trayStores = FixtureDex.methodsWhere(bundle, { true }) { method -> isListMethod(method, reel) }.map { it.definingClass }.toSet()
         val identityTypes = FixtureDex.classes(bundle, setOf(reel)).getValue(reel).fields
             .map { it.type }.filter { it.startsWith("L") } + listOf("Lcom/instagram/user/model/User;", USER_SESSION)
-        val types = (stores.map { it.type } + state + stateWriters.map { it.definingClass } + reelWriters.map { it.definingClass } + trayStores + identityTypes).toSet()
+        val types = (stores.map { it.type } + state + stateWriters.map { it.definingClass } + reelWriters.map { it.definingClass } + trayStores + identityTypes + STORY_VIEWER).toSet()
         return (
             FixtureDex.withStringPools(bundle, FixtureDex.classes(bundle, types).values) +
                 ExtensionDex.classDef(STORY_SEEN_RINGS) + ExtensionDex.classDef(STORY_TRAY_ORDER)

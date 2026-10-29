@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val tutaMailDeclutterPatch = bytecodePatch(
     name = "Declutter UI & Hide Upgrade Banners - Tuta Mail (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hides promotional subscription upgrade banners (Revolutionary / Legend), storage warning popups, and upsell alerts in Tuta Mail.",
+    description = "⚠️ [Experimental / Untested] Hides promotional subscription upgrade banners (Revolutionary / Legend), storage warning popups, and upsell alerts in Tuta Mail.",
 ) {
     compatibleWith(COMPATIBILITY_TUTA_MAIL)
 

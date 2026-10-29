@@ -1,0 +1,201 @@
+name: 1DM Cloud Cache Builder
+
+on:
+  workflow_dispatch:
+    inputs:
+      apk_url:
+        description: 'Optional override URL for stock 1DM 20.0 (30257) APKM/APK'
+        required: false
+        default: ''
+  schedule:
+    # Rebuild pre-compiled 1DM 20.0 AdBlocker & Userscript packs every Sunday at 03:17 UTC
+    - cron: '17 3 * * 0'
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - '.github/onedm-cache/**'
+      - '.github/workflows/onedm-cache.yml'
+
+concurrency:
+  group: onedm-cache-builder
+  cancel-in-progress: false
+
+jobs:
+  build-cache:
+    name: Build & Publish 1DM 20.0 Cloud Packs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    env:
+      ONEDM_BASE_APK_SHA256: 'b55935a4435da5d3623aa8c94384039d9f07128a58ba1a93f427a5a21924c3ab'
+      DEFAULT_APKM_URL: 'https://drive.usercontent.google.com/download?id=1Ig_ScXrsyx-Pp4b7i3QMF-oEW_2pvTuE&export=download&confirm=t'
+      RELEASE_TAG: 'onedm-cache'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Restore cached sliced 1DM runtime jars & assets
+        id: sdk-cache
+        uses: actions/cache@v6
+        with:
+          path: /tmp/onedm-cache-sdk
+          key: onedm-v20-30257-sdk-v2-${{ hashFiles('.github/onedm-cache/SliceDex.java') }}
+
+      - name: Prepare toolchain, assets & slice 1DM 20.0 DEX (on cache miss)
+        if: steps.sdk-cache.outputs.cache-hit != 'true'
+        env:
+          INPUT_APK_URL: ${{ inputs.apk_url }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/onedm-cache-sdk/{deps,jars,slice_cls,apk_root} /tmp/onedm-apk-tmp/{dex,sliced_dex}
+
+          echo "::group::Downloading Maven & dex2jar dependencies"
+          curl -fsSL "https://dl.google.com/android/maven2/com/android/tools/smali/smali-dexlib2/3.0.9/smali-dexlib2-3.0.9.jar" \
+            -o /tmp/onedm-cache-sdk/deps/smali-dexlib2.jar
+          curl -fsSL "https://dl.google.com/android/maven2/com/android/tools/smali/smali-util/3.0.9/smali-util-3.0.9.jar" \
+            -o /tmp/onedm-cache-sdk/deps/smali-util.jar
+          curl -fsSL "https://repo1.maven.org/maven2/com/google/guava/guava/33.3.1-jre/guava-33.3.1-jre.jar" \
+            -o /tmp/onedm-cache-sdk/deps/guava.jar
+          curl -fsSL "https://repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar" \
+            -o /tmp/onedm-cache-sdk/deps/failureaccess.jar
+          curl -fsSL "https://repo1.maven.org/maven2/org/json/json/20240303/json-20240303.jar" \
+            -o /tmp/onedm-cache-sdk/deps/json.jar
+          curl -fsSL "https://github.com/pxb1988/dex2jar/releases/download/v2.4/dex-tools-v2.4.zip" \
+            -o /tmp/onedm-apk-tmp/d2j.zip
+          unzip -q /tmp/onedm-apk-tmp/d2j.zip -d /tmp/onedm-apk-tmp/
+          chmod +x /tmp/onedm-apk-tmp/dex-tools-v2.4/*.sh
+          echo "::endgroup::"
+
+          echo "::group::Fetching & verifying stock 1DM 20.0 (30257) package in /tmp"
+          DL_URL="${INPUT_APK_URL:-$DEFAULT_APKM_URL}"
+          python3 - "$DL_URL" "/tmp/onedm-apk-tmp/pkg.bin" <<'PY'
+          import html, http.cookiejar, re, shutil, sys, urllib.parse, urllib.request
+          url, dst = sys.argv[1], sys.argv[2]
+          opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+          opener.addheaders = [("User-Agent", "Mozilla/5.0")]
+          with opener.open(url, timeout=120) as resp:
+              head = resp.read(8192)
+              if head.startswith(b"PK\x03\x04"):
+                  with open(dst, "wb") as f:
+                      f.write(head)
+                      shutil.copyfileobj(resp, f)
+              else:
+                  body = (head + resp.read()).decode("utf-8", "replace")
+                  m_act = re.search(r'<form[^>]+id="download-form"[^>]+action="([^"]+)"', body)
+                  if not m_act:
+                      raise SystemExit("Unexpected non-ZIP response when fetching stock 1DM package")
+                  params = dict(re.findall(r'<input[^>]+type="hidden"[^>]+name="([^"]+)"[^>]+value="([^"]*)"', body))
+                  dl = html.unescape(m_act.group(1)) + "?" + urllib.parse.urlencode(params)
+                  with opener.open(dl, timeout=180) as r2, open(dst, "wb") as f:
+                      shutil.copyfileobj(r2, f)
+          PY
+          if unzip -l /tmp/onedm-apk-tmp/pkg.bin base.apk >/dev/null 2>&1; then
+            unzip -q /tmp/onedm-apk-tmp/pkg.bin base.apk -d /tmp/onedm-apk-tmp/
+            BASE_APK="/tmp/onedm-apk-tmp/base.apk"
+          else
+            BASE_APK="/tmp/onedm-apk-tmp/pkg.bin"
+          fi
+
+          ACTUAL_SHA=$(sha256sum "$BASE_APK" | awk '{print $1}')
+          if [ "$ACTUAL_SHA" != "$ONEDM_BASE_APK_SHA256" ]; then
+            echo "::error::SHA-256 mismatch for base.apk! Expected $ONEDM_BASE_APK_SHA256, got $ACTUAL_SHA"
+            exit 1
+          fi
+          unzip -q "$BASE_APK" "classes*.dex" -d /tmp/onedm-apk-tmp/dex/
+          unzip -q -o "$BASE_APK" "assets/adblocker/*" "assets/PublicSuffixDatabase.list" \
+            -d /tmp/onedm-cache-sdk/apk_root/
+          echo "::endgroup::"
+
+          echo "::group::Slicing DEX & converting to headless JVM jars"
+          SLICE_CP=$(echo /tmp/onedm-cache-sdk/deps/*.jar | tr ' ' ':')
+          javac -cp "$SLICE_CP" -d /tmp/onedm-cache-sdk/slice_cls .github/onedm-cache/SliceDex.java
+          java -cp "/tmp/onedm-cache-sdk/slice_cls:$SLICE_CP" SliceDex \
+            --slice-dir /tmp/onedm-apk-tmp/dex /tmp/onedm-apk-tmp/sliced_dex
+
+          for out_dex in /tmp/onedm-apk-tmp/sliced_dex/classes*.dex; do
+            base=$(basename "$out_dex" .dex)
+            jar_out="/tmp/onedm-cache-sdk/jars/${base}.jar"
+            JAVA_OPTS="-Xmx2g" /tmp/onedm-apk-tmp/dex-tools-v2.4/d2j-dex2jar.sh --force \
+              -o "$jar_out" "$out_dex" >/dev/null 2>&1
+            java -cp "/tmp/onedm-cache-sdk/slice_cls:$SLICE_CP" SliceDex --fix-jar "$jar_out"
+          done
+          rm -rf /tmp/onedm-apk-tmp
+          echo "::endgroup::"
+
+      - name: Compile & run OnedmCacheBuilder against live upstream lists & Codeberg
+        run: |
+          set -euo pipefail
+          ANDROID_JAR=$(ls -1 "${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/nonexistent}}"/platforms/android-*/android.jar 2>/dev/null | sort -V | tail -n 1 || true)
+          JARS_CP=$(echo /tmp/onedm-cache-sdk/jars/*.jar | tr ' ' ':')
+          JSON_JAR="/tmp/onedm-cache-sdk/deps/json.jar"
+          BUILD_CP="$JSON_JAR:$JARS_CP${ANDROID_JAR:+:$ANDROID_JAR}"
+
+          mkdir -p /tmp/onedm-build/{classes,work/ctx,dist}
+          cp -r /tmp/onedm-cache-sdk/apk_root/assets /tmp/onedm-build/work/ctx/assets
+
+          find .github/onedm-cache/shims -name "*.java" > /tmp/onedm-build/sources.txt
+          echo ".github/onedm-cache/OnedmCacheBuilder.java" >> /tmp/onedm-build/sources.txt
+
+          javac -cp "$BUILD_CP" \
+            -d /tmp/onedm-build/classes \
+            @/tmp/onedm-build/sources.txt
+
+          java -Xverify:none -Xmx2500m \
+            -cp "/tmp/onedm-build/classes:$BUILD_CP" \
+            OnedmCacheBuilder /tmp/onedm-build/work /tmp/onedm-build/dist
+
+          cat /tmp/onedm-build/dist/manifest.json
+
+      - name: Publish rolling pre-release assets (onedm-cache)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          BUILT_AT=$(jq -r '.builtAt' /tmp/onedm-build/dist/manifest.json)
+          TOTAL_FILTERS=$(jq -r '.totalActiveFilters' /tmp/onedm-build/dist/manifest.json)
+          US_VER=$(jq -r '.userscriptVersion' /tmp/onedm-build/dist/manifest.json)
+          AB_SHA=$(jq -r '.adblockSha256' /tmp/onedm-build/dist/manifest.json)
+          US_SHA=$(jq -r '.userscriptSha256' /tmp/onedm-build/dist/manifest.json)
+
+          NOTES_FILE="/tmp/onedm-build/release-notes.md"
+          {
+            echo "Automated weekly pre-compiled cache for **1DM 20.0 (30257)** (\`GinArena-patch\`, schema \`v2\`)."
+            echo ""
+            echo "- **Built at (UTC):** \`${BUILT_AT}\`"
+            echo "- **AdBlocker Pack (\`onedm-v20-adblock-pack.zip\`):** 28 default filter lists (\`${TOTAL_FILTERS}\` total active filters including \`+js\` scriptlets & \`\$redirect\` resources) + \`sources_meta.json\` + \`STORED\` per-UUID \`.zip\` archives, binary format \`v20\`, SHA-256: \`${AB_SHA}\`"
+            echo "- **Userscript Pack (\`bypass-shortlinks-1dm.1dmus.gz\`):** \`Bypass All Shortlinks Debloated\` \`v${US_VER}\` + bundled mobile-adapted \`MonkeyConfig-Mod.js\`, SHA-256: \`${US_SHA}\`"
+          } > "$NOTES_FILE"
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            # Upload binary packs first, then manifest.json last so clients never see a manifest ahead of its blobs
+            gh release upload "$RELEASE_TAG" \
+              /tmp/onedm-build/dist/onedm-v20-adblock-pack.zip \
+              /tmp/onedm-build/dist/bypass-shortlinks-1dm.1dmus.gz \
+              --clobber
+            gh release upload "$RELEASE_TAG" \
+              /tmp/onedm-build/dist/manifest.json \
+              --clobber
+            gh release edit "$RELEASE_TAG" --prerelease --title "1DM 20.0 Cloud Cache (Auto-Sync)" --notes-file "$NOTES_FILE"
+          else
+            gh release create "$RELEASE_TAG" \
+              /tmp/onedm-build/dist/onedm-v20-adblock-pack.zip \
+              /tmp/onedm-build/dist/bypass-shortlinks-1dm.1dmus.gz \
+              /tmp/onedm-build/dist/manifest.json \
+              --prerelease \
+              --title "1DM 20.0 Cloud Cache (Auto-Sync)" \
+              --notes-file "$NOTES_FILE"
+          fi
+
+      - name: Cleanup temporary files
+        if: always()
+        run: rm -rf /tmp/onedm-apk-tmp /tmp/onedm-build

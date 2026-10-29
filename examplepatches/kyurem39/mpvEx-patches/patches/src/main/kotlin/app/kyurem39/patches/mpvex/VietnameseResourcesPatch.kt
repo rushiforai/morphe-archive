@@ -2,10 +2,8 @@ package app.kyurem39.patches.mpvex
 
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.resource.ResourceType
-import org.w3c.dom.Element
 
 private const val VIETNAMESE_STRINGS_RESOURCE = "/vi-strings.xml"
-private const val BASE_STRINGS = "res/values/strings.xml"
 private const val VIETNAMESE_STRINGS = "res/values-vi/strings.xml"
 
 /** Gives access to the patch bundle's own resources. */
@@ -15,13 +13,8 @@ private val STRING_ENTRY = Regex("""<string name="([^"]+)"[^>]*>.*?</string>""",
 private val PLURALS_ENTRY =
     Regex("""<plurals name="([^"]+)"[^>]*>.*?</plurals>""", RegexOption.DOT_MATCHES_ALL)
 
-private val aboutRowLabels = mapOf(
-    "pref_about_title" to "kyurem39's patches",
-    "pref_about_summary" to "Patches settings, About",
-)
-
 /**
- * Adds the Vietnamese translation and relabels the settings row that opens the Morphe sheet.
+ * Adds the Vietnamese translation.
  *
  * The translation covers every string of the app's `values` file, but only the strings the APK
  * still carries are written: a release build ships a shrunk resource table, and adding a resource
@@ -57,23 +50,5 @@ internal val vietnameseResourcesPatch = resourcePatch {
                 appendLine("</resources>")
             },
         )
-
-        // The About row now opens the Morphe sheet, which links to the About screen itself.
-        document(BASE_STRINGS).use { document ->
-            val elements = document.getElementsByTagName("string")
-            var relabelled = 0
-
-            for (index in 0 until elements.length) {
-                val element = elements.item(index) as? Element ?: continue
-                val label = aboutRowLabels[element.getAttribute("name")] ?: continue
-
-                element.textContent = label
-                relabelled++
-            }
-
-            check(relabelled == aboutRowLabels.size) {
-                "Expected ${aboutRowLabels.size} About row strings in $BASE_STRINGS, found $relabelled."
-            }
-        }
     }
 }

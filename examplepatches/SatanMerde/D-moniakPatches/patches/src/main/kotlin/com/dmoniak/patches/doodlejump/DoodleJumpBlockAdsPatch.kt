@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val doodleJumpBlockAdsPatch = bytecodePatch(
     name = "Block Ads & Video Interruptions - Doodle Jump (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips post-game-over interstitials, bottom banner ads, and popup promotions in Doodle Jump.",
+    description = "⚠️ [Experimental / Untested] Strips post-game-over interstitials, bottom banner ads, and popup promotions in Doodle Jump.",
 ) {
     compatibleWith(COMPATIBILITY_DOODLE_JUMP)
 

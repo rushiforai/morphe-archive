@@ -18,6 +18,7 @@ import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.jumpTargets
+import app.morphe.patches.instagram.misc.extension.loadsString
 import app.morphe.patches.instagram.misc.extension.localRegisterCount
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.extension.requireThisIntact
@@ -174,19 +175,21 @@ internal fun BytecodePatchContext.findStorySeek(): StorySeekSites {
 
     val pauses = viewer.methods.filter {
         AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" && it.parameters() == listOf(viewer.type, STRING) &&
-            PAUSE_STORY in it.strings()
+            loadsString(it, PAUSE_STORY)
     }
     val pause = pauses.singleOrNull() ?: refuse("expected one static pause on $REEL_VIEWER_FRAGMENT holding $PAUSE_STORY, found ${pauses.size}")
     if (!AccessFlags.PUBLIC.isSet(pause.accessFlags)) refuse("$REEL_VIEWER_FRAGMENT->${pause.name} isn't public")
     val resumers = viewer.methods.filter {
         AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" && it.parameters() == listOf(viewer.type, STRING, "Z") &&
-            it.strings().containsAll(RESUME_STORY)
+            RESUME_STORY.all { value -> loadsString(it, value) }
     }
     val resumer = resumers.singleOrNull() ?: refuse("expected one static resume on $REEL_VIEWER_FRAGMENT holding $RESUME_STORY, found ${resumers.size}")
     val resumes = viewer.methods.filter { method ->
         !AccessFlags.STATIC.isSet(method.accessFlags) && AccessFlags.PUBLIC.isSet(method.accessFlags) &&
-            method.returnType == "V" && method.parameterTypes.isEmpty() && RESUME in method.strings() &&
-            method.code().mapNotNull { it.method() }.map(Any::toString) == listOf(resumer.reference())
+            method.returnType == "V" && method.parameterTypes.isEmpty() && loadsString(method, RESUME) &&
+            // 453's 32-bit 385914282 asks Redex's string pool for it, a static (int)String call.
+            method.code().mapNotNull { it.method() }.filterNot { it.parameterTypes.map(Any::toString) == listOf("I") && it.returnType == STRING }
+                .map(Any::toString) == listOf(resumer.reference())
     }
     val resume = resumes.singleOrNull()
         ?: refuse("expected one public no-argument method on $REEL_VIEWER_FRAGMENT handing $RESUME to ${resumer.name} and calling nothing else, found ${resumes.size}")
@@ -320,11 +323,6 @@ private fun Method.shape(): String = "(${parameters().joinToString("")})$returnT
 private fun Method.reference(): String = "$definingClass->$name${shape()}"
 
 private fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
-
-private fun Method.strings(): Set<String> = code().mapNotNull { instruction ->
-    if (instruction.opcode != Opcode.CONST_STRING && instruction.opcode != Opcode.CONST_STRING_JUMBO) null
-    else ((instruction as ReferenceInstruction).reference as StringReference).string
-}.toSet()
 
 private fun Instruction.method(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
 

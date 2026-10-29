@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeDisableQUICPatch = bytecodePatch(
     name = "Disable QUIC Protocol - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Disables Google's experimental QUIC (HTTP/3) UDP network protocol in YouTube, forcing reliable HTTP/2 TCP streams to bypass carrier and ISP video throttling.",
+    description = "⚠️ [Experimental / Untested] Disables Google's experimental QUIC (HTTP/3) UDP network protocol in YouTube, forcing reliable HTTP/2 TCP streams to bypass carrier and ISP video throttling.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

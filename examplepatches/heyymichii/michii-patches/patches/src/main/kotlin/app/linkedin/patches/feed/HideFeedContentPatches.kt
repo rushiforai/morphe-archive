@@ -40,7 +40,8 @@ val hidePromotedJobsPatch = bytecodePatch(
 val feedFiltersPatch = bytecodePatch(
     name = "Feed filters",
     description = "Adds optional filters (off by default, turned on in Michii Patches): focus mode, " +
-        "celebrations, job cards, reposts, video posts, the \"New posts\" pill and \"See translation\".",
+        "celebrations, job cards, reposts, posts from others' activity, \"Recommended for you\", video posts, " +
+        "games, the \"New posts\" pill and \"See translation\".",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)

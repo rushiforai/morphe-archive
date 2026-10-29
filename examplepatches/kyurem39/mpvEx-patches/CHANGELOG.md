@@ -1,3 +1,50 @@
+## [1.3.0](https://github.com/kyurem39/mpvEx-patches/compare/v1.2.1...v1.3.0) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* Make settings panel language follow the Vietnamese toggle ([5bb9b78](https://github.com/kyurem39/mpvEx-patches/commit/5bb9b78057a97474e734ba585b74042133646bf4))
+* Restore app restart on Vietnamese toggle change ([3dbab87](https://github.com/kyurem39/mpvEx-patches/commit/3dbab870f48bbec4a601310a778013922d308cd6))
+
+### ✨ New Features
+
+* Rename translated subtitle file to code.lang-GoogleTranslate.srt ([32a92b9](https://github.com/kyurem39/mpvEx-patches/commit/32a92b9cb11ef4d7ae056d5531989a8cf15babb9))
+* Save translated subtitle as code-GoogleTranslate.lang.ext ([c4d8cf7](https://github.com/kyurem39/mpvEx-patches/commit/c4d8cf73a5cf8c2c094911ad4f05f55ab82508be))
+
+## [1.2.1](https://github.com/kyurem39/mpvEx-patches/compare/v1.2.0...v1.2.1) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* apply the Vietnamese interface only when selected ([3f87953](https://github.com/kyurem39/mpvEx-patches/commit/3f879536b1c49e952bd048f5cc09996d54e78e56))
+
+## [1.2.1-dev.1](https://github.com/kyurem39/mpvEx-patches/compare/v1.2.0...v1.2.1-dev.1) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* apply the Vietnamese interface only when selected ([3f87953](https://github.com/kyurem39/mpvEx-patches/commit/3f879536b1c49e952bd048f5cc09996d54e78e56))
+
+## [1.2.0](https://github.com/kyurem39/mpvEx-patches/compare/v1.1.1...v1.2.0) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* Restore original subtitle when translation is off ([294bda9](https://github.com/kyurem39/mpvEx-patches/commit/294bda93b4042bc5b3ba03ff0479a6ab79d95af6))
+
+### ✨ New Features
+
+* translate subtitles and add a shared patch settings panel ([1e6ea0e](https://github.com/kyurem39/mpvEx-patches/commit/1e6ea0eedc945a8551be3d6661813abe684d3a12))
+* translate subtitles embedded in the video ([b9672b1](https://github.com/kyurem39/mpvEx-patches/commit/b9672b15ec0eaa5bd80ea2e3930e942191cb02e4))
+
+## [1.2.0-dev.2](https://github.com/kyurem39/mpvEx-patches/compare/v1.2.0-dev.1...v1.2.0-dev.2) (2026-10-28)
+
+### ✨ New Features
+
+* translate subtitles embedded in the video ([b9672b1](https://github.com/kyurem39/mpvEx-patches/commit/b9672b15ec0eaa5bd80ea2e3930e942191cb02e4))
+
+## [1.2.0-dev.1](https://github.com/kyurem39/mpvEx-patches/compare/v1.1.1...v1.2.0-dev.1) (2026-10-25)
+
+### ✨ New Features
+
+* translate subtitles and add a shared patch settings panel ([1e6ea0e](https://github.com/kyurem39/mpvEx-patches/commit/1e6ea0eedc945a8551be3d6661813abe684d3a12))
+
 ## [1.1.1](https://github.com/kyurem39/mpvEx-patches/compare/v1.1.0...v1.1.1) (2026-10-25)
 
 ### 🐛 Bug Fixes

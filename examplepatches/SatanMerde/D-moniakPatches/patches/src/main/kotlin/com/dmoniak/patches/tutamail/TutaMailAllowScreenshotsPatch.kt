@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val tutaMailAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & Screen Mirroring - Tuta Mail (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes Android FLAG_SECURE window restrictions in Tuta Mail, allowing users to take screenshots, capture invoice receipts, and mirror screens without black screens.",
+    description = "⚠️ [Experimental / Untested] Removes Android FLAG_SECURE window restrictions in Tuta Mail, allowing users to take screenshots, capture invoice receipts, and mirror screens without black screens.",
 ) {
     compatibleWith(COMPATIBILITY_TUTA_MAIL)
 

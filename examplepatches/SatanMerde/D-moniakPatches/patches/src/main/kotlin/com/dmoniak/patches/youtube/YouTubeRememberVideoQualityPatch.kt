@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeRememberVideoQualityPatch = bytecodePatch(
     name = "Remember Video Quality - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces and locks preferred default video resolution (such as 1080p, 1440p, or 4K) separately for Wi-Fi and mobile cellular networks, overriding YouTube's adaptive downscaling.",
+    description = "⚠️ [Experimental / Untested] Forces and locks preferred default video resolution (such as 1080p, 1440p, or 4K) separately for Wi-Fi and mobile cellular networks, overriding YouTube's adaptive downscaling.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

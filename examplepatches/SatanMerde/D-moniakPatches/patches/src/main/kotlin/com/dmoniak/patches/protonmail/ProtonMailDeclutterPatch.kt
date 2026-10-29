@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val protonMailDeclutterPatch = bytecodePatch(
     name = "Declutter UI & Hide Upsells - Proton Mail (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hides storage upgrade alerts, Proton Unlimited promotion banners, and subscription upgrade reminders in Proton Mail.",
+    description = "⚠️ [Experimental / Untested] Hides storage upgrade alerts, Proton Unlimited promotion banners, and subscription upgrade reminders in Proton Mail.",
 ) {
     compatibleWith(COMPATIBILITY_PROTON_MAIL)
 

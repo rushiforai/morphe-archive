@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val redditBlockPromotedPostsPatch = bytecodePatch(
     name = "Block Promoted Posts & Ads - Reddit (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips Promoted posts, sponsored comment ads, promoted user carousels, and in-feed commercial cards in Reddit.",
+    description = "⚠️ [Experimental / Untested] Strips Promoted posts, sponsored comment ads, promoted user carousels, and in-feed commercial cards in Reddit.",
 ) {
     compatibleWith(COMPATIBILITY_REDDIT)
 

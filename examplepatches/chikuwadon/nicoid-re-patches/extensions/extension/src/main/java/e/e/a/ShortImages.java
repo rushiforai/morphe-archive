@@ -41,9 +41,14 @@ final class ShortImages {
     }
     static void load(String url, ImageView target, TextView placeholder) {
         Binding previous = bindings.get(target);
+        if (url == null || !url.startsWith("https://")) {
+            if (previous != null && previous.subscription != null) remove(previous.subscription.job, previous.subscription);
+            bindings.remove(target); target.setTag(null); target.setImageDrawable(null);
+            if (placeholder != null) placeholder.setVisibility(View.VISIBLE);
+            return;
+        }
         if (previous != null && previous.subscription != null && !previous.url.equals(url))
             remove(previous.subscription.job, previous.subscription);
-        if (url == null || !url.startsWith("https://")) return;
         target.setTag(url);
         Binding binding = new Binding(url, placeholder);
         if (previous != null && previous.url.equals(url)) binding.subscription = previous.subscription;
@@ -69,7 +74,7 @@ final class ShortImages {
         }
     }
     private static Activity owner(Context context) {
-        while (context instanceof ContextWrapper) {
+        for (int depth = 0; depth < 8 && context instanceof ContextWrapper; depth++) {
             if (context instanceof Activity) return (Activity)context;
             Context next = ((ContextWrapper)context).getBaseContext(); if (next == context) break; context = next;
         }

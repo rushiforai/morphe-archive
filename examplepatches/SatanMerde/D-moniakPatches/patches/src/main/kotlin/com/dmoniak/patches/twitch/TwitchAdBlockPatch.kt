@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val twitchAdBlockPatch = bytecodePatch(
     name = "Block Video Stream Ads - Twitch (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Blocks embedded pre-roll and mid-roll video advertisements on live channels and VODs without stream buffer freezes.",
+    description = "⚠️ [Experimental / Untested] Blocks embedded pre-roll and mid-roll video advertisements on live channels and VODs without stream buffer freezes.",
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
 

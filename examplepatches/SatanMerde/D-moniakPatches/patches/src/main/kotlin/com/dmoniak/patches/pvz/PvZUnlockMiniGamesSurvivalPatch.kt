@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val pvzUnlockMiniGamesSurvivalPatch = bytecodePatch(
     name = "Free Shopping & Billing Bypass - Plants vs. Zombies (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing SDK in Plants vs. Zombies to bypass in-app purchase verification, enabling free shopping for coin packs, Crazy Dave's shop upgrades, and game mode passes.",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing SDK in Plants vs. Zombies to bypass in-app purchase verification, enabling free shopping for coin packs, Crazy Dave's shop upgrades, and game mode passes.",
 ) {
     compatibleWith(COMPATIBILITY_PLANTS_VS_ZOMBIES)
 

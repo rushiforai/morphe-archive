@@ -290,7 +290,8 @@ class KeepReelsAutoScrollHookTest {
             classes(scrollersBuilt = 2) to "builds $scroller 2 times, expected once",
             classes(offeredReads = 0) to "reads $offered 0 times, expected once",
             classes(offeredReads = 2) to "reads $offered 2 times, expected once",
-            classes(offeredBranch = "if-nez") to "doesn't branch on $offered's answer right after reading it at instruction 2",
+            // An if-nez that jumps past the build on a yes, where 453's goes on to it.
+            classes(offeredBranch = "if-nez") to "goes to 8, not on to the place $scroller is built, instruction 6",
             classes(offeredBranch = "otherRegister") to "doesn't branch on $offered's answer right after reading it at instruction 2",
             classes(branchSkipsBuild = false) to "doesn't skip the place $scroller is built",
             classes(jumpOntoBranch = true) to "jumps to instruction 5, between its read of $offered and the branch on it",
@@ -476,13 +477,19 @@ class KeepReelsAutoScrollHookTest {
         assertEquals("$what: install is handed Instagram's answer", listOf(register), code[read + 2].arguments())
         assertEquals("$what: install's result", Opcode.MOVE_RESULT, code[read + 3].opcode)
         assertEquals("$what: the result's register", register, (code[read + 3] as OneRegisterInstruction).registerA)
-        assertEquals("$what: the branch follows", Opcode.IF_EQZ, code[read + 4].opcode)
+        // 453's 64-bit builds jump to the build on a yes rather than past it on a no.
+        val buildsWhenTrue = code[read + 4].opcode == Opcode.IF_NEZ
+        assertTrue("$what: the branch follows", buildsWhenTrue || code[read + 4].opcode == Opcode.IF_EQZ)
         assertEquals("$what: the branch reads the result", register, (code[read + 4] as OneRegisterInstruction).registerA)
         val targets = builder.jumpTargets()
         assertTrue("$what: a jump lands between the read and its branch", (read + 1..read + 4).none { it in targets })
         val created = code.indices.single { code[it].opcode == Opcode.NEW_INSTANCE && code[it].referenceText() == scrollerType }
         assertTrue("$what: the scroller is built past the branch", created > read + 4)
-        assertTrue("$what: the branch still skips the place the scroller is built", builder.targetOf(read + 4) > created)
+        if (buildsWhenTrue) {
+            assertTrue("$what: a yes still goes to the place the scroller is built", builder.targetOf(read + 4) <= created)
+        } else {
+            assertTrue("$what: the branch still skips the place the scroller is built", builder.targetOf(read + 4) > created)
+        }
         assertEquals("$what: install calls", 1, code.count { it.referenceText() == AUTO_SCROLL_INSTALL })
         assertEquals("$what: other hooks", 0, code.count { it.referenceText() in hooks - AUTO_SCROLL_INSTALL })
     }

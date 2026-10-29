@@ -80,7 +80,7 @@ class StartReelsWithSoundHookTest {
 
                 val site = context.findReelSoundSite()
                 assertEquals("$what: the viewer", viewerType, site.onCreate.definingClass)
-                assertEquals("$what: three borrowed locals", 3, site.scratch.distinct().size)
+                assertEquals("$what: four borrowed locals", 4, site.scratch.distinct().size)
                 assertTrue("$what: the borrowed locals fit an invoke", (site.scratch + site.pauseScratch + site.resumeScratch).all { it in 0..15 })
                 assertEquals("$what: the config getter", "Lcom/instagram/clips/intf/ClipsViewerConfig;", site.config.returnType)
                 assertEquals("$what: the source field", "Lcom/instagram/clips/intf/ClipsViewerSource;", site.source.type)
@@ -94,16 +94,20 @@ class StartReelsWithSoundHookTest {
                 val code = onCreate.code()
                 val ask = code.indexOfFirst { it.referenceText() == REEL_WANTED }
                 assertTrue("$what: right after the super call", code[ask - 1].opcode == Opcode.INVOKE_SUPER && code[ask - 1].referenceText()!!.contains("->onCreate($bundle)V"))
+                // 453's setter takes a second flag, whether the user changed it, which the hook loads as 0 first.
+                val extra = if (site.setter.parameterTypes.size == 2) 1 else 0
+                val created = hookLength + extra
                 assertEquals(
                     "$what: the hook",
                     listOf(
                         Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.INVOKE_VIRTUAL_RANGE, Opcode.MOVE_RESULT_OBJECT,
                         Opcode.IF_EQZ, Opcode.IGET_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ,
                         Opcode.INVOKE_VIRTUAL_RANGE, Opcode.MOVE_RESULT_OBJECT, Opcode.IF_EQZ, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT,
-                        Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.INVOKE_STATIC, Opcode.CONST_4, Opcode.INVOKE_VIRTUAL,
-                    ),
-                    code.subList(ask, ask + hookLength).map { it.opcode },
+                        Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.INVOKE_STATIC, Opcode.CONST_4,
+                    ) + List(extra) { Opcode.CONST_4 } + Opcode.INVOKE_VIRTUAL,
+                    code.subList(ask, ask + created).map { it.opcode },
                 )
+                if (extra == 1) assertEquals("$what: not the user's own change", 0, (code[ask + 20] as NarrowLiteralInstruction).narrowLiteral)
                 assertEquals("$what: the config", site.config.toString(), code[ask + 3].referenceText())
                 assertEquals("$what: its source", site.source.toString(), code[ask + 6].referenceText())
                 assertEquals("$what: asked with the source", REEL_START_WITH_SOUND, code[ask + 8].referenceText())
@@ -112,12 +116,12 @@ class StartReelsWithSoundHookTest {
                 assertEquals("$what: the getter", site.getter.toString(), code[ask + 16].referenceText())
                 assertEquals("$what: told what it was", REEL_OPENED, code[ask + 18].referenceText())
                 assertEquals("$what: set to on", 1, (code[ask + 19] as NarrowLiteralInstruction).narrowLiteral)
-                assertEquals("$what: the setter", site.setter.toString(), code[ask + 20].referenceText())
-                assertTrue("$what: a jump lands inside the hook", (ask + 1 until ask + hookLength).none { it in onCreate.jumpTargets() })
+                assertEquals("$what: the setter", site.setter.toString(), code[ask + 20 + extra].referenceText())
+                assertTrue("$what: a jump lands inside the hook", (ask + 1 until ask + created).none { it in onCreate.jumpTargets() })
                 val p0 = onCreate.implementation!!.registerCount - 2
                 assertEquals("$what: the viewer is read from its own register", listOf(p0), code[ask + 3].arguments())
                 assertEquals("$what: the viewer is copied from its own register", p0, (code[ask + 7] as com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction).registerB)
-                val borrowed = code.subList(ask, ask + hookLength).mapNotNull { (it as? OneRegisterInstruction)?.registerA }
+                val borrowed = code.subList(ask, ask + created).mapNotNull { (it as? OneRegisterInstruction)?.registerA }
                     .filter { it !in site.scratch }
                 assertTrue("$what: the hook wrote a register it didn't borrow: $borrowed", borrowed.isEmpty())
 
@@ -127,16 +131,22 @@ class StartReelsWithSoundHookTest {
                 assertEquals("$what: onPause asks first", REEL_PAUSING, onPause.code()[0].referenceText())
                 assertEquals("$what: onPause asks again", REEL_PAUSED, onPause.code()[11].referenceText())
                 assertEquals("$what: onPause sets it off", 0, (onPause.code()[14] as NarrowLiteralInstruction).narrowLiteral)
-                assertEquals("$what: onPause's setter", site.setter.toString(), onPause.code()[15].referenceText())
+                assertEquals("$what: onPause's setter", site.setter.toString(), onPause.code()[15 + extra].referenceText())
                 assertEquals("$what: onResume asks first", REEL_RESUMING, onResume.code()[0].referenceText())
-                assertEquals("$what: onResume sets it on", site.setter.toString(), onResume.code()[9].referenceText())
-                assertTrue("$what: a jump lands inside the pause hook", (1 until pauseLength).none { it in onPause.jumpTargets() })
-                assertTrue("$what: a jump lands inside the resume hook", (1 until resumeLength).none { it in onResume.jumpTargets() })
+                assertEquals("$what: onResume sets it on", site.setter.toString(), onResume.code()[9 + extra].referenceText())
+                assertTrue("$what: a jump lands inside the pause hook", (1 until pauseLength + extra).none { it in onPause.jumpTargets() })
+                assertTrue("$what: a jump lands inside the resume hook", (1 until resumeLength + extra).none { it in onResume.jumpTargets() })
+                // Every call hands the setter its object and each of its flags. Two registers to the
+                // (ZZ) setter verified nowhere and took the whole Reels viewer down on a device.
+                for ((name, setterCall) in listOf("onCreate" to code[ask + 20 + extra], "onPause" to onPause.code()[15 + extra],
+                    "onResume" to onResume.code()[9 + extra])) {
+                    assertEquals("$what: $name's setter registers", site.setter.parameterTypes.size + 1, setterCall.arguments().size)
+                }
 
                 val added = mapOf(
-                    "onCreate" to (ask until ask + hookLength).toSet(),
-                    "onPause" to (0 until pauseLength).toSet(),
-                    "onResume" to (0 until resumeLength).toSet(),
+                    "onCreate" to (ask until ask + created).toSet(),
+                    "onPause" to (0 until pauseLength + extra).toSet(),
+                    "onResume" to (0 until resumeLength + extra).toSet(),
                 )
                 for ((method, original) in originals) {
                     val mine = method.code().indices.filter { it in added.getValue(method.name) }.toSet()

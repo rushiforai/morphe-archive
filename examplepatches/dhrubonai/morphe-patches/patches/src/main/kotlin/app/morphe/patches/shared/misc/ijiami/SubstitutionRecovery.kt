@@ -5,15 +5,14 @@
 package app.morphe.patches.shared.misc.ijiami
 
 import app.morphe.patcher.patch.PatchException
-import java.security.MessageDigest
+import app.morphe.patches.shared.DEX_CHECKSUM_OFFSET
+import app.morphe.patches.shared.DEX_FILE_SIZE_OFFSET
+import app.morphe.patches.shared.DEX_HEADER_SIZE
+import app.morphe.patches.shared.DEX_SIGNATURE_OFFSET
+import app.morphe.patches.shared.readInt
 import java.util.zip.Adler32
 
-private const val DEX_HEADER_SIZE = 112
 private const val MAGIC_NULL_OFFSET = 7
-private const val CHECKSUM_OFFSET = 8
-private const val SIGNATURE_OFFSET = 12
-private const val SIGNATURE_END = 32
-private const val FILE_SIZE_OFFSET = 32
 private const val HEADER_SIZE_OFFSET = 36
 private const val ENDIAN_OFFSET = 40
 private const val STRING_IDS_START = 112
@@ -43,7 +42,7 @@ internal object SubstitutionRecovery {
             return IjiamiSubstitution(substitution, inverse)
         }
         throw PatchException(
-            if (solved) "Ijiami substitution rejected: payload checksum or signature mismatch"
+            if (solved) "Ijiami substitution rejected: payload checksum mismatch"
             else "Ijiami substitution ordering is not unique",
         )
     }
@@ -113,7 +112,7 @@ internal object SubstitutionRecovery {
         for (i in 0 until starts.size - 1) {
             val gap = starts[i + 1] - starts[i]
             for (k in 0 until 4) {
-                val cipherByte = cipher[starts[i] + FILE_SIZE_OFFSET + k].toInt() and 0xFF
+                val cipherByte = cipher[starts[i] + DEX_FILE_SIZE_OFFSET + k].toInt() and 0xFF
                 val plainByte = (gap ushr (8 * k)) and 0xFF
                 val prev = map.putIfAbsent(cipherByte, plainByte)
                 if (prev != null && prev != plainByte) return false
@@ -181,10 +180,8 @@ internal object SubstitutionRecovery {
             val size = starts[index + 1] - start
             if (opaque.overlap(start, size)) continue
             val dex = ByteArray(size) { inverse[cipher[start + it].toInt() and 0xFF] }
-            val checksum = Adler32().apply { update(dex, SIGNATURE_OFFSET, size - SIGNATURE_OFFSET) }
-            if (checksum.value.toInt() != dex.readInt(CHECKSUM_OFFSET)) return false
-            val signature = MessageDigest.getInstance("SHA-1").digest(dex.copyOfRange(SIGNATURE_END, size))
-            if (!signature.contentEquals(dex.copyOfRange(SIGNATURE_OFFSET, SIGNATURE_END))) return false
+            val checksum = Adler32().apply { update(dex, DEX_SIGNATURE_OFFSET, size - DEX_SIGNATURE_OFFSET) }
+            if (checksum.value.toInt() != dex.readInt(DEX_CHECKSUM_OFFSET)) return false
             verified++
         }
         return verified > 0

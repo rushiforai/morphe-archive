@@ -58,6 +58,7 @@ public final class ListSearch {
     }
 
     private static final class FilterState {
+        WeakReference<View> listRef;
         Matcher matcher;
         /** The adapter clears its list and adds the whole new list on every change. */
         boolean rebuilds;
@@ -70,6 +71,22 @@ public final class ListSearch {
     }
 
     // region Install
+
+    /**
+     * Adds the search bar above the list. Automatically uses {@link #installOverlay} when
+     * the list's parent is a FrameLayout, or {@link #installWrapped} otherwise.
+     */
+    public static void install(View recyclerView, View root, String hint, Matcher matcher) {
+        if (recyclerView == null) {
+            return;
+        }
+        ViewParent parent = recyclerView.getParent();
+        if (parent instanceof FrameLayout) {
+            installOverlay(recyclerView, root, hint, matcher);
+        } else if (parent instanceof ViewGroup) {
+            installWrapped(recyclerView, hint, matcher);
+        }
+    }
 
     /**
      * Adds the search bar above the list as an overlay. The list's parent must be a FrameLayout,
@@ -252,7 +269,7 @@ public final class ListSearch {
                 return;
             }
 
-            Object current = invoke(adapter, "getData");
+            Object current = getAdapterList(adapter, state);
             if (current == state.shown && (current == null || ((List) current).size() == state.shownSize)) {
                 return;
             }
@@ -288,9 +305,9 @@ public final class ListSearch {
                 return;
             }
 
-            Object current = invoke(adapter, "getData");
+            Object current = getAdapterList(adapter, state);
             if (current != state.full) {
-                invoke(adapter, "setData", List.class, state.full);
+                setAdapterList(adapter, state, state.full);
             }
         } catch (Throwable throwable) {
             Logger.printException(() -> "List search resume hook failed", throwable);
@@ -313,6 +330,7 @@ public final class ListSearch {
                 state = new FilterState();
                 filterStates.put(adapter, state);
             }
+            state.listRef = new WeakReference<>(recyclerView);
             state.matcher = matcher;
             state.rebuilds = rebuilds;
             state.query = query == null ? "" : fold(query.trim());
@@ -323,12 +341,12 @@ public final class ListSearch {
     }
 
     private static void applyFilter(Object adapter, FilterState state) {
-        Object currentObject = invoke(adapter, "getData");
+        Object currentObject = getAdapterList(adapter, state);
         List current = currentObject instanceof List ? (List) currentObject : null;
 
         if (current != state.shown) {
             // New list from TikTok: it is the unfiltered source.
-            state.full = current;
+            state.full = current != null ? new ArrayList(current) : null;
         } else if (current != null && state.rebuilds && current.size() != state.shownSize) {
             // TikTok cleared the list we set and added its whole new list to it.
             state.full = new ArrayList(current);
@@ -361,11 +379,69 @@ public final class ListSearch {
         }
 
         if (next != current) {
-            invoke(adapter, "setData", List.class, next);
+            setAdapterList(adapter, state, next);
         }
         state.shown = next;
         state.shownSize = next == null ? 0 : next.size();
         state.shownSnapshot = next == null || next == state.full ? null : new ArrayList(next);
+    }
+
+    private static List getAdapterList(Object adapter, FilterState state) {
+        if (adapter != null) {
+            Object current = invoke(adapter, "getData");
+            if (current instanceof List) {
+                return (List) current;
+            }
+        }
+        if (state != null && state.listRef != null) {
+            View list = state.listRef.get();
+            if (list != null) {
+                Object listItems = invoke(list, "getListItems");
+                if (listItems instanceof List) {
+                    return (List) listItems;
+                }
+            }
+        }
+        if (adapter != null) {
+            Object powerListItems = invoke(adapter, "LLLIIII");
+            if (powerListItems instanceof List) {
+                return (List) powerListItems;
+            }
+        }
+        return null;
+    }
+
+    private static void setAdapterList(Object adapter, FilterState state, List next) {
+        if (adapter != null) {
+            Method setDataMethod = findMethod(adapter.getClass(), "setData", List.class);
+            if (setDataMethod != null) {
+                try {
+                    setDataMethod.setAccessible(true);
+                    setDataMethod.invoke(adapter, next);
+                    return;
+                } catch (Throwable throwable) {
+                    Logger.printException(() -> "List search: setData failed", throwable);
+                }
+            }
+        }
+        if (state != null && state.listRef != null) {
+            View list = state.listRef.get();
+            if (list != null) {
+                Object powerState = invoke(list, "getState");
+                if (powerState != null) {
+                    Method updateMethod = findCollectionRunnableMethod(powerState.getClass());
+                    if (updateMethod != null) {
+                        try {
+                            updateMethod.setAccessible(true);
+                            updateMethod.invoke(powerState, next, null);
+                            return;
+                        } catch (Throwable throwable) {
+                            Logger.printException(() -> "List search: PowerList update failed", throwable);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /** Lower case without accents, so "cancion" finds "Canción". */
@@ -413,6 +489,29 @@ public final class ListSearch {
                 || containsAllWords(text(call(author, "getUniqueId")), query);
     }
 
+    /**
+     * Matches a user by nickname, uniqueId (handle), or signature (bio).
+     */
+    public static boolean userMatches(Object user, String query) {
+        if (user == null) {
+            return false;
+        }
+        return containsAllWords(text(call(user, "getNickname")), query)
+                || containsAllWords(text(call(user, "getUniqueId")), query)
+                || containsAllWords(text(call(user, "getSignature")), query);
+    }
+
+    /**
+     * Matches a comment by text or comment author.
+     */
+    public static boolean commentMatches(Object comment, String query) {
+        if (comment == null) {
+            return false;
+        }
+        return containsAllWords(text(call(comment, "getText")), query)
+                || userMatches(call(comment, "getUser"), query);
+    }
+
     private static String text(Object value) {
         return value instanceof String ? (String) value : null;
     }
@@ -420,6 +519,29 @@ public final class ListSearch {
     // endregion
 
     // region Reflection helpers
+
+    /** Finds a public method by name and parameter types, returning null on failure. */
+    public static Method findMethod(Class<?> clazz, String name, Class<?>... parameterTypes) {
+        try {
+            return clazz.getMethod(name, parameterTypes);
+        } catch (NoSuchMethodException ignored) {
+            return null;
+        }
+    }
+
+    private static Method findCollectionRunnableMethod(Class<?> clazz) {
+        try {
+            return clazz.getMethod("LJIILL", java.util.Collection.class, Runnable.class);
+        } catch (NoSuchMethodException ignored) {
+        }
+        for (Method m : clazz.getMethods()) {
+            Class<?>[] params = m.getParameterTypes();
+            if (params.length == 2 && java.util.Collection.class.isAssignableFrom(params[0]) && Runnable.class.isAssignableFrom(params[1])) {
+                return m;
+            }
+        }
+        return null;
+    }
 
     /** Calls a public no-argument method by name. Returns null on any failure. */
     public static Object call(Object target, String name) {

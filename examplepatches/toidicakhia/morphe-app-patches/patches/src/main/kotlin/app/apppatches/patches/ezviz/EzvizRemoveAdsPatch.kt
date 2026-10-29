@@ -13,6 +13,7 @@ val ezvizRemoveAdsPatch = bytecodePatch(
     default = true
 ) {
     compatibleWith(EZVIZ_COMPATIBILITY)
+    dependsOn(ezvizSignatureCheckPatch)
 
     execute {
         EzvizAdsSwitchFingerprint.match().method.apply {

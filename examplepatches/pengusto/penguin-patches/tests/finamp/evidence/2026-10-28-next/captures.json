@@ -1,0 +1,120 @@
+{
+  "profile": "Android 15 / API 35 ARM64 AVD, portrait, density 320, Dark, English, demo clock 09:41",
+  "candidate_mpp_sha256": "79ceddd2405bee3464acbde4fa9a9407f413136ec42392b90955c5d64998b5f0",
+  "captures": {
+    "1689-after-header.png": {
+      "sha256": "47b920666c8a10ae95d5e06f31521d294c3c641bddaf7b5fbf95c73f0d4fa50e",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "1689-after-tracks.png": {
+      "sha256": "99fd639d0b5ae8f7cf25fb79f1a7c48dc1ffcbf0c7164ee755e6212c3ec7e1ee",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "1689-before-header.png": {
+      "sha256": "01847da946b6fb9ce949425e026a3af2fb1740be96a6a85798180cd5ce83dfa7",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "1689-before-tracks.png": {
+      "sha256": "f5f5650df629ec0a1d5202e3f9da571118e9e4a1c153f571f617ca0b2059ca25",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "1790-after-M.png": {
+      "sha256": "fd2e1a011277bb09675b3d3f24159d83a9fc9a2971e7c13b3ea1c3f91e93cff4",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "1790-before-M.png": {
+      "sha256": "1b6bb0ec22b5d32b99c6963338d1e0a8dd079f409ac876812639b00889d9fc4d",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "combined-M.png": {
+      "sha256": "fd2e1a011277bb09675b3d3f24159d83a9fc9a2971e7c13b3ea1c3f91e93cff4",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "combined-artist.png": {
+      "sha256": "99fd639d0b5ae8f7cf25fb79f1a7c48dc1ffcbf0c7164ee755e6212c3ec7e1ee",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "combined-downloads-and-order.png": {
+      "sha256": "bc063c0add88df01ecfdcd05599041aee6fc63c8cd968e26e38dbee998d08572",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "manager-all-five.png": {
+      "sha256": "fd54034d59b980df4fffb282f14b2a3e7adcc4acd30198a1e8c014b270e72437",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "manager-alphabet-only.png": {
+      "sha256": "7a6605db2fd5835ecbbc8413563f6c11630c81186dab20609d1cca0e7dcdd8bd",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "manager-android-update.png": {
+      "sha256": "4098fad4af17a9bbe6144a09d202e06e1f5418e05a768940a1f73199fcdb4046",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "manager-art-success.png": {
+      "sha256": "2f1fe674181ee13e776dd4b3077eae77dab5a33bc0fcb9db85aecd027555b67d",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "manager-both-new.png": {
+      "sha256": "1f9acb4974f245489b7e9e6cb7f638b0351ea2b387ec3a24991d651e011a4fcd",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "manager-defaults.png": {
+      "sha256": "ecbeca17c47b858bd63eb4b69e08bb7cbaf23921bd90649dcf0ef91780f67bc5",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "manager-guard-error.png": {
+      "sha256": "3ae3f0007626e13c478a00106af36decf0c35878a5330c3344691beac8de0332",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "manager-jvm-success.png": {
+      "sha256": "978bdef30b9589e0181dc24e8a3ced1d633e97f85e7d43478bea1f17e51d7e0d",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "manager-offline-only.png": {
+      "sha256": "acd19e010853a2e2da204008edad9b0cb89f53d9ee73bf5184ffe81381575416",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    },
+    "manager-recovered.png": {
+      "sha256": "0d274dee07699fbe94c2aef407514a66fad863214f021948c70fa6cbb689e991",
+      "width": 1080,
+      "height": 1920,
+      "unedited_adb_capture": true
+    }
+  }
+}

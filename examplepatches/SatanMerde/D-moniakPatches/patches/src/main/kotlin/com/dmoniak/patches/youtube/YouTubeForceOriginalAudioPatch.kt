@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeForceOriginalAudioPatch = bytecodePatch(
     name = "Force Original Audio Language (Bypass Auto-Dubbing) - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces YouTube to automatically play the creator's original authentic audio track, bypassing unwanted AI/human auto-dubbed voiceovers and language translations.",
+    description = "⚠️ [Experimental / Untested] Forces YouTube to automatically play the creator's original authentic audio track, bypassing unwanted AI/human auto-dubbed voiceovers and language translations.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

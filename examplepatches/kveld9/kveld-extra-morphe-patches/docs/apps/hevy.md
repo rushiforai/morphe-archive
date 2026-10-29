@@ -10,24 +10,17 @@ Technical documentation and patch catalog for Hevy Gym Log Workout Tracker on An
 | :--- | :--- |
 | **Target App** | Hevy - Gym Log Workout Tracker |
 | **Package Name** | `com.hevy` |
-| **Target Version** | `3.2.2` |
+| **Target Version** | `Single pinned version (see README Patch Catalog)` |
 | **Target Package Format** | APKM bundle |
 | **Primary Architecture** | `arm64-v8a` / `armeabi-v7a` |
-| **Download Target** | [APKMirror](https://www.apkmirror.com/apk/hevy-gym-workout-tracker/hevy-gym-log-workout-tracker/hevy-gym-log-workout-tracker-3-2-2-release/hevy-gym-log-workout-tracker-3-2-2-android-apk-download/) |
+| **Download Target** | [APKMirror](https://www.apkmirror.com/apk/hevy-gym-workout-tracker/hevy-gym-log-workout-tracker/) |
 | **Authoritative Source** | APKMirror |
 
 ---
 
 ## 2. Applied Patches Catalog
 
-| Patch Name | Typology | Default State | Dependencies | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| **Stop Background Sync (Setup)** | `resourcePatch` | `false` (Opt-in) | None | Turns off billing components and background services. |
-| **Stop Background Sync** | `bytecodePatch` | `true` (Enabled) | `Stop Background Sync (Setup)` | Stops background sync tasks and alarms that drain the battery. |
-| **Remove Trackers (Setup)** | `resourcePatch` | `false` (Opt-in) | None | Removes tracking permissions and turns off crash-reporting providers. |
-| **Block Trackers** | `bytecodePatch` | `true` (Enabled) | `Remove Trackers (Setup)` | Blocks crash reporting, ad attribution and referral tracking. |
-| **Remove Extra Files** | `resourcePatch` | `true` (Enabled) | None | Deletes tutorial videos, editor stickers and junk to shrink the app. |
-| **Unlock Pro** | `rawResourcePatch` | `false` (Opt-in) | None | Unlocks Pro features stored on the device (routines, folders, charts). Server-limited items may still need a subscription. |
+The authoritative patch catalog with descriptions and options is generated in README.md from the built .mpp; see also patches-list.json.
 
 ---
 

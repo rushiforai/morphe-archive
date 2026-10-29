@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeCopyVideoUrlWithTimestampPatch = bytecodePatch(
     name = "Copy Video URL With Timestamp - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Adds a convenient option to copy the current video URL with the exact playback timestamp (?t=...) directly to the clipboard.",
+    description = "⚠️ [Experimental / Untested] Adds a convenient option to copy the current video URL with the exact playback timestamp (?t=...) directly to the clipboard.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

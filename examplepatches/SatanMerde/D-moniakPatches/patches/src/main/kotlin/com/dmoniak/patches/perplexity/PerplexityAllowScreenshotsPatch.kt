@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val perplexityAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & Block Telemetry - Perplexity (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes FLAG_SECURE window protections and disables background analytics/telemetry tracking calls (Adjust, Datadog, Mixpanel) in Perplexity.",
+    description = "⚠️ [Experimental / Untested] Removes FLAG_SECURE window protections and disables background analytics/telemetry tracking calls (Adjust, Datadog, Mixpanel) in Perplexity.",
 ) {
     compatibleWith(COMPATIBILITY_PERPLEXITY)
 

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val canvaUnlimitedBrandKitPatch = bytecodePatch(
     name = "Unlimited Brand Kit Slots - Canva (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes the Brand Kit slot limit, allowing unlimited custom color palettes, font sets, and logo libraries without a Canva Pro or Teams subscription.",
+    description = "⚠️ [Experimental / Untested] Removes the Brand Kit slot limit, allowing unlimited custom color palettes, font sets, and logo libraries without a Canva Pro or Teams subscription.",
 ) {
     compatibleWith(COMPATIBILITY_CANVA)
 

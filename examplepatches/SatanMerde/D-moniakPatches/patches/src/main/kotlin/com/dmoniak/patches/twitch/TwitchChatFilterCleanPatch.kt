@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val twitchChatFilterCleanPatch = bytecodePatch(
     name = "Chat Filter & Declutter Overlays - Twitch (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Filters chat spam, suppresses Hype Train popups, hides bits cheering banners, and declutters live stream overlays.",
+    description = "⚠️ [Experimental / Untested] Filters chat spam, suppresses Hype Train popups, hides bits cheering banners, and declutters live stream overlays.",
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
 

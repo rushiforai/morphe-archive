@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val altosAdventureInfiniteWingsuitPatch = bytecodePatch(
     name = "Infinite Wingsuit & Long Scarf - Alto's Adventure (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Provides unlimited wingsuit flight duration and keeps the scarf at maximum length without requiring endless trick combos in Alto's Adventure.",
+    description = "⚠️ [Experimental / Untested] Provides unlimited wingsuit flight duration and keeps the scarf at maximum length without requiring endless trick combos in Alto's Adventure.",
 ) {
     compatibleWith(COMPATIBILITY_ALTOS_ADVENTURE)
 

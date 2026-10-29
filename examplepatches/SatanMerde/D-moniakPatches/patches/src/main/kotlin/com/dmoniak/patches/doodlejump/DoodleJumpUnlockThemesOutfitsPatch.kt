@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val doodleJumpUnlockThemesOutfitsPatch = bytecodePatch(
     name = "Free Shopping & Billing Bypass - Doodle Jump (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing SDK in Doodle Jump to bypass in-app purchase verification, enabling free shopping for premium themes, outfits, and power-up packs.",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing SDK in Doodle Jump to bypass in-app purchase verification, enabling free shopping for premium themes, outfits, and power-up packs.",
 ) {
     compatibleWith(COMPATIBILITY_DOODLE_JUMP)
 

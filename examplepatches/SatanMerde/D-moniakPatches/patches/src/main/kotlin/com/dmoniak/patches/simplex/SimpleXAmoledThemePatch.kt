@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val simpleXAmoledThemePatch = bytecodePatch(
     name = "AMOLED Dark Theme - SimpleX (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Replaces dark grey backgrounds with pure OLED pitch black (#000000) across SimpleX Chat conversation screens and network status monitors.",
+    description = "⚠️ [Experimental / Untested] Replaces dark grey backgrounds with pure OLED pitch black (#000000) across SimpleX Chat conversation screens and network status monitors.",
 ) {
     compatibleWith(COMPATIBILITY_SIMPLEX)
 

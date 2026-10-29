@@ -110,10 +110,10 @@ class ReelsInterestControlTest {
         val context = PatchContexts.of(FixtureDex.classesHolding(bundle, "android_purge_26_q3_$REELS_CONTROL_MARKER"))
 
         val found = context.findReelsInterestControl()
-        // 452: LX/07NV->A02 stores v14 into LX/0E93;->A0A at instruction 74 in every build.
+        // 453: LX/08YT;->A02 (285) stores v13 into its component's A0A at instruction 57 in every build.
         assertEquals("$label: the use case", "A02", found.name)
-        assertEquals("$label: the store's place", 74, found.storeAt)
-        assertEquals("$label: the register it stores", 14, found.register)
+        assertEquals("$label: the store's place", 57, found.storeAt)
+        assertEquals("$label: the register it stores", 13, found.register)
         found.write(context)
 
         assertHooked("$label ${found.type}->${found.name}", context, found)
@@ -166,7 +166,7 @@ class ReelsInterestControlTest {
         const val COMPONENT = "Lfixture/RankingControls;"
 
         /**
-         * Shaped like 452's LX/07NV->A02: the marker, the reel's control wrapped when there is one or
+         * Shaped like 453's LX/08YT;->A02: the marker, the reel's control wrapped when there is one or
          * the fallback kept, and the jump that joins both landing on the store.
          *   0 the fallback   1 the marker   5 the reel's control   7 none keeps the fallback
          *   10 the store of the control   11 another store   12 the return

@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val sfaBypassAdsPatch = bytecodePatch(
     name = "Bypass Rewarded Ads - Shadow Fight Arena (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Bypasses rewarded video ads in Shadow Fight 4: Arena for free roulette spins, warrior chest timer skips, and bonus hero card rewards. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Bypasses rewarded video ads in Shadow Fight 4: Arena for free roulette spins, warrior chest timer skips, and bonus hero card rewards. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_SHADOW_FIGHT_4)
 
@@ -22,7 +22,7 @@ val sfaBypassAdsPatch = bytecodePatch(
 @Suppress("unused")
 val sfaFreeShoppingPatch = bytecodePatch(
     name = "Free Shopping - Shadow Fight Arena (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play BillingClient and client-side store verification in Shadow Fight 4: Arena to simulate in-app purchases. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play BillingClient and client-side store verification in Shadow Fight 4: Arena to simulate in-app purchases. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_SHADOW_FIGHT_4)
 

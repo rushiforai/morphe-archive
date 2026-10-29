@@ -704,6 +704,36 @@ exit 0
     }
     Write-Host "[scripts] device signing arguments: $($signingCases.Count) cases passed"
 
+    # With no -Apk, the declared build's fixture comes from HUSHGRAM_FIXTURE_DIR, a split .apks
+    # included, found the way the gate and the receipt find it. 0.0.17's .apks was skipped.
+    $fixtureFolder = Join-Path $signingRoot 'fixtures'
+    New-Item -ItemType Directory -Path $fixtureFolder -Force | Out-Null
+    [IO.File]::WriteAllText((Join-Path $fixtureFolder 'notes-1.0.apk'), 'fixture')
+    $splitFixture = Join-Path $fixtureFolder 'instagram-1.0-1-arm64-v8a.apks'
+    Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
+    $splitZip = [IO.Compression.ZipFile]::Open($splitFixture, [IO.Compression.ZipArchiveMode]::Create)
+    try {
+        $writer = [IO.StreamWriter]::new($splitZip.CreateEntry('base.apk').Open())
+        try { $writer.Write('fixture') } finally { $writer.Dispose() }
+    } finally { $splitZip.Dispose() }
+    $oldFixtureDir = [Environment]::GetEnvironmentVariable('HUSHGRAM_FIXTURE_DIR', 'Process')
+    try {
+        [Environment]::SetEnvironmentVariable('HUSHGRAM_FIXTURE_DIR', $fixtureFolder, 'Process')
+        [IO.File]::Delete($captured)
+        $refusal = $null
+        try {
+            & (Join-Path $Root 'scripts/patch-for-device.ps1') -Root $signingRoot `
+                -DesktopJar $desktop -Java $java -Aapt2 $aapt -OutDir (Join-Path $signingRoot 'from-fixtures') `
+                -Keystore (Join-Path $signingRoot 'fixture.keystore')
+        } catch { $refusal = $_.Exception.Message }
+        Assert-True ($refusal -ceq 'The desktop CLI exited with 17') "The fixture folder's .apks wasn't patched: $refusal"
+        $record = Get-Content -LiteralPath $captured -Raw | ConvertFrom-Json
+        Assert-True ([string]$record.arguments[-1] -ceq $splitFixture) "The fixture folder gave the CLI $($record.arguments[-1]), not the declared build's .apks."
+    } finally {
+        [Environment]::SetEnvironmentVariable('HUSHGRAM_FIXTURE_DIR', $oldFixtureDir, 'Process')
+    }
+    Write-Host '[scripts] device fixture lookup: the declared .apks is patched'
+
 } finally {
     if ($deviceLease -and $deviceLease.File.CanWrite) { Exit-HushgramDeviceLease $deviceLease }
     $resolvedLeaseDirectory = [IO.Path]::GetFullPath($leaseDirectory)

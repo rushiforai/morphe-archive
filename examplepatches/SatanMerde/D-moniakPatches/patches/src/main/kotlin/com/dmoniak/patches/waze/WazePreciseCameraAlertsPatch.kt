@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val wazePreciseCameraAlertsPatch = bytecodePatch(
     name = "Exact Radar & Speed Camera Alerts - Waze (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Restores exact speed camera and radar distance notifications in Waze, replacing vague hazard zone circles with pinpoint accuracy alerts.",
+    description = "⚠️ [Experimental / Untested] Restores exact speed camera and radar distance notifications in Waze, replacing vague hazard zone circles with pinpoint accuracy alerts.",
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
 

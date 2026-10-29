@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val claudePrivacyTelemetryPatch = bytecodePatch(
     name = "Disable Telemetry & Tracking - Claude AI (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Disables client-side analytical telemetry, performance metrics reporting, and tracker SDK calls in Claude AI.",
+    description = "⚠️ [Experimental / Untested] Disables client-side analytical telemetry, performance metrics reporting, and tracker SDK calls in Claude AI.",
 ) {
     compatibleWith(COMPATIBILITY_CLAUDE)
 

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val snapchatUnlockPlusFeaturesPatch = bytecodePatch(
     name = "Unlock Snapchat+ Features - Snapchat (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks client-side Snapchat+ UI features: custom app icons, post-view emojis, best friends pin badges, and dark mode controls.",
+    description = "⚠️ [Experimental / Untested] Unlocks client-side Snapchat+ UI features: custom app icons, post-view emojis, best friends pin badges, and dark mode controls.",
 ) {
     compatibleWith(COMPATIBILITY_SNAPCHAT)
 

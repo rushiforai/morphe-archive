@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val worldMapQuizUnlockPremiumPatch = bytecodePatch(
     name = "Unlock Premium & Unlimited Hints - World Map Quiz (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks the Premium edition, all continental maps, flag & capital quiz modes, and provides unlimited hint tokens in World Map Quiz by hooking Google Play Billing and purchase listeners.",
+    description = "⚠️ [Experimental / Untested] Unlocks the Premium edition, all continental maps, flag & capital quiz modes, and provides unlimited hint tokens in World Map Quiz by hooking Google Play Billing and purchase listeners.",
 ) {
     compatibleWith(COMPATIBILITY_WORLD_MAP_QUIZ)
 

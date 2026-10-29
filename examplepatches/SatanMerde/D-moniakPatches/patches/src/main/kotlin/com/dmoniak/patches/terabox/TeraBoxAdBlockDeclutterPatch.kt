@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val teraBoxAdBlockDeclutterPatch = bytecodePatch(
     name = "Block Ads & Hide VIP Nags - TeraBox (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips video startup ads, cloud storage interstitial banners, and persistent TeraBox Premium VIP subscription nag popups by neutralizing ad SDK calls.",
+    description = "⚠️ [Experimental / Untested] Strips video startup ads, cloud storage interstitial banners, and persistent TeraBox Premium VIP subscription nag popups by neutralizing ad SDK calls.",
 ) {
     compatibleWith(COMPATIBILITY_TERABOX)
 

@@ -109,8 +109,12 @@ class TapFeedVideoToPauseHookTest {
                 assertEquals("$what: the release's class", parts.handler, found.release.definingClass)
                 val point = found.handler.parameterTypes[2].toString()
                 val state = found.handler.parameterTypes[4].toString()
+                // 453 hands the press entry the post's holder before the state; its (View, Media, point,
+                // state, int) method is the double-tap like and must not be taken for the press.
+                val holder = found.handler.parameterTypes[3].toString()
                 assertEquals("$what: the press entry", listOf("Landroid/view/View;", media, point, state),
-                    found.press.parameterTypes.map(Any::toString))
+                    found.press.parameterTypes.map(Any::toString).filter { it != holder })
+                assertEquals("$what: the press entry ends with the state", state, found.press.parameterTypes.last().toString())
                 assertEquals("$what: the release", listOf(media, point, state, "Z"), found.release.parameterTypes.map(Any::toString))
                 assertEquals("$what: the Reels launcher's class", parts.launcher, found.launcher.definingClass)
                 assertEquals("$what: the launcher takes the post and its state", listOf(media, state),
@@ -118,14 +122,14 @@ class TapFeedVideoToPauseHookTest {
                 assertEquals("$what: the launcher's lazy field is its own", parts.launcher, found.launcherSupplier.definingClass)
                 assertEquals("$what: and is asked as the handler's is", found.supplierValue.toString(), found.launcherValue.toString())
                 if (apk.extension == "apks") {
-                    assertEquals("$what: the launcher's names", listOf("LX/05AO;", "A00", "A03"),
+                    assertEquals("$what: the launcher's names", listOf("LX/01Jk;", "A00", "A03"),
                         listOf(found.launcher.definingClass, found.launcher.name, found.launcherSupplier.name))
-                    // The declared build's own names, 385713073. 451 pauses with a string of its own, no
+                    // The declared build's own names, 385914283. 451 paused with a string of its own, no
                     // Integer constant named.
                     assertEquals("$what: the pause reason", "tapped", found.reasonText)
                     assertEquals(
                         "$what: the names",
-                        listOf("A05", "A06", "A09", "A0C", "A0D", "A00", "A0n", "A01", "A00", "A0B", "A03", "A0F", "A0s", "A3G"),
+                        listOf("A06", "A05", "A09", "A0C", "A0F", "A00", "A0m", "A01", "A00", "A0B", "A03", "A0F", "A0u", "A3G"),
                         listOf(
                             found.handler.name, found.press.name, found.release.name, found.moduleSupplier.name,
                             found.controllerField.name, found.playerField.name, found.isPlaying.name, found.itemField.name,
@@ -164,7 +168,7 @@ class TapFeedVideoToPauseHookTest {
                 assertEquals("$what: a no goes on to the handler's first instruction", hookLength,
                     (code[5] as BuilderOffsetInstruction).target.location.index)
 
-                // The press entry: the same guard, on the post in p2 and the state in p4, in no other method.
+                // The press entry: the same guard, on the post in p2 and the state in its last parameter, in no other method.
                 val pressing = listOf(parts.handler, parts.controller, FEED_PLAYER_READER).flatMap { type ->
                     context.mutableClassDefBy(type).methods.filter { m -> m.code().any { it.referenceText() == FEED_PRESSED } }
                 }
@@ -181,9 +185,9 @@ class TapFeedVideoToPauseHookTest {
                     ),
                     pressCode.take(hookLength).map { it.opcode },
                 )
-                val pressP0 = press.implementation!!.registerCount - 5
+                val pressP0 = press.implementation!!.registerCount - found.press.parameterTypes.size - 1
                 assertEquals("$what: the press's handler, post and state are read from their own registers",
-                    listOf(pressP0, pressP0 + 2, pressP0 + 4), pressCode.take(3).map { (it as TwoRegisterInstruction).registerB })
+                    listOf(pressP0, pressP0 + 2, pressP0 + found.press.parameterTypes.size), pressCode.take(3).map { (it as TwoRegisterInstruction).registerB })
                 assertEquals("$what: into the press's first three locals", listOf(0, 1, 2),
                     pressCode.take(3).map { (it as OneRegisterInstruction).registerA })
                 assertEquals("$what: which the press call hands over", listOf(0, 1, 2), pressCode[3].arguments())

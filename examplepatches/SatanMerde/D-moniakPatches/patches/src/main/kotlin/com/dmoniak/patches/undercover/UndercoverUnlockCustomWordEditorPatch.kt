@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val undercoverUnlockCustomWordEditorPatch = bytecodePatch(
     name = "Unlock Custom Words Creator - Undercover (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks the custom word pack creator allowing players to create, save, and edit unlimited secret word pairs and custom clue databases without subscription restrictions.",
+    description = "⚠️ [Experimental / Untested] Unlocks the custom word pack creator allowing players to create, save, and edit unlimited secret word pairs and custom clue databases without subscription restrictions.",
 ) {
     compatibleWith(COMPATIBILITY_UNDERCOVER)
 

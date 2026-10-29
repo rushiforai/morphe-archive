@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val telegramBlockAdsDeclutterPatch = bytecodePatch(
     name = "Block Ads & Hide Stories - Telegram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes sponsored messages in public channels, hides stories carousel from the chat list, and eliminates Telegram Premium upgrade reminders.",
+    description = "⚠️ [Experimental / Untested] Removes sponsored messages in public channels, hides stories carousel from the chat list, and eliminates Telegram Premium upgrade reminders.",
 ) {
     compatibleWith(COMPATIBILITY_TELEGRAM)
 

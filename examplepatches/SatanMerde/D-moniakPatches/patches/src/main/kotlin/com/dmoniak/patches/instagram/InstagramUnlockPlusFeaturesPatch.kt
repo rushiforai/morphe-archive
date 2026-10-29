@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val instagramUnlockPlusFeaturesPatch = bytecodePatch(
     name = "Unlock Instagram Plus & Client Entitlements - Instagram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Locally unlocks Instagram Plus subscription benefits, custom app launcher icons, enhanced 60 FPS story rendering, and extended multi-media carousel limits.",
+    description = "⚠️ [Experimental / Untested] Locally unlocks Instagram Plus subscription benefits, custom app launcher icons, enhanced 60 FPS story rendering, and extended multi-media carousel limits.",
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 

@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val fruitNinjaBlockAdsPatch = bytecodePatch(
     name = "Block Ads & Video Commercials - Fruit Ninja (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Disables pre-game video ads, post-match banners, and promotional reward prompts in Fruit Ninja by hooking real mediation SDKs.",
+    description = "⚠️ [Experimental / Untested] Disables pre-game video ads, post-match banners, and promotional reward prompts in Fruit Ninja by hooking real mediation SDKs.",
 ) {
     compatibleWith(COMPATIBILITY_FRUIT_NINJA)
 

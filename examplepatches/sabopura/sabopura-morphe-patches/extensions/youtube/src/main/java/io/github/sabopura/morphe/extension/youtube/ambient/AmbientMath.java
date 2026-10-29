@@ -39,6 +39,41 @@ final class AmbientMath {
         return new int[]{left, top, right, bottom};
     }
 
+    /**
+     * Content bounds found on a {@code scale}-times smaller sample, moved to the exact edge on
+     * the full picture: each edge that has a bar is searched within one sample of where it
+     * was found. Edges without a bar stay at the picture's border.
+     */
+    static int[] refineBounds(int[] picture, int width, int height, int[] coarse, int scale) {
+        int left = Math.min(width, coarse[0] * scale);
+        int top = Math.min(height, coarse[1] * scale);
+        int right = Math.min(width, coarse[2] * scale);
+        int bottom = Math.min(height, coarse[3] * scale);
+        if (top > 0) {
+            int y = Math.max(0, top - scale);
+            while (y < Math.min(bottom - 1, top + scale) && isDarkRow(picture, width, y)) y++;
+            top = y;
+        }
+        if (bottom < height) {
+            int y = Math.min(height - 1, bottom - 1 + scale);
+            while (y > Math.max(top, bottom - 1 - scale) && isDarkRow(picture, width, y)) y--;
+            bottom = y + 1;
+        }
+        if (left > 0) {
+            int x = Math.max(0, left - scale);
+            while (x < Math.min(right - 1, left + scale)
+                    && isDarkColumn(picture, width, x, top, bottom)) x++;
+            left = x;
+        }
+        if (right < width) {
+            int x = Math.min(width - 1, right - 1 + scale);
+            while (x > Math.max(left, right - 1 - scale)
+                    && isDarkColumn(picture, width, x, top, bottom)) x--;
+            right = x + 1;
+        }
+        return new int[]{left, top, right, bottom};
+    }
+
     private static boolean isDarkRow(int[] pixels, int width, int row) {
         int allowed = Math.max(0, (int) (width * BAR_NOISE_FRACTION));
         int bright = 0;
@@ -89,6 +124,184 @@ final class AmbientMath {
                 float u = clamp((x + 0.5f - centerX) / halfWidth, -1f, 1f);
                 float sx = sLeft + (u + 1f) * 0.5f * (sWidth - 1);
                 out[rowOffset + x] = sampleBilinear(src, srcWidth, srcBounds, sx, sy);
+            }
+        }
+    }
+
+    /** Scratch length {@link #composeStraight} needs for a source region of this size. */
+    static int straightScratchLength(int[] bounds) {
+        int w = Math.max(1, bounds[2] - bounds[0]);
+        int h = Math.max(1, bounds[3] - bounds[1]);
+        return 3 * (w * (h + 1) + (w + 1) * h);
+    }
+
+    /**
+     * Theater light: runs straight out of the picture, coloured from the whole picture. A point
+     * below the video takes the average of the same picture column over a band that grows
+     * from the lower {@code nearBand} of the picture right under it to the whole height at
+     * {@code length} away, so a thin border or bar at the very edge cannot decide the colour.
+     * Above, left and right of the video work the same way from their side.
+     *
+     * @param scratch at least {@link #straightScratchLength} ints
+     */
+    static void composeStraight(int[] src, int srcWidth, int[] fullBounds, int[] out,
+                                int outWidth, int outHeight, float[] video, float nearBand,
+                                float length, int[] scratch) {
+        int[] bounds = trimUniformEdges(src, srcWidth, fullBounds);
+        int w = Math.max(1, bounds[2] - bounds[0]);
+        int h = Math.max(1, bounds[3] - bounds[1]);
+        int columns = w * (h + 1); // per column: running sums down the rows
+        int rows = (w + 1) * h;    // per row: running sums across the columns
+        int channel = columns + rows;
+        for (int x = 0; x < w; x++) {
+            int base = x * (h + 1);
+            scratch[base] = scratch[channel + base] = scratch[2 * channel + base] = 0;
+            for (int y = 0; y < h; y++) {
+                int c = src[(bounds[1] + y) * srcWidth + bounds[0] + x];
+                scratch[base + y + 1] = scratch[base + y] + ((c >> 16) & 0xFF);
+                scratch[channel + base + y + 1] = scratch[channel + base + y] + ((c >> 8) & 0xFF);
+                scratch[2 * channel + base + y + 1] = scratch[2 * channel + base + y] + (c & 0xFF);
+            }
+        }
+        for (int y = 0; y < h; y++) {
+            int base = columns + y * (w + 1);
+            scratch[base] = scratch[channel + base] = scratch[2 * channel + base] = 0;
+            for (int x = 0; x < w; x++) {
+                int c = src[(bounds[1] + y) * srcWidth + bounds[0] + x];
+                scratch[base + x + 1] = scratch[base + x] + ((c >> 16) & 0xFF);
+                scratch[channel + base + x + 1] = scratch[channel + base + x] + ((c >> 8) & 0xFF);
+                scratch[2 * channel + base + x + 1] = scratch[2 * channel + base + x] + (c & 0xFF);
+            }
+        }
+        float videoWidth = Math.max(1f, video[2] - video[0]);
+        float videoHeight = Math.max(1f, video[3] - video[1]);
+        float safeLength = Math.max(1f, length);
+        float band = clamp(nearBand, 0.05f, 1f);
+        for (int y = 0; y < outHeight; y++) {
+            float cy = y + 0.5f;
+            float above = video[1] - cy;
+            float below = cy - video[3];
+            float vertical = Math.max(0f, Math.max(above, below));
+            // Inside the video (hidden by the player) take the nearer edge's colours, so the
+            // light blends into the picture without a seam when it is enlarged.
+            boolean lowerHalf = cy > (video[1] + video[3]) / 2f;
+            int row = clamp((int) ((cy - video[1]) / videoHeight * h), 0, h - 1);
+            for (int x = 0; x < outWidth; x++) {
+                float cx = x + 0.5f;
+                float left = video[0] - cx;
+                float right = cx - video[2];
+                float horizontal = Math.max(0f, Math.max(left, right));
+                boolean rightHalf = cx > (video[0] + video[2]) / 2f;
+                int column = clamp((int) ((cx - video[0]) / videoWidth * w), 0, w - 1);
+                int base;
+                int from;
+                int to;
+                if (vertical >= horizontal) {
+                    float t = Math.min(1f, vertical / safeLength);
+                    int size = clamp(Math.round(h * (band + (1f - band) * t)), 1, h);
+                    base = column * (h + 1);
+                    from = below > 0f || (vertical == 0f && lowerHalf) ? h - size : 0;
+                    to = from + size;
+                } else {
+                    float t = Math.min(1f, horizontal / safeLength);
+                    int size = clamp(Math.round(w * (band + (1f - band) * t)), 1, w);
+                    base = columns + row * (w + 1);
+                    from = right > 0f || (horizontal == 0f && rightHalf) ? w - size : 0;
+                    to = from + size;
+                }
+                int count = to - from;
+                int r = (scratch[base + to] - scratch[base + from]) / count;
+                int g = (scratch[channel + base + to] - scratch[channel + base + from]) / count;
+                int b = (scratch[2 * channel + base + to] - scratch[2 * channel + base + from])
+                        / count;
+                out[y * outWidth + x] = 0xFF000000 | (r << 16) | (g << 8) | b;
+            }
+        }
+    }
+
+    /** Largest share of the picture an edge trim may remove on each side. */
+    private static final float MAX_TRIM = 0.12f;
+
+    /**
+     * Drops rows and columns at the picture's edges that are one flat colour (frame lines,
+     * burned-in bars, a coloured border), so the light continues the picture itself.
+     */
+    static int[] trimUniformEdges(int[] src, int srcWidth, int[] bounds) {
+        int left = bounds[0];
+        int top = bounds[1];
+        int right = bounds[2];
+        int bottom = bounds[3];
+        int maxRows = Math.round((bottom - top) * MAX_TRIM);
+        int maxColumns = Math.round((right - left) * MAX_TRIM);
+        for (int i = 0; i < maxRows
+                && isUniform(src, srcWidth, left, bottom - 1, right - left, 1); i++) {
+            bottom--;
+        }
+        for (int i = 0; i < maxRows && isUniform(src, srcWidth, left, top, right - left, 1); i++) {
+            top++;
+        }
+        for (int i = 0; i < maxColumns
+                && isUniform(src, srcWidth, right - 1, top, bottom - top, srcWidth); i++) {
+            right--;
+        }
+        for (int i = 0; i < maxColumns
+                && isUniform(src, srcWidth, left, top, bottom - top, srcWidth); i++) {
+            left++;
+        }
+        return new int[]{left, top, right, bottom};
+    }
+
+    /** True when a line of pixels (start, count, step) stays within a narrow colour range. */
+    private static boolean isUniform(int[] src, int srcWidth, int x, int y, int count, int step) {
+        if (count <= 1) return false;
+        int start = y * srcWidth + x;
+        int minR = 255;
+        int minG = 255;
+        int minB = 255;
+        int maxR = 0;
+        int maxG = 0;
+        int maxB = 0;
+        for (int i = 0; i < count; i++) {
+            int c = src[start + i * step];
+            int r = (c >> 16) & 0xFF;
+            int g = (c >> 8) & 0xFF;
+            int b = c & 0xFF;
+            minR = Math.min(minR, r);
+            maxR = Math.max(maxR, r);
+            minG = Math.min(minG, g);
+            maxG = Math.max(maxG, g);
+            minB = Math.min(minB, b);
+            maxB = Math.max(maxB, b);
+        }
+        return maxR - minR <= 24 && maxG - minG <= 24 && maxB - minB <= 24;
+    }
+
+    /**
+     * Blends a sharp and a soft copy of the light by the distance from the video: shapes stay
+     * crisp right next to the picture and melt into soft light farther away.
+     *
+     * @param length distance (buffer pixels) at which only the soft copy is left
+     */
+    static void blendByDistance(int[] sharp, int[] soft, int width, int height, float[] video,
+                                float length) {
+        float safeLength = Math.max(1f, length);
+        for (int y = 0; y < height; y++) {
+            float cy = y + 0.5f;
+            float dy = cy < video[1] ? video[1] - cy : cy > video[3] ? cy - video[3] : 0f;
+            for (int x = 0; x < width; x++) {
+                float cx = x + 0.5f;
+                float dx = cx < video[0] ? video[0] - cx : cx > video[2] ? cx - video[2] : 0f;
+                float t = Math.min(1f, (float) Math.sqrt(dx * dx + dy * dy) / safeLength);
+                int weight = Math.round(t * t * (3f - 2f * t) * 256);
+                if (weight == 0) continue;
+                int index = y * width + x;
+                int a = sharp[index];
+                int b = soft[index];
+                int keep = 256 - weight;
+                int r = (((a >> 16) & 0xFF) * keep + ((b >> 16) & 0xFF) * weight) >> 8;
+                int g = (((a >> 8) & 0xFF) * keep + ((b >> 8) & 0xFF) * weight) >> 8;
+                int bl = ((a & 0xFF) * keep + (b & 0xFF) * weight) >> 8;
+                sharp[index] = 0xFF000000 | (r << 16) | (g << 8) | bl;
             }
         }
     }
@@ -404,6 +617,11 @@ final class AmbientMath {
                 out[y * width + x] = 0xFF000000 | source[row + sx];
             }
         }
+    }
+
+    /** Sets every pixel fully opaque. */
+    static void makeOpaque(int[] pixels, int length) {
+        for (int i = 0; i < length; i++) pixels[i] |= 0xFF000000;
     }
 
     /** Multiplies the brightness of every pixel. */

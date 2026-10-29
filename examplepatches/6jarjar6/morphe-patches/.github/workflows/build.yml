@@ -1,0 +1,93 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build patches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Read version
+        id: version
+        run: echo "tag=v$(grep -E '^version' gradle.properties | cut -d= -f2 | tr -d '[:space:]')" >> "$GITHUB_OUTPUT"
+
+      - name: Build patches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: List artifacts
+        run: ls -la patches/build/libs/*.mpp
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          files: patches/build/libs/*.mpp
+
+      - name: Refresh patch metadata (version-gated)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VER="$(grep -E '^version' gradle.properties | cut -d= -f2 | tr -d '[:space:]')"
+          LV="$(python3 -c "import json;print(json.load(open('patches-list.json')).get('version',''))" 2>/dev/null || echo '')"
+          BV="$(python3 -c "import json;print(json.load(open('patches-bundle.json')).get('version',''))" 2>/dev/null || echo '')"
+
+          # Gate on version: only refresh when the committed metadata is stale
+          # (i.e. a new version was shipped). This keeps created_at stable
+          # across reruns, so the step is truly idempotent and does not commit
+          # on every push.
+          if [ "$LV" = "$VER" ] && [ "$BV" = "$VER" ]; then
+            echo "Metadata already at $VER — skipping refresh"
+            exit 0
+          fi
+          echo "Refreshing metadata to $VER (list=$LV, bundle=$BV)"
+
+          # Catalog (regenerated from the freshly built .mpp)
+          ./gradlew :patches:generatePatchesList --no-daemon
+
+          # Bundle descriptor (download url + version + timestamp)
+          python3 - "$VER" <<'PY'
+          import json, sys, datetime
+          version = sys.argv[1]
+          payload = {
+            "created_at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
+            "description": (
+              "Bundle of patches for Bejeweled Classic (com.ea.gp.bej3, 4.0.0).\n"
+              "- Ad-free: removes advertisement placements.\n"
+              "- Crash-guard: injects null guards across the Java glue layer.\n"
+              "- Telemetry-disabled: suppresses analytics/telemetry endpoints and severs the "
+              "tracking/Kinesis-Cognito chain, including consent/opt-in flags.\n"
+              "Developed with AI assistance; each patch statically verified at release time."
+            ),
+            "download_url": f"https://github.com/6jarjar6/morphe-patches/releases/download/v{version}/patches-{version}.mpp",
+            "signature_download_url": "",
+            "version": version,
+          }
+          open("patches-bundle.json", "w").write(json.dumps(payload, indent=2) + "\n")
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-list.json patches-bundle.json
+          git commit -m "chore: regenerate patch metadata for ${VER}"
+          git push

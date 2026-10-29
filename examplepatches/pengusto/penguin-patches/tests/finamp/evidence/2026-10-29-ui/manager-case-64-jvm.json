@@ -1,0 +1,26 @@
+{
+  "mask": 64,
+  "runtime": "jvm",
+  "runtime_log": "10-29 02:00:52.386  1498 11572 I Morphe Patcher: Runtime: name=jvm memoryLimit=1536",
+  "ui_success": true,
+  "apk_sha256": "3de300e4ef2395e8e87f7b3c0e0c140fb5eebe742aca2e0e1e2401b5b4acd4c8",
+  "native_sha256": "f7d19019147e976515a3de0cdc355a0cf6ba129a7e5f3c16218dedc221510199",
+  "changed_retained_entries": [
+    "lib/arm64-v8a/libapp.so"
+  ],
+  "abis": [
+    "arm64-v8a"
+  ],
+  "recovery": false,
+  "available_patch_mask": 127,
+  "actual_export_path": "/sdcard/Download/uifinal-manager-mask-64-jvm.apk",
+  "verified_selection_states": {
+    "Fix offline artist tracks": "Fix offline artist tracks, Disabled",
+    "Fix quick settings banner contrast": "Fix quick settings banner contrast, Enabled",
+    "Fix section title validation": "Fix section title validation, Disabled",
+    "Fix track alphabet navigation": "Fix track alphabet navigation, Disabled",
+    "Keep player output controls accessible": "Keep player output controls accessible, Disabled",
+    "Load artist pages faster": "Load artist pages faster, Disabled",
+    "Song artist order": "Song artist order, Disabled"
+  }
+}

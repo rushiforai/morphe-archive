@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val photomathAdFreeAndOfflineSolverPatch = bytecodePatch(
     name = "Ad-Free & Unlock Animated Step Solutions - Photomath (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Blocks ads and unlocks deep step-by-step animated explanations, textbook geometry solutions, and calculation tips in Photomath.",
+    description = "⚠️ [Experimental / Untested] Blocks ads and unlocks deep step-by-step animated explanations, textbook geometry solutions, and calculation tips in Photomath.",
 ) {
     compatibleWith(COMPATIBILITY_PHOTOMATH)
 

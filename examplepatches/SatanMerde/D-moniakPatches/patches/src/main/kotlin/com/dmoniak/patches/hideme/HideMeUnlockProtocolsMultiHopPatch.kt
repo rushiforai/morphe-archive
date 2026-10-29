@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val hideMeUnlockProtocolsMultiHopPatch = bytecodePatch(
     name = "Unlock WireGuard Stealth & Multi-Hop - hide.me VPN (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks WireGuard Stealth protocol, Multi-Hop (Double VPN cascading), and custom port binding in hide.me VPN.",
+    description = "⚠️ [Experimental / Untested] Unlocks WireGuard Stealth protocol, Multi-Hop (Double VPN cascading), and custom port binding in hide.me VPN.",
 ) {
     compatibleWith(COMPATIBILITY_HIDEME)
 

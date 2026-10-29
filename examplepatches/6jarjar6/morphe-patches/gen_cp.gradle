@@ -1,0 +1,12 @@
+gradle.projectsEvaluated {
+    rootProject.tasks.register("printPatchRuntimeClasspath") {
+        doLast {
+            def patches = rootProject.project(":patches")
+            def rt = patches.configurations.findByName("runtimeClasspath")
+            rt.withLock {
+                rt.resolve()
+                println(rt.files.collect { it.absolutePath }.join(":"))
+            }
+        }
+    }
+}

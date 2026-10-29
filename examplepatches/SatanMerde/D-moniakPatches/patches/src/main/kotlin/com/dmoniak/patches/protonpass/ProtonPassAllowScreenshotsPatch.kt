@@ -12,7 +12,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val protonPassAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & Screen Recording - Proton Pass (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Bypasses Android WindowManager FLAG_SECURE restrictions in Proton Pass, allowing you to take screenshots or record screens of recovery keys, 2FA QR codes, and credentials.",
+    description = "⚠️ [Experimental / Untested] Bypasses Android WindowManager FLAG_SECURE restrictions in Proton Pass, allowing you to take screenshots or record screens of recovery keys, 2FA QR codes, and credentials.",
 ) {
     compatibleWith(COMPATIBILITY_PROTON_PASS)
 

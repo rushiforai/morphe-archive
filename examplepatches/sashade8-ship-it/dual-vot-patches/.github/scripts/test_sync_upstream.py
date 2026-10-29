@@ -426,6 +426,26 @@ class SyncUpstreamTests(unittest.TestCase):
                 "class StreamingDataRequest {}"
             )
 
+    def test_dev10_download_auth_preserves_direct_stream_flag(self):
+        conflict = (
+            "import app.morphe.extension.shared.innertube.utils.AuthUtils;\n"
+            "<<<<<<< HEAD\n"
+            "        return new StreamingDataRequest(videoId, false, lastPlayerHeaders, true,\n"
+            "                clientOrder, true, false);\n=======\n"
+            "        // The auth hook keeps the headers even if spoofing is off, but it is not used by all apps.\n"
+            "        Map<String, String> headers = AuthUtils.getAuthorization().isEmpty()\n"
+            "                ? lastPlayerHeaders\n                : AuthUtils.getRequestHeader();\n"
+            "        return new StreamingDataRequest(videoId, false, headers, true, clientOrder, true);\n"
+            ">>>>>>> refs/tags/v1.49.0-dev.10\n"
+        )
+        merged = sync_upstream.merge_streaming_data_request_dev10(conflict)
+        self.assertIn("AuthUtils.getRequestHeader()", merged)
+        self.assertIn("headers, true,\n                clientOrder, true, false", merged)
+        with self.assertRaises(sync_upstream.SyncError):
+            sync_upstream.merge_streaming_data_request_dev10(conflict.replace("true, false", "false, false"))
+        with self.assertRaises(sync_upstream.SyncError):
+            sync_upstream.merge_streaming_data_request_dev10(conflict + "<<<<<<< another\n")
+
     def test_known_dev148_settings_merge_preserves_both_engines(self):
         root = MODULE_PATH.parents[2]
         path = root / sync_upstream.DEV148_SETTINGS_PATH

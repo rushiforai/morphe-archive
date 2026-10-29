@@ -1028,6 +1028,7 @@ Rounded corners on posts	Cantos arredondados nas publicações
 Rounds the corners of a post's photo, video and carousel pages in Home and Following. Posts you scroll to after a change show it. Stories, profiles and Explore stay as they were.	Arredonda os cantos da foto, do vídeo e das páginas do carrossel de uma publicação no Início e em Seguindo. As publicações que você rolar depois de uma mudança já aparecem assim. Stories, perfis e Explorar continuam como estavam.
 Corner size	Tamanho dos cantos
 Rounded corners on Reels	Cantos arredondados nos Reels
+Rounded corners on stories	Cantos arredondados nos stories
 Seek bar on stories	Barra de busca nos stories
 Shows a bar near the bottom of a video story. Drag it to jump to any point in the video. Photos don't get one.	Mostra uma barra perto da parte de baixo de um story em vídeo. Arraste para pular para qualquer ponto do vídeo. Fotos não têm.
 Thicker story progress bar	Barra de progresso dos stories mais grossa
@@ -1036,6 +1037,7 @@ Thickness	Espessura
 Twice as thick	Duas vezes mais grossa
 Three times as thick	Três vezes mais grossa
 Rounds the corners of a reel's video in the Reels tab and wherever a reel opens full screen. The seek bar, captions and buttons stay whole.	Arredonda os cantos do vídeo de um reel na aba Reels e onde quer que um reel abra em tela cheia. A barra de progresso, as legendas e os botões ficam inteiros.
+Rounds the corners of a story's photo or video, from the tray, a profile or a highlight. The progress bar, names and stickers stay whole.	Arredonda os cantos da foto ou do vídeo de um story, aberto pela bandeja, por um perfil ou por um destaque. A barra de progresso, os nomes e as figurinhas ficam inteiros.
 Peek at the next carousel page	Espiar a próxima página do carrossel
 A carousel post's page sits a little in from the edges, with the start of the next page showing at the right.	A página de um post em carrossel fica um pouco afastada das bordas, com o começo da próxima página aparecendo à direita.
 Large	Grande

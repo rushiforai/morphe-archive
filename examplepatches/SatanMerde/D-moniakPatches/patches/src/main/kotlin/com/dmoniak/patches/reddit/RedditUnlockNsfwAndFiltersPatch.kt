@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val redditUnlockNsfwAndFiltersPatch = bytecodePatch(
     name = "Bypass NSFW Blur & Warning Dialogs - Reddit (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Automatically unblurs mature/NSFW media thumbnails and bypasses annoying confirmation dialogs for adult communities in Reddit.",
+    description = "⚠️ [Experimental / Untested] Automatically unblurs mature/NSFW media thumbnails and bypasses annoying confirmation dialogs for adult communities in Reddit.",
 ) {
     compatibleWith(COMPATIBILITY_REDDIT)
 

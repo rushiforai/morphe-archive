@@ -1,0 +1,33 @@
+{
+  "source_prs": {
+    "1355": {
+      "pr": 1836,
+      "tests": 29,
+      "focused_tests": 4,
+      "original_regressions_fail": 3
+    },
+    "1756": {
+      "pr": 1837,
+      "tests": 33,
+      "focused_tests": 8,
+      "original_regressions_fail": 6
+    }
+  },
+  "combined_native_source_tests": 78,
+  "python_tests": 14,
+  "readme_tests": 9,
+  "all_native_compositions_replayed": 127,
+  "real_desktop_selections": 127,
+  "desktop_invalid_inputs_rejected": 4,
+  "candidate_bundle_sha256": "d8afd8a1cd55e7f5114e494afa1d099553e34d24c350f0aec2b6208d371c9038",
+  "actual_manager_cases": [
+    "127-art",
+    "127-jvm",
+    "31-jvm",
+    "32-jvm",
+    "64-jvm",
+    "96-jvm"
+  ],
+  "physical_device_or_live_server_coverage": false,
+  "ram_benchmarked": false
+}

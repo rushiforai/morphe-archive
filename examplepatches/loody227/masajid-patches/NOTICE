@@ -1,0 +1,20 @@
+Masajid Patches
+===============
+
+Third-party patch bundle for sa.gov.moia.beneficiaryapp ("Masajid").
+
+Licensed under the GNU General Public License v3.0 (see LICENSE).
+
+This project is an independent bundle. It is NOT affiliated with, endorsed by, or
+sponsored by the Morphe project, the MorpheApp organisation, or the app's publisher.
+
+Portions of the patch-authoring technique and helper patterns (clearing a method
+body while dropping its try/catch table, growing a method's register count, forcing
+an early return) are derived from the Morphe Patches library and ReVanced:
+
+  https://github.com/MorpheApp/morphe-patches-library
+  https://github.com/ReVanced/revanced-patches
+
+which are GPLv3 with additional Section 7 terms. Their notices are preserved here
+and in the source headers, and this project uses its own distinct branding as
+required by those terms. "Morphe" is not used as this project's name or title.

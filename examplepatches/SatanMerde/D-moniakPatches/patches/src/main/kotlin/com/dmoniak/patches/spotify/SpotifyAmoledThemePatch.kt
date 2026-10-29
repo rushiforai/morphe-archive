@@ -37,7 +37,7 @@ val spotifyAmoledThemeBytecodePatch = bytecodePatch(
 @Suppress("unused")
 val spotifyAmoledThemePatch = resourcePatch(
     name = "Spicetify AMOLED Black Theme - Spotify (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Implements an OLED True Black (#000000) theme for Spotify Mobile, replacing dark-grey backgrounds across Android resources (res/values/colors.xml), Jetpack Compose Encore design system (64-bit literals), obfuscated Dalvik bytecode (32-bit & 24-bit literals), semantic theme methods, and string tables for maximum contrast and battery savings.",
+    description = "⚠️ [Experimental / Untested] Implements an OLED True Black (#000000) theme for Spotify Mobile, replacing dark-grey backgrounds across Android resources (res/values/colors.xml), Jetpack Compose Encore design system (64-bit literals), obfuscated Dalvik bytecode (32-bit & 24-bit literals), semantic theme methods, and string tables for maximum contrast and battery savings.",
 ) {
     compatibleWith(COMPATIBILITY_SPOTIFY)
     dependsOn(spotifyAmoledThemeBytecodePatch)

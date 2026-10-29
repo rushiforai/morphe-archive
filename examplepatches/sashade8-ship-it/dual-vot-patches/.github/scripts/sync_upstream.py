@@ -133,6 +133,13 @@ STREAMING_DATA_REQUEST_STABLE_CLIENT_ORDER_CONFLICT_BLOBS = (
     "e3b9f5eebb00b69212c17ac4bc213fc1d9fa4c7b",
 )
 
+# Morphe dev.10 adds authenticated download headers beside Dual direct streams.
+STREAMING_DATA_REQUEST_DEV10_CONFLICT_BLOBS = (
+    "fbe2f812c01e99a697549dcdfd3c6dd94c2873d5",
+    "5aac5e7c17ff675c3bc12bbe6419415770f2a0d5",
+    "6b52423befc0e3b83e2b641d6514c0c3f30e42f8",
+)
+
 # One-time, fail-closed merge of Morphe 1.48.0-dev.8 Series Tracker with
 # Dual VoT's Yandex settings. Any different source versions require review.
 DEV148_SETTINGS_PATH = (
@@ -825,6 +832,24 @@ def merge_streaming_data_request_stable_client_order(ours: str) -> str:
     return merge_streaming_data_request_client_order(with_downloads)
 
 
+def merge_streaming_data_request_dev10(source: str) -> str:
+    """Keep upstream authentication and Dual's independent request flag."""
+    pattern = (r"<<<<<<< (?:HEAD|ours)\n"
+        r"        return new StreamingDataRequest\(videoId, false, lastPlayerHeaders, true,\n"
+        r"                clientOrder, true, false\);\n=======\n"
+        r"(        // The auth hook keeps the headers even if spoofing is off, but it is not used by all apps\.\n"
+        r"        Map<String, String> headers = AuthUtils\.getAuthorization\(\)\.isEmpty\(\)\n"
+        r"                \? lastPlayerHeaders\n                : AuthUtils\.getRequestHeader\(\);\n)"
+        r"        return new StreamingDataRequest\(videoId, false, headers, true, clientOrder, true\);\n"
+        r">>>>>>> [^\n]+\n")
+    merged, count = re.subn(pattern, lambda m: m.group(1) +
+        "        return new StreamingDataRequest(videoId, false, headers, true,\n"
+        "                clientOrder, true, false);\n", source)
+    if count != 1 or re.search(r"^(?:<<<<<<< |=======|>>>>>>> )", merged, re.MULTILINE):
+        raise SyncError("Unexpected dev.10 streaming conflict shape")
+    return merged
+
+
 def resolve_streaming_data_request_conflict() -> None:
     if STREAMING_DATA_REQUEST_PATH not in unresolved_paths():
         return
@@ -833,6 +858,12 @@ def resolve_streaming_data_request_conflict() -> None:
         output_of("git", "rev-parse", f":{stage}:{STREAMING_DATA_REQUEST_PATH}")
         for stage in (1, 2, 3)
     )
+    if stage_blobs == STREAMING_DATA_REQUEST_DEV10_CONFLICT_BLOBS:
+        destination = ROOT / STREAMING_DATA_REQUEST_PATH
+        merged = merge_streaming_data_request_dev10(destination.read_text(encoding="utf-8"))
+        destination.write_text(merged, encoding="utf-8", newline="")
+        run("git", "add", "--", STREAMING_DATA_REQUEST_PATH)
+        return
     if stage_blobs == STREAMING_DATA_REQUEST_DOWNLOAD_CONFLICT_BLOBS:
         merge_known_conflict = merge_streaming_data_request_download_support
     elif stage_blobs == STREAMING_DATA_REQUEST_CLIENT_ORDER_CONFLICT_BLOBS:

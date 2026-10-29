@@ -1,0 +1,261 @@
+{
+  "capturedAt": "2026-10-29T01:18:58.932984+00:00",
+  "serial": "emulator-5580",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Back",
+      "class": "android.view.View",
+      "bounds": "[0,48][112,160]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Downloads",
+      "class": "android.view.View",
+      "bounds": "[144,76][363,132]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Sync and download missing items.",
+      "class": "android.widget.Button",
+      "bounds": "[792,56][888,152]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Repair issues with downloaded files or metadata.",
+      "class": "android.widget.Button",
+      "bounds": "[888,56][984,152]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Active Downloads",
+      "class": "android.widget.Button",
+      "bounds": "[984,56][1080,152]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "22 downloads\n8 tracks, 14 images\n4 nodes syncing\nWarning: The Jellyfin server appears to be misconfigured and is not calculating blurhashes.  This prevents Finamp from de-duplicating image downloads.  Please correct the server and run a downloads repair.\n22 complete\n0 failed\n0 enqueued\n0 running",
+      "class": "android.view.View",
+      "bounds": "[16,176][1064,544]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Special downloads",
+      "class": "android.view.View",
+      "bounds": "[32,608][318,656]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Add special download",
+      "class": "android.widget.Button",
+      "bounds": "[710,600][1048,664]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Collapsed",
+      "class": "android.view.View",
+      "bounds": "[0,672][1080,816]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Playlist Metadata\nSyncing…, Collapsed",
+      "class": "android.view.View",
+      "bounds": "[0,672][1080,816]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Library downloads",
+      "class": "android.view.View",
+      "bounds": "[32,840][311,888]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "No items downloaded.",
+      "class": "android.view.View",
+      "bounds": "[32,912][1048,952]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Playlists",
+      "class": "android.view.View",
+      "bounds": "[32,992][162,1040]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "No items downloaded.",
+      "class": "android.view.View",
+      "bounds": "[32,1064][1048,1104]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Artists",
+      "class": "android.view.View",
+      "bounds": "[32,1144][135,1192]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "No items downloaded.",
+      "class": "android.view.View",
+      "bounds": "[32,1216][1048,1256]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Albums",
+      "class": "android.view.View",
+      "bounds": "[32,1296][148,1344]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Collapsed",
+      "class": "android.view.View",
+      "bounds": "[0,1352][1080,1496]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Fixture Credits\n3.15 MB (Penguin Fixture), Collapsed",
+      "class": "android.view.View",
+      "bounds": "[0,1352][1080,1496]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Genres",
+      "class": "android.view.View",
+      "bounds": "[32,1520][139,1568]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "No items downloaded.",
+      "class": "android.view.View",
+      "bounds": "[32,1592][1048,1632]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Tracks",
+      "class": "android.view.View",
+      "bounds": "[32,1672][134,1720]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "No items downloaded.",
+      "class": "android.view.View",
+      "bounds": "[32,1744][1048,1784]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "c03e7aca755cb905fb04763620f31541c70ac516b9d95889f96cd5b61ab0a1dd"
+}

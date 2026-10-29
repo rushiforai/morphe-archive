@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val subwaySurfersBlockAdsPatch = bytecodePatch(
     name = "Block Ads & Promotional Popups - Subway Surfers (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips interstitial video ads, post-run banners, forced video revives, and promotional popup screens in Subway Surfers by neutralizing Google Mobile Ads, Unity Ads, and AppLovin mediation.",
+    description = "⚠️ [Experimental / Untested] Strips interstitial video ads, post-run banners, forced video revives, and promotional popup screens in Subway Surfers by neutralizing Google Mobile Ads, Unity Ads, and AppLovin mediation.",
 ) {
     compatibleWith(COMPATIBILITY_SUBWAY_SURFERS)
 

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val bitwardenAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & Screen Capture - Bitwarden (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Disables FLAG_SECURE window restrictions to permit taking screenshots and screen recordings in Bitwarden.",
+    description = "⚠️ [Experimental / Untested] Disables FLAG_SECURE window restrictions to permit taking screenshots and screen recordings in Bitwarden.",
 ) {
     compatibleWith(COMPATIBILITY_BITWARDEN)
 

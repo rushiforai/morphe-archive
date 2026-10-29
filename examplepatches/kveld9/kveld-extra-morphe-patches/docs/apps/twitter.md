@@ -12,21 +12,17 @@ UI and debloating patches were removed because Piko-NewX covers them; this repos
 | :--- | :--- |
 | **Target App** | X |
 | **Package Name** | `com.twitter.android` |
-| **Target Version** | `12.37.2-prod.01` |
+| **Target Version** | `Single pinned version (see README Patch Catalog)` |
 | **Target Package Format** | APKM |
 | **Primary Architecture** | `arm64-v8a` |
 | **Authoritative Source** | APKMirror |
-| **Download Target** | [X 12.37.2-prod.01 (arm64-v8a, 120-640dpi, versionCode 312372001 / BUNDLE 35 S)](https://www.apkmirror.com/apk/x-corp/x/x-12-37-2-prod-01-release/) |
+| **Download Target** | [X (arm64-v8a, 120-640dpi)](https://www.apkmirror.com/apk/x-corp/x/) |
 
 ---
 
 ## 2. Applied Patches Catalog
 
-| Patch Name | Typology | Default State | Dependencies | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| **Background Slimmer** | `resourcePatch` | `false` (Opt-in) | None | Disables background WorkManager tasks, widgets, and Cast/NFC companion services to reduce resource usage. |
-| **Block Telemetry & Trackers (Setup)** | `resourcePatch` | `false` (Opt-in) | None | Strips tracking and advertising permissions, disables analytics services and receivers, and purges Sentry initialization metadata from the manifest. |
-| **Block Telemetry & Trackers** | `bytecodePatch` | `true` (Enabled) | `Block Telemetry & Trackers (Setup)` | Blocks telemetry collection, redirects Braze, Sentry, Google Ads/DoubleClick, and Firebase Crashlytics remote settings endpoints to 0.0.0.0. Includes opt-in toggle to block X Payments telemetry. |
+The authoritative patch catalog with descriptions and options is generated in README.md from the built .mpp; see also patches-list.json.
 
 ---
 

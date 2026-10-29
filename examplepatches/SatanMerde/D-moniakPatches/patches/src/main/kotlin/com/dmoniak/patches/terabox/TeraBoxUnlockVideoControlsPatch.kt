@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val teraBoxUnlockVideoControlsPatch = bytecodePatch(
     name = "Unlock Video Player Speed & Controls - TeraBox (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks background video playback, 1080p/original video quality streaming selector, and variable playback speeds without TeraBox Premium.",
+    description = "⚠️ [Experimental / Untested] Unlocks background video playback, 1080p/original video quality streaming selector, and variable playback speeds without TeraBox Premium.",
 ) {
     compatibleWith(COMPATIBILITY_TERABOX)
 

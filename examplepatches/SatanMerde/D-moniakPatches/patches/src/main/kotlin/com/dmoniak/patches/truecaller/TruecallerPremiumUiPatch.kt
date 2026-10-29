@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val truecallerPremiumUiPatch = bytecodePatch(
     name = "Unlock Premium & Gold Features - Truecaller (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing to bypass in-app purchase verification for Truecaller Premium and Gold caller ID themes and spam filtering features.",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app purchase verification for Truecaller Premium and Gold caller ID themes and spam filtering features.",
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)
 

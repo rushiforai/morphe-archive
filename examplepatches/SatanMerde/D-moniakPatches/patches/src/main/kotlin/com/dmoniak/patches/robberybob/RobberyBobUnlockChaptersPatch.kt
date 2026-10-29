@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val robberyBobUnlockChaptersPatch = bytecodePatch(
     name = "Unlock All Chapters - Robbery Bob (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks all chapters and bonus heist levels in Robbery Bob (Suburbs, Secret Labs, Downtown, Felonious Felines) without requiring 3-star level progression. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Unlocks all chapters and bonus heist levels in Robbery Bob (Suburbs, Secret Labs, Downtown, Felonious Felines) without requiring 3-star level progression. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_ROBBERY_BOB)
 

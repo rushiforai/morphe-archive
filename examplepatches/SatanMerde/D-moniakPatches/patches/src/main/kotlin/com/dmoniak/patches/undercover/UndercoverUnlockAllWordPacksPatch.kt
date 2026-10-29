@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val undercoverUnlockAllWordPacksPatch = bytecodePatch(
     name = "Unlock All Word Packs & Premium - Undercover (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks in-app purchase verification, pack enums, and preference stores to unlock all premium word packs (Adult 18+, Pop Culture, Geek, Cinema, Science & History, 50+ languages) and remove all paywalls.",
+    description = "⚠️ [Experimental / Untested] Hooks in-app purchase verification, pack enums, and preference stores to unlock all premium word packs (Adult 18+, Pop Culture, Geek, Cinema, Science & History, 50+ languages) and remove all paywalls.",
 ) {
     compatibleWith(COMPATIBILITY_UNDERCOVER)
 

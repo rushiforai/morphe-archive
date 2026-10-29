@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val googleMapsAmoledPatch = bytecodePatch(
     name = "AMOLED Black Navigation - Google Maps (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects pure OLED pitch black (#000000) into navigation mode and map exploration screens to minimize battery consumption and glare.",
+    description = "⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into navigation mode and map exploration screens to minimize battery consumption and glare.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_MAPS)
 

@@ -1,0 +1,787 @@
+# Patch catalogue
+
+**Patch bundle: 1.13.0**
+
+Check which app versions each patch supports and whether it is on by default. Patches for the same app can support different versions.
+
+The descriptions match the published text in `patches-list.json`. [App pages](../apps/index.md) explain what each patch changes and what data the app can still send.
+
+## AD
+
+`be.persgroep.android.news.mobilead`
+
+### Disable tracking
+
+**Default: On**
+
+Disables audited native event collectors, queued uploads, analytics re-enable paths, advertising identifiers and FIAM while preserving push, real login, manual feedback and player session synchronization.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 9.22.0 | `ARM64_V8A`: 9220000, `ARMEABI_V7A`: 9220000, `X86`: 9220000, `X86_64`: 9220000 | 32 | Supported |
+### Hide Premium banner
+
+**Default: On**
+
+Suppresses automatic marketing templates and Premium markers while retaining LIVE labels, editorial promotions and manual account navigation.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 9.22.0 | `ARM64_V8A`: 9220000, `ARMEABI_V7A`: 9220000, `X86`: 9220000, `X86_64`: 9220000 | 32 | Supported |
+### Hide ads
+
+**Default: On**
+
+Filters commercial feed/article rows and disables banner technologies, video advertising and game prerolls using existing no-ad feature paths while preserving editorial media.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 9.22.0 | `ARM64_V8A`: 9220000, `ARMEABI_V7A`: 9220000, `X86`: 9220000, `X86_64`: 9220000 | 32 | Supported |
+### Read full articles
+
+**Default: On**
+
+Requests complete article components through the shipped article API and completes both marketing resolvers with their supported empty results, preserving account and purchase state.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 9.22.0 | `ARM64_V8A`: 9220000, `ARMEABI_V7A`: 9220000, `X86`: 9220000, `X86_64`: 9220000 | 32 | Supported |
+### Skip consent screens
+
+**Default: On**
+
+Skips automatic consent, startup login and topic-notification prompts. Defaults to guest reading and manual notification opt-in while retaining city selection, saved choices and manual login/privacy controls.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 9.22.0 | `ARM64_V8A`: 9220000, `ARMEABI_V7A`: 9220000, `X86`: 9220000, `X86_64`: 9220000 | 32 | Supported |
+
+## Buienalarm
+
+`org.yoki.android.buienalarm`
+
+### Disable tracking
+
+**Default: On**
+
+Disables app analytics, advertising IDs, partner targeting, crash/session reporting and marketing SDK startup while retaining weather and configuration services.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 4.32.0 | `ARM64_V8A`: 3723, `ARMEABI_V7A`: 3723, `X86`: 3723, `X86_64`: 3723 | 26 | Supported |
+### Fix Google services
+
+**Default: On**
+
+Preserves the original app certificate for Firebase and supplies the authorized community key for Google Maps.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 4.32.0 | `ARM64_V8A`: 3723, `ARMEABI_V7A`: 3723, `X86`: 3723, `X86_64`: 3723 | 26 | Supported |
+### Hide Premium banner
+
+**Default: On**
+
+Hides the Buienalarm Premium promotion card in Settings.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 4.32.0 | `ARM64_V8A`: 3723, `ARMEABI_V7A`: 3723, `X86`: 3723, `X86_64`: 3723 | 26 | Supported |
+### Hide ads
+
+**Default: On**
+
+Disables banners and full-screen video/interstitial requests, and removes reserved banner space.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 4.32.0 | `ARM64_V8A`: 3723, `ARMEABI_V7A`: 3723, `X86`: 3723, `X86_64`: 3723 | 26 | Supported |
+### Skip consent screens
+
+**Default: On**
+
+Skips the cookie onboarding and automatic ad/Premium choice screens after disabling tracking. Does not accept or reject consent; manual Privacy settings remain available.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 4.32.0 | `ARM64_V8A`: 3723, `ARMEABI_V7A`: 3723, `X86`: 3723, `X86_64`: 3723 | 26 | Supported |
+
+## Buienradar
+
+`com.supportware.Buienradar`
+
+### Disable Swrve and location upload
+
+**Default: Off**
+
+Replaces the Swrve engagement SDK (device profile, sessions, user properties, marketing messages) with its built-in no-op and stops uploading the background location with the Swrve ID. Weather alerts are delivered through Swrve, so this also disables all push alerts.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.4.8 | `ARM64_V8A`: 7897, `ARMEABI_V7A`: 7897, `X86`: 7897, `X86_64`: 7897 | 28 | Supported |
+### Disable tracking
+
+**Default: On**
+
+Disables Snowplow (RTL, DPG Media and Kantar), Firebase Analytics, Crashlytics and Sessions, Smartocto and Bitmovin video analytics, Usabilla telemetry and campaigns, and advertising/attribution IDs. Weather alerts keep working.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.4.8 | `ARM64_V8A`: 7897, `ARMEABI_V7A`: 7897, `X86`: 7897, `X86_64`: 7897 | 28 | Supported |
+### Hide Premium banner
+
+**Default: On**
+
+Hides the 'Discover Buienradar Premium' promotion blocks on the Today and Info tabs and the Plus trial notification.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.4.8 | `ARM64_V8A`: 7897, `ARMEABI_V7A`: 7897, `X86`: 7897, `X86_64`: 7897 | 28 | Supported |
+### Hide ads
+
+**Default: On**
+
+Removes the banner/native ads between the weather cards and the pre-roll ads in weather videos, and does not start the Google Mobile Ads SDK.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.4.8 | `ARM64_V8A`: 7897, `ARMEABI_V7A`: 7897, `X86`: 7897, `X86_64`: 7897 | 28 | Supported |
+### Skip consent screens
+
+**Default: On**
+
+Skips the first-run Pay-or-OK choice and the OneTrust cookie banner after disabling tracking and ads. Records no consent choice; Privacy settings on the Info tab remain available.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.4.8 | `ARM64_V8A`: 7897, `ARMEABI_V7A`: 7897, `X86`: 7897, `X86_64`: 7897 | 28 | Supported |
+
+## Dumpert
+
+`nl.dumpert`
+
+### Disable tracking
+
+**Default: On**
+
+Suppresses audited native analytics, queued Piano/Facebook sends, optional diagnostics and advertising identifiers. Preserves content, accounts, purchases, push and initialized privacy services.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 5.8.0 | `ARM64_V8A`: 22001778, `ARMEABI_V7A`: 22001778, `X86`: 22001778, `X86_64`: 22001778 | 32 | Supported |
+### Hide ads
+
+**Default: On**
+
+Removes native ads, prerolls and subscription promotions; uses the local ad-free account presentation while preserving real accounts and Deluxe purchases.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 5.8.0 | `ARM64_V8A`: 22001778, `ARMEABI_V7A`: 22001778, `X86`: 22001778, `X86_64`: 22001778 | 32 | Supported |
+### Skip consent screens
+
+**Default: On**
+
+Skips automatic Didomi advertising-choice UI without granting consent. Includes ad and tracking controls; manual privacy settings and readiness callbacks remain available.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 5.8.0 | `ARM64_V8A`: 22001778, `ARMEABI_V7A`: 22001778, `X86`: 22001778, `X86_64`: 22001778 | 32 | Supported |
+
+## Flitsmeister
+
+`nl.flitsmeister`
+
+### Disable partner services
+
+**Default: On**
+
+Hides Parking, Toll and Carwash service entries, removes Parking and Carwash from Settings, and disables Parking customer fetches.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 14.17 | `ARM64_V8A`: 1287, `ARMEABI_V7A`: 1287, `X86`: 1287, `X86_64`: 1287 | 32 | Supported |
+### Disable tracking
+
+**Default: On**
+
+Disables automatic usage/location telemetry, Firebase analytics/crash/performance/session collection, Insider marketing and advertising identifier access while retaining account, navigation and explicit reports.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 14.17 | `ARM64_V8A`: 1287, `ARMEABI_V7A`: 1287, `X86`: 1287, `X86_64`: 1287 | 32 | Supported |
+### Fix PairIP startup
+
+**Default: On**
+
+Restores captured startup strings and reflection registrations, merges the original embedded lifecycle DEX and bypasses only the damaged startup dispatcher and Java signature gate.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 14.17 | `ARM64_V8A`: 1287, `ARMEABI_V7A`: 1287, `X86`: 1287, `X86_64`: 1287 | 32 | Supported |
+### Hide Pro notices
+
+**Default: On**
+
+Hides automatic Pro promotions, Pro/Plus badges and Android Auto upsells while retaining settings, avatar data and genuine account/readiness states.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 14.17 | `ARM64_V8A`: 1287, `ARMEABI_V7A`: 1287, `X86`: 1287, `X86_64`: 1287 | 32 | Supported |
+### Hide ads
+
+**Default: On**
+
+Blocks commercial LBA records, image requests, cached images, notifications and dialogs; hides the Ads setting and preserves informative and monitoring traffic items.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 14.17 | `ARM64_V8A`: 1287, `ARMEABI_V7A`: 1287, `X86`: 1287, `X86_64`: 1287 | 32 | Supported |
+### Unlock Pro
+
+**Default: On**
+
+Enables local Pro feature eligibility while preserving saved preferences, permissions, genuine account tiers and backend activation requirements.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 14.17 | `ARM64_V8A`: 1287, `ARMEABI_V7A`: 1287, `X86`: 1287, `X86_64`: 1287 | 32 | Supported |
+
+## FTM
+
+`nl.ftm.ftmpulse`
+
+### Disable tracking
+
+**Default: On**
+
+Blocks identified web collectors and notification analytics exports; cleans five Eventor keys after page load while preserving account, history and push.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 2.6.8 | `ARM64_V8A`: 58, `ARMEABI_V7A`: 58, `X86`: 58, `X86_64`: 58 | 32 | Supported |
+### Hide Premium banner
+
+**Default: On**
+
+Suppresses article decision modals and evidenced automatic trial promotions and stickybar while preserving manual membership links and editorial content.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 2.6.8 | `ARM64_V8A`: 58, `ARMEABI_V7A`: 58, `X86`: 58, `X86_64`: 58 | 32 | Supported |
+### Hide ads
+
+**Default: On**
+
+Closes evidenced automatic shop-product announcements while preserving service notices, manual forms and editorial content.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 2.6.8 | `ARM64_V8A`: 58, `ARMEABI_V7A`: 58, `X86`: 58, `X86_64`: 58 | 32 | Supported |
+### Read full articles
+
+**Default: On**
+
+Uses the supported empty HTML article decision to retain already received article bodies; cannot provide text absent from the server response.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 2.6.8 | `ARM64_V8A`: 58, `ARMEABI_V7A`: 58, `X86`: 58, `X86_64`: 58 | 32 | Supported |
+### Skip consent screens
+
+**Default: On**
+
+Skips the post-edition account offer as a guest and hides the cookie notice while blocking known collectors; keeps edition selection, manual login and existing consent values.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 2.6.8 | `ARM64_V8A`: 58, `ARMEABI_V7A`: 58, `X86`: 58, `X86_64`: 58 | 32 | Supported |
+
+## NOS Teletekst
+
+`com.eoffice.android`
+
+### Disable tracking
+
+**Default: On**
+
+Prevents NOS/NPO analytics initialization, audience events, queued measurement uploads and tracking identifier creation. Uses the app's native empty tracker while preserving content, favourites, sharing and refresh.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 2.8.10 | `ARM64_V8A`: 62, `ARMEABI_V7A`: 62, `X86`: 62, `X86_64`: 62 | 23 | Supported |
+### Hide promotions
+
+**Default: On**
+
+Stops the recurring NOS-app promotion on the scoreboard page. Preserves Teletekst pages, favourites, sharing and refresh.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 2.8.10 | `ARM64_V8A`: 62, `ARMEABI_V7A`: 62, `X86`: 62, `X86_64`: 62 | 23 | Supported |
+
+## NRC
+
+`com.twipemobile.nrc`
+
+### Disable tracking
+
+**Default: On**
+
+Disables inventoried native/web collectors, analytics-only partner/heartbeat/profile launchers, queued Firebase exports and advertising IDs while retaining session refresh, account, media and notification state.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 5.12.24 | `ARM64_V8A`: 626, `ARMEABI_V7A`: 626, `X86`: 626, `X86_64`: 626 | 23 | Supported |
+### Hide Premium banner
+
+**Default: On**
+
+Hides evidenced appview subscription top banners and sticky promotion roots while preserving account forms and billing.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 5.12.24 | `ARM64_V8A`: 626, `ARMEABI_V7A`: 626, `X86`: 626, `X86_64`: 626 | 23 | Supported |
+### Hide ads
+
+**Default: On**
+
+Hides evidenced web ad slots and their reserved space, and removes wholly advertising replica pages while preserving mixed editorial pages and media.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 5.12.24 | `ARM64_V8A`: 626, `ARMEABI_V7A`: 626, `X86`: 626, `X86_64`: 626 | 23 | Supported |
+### Hide newspaper tab
+
+**Default: On**
+
+Removes the Krant tab, routes newspaper destinations to Nieuws and safely rebuilds legacy newspaper navigation state. Does not change account or newspaper access rights.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 5.12.24 | `ARM64_V8A`: 626, `ARMEABI_V7A`: 626, `X86`: 626, `X86_64`: 626 | 23 | Supported |
+### Read full articles
+
+**Default: On**
+
+Rejects the article-only web wall decision before destructive clipping and hides wall UI while retaining complete received article bodies; cannot supply text absent from the response.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 5.12.24 | `ARM64_V8A`: 626, `ARMEABI_V7A`: 626, `X86`: 626, `X86_64`: 626 | 23 | Supported |
+### Skip consent screens
+
+**Default: On**
+
+Skips automatic Didomi UI and the first guest login welcome through its original Skip completion; preserves existing consent, accounts and manual privacy/login choices.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 5.12.24 | `ARM64_V8A`: 626, `ARMEABI_V7A`: 626, `X86`: 626, `X86_64`: 626 | 23 | Supported |
+
+## NU.nl
+
+`nl.sanomamedia.android.nu`
+
+### Disable tracking
+
+**Default: On**
+
+Disables inventoried native/media collectors, persistent UDS and user-profile identifiers, queued push statistics and known WebView collectors; retains BFF local state, content, login and notification forwarding.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 26.9.0 | `ARM64_V8A`: 210156, `ARMEABI_V7A`: 210156, `X86`: 210156, `X86_64`: 210156 | 32 | Supported |
+### Hide Premium banner
+
+**Default: On**
+
+Removes the observed contentBlocker registration/premium notice while retaining ordinary WebAppBlock embeds and NU+ article links. Does not retrieve article bodies omitted by the server.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 26.9.0 | `ARM64_V8A`: 210156, `ARMEABI_V7A`: 210156, `X86`: 210156, `X86_64`: 210156 | 32 | Supported |
+### Hide ads
+
+**Default: On**
+
+Removes DPG banner loading/space, VACS/IMA video ads and explicit sponsored/NUshop content while retaining editorial links and video playlists.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 26.9.0 | `ARM64_V8A`: 210156, `ARMEABI_V7A`: 210156, `X86`: 210156, `X86_64`: 210156 | 32 | Supported |
+### Skip consent screens
+
+**Default: On**
+
+Skips automatic privacy and notification/account offers as a guest while keeping topic selection, manual settings and consent choices.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 26.9.0 | `ARM64_V8A`: 210156, `ARMEABI_V7A`: 210156, `X86`: 210156, `X86_64`: 210156 | 32 | Supported |
+
+## Omroep Brabant
+
+`nl.omroepbrabant.android`
+
+### Disable tracking
+
+**Default: On**
+
+Suppresses audited app/SDK analytics, optional IDs, video statistics and restored measurement uploads while retaining news, local history, push, media and native failure completion.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 11.1.0 | `ARM64_V8A`: 7331764, `ARMEABI_V7A`: 7331764, `X86`: 7331764, `X86_64`: 7331764 | 32 | Supported |
+### Hide ads
+
+**Default: On**
+
+Removes native placements, Outbrain/Start.io promotions and audited Blue Billywig video-ad paths while preserving news, playback and native completion.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 11.1.0 | `ARM64_V8A`: 7331764, `ARMEABI_V7A`: 7331764, `X86`: 7331764, `X86_64`: 7331764 | 32 | Supported |
+### Skip consent screens
+
+**Default: On**
+
+Includes ad and tracking controls. Prevents startup notification permission requests and cookie dialog creation; removes Cookie instellingen from the menu before display. Preserves stored choices, player completion, manual notification settings and push services.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 11.1.0 | `ARM64_V8A`: 7331764, `ARMEABI_V7A`: 7331764, `X86`: 7331764, `X86_64`: 7331764 | 32 | Supported |
+
+## Parool
+
+`be.persgroep.android.news.mobilepa`
+
+### Disable tracking
+
+**Default: On**
+
+Suppresses native analytics collectors and queued uploads, advertising identifiers, ContentSquare/Heap WebView instrumentation and known web collector requests while preserving content, account and push.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Supported |
+### Hide Premium banner
+
+**Default: On**
+
+Suppresses marketing templates, premium labels and the automatic subscriber-benefit row, retaining manual account navigation.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Supported |
+### Hide ads
+
+**Default: On**
+
+Suppresses native ad requests, header bidding, video prerolls, body ad DTOs; filters known web advertising resources.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Supported |
+### Read full articles
+
+**Default: On**
+
+Renders all editorial body components received from the article API using the normal successful empty marketing-template result, without changing account or purchase entitlements.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Supported |
+### Skip consent screens
+
+**Default: On**
+
+Completes automatic consent refresh without opening the advertising choice screen or writing acceptance; automatically finishes first-launch login, welcome and notification setup with fresh subscriptions off; manual privacy, account and notification settings remain available.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Supported |
+
+## RTL Nieuws
+
+`nl.rtl.rtlnieuws`
+
+### Disable Swrve (expert)
+
+**Default: Off**
+
+Reduces data sharing by stopping the remaining Swrve user and device updates and background push activity. Includes the standard ad, tracking and consent controls. Push notifications and Swrve channel synchronization stop working; shared Firebase authentication and configuration remain available.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 12.7.1 | `ARM64_V8A`: 1558, `ARMEABI_V7A`: 1558, `X86`: 1558, `X86_64`: 1558 | 32 | Supported |
+### Disable tracking
+
+**Default: On**
+
+Includes ad removal; disables audited analytics, optional tracking identifiers and diagnostics while preserving account, push and playback services.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 12.7.1 | `ARM64_V8A`: 1558, `ARMEABI_V7A`: 1558, `X86`: 1558, `X86_64`: 1558 | 32 | Supported |
+### Hide ads
+
+**Default: On**
+
+Suppresses native placements, client-side video ads and built-in/Swrve in-app campaigns before display; preserves media, accounts, purchases and manual notification/push services.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 12.7.1 | `ARM64_V8A`: 1558, `ARMEABI_V7A`: 1558, `X86`: 1558, `X86_64`: 1558 | 32 | Supported |
+### Skip consent screens
+
+**Default: On**
+
+Includes ad and tracking controls; skips automatic privacy and notification setup while preserving readiness, real choices and manual settings. Notifications remain off until manually enabled.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 12.7.1 | `ARM64_V8A`: 1558, `ARMEABI_V7A`: 1558, `X86`: 1558, `X86_64`: 1558 | 32 | Supported |
+
+## Trouw
+
+`be.persgroep.android.news.mobiletr`
+
+### Disable tracking
+
+**Default: On**
+
+Suppresses native analytics collectors and queued uploads, advertising identifiers, ContentSquare/Heap WebView instrumentation and known web collector requests while preserving content, account and push.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Supported |
+### Hide Premium banner
+
+**Default: On**
+
+Suppresses marketing templates, premium labels and the automatic subscriber-benefit row, retaining manual account navigation.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Supported |
+### Hide ads
+
+**Default: On**
+
+Suppresses native ad requests, header bidding, video prerolls, body ad DTOs; filters known web advertising resources.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Supported |
+### Read full articles
+
+**Default: On**
+
+Renders all editorial body components received from the article API using the normal successful empty marketing-template result, without changing account or purchase entitlements.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Supported |
+### Skip consent screens
+
+**Default: On**
+
+Completes automatic consent refresh without opening the advertising choice screen or writing acceptance; automatically finishes first-launch login, welcome and notification setup with fresh subscriptions off; manual privacy, account and notification settings remain available.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Supported |
+
+## Voetbal International
+
+`nl.vi`
+
+### Disable tracking
+
+**Default: On**
+
+Disables audited analytics, profiling, advertising identifiers and known stored telemetry uploads. Preserves account authentication, push infrastructure and native media playback.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 5.13.52 | `ARM64_V8A`: 910, `ARMEABI_V7A`: 910, `X86`: 910, `X86_64`: 910 | 32 | Supported |
+### Hide ads
+
+**Default: On**
+
+Hides native ad placements and publisher marketing cards, and blocks display/video ad activation while preserving articles, content playback and navigation.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 5.13.52 | `ARM64_V8A`: 910, `ARMEABI_V7A`: 910, `X86`: 910, `X86_64`: 910 | 32 | Supported |
+### Read full articles
+
+**Default: On**
+
+Requests complete article bodies through the shipped app API and removes locked Pro overlays. Preserves actual account and subscription state; media availability remains controlled by the publisher.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 5.13.52 | `ARM64_V8A`: 910, `ARMEABI_V7A`: 910, `X86`: 910, `X86_64`: 910 | 32 | Supported |
+### Skip consent screens
+
+**Default: On**
+
+Stops startup and manually reopened advertising-consent forms before display, without inventing a consent choice. Preserves the app's age check for betting features.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 5.13.52 | `ARM64_V8A`: 910, `ARMEABI_V7A`: 910, `X86`: 910, `X86_64`: 910 | 32 | Supported |
+
+## Volkskrant
+
+`be.persgroep.android.news.mobilevk`
+
+### Disable tracking
+
+**Default: On**
+
+Suppresses native analytics collectors and queued uploads, advertising identifiers, ContentSquare/Heap WebView instrumentation and known web collector requests while preserving content, account and push.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Supported |
+### Hide Premium banner
+
+**Default: On**
+
+Suppresses marketing templates, sticky purchase prompts and premium label presentation, retaining manual account navigation.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Supported |
+### Hide ads
+
+**Default: On**
+
+Suppresses native ad requests, header bidding, video prerolls, body ad DTOs and exact article newsletter promotions; filters known web advertising resources.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Supported |
+### Read full articles
+
+**Default: On**
+
+Renders all editorial body components received from the article API using the normal successful empty marketing-template result, without changing account or purchase entitlements.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Supported |
+### Skip consent screens
+
+**Default: On**
+
+Completes automatic consent refresh without opening the advertising choice screen or writing acceptance; automatically finishes first-launch login, welcome and notification setup with fresh subscriptions off; manual privacy, account and notification settings remain available.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Supported |
+
+## Weeronline
+
+`com.xs2theworld.weeronline`
+
+### Disable tracking
+
+**Default: On**
+
+Disables Firebase Analytics, Crashlytics, Performance, Sessions and In-App Messaging, the Facebook SDK and app events, Audience Network, the cross-app PPID, advertising IDs, Blue Billywig video statistics, Tag Manager, Didomi metrics and optional RevenueCat telemetry, while retaining weather, consent and subscription services.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 3.61.0 | `ARM64_V8A`: 2030006811, `ARMEABI_V7A`: 2030006811, `X86`: 2030006811, `X86_64`: 2030006811 | 26 | Supported |
+### Hide Premium banner
+
+**Default: On**
+
+Hides the Weeronline Plus menu entry, the startup Plus screen, the app-launch promotion paywall, the Plus screen opened after declining consent, and the Plus footer in tile settings. Tapping a locked feature still explains Plus.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 3.61.0 | `ARM64_V8A`: 2030006811, `ARMEABI_V7A`: 2030006811, `X86`: 2030006811, `X86_64`: 2030006811 | 26 | Supported |
+### Hide ads
+
+**Default: On**
+
+Removes banner, sticky, feed, news, interstitial and sponsored ads and video pre-, mid- and post-rolls, and does not start Google Mobile Ads or Audience Network. Plus features stay locked.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 3.61.0 | `ARM64_V8A`: 2030006811, `ARMEABI_V7A`: 2030006811, `X86`: 2030006811, `X86_64`: 2030006811 | 26 | Supported |
+### Skip consent screens
+
+**Default: On**
+
+Skips the cookie onboarding page, the automatic Didomi consent notice and the consent-or-pay wall after disabling tracking and ads. Records no consent choice; Privacy settings in the menu remain available.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 3.61.0 | `ARM64_V8A`: 2030006811, `ARMEABI_V7A`: 2030006811, `X86`: 2030006811, `X86_64`: 2030006811 | 26 | Supported |
+### Unlock Plus
+
+**Default: On**
+
+Unlocks locally enforced Weeronline Plus features, including paid dashboard tiles, tile visibility and reordering, rain notifications for saved locations, and ad-free presentation. Does not create a Play Store purchase or guarantee server-side notification delivery.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 3.61.0 | `ARM64_V8A`: 2030006811, `ARMEABI_V7A`: 2030006811, `X86`: 2030006811, `X86_64`: 2030006811 | 26 | Supported |
+
+## Weerplaza
+
+`nl.weerplaza.app`
+
+### Disable tracking
+
+**Default: On**
+
+Disables app/Firebase analytics, Crashlytics, Performance, Sessions, PPID, advertising identifiers, video statistics, Didomi metrics/API events, optional RevenueCat telemetry and known WebView trackers, retaining weather, purchases and push.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 3.13.1 | `ARM64_V8A`: 734, `ARMEABI_V7A`: 734, `X86`: 734, `X86_64`: 734 | 26 | Supported |
+### Fix Google Maps
+
+**Default: On**
+
+Supplies the authorized community Google Maps key after re-signing, leaving Firebase configuration unchanged.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 3.13.1 | `ARM64_V8A`: 734, `ARMEABI_V7A`: 734, `X86`: 734, `X86_64`: 734 | 26 | Supported |
+### Hide Premium banner
+
+**Default: On**
+
+Hides subscription menus, settings promotions, automatic paywalls, declined-consent upsells and locked-hourly subscription notices. Paid hourly data remains unchanged for subscribers.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 3.13.1 | `ARM64_V8A`: 734, `ARMEABI_V7A`: 734, `X86`: 734, `X86_64`: 734 | 26 | Supported |
+### Hide ads
+
+**Default: On**
+
+Disables native, Compose, WebView and bottom-navigation banners, Google/OpenWrap loading, ad targeting and video ads while preserving weather completion and paid feature state.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 3.13.1 | `ARM64_V8A`: 734, `ARMEABI_V7A`: 734, `X86`: 734, `X86_64`: 734 | 26 | Supported |
+### Skip consent screens
+
+**Default: On**
+
+Skips automatic consent through the existing ConsentNotRequired completion after disabling ads and tracking. Records no consent choice and retains manual privacy settings.
+
+| App version | Build by architecture | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 3.13.1 | `ARM64_V8A`: 734, `ARMEABI_V7A`: 734, `X86`: 734, `X86_64`: 734 | 26 | Supported |
+
+[Metadata](https://github.com/johnneerdael/dutch-applications-patches/blob/main/patches-list.json) · [Releases](https://github.com/johnneerdael/dutch-applications-patches/releases)

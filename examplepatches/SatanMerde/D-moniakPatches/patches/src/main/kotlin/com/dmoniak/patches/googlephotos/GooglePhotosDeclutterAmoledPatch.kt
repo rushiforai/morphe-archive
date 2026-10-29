@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val googlePhotosDeclutterAmoledPatch = bytecodePatch(
     name = "AMOLED Black & Declutter - Google Photos (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects pure OLED pitch black (#000000) into gallery view and hides Google One subscription paywalls and cloud storage upgrade prompts.",
+    description = "⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into gallery view and hides Google One subscription paywalls and cloud storage upgrade prompts.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_PHOTOS)
 

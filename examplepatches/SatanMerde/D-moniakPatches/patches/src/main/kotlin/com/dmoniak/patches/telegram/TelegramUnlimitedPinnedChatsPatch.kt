@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val telegramUnlimitedPinnedChatsPatch = bytecodePatch(
     name = "Unlock Unlimited Pinned Chats - Telegram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Bypasses the 5 pinned chats limit in Telegram, allowing users to pin unlimited chats and channels without Telegram Premium.",
+    description = "⚠️ [Experimental / Untested] Bypasses the 5 pinned chats limit in Telegram, allowing users to pin unlimited chats and channels without Telegram Premium.",
 ) {
     compatibleWith(COMPATIBILITY_TELEGRAM)
 

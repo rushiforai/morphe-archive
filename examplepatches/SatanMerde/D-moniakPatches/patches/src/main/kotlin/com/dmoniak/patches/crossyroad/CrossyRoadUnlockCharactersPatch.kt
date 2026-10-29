@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val crossyRoadUnlockCharactersPatch = bytecodePatch(
     name = "Free Shopping & Billing Bypass - Crossy Road (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing SDK in Crossy Road to bypass in-app purchase verification, enabling free shopping for character figurines and coin packs.",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing SDK in Crossy Road to bypass in-app purchase verification, enabling free shopping for character figurines and coin packs.",
 ) {
     compatibleWith(COMPATIBILITY_CROSSY_ROAD)
 

@@ -1,3 +1,25 @@
+## [1.1.4](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.1.3...v1.1.4) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **sankaku:** add 4.28 (rc100) to COMPATIBILITY_SANKAKU targets ([c691505](https://github.com/HellveticaStandard/HellveticaPatches/commit/c69150565bde6a687c9e74878f9e6c3279e969e9))
+
+### 🚀 Updated App Support
+
+* **sankaku:** add support for 4.28-rc100 ([d2afe2d](https://github.com/HellveticaStandard/HellveticaPatches/commit/d2afe2d377e895e405cd65a4029abcf75c910e66))
+
+## [1.1.4-dev.2](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.1.4-dev.1...v1.1.4-dev.2) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **sankaku:** add 4.28 (rc100) to COMPATIBILITY_SANKAKU targets ([c691505](https://github.com/HellveticaStandard/HellveticaPatches/commit/c69150565bde6a687c9e74878f9e6c3279e969e9))
+
+## [1.1.4-dev.1](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.1.3...v1.1.4-dev.1) (2026-10-29)
+
+### 🚀 Updated App Support
+
+* **sankaku:** add support for 4.28-rc100 ([d2afe2d](https://github.com/HellveticaStandard/HellveticaPatches/commit/d2afe2d377e895e405cd65a4029abcf75c910e66))
+
 ## [1.1.3](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.1.2...v1.1.3) (2026-09-12)
 
 ### 🐛 Bug Fixes

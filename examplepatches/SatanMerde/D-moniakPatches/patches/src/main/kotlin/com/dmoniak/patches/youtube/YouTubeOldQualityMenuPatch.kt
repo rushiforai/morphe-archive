@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeOldQualityMenuPatch = bytecodePatch(
     name = "Old Video Quality Menu - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Restores the classic direct video resolution menu (2160p, 1440p, 1080p, 720p, 480p), bypassing Google's simplified and confusing 'Higher picture quality / Data saver' sub-menus.",
+    description = "⚠️ [Experimental / Untested] Restores the classic direct video resolution menu (2160p, 1440p, 1080p, 720p, 480p), bypassing Google's simplified and confusing 'Higher picture quality / Data saver' sub-menus.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

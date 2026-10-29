@@ -238,9 +238,9 @@ class StartStoriesWithSoundHookTest {
                     .associateWith(::NeutralNativePath)
 
                 val site = context.findStorySoundSite()
-                assertEquals("$what: three borrowed locals", 3, site.scratch.distinct().size)
-                assertEquals("$what: three borrowed in onPause", 3, site.pauseScratch.distinct().size)
-                assertEquals("$what: two borrowed in onResume", 2, site.resumeScratch.distinct().size)
+                assertEquals("$what: four borrowed locals", 4, site.scratch.distinct().size)
+                assertEquals("$what: four borrowed in onPause", 4, site.pauseScratch.distinct().size)
+                assertEquals("$what: three borrowed in onResume", 3, site.resumeScratch.distinct().size)
                 assertTrue(
                     "$what: the borrowed locals fit an invoke",
                     (site.scratch + site.pauseScratch + site.resumeScratch).all { it in 0..15 },
@@ -262,11 +262,17 @@ class StartStoriesWithSoundHookTest {
                 assertEquals("$what: the factory", site.factory.toString(), code[ask + 6].referenceText())
                 assertEquals("$what: the getter", site.getter.toString(), code[ask + 8].referenceText())
                 assertEquals("$what: told what it was", OPENED, code[ask + 11].referenceText())
-                assertEquals("$what: the setter", site.setter.toString(), code[ask + 13].referenceText())
-                assertTrue("$what: a jump lands inside the hook", (ask + 1 until ask + hookLength).none { it in onCreate.jumpTargets() })
+                // 453's setter takes a second boolean, whether the user asked, and the hook loads a false for it.
+                val extra = if (site.setter.parameterTypes.size == 2) 1 else 0
+                val created = hookLength + extra
+                if (extra == 1) {
+                    assertEquals("$what: not the user's own change", 0, (code[ask + 13] as NarrowLiteralInstruction).narrowLiteral)
+                }
+                assertEquals("$what: the setter", site.setter.toString(), code[ask + 13 + extra].referenceText())
+                assertTrue("$what: a jump lands inside the hook", (ask + 1 until ask + created).none { it in onCreate.jumpTargets() })
                 val p0 = onCreate.implementation!!.registerCount - 2
                 assertEquals("$what: the viewer is read from its own register, last", listOf(p0), code[ask].arguments())
-                val borrowed = code.subList(ask, ask + hookLength).mapNotNull { (it as? OneRegisterInstruction)?.registerA }
+                val borrowed = code.subList(ask, ask + created).mapNotNull { (it as? OneRegisterInstruction)?.registerA }
                     .filter { it != p0 && it !in site.scratch && it !in code[ask].arguments() }
                 assertTrue("$what: the hook touched a register it didn't borrow: $borrowed", borrowed.isEmpty())
 
@@ -275,16 +281,16 @@ class StartStoriesWithSoundHookTest {
                 val onResume = viewer.single { it.name == "onResume" && it.parameterTypes.isEmpty() }
                 assertEquals("$what: onPause asks first", PAUSING, onPause.code()[0].referenceText())
                 assertEquals("$what: onPause asks again", PAUSED, onPause.code()[11].referenceText())
-                assertEquals("$what: onPause sets it off", site.setter.toString(), onPause.code()[15].referenceText())
+                assertEquals("$what: onPause sets it off", site.setter.toString(), onPause.code()[15 + extra].referenceText())
                 assertEquals("$what: onResume asks first", RESUMING, onResume.code()[0].referenceText())
-                assertEquals("$what: onResume sets it on", site.setter.toString(), onResume.code()[9].referenceText())
-                assertTrue("$what: a jump lands inside the pause hook", (1 until pauseLength).none { it in onPause.jumpTargets() })
-                assertTrue("$what: a jump lands inside the resume hook", (1 until resumeLength).none { it in onResume.jumpTargets() })
+                assertEquals("$what: onResume sets it on", site.setter.toString(), onResume.code()[9 + extra].referenceText())
+                assertTrue("$what: a jump lands inside the pause hook", (1 until pauseLength + extra).none { it in onPause.jumpTargets() })
+                assertTrue("$what: a jump lands inside the resume hook", (1 until resumeLength + extra).none { it in onResume.jumpTargets() })
 
                 val added = mapOf(
-                    "onCreate" to (ask until ask + hookLength).toSet(),
-                    "onPause" to (0 until pauseLength).toSet(),
-                    "onResume" to (0 until resumeLength).toSet(),
+                    "onCreate" to (ask until ask + created).toSet(),
+                    "onPause" to (0 until pauseLength + extra).toSet(),
+                    "onResume" to (0 until resumeLength + extra).toSet(),
                 )
                 for ((method, original) in originals) {
                     val mine = method.code().indices.filter { method.definingClass == STORY_VIEWER && it in added.getValue(method.name) }.toSet()

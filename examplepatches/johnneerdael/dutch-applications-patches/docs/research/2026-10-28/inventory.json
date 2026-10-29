@@ -1,0 +1,342 @@
+[
+  {
+    "slug": "dumpert",
+    "source_filename": "dumpert-original.apks",
+    "source_path": "/Volumes/EXT-SSD1/phone-apks/dumpert-original.apks",
+    "source_sha256": "7e1e485c2f26e4ad8271047b8c5f97ceee424b8870cf6059d71f7edfdb23caf6",
+    "base_sha256": "7fd642aa24ea1915f2d10e692e8f563464688b1e46edf0b1f5c1c4289b922316",
+    "package": {
+      "name": "nl.dumpert",
+      "versionCode": "22001778",
+      "versionName": "5.8.0",
+      "platformBuildVersionName": "16",
+      "platformBuildVersionCode": "36",
+      "compileSdkVersion": "36",
+      "compileSdkVersionCodename": "16"
+    },
+    "min_sdk": 32,
+    "signer_sha256": [
+      "0370088e565d42bd3cfca2bad7c7293cfb6090de2f7fa45c2bc5a087140a2db5"
+    ],
+    "framework_hint": "Android native/SDK layers",
+    "native_libraries": [
+      "libandroidx.graphics.path.so",
+      "libcomScore.so",
+      "libdatastore_shared_counter.so",
+      "libquickjs.so"
+    ],
+    "dex_count": 8,
+    "split_count": 4,
+    "signer_details": [
+      {
+        "sha256": "0370088e565d42bd3cfca2bad7c7293cfb6090de2f7fa45c2bc5a087140a2db5",
+        "min_sdk": null,
+        "max_sdk": null
+      }
+    ]
+  },
+  {
+    "slug": "9292",
+    "source_filename": "9292-original.apks",
+    "source_path": "/Volumes/EXT-SSD1/phone-apks/9292-original.apks",
+    "source_sha256": "8bbf5add535fe4519dd7580d429d57ec5105491205760ec083f923f38af10622",
+    "base_sha256": "444d3c52123146492b55bd769e6352c09f44956b4afa02104dc4cf5ce964dc71",
+    "package": {
+      "name": "nl.negentwee",
+      "versionCode": "32189",
+      "versionName": "2.48.1",
+      "platformBuildVersionName": "16",
+      "platformBuildVersionCode": "36",
+      "compileSdkVersion": "36",
+      "compileSdkVersionCodename": "16"
+    },
+    "min_sdk": 32,
+    "signer_sha256": [
+      "7ad4a3503739803a8eec7f2f8d9a4e678d6f33f9b77d5be81e2c089371352af6"
+    ],
+    "framework_hint": "Android native/SDK layers",
+    "native_libraries": [
+      "libandroidx.graphics.path.so",
+      "libd124.so",
+      "libdatastore_shared_counter.so",
+      "libkeylib.so",
+      "libkeylib_flavor.so"
+    ],
+    "dex_count": 4,
+    "split_count": 4,
+    "signer_details": [
+      {
+        "sha256": "7ad4a3503739803a8eec7f2f8d9a4e678d6f33f9b77d5be81e2c089371352af6",
+        "min_sdk": null,
+        "max_sdk": null
+      }
+    ]
+  },
+  {
+    "slug": "rtl-nieuws",
+    "source_filename": "rtl-nieuws-original.apks",
+    "source_path": "/Volumes/EXT-SSD1/phone-apks/rtl-nieuws-original.apks",
+    "source_sha256": "36e10532e3c20ae12d87f4e58d8aefa9e92bf3a7456feffe78187e4f7a33aa08",
+    "base_sha256": "85aacb2b5785c338a9801a57fe71f57f41d47bae1ada56ef19fee9b8520299e4",
+    "package": {
+      "name": "nl.rtl.rtlnieuws",
+      "versionCode": "1558",
+      "versionName": "12.7.1",
+      "platformBuildVersionName": "17",
+      "platformBuildVersionCode": "37",
+      "compileSdkVersion": "37",
+      "compileSdkVersionCodename": "17"
+    },
+    "min_sdk": 32,
+    "signer_sha256": [
+      "80d91716e88298892a4d34076ae3562ac9e2212e08048d09dbfeca2c26a6ed92",
+      "862a0a19d90fe0c678bde313d7a8606e3a97a0c209ab0b56626eb8eaf18571f9"
+    ],
+    "framework_hint": "Android native/SDK layers",
+    "native_libraries": [
+      "libandroidx.graphics.path.so",
+      "libc++_shared.so",
+      "libdatastore_shared_counter.so",
+      "libpdfium.so",
+      "libpdfium_jni.so"
+    ],
+    "dex_count": 5,
+    "split_count": 4,
+    "signer_details": [
+      {
+        "sha256": "80d91716e88298892a4d34076ae3562ac9e2212e08048d09dbfeca2c26a6ed92",
+        "min_sdk": 33,
+        "max_sdk": 2147483647
+      },
+      {
+        "sha256": "862a0a19d90fe0c678bde313d7a8606e3a97a0c209ab0b56626eb8eaf18571f9",
+        "min_sdk": 24,
+        "max_sdk": 32
+      }
+    ]
+  },
+  {
+    "slug": "nos-teletekst",
+    "source_filename": "nos-teletekst-original.apks",
+    "source_path": "/Volumes/EXT-SSD1/phone-apks/nos-teletekst-original.apks",
+    "source_sha256": "0012a0717d8f4e1d28b27d4400c2431fcf88b87ae3dc78da7e9db4a19b9cfa9b",
+    "base_sha256": "767b8abf5e85a6a55c5712dd66c73200ab0c3613f63a8ba2302afaf007cb5c2d",
+    "package": {
+      "name": "com.eoffice.android",
+      "versionCode": "62",
+      "versionName": "2.8.10",
+      "platformBuildVersionName": "16",
+      "platformBuildVersionCode": "36",
+      "compileSdkVersion": "36",
+      "compileSdkVersionCodename": "16"
+    },
+    "min_sdk": 23,
+    "signer_sha256": [
+      "09c20f5d028a5065fbeb4a94ea4d4ba4a8fd2fa5c2dff161e32456608989ee14"
+    ],
+    "framework_hint": "Android native/SDK layers",
+    "native_libraries": [
+      "libdatastore_shared_counter.so"
+    ],
+    "dex_count": 3,
+    "split_count": 5,
+    "signer_details": [
+      {
+        "sha256": "09c20f5d028a5065fbeb4a94ea4d4ba4a8fd2fa5c2dff161e32456608989ee14",
+        "min_sdk": null,
+        "max_sdk": null
+      }
+    ]
+  },
+  {
+    "slug": "tvgids-nl",
+    "source_filename": "tvgids.nl-original.apk",
+    "source_path": "/Volumes/EXT-SSD1/phone-apks/tvgids.nl-original.apk",
+    "source_sha256": "10a2672434fca0b4143e23606e83a8a5cefd6828be8808d63b1777eca7510ac7",
+    "base_sha256": "10a2672434fca0b4143e23606e83a8a5cefd6828be8808d63b1777eca7510ac7",
+    "package": {
+      "name": "nl.tvgids",
+      "versionCode": "106691",
+      "versionName": "7.0.16",
+      "platformBuildVersionName": "16",
+      "platformBuildVersionCode": "36",
+      "compileSdkVersion": "36",
+      "compileSdkVersionCodename": "16"
+    },
+    "min_sdk": 26,
+    "signer_sha256": [
+      "3d945a319ab73ffdcae24f3b9bf031891f4e362160c83bc8e5369a1a4ceb638f"
+    ],
+    "framework_hint": "Flutter",
+    "native_libraries": [
+      "libandroidx.graphics.path.so",
+      "libapp.so",
+      "libcomScore.so",
+      "libdartjni.so",
+      "libdatastore_shared_counter.so",
+      "libflutter.so",
+      "libsentry-android.so",
+      "libsentry.so"
+    ],
+    "dex_count": 2,
+    "split_count": 1,
+    "signer_details": [
+      {
+        "sha256": "3d945a319ab73ffdcae24f3b9bf031891f4e362160c83bc8e5369a1a4ceb638f",
+        "min_sdk": null,
+        "max_sdk": null
+      }
+    ]
+  },
+  {
+    "slug": "omroep-brabant",
+    "source_filename": "omroep-brabant-original.apks",
+    "source_path": "/Volumes/EXT-SSD1/phone-apks/omroep-brabant-original.apks",
+    "source_sha256": "cf2dbf5a442f26005238cb5dd60727931e4c3f72f4a7e904ce19919eab12b1a0",
+    "base_sha256": "c0229a1054b91109eda4fb386ecce2eb8a4c5dc2436c843f3b1cd20f67f9a860",
+    "package": {
+      "name": "nl.omroepbrabant.android",
+      "versionCode": "7331764",
+      "versionName": "11.1.0",
+      "platformBuildVersionName": "16",
+      "platformBuildVersionCode": "36",
+      "compileSdkVersion": "36",
+      "compileSdkVersionCodename": "16"
+    },
+    "min_sdk": 32,
+    "signer_sha256": [
+      "5b364bd01320e86c272a126b37b62be15753363565d930706c721d4909416a03"
+    ],
+    "framework_hint": "Android native/SDK layers",
+    "native_libraries": [
+      "libandroidx.graphics.path.so",
+      "libdatastore_shared_counter.so",
+      "libpl_droidsonroids_gif.so",
+      "libsqliteJni.so"
+    ],
+    "dex_count": 2,
+    "split_count": 4,
+    "signer_details": [
+      {
+        "sha256": "5b364bd01320e86c272a126b37b62be15753363565d930706c721d4909416a03",
+        "min_sdk": null,
+        "max_sdk": null
+      }
+    ]
+  },
+  {
+    "slug": "parool",
+    "source_filename": "parool-original.apks",
+    "source_path": "/Volumes/EXT-SSD1/phone-apks/parool-original.apks",
+    "source_sha256": "ff31b90e16c611b429118b3d90c4cf7ae9723cd4fb44fce95f7b0731a286ee7d",
+    "base_sha256": "625ab7259f034b0e64a5b2704265d10b280fec9f9b651a9830d47b8e73ffa52a",
+    "package": {
+      "name": "be.persgroep.android.news.mobilepa",
+      "versionCode": "23136515",
+      "versionName": "7.53.1",
+      "platformBuildVersionName": "17",
+      "platformBuildVersionCode": "37",
+      "compileSdkVersion": "37",
+      "compileSdkVersionCodename": "17"
+    },
+    "min_sdk": 32,
+    "signer_sha256": [
+      "80d91716e88298892a4d34076ae3562ac9e2212e08048d09dbfeca2c26a6ed92",
+      "34a28a4862a6204d7c70ebacc7105fae14ac880486c5d2d56a2b9c17907b27c4"
+    ],
+    "framework_hint": "Android native/SDK layers",
+    "native_libraries": [
+      "libandroidx.graphics.path.so",
+      "libcomScore.so",
+      "libdatastore_shared_counter.so",
+      "libpspdfkit.so",
+      "libsecrets.so"
+    ],
+    "dex_count": 8,
+    "split_count": 4,
+    "signer_details": [
+      {
+        "sha256": "80d91716e88298892a4d34076ae3562ac9e2212e08048d09dbfeca2c26a6ed92",
+        "min_sdk": 33,
+        "max_sdk": 2147483647
+      },
+      {
+        "sha256": "34a28a4862a6204d7c70ebacc7105fae14ac880486c5d2d56a2b9c17907b27c4",
+        "min_sdk": 24,
+        "max_sdk": 32
+      }
+    ]
+  },
+  {
+    "slug": "marktplaats",
+    "source_filename": "marktplaats-original.apks",
+    "source_path": "/Volumes/EXT-SSD1/phone-apks/marktplaats-original.apks",
+    "source_sha256": "367ff2e710f0fa0ee4a37067326c26633b72eb1dbcae4fa707959ac996a039d1",
+    "base_sha256": "341cdd423d7ba8a11b5aed3f4627c33947e0588e554cad7d4feb5d2abe7e4794",
+    "package": {
+      "name": "nl.marktplaats.android",
+      "versionCode": "633462",
+      "versionName": "16.17.0",
+      "platformBuildVersionName": "17",
+      "platformBuildVersionCode": "37",
+      "compileSdkVersion": "37",
+      "compileSdkVersionCodename": "17"
+    },
+    "min_sdk": 32,
+    "signer_sha256": [
+      "742dc275b25928621a8fbdb4362876825c8aec6a4afdbd04d0b8d72b9ca22052"
+    ],
+    "framework_hint": "Android native/SDK layers",
+    "native_libraries": [
+      "libTMXProfiling-7.7-71-jni.so",
+      "libandroidx.graphics.path.so",
+      "libd124.so",
+      "libdatastore_shared_counter.so",
+      "libimage_processing_util_jni.so",
+      "libsigner.so",
+      "libsurface_util_jni.so"
+    ],
+    "dex_count": 5,
+    "split_count": 3,
+    "signer_details": [
+      {
+        "sha256": "742dc275b25928621a8fbdb4362876825c8aec6a4afdbd04d0b8d72b9ca22052",
+        "min_sdk": null,
+        "max_sdk": null
+      }
+    ]
+  },
+  {
+    "slug": "voetbal-international",
+    "source_filename": "voetbal-international-original.apks",
+    "source_path": "/Volumes/EXT-SSD1/phone-apks/voetbal-international-original.apks",
+    "source_sha256": "d19dedb9d03ed7ed5824976be7b96bbba2f09a2af063067d20df0224da9b5f39",
+    "base_sha256": "01d3bcbe0551da17e04c697ca0e7a6965cc07db4a55b510d334a730572d64974",
+    "package": {
+      "name": "nl.vi",
+      "versionCode": "910",
+      "versionName": "5.13.52",
+      "platformBuildVersionName": "17",
+      "platformBuildVersionCode": "37",
+      "compileSdkVersion": "37",
+      "compileSdkVersionCodename": "17"
+    },
+    "min_sdk": 32,
+    "signer_sha256": [
+      "3d508fb86865e48353a506426baa57319215103dc9bcc5b8f34fa870ebe492be"
+    ],
+    "framework_hint": "Android native/SDK layers",
+    "native_libraries": [
+      "libandroidx.graphics.path.so"
+    ],
+    "dex_count": 11,
+    "split_count": 4,
+    "signer_details": [
+      {
+        "sha256": "3d508fb86865e48353a506426baa57319215103dc9bcc5b8f34fa870ebe492be",
+        "min_sdk": null,
+        "max_sdk": null
+      }
+    ]
+  }
+]

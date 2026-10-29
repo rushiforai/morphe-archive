@@ -11,7 +11,7 @@ This repository provides `.mpp` patch bundles. Supply a clean Google Maps APK to
 ## Patches list
 
 <!-- PATCHES_START -->
-[v1.4.1](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.4.1) · 2 patches
+[v1.4.2](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.4.2) · 3 patches
 
 Eligible versions: Any version.
 
@@ -19,6 +19,7 @@ Eligible versions: Any version.
 | --- | --- | --- |
 | BYD native battery experiment | Experimental: sends this BYD's battery and road-load model to Google through Maps' native EV route requests. Starts from the car's own average consumption, learns slowly from BMS energy/distance, and adds in-app vehicle settings. Native hooks inspected on Maps 26.41 and 26.42. Targets BYD DiLink 3; DiLink 5 unverified. | • Arrival battery during navigation |
 | Google Maps for MicroG-RE | Connects supported Google Maps builds to MicroG-RE 7.2.2, skips the uncertified-device screen, avoids a crash when a location-settings dialog cannot open, and prefers synthesized navigation speech with early Google TTS startup and the existing audio fallback. |  |
+| Picture-in-picture setting | Adds a Picture-in-picture On/Off setting to Maps Settings. Turn it off so navigation does not open a small window when you leave Maps; it starts on, as in Maps. Hooks inspected on Maps 26.41 and 26.42. |  |
 
 <!-- PATCHES_END -->
 
@@ -33,12 +34,12 @@ The patch accepts any Google Maps version. It stops if required hooks cannot be 
 
 ## Tested devices and apps
 
-The latest tested Maps version is `26.42.01.997557324`, patched with bundle `1.4.1` in Morphe Desktop `1.19.1`, using official MicroG-RE `7.2.2`.
+The latest tested Maps version is `26.42.02.997557324`, patched in Morphe Desktop `1.19.1` and used with official MicroG-RE `7.2.2`. Tests for bundle `1.4.2` ran on a pre-release build with the same patch code.
 
 | Device | Results |
 |---|---|
-| Android 16 phone / 4 KiB pages | Bundle `1.4.1`: sign-in, use without an account, online maps, search, place details, routing, and Thai and English voice guidance passed. |
-| BYD Dolphin, DiLink 3.0 / Android 10 / 4 KiB pages | Bundle `1.4.0` on Maps `26.41.04.993332563` with MicroG-RE `7.2.1` and patched Google TTS `20260817.01_p0.966249458`: static checks and in-car testing passed. |
+| Android 16 phone / 4 KiB pages | Bundle `1.4.2` on `26.42.02.997557324`: the Picture-in-picture setting passed. Bundle `1.4.1` on `26.42.01.997557324`: sign-in, use without an account, online maps, search, place details, routing, and Thai and English voice guidance passed. |
+| BYD Dolphin, DiLink 3.0 / Android 10 / 4 KiB pages | Bundle `1.4.2` on `26.42.02.997557324` with MicroG-RE `7.2.2`: the Picture-in-picture setting, route ETA, voice guidance and arrival battery passed. Bundle `1.4.0` on `26.41.04.993332563` with MicroG-RE `7.2.1` and patched Google TTS `20260817.01_p0.966249458`: static checks and in-car testing passed. |
 
 16 KiB devices, English-script street-name maneuvers, automatic voice timing while driving, and Timeline recording and backup are outside the verified scope.
 
@@ -83,7 +84,7 @@ Use the official MorpheApp release listed below. Older patch releases retain the
 
 1. Confirm this repository's name and Stable bundle version appear at the top center of the Home screen.
 2. Drop a clean, supported Google Maps APK onto **Drop APK here**, or click that area to browse for the file.
-3. After the APK loads, confirm the screen shows **Google Maps Morphe** and **Google Maps for MicroG-RE** is enabled. The native battery experiment is optional.
+3. After the APK loads, confirm the screen shows **Google Maps Morphe** and **Google Maps for MicroG-RE** is enabled. The Picture-in-picture setting and the native battery experiment are optional.
 4. Click **PATCH WITH DEFAULTS**.
 5. When patching finishes, install the resulting APK on the target device.
 
@@ -102,6 +103,12 @@ Use the official MorpheApp release listed below. Older patch releases retain the
 
 Explicit language selections can use prerecorded prompts.
 
+## Picture-in-picture setting
+
+This optional patch adds **Maps → Settings → Picture-in-picture**. Tap it and choose **On** or **Off** for Maps' small navigation window; it starts on. When it is off, leaving Maps during navigation does not open the window. This helps on head units that lack Android's own picture-in-picture setting.
+
+Enable **Google Maps for MicroG-RE** and **Picture-in-picture setting** when patching. The row appears only on devices that support picture-in-picture. The patch is inspected on Maps `26.41.04.993332563`, `26.42.01.997557324` and `26.42.02.997557324`, and tested on `26.42.02.997557324` on an Android 16 phone and a BYD Dolphin.
+
 ## BYD native battery experiment
 
 This optional patch sends the car's live battery level and an estimated road-load model to Maps' EV route requests, so Google shows the expected battery percentage at the destination. Google calculates the route and the estimate.
@@ -118,7 +125,7 @@ Enable **Google Maps for MicroG-RE** and **BYD native battery experiment** when 
 
 Battery capacity is measured automatically above 50% SOC. Changes saved during navigation apply after it ends.
 
-The patch is inspected on Maps `26.41.04.993332563` and `26.42.01.997557324`. It was tested in a BYD Dolphin, DiLink 3.0 on `26.41.04.993332563`; `26.42.01.997557324` is untested in a car. On other Maps versions patching may stop; disable this patch there. Other BYD models and DiLink 5.0 are untested.
+The patch is inspected on Maps `26.41.04.993332563`, `26.42.01.997557324` and `26.42.02.997557324`. It was tested in a BYD Dolphin, DiLink 3.0 on `26.41.04.993332563` and `26.42.02.997557324`. On other Maps versions patching may stop; disable this patch there. Other BYD models and DiLink 5.0 are untested.
 
 ## Troubleshooting
 

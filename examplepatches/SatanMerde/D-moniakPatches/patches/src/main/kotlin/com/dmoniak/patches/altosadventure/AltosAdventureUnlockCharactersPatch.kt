@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val altosAdventureUnlockCharactersPatch = bytecodePatch(
     name = "Unlock All Characters & Workshop - Alto's Adventure (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks all snowboarders (Maya, Paz, Izel, Felipe, Tupa), workshop items (Llama Horn, Helmets, Chasm Rescues), and coin doublers in Alto's Adventure without spending coins or real money.",
+    description = "⚠️ [Experimental / Untested] Unlocks all snowboarders (Maya, Paz, Izel, Felipe, Tupa), workshop items (Llama Horn, Helmets, Chasm Rescues), and coin doublers in Alto's Adventure without spending coins or real money.",
 ) {
     compatibleWith(COMPATIBILITY_ALTOS_ADVENTURE)
 

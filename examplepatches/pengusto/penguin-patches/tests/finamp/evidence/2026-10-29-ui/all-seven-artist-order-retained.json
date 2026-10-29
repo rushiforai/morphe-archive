@@ -1,0 +1,140 @@
+{
+  "capturedAt": "2026-10-29T01:20:50.257968+00:00",
+  "serial": "emulator-5580",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Back",
+      "class": "android.view.View",
+      "bounds": "[0,48][112,160]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Layout & Theme",
+      "class": "android.view.View",
+      "bounds": "[144,76][460,132]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Reset to defaults",
+      "class": "android.widget.Button",
+      "bounds": "[984,56][1080,152]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Home Screen Tile Size\nSelect the size of items on the home screen\n~6 columns (medium)",
+      "class": "android.view.View",
+      "bounds": "[0,160][1080,392]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "50%, 6",
+      "class": "android.widget.SeekBar",
+      "bounds": "[492,224][588,320]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Show text in grid view\nWhether or not to show the text (title, artist etc) on the grid music screen. Text is always shown on the home screen, ignoring this setting.",
+      "class": "android.widget.Switch",
+      "bounds": "[0,392][1080,592]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "true",
+      "checked": "true"
+    },
+    {
+      "text": "",
+      "content-desc": "Use blurred cover as background\nWhether or not to use a blurred album cover as background in various parts of the app.",
+      "class": "android.widget.Switch",
+      "bounds": "[0,592][1080,752]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "true",
+      "checked": "true"
+    },
+    {
+      "text": "",
+      "content-desc": "Show artist images with artist name\nThis affects small artist image previews, such as on the player screen.",
+      "class": "android.widget.Switch",
+      "bounds": "[0,752][1080,912]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "true",
+      "checked": "true"
+    },
+    {
+      "text": "",
+      "content-desc": "Song artist order\nAlbum artists first places credited album artists before other song artists sorted alphabetically. If no album artist matches, metadata order is kept.",
+      "class": "android.view.View",
+      "bounds": "[0,912][1080,1200]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Metadata order",
+      "content-desc": "",
+      "class": "android.widget.Button",
+      "bounds": "[32,1072][1032,1184]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Allow SplitScreen Mode\nThe player will be displayed alongside other views on wider displays.",
+      "class": "android.widget.Switch",
+      "bounds": "[0,1200][1080,1360]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "true",
+      "checked": "true"
+    },
+    {
+      "text": "",
+      "content-desc": "Show track progress on in-app miniplayer\nControls if the in-app miniplayer / now playing bar at the bottom of the music screen functions as a progress bar.",
+      "class": "android.widget.Switch",
+      "bounds": "[0,1360][1080,1520]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "true",
+      "checked": "true"
+    }
+  ],
+  "pngSha256": "5d77db42ef66bf1ab30617722e4ab019e197acd4af292bb75104353d85c7a89b"
+}

@@ -3,9 +3,10 @@
     Verify walk capture staging and leased ADB transport without a device.
 .NOTES
     Copyright 2026 HushGram contributors. https://github.com/SysAdminDoc/HushGram
+    The push gate starts every suite with -Root; this one reads the scripts beside it.
 #>
 [CmdletBinding()]
-param([switch]$Build, [string]$Sdk, [string]$Java)
+param([switch]$Build, [string]$Sdk, [string]$Java, [string]$Root)
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'walk-capture.ps1')

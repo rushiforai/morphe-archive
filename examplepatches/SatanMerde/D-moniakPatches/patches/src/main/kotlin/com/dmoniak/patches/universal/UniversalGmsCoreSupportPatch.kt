@@ -17,7 +17,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val universalGmsCoreSupportPatch = bytecodePatch(
     name = "GmsCore (MicroG) Support (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Redirects Google Play Services (GMS) dependencies to GmsCore / MicroG (app.revanced.android.gms / org.microg.gms.core), enabling Google account login and push notifications on non-rooted devices for morphed Google and third-party apps.",
+    description = "⚠️ [Experimental / Untested] Redirects Google Play Services (GMS) dependencies to GmsCore / MicroG (app.revanced.android.gms / org.microg.gms.core), enabling Google account login and push notifications on non-rooted devices for morphed Google and third-party apps.",
 ) {
     // Universal patch: Applies to any app requiring Google Play Services / MicroG redirection
     execute {

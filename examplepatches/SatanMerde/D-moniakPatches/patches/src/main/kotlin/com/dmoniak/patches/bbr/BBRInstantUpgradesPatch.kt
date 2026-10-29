@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val bbrInstantUpgradesPatch = bytecodePatch(
     name = "Instant Car Upgrades - Beach Buggy Racing (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Eliminates vehicle tuning delivery and upgrade wait timers in Beach Buggy Racing for immediate horsepower, acceleration, and handling boosts. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Eliminates vehicle tuning delivery and upgrade wait timers in Beach Buggy Racing for immediate horsepower, acceleration, and handling boosts. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_BEACH_BUGGY_RACING)
 

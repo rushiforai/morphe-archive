@@ -10,8 +10,7 @@ Technical documentation and patch catalog for IbisPaint X on Android.
 | :--- | :--- |
 | **Target App** | IbisPaint X |
 | **Package Name** | `jp.ne.ibis.ibispaintx.app` |
-| **Target Version** | `14.1.2` |
-| **Target Version Code** | `1401020064` |
+| **Target Version** | `Single pinned version (see README Patch Catalog)` |
 | **Target Package Format** | XAPK bundle |
 | **Primary Architecture** | `arm64-v8a` |
 | **Authoritative Source** | APKPure (XAPK bundle) |
@@ -23,9 +22,7 @@ Technical documentation and patch catalog for IbisPaint X on Android.
 
 ## 2. Applied Patches Catalog
 
-| Patch Name | Typology | Default State | Dependencies | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| **Enable Prime membership** | `rawResourcePatch` | `true` (Enabled) | None | Enables app features locked behind the subscription paywall. |
+The authoritative patch catalog with descriptions and options is generated in README.md from the built .mpp; see also patches-list.json.
 
 ---
 

@@ -2396,7 +2396,7 @@ public final class Probe extends Instrumentation {
                         // called with what those call sites pass. TikTok reads contacts and the
                         // app list only when its own schedule says so, so waiting for it proved
                         // nothing either way. -e which contacts queries the contacts provider,
-                        // -e which apps asks for the package list, the launcher enumeration and
+                        // -e which media the media store, -e which apps asks for the package list, the launcher enumeration and
                         // the share targets. Only counts and the cursor's type are shown.
                         String which = required(intent, "which");
                         if ("contacts".equals(which)) {
@@ -2410,6 +2410,31 @@ public final class Probe extends Instrumentation {
                             String kind = cursor == null ? "null" : cursor.getClass().getSimpleName();
                             if (cursor != null) cursor.close();
                             Log.i(TAG, "ok privacy-call contacts rows=" + rows + " cursor=" + kind);
+                        } else if ("media".equals(which)) {
+                            // The same entry point with a media store address, which the blocker
+                            // must hand to the provider. Its log line can't show the authority
+                            // (the logger omits every URL), so the cursor's type does: the blocker
+                            // answers with a MatrixCursor, the provider with its own cursor or a
+                            // SecurityException when the app holds no media permission.
+                            Method query = loader.loadClass("app.morphe.extension.tiktok.privacy.ContactListBlocker")
+                                    .getMethod("interceptQuery", android.content.ContentResolver.class, android.net.Uri.class,
+                                            String[].class, String.class, String[].class, String.class);
+                            String kind;
+                            int rows = -1;
+                            try {
+                                android.database.Cursor cursor = (android.database.Cursor) query.invoke(null,
+                                        app.getContentResolver(), android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                        new String[] {android.provider.MediaStore.Images.Media._ID}, null, null, null);
+                                kind = cursor == null ? "null" : cursor.getClass().getSimpleName();
+                                if (cursor != null) {
+                                    rows = cursor.getCount();
+                                    cursor.close();
+                                }
+                            } catch (java.lang.reflect.InvocationTargetException error) {
+                                if (!(error.getCause() instanceof SecurityException)) throw error;
+                                kind = "SecurityException";
+                            }
+                            Log.i(TAG, "ok privacy-call media rows=" + rows + " cursor=" + kind);
                         } else if ("apps".equals(which)) {
                             Class<?> blocker = loader.loadClass("app.morphe.extension.tiktok.privacy.InstalledAppsBlocker");
                             android.content.pm.PackageManager pm = app.getPackageManager();
@@ -2426,7 +2451,7 @@ public final class Probe extends Instrumentation {
                             Log.i(TAG, "ok privacy-call apps packages=" + packages.size() + " applications=" + applications.size()
                                     + " launcher=" + launcher.size() + " share=" + share.size());
                         } else {
-                            throw new IllegalArgumentException("-e which is contacts or apps, not " + which);
+                            throw new IllegalArgumentException("-e which is contacts, media or apps, not " + which);
                         }
                         break;
                     }
@@ -3126,6 +3151,18 @@ public final class Probe extends Instrumentation {
                         if (clickable == null) throw new IllegalStateException("nothing clickable holds the match");
                         int[] where = new int[2];
                         clickable.getLocationOnScreen(where);
+                        // -e touch true: a press and release at the match's center through its own
+                        // window instead of performClick. PineDrama's comment count (cgg) answers
+                        // performClick with true and opens nothing; its sheet opens on a touch.
+                        if ("true".equals(intent.getStringExtra("touch"))) {
+                            int[] inWindow = new int[2];
+                            target.getLocationInWindow(inWindow);
+                            tap(target.getRootView(), inWindow[0] + target.getWidth() / 2f, inWindow[1] + target.getHeight() / 2f);
+                            Log.i(TAG, "ok click " + idName(clickable, resources) + " at " + where[0] + ',' + where[1]
+                                    + " size " + clickable.getWidth() + 'x' + clickable.getHeight() + " touched="
+                                    + idName(target, resources));
+                            break;
+                        }
                         boolean handled = clickable.performClick();
                         Log.i(TAG, "ok click " + idName(clickable, resources) + " at " + where[0] + ',' + where[1]
                                 + " size " + clickable.getWidth() + 'x' + clickable.getHeight() + " handled=" + handled);

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val pvzMaxSunInstantRechargePatch = bytecodePatch(
     name = "Max Sun & Instant Seed Recharge - Plants vs. Zombies (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Eliminates plant packet cooldown timers for instant replanting and accelerates sun drops across Plants vs. Zombies levels.",
+    description = "⚠️ [Experimental / Untested] Eliminates plant packet cooldown timers for instant replanting and accelerates sun drops across Plants vs. Zombies levels.",
 ) {
     compatibleWith(COMPATIBILITY_PLANTS_VS_ZOMBIES)
 

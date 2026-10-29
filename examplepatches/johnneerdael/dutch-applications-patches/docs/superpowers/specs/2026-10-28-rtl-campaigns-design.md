@@ -1,0 +1,12 @@
+# RTL campaign suppression
+
+RTL 12.7.1/1558 still displays a native B&B notification promotion. Its bundled title/subtitle match the supplied phone screenshot, and its native eligibility gate returns true. The user requires all current or subsequently configured campaigns to be disabled, including Swrve messages, while preserving notifications explicitly enabled in Settings. Removing the entire mixed Swrve SDK would remove functional push handling and channel synchronization as well; keep those functions.
+
+Extend default-on Hide ads (and therefore its dependent tracking/consent controls) to prevent campaign selection and shared campaign presentation before UI creation. Cover the native modal family through its common eligibility/presenter boundaries, and Swrve event/session/message-center/deeplink/embedded entry points. Preserve real no-message/false/void results, callback completion, existing notification preferences, genuine consent/auth/purchase data and functional push. Never mark a suppressed campaign shown/handled/delivered. Retained class/resource definitions must not provide an alternative active presentation path in this supported build. New APK versions remain subject to original version/signer/shape guards.
+
+Verify against the original APK and the previously published APK to demonstrate the regression, then against emitted individual/combined APKs. Pin complete original code/switch/catch graphs and manual/push retention. Publish an authorized dev follow-up for phone testing. Do not claim live device acceptance or remove shared SDK classes by name. Keep all other approved app code unchanged.
+
+
+## Expert opt-out requested during work
+
+Add a separate default-off **Disable Swrve (expert)** control. Its description must state that it disables push notifications and Swrve channel synchronization. Use the SDK's genuine disabled/no-op implementation with correctly published global instance/configuration and no real SDK initialization; prevent persisted SDK jobs and independent push component entry points from restarting it. Preserve core app reading, real authentication/purchases, shared Firebase Auth/Installations/configuration and default behavior when this option is off. Do not fabricate callback success, sent/delivered work or retry forever. Document remaining non-Swrve infrastructure clearly. Existing default campaign removal still applies, while ordinary manual notification settings remain functional when expert opt-out is off.

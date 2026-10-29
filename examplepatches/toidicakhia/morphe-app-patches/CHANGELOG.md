@@ -1,3 +1,21 @@
+## [1.4.1](https://github.com/toidicakhia/morphe-app-patches/compare/v1.4.0...v1.4.1) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* repair TeraBox Google login and keep Benefits ads ([aa7223e](https://github.com/toidicakhia/morphe-app-patches/commit/aa7223ee96a667561d707ac897739b19a06f73e3))
+
+## [1.4.0](https://github.com/toidicakhia/morphe-app-patches/compare/v1.3.0...v1.4.0) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* harden WARP analytics dispatch detection ([6108aa9](https://github.com/toidicakhia/morphe-app-patches/commit/6108aa9d2d5cd8957d671b6b7c64fc2988735fac))
+
+### ✨ New Features
+
+* add EZVIZ signature check bypass ([e9671ca](https://github.com/toidicakhia/morphe-app-patches/commit/e9671caf1d8550102e4a48b0ebd7d240c406b0f6))
+* add HTTP Sniffer 2.4.9 support ([2aefbb3](https://github.com/toidicakhia/morphe-app-patches/commit/2aefbb3af27ab535b58d249a08dd8261cd9e497d))
+* add TeraBox patches ([2ea18d4](https://github.com/toidicakhia/morphe-app-patches/commit/2ea18d47c2ecb85819df65986fc223f911943f25))
+
 ## [1.3.0](https://github.com/toidicakhia/morphe-app-patches/compare/v1.2.0...v1.3.0) (2026-10-28)
 
 ### ✨ New Features

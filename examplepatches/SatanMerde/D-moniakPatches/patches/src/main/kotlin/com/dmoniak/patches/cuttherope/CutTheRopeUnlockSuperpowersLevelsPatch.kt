@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val cutTheRopeUnlockSuperpowersLevelsPatch = bytecodePatch(
     name = "Free Shopping & Billing Bypass - Cut the Rope (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing SDK in Cut the Rope to bypass in-app purchase verification, unlocking free shopping for superpowers, hints, and season box passes.",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing SDK in Cut the Rope to bypass in-app purchase verification, unlocking free shopping for superpowers, hints, and season box passes.",
 ) {
     compatibleWith(COMPATIBILITY_CUT_THE_ROPE)
 

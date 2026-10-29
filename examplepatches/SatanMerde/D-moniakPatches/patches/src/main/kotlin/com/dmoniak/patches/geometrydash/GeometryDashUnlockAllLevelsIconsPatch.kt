@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val geometryDashUnlockAllLevelsIconsPatch = bytecodePatch(
     name = "Unlock All Levels & Icons - Geometry Dash (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks all official levels (including Demon stages), custom icons, ships, balls, UFOs, waves, trails, and colors in Geometry Dash.",
+    description = "⚠️ [Experimental / Untested] Unlocks all official levels (including Demon stages), custom icons, ships, balls, UFOs, waves, trails, and colors in Geometry Dash.",
 ) {
     compatibleWith(COMPATIBILITY_GEOMETRY_DASH)
 

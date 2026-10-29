@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val hideMeBypassDataLimitPatch = bytecodePatch(
     name = "Bypass Free Data Cap & Bandwidth Throttling - hide.me VPN (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Overrides free plan data transfer limit counters, prevents speed throttling upon quota exhaustion, and maintains unlimited traffic in hide.me VPN.",
+    description = "⚠️ [Experimental / Untested] Overrides free plan data transfer limit counters, prevents speed throttling upon quota exhaustion, and maintains unlimited traffic in hide.me VPN.",
 ) {
     compatibleWith(COMPATIBILITY_HIDEME)
 

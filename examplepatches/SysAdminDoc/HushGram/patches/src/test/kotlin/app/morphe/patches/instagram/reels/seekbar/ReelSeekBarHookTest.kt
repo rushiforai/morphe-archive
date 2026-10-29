@@ -28,6 +28,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -512,11 +513,18 @@ class ReelSeekBarHookTest {
         assertEquals("$what: the field the row decides by", rowField, read.reference().toString())
         // 452 folds the legacy component's binder into the same switch, so its read of the field stays unhooked.
         assertTrue("$what: reads of the field", code.count { it.reference()?.toString() == rowField } >= 1)
-        assertEquals(
-            "$what: the container and the answer",
-            listOf(binder.parameterRegisterNumber(1), (read as OneRegisterInstruction).registerA),
-            code[call].arguments(),
-        )
+        val handed = binder.parameterRegisterNumber(1)
+        val (container, answer) = code[call].arguments()
+        assertEquals("$what: the answer", (read as OneRegisterInstruction).registerA, answer)
+        if (container != handed) {
+            // 453 copies the handed container into a local before its switch, once, and hooks with the copy.
+            val dispatch = code.indexOfFirst { it.opcode == Opcode.PACKED_SWITCH || it.opcode == Opcode.SPARSE_SWITCH }
+            val copies = (0 until dispatch).filter { (code[it] as? OneRegisterInstruction)?.registerA == container }
+            assertEquals("$what: one write of the container's local before the switch", 1, copies.size)
+            val copy = code[copies.single()]
+            assertTrue("$what: a copy", copy.opcode in setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16))
+            assertEquals("$what: of the handed container", handed, (copy as TwoRegisterInstruction).registerB)
+        }
     }
 
     /** The bar's listener calls [PROGRESS] first, with `this` and the position, and only there. */
@@ -575,9 +583,9 @@ class ReelSeekBarHookTest {
         /** The reel item's field saying it's an ad, which the row and the binder read. */
         const val AD_FIELD = "$ITEM_TYPE->A17:Z"
 
-        /** The ads' minimum and hidden kind on 451, read in the same places as the ordinary reels'. */
-        const val AD_MIN_SECONDS = 0x82090f0000146dL
-        const val AD_LAZY = 0x81090f00153275L
+        /** The ads' minimum and hidden kind on 453 (452: 0x82090f0000146d and 0x81090f00153275), read in the same places as the ordinary reels'. */
+        const val AD_MIN_SECONDS = 0x8208fe00001411L
+        const val AD_LAZY = 0x8108fe0015325dL
 
         val ORGANIC_MIN_SECONDS_HEX = "0x${ORGANIC_MIN_SECONDS.toString(16)}L"
         val AD_MIN_SECONDS_HEX = "0x${AD_MIN_SECONDS.toString(16)}L"

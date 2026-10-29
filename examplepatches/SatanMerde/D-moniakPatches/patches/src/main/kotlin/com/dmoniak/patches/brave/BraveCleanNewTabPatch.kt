@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val braveCleanNewTabPatch = bytecodePatch(
     name = "Clean New Tab & Disable Brave News - Brave (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes Brave News feed, sponsored background wallpaper images, sponsored top tiles, and trending widgets on the New Tab page.",
+    description = "⚠️ [Experimental / Untested] Removes Brave News feed, sponsored background wallpaper images, sponsored top tiles, and trending widgets on the New Tab page.",
 ) {
     compatibleWith(COMPATIBILITY_BRAVE)
 

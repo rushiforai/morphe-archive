@@ -26,7 +26,10 @@ public final class Settings {
     static final String HIDE_CELEBRATIONS = "hide_celebrations";
     static final String HIDE_FEED_JOBS = "hide_feed_jobs";
     static final String HIDE_REPOSTS = "hide_reposts";
+    static final String HIDE_ACTIVITY_POSTS = "hide_activity_posts";
+    static final String HIDE_RECOMMENDATIONS = "hide_recommendations";
     static final String HIDE_VIDEO_POSTS = "hide_video_posts";
+    static final String HIDE_GAMES = "hide_games";
     static final String HIDE_NEW_POSTS_PILL = "hide_new_posts_pill";
     static final String HIDE_TRANSLATION = "hide_translation";
     static final String OPEN_LINKS_DIRECTLY = "open_links_directly";
@@ -34,6 +37,9 @@ public final class Settings {
     static final String GHOST_MODE = "ghost_mode";
     static final String BLOCK_TRACKING = "block_tracking";
     static final String DISABLE_DOUBLE_TAP_LIKE = "disable_double_tap_like";
+    static final String REMOVE_GAPS_AND_DIVIDERS = "remove_gaps_and_dividers";
+    static final String MATERIAL_YOU = "material_you";
+    static final String AMOLED_BLACK = "amoled_black";
     static final String SANITIZE_SHARE_LINKS = "sanitize_share_links";
     static final String RESOLVE_SHORT_LINKS = "resolve_short_links";
     static final String LAST_SEEN_VERSION = "last_seen_version";
@@ -100,6 +106,33 @@ public final class Settings {
 
     public static boolean isDisableDoubleTapLikeIncluded() {
         return false;
+    }
+
+    public static boolean isRemoveGapsAndDividersIncluded() {
+        return false;
+    }
+
+    public static boolean isMaterialYouIncluded() {
+        return false;
+    }
+
+    // Read once by the Compose themes, so these apply after LinkedIn restarts.
+
+    static boolean removeGapsAndDividers() {
+        return isRemoveGapsAndDividersIncluded() && get(REMOVE_GAPS_AND_DIVIDERS, true);
+    }
+
+    static boolean materialYou() {
+        return isMaterialYouIncluded() && get(MATERIAL_YOU, true);
+    }
+
+    public static boolean isGmsCoreSupportIncluded() {
+        return false;
+    }
+
+    /** Pure black dark mode, through the same color hooks as Material You. */
+    static boolean amoledBlack() {
+        return isMaterialYouIncluded() && get(AMOLED_BLACK, false);
     }
 
     static boolean disableDoubleTapLike() {
@@ -199,6 +232,18 @@ public final class Settings {
         return isFeedFiltersIncluded() && get(HIDE_REPOSTS, false);
     }
 
+    static boolean hideActivityPosts() {
+        return isFeedFiltersIncluded() && get(HIDE_ACTIVITY_POSTS, false);
+    }
+
+    static boolean hideRecommendations() {
+        return isFeedFiltersIncluded() && get(HIDE_RECOMMENDATIONS, false);
+    }
+
+    static boolean hideGames() {
+        return isFeedFiltersIncluded() && get(HIDE_GAMES, false);
+    }
+
     static boolean hideVideoPosts() {
         return isFeedFiltersIncluded() && get(HIDE_VIDEO_POSTS, false);
     }
@@ -294,10 +339,24 @@ public final class Settings {
 
     static SharedPreferences prefs() {
         if (prefs == null) {
-            Context context = app();
+            Context context = context();
             if (context != null) prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         }
         return prefs;
+    }
+
+    /** LinkedIn's base context, set before its Application exists: the Compose themes load that early. */
+    private static Context baseContext;
+
+    /** Injected at the start of FlagshipApplication.attachBaseContext. */
+    public static void attachBaseContext(Context context) {
+        baseContext = context;
+    }
+
+    /** The running Application, or LinkedIn's base context while the Application is not there yet. */
+    static Context context() {
+        Application app = app();
+        return app != null ? app : baseContext;
     }
 
     /** The running Application, without needing a hook in Application.onCreate. */

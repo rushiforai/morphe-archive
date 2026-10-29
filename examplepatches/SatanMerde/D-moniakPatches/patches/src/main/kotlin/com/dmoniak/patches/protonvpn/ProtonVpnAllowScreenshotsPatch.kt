@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val protonVpnAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & Screen Mirroring - Proton VPN (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes Android FLAG_SECURE window restrictions in Proton VPN, allowing screenshots, screen recordings, and wireless display mirroring of connection logs and diagnostics.",
+    description = "⚠️ [Experimental / Untested] Removes Android FLAG_SECURE window restrictions in Proton VPN, allowing screenshots, screen recordings, and wireless display mirroring of connection logs and diagnostics.",
 ) {
     compatibleWith(COMPATIBILITY_PROTON_VPN)
 

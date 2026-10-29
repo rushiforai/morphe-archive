@@ -133,4 +133,19 @@
   "• Supports LinkedIn 4.1.1259\n• The settings now use your phone's language, and you can pick another one under Other → Language\n• Copy a diagnostic report under Other to paste into bug reports\n• The \"Michii Patches\" app icon shortcut now always appears, at the top\n\nOpen the settings from the Me panel → Michii Patches, or long press the LinkedIn icon → Michii Patches.": "• LinkedIn 4.1.1259 に対応\n• 設定が端末の言語で表示されるようになりました。その他 → 言語 で別の言語を選べます\n• その他 から診断レポートをコピーして、バグ報告に貼り付けられます\n• アプリアイコンの「Michii Patches」ショートカットが常に一番上に表示されるようになりました\n\n設定は 自分パネル → Michii Patches、またはLinkedInのアイコンを長押し → Michii Patches から開けます。",
   "• The settings now use your phone's language (English, Indonesian, Spanish, Portuguese, French, German, Vietnamese, Thai, Turkish, Russian, or Japanese). You can pick another language under Other → Language.\n\nOpen the settings from the Me panel → Michii Patches, or long press the LinkedIn icon → Michii Patches.": "• 設定が端末の言語で表示されるようになりました（英語、インドネシア語、スペイン語、ポルトガル語、フランス語、ドイツ語、ベトナム語、タイ語、トルコ語、ロシア語、日本語）。その他 → 言語 で別の言語を選べます。\n\n設定は 自分パネル → Michii Patches、またはLinkedInのアイコンを長押し → Michii Patches から開けます。",
   "The first release of Michii Patches.\n\n• Hide ads, promoted jobs, suggested posts, and Premium promotions\n• Download photos, videos, profile photos, and banners, with a configurable save location\n• Feed filters: focus mode, celebrations, jobs, reposts, videos\n• Chat: hide sponsored messages, and ghost mode\n• Open links directly (including lnkd.in) and clean share links\n• Block tracking and disable double-tap like\n\nOpen the settings from the Me panel → Michii Patches.": "Michii Patchesの最初のリリースです。\n\n• 広告、プロモーション求人、おすすめ投稿、Premiumの宣伝を非表示\n• 写真、動画、プロフィール写真、カバー画像をダウンロード（保存先を設定可能）\n• フィードフィルター: 集中モード、お祝い、求人、リポスト、動画\n• メッセージ: スポンサーメッセージの非表示とゴーストモード\n• リンクを直接開く（lnkd.inを含む）、共有リンクをクリーンにする\n• トラッキングのブロックとダブルタップでのいいねの無効化\n\n設定は 自分パネル → Michii Patches から開けます。"
+,
+  "Appearance": "外観",
+  "Material You": "Material You",
+  "Remove gaps and dividers": "余白と区切り線を削除",
+  "No gaps between posts and no dividers between list items. Restart LinkedIn to apply.": "投稿間の余白とリスト項目間の区切り線をなくします。適用するには LinkedIn を再起動してください。",
+  "Your wallpaper's colors for accents, backgrounds, cards and borders. Restart LinkedIn to apply. Older screens keep the colors chosen when patching.": "壁紙の色をアクセント、背景、カード、枠線に使います。適用するには LinkedIn を再起動してください。古い画面はパッチ適用時に選んだ色のままです。",
+  "Hide posts from others' activity": "他の人のアクティビティによる投稿を非表示",
+  "Posts shown because someone liked, commented on, or reacted to them.": "誰かがいいね、コメント、リアクションしたために表示される投稿。",
+  "Hide \"Recommended for you\"": "「あなたへのおすすめ」を非表示",
+  "Suggestions of people and pages to follow in the feed.": "フィードでフォローする人やページの提案。",
+  "Hide games": "ゲームを非表示",
+  "LinkedIn's puzzle games in the Me panel, search, and feed.": "「自分」パネル、検索、フィードにある LinkedIn のパズルゲーム。"
+,
+  "AMOLED black": "AMOLED ブラック",
+  "Pure black backgrounds and cards in dark mode, to save battery on AMOLED screens. Restart LinkedIn to apply.": "ダークモードで背景とカードを真っ黒にし、AMOLED 画面のバッテリーを節約します。適用するには LinkedIn を再起動してください。"
 }

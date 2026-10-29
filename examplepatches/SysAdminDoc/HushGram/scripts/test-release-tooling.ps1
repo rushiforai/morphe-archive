@@ -235,7 +235,7 @@ $removalEntries = @(
     'permission-removed com.google.android.gms.permission.AD_ID')
 $removedPermissions = @($removalEntries | ForEach-Object { $_ -replace '^permission-removed ', '' })
 $raisedVersionCode = '2147483647'
-$iconAliasEntries = @('hushgram', 'dark', 'plum' | ForEach-Object {
+$iconAliasEntries = @('hushgram', 'dark', 'light', 'plum' | ForEach-Object {
     "exported-added activity-alias:com.instagram.android.activity.MainTabActivity.hushgram_$_" })
 $approvedEntries = @($removalEntries) + "version-code $raisedVersionCode" + $iconAliasEntries + 'min-sdk 28'
 Assert-True ((@($checkedInAllowlist | Sort-Object -CaseSensitive) -join "`n") -ceq
@@ -3215,7 +3215,7 @@ try {
     $androidName = 'http://schemas.android.com/apk/res/android:name(0x01010003)='
     $androidExported = '          A: http://schemas.android.com/apk/res/android:exported(0x01010010)=true'
     # Instagram asks for the three advertising ID permissions, and the patched build doesn't, carries
-    # the raised version code and exports the three icon aliases: the changes the checked-in
+    # the raised version code and exports the four icon aliases: the changes the checked-in
     # allowlist approves, and the only ones the patches make here.
     function Get-FixtureManifest([string]$Build, [string]$Code, [switch]$WithSplit, [switch]$Patched,
             [string]$Package = $releaseTarget.PackageName) {

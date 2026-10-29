@@ -19,7 +19,6 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -42,7 +41,6 @@ import io.github.sabopura.morphe.extension.youtube.danmaku.DanmakuSettings;
 public final class FlyoutBridge {
     private static final String TAG = "SabopuraPlayer";
     private static final String ROW_TAG_PREFIX = "sabopura_flyout_";
-    private static final String LONG_PRESS_HINT_SHOWN = "flyout_long_press_hint_shown";
     static final String DANMAKU_SETTINGS_ACTION = "io.github.sabopura.morphe.action.OPEN_DANMAKU_SETTINGS_V2";
     static final String AMBIENT_SETTINGS_ACTION = "io.github.sabopura.morphe.action.OPEN_AMBIENT_LIGHT_SETTINGS";
 
@@ -108,6 +106,7 @@ public final class FlyoutBridge {
             View row = createRow(context, container, feature.label(), feature.icon);
             if (row == null) return true;
             row.setTag(ROW_TAG_PREFIX + feature.id);
+            showLongPressHint(row);
             TextView text = findText(row);
             FlyoutSwitch toggle = addSwitch(row, text);
             if (toggle != null) {
@@ -122,7 +121,6 @@ public final class FlyoutBridge {
                 } else if (text != null) {
                     text.setText(feature.toggleTitle());
                 }
-                showLongPressHintOnce(view.getContext());
             });
             row.setOnLongClickListener(view -> {
                 Context viewContext = view.getContext();
@@ -167,17 +165,17 @@ public final class FlyoutBridge {
         row.requestLayout();
     }
 
-    /** The settings row is gone, so the first toggle tells once how to reach the settings. */
-    private static void showLongPressHintOnce(Context context) {
-        try {
-            android.content.SharedPreferences store = SettingsStore.open(context);
-            if (store.getBoolean(LONG_PRESS_HINT_SHOWN, false)) return;
-            store.edit().putBoolean(LONG_PRESS_HINT_SHOWN, true).apply();
-            Toast.makeText(context, Views.isJapanese() ? "長押しで設定を開けます"
-                    : "Long-press for settings", Toast.LENGTH_LONG).show();
-        } catch (Throwable throwable) {
-            Log.w(TAG, "Unable to show the long-press hint", throwable);
-        }
+    /**
+     * The row's small second line (YouTube's own sub-label, as under "Captions") says that a
+     * long press opens the settings, so nobody has to discover it by chance.
+     */
+    private static void showLongPressHint(View row) {
+        int id = Views.resource(row.getContext(), "id", "list_item_text_sublabel");
+        View sublabel = id == 0 ? null : row.findViewById(id);
+        if (!(sublabel instanceof TextView)) return;
+        ((TextView) sublabel).setText(Views.isJapanese() ? "長押しで詳しい設定"
+                : "Long-press for more settings");
+        sublabel.setVisibility(View.VISIBLE);
     }
 
     private static void openSettings(Context context, String action) {
@@ -434,6 +432,10 @@ public final class FlyoutBridge {
         java.util.List<QuickSettingsSheet.Toggle> looks() {
             if (this == DANMAKU) return java.util.Collections.emptyList();
             return java.util.Arrays.asList(
+                    new QuickSettingsSheet.Toggle(AmbientLightSettings.SOFT_LIGHT,
+                            "光を強くぼかす", "Blur the light strongly", false),
+                    new QuickSettingsSheet.Toggle(AmbientLightSettings.HIDE_TIME_BAR,
+                            "動画の下の再生バーを隠す", "Hide the progress bar under the video", false),
                     new QuickSettingsSheet.Toggle(AmbientLightSettings.PICTURE_BACKDROP,
                             "背景に動画の映像を映す", "Show the video behind the page", false),
                     new QuickSettingsSheet.Toggle(AmbientLightSettings.FALLOFF,

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val protonVpnCustomDnsPatch = bytecodePatch(
     name = "Unlock Custom DNS Settings - Proton VPN (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks custom upstream DNS resolver preferences (NextDNS, AdGuard DNS, Quad9) in Proton VPN settings without subscription restrictions.",
+    description = "⚠️ [Experimental / Untested] Unlocks custom upstream DNS resolver preferences (NextDNS, AdGuard DNS, Quad9) in Proton VPN settings without subscription restrictions.",
 ) {
     compatibleWith(COMPATIBILITY_PROTON_VPN)
 

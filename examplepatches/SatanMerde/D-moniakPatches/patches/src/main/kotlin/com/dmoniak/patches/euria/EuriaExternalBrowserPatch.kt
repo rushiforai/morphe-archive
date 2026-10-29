@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val euriaExternalBrowserPatch = bytecodePatch(
     name = "Open Links in External Browser - Euria AI (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Opens reference citations and external links directly in the system's default browser rather than an embedded webview.",
+    description = "⚠️ [Experimental / Untested] Opens reference citations and external links directly in the system's default browser rather than an embedded webview.",
 ) {
     compatibleWith(COMPATIBILITY_EURIA)
 

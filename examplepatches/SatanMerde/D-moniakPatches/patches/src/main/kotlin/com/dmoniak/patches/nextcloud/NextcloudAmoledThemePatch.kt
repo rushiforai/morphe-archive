@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val nextcloudAmoledThemePatch = bytecodePatch(
     name = "AMOLED Dark Theme - Nextcloud (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Replaces dark gray theme with pure pitch black (#000000) for OLED screens in Nextcloud file explorer, uploads monitor, and media gallery.",
+    description = "⚠️ [Experimental / Untested] Replaces dark gray theme with pure pitch black (#000000) for OLED screens in Nextcloud file explorer, uploads monitor, and media gallery.",
 ) {
     compatibleWith(COMPATIBILITY_NEXTCLOUD)
 

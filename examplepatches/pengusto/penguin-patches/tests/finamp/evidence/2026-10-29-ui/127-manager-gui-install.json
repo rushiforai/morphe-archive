@@ -1,0 +1,8 @@
+{
+  "installed_apk_sha256": "de7f9bfe2795033d75feccaab75e7d5fc42867eec5f589bf0906e0d27cae557c",
+  "mask": 127,
+  "runtime": "art",
+  "manager_install_android_update": true,
+  "user": 0,
+  "verifiedAt": "2026-10-29T01:15:23.959502+00:00"
+}

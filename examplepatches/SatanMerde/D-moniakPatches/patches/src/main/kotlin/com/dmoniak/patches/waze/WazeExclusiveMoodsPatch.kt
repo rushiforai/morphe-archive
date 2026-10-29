@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val wazeExclusiveMoodsPatch = bytecodePatch(
     name = "Unlock Exclusive Moods & Car Icons - Waze (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks all exclusive driver moods, special vehicle avatars, and internal voice/audio themes without requiring event points or milestones.",
+    description = "⚠️ [Experimental / Untested] Unlocks all exclusive driver moods, special vehicle avatars, and internal voice/audio themes without requiring event points or milestones.",
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
 

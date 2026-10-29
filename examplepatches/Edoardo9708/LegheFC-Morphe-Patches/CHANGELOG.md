@@ -1,3 +1,187 @@
+## [1.4.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.3.0...v1.4.0) (2026-10-28)
+
+### ✨ New Features
+
+* **fonometro:** publish ad removal patch for v11.5 ([#12](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/issues/12)) ([e7101ee](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e7101ee6b400e5fdb26c802f1a156aa1e6ff8f7d))
+
+## [1.3.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.2.0...v1.3.0) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* accurately describe experimental Outdooractive behavior ([9259566](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/9259566eb787f1eb74bcb963fd9aa9702f59e466))
+* accurately describe experimental Twilight behavior ([973d31d](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/973d31d51f6a7548a27399c0e91fcc494a19b357))
+* **ci:** authenticate Gradle publish to Morphe GitHub Maven registry ([2dfb2db](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/2dfb2dbed0d10cb9f3a47f0b3d2e92465cfd6d5b))
+* **ci:** publish DEX-bearing Morphe bundle and repair dev.12 asset ([1c4a850](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/1c4a8500a353b77855adabc6e29f590cb3006da1))
+* **ci:** recover compiled dev bundle when semantic-release Git notes push fails ([4550b49](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/4550b49f66db2d7f468ae4f72b985bc3f62a412e))
+* **ci:** repair Morphe dev.12 bundle media type and correct fallback upload ([e5c2ddf](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e5c2ddfefb69199013a7609badcf3069a1291670))
+* **ci:** restore missing dev.12 channel note to publish dev.13 ([cd34c2b](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/cd34c2b6f9e85c1a8943a3931c10f1936d36cc91))
+* **flowx:** add R7 server/cache entry and post-write entitlement diagnostics ([c69323a](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/c69323ae61867f935d71c7828671030f21143999))
+* **flowx:** clarify local Gold test metadata without changing bytecode ([eccd1e2](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/eccd1e28fa67e30281ddb3f20e6a9b8a25a89341))
+* **flowx:** guard neutral test register against original write arguments ([12bb28b](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/12bb28b0088ba694ff698744c0dc6c8afc86e75e))
+* **flowx:** log diagnostic revision on each entitlement refresh ([0dbf92b](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/0dbf92be38bc8354e03a7bfaac3d8bcb9ee1674e))
+* **flowx:** log original and isolated test lists together after each load ([b694ef8](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/b694ef807a4aa2978bacfead5c97d81fd132cdb7))
+* **flowx:** log original entitlement list size before empty check ([f52288f](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/f52288fd0784f3201229a8cb694d97e8e29fdf16))
+* **flowx:** print unique patch runtime diagnostic revision ([6144e22](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/6144e22ea172a5f3d0fdd6ce3c73ec755723a999))
+* **flowx:** R8 trace demo factory and conditional entitlement reset in b() ([3c3eae5](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/3c3eae58223938eb035c6ea9557deddaf76def45))
+* **flowx:** R9 move cache demo write to confirmed post-write path ([71973a7](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/71973a78f9cf010f8d5a6c3e95a4a9557705c837))
+* **flowx:** separate server and cache diagnostic smali blocks ([959f145](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/959f1455a366047f0a3feace87bd4758f7d18f56))
+* **flowx:** use all explicit entitlement constructor arguments ([84ce609](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/84ce609c2f8e097f9bd3674c15b4bf1796eefa1d))
+* **flowx:** use type-compatible demo rows in isolated list probe ([09d9802](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/09d9802ff9eb9eb501365500cddee56d57597c65))
+* replace outdated Leghe FC repository documentation ([e5b1eeb](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e5b1eeb8fc7950d41c7b60d067c67ddb5d249e7e))
+* set MembershipDiagnosticPatch.kt patch description to Unlock Pro ([927682c](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/927682c02a782e0ab20aeb076d4f0cdf8d5647b1))
+* set TrialStatusExperimentPatch.kt patch description to Unlock Pro ([313ca9a](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/313ca9a33119c69624e56dc66d583a5a6a59c0d0))
+* test new reg values ([da49269](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/da49269aecc4c2d4934cb231991a5474d9de20d6))
+
+### ✨ New Features
+
+* **flowx:** add isolated Gold entitlement diagnostic test ([9097d9d](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/9097d9da4e1ab383035a2a4ccf5f6ca8c7ec0373))
+* **flowx:** create isolated test lists after server and cache load ([e49ee2d](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e49ee2d1d234acb5538d7976e62b0a918d273604))
+* **flowx:** log calls to original entitlement check without altering inputs ([a0bbc54](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/a0bbc54fc60cfc16f087b7ba8bda4f9049bd9e71))
+* import Outdooractive experimental patch ([f0bde4e](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/f0bde4e543781f8a170e20fd2b55033cfa5a39fc))
+* import Twilight experimental patch ([4a0d735](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/4a0d735de2bb1244faa29d2cb1d460efaf57c877))
+
+## [1.3.0-dev.2](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.3.0-dev.1...v1.3.0-dev.2) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* **flowx:** clarify local Gold test metadata without changing bytecode ([eccd1e2](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/eccd1e28fa67e30281ddb3f20e6a9b8a25a89341))
+
+## [1.3.0-dev.1](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.2.0...v1.3.0-dev.1) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* accurately describe experimental Outdooractive behavior ([9259566](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/9259566eb787f1eb74bcb963fd9aa9702f59e466))
+* accurately describe experimental Twilight behavior ([973d31d](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/973d31d51f6a7548a27399c0e91fcc494a19b357))
+* **ci:** authenticate Gradle publish to Morphe GitHub Maven registry ([2dfb2db](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/2dfb2dbed0d10cb9f3a47f0b3d2e92465cfd6d5b))
+* **ci:** publish DEX-bearing Morphe bundle and repair dev.12 asset ([1c4a850](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/1c4a8500a353b77855adabc6e29f590cb3006da1))
+* **ci:** recover compiled dev bundle when semantic-release Git notes push fails ([4550b49](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/4550b49f66db2d7f468ae4f72b985bc3f62a412e))
+* **ci:** repair Morphe dev.12 bundle media type and correct fallback upload ([e5c2ddf](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e5c2ddfefb69199013a7609badcf3069a1291670))
+* **ci:** restore missing dev.12 channel note to publish dev.13 ([cd34c2b](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/cd34c2b6f9e85c1a8943a3931c10f1936d36cc91))
+* **flowx:** add R7 server/cache entry and post-write entitlement diagnostics ([c69323a](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/c69323ae61867f935d71c7828671030f21143999))
+* **flowx:** guard neutral test register against original write arguments ([12bb28b](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/12bb28b0088ba694ff698744c0dc6c8afc86e75e))
+* **flowx:** log diagnostic revision on each entitlement refresh ([0dbf92b](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/0dbf92be38bc8354e03a7bfaac3d8bcb9ee1674e))
+* **flowx:** log original and isolated test lists together after each load ([b694ef8](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/b694ef807a4aa2978bacfead5c97d81fd132cdb7))
+* **flowx:** log original entitlement list size before empty check ([f52288f](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/f52288fd0784f3201229a8cb694d97e8e29fdf16))
+* **flowx:** print unique patch runtime diagnostic revision ([6144e22](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/6144e22ea172a5f3d0fdd6ce3c73ec755723a999))
+* **flowx:** R8 trace demo factory and conditional entitlement reset in b() ([3c3eae5](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/3c3eae58223938eb035c6ea9557deddaf76def45))
+* **flowx:** R9 move cache demo write to confirmed post-write path ([71973a7](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/71973a78f9cf010f8d5a6c3e95a4a9557705c837))
+* **flowx:** separate server and cache diagnostic smali blocks ([959f145](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/959f1455a366047f0a3feace87bd4758f7d18f56))
+* **flowx:** use all explicit entitlement constructor arguments ([84ce609](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/84ce609c2f8e097f9bd3674c15b4bf1796eefa1d))
+* **flowx:** use type-compatible demo rows in isolated list probe ([09d9802](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/09d9802ff9eb9eb501365500cddee56d57597c65))
+* replace outdated Leghe FC repository documentation ([e5b1eeb](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e5b1eeb8fc7950d41c7b60d067c67ddb5d249e7e))
+* set MembershipDiagnosticPatch.kt patch description to Unlock Pro ([927682c](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/927682c02a782e0ab20aeb076d4f0cdf8d5647b1))
+* set TrialStatusExperimentPatch.kt patch description to Unlock Pro ([313ca9a](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/313ca9a33119c69624e56dc66d583a5a6a59c0d0))
+* test new reg values ([da49269](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/da49269aecc4c2d4934cb231991a5474d9de20d6))
+
+### ✨ New Features
+
+* **flowx:** add isolated Gold entitlement diagnostic test ([9097d9d](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/9097d9da4e1ab383035a2a4ccf5f6ca8c7ec0373))
+* **flowx:** create isolated test lists after server and cache load ([e49ee2d](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e49ee2d1d234acb5538d7976e62b0a918d273604))
+* **flowx:** log calls to original entitlement check without altering inputs ([a0bbc54](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/a0bbc54fc60cfc16f087b7ba8bda4f9049bd9e71))
+* import Outdooractive experimental patch ([f0bde4e](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/f0bde4e543781f8a170e20fd2b55033cfa5a39fc))
+* import Twilight experimental patch ([4a0d735](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/4a0d735de2bb1244faa29d2cb1d460efaf57c877))
+
+## [1.2.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.1.0...v1.2.0) (2026-10-28)
+
+### ✨ New Features
+
+* **flowx:** publish R9 Gold patch as stable ([9179d4c](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/9179d4c7d26ecdb8109f3db6ca5e75a6fd6b6377))
+
+## [1.2.0-dev.13](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.2.0-dev.12...v1.2.0-dev.13) (2026-10-28)
+
+### 🐛 Bug Fixes
+
+* **ci:** authenticate Gradle publish to Morphe GitHub Maven registry ([2dfb2db](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/2dfb2dbed0d10cb9f3a47f0b3d2e92465cfd6d5b))
+* **ci:** publish DEX-bearing Morphe bundle and repair dev.12 asset ([1c4a850](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/1c4a8500a353b77855adabc6e29f590cb3006da1))
+* **ci:** recover compiled dev bundle when semantic-release Git notes push fails ([4550b49](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/4550b49f66db2d7f468ae4f72b985bc3f62a412e))
+* **ci:** repair Morphe dev.12 bundle media type and correct fallback upload ([e5c2ddf](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e5c2ddfefb69199013a7609badcf3069a1291670))
+* **ci:** restore missing dev.12 channel note to publish dev.13 ([cd34c2b](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/cd34c2b6f9e85c1a8943a3931c10f1936d36cc91))
+* **flowx:** add R7 server/cache entry and post-write entitlement diagnostics ([c69323a](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/c69323ae61867f935d71c7828671030f21143999))
+* **flowx:** R8 trace demo factory and conditional entitlement reset in b() ([3c3eae5](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/3c3eae58223938eb035c6ea9557deddaf76def45))
+* **flowx:** R9 move cache demo write to confirmed post-write path ([71973a7](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/71973a78f9cf010f8d5a6c3e95a4a9557705c837))
+
+## [1.2.0-dev.12](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.2.0-dev.11...v1.2.0-dev.12) (2026-10-24)
+
+### 🐛 Bug Fixes
+
+* **flowx:** print unique patch runtime diagnostic revision ([6144e22](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/6144e22ea172a5f3d0fdd6ce3c73ec755723a999))
+
+## [1.2.0-dev.11](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.2.0-dev.10...v1.2.0-dev.11) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* test new reg values ([da49269](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/da49269aecc4c2d4934cb231991a5474d9de20d6))
+
+## [1.2.0-dev.10](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.2.0-dev.9...v1.2.0-dev.10) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* **flowx:** separate server and cache diagnostic smali blocks ([959f145](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/959f1455a366047f0a3feace87bd4758f7d18f56))
+
+## [1.2.0-dev.9](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.2.0-dev.8...v1.2.0-dev.9) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* **flowx:** use type-compatible demo rows in isolated list probe ([09d9802](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/09d9802ff9eb9eb501365500cddee56d57597c65))
+
+## [1.2.0-dev.8](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.2.0-dev.7...v1.2.0-dev.8) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* **flowx:** guard neutral test register against original write arguments ([12bb28b](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/12bb28b0088ba694ff698744c0dc6c8afc86e75e))
+
+## [1.2.0-dev.7](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.2.0-dev.6...v1.2.0-dev.7) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* **flowx:** log original and isolated test lists together after each load ([b694ef8](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/b694ef807a4aa2978bacfead5c97d81fd132cdb7))
+
+## [1.2.0-dev.6](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.2.0-dev.5...v1.2.0-dev.6) (2026-10-23)
+
+### ✨ New Features
+
+* **flowx:** create isolated test lists after server and cache load ([e49ee2d](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e49ee2d1d234acb5538d7976e62b0a918d273604))
+
+## [1.2.0-dev.5](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.2.0-dev.4...v1.2.0-dev.5) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* **flowx:** log original entitlement list size before empty check ([f52288f](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/f52288fd0784f3201229a8cb694d97e8e29fdf16))
+
+## [1.2.0-dev.4](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.2.0-dev.3...v1.2.0-dev.4) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* **flowx:** log diagnostic revision on each entitlement refresh ([0dbf92b](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/0dbf92be38bc8354e03a7bfaac3d8bcb9ee1674e))
+
+## [1.2.0-dev.3](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.2.0-dev.2...v1.2.0-dev.3) (2026-10-23)
+
+### ✨ New Features
+
+* **flowx:** log calls to original entitlement check without altering inputs ([a0bbc54](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/a0bbc54fc60cfc16f087b7ba8bda4f9049bd9e71))
+
+## [1.2.0-dev.2](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.2.0-dev.1...v1.2.0-dev.2) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* **flowx:** use all explicit entitlement constructor arguments ([84ce609](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/84ce609c2f8e097f9bd3674c15b4bf1796eefa1d))
+
+## [1.2.0-dev.1](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.1.0...v1.2.0-dev.1) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* accurately describe experimental Outdooractive behavior ([9259566](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/9259566eb787f1eb74bcb963fd9aa9702f59e466))
+* accurately describe experimental Twilight behavior ([973d31d](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/973d31d51f6a7548a27399c0e91fcc494a19b357))
+* replace outdated Leghe FC repository documentation ([e5b1eeb](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e5b1eeb8fc7950d41c7b60d067c67ddb5d249e7e))
+* set MembershipDiagnosticPatch.kt patch description to Unlock Pro ([927682c](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/927682c02a782e0ab20aeb076d4f0cdf8d5647b1))
+* set TrialStatusExperimentPatch.kt patch description to Unlock Pro ([313ca9a](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/313ca9a33119c69624e56dc66d583a5a6a59c0d0))
+
+### ✨ New Features
+
+* **flowx:** add isolated Gold entitlement diagnostic test ([9097d9d](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/9097d9da4e1ab383035a2a4ccf5f6ca8c7ec0373))
+* import Outdooractive experimental patch ([f0bde4e](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/f0bde4e543781f8a170e20fd2b55033cfa5a39fc))
+* import Twilight experimental patch ([4a0d735](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/4a0d735de2bb1244faa29d2cb1d460efaf57c877))
+
 ## [1.1.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.0.1...v1.1.0) (2026-10-23)
 
 ### ✨ New Features
@@ -5,7 +189,38 @@
 * include Outdooractive Unlock Pro experimental patch ([6a21c89](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/6a21c89e8fdadcef5233910d86c56cda5811b307))
 * include Twilight Unlock Pro experimental patch ([740b9d4](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/740b9d4fa0eabc52c650ef71070967859795f8c9))
 
+## [1.1.0-dev.2](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* set MembershipDiagnosticPatch.kt patch description to Unlock Pro ([927682c](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/927682c02a782e0ab20aeb076d4f0cdf8d5647b1))
+* set TrialStatusExperimentPatch.kt patch description to Unlock Pro ([313ca9a](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/313ca9a33119c69624e56dc66d583a5a6a59c0d0))
+
+## [1.1.0-dev.1](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.0.1-dev.2...v1.1.0-dev.1) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* accurately describe experimental Outdooractive behavior ([9259566](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/9259566eb787f1eb74bcb963fd9aa9702f59e466))
+* accurately describe experimental Twilight behavior ([973d31d](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/973d31d51f6a7548a27399c0e91fcc494a19b357))
+
+### ✨ New Features
+
+* import Outdooractive experimental patch ([f0bde4e](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/f0bde4e543781f8a170e20fd2b55033cfa5a39fc))
+* import Twilight experimental patch ([4a0d735](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/4a0d735de2bb1244faa29d2cb1d460efaf57c877))
+
 ## [1.0.1](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.0.0...v1.0.1) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* unify Italian patch titles and descriptions ([2c95280](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/2c95280fd58ec11470a0a30184c7adf0931bd1b7))
+
+## [1.0.1-dev.2](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.0.1-dev.1...v1.0.1-dev.2) (2026-10-23)
+
+### 🐛 Bug Fixes
+
+* replace outdated Leghe FC repository documentation ([e5b1eeb](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e5b1eeb8fc7950d41c7b60d067c67ddb5d249e7e))
+
+## [1.0.1-dev.1](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.0.0...v1.0.1-dev.1) (2026-10-23)
 
 ### 🐛 Bug Fixes
 

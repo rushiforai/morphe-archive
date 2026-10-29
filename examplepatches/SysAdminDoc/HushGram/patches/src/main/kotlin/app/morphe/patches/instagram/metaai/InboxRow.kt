@@ -10,6 +10,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.classesHolding
 import app.morphe.util.ControlFlow
+import app.morphe.util.isConditionalBranchInstruction
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -26,7 +27,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 internal const val INBOX_ROW = "$EXTENSION_PACKAGE/metaai/MetaAi;->inboxRow(Ljava/lang/Object;)Ljava/lang/Object;"
-internal const val INBOX_ROW_RENDER_MARKER = "instagram.features.direct.inbox.feature.hatchinboxrow.ui.HatchInboxRow (HatchInboxRow.kt:45)"
+internal const val INBOX_ROW_RENDER_MARKER = "instagram.features.direct.inbox.feature.hatchinboxrow.ui.HatchInboxRow (HatchInboxRow.kt:48)"
 internal const val INBOX_ROW_ITEM_MARKER = "instagram.features.direct.inbox.feature.hatchinboxrow.ui.HatchInboxRowItem.<init>.<anonymous> (HatchInboxRowItem.kt:12)"
 internal const val INBOX_SECTION_MARKER = "No section generator found for section type "
 
@@ -60,7 +61,7 @@ internal fun BytecodePatchContext.findOptionalInboxRow(): InboxRowSite {
     val candidates = classesHolding(INBOX_SECTION_MARKER).filter { owner -> owner.methods.any { method ->
         method.rowCode().any { it.rowString() == INBOX_SECTION_MARKER }
     } }.flatMap { owner ->
-        owner.methods.mapNotNull { method -> optionalInboxRead(method, model)?.let { read ->
+        owner.methods.mapNotNull { method -> (optionalInboxRead(method, model) ?: assignedInboxRead(method, model))?.let { read ->
             InboxRowSite(owner.type, method.name, method.parameterTypes.map(CharSequence::toString), read,
                 (method.rowCode()[read] as OneRegisterInstruction).registerA, model)
         } }
@@ -78,6 +79,53 @@ internal fun BytecodePatchContext.holdOptionalInboxRow(site: InboxRowSite) {
         move-result-object v${site.register}
         check-cast v${site.register}, ${site.model}
     """)
+}
+
+/**
+ * 453's shape: the model is read into a local, a null or ineligible one skips to a common point, and
+ * an eligible one is copied into the row local that starts out null and goes on to the sorted insertion.
+ */
+private fun assignedInboxRead(method: Method, model: String): Int? {
+    if (!AccessFlags.STATIC.isSet(method.accessFlags) || method.returnType != "Z" ||
+        method.parameterTypes.size != 4 || method.parameterTypes.any { !it.startsWith("L") }) return null
+    val code = method.rowCode()
+    val read = code.indices.singleOrNull { code[it].opcode == Opcode.IGET_OBJECT && code[it].rowField()?.type == model } ?: return null
+    if (code.indices.any { index -> code.rowTarget(index)?.let { it in read + 1..read + 4 } == true }) return null
+    val register = (code[read] as OneRegisterInstruction).registerA
+    val skip = code.rowTarget(read + 1) ?: return null
+    val eligibility = code.getOrNull(read + 2) as? TwoRegisterInstruction ?: return null
+    if (code[read + 1].opcode != Opcode.IF_EQZ || (code[read + 1] as OneRegisterInstruction).registerA != register ||
+        code[read + 2].opcode != Opcode.IGET_BOOLEAN || eligibility.registerB != register ||
+        code[read + 2].rowField()?.let { it.definingClass != model || it.type != "Z" } != false ||
+        code.getOrNull(read + 3)?.opcode != Opcode.IF_EQZ || (code[read + 3] as OneRegisterInstruction).registerA != eligibility.registerA ||
+        code.rowTarget(read + 3) != skip) return null
+    val copy = (read + 4 until code.size).firstOrNull { index ->
+        code[index].opcode in listOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16) &&
+            (code[index] as TwoRegisterInstruction).registerB == register
+    } ?: return null
+    val row = (code[copy] as TwoRegisterInstruction).registerA
+    if (row == register || code.getOrNull(copy + 1)?.opcode !in listOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32) ||
+        code.rowTarget(copy + 1) != skip) return null
+    // Between the eligibility test and the copy, every check either drops the row or keeps it, and the
+    // model's local is never written over.
+    for (index in read + 4 until copy) {
+        val target = code.rowTarget(index)
+        if (code[index].isConditionalBranchInstruction && target != skip && target != copy) return null
+        if (code[index].opcode.setsRegister() && (code[index] as? OneRegisterInstruction)?.registerA in setOf(register, row)) return null
+    }
+    // The row local arrives here null on every path, so a dropped row adds nothing.
+    val sources = reachingWrites(method, code, row, read)
+    if (sources.isEmpty() || sources.any { (code.getOrNull(it) as? NarrowLiteralInstruction)?.narrowLiteral != 0 || code[it].opcode.setsWideRegister() }) return null
+    val add = code.indices.singleOrNull { index ->
+        code[index].opcode == Opcode.INVOKE_VIRTUAL &&
+            code[index].rowMethod()?.toString() == "Ljava/util/AbstractCollection;->add(Ljava/lang/Object;)Z" &&
+            code[index].rowArguments().lastOrNull() == row
+    } ?: return null
+    val insertionGuards = code.indices.filter { index ->
+        index > copy + 1 && index < add && code[index].opcode == Opcode.IF_EQZ &&
+            (code[index] as OneRegisterInstruction).registerA == row && code.rowTarget(index)?.let { it > add } == true
+    }
+    return read.takeIf { insertionGuards.size == 1 }
 }
 
 private fun optionalInboxRead(method: Method, model: String): Int? {

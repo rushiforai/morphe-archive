@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val braveAggressiveShieldPatch = bytecodePatch(
     name = "Force Aggressive Shields & Anti-Adblock Bypass - Brave (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces aggressive ad/tracker blocking mode by default, strips URL tracking query parameters, and bypasses anti-adblock detection scripts in Brave.",
+    description = "⚠️ [Experimental / Untested] Forces aggressive ad/tracker blocking mode by default, strips URL tracking query parameters, and bypasses anti-adblock detection scripts in Brave.",
 ) {
     compatibleWith(COMPATIBILITY_BRAVE)
 

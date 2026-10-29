@@ -193,14 +193,14 @@ class InterestQuestionTest {
         val before = context.mutableClassDefBy(found.type).methods.single {
             it.name == found.name && it.parameterTypes.map(CharSequence::toString) == found.parameters
         }.implementation!!.instructions.toList()
-        assertEquals("$label: the add's place", 451, found.rowAt)
-        assertEquals("$label: the builder's return", 67, found.endAt)
+        // 453's builds place the add differently (411 on 385914282 and 385914283), so its shape is checked, not its index.
         assertEquals("$label: the row type's load", Opcode.SGET_OBJECT, before[found.rowAt].opcode)
-        assertEquals("$label: the binder group", "A05", grouped.name)
-        // 452: the binder group's load is at 823 in all three builds.
-        val load = 823
-        assertEquals("$label: the binder group's load", load, grouped.rowAt)
-        assertEquals("$label: after the binder group's add", load + 4, grouped.endAt)
+        assertEquals("$label: the row type", found.rowType, before[found.rowAt].reference().toString())
+        assertTrue("$label: the builder's return", before[found.endAt].opcode in setOf(Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_OBJECT))
+        // 453 builds the binder group's rows in its kept override, not a renamed method.
+        assertEquals("$label: the binder group", "buildRowViewTypes", grouped.name)
+        assertTrue("$label: the binder group isn't Home's builder", grouped.type != found.type)
+        assertEquals("$label: after the binder group's add", grouped.rowAt + 4, grouped.endAt)
         found.write(context)
         grouped.write(context)
 

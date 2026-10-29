@@ -60,12 +60,68 @@ public final class BlitzerInjector {
     private static volatile long USER_SET_AT;
 
     private static final ScheduledExecutorService SCHEDULER = Executors.newSingleThreadScheduledExecutor(r -> {
-        Thread t = new Thread(r, "blitzermorph");
-        t.setDaemon(true);
-        return t;
-    });
+            Thread t = new Thread(r, "blitzermorph");
+            t.setDaemon(true);
+            return t;
+        });
 
-    private static volatile ScheduledFuture<?> PENDING;
+        private static volatile ScheduledFuture<?> PENDING;
+
+    // Debug state
+    private static volatile long LAST_FETCH_MS = 0;
+    private static volatile int LAST_CAMERA_COUNT = 0;
+    private static volatile String LAST_STATUS = "idle";
+    private static volatile String LAST_ERROR = "";
+    private static volatile boolean DEBUG_ENABLED = false;
+
+    /**
+     * Toggle debug overlay. Called by the Morphe patch via a
+     * system-level broadcast or by tapping the debug button.
+     */
+    public static void toggleDebug() {
+        DEBUG_ENABLED = !DEBUG_ENABLED;
+        if (DEBUG_ENABLED) {
+            showDebugOverlay();
+        } else {
+            hideDebugOverlay();
+        }
+    }
+
+    /**
+     * Force a fetch immediately (bypass debounce).
+     */
+    public static void forceFetch() {
+        LAST_STATUS = "fetching...";
+        SCHEDULER.execute(() -> {
+            try {
+                fetchAroundUser();
+                LAST_STATUS = "done";
+            } catch (Throwable t) {
+                LAST_ERROR = t.toString();
+                LAST_STATUS = "error";
+            }
+        });
+    }
+
+    private static void showDebugOverlay() {
+        try {
+                Class<?> cls = Class.forName("org.ungoogled.ui.MapsActivity");
+                Method m = cls.getMethod("showBlitzermorphDebug");
+                m.invoke(null);
+            } catch (Throwable t) {
+                Log.w(TAG, "showDebugOverlay", t);
+            }
+        }
+
+    private static void hideDebugOverlay() {
+        try {
+                Class<?> cls = Class.forName("org.ungoogled.ui.MapsActivity");
+                Method m = cls.getMethod("hideBlitzermorphDebug");
+                m.invoke(null);
+            } catch (Throwable t) {
+                Log.w(TAG, "hideDebugOverlay", t);
+            }
+        }
 
     /**
      * Hooked into SpeedCameras.moved(Location) by the patch.

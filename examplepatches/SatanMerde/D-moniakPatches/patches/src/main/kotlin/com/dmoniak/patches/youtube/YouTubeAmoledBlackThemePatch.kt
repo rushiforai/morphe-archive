@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeAmoledBlackThemePatch = bytecodePatch(
     name = "Pure AMOLED Black Theme - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects pure pitch-black (#000000) into YouTube player controls, navigation bars, comments bottom sheets, and panels for AMOLED battery saving.",
+    description = "⚠️ [Experimental / Untested] Injects pure pitch-black (#000000) into YouTube player controls, navigation bars, comments bottom sheets, and panels for AMOLED battery saving.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

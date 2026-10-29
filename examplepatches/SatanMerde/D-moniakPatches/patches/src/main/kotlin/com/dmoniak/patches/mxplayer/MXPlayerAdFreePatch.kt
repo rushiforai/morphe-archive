@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val mxPlayerAdFreePatch = bytecodePatch(
     name = "Ad-Free & Pure Player - MX Player (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips all banner ads on the main folder list, full-screen interstitial video ads upon pausing or exiting videos, and online OTT feed promotions by neutralizing ad SDK calls.",
+    description = "⚠️ [Experimental / Untested] Strips all banner ads on the main folder list, full-screen interstitial video ads upon pausing or exiting videos, and online OTT feed promotions by neutralizing ad SDK calls.",
 ) {
     compatibleWith(COMPATIBILITY_MX_PLAYER)
 

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val vpnLatUnlockHighSpeedServersPatch = bytecodePatch(
     name = "Unlock High-Speed Dedicated Nodes & Low Ping - VPN.lat (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks dedicated high-speed server gateways, removes artificial speed throttling, and enables automatic lowest-latency server selection for gaming in VPN.lat.",
+    description = "⚠️ [Experimental / Untested] Unlocks dedicated high-speed server gateways, removes artificial speed throttling, and enables automatic lowest-latency server selection for gaming in VPN.lat.",
 ) {
     compatibleWith(COMPATIBILITY_VPN_LAT)
 

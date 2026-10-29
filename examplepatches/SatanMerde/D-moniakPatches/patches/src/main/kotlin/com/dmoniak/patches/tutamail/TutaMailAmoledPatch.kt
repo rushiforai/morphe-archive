@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val tutaMailAmoledPatch = bytecodePatch(
     name = "AMOLED Black Theme - Tuta Mail (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects pure OLED pitch black (#000000) into Tuta Mail's inbox, message reading view, calendar, and contacts for maximum battery savings on AMOLED displays.",
+    description = "⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into Tuta Mail's inbox, message reading view, calendar, and contacts for maximum battery savings on AMOLED displays.",
 ) {
     compatibleWith(COMPATIBILITY_TUTA_MAIL)
 

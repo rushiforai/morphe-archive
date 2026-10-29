@@ -1,0 +1,15 @@
+{
+  "mask": 8,
+  "runtime": "jvm",
+  "runtime_log": "10-28 23:21:37.472 19769 20724 I Morphe Patcher: Runtime: name=jvm memoryLimit=1536",
+  "ui_success": true,
+  "apk_sha256": "e9184825d48ed22cb8bd84e9c7af5fe978abcc7839dba8f9664b58e43eb7fd50",
+  "native_sha256": "46e000ec41eea5f01132d75fac6b5c28a76b04279e0e2a3dc5cc5bddad26afeb",
+  "changed_retained_entries": [
+    "lib/arm64-v8a/libapp.so"
+  ],
+  "abis": [
+    "arm64-v8a"
+  ],
+  "recovery": false
+}

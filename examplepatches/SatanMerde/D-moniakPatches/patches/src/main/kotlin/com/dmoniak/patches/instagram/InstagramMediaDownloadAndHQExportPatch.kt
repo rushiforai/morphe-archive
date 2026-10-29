@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val instagramMediaDownloadAndHQExportPatch = bytecodePatch(
     name = "Media Downloader & Uncompressed Media Upload - Instagram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Enables downloading original high-resolution photos, reels, stories, and voice messages without watermarks, and bypasses image/video compression downscalers on upload.",
+    description = "⚠️ [Experimental / Untested] Enables downloading original high-resolution photos, reels, stories, and voice messages without watermarks, and bypasses image/video compression downscalers on upload.",
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 

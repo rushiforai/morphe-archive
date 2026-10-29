@@ -1,0 +1,48 @@
+name: Release Morphe patches
+
+on:
+  workflow_dispatch:
+  push:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install release tooling
+        run: npm ci
+
+      - name: Run semantic release
+        id: release
+        uses: cycjimmy/semantic-release-action@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Morphe's Gradle plugin is published through GitHub Packages.
+          GITHUB_ACTOR: ${{ github.actor }}
+          MORPHE_PACKAGES_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+
+      - name: Verify patch bundle build
+        if: steps.release.outputs.new_release_published != 'true'
+        run: ./gradlew :patches:buildAndroid --no-daemon
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          MORPHE_PACKAGES_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}

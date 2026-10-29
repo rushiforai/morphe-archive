@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val protonVpnAmoledPatch = bytecodePatch(
     name = "AMOLED Black Theme - Proton VPN (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects pure OLED pitch black (#000000) into Proton VPN's connection dashboard, server list, and settings to optimize battery savings on AMOLED screens.",
+    description = "⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into Proton VPN's connection dashboard, server list, and settings to optimize battery savings on AMOLED screens.",
 ) {
     compatibleWith(COMPATIBILITY_PROTON_VPN)
 

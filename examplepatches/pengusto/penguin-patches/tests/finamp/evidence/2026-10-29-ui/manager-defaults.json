@@ -1,0 +1,23 @@
+{
+  "catalogue_defaults": {
+    "Fix offline artist tracks": false,
+    "Fix quick settings banner contrast": false,
+    "Fix section title validation": false,
+    "Fix track alphabet navigation": false,
+    "Keep player output controls accessible": false,
+    "Load artist pages faster": false,
+    "Song artist order": false
+  },
+  "ui_recommended_selection_all_off": true,
+  "all_seven_disabled": [
+    "Fix offline artist tracks, Disabled",
+    "Fix quick settings banner contrast, Disabled",
+    "Fix section title validation, Disabled",
+    "Fix track alphabet navigation, Disabled",
+    "Keep player output controls accessible, Disabled",
+    "Load artist pages faster, Disabled",
+    "Song artist order, Disabled"
+  ],
+  "unrelated_selection": "0/5",
+  "reimport_preserved_previous_output_selection_until_recommended_reset": true
+}

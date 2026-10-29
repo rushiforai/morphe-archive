@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val instagramDisableScreenshotDetectionPatch = bytecodePatch(
     name = "Disable Screenshot Detection & Vanish Alert - Instagram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Silently disables screenshot notifications in disappearing messages, view-once media, and vanish mode, and unlocks screen recording across all Instagram DMs.",
+    description = "⚠️ [Experimental / Untested] Silently disables screenshot notifications in disappearing messages, view-once media, and vanish mode, and unlocks screen recording across all Instagram DMs.",
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 

@@ -319,6 +319,8 @@
         "extensions/instagram/src/test/java/app/hushgram/extension/instagram/download/DownloadHistoryTest.java",
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/download/CarouselPages.java",
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/download/CoverFrame.java",
+        "extensions/instagram/src/main/java/app/hushgram/extension/instagram/download/SaveTree.java",
+        "extensions/shared/library/src/main/java/app/hushgram/extension/shared/ViewWatcher.java",
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/download/VideoConvert.java",
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/settings/SettingsScreenRow.java",
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/settings/ShortcutCover.java",

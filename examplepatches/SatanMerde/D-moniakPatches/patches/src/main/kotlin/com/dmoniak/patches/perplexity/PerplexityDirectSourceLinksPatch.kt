@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val perplexityDirectSourceLinksPatch = bytecodePatch(
     name = "Clean Links & Fast Copy - Perplexity (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips tracking redirects from cited web sources in Perplexity answers and enables one-tap formatted markdown export.",
+    description = "⚠️ [Experimental / Untested] Strips tracking redirects from cited web sources in Perplexity answers and enables one-tap formatted markdown export.",
 ) {
     compatibleWith(COMPATIBILITY_PERPLEXITY)
 

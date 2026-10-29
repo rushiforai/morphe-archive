@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val soundCloudAdBlockPatch = bytecodePatch(
     name = "Block Audio & Stream Ads - SoundCloud (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Bypasses interstitial audio ads between music tracks and removes sponsored promoted tracks from the SoundCloud audio stream by intercepting mediation SDK calls.",
+    description = "⚠️ [Experimental / Untested] Bypasses interstitial audio ads between music tracks and removes sponsored promoted tracks from the SoundCloud audio stream by intercepting mediation SDK calls.",
 ) {
     compatibleWith(COMPATIBILITY_SOUNDCLOUD)
 

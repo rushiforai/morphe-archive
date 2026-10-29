@@ -22,6 +22,7 @@ import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import app.hushgram.extension.instagram.feed.CornerSize;
 import app.hushgram.extension.instagram.feed.ReelCorners;
+import app.hushgram.extension.instagram.feed.StoryCorners;
 import app.hushgram.extension.shared.SettingsContextRule;
 import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.settings.BaseSettings;
@@ -41,6 +42,7 @@ public class RoundedCornersSettingsTest {
         RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
         Settings.ROUNDED_POST_CORNERS.resetToDefault();
         Settings.ROUNDED_REEL_CORNERS.resetToDefault();
+        Settings.ROUNDED_STORY_CORNERS.resetToDefault();
         Settings.ROUNDED_CORNER_SIZE.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
@@ -53,6 +55,7 @@ public class RoundedCornersSettingsTest {
         PatchFamily.inBuildForTests = null;
         Settings.ROUNDED_POST_CORNERS.resetToDefault();
         Settings.ROUNDED_REEL_CORNERS.resetToDefault();
+        Settings.ROUNDED_STORY_CORNERS.resetToDefault();
         Settings.ROUNDED_CORNER_SIZE.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
@@ -94,13 +97,16 @@ public class RoundedCornersSettingsTest {
         // The zoom's own rows, Long press a photo to zoom and then Keep the zoom open, come right before.
         assertEquals(Arrays.toString(keys), Settings.LONG_PRESS_TO_ZOOM.key, keys[at - 2]);
         assertEquals(Arrays.toString(keys), Settings.LONG_PRESS_ZOOM_STAYS_OPEN.key, keys[at - 1]);
-        // Rounded corners on Reels (#362) sits between the posts switch and the list both share.
+        // Rounded corners on Reels (#362) and on stories (#363) sit between the posts switch and the list they share.
         assertEquals(Arrays.toString(keys), Settings.ROUNDED_REEL_CORNERS.key, keys[at + 1]);
-        assertEquals(Arrays.toString(keys), Settings.ROUNDED_CORNER_SIZE.key, keys[at + 2]);
+        assertEquals(Arrays.toString(keys), Settings.ROUNDED_STORY_CORNERS.key, keys[at + 2]);
+        assertEquals(Arrays.toString(keys), Settings.ROUNDED_CORNER_SIZE.key, keys[at + 3]);
         assertEquals("Rounded corners on Reels", feed.getPreference(at + 1).getTitle().toString());
+        assertEquals("Rounded corners on stories", feed.getPreference(at + 2).getTitle().toString());
         assertFalse(Settings.ROUNDED_REEL_CORNERS.get());
+        assertFalse(Settings.ROUNDED_STORY_CORNERS.get());
 
-        HushgramPreferenceFragment.CornerSizeRow size = (HushgramPreferenceFragment.CornerSizeRow) feed.getPreference(at + 2);
+        HushgramPreferenceFragment.CornerSizeRow size = (HushgramPreferenceFragment.CornerSizeRow) feed.getPreference(at + 3);
         assertEquals("Corner size", size.getTitle().toString());
         assertEquals(Arrays.asList("Small", "Large"), Arrays.asList(size.getEntries()[0].toString(), size.getEntries()[1].toString()));
         assertEquals("SMALL", size.getValue());
@@ -117,7 +123,33 @@ public class RoundedCornersSettingsTest {
         assertEquals("Rounded post corners", PatchFamily.ROUNDED_POST_CORNERS.patchName);
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.ROUNDED_POST_CORNERS.key));
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.ROUNDED_REEL_CORNERS.key));
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.ROUNDED_STORY_CORNERS.key));
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.ROUNDED_CORNER_SIZE.key));
+    }
+    /** The stories switch (#363, #368) wakes the size list alone and reaches the screen under settings at once. */
+    @Test public void theStoriesSwitchAloneWakesTheListAndReachesTheScreen() throws Exception {
+        open(EnumSet.of(PatchFamily.ROUNDED_POST_CORNERS));
+        android.preference.SwitchPreference stories = (android.preference.SwitchPreference)
+                page.getPreferenceScreen().findPreference(Settings.ROUNDED_STORY_CORNERS.key);
+        Preference size = page.getPreferenceScreen().findPreference(Settings.ROUNDED_CORNER_SIZE.key);
+        assertFalse(size.isEnabled());
+        try {
+            assertFalse(StoryCorners.listeningForTests(controller.get()));
+            stories.setChecked(true);
+            org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            assertTrue(Settings.ROUNDED_STORY_CORNERS.savedValue());
+            assertFalse("posts stay as they were", Settings.ROUNDED_POST_CORNERS.savedValue());
+            assertFalse("reels stay as they were", Settings.ROUNDED_REEL_CORNERS.savedValue());
+            assertTrue(size.isEnabled());
+            assertTrue(stories.getOnPreferenceChangeListener().onPreferenceChange(stories, true));
+            org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            assertTrue(StoryCorners.listeningForTests(controller.get()));
+            BaseSettings.PAUSED.save(true);
+            PauseForTests.pause(HushgramPause.Reason.SWITCH);
+            assertFalse(Settings.ROUNDED_STORY_CORNERS.get());
+        } finally {
+            StoryCorners.resetForTests();
+        }
     }
     /** Peek at the next carousel page (#361) comes after Corner size, starts off, is kept in a backup and reaches the screen under settings. */
     @Test public void thePeekSwitchFollowsTheCornerSizeAndStartsOff() throws Exception {
@@ -179,7 +211,9 @@ public class RoundedCornersSettingsTest {
         assertNull(page.getPreferenceScreen().findPreference(Settings.ROUNDED_POST_CORNERS.key));
         assertNull(page.getPreferenceScreen().findPreference(Settings.ROUNDED_CORNER_SIZE.key));
         assertNull(page.getPreferenceScreen().findPreference(Settings.ROUNDED_REEL_CORNERS.key));
+        assertNull(page.getPreferenceScreen().findPreference(Settings.ROUNDED_STORY_CORNERS.key));
         assertFalse(ConfigurationBackup.eligible().containsKey(Settings.ROUNDED_REEL_CORNERS.key));
+        assertFalse(ConfigurationBackup.eligible().containsKey(Settings.ROUNDED_STORY_CORNERS.key));
         assertFalse(ConfigurationBackup.eligible().containsKey(Settings.ROUNDED_POST_CORNERS.key));
         assertFalse(ConfigurationBackup.eligible().containsKey(Settings.ROUNDED_CORNER_SIZE.key));
     }

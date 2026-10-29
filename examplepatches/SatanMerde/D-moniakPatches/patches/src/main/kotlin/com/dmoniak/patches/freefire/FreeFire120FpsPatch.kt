@@ -18,7 +18,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val freeFire120FpsPatch = bytecodePatch(
     name = "Free Fire MAX 120 FPS & Device Model Spoof (Experimental)",
-    description = "⚠️ [Expérimental / Risque de ban en ligne] Débloque l'option 120 FPS / Taux de rafraîchissement élevé dans Free Fire MAX en simulant un modèle d'appareil gaming supporté (ASUS ROG Phone 8 Pro / ASUS_AI2401) et en forçant le taux de rafraîchissement de la fenêtre d'affichage à 120Hz.",
+    description = "⚠️ [Experimental / Online Ban Risk] Unlocks the 120 FPS / High Refresh Rate option in Free Fire MAX by spoofing a supported gaming device model (ASUS ROG Phone 8 Pro / ASUS_AI2401) and forcing the window display refresh rate to 120Hz.",
 ) {
     compatibleWith(COMPATIBILITY_FREE_FIRE_MAX, COMPATIBILITY_FREE_FIRE)
 

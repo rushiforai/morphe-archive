@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val deepLUnlockGlossaryStylesPatch = bytecodePatch(
     name = "Unlock Unlimited Glossaries & Writing Styles - DeepL (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks unlimited custom glossary terminology pairs and enables advanced professional writing styles (Academic, Technical, Casual, Business) in DeepL.",
+    description = "⚠️ [Experimental / Untested] Unlocks unlimited custom glossary terminology pairs and enables advanced professional writing styles (Academic, Technical, Casual, Business) in DeepL.",
 ) {
     compatibleWith(COMPATIBILITY_DEEPL)
 

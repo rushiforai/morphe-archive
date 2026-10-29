@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val truecallerAdFreePatch = bytecodePatch(
     name = "Ad-Free & Clean Dialer - Truecaller (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes intrusive post-call ads, banner ads inside the call history and dialer tabs, and promotional Gold upsells by neutralizing ad SDK calls.",
+    description = "⚠️ [Experimental / Untested] Removes intrusive post-call ads, banner ads inside the call history and dialer tabs, and promotional Gold upsells by neutralizing ad SDK calls.",
 ) {
     compatibleWith(COMPATIBILITY_TRUECALLER)
 

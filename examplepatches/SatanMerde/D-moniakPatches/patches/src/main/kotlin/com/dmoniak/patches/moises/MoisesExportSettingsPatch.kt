@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val moisesExportSettingsPatch = bytecodePatch(
     name = "High Quality Audio Export & Audio Tools - Moises",
-    description = "Bypasses client-side audio bitrate export caps (enabling 320kbps MP3 and WAV export options) and unlocks unlimited audio pitch shift, tempo changes, Smart Metronome, and chord detection in Moises (v2.72.0 recommandée).",
+    description = "Bypasses client-side audio bitrate export caps (enabling 320kbps MP3 and WAV export options) and unlocks unlimited audio pitch shift, tempo changes, Smart Metronome, and chord detection in Moises (v2.72.0 recommended).",
 ) {
     compatibleWith(COMPATIBILITY_MOISES)
 

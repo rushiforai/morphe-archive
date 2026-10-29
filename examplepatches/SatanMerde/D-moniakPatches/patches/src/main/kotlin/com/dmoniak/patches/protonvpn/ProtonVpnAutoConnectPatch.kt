@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val protonVpnAutoConnectPatch = bytecodePatch(
     name = "Aggressive Keep-Alive & Auto-Reconnect - Proton VPN (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Enforces persistent VPN tunnel keep-alive packets and instant automatic reconnection upon network switches or screen unlock.",
+    description = "⚠️ [Experimental / Untested] Enforces persistent VPN tunnel keep-alive packets and instant automatic reconnection upon network switches or screen unlock.",
 ) {
     compatibleWith(COMPATIBILITY_PROTON_VPN)
 

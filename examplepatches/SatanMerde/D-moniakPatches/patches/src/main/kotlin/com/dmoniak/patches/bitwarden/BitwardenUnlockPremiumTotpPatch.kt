@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val bitwardenUnlockPremiumTotpPatch = bytecodePatch(
     name = "Unlock Premium & Integrated TOTP 2FA - Bitwarden (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks Bitwarden Premium features: enables integrated 2FA TOTP code generation and displays vault security report indicators in Bitwarden.",
+    description = "⚠️ [Experimental / Untested] Unlocks Bitwarden Premium features: enables integrated 2FA TOTP code generation and displays vault security report indicators in Bitwarden.",
 ) {
     compatibleWith(COMPATIBILITY_BITWARDEN)
 

@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val robberyBobBypassAdsPatch = bytecodePatch(
     name = "Bypass Rewarded Ads - Robbery Bob (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Bypasses rewarded video ads in Robbery Bob for free stealth utility gadgets (wind-up noisy toys, donuts, invisibility potions) and free level continues. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Bypasses rewarded video ads in Robbery Bob for free stealth utility gadgets (wind-up noisy toys, donuts, invisibility potions) and free level continues. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_ROBBERY_BOB)
 
@@ -22,7 +22,7 @@ val robberyBobBypassAdsPatch = bytecodePatch(
 @Suppress("unused")
 val robberyBobFreeShoppingPatch = bytecodePatch(
     name = "Free Shopping - Robbery Bob (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing in Robbery Bob to unlock all thief outfits, ability upgrades, and utility packs for free. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing in Robbery Bob to unlock all thief outfits, ability upgrades, and utility packs for free. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_ROBBERY_BOB)
 

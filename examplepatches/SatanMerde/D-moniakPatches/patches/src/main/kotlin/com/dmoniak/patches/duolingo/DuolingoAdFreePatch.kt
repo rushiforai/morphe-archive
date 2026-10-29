@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val duolingoAdFreePatch = bytecodePatch(
     name = "Ad-Free & Declutter - Duolingo (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Blocks interstitial video ads shown between lessons and disables intrusive Super Duolingo subscription promotional popups.",
+    description = "⚠️ [Experimental / Untested] Blocks interstitial video ads shown between lessons and disables intrusive Super Duolingo subscription promotional popups.",
 ) {
     compatibleWith(COMPATIBILITY_DUOLINGO)
 

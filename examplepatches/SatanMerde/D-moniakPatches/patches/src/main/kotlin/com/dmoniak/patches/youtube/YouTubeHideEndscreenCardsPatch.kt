@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeHideEndscreenCardsPatch = bytecodePatch(
     name = "Hide Endscreen Cards & Suggestions - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hides floating endscreen cards, suggested video boxes, channel stickers, and overlay elements that clutter the end of videos.",
+    description = "⚠️ [Experimental / Untested] Hides floating endscreen cards, suggested video boxes, channel stickers, and overlay elements that clutter the end of videos.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

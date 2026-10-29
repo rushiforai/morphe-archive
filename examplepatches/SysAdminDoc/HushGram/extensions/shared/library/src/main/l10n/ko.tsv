@@ -1027,6 +1027,7 @@ Rounded corners on posts	게시물 모서리 둥글게
 Rounds the corners of a post's photo, video and carousel pages in Home and Following. Posts you scroll to after a change show it. Stories, profiles and Explore stay as they were.	홈과 팔로잉에서 게시물의 사진, 동영상, 캐러셀 페이지 모서리를 둥글게 만듭니다. 변경한 뒤에 스크롤해서 보는 게시물부터 적용됩니다. 스토리, 프로필, 탐색은 그대로입니다.
 Corner size	모서리 크기
 Rounded corners on Reels	Reels 둥근 모서리
+Rounded corners on stories	스토리 둥근 모서리
 Seek bar on stories	스토리 탐색 막대
 Shows a bar near the bottom of a video story. Drag it to jump to any point in the video. Photos don't get one.	동영상 스토리 아래쪽 근처에 막대를 표시합니다. 막대를 끌어 동영상의 원하는 지점으로 이동하세요. 사진에는 표시되지 않습니다.
 Thicker story progress bar	더 두꺼운 스토리 진행 막대
@@ -1035,6 +1036,7 @@ Thickness	두께
 Twice as thick	두 배 두껍게
 Three times as thick	세 배 두껍게
 Rounds the corners of a reel's video in the Reels tab and wherever a reel opens full screen. The seek bar, captions and buttons stay whole.	Reels 탭과 릴스가 전체 화면으로 열리는 모든 곳에서 릴스 동영상의 모서리를 둥글게 합니다. 탐색 막대, 자막, 버튼은 잘리지 않습니다.
+Rounds the corners of a story's photo or video, from the tray, a profile or a highlight. The progress bar, names and stickers stay whole.	스토리 줄, 프로필, 하이라이트 어디서 열든 스토리 사진이나 동영상의 모서리를 둥글게 합니다. 진행 막대, 이름, 스티커는 잘리지 않습니다.
 Peek at the next carousel page	다음 캐러셀 페이지 미리 보기
 A carousel post's page sits a little in from the edges, with the start of the next page showing at the right.	캐러셀 게시물의 페이지가 가장자리에서 조금 안쪽에 놓이고, 오른쪽에 다음 페이지의 시작 부분이 보입니다.
 Large	크게

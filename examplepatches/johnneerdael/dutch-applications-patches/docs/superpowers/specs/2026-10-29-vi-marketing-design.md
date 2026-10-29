@@ -1,0 +1,11 @@
+# VI home-feed publisher promotions
+
+The user tested v1.12.0-dev.1: Pro content works and ordinary ads are absent, but a Guus Hiddink print-special promotion appears up to three times on home. Finish Hide ads by removing this publisher marketing format, including repeated and future creative values. Retain usable Pro content and every existing privacy/article control.
+
+The inspected 5.13.52 app converts the server MARKETING type into `CurationItem.Marketing`; `NextMainNews` reads `CuratedNewsResponse.getItems()` and dispatches that item to `CuratedMarketingItem`. The grid uses the returned list's size, and its enclosing UI has a real empty-list branch. The promotion's title, image, subtitle and purchase destination are server data, so matching one title or URL would miss future campaigns.
+
+Use a typed list filter in the response getter, preserving the stored list, non-marketing item identities/order and the original list identity when nothing is removed. Preserve a null input. Guard the dedicated renderer before Compose/image/click setup as a fallback for old item lists. The native empty-list path handles a response consisting only of promotions. This is the same targeted Morphe approach already authorized; a text/host block would miss future creative values, and a renderer-only change would retain feed slots.
+
+Scope is Hide ads and its existing dependencies, not authentication, article delivery or a new public control. Keep exact original input/shape guards, all other app payloads, original parser/coroutine/Compose graphs outside the two owned regions, and the approved request redirect boundary. Do not change account or consent state. No phone actions or APK redistribution.
+
+Execute original/emitted regression cases for three repeats, varying campaign text/destination, mixed Pro/news/match/live/unknown entries, empty/null/all-marketing lists, read-only input, unchanged non-marketing identity, repeated access and cached renderer entry. FULL Hide-ads and combined validation, existing suites, bilingual docs, a fresh review and downloaded dev artifact/provenance verification precede handoff. The user's phone observation is recorded as feedback, not universal acceptance.

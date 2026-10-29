@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val megaAmoledDeclutterPatch = bytecodePatch(
     name = "AMOLED Dark Theme & Declutter - MEGA (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects pure OLED pitch black (#000000) into MEGA cloud file browser, transfer queue, and settings, and hides Pro upgrade promotion banners.",
+    description = "⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into MEGA cloud file browser, transfer queue, and settings, and hides Pro upgrade promotion banners.",
 ) {
     compatibleWith(COMPATIBILITY_MEGA)
 

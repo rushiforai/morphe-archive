@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val teraBoxUnlockVipPatch = bytecodePatch(
     name = "Unlock Premium & VIP Membership - TeraBox (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks TeraBox Premium & VIP status flags, enabling high-speed multi-threaded download acceleration, cloud archive decompression, and removes video download queues.",
+    description = "⚠️ [Experimental / Untested] Unlocks TeraBox Premium & VIP status flags, enabling high-speed multi-threaded download acceleration, cloud archive decompression, and removes video download queues.",
 ) {
     compatibleWith(COMPATIBILITY_TERABOX)
 

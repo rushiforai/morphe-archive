@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val angryBirdsBlockAdsPatch = bytecodePatch(
     name = "Block Ads & Video Commercials - Angry Birds (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Eliminates full-screen video ads between levels, pause screen promos, and banner overlays in Angry Birds.",
+    description = "⚠️ [Experimental / Untested] Eliminates full-screen video ads between levels, pause screen promos, and banner overlays in Angry Birds.",
 ) {
     compatibleWith(COMPATIBILITY_ANGRY_BIRDS_CLASSIC)
 

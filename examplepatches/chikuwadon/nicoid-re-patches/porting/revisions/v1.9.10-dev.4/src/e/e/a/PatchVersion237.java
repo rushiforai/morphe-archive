@@ -1,0 +1,1 @@
+package e.e.a; public final class PatchVersion237 {public static String value(){return "1.9.10-dev.4";}public static String display(){return "v"+value()+" @chikuwadon";}}

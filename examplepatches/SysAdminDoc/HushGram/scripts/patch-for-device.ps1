@@ -86,9 +86,10 @@ try { $catalog = Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json }
 catch { throw "Could not read patch list ${catalogPath}: $($_.Exception.Message)" }
 $target = Get-PatchTarget -PatchList $catalog
 if (-not $Apk -and $env:HUSHGRAM_FIXTURE_DIR -and (Test-Path -LiteralPath $env:HUSHGRAM_FIXTURE_DIR -PathType Container)) {
-    $Apk = (Get-ChildItem -LiteralPath $env:HUSHGRAM_FIXTURE_DIR `
-        -File | Where-Object { $_.Name -like "*$($target.PackageVersion)*" -and $_.Extension -in '.apk', '.apkm' } |
-        Select-Object -First 1).FullName
+    # The fixture the gate and the receipt patch, pinned version code and .apks included. A name
+    # match on the version alone skipped Instagram 453's .apks and could take another build's file.
+    $fixtureFile = Find-DeclaredFixture -Target $target -Version $target.PackageVersion -Folder $env:HUSHGRAM_FIXTURE_DIR
+    if ($fixtureFile) { $Apk = $fixtureFile.FullName }
 }
 if (-not $Apk -or -not (Test-Path -LiteralPath $Apk -PathType Leaf)) {
     throw ("No vendor APK. Pass -Apk with the $($target.PackageVersion) build, or set " +

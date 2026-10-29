@@ -1,3 +1,9 @@
+## [1.10.0](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.9.1...v1.10.0) (2026-10-28)
+
+### ✨ New Features
+
+* **YouTube:** show the comments under the video in the wide layout ([7e54d07](https://github.com/JacksonJones2003/origin-island-patches/commit/7e54d078c522171fcf8f7952f260bea9c83df6e1))
+
 ## [1.9.1](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.9.0...v1.9.1) (2026-10-27)
 
 ### 🐛 Bug Fixes

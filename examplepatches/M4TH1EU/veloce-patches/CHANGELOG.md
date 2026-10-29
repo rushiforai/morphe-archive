@@ -1,0 +1,6 @@
+## 1.0.0 (2026-10-29)
+
+### Features
+
+* first publish ([ac5eec5](https://github.com/M4TH1EU/veloce-patches/commit/ac5eec56ee3fc1f097a4739642645e55903fabbd))
+* initial waze patch ([0794bd5](https://github.com/M4TH1EU/veloce-patches/commit/0794bd51ed7a1ee23d1dce4f7c639a21ff2eef83))

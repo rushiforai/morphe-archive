@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeReturnDislikePatch = bytecodePatch(
     name = "Return YouTube Dislike - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Restores public dislike counts and like/dislike ratio bars on YouTube videos and Shorts using the official Return YouTube Dislike (RYD) API.",
+    description = "⚠️ [Experimental / Untested] Restores public dislike counts and like/dislike ratio bars on YouTube videos and Shorts using the official Return YouTube Dislike (RYD) API.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

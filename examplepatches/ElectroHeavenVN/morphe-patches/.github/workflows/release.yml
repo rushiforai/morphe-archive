@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Download latest ZaloXposed APK
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p patches/src/main/resources/modules
+          gh release download --repo ElectroHeavenVN/ZaloXposed --pattern "*.apk" --output /tmp/zaloxposed.apk --clobber
+
+      - name: Patch ZaloXposed APK and sign
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          if [ -z "$SIGNING_KEYSTORE_BASE64" ] || [ -z "$SIGNING_STORE_PASSWORD" ] || [ -z "$SIGNING_KEY_ALIAS" ] || [ -z "$SIGNING_KEY_PASSWORD" ]; then
+            echo "Missing signing secrets" >&2
+            exit 1
+          fi
+
+          KEYSTORE_PATH="$RUNNER_TEMP/release.keystore"
+          printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+
+          # 1. Download apktool
+          curl -sLo /tmp/apktool.jar https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_3.0.3.jar
+
+          # 2. Decompile APK
+          java -jar /tmp/apktool.jar d /tmp/zaloxposed.apk -o /tmp/zaloxposed_out -f
+
+          # 3. Patch MorpheConstants.smali: isPatchedByMorphe() return true (0x1) and field PATCHED_BY_MORPHE = true
+          TARGET_SMALI=$(find /tmp/zaloxposed_out -name "MorpheConstants.smali")
+          if [ -z "$TARGET_SMALI" ]; then
+            echo "MorpheConstants.smali not found!" >&2
+            exit 1
+          fi
+
+          sed -i '/^\.method public static isPatchedByMorphe()Z/,/^\.end method/ s/const\/4 v0, 0x0/const\/4 v0, 0x1/' "$TARGET_SMALI"
+          sed -i 's/\.field private static final PATCHED_BY_MORPHE:Z = false/\.field private static final PATCHED_BY_MORPHE:Z = true/' "$TARGET_SMALI"
+
+          # 4. Rebuild APK
+          java -jar /tmp/apktool.jar b /tmp/zaloxposed_out -o /tmp/zaloxposed_patched.apk
+
+          # 5. Zipalign and sign with release keystore
+          BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
+          $BUILD_TOOLS_DIR/zipalign -p -f 4 /tmp/zaloxposed_patched.apk patches/src/main/resources/modules/app-release.apk
+          $BUILD_TOOLS_DIR/apksigner sign \
+            --ks "$KEYSTORE_PATH" \
+            --ks-pass "pass:$SIGNING_STORE_PASSWORD" \
+            --ks-key-alias "$SIGNING_KEY_ALIAS" \
+            --key-pass "pass:$SIGNING_KEY_PASSWORD" \
+            patches/src/main/resources/modules/app-release.apk
+
+      # Semantic release runs its own Gradle build command.
+      # Only dev and main branch will generate a release as specified by .releaserc
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v6
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp
+
+      # Always verify compilation when semantic-release did not publish a release.
+      # This covers non-main/dev branches, chore commits, docs commits, etc.
+      - name: Verify project compiles
+        if: steps.release.outputs.new_release_published != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid clean --no-daemon

@@ -132,15 +132,14 @@ def build_content(expanded=True):
     lines = [
         f"> **[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**"
         f"&nbsp;&nbsp;•&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;•&nbsp;&nbsp;"
-        f"**{total_unique} patchs au total** ({total_func} validés & fonctionnels • {total_exp} expérimentaux)",
+        f"**{total_unique} total patches** ({total_func} tested & functional • {total_exp} experimental)",
         "",
         "---",
         "",
-        "### ✅ Patchs validés & fonctionnels / Tested & Functional Patches",
+        "### ✅ Tested & Functional Patches",
         "",
         "> [!TIP]",
-        "> **🇫🇷 Français :** Ces patchs ont été rigoureusement testés et confirmés pleinement opérationnels sur appareil réel.  ",
-        "> **🇬🇧 English :** These patches have been thoroughly tested and confirmed fully functional on real hardware.",
+        "> These patches have been thoroughly tested and confirmed fully functional on real hardware.",
         ""
     ]
 
@@ -180,16 +179,11 @@ def build_content(expanded=True):
     lines.extend([
         "---",
         "",
-        "### 🧪 Patchs expérimentaux (en développement) / Experimental Patches (AI-Generated)",
+        "### 🧪 Experimental Patches (AI-Generated)",
         "",
         "> [!WARNING]",
-        "> **🇫🇷 Risque très élevé de non-fonctionnement :** Ces patchs sont générés par IA et n'ont pas encore été testés sur appareils réels. Les chances qu'ils ne marchent pas sont très élevées.  ",
-        "> 💡 **Vous voulez qu'un patch fonctionne ?** [Faites une demande dédiée sur GitHub](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_request.yml) pour qu'il soit rétro-ingénié et rendu 100% opérationnel à la prochaine mise à jour !",
-        ">",
-        "> <br>",
-        ">",
-        "> **🇬🇧 High Failure Rate Notice:** These patches are AI-generated and haven't been tested on real hardware yet. The chances of failure are high.  ",
-        "> 💡 **Want a patch to work?** [Submit a request here](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_request.yml) to prioritize reverse-engineering and make it fully functional in the next update!",
+        "> **High Failure Rate Notice:** These patches are AI-generated and haven't been tested on real hardware yet. The chances of failure are high.  ",
+        "> 💡 **Want a patch to work?** [Submit a request on GitHub](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_request.yml) to prioritize reverse-engineering and make it fully functional in the next update!",
         ""
     ])
 
@@ -251,17 +245,17 @@ readme = re.sub(
     readme
 )
 readme = re.sub(
-    r'(https://img\.shields\.io/badge/Fonctionnels-)\d+(-[0-9a-fA-F]+)',
+    r'(https://img\.shields\.io/badge/(?:Fonctionnels|Functional)-)\d+(-[0-9a-fA-F]+)',
     rf'\g<1>{total_func}\g<2>',
     readme
 )
 readme = re.sub(
-    r'(https://img\.shields\.io/badge/Expérimentaux-)\d+(-[0-9a-fA-F]+)',
+    r'(https://img\.shields\.io/badge/(?:Expérimentaux|Experimental)-)\d+(-[0-9a-fA-F]+)',
     rf'\g<1>{total_exp}\g<2>',
     readme
 )
 readme = re.sub(
-    r'(https://img\.shields\.io/badge/Apps(?:_Support%C3%A9es)?-)\d+(-[0-9a-fA-F]+)',
+    r'(https://img\.shields\.io/badge/(?:Apps(?:_Support%C3%A9es)?|Supported_Apps)-)\d+(-[0-9a-fA-F]+)',
     rf'\g<1>{total_apps}\g<2>',
     readme
 )

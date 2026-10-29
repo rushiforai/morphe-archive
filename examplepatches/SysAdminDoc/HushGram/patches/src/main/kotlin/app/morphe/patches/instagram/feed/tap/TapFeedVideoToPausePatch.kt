@@ -247,14 +247,16 @@ internal fun BytecodePatchContext.findFeedTap(): FeedTap {
     if (handler.localRegisterCount() < HOOK_LOCALS) refuse("$where has ${handler.localRegisterCount()} local register(s), needs $HOOK_LOCALS")
 
     // A press held past the hold delay: the class's one (View, Media, point, state) entry and its one
-    // (Media, point, state, boolean) release, 00G1.A06 and 00G1.A09 on 451's 385713073.
+    // (Media, point, state, boolean) release, 00G1.A06 and 00G1.A09 on 451's 385713073. On 453 the
+    // entry takes the post's holder before the state too, 01Bc.A05 on 385914283; the class's
+    // (View, Media, point, state, int) method there is the double-tap like, which isn't a press.
     fun instanceVoid(vararg parameters: String) = handlerClass.methods.filter {
         !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" && it.implementation != null &&
             it.parameterTypes.map(Any::toString) == parameters.toList()
     }
-    val presses = instanceVoid(VIEW, MEDIA, point, state)
+    val presses = instanceVoid(VIEW, MEDIA, point, state) + instanceVoid(VIEW, MEDIA, point, holder, state)
     val press = presses.singleOrNull()
-        ?: refuse("expected one press entry ($VIEW, $MEDIA, $point, $state) in ${handler.definingClass}, found ${presses.size}")
+        ?: refuse("expected one press entry ($VIEW, $MEDIA, $point[, $holder], $state) in ${handler.definingClass}, found ${presses.size}")
     val releases = instanceVoid(MEDIA, point, state, "Z")
     val release = releases.singleOrNull()
         ?: refuse("expected one press release ($MEDIA, $point, $state, boolean) in ${handler.definingClass}, found ${releases.size}")
@@ -756,14 +758,15 @@ internal fun BytecodePatchContext.applyFeedTapPause(found: FeedTap) {
             ExternalLabel("stock", getInstruction(0)),
         )
     }
-    // The press entry is (View, Media, point, state): the post is p2 and the state p4.
+    // The press entry is (View, Media, point[, holder], state): the post is p2 and the state its last
+    // parameter, p4 or p5.
     mutable(found.press).apply {
         addInstructionsWithLabels(
             0,
             """
                 move-object/from16 v0, p0
                 move-object/from16 v1, p2
-                move-object/from16 v2, p4
+                move-object/from16 v2, p${found.press.parameterTypes.size}
                 invoke-static { v0, v1, v2 }, $FEED_PRESSED
                 move-result v0
                 if-eqz v0, :stock

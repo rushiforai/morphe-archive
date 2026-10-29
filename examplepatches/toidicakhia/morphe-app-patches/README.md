@@ -23,9 +23,9 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/toidicakhia/morphe-app-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.4.1](https://github.com/toidicakhia/morphe-app-patches/releases/tag/v1.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
 <details open>
-<summary>📦 EZVIZ&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 EZVIZ&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -36,7 +36,29 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Bypass SSL pinning](#bypass-ssl-pinning) | Bypasses EZVIZ certificate pinning and hostname checks so a debugging proxy can read its HTTPS traffic. Also trusts user-installed certificates. Not selected by default. |  |
+| [Bypass Signature Check](#bypass-signature-check) | Skips the repack signature hash check in LoadingActivity that closes the app before it can start. |  |
 | [Remove Ads](#remove-ads) | Removes banner, splash and hot open-screen ads. |  |
+
+</details>
+
+<details open>
+<summary>📦 TeraBox&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.27.5 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Clone app](#clone-app) | Installs TeraBox as a separate app alongside the original, with its own account. Each copy needs a different clone number. | • Package name |
+| [Fix Google login](#fix-google-login) | Makes Sign in with Google work in the patched app, where it would otherwise fail. Works as soon as you patch it in, with no switch. |  |
+| [Hide ads](#hide-ads) | Blocks feed, banner, interstitial, app-open and video player ads on every page except Benefits, where rewarded ads stay available. |  |
+| [Hide consent form](#hide-consent-form) | Hides the ad consent form shown at startup. |  |
+| [Hide promotions](#hide-promotions) | Hides Premium upgrade cards and banners, prize and campaign cards, speed-up prompts, floating invites, and sale, coupon and promotional popups. |  |
+| [Hide video recommendations](#hide-video-recommendations) | Hides the recommended videos below the video player. |  |
+| [Unlock Premium Plus](#unlock-premium-plus) | Unlocks HD up to original quality, playback speeds up to 3x and video uploads. HD buffers faster over parallel connections. |  |
 
 </details>
 
@@ -78,8 +100,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 **🎯 Supported versions:**
 
-| 2.5.2-ad_mob |
-| :---: |
+| 2.5.2-ad_mob | 2.4.9-ad_mob |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

@@ -44,6 +44,7 @@ public class SettingsStatus {
     public static boolean keepCollectionsLoadedEnabled = false;
     public static boolean collectionSortEnabled = false;
     public static boolean collectionVideosSearchEnabled = false;
+    public static boolean inboxActivitySearchEnabled = false;
 
     // Patched load() marks the features included in this APK. Run it before
     // any feature reads these flags, including feed hooks reached at startup.
@@ -201,6 +202,10 @@ public class SettingsStatus {
 
     public static void enableCollectionVideosSearch() {
         collectionVideosSearchEnabled = true;
+    }
+
+    public static void enableInboxActivitySearch() {
+        inboxActivitySearchEnabled = true;
     }
 
     public static void load() {

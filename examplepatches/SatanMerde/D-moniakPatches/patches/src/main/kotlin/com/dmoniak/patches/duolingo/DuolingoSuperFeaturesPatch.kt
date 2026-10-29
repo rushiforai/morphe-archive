@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val duolingoSuperFeaturesPatch = bytecodePatch(
     name = "Unlock Super Features - Duolingo (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks Super Duolingo practice hub modes, unlimited Legendary test attempts without gem expenditure, and mistake review sessions.",
+    description = "⚠️ [Experimental / Untested] Unlocks Super Duolingo practice hub modes, unlimited Legendary test attempts without gem expenditure, and mistake review sessions.",
 ) {
     compatibleWith(COMPATIBILITY_DUOLINGO)
 

@@ -1,0 +1,18 @@
+{
+  "source": "https://github.com/pengusto/penguin-patches",
+  "version": "1.2.0",
+  "remote_uid": -678157533,
+  "cached_mpp_sha256": "8f97562ad506c93c41c5ae8f622529787a59a31eef0cc33ae04496a617a476dc",
+  "downloaded_release_sha256": "8f97562ad506c93c41c5ae8f622529787a59a31eef0cc33ae04496a617a476dc",
+  "official_original_cache_sha256": "0fc61e5cb80d37b10a735851c2217cbc855b3f1a04bde577187658531ffef581",
+  "remote_enabled": true,
+  "local_candidate_source_removed": true,
+  "app_data_cleared": false,
+  "http_cache_cleared": false,
+  "manifest_cache_observation": {
+    "date": "2026-10-28T22:14:21Z",
+    "expires": "2026-10-28T22:19:21Z",
+    "max_age_seconds": 300,
+    "update_succeeded_after_normal_expiry": true
+  }
+}

@@ -1,0 +1,10 @@
+build/
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+*.mpp
+*.apk
+local.properties
+.idea/
+*.iml
+.DS_Store
+.kotlin/

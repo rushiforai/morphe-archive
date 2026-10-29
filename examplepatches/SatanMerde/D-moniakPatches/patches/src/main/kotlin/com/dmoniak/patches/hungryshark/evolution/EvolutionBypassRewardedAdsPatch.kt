@@ -8,7 +8,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val evolutionBypassRewardedAdsPatch = bytecodePatch(
     name = "Bypass Rewarded Ads - Evolution (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Bypasses rewarded video ads in Hungry Shark Evolution for free revives on Game Over, doubling gold and gems, daily spins, and treasure chests. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Bypasses rewarded video ads in Hungry Shark Evolution for free revives on Game Over, doubling gold and gems, daily spins, and treasure chests. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_HUNGRY_SHARK_EVOLUTION)
 

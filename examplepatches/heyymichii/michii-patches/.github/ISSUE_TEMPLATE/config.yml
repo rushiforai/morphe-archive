@@ -1,7 +1,16 @@
 blank_issues_enabled: false
 contact_links:
+  - name: 💬 Questions and help
+    url: https://github.com/heyymichii/michii-patches/discussions/categories/q-a
+    about: How do I…? Ask in Discussions, other users can help too.
+  - name: 📣 Announcements
+    url: https://github.com/heyymichii/michii-patches/discussions/categories/announcements
+    about: News about upcoming updates and new apps.
+  - name: 🌐 Translate Michii Patches
+    url: https://crowdin.com/project/michii-patches
+    about: Improve a translation or add your language on Crowdin.
   - name: 📖 How to use Michii Patches
-    url: https://github.com/heyymichii/michii-patches#how-to-use-these-patches
+    url: https://github.com/heyymichii/michii-patches#-getting-started
     about: Adding the patch source to Morphe, supported versions, and how to open the settings.
   - name: 💖 Support Michii Patches
     url: https://ko-fi.com/heyymichii

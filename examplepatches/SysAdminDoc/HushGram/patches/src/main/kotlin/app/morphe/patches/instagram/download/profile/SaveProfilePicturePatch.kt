@@ -26,6 +26,7 @@ import app.morphe.patches.instagram.misc.extension.originalName
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.ControlFlow
 import app.morphe.util.literalReads
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -113,12 +114,20 @@ private fun refuse(why: String): Nothing = throw PatchException("$PROFILE_PICTUR
  * hold the profile's account and the context the sheet is shown with. [free] are two locals
  * nothing reads after [index].
  */
+internal class AccountSource(val field: FieldReference?, val getter: MethodReference?) {
+    fun load(destination: Int, owner: Int): String = if (field != null) {
+        "iget-object v$destination, v$owner, $field"
+    } else {
+        "invoke-static { v$owner }, $getter\n                move-result-object v$destination"
+    }
+}
+
 internal class ProfileMenuSite(
     val name: String,
     val index: Int,
     val sheet: Int,
     val owner: Int,
-    val user: FieldReference,
+    val user: AccountSource,
     val context: FieldReference,
     val free: List<Int>,
 )
@@ -136,7 +145,7 @@ internal class ProfilePopupSite(
     val list: Int,
     val context: Int,
     val owner: Int,
-    val user: FieldReference,
+    val user: AccountSource,
     val free: Int,
     val item: String,
     val fields: List<String>,
@@ -224,7 +233,13 @@ internal fun BytecodePatchContext.findProfileMenus(): ProfileMenus {
         val helper = classDefByOrNull(context.definingClass) ?: refuse("the \"$name\" helper ${context.definingClass} isn't in the app")
         if (helper.originalName() != name) refuse("${helper.type} isn't the helper named \"$name\"")
         val users = helper.fields.filter { it.type == USER && !AccessFlags.STATIC.isSet(it.accessFlags) }
-        val user = users.singleOrNull() ?: refuse("expected one account field on the \"$name\" helper, found ${users.size}")
+        val getters = helper.methods.filter {
+            AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == USER &&
+                it.parameterTypes.map(CharSequence::toString) == listOf(helper.type)
+        }
+        val user = users.singleOrNull()?.let { AccountSource(it, null) }
+            ?: getters.singleOrNull()?.let { AccountSource(null, it) }
+            ?: refuse("expected one account field or static getter on the \"$name\" helper, found ${users.size} fields and ${getters.size} getters")
         val free = method.freeLocalsAt(PROFILE_PICTURE_PATCH, index, 2)
         ProfileMenuSite(name, index, sheet, owner, user, context, free)
     }
@@ -298,16 +313,31 @@ private fun BytecodePatchContext.findProfilePopup(
     val item = classDefByOrNull(items.single())!!
     val fields = popupItemFields(item)
 
-    // The context was read off the newer helper, which holds the account too.
+    // The context was read off the newer helper, which holds the account too. Other branches
+    // write the same register, so only writes that can reach the pop-up list count.
+    val flow = ControlFlow.of(method)
+    val predecessors = HashMap<Int, MutableList<Int>>()
+    for (from in code.indices) {
+        (flow.normal[from] + flow.exceptional[from]).filter { it in code.indices }.forEach { to ->
+            predecessors.getOrPut(to) { mutableListOf() } += from
+        }
+    }
+    val reachesList = HashSet<Int>().apply {
+        val pending = ArrayDeque<Int>()
+        add(index); pending += index
+        while (pending.isNotEmpty()) {
+            predecessors[pending.removeFirst()].orEmpty().forEach { from -> if (add(from)) pending += from }
+        }
+    }
     val read = (init - 1 downTo 0).firstOrNull { at ->
-        code[at].opcode == Opcode.IGET_OBJECT && (code[at] as TwoRegisterInstruction).registerA == context &&
+        at in reachesList && code[at].opcode == Opcode.IGET_OBJECT && (code[at] as TwoRegisterInstruction).registerA == context &&
             code[at].field()?.toString() == newer.context.toString()
     } ?: refuse("the pop-up list's context isn't read off the newer helper")
     val owner = (code[read] as TwoRegisterInstruction).registerB
     if (owner > 15 || owner == list || owner == popup) refuse("the newer helper's register is over v15 or reused at the pop-up list")
     val overwritten = (read + 1 until index).filter { at ->
         val written = (code[at] as? OneRegisterInstruction)?.registerA
-        code[at].opcode.setsRegister() && written != null &&
+        at in reachesList && code[at].opcode.setsRegister() && written != null &&
             (written == owner || written == context || (code[at].opcode.setsWideRegister() && (written + 1 == owner || written + 1 == context)))
     }
     if (overwritten.isNotEmpty()) refuse("the newer helper or the popup's context is overwritten before the pop-up list gets its items")
@@ -439,7 +469,7 @@ internal fun BytecodePatchContext.applyProfileMenus(menus: ProfileMenus) {
             menus.method.addInstructions(
                 index,
                 """
-                    iget-object v${popup.free}, v${popup.owner}, ${popup.user}
+                    ${popup.user.load(popup.free, popup.owner)}
                     invoke-static { v${popup.list}, v${popup.free}, v${popup.context} }, $OFFER_POPUP
                 """,
             )
@@ -449,7 +479,7 @@ internal fun BytecodePatchContext.applyProfileMenus(menus: ProfileMenus) {
         menus.method.addInstructions(
             index,
             """
-                iget-object v$user, v${site.owner}, ${site.user}
+                ${site.user.load(user, site.owner)}
                 iget-object v$context, v${site.owner}, ${site.context}
                 invoke-static { v${site.sheet}, v$user, v$context }, $OFFER_PICTURE
             """,

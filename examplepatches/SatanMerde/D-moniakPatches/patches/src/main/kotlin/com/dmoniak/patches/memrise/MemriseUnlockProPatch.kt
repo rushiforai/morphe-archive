@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val memriseUnlockProPatch = bytecodePatch(
     name = "Unlock Memrise Pro - Memrise (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing to bypass in-app purchase verification for Memrise Pro (all language courses, Learn with Locals clips, and grammar bot).",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app purchase verification for Memrise Pro (all language courses, Learn with Locals clips, and grammar bot).",
 ) {
     compatibleWith(COMPATIBILITY_MEMRISE)
 

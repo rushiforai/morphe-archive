@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val protonVpnDeclutterPatch = bytecodePatch(
     name = "Declutter UI & Hide Upsells - Proton VPN (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hides promotional 'Upgrade to Plus' banners, 'Proton Unlimited' sale carousels, and persistent upgrade prompts from the dashboard and server selector.",
+    description = "⚠️ [Experimental / Untested] Hides promotional 'Upgrade to Plus' banners, 'Proton Unlimited' sale carousels, and persistent upgrade prompts from the dashboard and server selector.",
 ) {
     compatibleWith(COMPATIBILITY_PROTON_VPN)
 

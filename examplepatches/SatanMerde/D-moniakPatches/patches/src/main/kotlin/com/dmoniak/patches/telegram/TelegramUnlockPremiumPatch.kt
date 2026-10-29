@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val telegramUnlockPremiumPatch = bytecodePatch(
     name = "Unlock Telegram Premium Features - Telegram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks client-side Telegram Premium features: exclusive app icons, animated reactions, voice-to-text transcription toggle, and doubled chat folders.",
+    description = "⚠️ [Experimental / Untested] Unlocks client-side Telegram Premium features: exclusive app icons, animated reactions, voice-to-text transcription toggle, and doubled chat folders.",
 ) {
     compatibleWith(COMPATIBILITY_TELEGRAM)
 

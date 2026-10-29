@@ -3,6 +3,12 @@ package app.apppatches.patches.cloudflare.warp
 import app.apppatches.patches.shared.Constants.WARP_COMPATIBILITY
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+
+private const val ANALYTICS_SERVICE_PREFIX = "Lcom/cloudflare/app/domain/analytics/AnalyticsService\$"
+private const val FUNCTION1 = "Lkotlin/jvm/functions/Function1;"
+private const val GMS_MEASUREMENT_PREFIX = "Lcom/google/android/gms/internal/measurement/"
 
 @Suppress("unused")
 val disableAnalyticsPatch = bytecodePatch(
@@ -20,11 +26,11 @@ val disableAnalyticsPatch = bytecodePatch(
         // AnalyticsService. Find them by interface and the GMS measurement call
         // instead of relying on class names like AnalyticsService$3 or $7.
         classDefForEach { classDef ->
-            if (!classDef.type.startsWith("Lcom/cloudflare/app/domain/analytics/AnalyticsService\$")) {
+            if (!classDef.type.startsWith(ANALYTICS_SERVICE_PREFIX)) {
                 return@classDefForEach
             }
 
-            if (classDef.interfaces.none { it == "Lkotlin/jvm/functions/Function1;" }) {
+            if (classDef.interfaces.none { it == FUNCTION1 }) {
                 return@classDefForEach
             }
 
@@ -33,8 +39,11 @@ val disableAnalyticsPatch = bytecodePatch(
                     method.returnType == "Ljava/lang/Object;" &&
                     method.parameterTypes.size == 1 &&
                     method.implementation?.instructions?.any { instruction ->
-                        val text = instruction.toString()
-                        text.contains("gms/internal/measurement") && text.contains("->n(")
+                        instruction is ReferenceInstruction &&
+                            (instruction.reference as? MethodReference)?.let { reference ->
+                                reference.definingClass.startsWith(GMS_MEASUREMENT_PREFIX) &&
+                                    reference.name == "n"
+                            } == true
                     } == true
             }
 

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val googlePhoneCallerIdTweaksPatch = bytecodePatch(
     name = "Enhanced Spam & Detailed Caller ID - Phone by Google (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Enhances spam blocking in Google Phone. NOTE: Requires ROOT + Core Patch to install over pre-installed system dialer.",
+    description = "⚠️ [Experimental / Untested] Enhances spam blocking in Google Phone. NOTE: Requires ROOT + Core Patch to install over pre-installed system dialer.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_PHONE)
 

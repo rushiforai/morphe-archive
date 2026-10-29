@@ -1,0 +1,140 @@
+{
+  "capturedAt": "2026-10-29T01:13:12.365685+00:00",
+  "serial": "emulator-5580",
+  "package": "app.morphe.manager",
+  "labels": [
+    {
+      "text": "Patcher runtime",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[136,228][342,268]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Use embedded VM",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[136,338][421,376]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Patches in Morphe's own Java VM, which can use more memory. Turn off to use the runtime of Android",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[136,380][888,460]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Patching",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[136,546][251,586]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Battery optimization",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[136,656][447,694]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Keeps the patcher running when the app is minimized",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[136,698][820,738]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Optimize for device architecture",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[136,806][625,844]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Removes unused native libraries and APK splits",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[136,848][743,888]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Allow external triggers",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[136,956][479,994]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Lets automation apps start batch patching",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[136,998][679,1038]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Back",
+      "class": "android.view.View",
+      "bounds": "[48,96][96,144]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Patcher",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[136,88][304,152]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "2d108988504806d18b9afff90a941c197c147cea6e508eba8ada47667cb1b186"
+}

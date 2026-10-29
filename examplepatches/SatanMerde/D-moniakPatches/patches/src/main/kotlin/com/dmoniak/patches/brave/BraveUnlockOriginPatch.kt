@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val braveUnlockOriginPatch = bytecodePatch(
     name = "Unlock Brave Origin & Premium Features - Brave (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Débloque la licence officielle Brave Origin ($59.99), active le mode minimaliste sans bloatware, débloque l'assistant IA Brave Leo Premium en illimité et active les entitlements Brave VPN.",
+    description = "⚠️ [Experimental / Untested] Unlocks the official Brave Origin license ($59.99), enables bloatware-free minimalist mode, unlocks unlimited Brave Leo Premium AI assistant, and enables Brave VPN entitlements.",
 ) {
     compatibleWith(COMPATIBILITY_BRAVE)
 

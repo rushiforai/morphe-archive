@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val peakUnlockProPatch = bytecodePatch(
     name = "Unlock Peak Pro - Peak Brain Training (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing to bypass in-app purchase verification for Peak Pro (cognitive brain games, daily workouts, and coach training modules).",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app purchase verification for Peak Pro (cognitive brain games, daily workouts, and coach training modules).",
 ) {
     compatibleWith(COMPATIBILITY_PEAK)
 

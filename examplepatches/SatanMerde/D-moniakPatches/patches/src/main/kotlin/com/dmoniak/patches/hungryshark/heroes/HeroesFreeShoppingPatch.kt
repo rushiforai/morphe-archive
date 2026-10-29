@@ -8,7 +8,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val heroesFreeShoppingPatch = bytecodePatch(
     name = "Free Shopping - Heroes (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks gem packs, shark training bundles, and reef expansions in Hungry Shark Heroes by cleanly replacing billing service purchase methods. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Unlocks gem packs, shark training bundles, and reef expansions in Hungry Shark Heroes by cleanly replacing billing service purchase methods. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_HUNGRY_SHARK_HEROES)
 

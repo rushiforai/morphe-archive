@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val chatGPTAmoledDeclutterPatch = bytecodePatch(
     name = "AMOLED Dark Theme & Declutter - ChatGPT (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects pure pitch black (#000000) for OLED screens in ChatGPT conversations and hides 'Upgrade to ChatGPT Plus' marketing banners.",
+    description = "⚠️ [Experimental / Untested] Injects pure pitch black (#000000) for OLED screens in ChatGPT conversations and hides 'Upgrade to ChatGPT Plus' marketing banners.",
 ) {
     compatibleWith(COMPATIBILITY_CHATGPT)
 

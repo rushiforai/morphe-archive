@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val euriaAmoledThemePatch = bytecodePatch(
     name = "AMOLED Dark Theme - Euria AI (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces deep AMOLED pure black background in Euria AI dark mode, enhancing battery efficiency and contrast on OLED screens.",
+    description = "⚠️ [Experimental / Untested] Forces deep AMOLED pure black background in Euria AI dark mode, enhancing battery efficiency and contrast on OLED screens.",
 ) {
     compatibleWith(COMPATIBILITY_EURIA)
 

@@ -57,6 +57,10 @@ private val englishStrings = linkedMapOf(
     "ambient_energy_saver_title" to "Save energy",
     "ambient_energy_saver_summary" to "Stop updating while paused or buffering and on still pictures",
     "ambient_effects_title" to "How the light looks",
+    "ambient_soft_light_title" to "Blur the light strongly",
+    "ambient_soft_light_summary" to "Only the video's colours spread out as a soft glow, blurred so far that shapes disappear. Very bright light is toned down a little so text stays readable",
+    "ambient_hide_time_bar_title" to "Hide the progress bar under the video",
+    "ambient_hide_time_bar_summary" to "While the player buttons are hidden, the thin progress bar along the bottom of the video is not shown, so the video blends into its light. It appears again when you tap the video",
     "ambient_picture_backdrop_title" to "Show the video behind the page",
     "ambient_picture_backdrop_summary" to "Instead of a soft coloured glow, the page background shows the video itself, blurred as if seen through frosted glass",
     "ambient_falloff_title" to "Darker towards the bottom",
@@ -109,6 +113,10 @@ private val japaneseStrings = linkedMapOf(
     "ambient_energy_saver_title" to "省電力",
     "ambient_energy_saver_summary" to "一時停止・読み込み中や静止画では更新を止めます",
     "ambient_effects_title" to "光の見せ方",
+    "ambient_soft_light_title" to "光を強くぼかす",
+    "ambient_soft_light_summary" to "形が分からなくなるくらい光をぼかし、動画の色だけがふんわり広がるようにします。光がとても明るいときは、文字が読みやすいよう少し抑えます",
+    "ambient_hide_time_bar_title" to "動画の下の再生バーを隠す",
+    "ambient_hide_time_bar_summary" to "プレーヤーのボタンが消えている間は、動画の下の端にある細い再生バーを表示しません。動画と光の境目が目立たなくなります。動画をタップすると再生バーも表示されます",
     "ambient_picture_backdrop_title" to "背景に動画の映像を映す",
     "ambient_picture_backdrop_summary" to "背景を、ぼんやりした色の光ではなく、動画の映像そのものをすりガラス越しに見たような表示にします",
     "ambient_falloff_title" to "画面の下に行くほど暗くする",
@@ -128,6 +136,14 @@ private const val MAIN_PREFERENCES_XML = """<?xml version="1.0" encoding="utf-8"
         android:summary="@string/ambient_enabled_summary"
         android:defaultValue="true" />
     <PreferenceCategory android:title="@string/ambient_effects_title">
+        <SwitchPreference android:key="ambient_soft_light"
+            android:title="@string/ambient_soft_light_title"
+            android:summary="@string/ambient_soft_light_summary"
+            android:defaultValue="false" android:dependency="ambient_enabled" />
+        <SwitchPreference android:key="ambient_hide_time_bar"
+            android:title="@string/ambient_hide_time_bar_title"
+            android:summary="@string/ambient_hide_time_bar_summary"
+            android:defaultValue="false" android:dependency="ambient_enabled" />
         <SwitchPreference android:key="ambient_picture_backdrop"
             android:title="@string/ambient_picture_backdrop_title"
             android:summary="@string/ambient_picture_backdrop_summary"

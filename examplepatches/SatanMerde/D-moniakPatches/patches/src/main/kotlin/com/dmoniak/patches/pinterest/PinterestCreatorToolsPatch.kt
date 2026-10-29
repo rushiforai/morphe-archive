@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val pinterestCreatorToolsPatch = bytecodePatch(
     name = "Unlock Creator & Pro Tools - Pinterest (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks Pinterest Creator and Pro business dashboard analytics, advanced pin inspector, and rich pin creation preview tools.",
+    description = "⚠️ [Experimental / Untested] Unlocks Pinterest Creator and Pro business dashboard analytics, advanced pin inspector, and rich pin creation preview tools.",
 ) {
     compatibleWith(COMPATIBILITY_PINTEREST)
 

@@ -149,7 +149,7 @@ internal class PostTimes(
  * Finds every call this patch replaces and checks all of it before anything changes:
  *  - the relative formatter, the class of the one core method [RelativeTimeFingerprint] finds;
  *  - the feed: the one method loading [FEED_FOOTER] that calls the formatter, and the one loading
- *    [FEED_LABEL] that does;
+ *    [FEED_LABEL] that does, the same method on 453, whose calls are taken once;
  *  - the comment header: the one method holding a string starting with [COMMENT_HEADER]. Up to 451
  *    it called the formatter itself. From 452 its callers hand it the time's formatting as a
  *    lambda, so the calls are the formatter's static resources overload in the classes those
@@ -192,8 +192,11 @@ internal fun BytecodePatchContext.findPostTimes(): PostTimes {
         return method.formatterCalls()
     }
 
-    val feed = one("feed footer builder loading \"$FEED_FOOTER\"", FEED_FOOTER) +
-        one("feed label builder loading \"$FEED_LABEL\"", FEED_LABEL)
+    // 453 builds the label inside the footer builder, so both strings find one method and its calls once.
+    val feed = (
+        one("feed footer builder loading \"$FEED_FOOTER\"", FEED_FOOTER) +
+            one("feed label builder loading \"$FEED_LABEL\"", FEED_LABEL)
+        ).distinctBy { Triple(it.method.definingClass, it.method.name + it.method.parameterTypes + it.method.returnType, it.index) }
     val headers = classDefByStrings(COMMENT_HEADER, StringComparisonType.STARTS_WITH).filterNot { it.type.startsWith(EXTENSION_ROOT) }
         .flatMap { it.methods }.filter { method -> method.code().any { (it.reference() as? StringReference)?.string?.startsWith(COMMENT_HEADER) == true } }
     val headerMethod = headers.singleOrNull()

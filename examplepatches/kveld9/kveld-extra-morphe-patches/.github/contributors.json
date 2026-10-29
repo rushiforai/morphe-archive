@@ -13,6 +13,15 @@
       ]
     },
     {
+      "username": "TheJNXx",
+      "contributions": [
+        {
+          "title": "Microsoft Word patches (telemetry removal, premium unlock, login requirement removal)",
+          "issue": 36
+        }
+      ]
+    },
+    {
       "username": "springfurst",
       "customText": "Contributed the Use Places API (New) Moovit search patch ([#44](https://github.com/kveld9/kveld-extra-morphe-patches/pull/44))."
     }

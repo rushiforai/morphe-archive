@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeHidePlayerButtonsPatch = bytecodePatch(
     name = "Hide Player Overlay Buttons (Cast, Autoplay, Remix) - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hides unwanted player overlay buttons including Chromecast icon (prevents accidental casting), Autoplay toggle, Remix button, and Thanks button.",
+    description = "⚠️ [Experimental / Untested] Hides unwanted player overlay buttons including Chromecast icon (prevents accidental casting), Autoplay toggle, Remix button, and Thanks button.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

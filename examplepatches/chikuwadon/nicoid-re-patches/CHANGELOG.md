@@ -1,3 +1,52 @@
+## 1.9.11 (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix the comment activity graph remaining visible after playback controls disappear, becoming hidden in fullscreen, or appearing too dark. ([#84](https://github.com/chikuwadon/nicoid-re-patches/issues/84))
+* **nicoid:** Fix the center playback button remaining visible after popup playback controls disappear.
+* **nicoid:** Fix the notification close button leaving playback or the mini player active.
+
+### 🔧 Improvements
+
+* **nicoid:** Keep hold-to-speed playback active when moving a finger after the long press begins. ([#87](https://github.com/chikuwadon/nicoid-re-patches/pull/87))
+* **nicoid:** Adjust swipe-seek feedback size and text outlines for normal and fullscreen playback.
+* **nicoid:** Restrict authentication cookies to appropriate destinations and improve redirect handling during cache downloads.
+* **nicoid:** Strengthen validation of notification playback actions.
+* **nicoid:** Improve login WebView security and clear its cookies when logging out.
+
+## 1.9.10 (2026-10-28)
+
+### ✨ New Features
+
+* **nicoid:** Add an option to enable or disable horizontal swipe seeking independently of the seek bar and double-tap seeking. ([#93](https://github.com/chikuwadon/nicoid-re-patches/issues/93))
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix the ranking period shown in the toolbar not updating when the selected period changes. ([#89](https://github.com/chikuwadon/nicoid-re-patches/issues/89))
+* **nicoid:** Fix popup playback resizing and the final video frame remaining fixed when the popup is moved or resized. ([#90](https://github.com/chikuwadon/nicoid-re-patches/issues/90))
+* **nicoid:** Fix a white bar remaining visible over the video during playback. ([#91](https://github.com/chikuwadon/nicoid-re-patches/issues/91))
+* **nicoid:** Use the mini player when starting background playback from video lists or video information, and preserve playback when returning to the normal player. ([#92](https://github.com/chikuwadon/nicoid-re-patches/issues/92))
+* **nicoid:** Fix outdated thumbnails remaining visible when video list rows are reused.
+* **nicoid:** Fix some video dates being displayed incorrectly.
+* **nicoid:** Fix the patch version shown in settings not matching the installed version.
+
+### 🔧 Improvements
+
+* **nicoid:** Add icons to distinguish ranking and search tabs.
+* **nicoid:** Improve horizontal tab switching with a smoother swipe transition.
+* **nicoid:** Reduce unnecessary screen refreshes when returning to Nico Reports.
+* **nicoid:** Reduce repeated loading and rendering when opening device playlists.
+* **nicoid:** Reduce unnecessary processing when displaying and scrolling video lists.
+* **nicoid:** Improve keyword filtering performance.
+* **nicoid:** Reduce repeated drawing calculations for the comment activity graph.
+* **nicoid:** Improve playback resource management and overall stability.
+* **nicoid:** Adjust the size of playback icons in fullscreen.
+* **nicoid:** Adjust the spacing in the search dialog.
+* **nicoid:** Move the double-tap seek and popup double-tap seek settings to the Player category.
+* **nicoid:** Add descriptions for the playback control visibility and video details button settings.
+* **nicoid:** Make punctuation consistent in setting descriptions.
+* **nicoid:** Include app, patch, and device information in exported debug logs.
+
 ## 1.9.9 (2026-10-27)
 
 ### ✨ New Features

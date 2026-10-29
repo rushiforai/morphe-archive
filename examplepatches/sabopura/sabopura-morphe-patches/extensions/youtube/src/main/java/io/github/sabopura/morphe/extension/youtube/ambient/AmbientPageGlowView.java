@@ -165,6 +165,39 @@ final class AmbientPageGlowView extends View {
     private Bitmap frontBitmap;
     private Bitmap backBitmap;
     private final Rect frameHole = new Rect();
+    /** The picture inside the player (without black bars), in window coordinates. */
+    private final Rect frameContent = new Rect();
+    /** Whether the bars above / below the picture may be covered (no text seen in them). */
+    private boolean frameTopEdge;
+    private boolean frameBottomEdge;
+    /**
+     * Light inside the player, between the video and YouTube's controls: it covers black bars
+     * and fades the picture's edges into the light, so player and page read as one picture.
+     */
+    private LightLayers edgeLayers;
+    private WeakReference<View> edgeAnchorRef = new WeakReference<>(null);
+    private final java.util.List<Rect> edgeRects = new java.util.ArrayList<>();
+    private final Rect edgePlayer = new Rect();
+    private final Rect edgeContent = new Rect();
+    private boolean edgeTop;
+    private boolean edgeBottom;
+    private final Rect featherBand = new Rect();
+    private final Rect edgeClip = new Rect();
+    private final Rect edgeInner = new Rect();
+    /** One pixel of the light surfaces (they are a quarter of the screen's resolution). */
+    private static final int EDGE_OVERLAP = 4;
+    private final Paint featherPaint = new Paint();
+    private final PorterDuffXfermode featherMode = new PorterDuffXfermode(PorterDuff.Mode.DST_IN);
+    /** Fade masks of the bottom, left and right bands, rebuilt only when a band moves. */
+    private final android.graphics.Shader[] featherShaders = new android.graphics.Shader[3];
+    private final Rect[] featherKeys = {new Rect(), new Rect(), new Rect()};
+
+    /** Depth of the fade over the picture's bottom edge (share of its height) and sides. */
+    private static final float FEATHER_BOTTOM = 0.08f;
+    private static final float FEATHER_SIDE = 0.05f;
+    private static final int FEATHER_STRIPS = 12;
+    private final LightLayers.Painter edgePainter = this::paintEdges;
+    private long lastEdgeLogUptime;
     private int frameWidth;
     private int frameHeight;
 
@@ -201,7 +234,8 @@ final class AmbientPageGlowView extends View {
     }
 
     /** Worker thread: publishes a frame computed for a page of {@code width x height}. */
-    void publish(Bitmap bitmap, Rect playerHole, int width, int height, boolean cut) {
+    void publish(Bitmap bitmap, Rect playerHole, Rect content, boolean topEdge,
+                 boolean bottomEdge, int width, int height, boolean cut) {
         // Brightest and darkest areas of the light, for the readability guard of the
         // see-through page. Sampled here on the worker thread.
         // Percentiles rather than extremes: one bright spot next to the player must not
@@ -230,10 +264,188 @@ final class AmbientPageGlowView extends View {
             backBitmap = frontBitmap;
             frontBitmap = bitmap;
             frameHole.set(playerHole);
+            frameContent.set(content);
+            frameTopEdge = topEdge;
+            frameBottomEdge = bottomEdge;
             frameWidth = width;
             frameHeight = height;
         }
         requestFrame();
+    }
+
+    /** The player's light layer, which the edge light goes right underneath. */
+    void setEdgeAnchor(View anchor) {
+        if (edgeAnchorRef.get() != anchor) edgeAnchorRef = new WeakReference<>(anchor);
+    }
+
+    /** Main thread, with each surface frame: the light over the player's bars and edges. */
+    private void renderEdges() {
+        View anchor = edgeAnchorRef.get();
+        synchronized (frameLock) {
+            edgePlayer.set(frameHole);
+            edgeContent.set(frameContent);
+            edgeTop = frameTopEdge;
+            edgeBottom = frameBottomEdge;
+        }
+        boolean wanted = anchor != null && anchor.isAttachedToWindow()
+                && anchor.getParent() instanceof ViewGroup && targetAlpha > 0f
+                && !AmbientLightSettings.isSoftLightEnabled()
+                && !AmbientLightSettings.isPictureBackdropEnabled()
+                && !edgeContent.isEmpty() && edgePlayer.contains(edgeContent);
+        long now = SystemClock.uptimeMillis();
+        if (now - lastEdgeLogUptime > 5_000L && android.util.Log.isLoggable(
+                AmbientLightController.TAG, android.util.Log.DEBUG)) {
+            lastEdgeLogUptime = now;
+            android.util.Log.d(AmbientLightController.TAG, "Edges " + wanted
+                    + " player=" + edgePlayer.toShortString()
+                    + " picture=" + edgeContent.toShortString()
+                    + " top=" + edgeTop + " bottom=" + edgeBottom);
+        }
+        if (!wanted) {
+            releaseEdges();
+            return;
+        }
+        Rect player = edgePlayer;
+        Rect content = edgeContent;
+        edgeRects.clear();
+        // One surface around everything there is to draw: each surface costs a buffer swap on
+        // every light frame, which is most of the drawing time. Its middle stays transparent.
+        int side = hasSideBars() ? Math.round(content.width() * FEATHER_SIDE) : 0;
+        int left = side > 0 ? player.left : content.left;
+        int right = side > 0 ? player.right : content.right;
+        int top = side > 0 ? player.top : edgeTop && content.top > player.top ? player.top
+                : edgeBottom ? content.bottom - bottomBand() : player.bottom;
+        int bottom = side > 0 || edgeBottom ? player.bottom
+                : edgeTop ? content.top : player.top;
+        addEdge(left, top, right, bottom);
+        if (edgeRects.isEmpty()) {
+            releaseEdges();
+            return;
+        }
+        if (edgeLayers == null) edgeLayers = new LightLayers(true, this::requestFrame, () -> { });
+        ViewGroup parent = (ViewGroup) anchor.getParent();
+        edgeLayers.render(parent, parent.indexOfChild(anchor), edgeRects, edgePainter);
+    }
+
+    /** Height of the fade over the picture's bottom edge; 0 when that edge is left alone. */
+    private int bottomBand() {
+        return edgeBottom ? Math.round(edgeContent.height() * FEATHER_BOTTOM) : 0;
+    }
+
+    private boolean hasSideBars() {
+        return edgeContent.left - edgePlayer.left > 2 || edgePlayer.right - edgeContent.right > 2;
+    }
+
+    private void addEdge(int left, int top, int right, int bottom) {
+        if (right - left < 2 || bottom - top < 2) return;
+        edgeRects.add(new Rect(left, top, right, bottom));
+    }
+
+    private void releaseEdges() {
+        if (edgeLayers != null) {
+            edgeLayers.release();
+            edgeLayers = null;
+        }
+    }
+
+    /**
+     * Window coordinates: opaque light over the bars, fading light over the picture's edges.
+     * Every edge surface runs this; each only keeps the part inside its own rectangle.
+     */
+    private void paintEdges(Canvas canvas) {
+        Rect player = edgePlayer;
+        Rect content = edgeContent;
+        canvas.getClipBounds(edgeClip);
+        // The bars' light reaches a few pixels into the picture: the light surfaces are a
+        // quarter of the screen's resolution, and a gap of one of their pixels between the
+        // bar and the fade showed the picture's dark edge as a line.
+        edgeInner.set(content);
+        if (content.left > player.left) edgeInner.left += EDGE_OVERLAP;
+        if (content.right < player.right) edgeInner.right -= EDGE_OVERLAP;
+        if (edgeTop && content.top > player.top) edgeInner.top += EDGE_OVERLAP;
+        if (edgeBottom && content.bottom < player.bottom) edgeInner.bottom -= EDGE_OVERLAP;
+        int save = canvas.save();
+        canvas.clipRect(player);
+        canvas.clipOutRect(edgeInner);
+        // Bars with text in them (subtitles in a letterbox) stay as they are.
+        if (!edgeTop) canvas.clipOutRect(content.left, player.top, content.right, content.top);
+        if (!edgeBottom) {
+            canvas.clipOutRect(content.left, content.bottom, content.right, player.bottom);
+        }
+        paintLight(canvas, 0, 0, getWidth());
+        canvas.restoreToCount(save);
+        int bottomBand = bottomBand();
+        if (bottomBand > 0) {
+            featherBand.set(content.left, content.bottom - bottomBand, content.right,
+                    content.bottom);
+            feather(canvas, 0, content.left, featherBand.top, content.left, featherBand.bottom);
+        }
+        if (hasSideBars()) {
+            // Full height, so the corners blend both ways (the bottom band's surface shows
+            // this part too).
+            int side = Math.round(content.width() * FEATHER_SIDE);
+            featherBand.set(content.left, content.top, content.left + side, content.bottom);
+            feather(canvas, 1, featherBand.right, content.top, featherBand.left, content.top);
+            featherBand.set(content.right - side, content.top, content.right, content.bottom);
+            feather(canvas, 2, featherBand.left, content.top, featherBand.right, content.top);
+        }
+    }
+
+    /** The light over {@link #featherBand}, clear at (x0, y0) and full at (x1, y1). */
+    private void feather(Canvas canvas, int slot, float x0, float y0, float x1, float y1) {
+        if (featherBand.width() < 2 || featherBand.height() < 2
+                || !Rect.intersects(edgeClip, featherBand)) return;
+        if (featherShaders[slot] == null || !featherKeys[slot].equals(featherBand)) {
+            featherKeys[slot].set(featherBand);
+            featherShaders[slot] = new android.graphics.LinearGradient(x0, y0, x1, y1,
+                    new int[]{0x00000000, 0x59000000, 0xFF000000}, new float[]{0f, 0.55f, 1f},
+                    android.graphics.Shader.TileMode.CLAMP);
+        }
+        if (waveProgress < 1f) {
+            // The scene-change wave is drawn in several passes: fade it through a layer.
+            int layer = canvas.saveLayer(featherBand.left, featherBand.top, featherBand.right,
+                    featherBand.bottom, null);
+            canvas.clipRect(featherBand);
+            paintLight(canvas, 0, 0, getWidth());
+            featherPaint.setShader(featherShaders[slot]);
+            featherPaint.setXfermode(featherMode);
+            canvas.drawRect(featherBand, featherPaint);
+            canvas.restoreToCount(layer);
+            return;
+        }
+        // Otherwise without an offscreen layer (layers on every light frame cost the most
+        // drawing time): the light in thin strips of rising strength. The display scales the
+        // small light surfaces up smoothly, so the steps do not show.
+        Bitmap bitmap;
+        synchronized (frameLock) {
+            bitmap = frontBitmap;
+            if (bitmap == null || frameWidth != getWidth() || frameHeight != getHeight()) return;
+        }
+        float visibility = alpha * interactionFactor * breath;
+        if (visibility <= 0f) return;
+        updatePaints();
+        destination.set(0, 0, getWidth(), getHeight());
+        boolean vertical = x0 == x1;
+        float from = vertical ? y0 : x0;
+        float to = vertical ? y1 : x1;
+        for (int i = 0; i < FEATHER_STRIPS; i++) {
+            float start = from + (to - from) * i / FEATHER_STRIPS;
+            float end = from + (to - from) * (i + 1) / FEATHER_STRIPS;
+            float t = (i + 0.5f) / FEATHER_STRIPS;
+            // Same curve as the fade mask: 35 % at 55 % of the way, full at the edge.
+            float strength = t < 0.55f ? 0.35f * t / 0.55f : 0.35f + 0.65f * (t - 0.55f) / 0.45f;
+            int save = canvas.save();
+            if (vertical) {
+                canvas.clipRect(featherBand.left, Math.min(start, end), featherBand.right,
+                        Math.max(start, end));
+            } else {
+                canvas.clipRect(Math.min(start, end), featherBand.top, Math.max(start, end),
+                        featherBand.bottom);
+            }
+            coverPaint.setAlpha(Math.round(255 * strength * visibility));
+            canvas.drawBitmap(bitmap, null, destination, coverPaint);
+            canvas.restoreToCount(save);
+        }
     }
 
     /**
@@ -312,6 +524,7 @@ final class AmbientPageGlowView extends View {
             if (surfaceShowing && host != null) SeeThroughPage.clearAroundPage(host);
             requestFrame();
         } else if (pageLayers != null) {
+            releaseEdges();
             boolean wasShowing = surfaceShowing;
             surfaceShowing = false;
             pageLayers.release();
@@ -361,6 +574,7 @@ final class AmbientPageGlowView extends View {
         updateGuard();
         // First children of the window: each punches out only the window background.
         if (!layers.render((ViewGroup) root, 0, pageRects(), pagePainter)) return;
+        renderEdges();
         if (!surfaceShowing) {
             surfaceShowing = true;
             View host = hostRef.get();
@@ -510,7 +724,9 @@ final class AmbientPageGlowView extends View {
      */
     private void updateGuard() {
         boolean dark = backgroundLuma < 0.5f;
-        float wanted = dark
+        // The crisp light keeps the video's own colours in either theme, like the desktop
+        // extension; only the previous, soft look keeps its guard.
+        float wanted = !AmbientLightSettings.isSoftLightEnabled() ? 0f : dark
                 ? (framePeak <= DARK_PAGE_MAX_LUMA ? 0f : 1f - DARK_PAGE_MAX_LUMA / framePeak)
                 : (frameFloor >= LIGHT_PAGE_MIN_LUMA ? 0f
                         : 1f - (1f - LIGHT_PAGE_MIN_LUMA) / (1f - frameFloor));

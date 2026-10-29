@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val nextcloudAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & Bypass Lockout - Nextcloud (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes FLAG_SECURE window protections in Nextcloud to enable screenshots and screen recording even when app passcode lock is configured.",
+    description = "⚠️ [Experimental / Untested] Removes FLAG_SECURE window protections in Nextcloud to enable screenshots and screen recording even when app passcode lock is configured.",
 ) {
     compatibleWith(COMPATIBILITY_NEXTCLOUD)
 

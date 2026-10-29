@@ -12,7 +12,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val googleDriveAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & Secure Share - Google Drive (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes Android FLAG_SECURE window restrictions in Google Drive to permit taking screenshots and screen recordings of documents, spreadsheets, and presentation previews.",
+    description = "⚠️ [Experimental / Untested] Removes Android FLAG_SECURE window restrictions in Google Drive to permit taking screenshots and screen recordings of documents, spreadsheets, and presentation previews.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_DRIVE)
 

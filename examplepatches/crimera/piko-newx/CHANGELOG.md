@@ -1,3 +1,43 @@
+## [3.69.0](https://github.com/crimera/piko-newx/compare/v3.68.0...v3.69.0) (2026-10-29)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** find the visible activity for inline downloads after deeplinks ([54e59fe](https://github.com/crimera/piko/commit/54e59fec1a32613de16c1dd3ede044be343c3ea5))
+
+### ✨ New Features
+* **Twitter - newx:** add translator with post-menu tray and inline translation ([1b70913](https://github.com/crimera/piko/commit/1b70913c7e5e7dbc49c9a05f44332a81dcc9a464))
+
+### New Patches
+* **Twitter:** NewX: Translator
+
+## [3.68.0](https://github.com/crimera/piko-newx/compare/v3.67.0...v3.68.0) (2026-10-28)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** support 12.39 alpha with resilient fail-closed hooks ([5de3530](https://github.com/crimera/piko/commit/5de35309a55bc5b37e253b2f18c53456cd315899))
+
+### ✨ New Features
+* **Twitter - newx:** support 12.39 alpha and disable persistent bottom navigation ([1093cd8](https://github.com/crimera/piko/commit/1093cd8d6b78cb35d15a147d684e7ac47abb7e43))
+
+## [3.67.0](https://github.com/crimera/piko-newx/compare/v3.66.0...v3.67.0) (2026-10-28)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** adapt semantic hooks to 12.38 renderer refactors ([7cec473](https://github.com/crimera/piko/commit/7cec47336bf1a2d642d8768654a2de5241398d65))
+* **Twitter - newx:** accept spaces bar renderers with more callbacks ([5a8139d](https://github.com/crimera/piko/commit/5a8139d3880c4f8ed69f351c014f0ba37767368c))
+
+### ✨ New Features
+* **Twitter - newx:** declare compatibility with 12.38.0 production ([e2507b0](https://github.com/crimera/piko/commit/e2507b0bdf2dfcfd5a0ccbafa4f497f24fd160d8))
+* **Twitter:** compile a rebuilt baseline profile on install ([2df55ee](https://github.com/crimera/piko/commit/2df55eeec320e533dce949249c0b8b5e61c7e1e6))
+
+### 🔧 Improvements
+* **Twitter - newx:** cache host theme preference reads ([3dc702f](https://github.com/crimera/piko/commit/3dc702f9e217953b369d7304ce9d460393bcdc45))
+* **Twitter - newx:** memoize timeline filter results across emissions ([a32424c](https://github.com/crimera/piko/commit/a32424c75ad1953de0cbe86d078ec6348cbe92a2))
+* **Twitter - newx:** cache missing reflective accessors ([f3b6ef3](https://github.com/crimera/piko/commit/f3b6ef3660d4909dfb2e6e0b85330ac2ecd14ffe))
+* **Twitter - newx:** cache dynamic theme resource IDs ([7710bfc](https://github.com/crimera/piko/commit/7710bfc85da755259a96fcd346cba8065650abe6))
+
+## [3.66.0](https://github.com/crimera/piko-newx/compare/v3.65.0...v3.66.0) (2026-10-28)
+
+### ✨ New Features
+* **Twitter - newx:** disable timeline status injections ([48af8e1](https://github.com/crimera/piko/commit/48af8e1a7438e6d4d2f18ebe894acdcc0eeb7272))
+
 ## [3.65.0](https://github.com/crimera/piko-newx/compare/v3.64.1...v3.65.0) (2026-10-27)
 
 ### ✨ New Features

@@ -258,17 +258,23 @@ class AccentColorHookTest {
         assertTrue("$label: neither read is the resolver", reads.none { it == resolver.definingClass to resolver.name })
     }
 
-    /** [count] returns, each right after the list hook on its own register, and no jump past the hook. */
+    /**
+     * [count] returns, each right after the list hook on its own register, no jump past the hook,
+     * and no hook inside a try range. On 453 the loader returns from inside its synchronized
+     * block's catch-all, and a hook there made ART fail the method's lock verification.
+     */
     private fun assertListsSwapped(what: String, method: MutableMethod, count: Int) {
         val code = method.code()
         val returns = code.indices.filter { code[it].opcode == Opcode.RETURN_OBJECT }
         assertEquals("$what: returns", count, returns.size)
         assertEquals("$what: hooks", count, method.hooks(SWAP_LIST).size)
         val targets = method.jumpTargets()
+        val covered = method.implementation!!.tryBlocks.flatMap { it.start.location.index until it.end.location.index }.toSet()
         for (at in returns) {
             val register = (code[at] as OneRegisterInstruction).registerA
             assertHook("$what at $at", code, at, register, SWAP_LIST, Opcode.MOVE_RESULT_OBJECT)
             assertFalse("$what: a jump lands past the hook before $at", at in targets || at - 1 in targets)
+            assertFalse("$what: the hook before $at sits inside a try range", at - 2 in covered || at in covered)
         }
     }
 

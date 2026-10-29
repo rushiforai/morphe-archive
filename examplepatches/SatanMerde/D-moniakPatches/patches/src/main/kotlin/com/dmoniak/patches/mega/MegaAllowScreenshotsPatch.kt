@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val megaAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & Export - MEGA (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Disables FLAG_SECURE window restrictions to allow taking screenshots of documents and media in MEGA, and bypasses local export restrictions.",
+    description = "⚠️ [Experimental / Untested] Disables FLAG_SECURE window restrictions to allow taking screenshots of documents and media in MEGA, and bypasses local export restrictions.",
 ) {
     compatibleWith(COMPATIBILITY_MEGA)
 

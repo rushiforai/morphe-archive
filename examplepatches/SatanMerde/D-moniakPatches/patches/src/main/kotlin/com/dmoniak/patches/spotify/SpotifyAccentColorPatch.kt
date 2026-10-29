@@ -37,7 +37,7 @@ val spotifyAccentColorBytecodePatch = bytecodePatch(
 @Suppress("unused")
 val spotifyAccentColorPatch = resourcePatch(
     name = "Spicetify Custom Accent Color - Spotify (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Replaces Spotify brand green (#1DB954 / #1ED760) with custom Cyberpunk Electric Purple (#8A2BE2) across Android resources (res/values/colors.xml), Jetpack Compose Encore design system (64-bit literals), obfuscated Dalvik bytecode (32-bit & 24-bit literals including Lottie float rounding variations and checkmarks), semantic theme methods, and string tables.",
+    description = "⚠️ [Experimental / Untested] Replaces Spotify brand green (#1DB954 / #1ED760) with custom Cyberpunk Electric Purple (#8A2BE2) across Android resources (res/values/colors.xml), Jetpack Compose Encore design system (64-bit literals), obfuscated Dalvik bytecode (32-bit & 24-bit literals including Lottie float rounding variations and checkmarks), semantic theme methods, and string tables.",
 ) {
     compatibleWith(COMPATIBILITY_SPOTIFY)
     dependsOn(spotifyAccentColorBytecodePatch)

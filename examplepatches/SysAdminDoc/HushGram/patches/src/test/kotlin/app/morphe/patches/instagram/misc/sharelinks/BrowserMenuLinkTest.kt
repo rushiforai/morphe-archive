@@ -11,6 +11,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.FixtureDex
+import app.morphe.patches.instagram.misc.extension.stringLoadedAt
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -123,7 +124,13 @@ class BrowserMenuLinkTest {
         assertEquals("${label}: classes logging the share's failure line", 1, handlers.size)
         val type = handlers.single().type
         val before = handlers.single().methods.single { it.name == "handleMessage" }.implementation!!.instructions.toList()
-        val context = PatchContexts.of(handlers)
+        // 453 asks a string pool for the share's key, so the pools the handler calls come along.
+        val pools = handlers.single().methods.flatMap { it.implementation?.instructions?.toList().orEmpty() }.mapNotNull {
+            ((it as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf { called ->
+                it.opcode == Opcode.INVOKE_STATIC && called.parameterTypes.map(Any::toString) == listOf("I") && called.returnType == "Ljava/lang/String;"
+            }?.definingClass
+        }.toSet()
+        val context = PatchContexts.of(handlers + FixtureDex.classes(bundle, pools).values.filter { it.type != type })
 
         assertNull(label, context.cleanBrowserMenu())
 
@@ -144,7 +151,8 @@ class BrowserMenuLinkTest {
         val put = code[share + 2]
         assertEquals(label, "Landroid/content/Intent;->putExtra(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;", put.reference())
         assertEquals("${label}: the shared text is the address", (code[share] as RegisterRangeInstruction).startRegister, (put as FiveRegisterInstruction).registerE)
-        assertTrue("${label}: its key", code[share - 1].loads("android.intent.extra.TEXT"))
+        assertTrue("${label}: its key", code[share - 1].loads("android.intent.extra.TEXT") ||
+            (code[share - 1].opcode == Opcode.MOVE_RESULT_OBJECT && context.stringLoadedAt(code, share - 2) == "android.intent.extra.TEXT"))
         assertTrue("${label}: Copy link's after its failure line", (share until copy).any { code[it].loads(BROWSER_COPY_FAILURE) })
         val helper = code[copy + 2]
         assertEquals(label, Opcode.INVOKE_STATIC, helper.opcode)

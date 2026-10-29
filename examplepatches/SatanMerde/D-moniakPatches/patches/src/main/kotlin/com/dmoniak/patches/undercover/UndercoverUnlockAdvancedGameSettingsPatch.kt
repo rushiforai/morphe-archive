@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val undercoverUnlockAdvancedGameSettingsPatch = bytecodePatch(
     name = "Unlock Advanced Game Settings - Undercover (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks advanced game configuration (custom player counts, exact role distribution sliders for Civilians, Undercover agents, and Mr. White, custom discussion timers, and voting rules).",
+    description = "⚠️ [Experimental / Untested] Unlocks advanced game configuration (custom player counts, exact role distribution sliders for Civilians, Undercover agents, and Mr. White, custom discussion timers, and voting rules).",
 ) {
     compatibleWith(COMPATIBILITY_UNDERCOVER)
 

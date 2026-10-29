@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val euriaExportChatMarkdownPatch = bytecodePatch(
     name = "Export Discussions to Markdown & PDF - Euria AI (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Enables complete discussion thread export to Markdown and plain text, allowing easy archiving and offline viewing in Euria AI.",
+    description = "⚠️ [Experimental / Untested] Enables complete discussion thread export to Markdown and plain text, allowing easy archiving and offline viewing in Euria AI.",
 ) {
     compatibleWith(COMPATIBILITY_EURIA)
 

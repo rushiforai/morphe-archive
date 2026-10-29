@@ -1,0 +1,21 @@
+{
+    "version": 1,
+    "records": [
+        {
+            "packageName": "app.myspoti",
+            "currentPackageName": "app.myspoti",
+            "displayName": "app.myspoti",
+            "apkVersion": "2.0.2-beta.7",
+            "apkVersionCode": 1104,
+            "inputApkPath": "/home/okkotsu/Projects/myspoti-morphe-patches-clean/myspoti-2.0.2-beta.7.apk",
+            "outputApkPath": "/home/okkotsu/Projects/myspoti-morphe-patches-clean/Myspoti-Beta/Myspoti-Beta-2.0.2-beta.7-patches-1.0.0.apk",
+            "outputApkSha256": "da6c94f0d32e919d5c7bd8d01c302f54664566118de8a1da62d6595e8f97cdea",
+            "outputApkSize": 17729889,
+            "patchSelectionByBundle": {},
+            "patchOptionValues": {},
+            "sourcesSnapshot": [],
+            "patchedAt": 1793033310100,
+            "patchedWithMorpheVersion": "1.19.1"
+        }
+    ]
+}

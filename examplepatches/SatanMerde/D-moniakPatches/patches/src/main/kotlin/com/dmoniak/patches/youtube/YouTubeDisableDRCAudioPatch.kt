@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeDisableDRCAudioPatch = bytecodePatch(
     name = "Disable DRC Audio (Dynamic Range Compression) - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Disables dynamic range compression (DRC) in YouTube's audio engine, restoring original uncompressed audio dynamics, punchy bass, and full volume without artificial normalization.",
+    description = "⚠️ [Experimental / Untested] Disables dynamic range compression (DRC) in YouTube's audio engine, restoring original uncompressed audio dynamics, punchy bass, and full volume without artificial normalization.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val allTrailsUnlockPlusPatch = bytecodePatch(
     name = "Unlock AllTrails+ & Offline Maps - AllTrails (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing to bypass in-app purchase verification for AllTrails+ (offline topo map downloads, wrong-turn navigation alerts, and 3D trail previews).",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app purchase verification for AllTrails+ (offline topo map downloads, wrong-turn navigation alerts, and 3D trail previews).",
 ) {
     compatibleWith(COMPATIBILITY_ALLTRAILS)
 

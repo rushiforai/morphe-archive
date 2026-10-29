@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val signalAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & Screen Security Bypass - Signal (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Bypasses Android FLAG_SECURE window restrictions in Signal, allowing users to take screenshots and record screens even when Screen Security is enforced.",
+    description = "⚠️ [Experimental / Untested] Bypasses Android FLAG_SECURE window restrictions in Signal, allowing users to take screenshots and record screens even when Screen Security is enforced.",
 ) {
     compatibleWith(COMPATIBILITY_SIGNAL)
 

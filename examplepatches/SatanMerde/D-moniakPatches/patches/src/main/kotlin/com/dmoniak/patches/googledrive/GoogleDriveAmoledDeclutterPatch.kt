@@ -12,7 +12,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val googleDriveAmoledDeclutterPatch = bytecodePatch(
     name = "AMOLED Dark Theme & Declutter - Google Drive (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces pure OLED pitch black (#000000) across Google Drive file lists, folder navigation, status bars, and navigation bars, eliminating dark gray tint for maximum OLED power savings.",
+    description = "⚠️ [Experimental / Untested] Forces pure OLED pitch black (#000000) across Google Drive file lists, folder navigation, status bars, and navigation bars, eliminating dark gray tint for maximum OLED power savings.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_DRIVE)
 

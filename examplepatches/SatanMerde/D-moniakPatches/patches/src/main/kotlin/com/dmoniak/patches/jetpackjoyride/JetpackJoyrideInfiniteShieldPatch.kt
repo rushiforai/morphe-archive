@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val jetpackJoyrideInfiniteShieldPatch = bytecodePatch(
     name = "Infinite Vehicle Shield - Jetpack Joyride (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Keeps Barry's vehicle and gadget shields permanently active in Jetpack Joyride, preventing destruction upon contact with zappers, missiles, and laser fields.",
+    description = "⚠️ [Experimental / Untested] Keeps Barry's vehicle and gadget shields permanently active in Jetpack Joyride, preventing destruction upon contact with zappers, missiles, and laser fields.",
 ) {
     compatibleWith(COMPATIBILITY_JETPACK_JOYRIDE)
 

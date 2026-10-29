@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val googleMapsAlwaysShowSpeedometerPatch = bytecodePatch(
     name = "Always Show Speedometer & Compass - Google Maps (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces the real-time GPS speedometer and compass navigation overlay to stay permanently visible on screen regardless of speed or route type.",
+    description = "⚠️ [Experimental / Untested] Forces the real-time GPS speedometer and compass navigation overlay to stay permanently visible on screen regardless of speed or route type.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_MAPS)
 

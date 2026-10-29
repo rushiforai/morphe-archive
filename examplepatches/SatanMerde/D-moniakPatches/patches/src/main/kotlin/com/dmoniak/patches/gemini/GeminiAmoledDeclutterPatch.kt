@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val geminiAmoledDeclutterPatch = bytecodePatch(
     name = "AMOLED Dark Theme & Declutter - Google Gemini (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects true OLED pitch black (#000000) across Gemini chat surfaces and removes 'Try Gemini Advanced' upgrade suggestions.",
+    description = "⚠️ [Experimental / Untested] Injects true OLED pitch black (#000000) across Gemini chat surfaces and removes 'Try Gemini Advanced' upgrade suggestions.",
 ) {
     compatibleWith(COMPATIBILITY_GEMINI)
 

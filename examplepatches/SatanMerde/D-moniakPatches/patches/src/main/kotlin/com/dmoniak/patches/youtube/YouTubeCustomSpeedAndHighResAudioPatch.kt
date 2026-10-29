@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeCustomSpeedAndHighResAudioPatch = bytecodePatch(
     name = "Custom Playback Speed & High-Res Audio - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks speed slider up to 3.0x/5.0x and forces highest audio bitrate (Opus 160kbps / 256kbps) and default highest video resolution (1080p/1440p/4K) on Wi-Fi and Cellular.",
+    description = "⚠️ [Experimental / Untested] Unlocks speed slider up to 3.0x/5.0x and forces highest audio bitrate (Opus 160kbps / 256kbps) and default highest video resolution (1080p/1440p/4K) on Wi-Fi and Cellular.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

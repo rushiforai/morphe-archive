@@ -622,6 +622,15 @@
       },
       "anchors": [
         {
+          "title": "Download feed videos",
+          "when": {
+            "op": "any",
+            "patches": [
+              "Download any video"
+            ]
+          }
+        },
+        {
           "title": "Send downloads to another app",
           "when": {
             "op": "unconditional"

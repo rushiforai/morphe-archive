@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val robberyBobUnlimitedSprintPatch = bytecodePatch(
     name = "Unlimited Sprint & Stamina - Robbery Bob (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Disables Bob's sprint exhaustion in Robbery Bob, giving unlimited running stamina to escape guards, residents, and guard dogs without slowing down. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Disables Bob's sprint exhaustion in Robbery Bob, giving unlimited running stamina to escape guards, residents, and guard dogs without slowing down. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_ROBBERY_BOB)
 

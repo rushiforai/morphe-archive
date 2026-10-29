@@ -1,0 +1,87 @@
+name: 🐞 Bug report | Báo cáo lỗi
+description: Report a bug or an issue. | Báo cáo lỗi hoặc sự cố.
+title: "bug: "
+labels: ["Bug report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Bug report
+
+        Before creating a new bug report, please keep the following in mind:
+
+        - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/ElectroHeavenVN/morphe-patches/issues?q=label%3A%22Bug+report%22).
+
+        ---
+        # Báo cáo lỗi
+
+        Trước khi tạo một báo cáo lỗi mới, vui lòng lưu ý những điều sau:
+
+        - **Không gửi báo cáo lỗi trùng lặp**: Tìm kiếm các báo cáo lỗi hiện có [tại đây](https://github.com/ElectroHeavenVN/morphe-patches/issues?q=label%3A%22Bug+report%22).
+  - type: textarea
+    attributes:
+      label: Bug description | Mô tả lỗi
+      description: |
+        - Describe your bug in detail
+        - Add steps to reproduce the bug if possible (Step 1. ... Step 2. ...)
+        - Add images and videos if possible
+
+        --- 
+        - Mô tả lỗi của bạn một cách chi tiết
+        - Thêm các bước để tái tạo lỗi nếu có thể (Bước 1. ... Bước 2. ...)
+        - Thêm hình ảnh và video nếu có thể
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Error logs | Nhật ký lỗi
+      description: |
+        Exceptions can be captured by running `logcat | grep AndroidRuntime` in a shell.
+
+        ---
+        Các ngoại lệ có thể được ghi lại bằng cách chạy `logcat | grep AndroidRuntime` trong shell.
+      render: shell
+  - type: textarea
+    attributes:
+      label: Solution | Giải pháp
+      description: |
+        If applicable, add a possible solution to the bug.
+
+        ---
+        Nếu có thể, hãy thêm một giải pháp khả thi cho lỗi.
+  - type: textarea
+    attributes:
+      label: Additional context | Ngữ cảnh bổ sung
+      description: |
+        Add additional context here.
+
+        ---
+        Thêm ngữ cảnh bổ sung ở đây.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements | Xác nhận
+      description: |
+        Your bug report will be closed if you don't follow the checklist below.
+
+        ---
+        Báo cáo lỗi của bạn sẽ bị đóng nếu bạn không tuân theo danh sách kiểm tra bên dưới.
+      options:
+        - label: |
+            I have checked all open and closed bug reports and this is not a duplicate. 
+
+            ---
+            Tôi đã kiểm tra tất cả các báo cáo lỗi đang mở và đã đóng và đây không phải là một bản sao.
+          required: true
+        - label: |
+            I have chosen an appropriate title.
+
+            ---
+            Tôi đã chọn một tiêu đề phù hợp.
+          required: true
+        - label: |
+            All requested information has been provided properly.
+
+            ---
+            Tất cả thông tin được yêu cầu đã được cung cấp đầy đủ.
+          required: true

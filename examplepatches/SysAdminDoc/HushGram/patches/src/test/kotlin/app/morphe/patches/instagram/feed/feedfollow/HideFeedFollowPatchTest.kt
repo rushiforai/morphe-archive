@@ -107,11 +107,15 @@ class HideFeedFollowPatchTest {
             val classes = FixtureDex.classes(bundle, native.types()).values
             assertEquals("$label: the native subscription chain", native.types(), classes.map { it.type }.toSet())
             val header = classes.single { it.type == native.header }.methods.single {
-                it.name == "A0p" && it.code().any { step -> step.string() == MEDIA_HEADER_STATE }
+                it.name == native.method && it.code().any { step -> step.string() == MEDIA_HEADER_STATE }
             }
             val before = header.code().filter { it.opcode != Opcode.NOP }
             val field = "${native.eligibility}->A00:Z"
-            val read = before.indices.single { before[it].opcode == Opcode.IGET_BOOLEAN && before[it].referenceText() == field }
+            // 453's header reads the state twice; Subscribe's read is the one its label follows.
+            val read = before.indices.single { at ->
+                before[at].opcode == Opcode.IGET_BOOLEAN && before[at].referenceText() == field &&
+                    before.drop(at).take(12).any { (it as? NarrowLiteralInstruction)?.narrowLiteral == native.label }
+            }
             val answer = (before[read] as OneRegisterInstruction).registerA
             assertEquals("$label: only the native CTA's eligibility", Opcode.IF_EQZ, before[read + 1].opcode)
             assertEquals(answer, (before[read + 1] as OneRegisterInstruction).registerA)
@@ -154,10 +158,15 @@ class HideFeedFollowPatchTest {
                 it.name == header.name && it.parameterTypes.map(CharSequence::toString) == header.parameterTypes.map(CharSequence::toString)
             }
             val code = patched.code().filter { it.opcode != Opcode.NOP }
-            val changedRead = code.indices.single { code[it].opcode == Opcode.IGET_BOOLEAN && code[it].referenceText() == field }
-            val call = code.getOrNull(changedRead + 1)?.reference() as? MethodReference
-            if (call == null || call.definingClass != FEED_BUTTON || call.parameterTypes.map(CharSequence::toString) != listOf("I") ||
-                call.returnType != "Z") {
+            fun filtered(steps: List<Instruction>, at: Int): Boolean {
+                val call = steps.getOrNull(at + 1)?.reference() as? MethodReference
+                return steps[at].opcode == Opcode.IGET_BOOLEAN && steps[at].referenceText() == field && call != null &&
+                    call.definingClass == FEED_BUTTON && call.parameterTypes.map(CharSequence::toString) == listOf("I") && call.returnType == "Z"
+            }
+            val changedRead = code.indices.singleOrNull { filtered(code, it) }
+            if (changedRead == null || code.subList(0, changedRead).count { it.referenceText() == field } !=
+                before.subList(0, read).count { it.referenceText() == field }
+            ) {
                 missed += label
                 continue
             }
@@ -171,7 +180,7 @@ class HideFeedFollowPatchTest {
             val targets = patched.implementation!!.instructions.filterIsInstance<BuilderOffsetInstruction>()
                 .map { it.target.location.index }.toSet()
             val rawCode = patched.code()
-            val rawRead = rawCode.indices.single { rawCode[it].opcode == Opcode.IGET_BOOLEAN && rawCode[it].referenceText() == field }
+            val rawRead = rawCode.indices.single { filtered(rawCode, it) }
             assertFalse("$label: no jump bypasses the answer filter", rawRead + 2 in targets || rawRead + 3 in targets)
             val unchanged = code.filterIndexed { index, _ -> index !in changedRead + 1..changedRead + 2 }
             assertEquals("$label: the other header controls stay native", before.map { it.opcode to it.referenceText() },
@@ -180,15 +189,18 @@ class HideFeedFollowPatchTest {
         assertEquals("native feed Subscribe gates still bypass Hide Follow", emptyList<String>(), missed)
     }
 
-    private data class NativeSubscribe(val header: String, val eligibility: String, val click: String, val logger: String, val label: Int) {
+    private data class NativeSubscribe(
+        val header: String, val method: String, val eligibility: String, val click: String, val logger: String, val label: Int,
+    ) {
         fun types() = setOf(header, eligibility, click, logger)
     }
 
+    /** 453's builds; on 385914282 the click is a switch listener built twice, once for another header button. */
     private val subscribeBuilds = mapOf(
-        "385811005" to NativeSubscribe("LX/05iY;", "LX/06jT;", "LX/09cW;", "LX/02VD;", 0x7f13804f),
-        "385811006" to NativeSubscribe("LX/04rS;", "LX/05sU;", "LX/08zX;", "LX/0AOZ;", 0x7f13804d),
-        "385811007" to NativeSubscribe("LX/04sb;", "LX/05uF;", "LX/06Lf;", "LX/0ANc;", 0x7f13804f),
-        "385811008" to NativeSubscribe("LX/04rS;", "LX/05sU;", "LX/08zX;", "LX/0AOX;", 0x7f13804d),
+        "385914282" to NativeSubscribe("LX/010I;", "A0o", "LX/00h3;", "LX/0SmP;", "LX/02UW;", 0x7f138132),
+        "385914283" to NativeSubscribe("LX/0024;", "A0q", "LX/08iO;", "LX/0527;", "LX/01FK;", 0x7f138130),
+        "385914284" to NativeSubscribe("LX/0096;", "A0o", "LX/08iY;", "LX/0SjX;", "LX/01GQ;", 0x7f138132),
+        "385914285" to NativeSubscribe("LX/0024;", "A0q", "LX/08iN;", "LX/0526;", "LX/01FK;", 0x7f138130),
     )
 
     private val FEED_BUTTON = "$EXTENSION_PACKAGE/feed/FeedFollowButton;"

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeBackgroundPlaybackPatch = bytecodePatch(
     name = "Background & PiP Playback - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Enables background audio playback when the screen is locked or switching between apps, and unlocks Picture-in-Picture (PiP) mode without YouTube Premium.",
+    description = "⚠️ [Experimental / Untested] Enables background audio playback when the screen is locked or switching between apps, and unlocks Picture-in-Picture (PiP) mode without YouTube Premium.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

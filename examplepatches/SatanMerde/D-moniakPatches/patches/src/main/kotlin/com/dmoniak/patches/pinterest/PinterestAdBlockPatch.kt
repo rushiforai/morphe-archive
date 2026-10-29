@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val pinterestAdBlockPatch = bytecodePatch(
     name = "Block Promoted Pins & Ads - Pinterest (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips sponsored / promoted pins from the home and search feeds, shopping recommendation popups, and interstitial ad banners by neutralizing ad SDK calls.",
+    description = "⚠️ [Experimental / Untested] Strips sponsored / promoted pins from the home and search feeds, shopping recommendation popups, and interstitial ad banners by neutralizing ad SDK calls.",
 ) {
     compatibleWith(COMPATIBILITY_PINTEREST)
 

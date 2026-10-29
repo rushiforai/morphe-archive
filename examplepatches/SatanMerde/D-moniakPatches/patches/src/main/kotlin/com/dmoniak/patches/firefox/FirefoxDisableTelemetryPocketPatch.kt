@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val firefoxDisableTelemetryPocketPatch = bytecodePatch(
     name = "Disable Telemetry & Pocket Stories - Firefox (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Completely disables Mozilla telemetry, Glean analytics, sponsored Pocket stories, and sponsored search shortcuts on Firefox mobile.",
+    description = "⚠️ [Experimental / Untested] Completely disables Mozilla telemetry, Glean analytics, sponsored Pocket stories, and sponsored search shortcuts on Firefox mobile.",
 ) {
     compatibleWith(COMPATIBILITY_FIREFOX)
 

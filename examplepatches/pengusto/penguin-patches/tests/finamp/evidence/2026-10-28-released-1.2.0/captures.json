@@ -1,0 +1,58 @@
+{
+  "014-remote-updated-final.png": {
+    "sha256": "864c0e72ce10eb2f7ab57a8f7858e20fb12f4f9705e2dcf81f37290bbcdcdc41",
+    "size": [
+      1080,
+      1920
+    ],
+    "unedited_adb_capture": true
+  },
+  "015-public-source-only.png": {
+    "sha256": "036f08abe24e5b3c1ffe5f02c4b894f792118b84ef0998bb24e61b8b61f4def4",
+    "size": [
+      1080,
+      1920
+    ],
+    "unedited_adb_capture": true
+  },
+  "016-release-selection.png": {
+    "sha256": "84b8a510ad492412d8096d9da19c2b324b8a48401b322cb494396f83fcd327cb",
+    "size": [
+      1080,
+      1920
+    ],
+    "unedited_adb_capture": true
+  },
+  "017-mask-8-jvm-selection.png": {
+    "sha256": "5e60270d009495bce1c4913ace07a8909e2afddb03352b5091e645ef314b94c5",
+    "size": [
+      1080,
+      1920
+    ],
+    "unedited_adb_capture": true
+  },
+  "018-mask-8-jvm-success.png": {
+    "sha256": "cc744d65e7c413c3e4a254531c60478cd6fe7b06dd66378150d61272824891cf",
+    "size": [
+      1080,
+      1920
+    ],
+    "unedited_adb_capture": true
+  },
+  "020-mask-16-jvm-selection.png": {
+    "sha256": "08edf7e5ea193ee6e830ddacca6c9508fc26d2ce7698753d57d2d19f78f351ce",
+    "size": [
+      1080,
+      1920
+    ],
+    "unedited_adb_capture": true
+  },
+  "021-mask-16-jvm-success.png": {
+    "sha256": "cb9e41b6fe49118aa8a343108378bf2f68cb556b2ecc750d60bfb05cb2f1b897",
+    "size": [
+      1080,
+      1920
+    ],
+    "unedited_adb_capture": true
+  }
+}

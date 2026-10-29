@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val instagramAmoledThemePatch = bytecodePatch(
     name = "Pure AMOLED Black Theme - Instagram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects pure pitch-black (#000000) for OLED displays across main feed, reels, direct messages, stories bar, and profile in Instagram.",
+    description = "⚠️ [Experimental / Untested] Injects pure pitch-black (#000000) for OLED displays across main feed, reels, direct messages, stories bar, and profile in Instagram.",
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 

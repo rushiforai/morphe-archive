@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val chatGPTAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & Copy - ChatGPT (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes Android FLAG_SECURE window restrictions to allow screenshots and screen recording inside conversations and prevents copy restrictions.",
+    description = "⚠️ [Experimental / Untested] Removes Android FLAG_SECURE window restrictions to allow screenshots and screen recording inside conversations and prevents copy restrictions.",
 ) {
     compatibleWith(COMPATIBILITY_CHATGPT)
 

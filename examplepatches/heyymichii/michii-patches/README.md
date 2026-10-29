@@ -1,77 +1,78 @@
+<div align="center">
+
 # 🧩 Michii Patches
 
-LinkedIn patches for use with [Morphe](https://morphe.software), by **heyymichii**.
+**Patches that make your apps cleaner and calmer.** Fewer ads, less clutter, and the features the apps are missing.
 
-Michii Patches is an independent project. It is not affiliated with, endorsed by, or part of the
-Morphe project or LinkedIn.
+[![Latest release](https://img.shields.io/github/v/release/heyymichii/michii-patches?style=for-the-badge&label=release&color=0a66c2)](https://github.com/heyymichii/michii-patches/releases/latest)
+[![License](https://img.shields.io/github/license/heyymichii/michii-patches?style=for-the-badge&color=2dbcb1)](LICENSE)
+[![Translate on Crowdin](https://img.shields.io/badge/translate-Crowdin-263238?style=for-the-badge&logo=crowdin&logoColor=white)](https://crowdin.com/project/michii-patches)
 
-## 🚧 Next Update
+**[➕ Add to Morphe](https://morphe.software/add-source?github=heyymichii/michii-patches)** ·
+**[📣 Announcements](https://github.com/heyymichii/michii-patches/discussions/categories/announcements)** ·
+**[💬 Discussions](https://github.com/heyymichii/michii-patches/discussions)** ·
+**[🌐 Translate](https://crowdin.com/project/michii-patches)** ·
+**[🐛 Report a bug](https://github.com/heyymichii/michii-patches/issues/new/choose)** ·
+**[💖 Support](#-support)**
 
-The next Michii Patches update is in progress! 🎉
+</div>
 
-I'm working on several improvements, including:
+---
 
-- 🐛 **Bug fixes**: Fixing reported issues and improving existing patches.
-- 🎨 **Patch improvements**: Refining current patches and addressing compatibility issues.
-- 🧩 **More app patches**: Expanding Michii Patches with patches for other apps.
+## 🚀 Getting started
 
-I'm currently quite busy with my real-life work, so development may take a little longer than usual. I'll continue working on these improvements as time allows.
+1. Install [Morphe Manager](https://morphe.software).
+2. **[Add the Michii Patches source](https://morphe.software/add-source?github=heyymichii/michii-patches)**.
+3. Pick an app from the [patches list](#-patches-list), patch the version Morphe Manager recommends, and install it.
 
-Thanks for your patience, feedback, and support! ❤️
+Every patched app gets its own **Michii Patches** settings screen, where you turn each feature on or off, search,
+back up and restore your settings, check for updates, and copy a diagnostic report, in 11 languages. To open it:
 
-## ❓ About
+- **LinkedIn:** tap your profile photo to open the **"Me" panel → Michii Patches**, or long press the app icon.
 
-Michii Patches removes ads and clutter from LinkedIn and adds features the app does not have:
+> [!IMPORTANT]
+> Please don't share patched APKs. Share this patch source instead, so everyone gets the latest fixes.
 
-- **Ads & promotions:** hide promoted posts, promoted jobs, suggested posts, sponsored messages,
-  and Premium / AI upsells (feed, profiles, Jobs, and the "Me" panel).
-- **Download:** a download button on full screen photos, videos, profile photos, and banners,
-  with a configurable save location.
-- **Feed filters** (off by default): focus mode (hide like/comment/repost counts), celebrations,
-  job cards, reposts, video posts, the "New posts" pill, and "See translation".
-- **Chat:** ghost mode (no typing indicator or automatic read status; mark chats read by hand
-  from the chat list), hide sponsored messages.
-- **Privacy:** open links directly without LinkedIn's warning page (including `lnkd.in` short
-  links), remove tracking parameters from copied and shared links, and an optional analytics block.
-- **Disable double-tap like** on posts and photos.
-- **Settings:** turn each feature on or off, search settings, back up and restore them, see which
-  patches are applied, and check for updates. The settings are in English, or in Indonesian when
-  your phone uses Indonesian (change it under Other → Language).
+<details>
+<summary><b>❓ FAQ</b></summary>
 
-### Opening the settings
+<br>
 
-- Tap your profile photo to open the "Me" panel, then **Michii Patches** (below "Saved posts"), or
-- long press the LinkedIn app icon on your home screen, then **Michii Patches**.
+**Which APK should I download?**
+The version Morphe Manager recommends (the newest one in the patches list). Other versions are marked experimental
+and may not work. **LinkedIn:** use the APKMirror variant *Android 10+*, the APK, not the bundle.
 
-The app icon shortcut is added the first time LinkedIn opens after patching.
+**I can't find the Michii Patches settings.**
+App icon shortcuts are added after the app has been opened once, and some launchers don't show them, so use the
+in-app entry when there is one. If it's missing too, check that your app version is supported and send a diagnostic
+report.
 
-### Supported version
+**LinkedIn: I can't sign in with Google.**
+Google checks the app's signature, so sign-in with Google needs the **GmsCore support** patch and
+[microG RE](https://github.com/MorpheApp/microg-RE) installed and signed in to your Google account. You can also sign in
+with your e-mail and password. If you signed up with Google and don't have a password, set one first on
+[linkedin.com](https://www.linkedin.com/checkpoint/rp/request-password-reset) ("Forgot password").
 
-| App | Version |
-|---|---|
-| LinkedIn (`com.linkedin.android`) | **4.1.1261** (recommended), **4.1.1259**, **4.1.1255.1** (APKMirror variant *Android 10+*, the APK, not the bundle) |
+**LinkedIn: Material You or AMOLED black doesn't change some screens.**
+Restart LinkedIn after changing them. A few older screens keep the colors chosen when patching.
 
-Other versions are marked experimental and may not work.
+</details>
 
-> [!NOTE]
-> **Signing in with Google doesn't work** in patched LinkedIn, because Google checks the app's signature.
-> Sign in with your e-mail and password instead. If you signed up with Google and don't have a password,
-> set one first on [linkedin.com](https://www.linkedin.com/checkpoint/rp/request-password-reset) ("Forgot password").
+## 🐛 Reporting a bug
 
-### How to use these patches
-
-Click here to add these patches to Morphe: https://morphe.software/add-source?github=heyymichii/michii-patches
-
-Then patch LinkedIn with Morphe Manager. Do not share patched APKs; share this patch source instead.
-
-> ⚠️ Modifying the LinkedIn app may violate LinkedIn's terms of service. Use at your own risk.
+In the app's **Michii Patches** settings, turn on **Other → Diagnostic logging**, reproduce the problem, then tap
+**Copy diagnostic report** and paste it into a [bug report](https://github.com/heyymichii/michii-patches/issues/new/choose).
+Links, IDs and e-mail addresses are removed from the report.
 
 ## 🩹 Patches list
 
+More apps are on the way: follow the [announcements](https://github.com/heyymichii/michii-patches/discussions/categories/announcements)
+to hear about them first, or [suggest an app](https://github.com/heyymichii/michii-patches/discussions/categories/ideas).
+
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.0-dev.3](https://github.com/heyymichii/michii-patches/releases/tag/v1.2.0-dev.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
+> **[v1.2.0](https://github.com/heyymichii/michii-patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
 <details open>
-<summary>📦 LinkedIn&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
+<summary><img src="assets/icons/com.linkedin.android.svg" width="20" height="20" align="top" alt=""> LinkedIn&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -85,48 +86,59 @@ Then patch LinkedIn with Morphe Manager. Do not share patched APKs; share this p
 | [Disable double-tap like](#disable-double-tap-like) | Stops double tapping a post or photo from liking it. |  |
 | [Download media](#download-media) | Adds a download button to the full screen photo and video viewer. |  |
 | [Feed filters](#feed-filters) | Adds optional filters (off by default, turned on in Michii Patches): focus mode, celebrations, job cards, reposts, video posts, the "New posts" pill and "See translation". |  |
+| [GmsCore support](#gmscore-support) | Makes "Continue with Google" work in patched LinkedIn by signing in through microG RE (GmsCore) instead of Google Play services. Needs microG RE installed and signed in to a Google account. |  |
 | [Hide Premium upsells](#hide-premium-upsells) | Removes Premium and AI upsell cards and banners, including on profiles and the Me panel. |  |
 | [Hide ads](#hide-ads) | Removes promoted (sponsored) posts from the feed. |  |
 | [Hide promoted jobs](#hide-promoted-jobs) | Removes promoted job listings from the Jobs tab and job search. |  |
 | [Hide suggested posts](#hide-suggested-posts) | Removes "Suggested" posts from outside your network from the feed. |  |
-| [Material You](#material-you) | Uses your wallpaper colors (Android 12+) for accents and backgrounds instead of LinkedIn blue and gray. Some screens drawn by LinkedIn's servers may keep their own colors. |  |
+| [Material You](#material-you) | Uses your wallpaper's colors (Android 12+): the accent color instead of LinkedIn blue and the green of selected filters, and Material 3 surface colors for backgrounds, cards, bars and borders. Some screens drawn by LinkedIn's servers may keep their own colors. |  |
 | [Messaging](#messaging) | Hides sponsored messages, and adds an optional ghost mode that does not send typing indicators or read status. |  |
 | [Open links directly](#open-links-directly) | Opens external links without LinkedIn's safety/go warning page. |  |
+| [Remove gaps and dividers](#remove-gaps-and-dividers) | Removes the gray gaps between posts and the dividers between list items, so the feed and lists are one flat surface. |  |
 | [Sanitize share links](#sanitize-share-links) | Removes tracking parameters from LinkedIn links when they are copied or shared. |  |
 
 </details>
 
 <!-- PATCHES_END -->
 
-### 🌐 Translations
+## 🌐 Translations
 
-The settings screens are available in English, Bahasa Indonesia, Español, Português (Brasil), Français, Deutsch,
-Tiếng Việt, ไทย, Türkçe, Русский, and 日本語. They follow your phone's language, and you can pick another one under
+The settings of every app are available in English, Bahasa Indonesia, Español, Português (Brasil), Français, Deutsch,
+Tiếng Việt, ไทย, Türkçe, Русский and 日本語. They follow your phone's language, and you can pick another one under
 **Other → Language**.
 
-Found a wrong or awkward translation, or want to add a language? The texts are in
-[`extensions/extension/src/main/translations`](extensions/extension/src/main/translations), one JSON file per
-language with the English text as the key. Open an issue or a pull request.
+Translations are managed on **[Crowdin](https://crowdin.com/project/michii-patches)**: fix a translation or add your
+language there, and it comes to the apps in the next update.
 
-### 💖 Support
+## 🤝 Contributing
 
-If Michii Patches is useful to you, you can support its development:
+- **Bugs and feature requests**: [open an issue](https://github.com/heyymichii/michii-patches/issues/new/choose).
+- **Questions and ideas**, including apps you'd like to see: [Discussions](https://github.com/heyymichii/michii-patches/discussions).
+- **Code**: pull requests are welcome, against the `dev` branch. Thanks to everyone who has contributed,
+  including [@amfakh](https://github.com/amfakh) for Material You and Sign in with Google on LinkedIn.
 
-- [Ko-fi](https://ko-fi.com/heyymichii)
-- [Trakteer](https://trakteer.id/heyymichii) (for supporters in Indonesia)
+Michii Patches removes ads and clutter and adds features. It doesn't unlock paid features or content.
 
 ### 🛠️ Building locally
 
-- Run `./gradlew buildAndroid`
-- The built patches .mpp file is found in `patches/build/libs/patches-*.mpp`
-- Patch the mpp file using [Morphe-Desktop](https://github.com/MorpheApp/morphe-desktop)
-  like any other patch bundle.
+1. Run `./gradlew buildAndroid`.
+2. The patch bundle is in `patches/build/libs/patches-*.mpp`.
+3. Patch with [Morphe Desktop](https://github.com/MorpheApp/morphe-desktop) like any other patch bundle.
 
-See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation) for more information.
+See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation) for more.
+
+## 💖 Support
+
+If Michii Patches makes your apps better, you can support its development:
+
+<a href="https://ko-fi.com/heyymichii"><img src="https://img.shields.io/badge/Ko--fi-Support-ff5e5b?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi"></a>
+<a href="https://trakteer.id/heyymichii"><img src="https://img.shields.io/badge/Trakteer-Indonesia-be1e2d?style=for-the-badge" alt="Trakteer"></a>
 
 ## 📜 License
 
-Michii Patches are licensed under the [GNU General Public License v3.0](LICENSE), including the
-additional terms in [NOTICE](NOTICE).
+Michii Patches is licensed under the [GNU General Public License v3.0](LICENSE), including the additional terms in
+[NOTICE](NOTICE). Based on the [Morphe patches template](https://github.com/MorpheApp/morphe-patches-template).
 
-Based on the [Morphe patches template](https://github.com/MorpheApp/morphe-patches-template).
+Michii Patches is an independent project, made by **heyymichii**. It is not affiliated with, endorsed by, or part of
+the Morphe project or the developers of the patched apps. All app names and trademarks belong to their owners.
+Modifying an app may violate its terms of service; use the patches at your own risk.

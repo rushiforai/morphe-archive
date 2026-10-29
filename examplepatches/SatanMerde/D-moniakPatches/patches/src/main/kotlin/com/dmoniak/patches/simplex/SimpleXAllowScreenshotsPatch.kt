@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val simpleXAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & Screen Security Bypass - SimpleX (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Neutralizes FLAG_SECURE window flags in SimpleX Chat, allowing screenshots and screen sharing without black screens.",
+    description = "⚠️ [Experimental / Untested] Neutralizes FLAG_SECURE window flags in SimpleX Chat, allowing screenshots and screen sharing without black screens.",
 ) {
     compatibleWith(COMPATIBILITY_SIMPLEX)
 

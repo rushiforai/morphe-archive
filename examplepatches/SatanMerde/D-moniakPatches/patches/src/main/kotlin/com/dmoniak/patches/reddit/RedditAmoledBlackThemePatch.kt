@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val redditAmoledBlackThemePatch = bytecodePatch(
     name = "Pure AMOLED Black Theme - Reddit (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects pure pitch-black (#000000) for OLED screens across feeds, post viewer, comments, and drawer in Reddit.",
+    description = "⚠️ [Experimental / Untested] Injects pure pitch-black (#000000) for OLED screens across feeds, post viewer, comments, and drawer in Reddit.",
 ) {
     compatibleWith(COMPATIBILITY_REDDIT)
 

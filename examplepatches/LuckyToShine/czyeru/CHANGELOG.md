@@ -1,3 +1,9 @@
+## [1.9.0](https://github.com/LuckyToShine/czyeru/compare/v1.8.1...v1.9.0) (2026-10-29)
+
+### ✨ New Features
+
+* **tiktok:** add inbox activity and new followers search bar ([5b9159a](https://github.com/LuckyToShine/czyeru/commit/5b9159ad3fd355c7a66879f5826ed2ae0af30345))
+
 ## [1.8.1](https://github.com/LuckyToShine/czyeru/compare/v1.8.0...v1.8.1) (2026-10-25)
 
 ### 🐛 Bug Fixes

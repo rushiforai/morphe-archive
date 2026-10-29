@@ -1,0 +1,85 @@
+{
+  "1689-before": {
+    "case": "artist",
+    "installed_apk_sha256": "a43d9464b2bc778b506575ab7a3a84c4368a94f6f51a9dff7902d2b7828a67a8",
+    "captured_at": "2026-10-28T21:10:29.380629+00:00",
+    "offline": true,
+    "expected_count": 8,
+    "visible_tracks": [
+      "01 - Credit Order",
+      "02 - Credit Order",
+      "03 - Credit Order",
+      "04 - Credit Order",
+      "05 - Credit Order",
+      "06 - Credit Order",
+      "07 - Lead Solo",
+      "08 - Album Credit Only"
+    ]
+  },
+  "1689-after": {
+    "case": "artist",
+    "installed_apk_sha256": "cd7f0e582f908e3adcc790ae7cdef0e8ccda0106880ea70e39e8f176bef642c8",
+    "captured_at": "2026-10-28T21:54:40.054489+00:00",
+    "offline": true,
+    "expected_count": 6,
+    "visible_tracks": [
+      "01 - Credit Order",
+      "02 - Credit Order",
+      "03 - Credit Order",
+      "04 - Credit Order",
+      "05 - Credit Order",
+      "06 - Credit Order"
+    ]
+  },
+  "1790-before-M": {
+    "case": "jump",
+    "installed_apk_sha256": "a43d9464b2bc778b506575ab7a3a84c4368a94f6f51a9dff7902d2b7828a67a8",
+    "captured_at": "2026-10-28T21:18:45.775203+00:00",
+    "offline": false,
+    "letter": "M",
+    "observed_point": [
+      1045,
+      1045
+    ],
+    "first_visible_track": "02 - Credit Order"
+  },
+  "1790-after-M": {
+    "case": "jump",
+    "installed_apk_sha256": "af199d7cab9e1160557e1aa41a29ba3b87ebec38d322cecc7229d797d5ae252f",
+    "captured_at": "2026-10-28T21:55:37.011177+00:00",
+    "offline": false,
+    "letter": "M",
+    "observed_point": [
+      1045,
+      1045
+    ],
+    "first_visible_track": "Midnight 01"
+  },
+  "combined-31-artist": {
+    "case": "artist",
+    "installed_apk_sha256": "57c76033dba87ab4ff3db36b3a8ac84bd86e1ed43dab4cd3eca2b216b84e6b43",
+    "captured_at": "2026-10-28T22:03:52.166781+00:00",
+    "offline": true,
+    "expected_count": 6,
+    "visible_tracks": [
+      "01 - Credit Order",
+      "02 - Credit Order",
+      "03 - Credit Order",
+      "04 - Credit Order",
+      "05 - Credit Order",
+      "06 - Credit Order"
+    ]
+  },
+  "combined-31-M": {
+    "case": "jump",
+    "installed_apk_sha256": "57c76033dba87ab4ff3db36b3a8ac84bd86e1ed43dab4cd3eca2b216b84e6b43",
+    "captured_at": "2026-10-28T22:04:42.052236+00:00",
+    "offline": false,
+    "letter": "M",
+    "observed_point": [
+      1045,
+      1045
+    ],
+    "first_visible_track": "Midnight 01"
+  }
+}

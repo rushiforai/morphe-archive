@@ -20,6 +20,7 @@ import java.util.Set;
 import app.hushgram.extension.instagram.feed.FeedFollowButton;
 import app.hushgram.extension.instagram.feed.CarouselPeek;
 import app.hushgram.extension.instagram.feed.ReelCorners;
+import app.hushgram.extension.instagram.feed.StoryCorners;
 import app.hushgram.extension.shared.L10n;
 
 /** Builds the Feed category of HushGram settings. */
@@ -183,6 +184,9 @@ final class FeedCategory {
             feed.addPreference(onFlip(toggle(context, Settings.ROUNDED_REEL_CORNERS, L10n.t("Rounded corners on Reels"),
                     L10n.t("Rounds the corners of a reel's video in the Reels tab and wherever a reel opens full "
                             + "screen. The seek bar, captions and buttons stay whole.")), ReelCorners::switchChanged));
+            feed.addPreference(onFlip(toggle(context, Settings.ROUNDED_STORY_CORNERS, L10n.t("Rounded corners on stories"),
+                    L10n.t("Rounds the corners of a story's photo or video, from the tray, a profile or a highlight. "
+                            + "The progress bar, names and stickers stay whole.")), StoryCorners::switchChanged));
             feed.addPreference(cornerSizeRow(context));
             feed.addPreference(onFlip(toggle(context, Settings.PEEK_CAROUSEL_PAGES, L10n.t("Peek at the next carousel page"),
                     L10n.t("A carousel post's page sits a little in from the edges, with the start of the next page "

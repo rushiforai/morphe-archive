@@ -69,6 +69,11 @@
 # Keep it and the WrappedClient it returns intact so R8 can't strip/rename/merge them.
 -keep class ajstrick81.morphe.extension.twitchatv.ads.TwitchAtvWebViewHelper {
     public static android.webkit.WebViewClient wrapClient(android.webkit.WebViewClient);
+    public static void setSpeedEnabled();
+    public static boolean onSpeedKeyEvent(int, android.view.KeyEvent);
+    public static void onSpeedKeyEventVoid(int, android.view.KeyEvent);
+    public static boolean onSpeedKeyEvent(android.view.KeyEvent);
+    public static void onSpeedKeyEventVoid(android.view.KeyEvent);
 }
 
 # MLB At Bat — Patch 6: HLS manifest ad-segment stripper. Called directly
@@ -88,6 +93,16 @@
     public static long mapResumePosition(androidx.media3.common.Player, long);
 }
 -dontwarn androidx.media3.exoplayer.dash.manifest.**
+
+# Pluto v17 (Paramount+/AVIA rebuild) DASH period strip — skipAdsV17Patch Hooks 3 & 4
+# (see SkipAdsV17Patch.kt). cleanManifestStream is called from injected smali at
+# AviaDashParser.parse, and shouldSuppressDynamicAdFetch from CLID3Processor; both are
+# unreferenced from Java, so R8 would strip or rename them. Uses only platform/XML types
+# (no library deps), so no -dontwarn is needed.
+-keep class ajstrick81.morphe.extension.pluto.ads.PlutoV17ManifestProbe {
+    public static java.io.InputStream cleanManifestStream(java.io.InputStream);
+    public static boolean shouldSuppressDynamicAdFetch();
+}
 
 # Pluto LIVE ad-break mask — liveSlatePatch (see LiveSlatePatch.kt). Its @JvmStatic
 # entry points are called only from injected smali, so R8 would strip/rename them.
@@ -112,6 +127,21 @@
 -keep class ajstrick81.morphe.extension.hbomax.ads.HboStreamSelector {
     public static java.lang.Object preferFallbackType(java.lang.Object, java.lang.Object);
 }
+
+# HBO Max — playback-speed control (issue #258, opt-in). Two entry points are
+# called from injected smali: HboSpeedController.setContext (at
+# BeamApplication.onCreate) and PlayerBridge.onPlayerCreated / setSpeedNative (at
+# the media3 ExoPlayer constructor).
+#
+# The WHOLE package is kept, not just those entry points. HboSpeedPanel extends
+# android.widget.Button, and when only the entry points were kept R8 inlined /
+# merged / renamed the rest across that View-subclass boundary and emitted
+# bytecode the ART verifier rejects at class-load — a startup VerifyError on
+# HboSpeedController ("'this' ... not instance of android.widget.Button") the
+# first time BeamApplication.onCreate referenced it. Keeping every class and
+# member in the package stops R8 from optimizing across these UI classes and
+# leaves the bytecode verifiable.
+-keep class ajstrick81.morphe.extension.hbomax.speed.** { *; }
 
 # Paramount+ — LIVE sports slate PTS-aligner. MorpheTsRewriter.alignSlateToLive(String,String)
 # is called only from injected smali (invoke-static {} in AviaNetworkInterceptor.intercept),

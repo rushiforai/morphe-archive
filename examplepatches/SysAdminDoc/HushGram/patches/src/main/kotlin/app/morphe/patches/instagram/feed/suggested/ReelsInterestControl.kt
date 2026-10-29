@@ -19,8 +19,8 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val PATCH = "Hide suggested posts"
 
-/** The marker of the Reels footer's use case method that picks the row's control. */
-internal const val REELS_CONTROL_MARKER = "ClipsFullWidthFooterUseCase_getOnImpressionControl"
+/** The marker of the Reels footer's method that picks the row's control (452.1's was ClipsFullWidthFooterUseCase_getOnImpressionControl). */
+internal const val REELS_CONTROL_MARKER = "ClipsFullWidthFooterComponent_getRankingControls"
 
 internal const val REELS_CONTROL = "$FEED_INTEREST->reelsControl(Ljava/lang/Object;)Ljava/lang/Object;"
 
@@ -56,14 +56,15 @@ internal class ReelsInterestControl(
 }
 
 /**
- * Finds the Reels footer's use case method holding [REELS_CONTROL_MARKER]: the one method with that
- * marker, an instance method taking the reel's state and a fallback control and answering the
- * ranking controls component. It reads the reel's own on-impression control (the server's, or
- * Media.A2J(), clips_on_impression_control), wraps it, or keeps the fallback when there is none,
- * and stores what it ends up with in the one field of the component of the fallback's type. The
- * component draws nothing when that field is null. On 452.1's 385811006 that's
- * LX/07NV->A02(LX/085h;LX/0SIc;)LX/0E93; storing v14 into LX/0E93;->A0A at instruction 74.
- * Anything else is an update this patch hasn't seen, and it stops.
+ * Finds the Reels footer's method holding [REELS_CONTROL_MARKER]: the one method with that marker,
+ * an instance method taking the reel's state and a fallback control and answering the ranking
+ * controls component. It reads the reel's own on-impression control (the wrapped
+ * clips_on_impression_control model), or keeps the fallback when there is none, and stores what it
+ * ends up with in the one field of the component of the fallback's type. The component
+ * (ClipsRankingControlsComponent) draws an empty box when that field is null. On 453's 385914285
+ * that's LX/08YT;->A02(LX/09WW;LX/06C6;)LX/0D3V; storing v13 into LX/0D3V;->A0A at instruction 57,
+ * and the same place and register in the other three builds. Anything else is an update this patch
+ * hasn't seen, and it stops.
  */
 internal fun BytecodePatchContext.findReelsInterestControl(): ReelsInterestControl {
     val found = mutableListOf<Method>()

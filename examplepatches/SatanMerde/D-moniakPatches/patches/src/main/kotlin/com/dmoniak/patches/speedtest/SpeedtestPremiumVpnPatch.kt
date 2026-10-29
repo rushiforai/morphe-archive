@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val speedtestPremiumVpnPatch = bytecodePatch(
     name = "Premium VPN & Unlimited Data - Speedtest by Ookla (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing to bypass in-app purchase verification for Speedtest VPN Premium (unlimited bandwidth indicators and server location selection).",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app purchase verification for Speedtest VPN Premium (unlimited bandwidth indicators and server location selection).",
 ) {
     compatibleWith(COMPATIBILITY_SPEEDTEST)
 

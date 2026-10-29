@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubePlaybackBufferFixPatch = bytecodePatch(
     name = "Fix Video Playback Buffer & Freeze - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Bypasses Google's video stream throttling and 1:00 min playback buffering freezes by spoofing client payload parameters (iOS/Android VR/TV client identifiers).",
+    description = "⚠️ [Experimental / Untested] Bypasses Google's video stream throttling and 1:00 min playback buffering freezes by spoofing client payload parameters (iOS/Android VR/TV client identifiers).",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val chatGPTKeepScreenOnPatch = bytecodePatch(
     name = "Keep Screen On During Generation - ChatGPT (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Keeps the screen illuminated and active while ChatGPT is streaming responses and code snippets, preventing device sleep during long answers.",
+    description = "⚠️ [Experimental / Untested] Keeps the screen illuminated and active while ChatGPT is streaming responses and code snippets, preventing device sleep during long answers.",
 ) {
     compatibleWith(COMPATIBILITY_CHATGPT)
 

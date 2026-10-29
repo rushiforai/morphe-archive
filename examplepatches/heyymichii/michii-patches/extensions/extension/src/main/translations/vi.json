@@ -133,4 +133,19 @@
   "• Supports LinkedIn 4.1.1259\n• The settings now use your phone's language, and you can pick another one under Other → Language\n• Copy a diagnostic report under Other to paste into bug reports\n• The \"Michii Patches\" app icon shortcut now always appears, at the top\n\nOpen the settings from the Me panel → Michii Patches, or long press the LinkedIn icon → Michii Patches.": "• Hỗ trợ LinkedIn 4.1.1259\n• Phần cài đặt giờ dùng ngôn ngữ của điện thoại, và bạn có thể chọn ngôn ngữ khác trong Khác → Ngôn ngữ\n• Sao chép báo cáo chẩn đoán trong Khác để dán vào báo cáo lỗi\n• Lối tắt \"Michii Patches\" trên biểu tượng ứng dụng giờ luôn xuất hiện, ở trên cùng\n\nMở cài đặt từ bảng Tôi → Michii Patches, hoặc nhấn giữ biểu tượng LinkedIn → Michii Patches.",
   "• The settings now use your phone's language (English, Indonesian, Spanish, Portuguese, French, German, Vietnamese, Thai, Turkish, Russian, or Japanese). You can pick another language under Other → Language.\n\nOpen the settings from the Me panel → Michii Patches, or long press the LinkedIn icon → Michii Patches.": "• Phần cài đặt giờ dùng ngôn ngữ của điện thoại (tiếng Anh, Indonesia, Tây Ban Nha, Bồ Đào Nha, Pháp, Đức, Việt, Thái, Thổ Nhĩ Kỳ, Nga hoặc Nhật). Bạn có thể chọn ngôn ngữ khác trong Khác → Ngôn ngữ.\n\nMở cài đặt từ bảng Tôi → Michii Patches, hoặc nhấn giữ biểu tượng LinkedIn → Michii Patches.",
   "The first release of Michii Patches.\n\n• Hide ads, promoted jobs, suggested posts, and Premium promotions\n• Download photos, videos, profile photos, and banners, with a configurable save location\n• Feed filters: focus mode, celebrations, jobs, reposts, videos\n• Chat: hide sponsored messages, and ghost mode\n• Open links directly (including lnkd.in) and clean share links\n• Block tracking and disable double-tap like\n\nOpen the settings from the Me panel → Michii Patches.": "Phiên bản đầu tiên của Michii Patches.\n\n• Ẩn quảng cáo, việc làm được quảng bá, bài viết được đề xuất và quảng cáo Premium\n• Tải ảnh, video, ảnh đại diện và ảnh bìa, có thể chọn vị trí lưu\n• Bộ lọc bảng tin: chế độ tập trung, chúc mừng, việc làm, bài đăng lại, video\n• Tin nhắn: ẩn tin nhắn được tài trợ và chế độ ẩn danh\n• Mở liên kết trực tiếp (kể cả lnkd.in) và làm sạch liên kết chia sẻ\n• Chặn theo dõi và tắt thích bằng nhấn đúp\n\nMở cài đặt từ bảng Tôi → Michii Patches."
+,
+  "Appearance": "Giao diện",
+  "Material You": "Material You",
+  "Remove gaps and dividers": "Bỏ khoảng trống và đường phân cách",
+  "No gaps between posts and no dividers between list items. Restart LinkedIn to apply.": "Không có khoảng trống giữa các bài đăng và không có đường phân cách giữa các mục danh sách. Khởi động lại LinkedIn để áp dụng.",
+  "Your wallpaper's colors for accents, backgrounds, cards and borders. Restart LinkedIn to apply. Older screens keep the colors chosen when patching.": "Màu hình nền của bạn cho điểm nhấn, nền, thẻ và viền. Khởi động lại LinkedIn để áp dụng. Các màn hình cũ giữ màu đã chọn khi vá.",
+  "Hide posts from others' activity": "Ẩn bài đăng từ hoạt động của người khác",
+  "Posts shown because someone liked, commented on, or reacted to them.": "Bài đăng hiển thị vì ai đó đã thích, bình luận hoặc bày tỏ cảm xúc.",
+  "Hide \"Recommended for you\"": "Ẩn \"Đề xuất cho bạn\"",
+  "Suggestions of people and pages to follow in the feed.": "Gợi ý người và trang để theo dõi trong bảng tin.",
+  "Hide games": "Ẩn trò chơi",
+  "LinkedIn's puzzle games in the Me panel, search, and feed.": "Các trò chơi giải đố của LinkedIn trong bảng Tôi, tìm kiếm và bảng tin."
+,
+  "AMOLED black": "Đen AMOLED",
+  "Pure black backgrounds and cards in dark mode, to save battery on AMOLED screens. Restart LinkedIn to apply.": "Nền và thẻ màu đen tuyền ở chế độ tối, giúp tiết kiệm pin trên màn hình AMOLED. Khởi động lại LinkedIn để áp dụng."
 }

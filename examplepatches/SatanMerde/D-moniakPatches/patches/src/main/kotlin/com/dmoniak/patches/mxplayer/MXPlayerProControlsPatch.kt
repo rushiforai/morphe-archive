@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val mxPlayerProControlsPatch = bytecodePatch(
     name = "Unlock Pro Player Controls - MX Player (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks background video playback with screen off, Picture-in-Picture (PIP) mode, and 200% volume audio boost.",
+    description = "⚠️ [Experimental / Untested] Unlocks background video playback with screen off, Picture-in-Picture (PIP) mode, and 200% volume audio boost.",
 ) {
     compatibleWith(COMPATIBILITY_MX_PLAYER)
 

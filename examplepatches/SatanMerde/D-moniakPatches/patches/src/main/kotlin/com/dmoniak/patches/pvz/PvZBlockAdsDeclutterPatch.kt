@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val pvzBlockAdsDeclutterPatch = bytecodePatch(
     name = "Block Ads & Declutter Menus - Plants vs. Zombies (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips interstitial video ads, bottom banners, and promotional popups in Plants vs. Zombies.",
+    description = "⚠️ [Experimental / Untested] Strips interstitial video ads, bottom banners, and promotional popups in Plants vs. Zombies.",
 ) {
     compatibleWith(COMPATIBILITY_PLANTS_VS_ZOMBIES)
 

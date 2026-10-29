@@ -33,6 +33,15 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Fetch pinned Finamp verification input
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/finamp-input"
+          gh release download 1.0.1 --repo finamp-app/finamp \
+            --pattern Finamp-1.0.1-universal.apk --dir "$RUNNER_TEMP/finamp-input"
+          echo "FINAMP_ORIGINAL_APK=$RUNNER_TEMP/finamp-input/Finamp-1.0.1-universal.apk" >> "$GITHUB_ENV"
+
       # Semantic release runs its own Gradle build command.
       # Only dev and main branch will generate a release as specified by .releaserc
       - name: Release

@@ -34,7 +34,7 @@ val bydNativeBatteryPatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(compatibility)
-    dependsOn(googleMapsMicroGPatch)
+    dependsOn(googleMapsMicroGPatch, mapsSettingsRowsPatch)
     val guidanceBattery = booleanOption("guidanceBattery", default = true,
         title = "Arrival battery during navigation",
         description = "Experimental: shows an inline battery icon and Google's arrival percentage after ETA.")
@@ -52,7 +52,6 @@ val bydNativeBatteryPatch = bytecodePatch(
         val previewDiagnostics = resolveNativePreviewDiagnostics(plan)
         val phoneDiagnostics = resolveNativePhoneDiagnostics()
         val guidanceUi = resolveNativeGuidanceUi()
-        val vehicleSettings = resolveVehicleSettings()
         val app = findSuperclassHook(MAPS_APPLICATION_CLASS, "native battery application") {
             it.name == "onCreate" && it.returnType == "V" && it.parameterTypes.isEmpty()
         }
@@ -68,7 +67,8 @@ val bydNativeBatteryPatch = bytecodePatch(
         previewDiagnostics.inject()
         phoneDiagnostics.inject()
         guidanceUi.inject()
-        vehicleSettings.inject()
+        // The shared Settings rows patch resolved and attached the main Settings entry point.
+        enableSettingsRow("vehicleRow")
         val ctor = plan.constructor
         checkedInsert(ctor, ctor.implementation!!.instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID },
             "invoke-static/range { p0 .. p0 }, $NATIVE->registerProvider(Ljava/lang/Object;)V",
@@ -117,7 +117,7 @@ val bydNativeBatteryPatch = bytecodePatch(
             "preview=${previewDiagnostics.methods}; phone=${phoneDiagnostics.methods}; read-only original calculation/visibility results")
         log.info("Native dev.22 guidance UI: schema=${guidanceUi.schema}; methods=${guidanceUi.methods}; " +
             "enabled=${guidanceBattery.value}; original duration binding/Google DTO/inline battery icon/owned ETA fit")
-        log.info("Native dev.22 vehicle settings: methods=${vehicleSettings.methods}; schemas=${vehicleSettings.schemas}")
+        log.info("Native dev.22 vehicle settings: row enabled in the shared main Settings entry")
     }
 }
 

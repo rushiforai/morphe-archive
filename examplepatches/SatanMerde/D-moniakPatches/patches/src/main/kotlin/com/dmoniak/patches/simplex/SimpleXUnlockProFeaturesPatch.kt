@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val simpleXUnlockProFeaturesPatch = bytecodePatch(
     name = "Unlock Pro & Multi-Profile Switching - SimpleX (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks instant multi-profile quick switching, quantum-resistant encryption toggles, and donor profile styling in SimpleX Chat.",
+    description = "⚠️ [Experimental / Untested] Unlocks instant multi-profile quick switching, quantum-resistant encryption toggles, and donor profile styling in SimpleX Chat.",
 ) {
     compatibleWith(COMPATIBILITY_SIMPLEX)
 

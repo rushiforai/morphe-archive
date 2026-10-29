@@ -1,0 +1,7 @@
+{
+  "method": "Manager Install -> Android UPDATE; installer returned directly to Manager",
+  "installed_apk_sha256": "57c76033dba87ab4ff3db36b3a8ac84bd86e1ed43dab4cd3eca2b216b84e6b43",
+  "matches_export": "manager-mask-31-art-recovery.apk",
+  "data_cleared": false,
+  "uninstalled": false
+}

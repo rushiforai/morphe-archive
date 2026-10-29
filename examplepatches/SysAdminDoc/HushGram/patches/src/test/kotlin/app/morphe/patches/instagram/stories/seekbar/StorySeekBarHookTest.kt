@@ -147,7 +147,7 @@ class StorySeekBarHookTest {
                 }
             }
         }
-        return found + ExtensionDex.classDef(STORY_SEEK_READER)
+        return FixtureDex.withStringPools(bundle, found) + ExtensionDex.classDef(STORY_SEEK_READER)
     }
 
     private fun ClassDef.lifecycle(name: String): Method =

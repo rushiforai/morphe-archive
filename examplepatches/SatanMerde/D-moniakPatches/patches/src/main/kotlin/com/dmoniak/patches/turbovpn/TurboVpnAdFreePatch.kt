@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val turboVpnAdFreePatch = bytecodePatch(
     name = "Ad-Free Turbo VPN (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes full-screen video ads on connect and disconnect, banner ads at the bottom of the interface, and intrusive interstitial popups by intercepting ad SDK calls.",
+    description = "⚠️ [Experimental / Untested] Removes full-screen video ads on connect and disconnect, banner ads at the bottom of the interface, and intrusive interstitial popups by intercepting ad SDK calls.",
 ) {
     compatibleWith(COMPATIBILITY_TURBO_VPN)
 

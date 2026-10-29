@@ -87,7 +87,7 @@
   "CacheProgress": {
     "owner": "snapshot",
     "java_sha256": "feaf34ea7e58f1d5737dcf677cd038d67845b9a73fb81aa7d3581535faecb9a1",
-    "smali_sha256": "00b0518da777b6a5a644fedf553a610c2ca5e930b3ac0b5b1b2b3f3ab1d653c8"
+    "smali_sha256": "101a884eb5ef4305c901e1aa2da2e17750932eb09c65973864dd9db39f42f7b3"
   },
   "CacheRetry": {
     "owner": "snapshot",
@@ -102,7 +102,7 @@
   "CacheSupport": {
     "owner": "snapshot",
     "java_sha256": "b3317c331f380dbd31dbb235d6b55eab53b3da4a53b372560f89dedecd382e59",
-    "smali_sha256": "4c7bc4c75c60475157d782a9c73ef76bd05510694a537835e9ebe7d8750d8d85"
+    "smali_sha256": "a9840770025f2f20a63db95d8045b5a960f70d446cd79df54493af54100347d5"
   },
   "CacheTransferPlan": {
     "owner": "snapshot",
@@ -215,14 +215,12 @@
     "smali_sha256": "04354247b4fe961f6f159e936fabf090639332b81af2da8ee0c05a90a135a765"
   },
   "ContentFilterRules": {
-    "owner": "snapshot",
-    "java_sha256": "376295c32505877e20ef9666777ecb9c25f579b1a31c16be242b4b81902cfbeb",
-    "smali_sha256": "2014c2800a20a895b8077bf430b8b8e005e2495b47e1eeaab841c1ee8cba5f10"
+    "owner": "java"
   },
   "CrashDiagnostics": {
     "owner": "snapshot",
     "java_sha256": "12ea899f2882ca02b3300f524476d33a5b7ea58625a2d27ba5a1a05593099cfb",
-    "smali_sha256": "ec49a818e276d536ccdd1c1c1eeae92421f5e67c527dd0b487fcf99111f2074c"
+    "smali_sha256": "76d08daa6b22ec6c54ea170ce70d1d52bdacd797df829c589fd092bac8ea36fe"
   },
   "CreatorData": {
     "owner": "snapshot",
@@ -242,7 +240,7 @@
   "DetailSettings": {
     "owner": "snapshot",
     "java_sha256": "e428d9250b079a2904de549bb6010df3aa34f3f18dee8bb63ec135742a04217c",
-    "smali_sha256": "569a9ced83e8b17b7a74ebe29ff37f6d61d4d3edec1861b69b986e1f5c7bd3e7"
+    "smali_sha256": "f53cd71bf3442bb8a5e1796d11d81d9ec3480bd2d50b30587edf0b6246a3186f"
   },
   "DialogActions194": {
     "owner": "snapshot",
@@ -302,7 +300,7 @@
   "FollowFeed": {
     "owner": "snapshot",
     "java_sha256": "0a597d188488f670c395b691807eb7bce6e4dbefa95657f4c3541c7cabc781b8",
-    "smali_sha256": "8d5665c31886c4af78fd4867a29c289403f67d47c598d7cc2720913c8b55d5de"
+    "smali_sha256": "78cc297b2bceff9ba3a0c06ef948f7760465570d7f2853c228a3bec090c87f7d"
   },
   "FollowFeedData": {
     "owner": "snapshot",
@@ -317,7 +315,7 @@
   "Followup173": {
     "owner": "snapshot",
     "java_sha256": "05d57d9246aa8caab68904c019925287e7a8a96dd1305556e2dbdc0443be314d",
-    "smali_sha256": "32ff6e97117e24284e80dc12cc760731107276d27889becdcad2fd0daad4ca44"
+    "smali_sha256": "95691c4694a7eb602e5cbad03a2530f7543df99429ad7001288bb095c73aea99"
   },
   "FullscreenControls": {
     "owner": "snapshot",
@@ -380,9 +378,7 @@
     "smali_sha256": "a72d09710131077facaeef9ef96a5997381fa988e157e37098d9deaaece0fa06"
   },
   "ImageDiskCache": {
-    "owner": "snapshot",
-    "java_sha256": "041a92995972c5ac94f2d183dc07f0977c31069d3eee3af89e5970a90d8fbc5d",
-    "smali_sha256": "1756f14b3e9148dade011a3048d21e076e3c151c7f405b7949bdae479d2d0a0e"
+    "owner": "java"
   },
   "LicenseTheme": {
     "owner": "snapshot",
@@ -407,12 +403,12 @@
   "LocalPlaylists": {
     "owner": "snapshot",
     "java_sha256": "613f3cf8e3efc8fcc3ffe307f6f3a594332498c879f1c75bfa80ee211c4969f6",
-    "smali_sha256": "0a7b044361a1c40d2e7d39c28eef8b3ed750cd466168dfe57668b2a39abf6f5b"
+    "smali_sha256": "d10a3f573779a448bf4acb08aae323a269d1bf1d8ca15eea047165f71ec9eb2c"
   },
   "LoginSupport": {
     "owner": "snapshot",
     "java_sha256": "ea64179b096b586b8c70d74003d6252b1aead08e1122aea579a9e80ea4bd1218",
-    "smali_sha256": "3fd4843493511fe41be717c3f2b596615eb224302cb0e52da505f8d5c8c2529a"
+    "smali_sha256": "6bcefbf67f6103a2caec586833d0a819e362264a82c20b7bf53158f7a522b79d"
   },
   "ManualCookie": {
     "owner": "snapshot",
@@ -432,7 +428,7 @@
   "ModernShorts": {
     "owner": "snapshot",
     "java_sha256": "b3bb751e84eccaf253d4d5656a89fd85d5482c56b2bed924bc0525c403f549e2",
-    "smali_sha256": "c673248ccc4688446a681bfa4836232cad864aa6113a3dd52be76c34c211cdc9"
+    "smali_sha256": "217d8b2fd054190b818d5484dfdda17f683893c7fb2edc32fb7835d8a8aef906"
   },
   "MylistFollow190": {
     "owner": "snapshot",
@@ -487,7 +483,7 @@
   "PatchInfo": {
     "owner": "snapshot",
     "java_sha256": "f35c01f4c0978288ba7a2ef57014ac7250b966d053cf69f699f3a1336a15c671",
-    "smali_sha256": "fab877e14202ce91b8802fe16ce3189e82081bac53c822b3c1e221d9af0e49e3"
+    "smali_sha256": "b012fb05ccf9032160799dda148d2a0146bcd8663f1d1ba663517fe09f46edab"
   },
   "PlaybackRequest217": {
     "owner": "snapshot",
@@ -537,7 +533,7 @@
   "PlayerIcons": {
     "owner": "snapshot",
     "java_sha256": "92b36a446fd45505e92bf31e6dcb46dd5d8df70f9fdde2d1b523fcf02f3576fe",
-    "smali_sha256": "7bbe23ab2f0b6b18b329f8eac122f8174a96aa50a4f5ac4ff500246ce9d5b7fd"
+    "smali_sha256": "7c06c1ed7a3b66ab2360b89677366c5547aa8e1f53bfb3268aaa9bf689b8ede3"
   },
   "PlayerTheme": {
     "owner": "snapshot",
@@ -582,7 +578,7 @@
   "PopupPinchLayout": {
     "owner": "snapshot",
     "java_sha256": "9fa1e64285e301ca3f0084813431b3839859c580dafb0bf7d9473af62a314f44",
-    "smali_sha256": "de0c7b8cd20317dc0f54d9abdcfca35ee40b13828d1abb09ed30cf2eadc9c084"
+    "smali_sha256": "227e6504c53575ff964e8877b5d7904208dc3ab7ff0609902a3f01ea4eb01ee7"
   },
   "PostingRules": {
     "owner": "snapshot",
@@ -627,7 +623,7 @@
   "Review181": {
     "owner": "snapshot",
     "java_sha256": "5af3c4cdc999ebc607b7bdf4ab93ba637e79849129ee900d4817f63911bb49bb",
-    "smali_sha256": "4e9adba299f3b47b149a9b87793d4769f99033180e4bf51e1ea6d1b3d2a1757e"
+    "smali_sha256": "d665ea4d1e22efb601851ef425a0d0b66719c1e7c92760daa6500e57bcd950cd"
   },
   "Revision196": {
     "owner": "snapshot",
@@ -640,9 +636,7 @@
     "smali_sha256": "d1f89b82614b837298724dfb3fd2af424a06d4421ea14d6674dc9c4801114b97"
   },
   "RowDates194": {
-    "owner": "snapshot",
-    "java_sha256": "7ecd09a9dfb6785f1f64fcb66a0dc9033db052a5a73ed1135740502ea69c1b07",
-    "smali_sha256": "1fa94de69143591f3d9ffa4371f3d4eca4c7e1eecd519253197f0f831c9b91aa"
+    "owner": "java"
   },
   "SearchFilterRules": {
     "owner": "snapshot",
@@ -657,7 +651,7 @@
   "SearchRange": {
     "owner": "snapshot",
     "java_sha256": "347a1836a0b96c3f6492cf70b7f0f3fe98f451d491572e453f0f86889213091f",
-    "smali_sha256": "af7ab8d7b6cf2287a063daae559ec2337894df18152ac7225e55c1245205089b"
+    "smali_sha256": "ebc2336065a203561b346c91fbb7b58645c4835e9ce618483e962470e100d937"
   },
   "SeekRules": {
     "owner": "snapshot",
@@ -697,12 +691,10 @@
   "SettingsTools": {
     "owner": "snapshot",
     "java_sha256": "26edb3085ebfacc4195e926040a369441e0fc18fc8f10d36505f82a089e5000c",
-    "smali_sha256": "f2314a7f077f0797448e830295edde2f02a49b0ae525df188a178bb092d762b3"
+    "smali_sha256": "f99b63f224d76cf37dcd69f9f4935a6c3ac94b5351fe3a9f0eda102a261196c6"
   },
   "ShortImages": {
-    "owner": "snapshot",
-    "java_sha256": "36fa13c094c798e5c02bb4d7de3e24476d881093cc6123f526bcd84f5e88be55",
-    "smali_sha256": "1f6cebebb274b4de2349ca825d62454d39b46f909b70186a463b3fa28badc0b0"
+    "owner": "java"
   },
   "ShortsRules": {
     "owner": "snapshot",
@@ -782,7 +774,7 @@
   "VideoDetails": {
     "owner": "snapshot",
     "java_sha256": "92691c3f9878d03298eb7b5446ac7efec8fe5a8490ee41a9a2dfb21e4fb648f1",
-    "smali_sha256": "61e23543ccf483fbb167c0818bc46744bfe05e9f8bf0cc7ab89f1dc17668699c"
+    "smali_sha256": "d89680d138008f6d693edf56626f65004a4c9dcb3b84a9f855e00e86422f275f"
   },
   "VideoInfoCounts": {
     "owner": "snapshot",
@@ -797,7 +789,7 @@
   "VideoRows191": {
     "owner": "snapshot",
     "java_sha256": "8c595e351db92198d56099d95d1df4be8038ac37a78356909db7fe92f34a2db3",
-    "smali_sha256": "c20ee228521d54f94fecd99c64cf7faf521c752ec371907dadc1a147714ee53d"
+    "smali_sha256": "308703df284d905bf6e5f4e11f327c3f09bd9a407f39aae28d585c6b0d32cb10"
   },
   "WatchRequestHeaders": {
     "owner": "snapshot",

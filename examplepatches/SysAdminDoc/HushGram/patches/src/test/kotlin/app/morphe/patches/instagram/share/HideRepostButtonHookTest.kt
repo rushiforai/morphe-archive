@@ -250,7 +250,7 @@ class HideRepostButtonHookTest {
     /**
      * In each declared build, and in each other build of a declared version, the model's getter is
      * guarded, every tree read of the field is filtered, and the component renderer's Repost part
-     * returns nothing. On 451's declared build there are six reads, two of them in one lambda's
+     * returns nothing. On 451's and 453's declared builds there are six reads, two of them in one lambda's
      * invoke; 450's 438 had five, and 449 and 450's 385611395 six, so another build's count isn't
      * pinned. On 073 the hook goes where it went when the renderer was found by its label: in
      * [RENDERER_073], at [PART_073], the start of a renderer that draws Repost alone and reaches both
@@ -262,7 +262,7 @@ class HideRepostButtonHookTest {
         var checked = 0
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
-                hidesTheButtonIn(bundle, bundle.name, reads = 5, pinned = bundle.name.contains("-385811006."))
+                hidesTheButtonIn(bundle, bundle.name, reads = 6, pinned = bundle.name.contains("-385914283."))
                 checked++
             }
         }
@@ -272,9 +272,9 @@ class HideRepostButtonHookTest {
 
     /**
      * Hooks everything in [bundle], in the patch's order and through its guard, and checks each
-     * hook; [reads] is how many tree reads it has, when that's known, and [pinned] says it's 073,
-     * whose component hook lands where it's pinned and whose row builder both reads the tree and
-     * stores the state's flags.
+     * hook; [reads] is how many tree reads it has, when that's known, and [pinned] says it's the
+     * declared build, whose component hook lands where it's pinned and whose tree reads and flag
+     * stores sit in separate methods.
      */
     private fun hidesTheButtonIn(bundle: java.io.File, label: String, reads: Int?, pinned: Boolean = false) {
         val holders = mutableListOf<ClassDef>()
@@ -299,9 +299,10 @@ class HideRepostButtonHookTest {
         val readsFirst = readsBeforeWrites(state, sites)
         requireSeparateMethods(hooks, readsFirst)
         if (pinned) {
+            // 452's row builder read the tree and stored the flags both; 453's leaves those to separate methods.
             val shared = hooks.getValue(STATE_HOOK) intersect hooks.getValue(READ_FILTER)
-            assertEquals("$label: the row builder reads the tree and stores the flags", 1, shared.size)
-            assertEquals("$label: its reads come first", shared, readsFirst)
+            assertEquals("$label: no method both reads the tree and stores the flags", 0, shared.size)
+            assertEquals("$label: so no reads need to come first", emptySet<String>(), readsFirst)
         }
         if (pinned) {
             val renderer = "${component.method.definingClass}->${component.method.name}"
@@ -530,11 +531,11 @@ class HideRepostButtonHookTest {
             ),
         )
 
-        /** 073's Repost label, the same on every 452 build. Other versions number it otherwise. */
-        const val LABEL = 0x7f137268
+        /** 385914283's Repost label, the button's content description. Other versions number it otherwise. */
+        const val LABEL = 0x7f13732b
 
-        /** 073's Feed component renderer, a renderer of its own, so its Repost part is the whole of it. */
-        const val RENDERER_073 = "LX/05RC;->A0p"
+        /** 385914283's Feed component renderer, a renderer of its own, so its Repost part is the whole of it. */
+        const val RENDERER_073 = "LX/07Gr;->A0q"
         const val PART_073 = 0
 
         /** A renderer of its own: the icon, the label, the [role] it gives the button, then null. */

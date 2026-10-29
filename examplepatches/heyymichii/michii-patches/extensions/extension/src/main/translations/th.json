@@ -133,4 +133,19 @@
   "• Supports LinkedIn 4.1.1259\n• The settings now use your phone's language, and you can pick another one under Other → Language\n• Copy a diagnostic report under Other to paste into bug reports\n• The \"Michii Patches\" app icon shortcut now always appears, at the top\n\nOpen the settings from the Me panel → Michii Patches, or long press the LinkedIn icon → Michii Patches.": "• รองรับ LinkedIn 4.1.1259\n• การตั้งค่าตอนนี้ใช้ภาษาของโทรศัพท์คุณ และเลือกภาษาอื่นได้ที่ อื่นๆ → ภาษา\n• คัดลอกรายงานการวินิจฉัยได้ที่ อื่นๆ เพื่อวางในรายงานข้อบกพร่อง\n• ทางลัด \"Michii Patches\" ที่ไอคอนแอปจะแสดงเสมอ อยู่บนสุด\n\nเปิดการตั้งค่าจากแผงฉัน → Michii Patches หรือกดค้างที่ไอคอน LinkedIn → Michii Patches",
   "• The settings now use your phone's language (English, Indonesian, Spanish, Portuguese, French, German, Vietnamese, Thai, Turkish, Russian, or Japanese). You can pick another language under Other → Language.\n\nOpen the settings from the Me panel → Michii Patches, or long press the LinkedIn icon → Michii Patches.": "• การตั้งค่าตอนนี้ใช้ภาษาของโทรศัพท์คุณ (อังกฤษ อินโดนีเซีย สเปน โปรตุเกส ฝรั่งเศส เยอรมัน เวียดนาม ไทย ตุรกี รัสเซีย หรือญี่ปุ่น) คุณเลือกภาษาอื่นได้ที่ อื่นๆ → ภาษา\n\nเปิดการตั้งค่าจากแผงฉัน → Michii Patches หรือกดค้างที่ไอคอน LinkedIn → Michii Patches",
   "The first release of Michii Patches.\n\n• Hide ads, promoted jobs, suggested posts, and Premium promotions\n• Download photos, videos, profile photos, and banners, with a configurable save location\n• Feed filters: focus mode, celebrations, jobs, reposts, videos\n• Chat: hide sponsored messages, and ghost mode\n• Open links directly (including lnkd.in) and clean share links\n• Block tracking and disable double-tap like\n\nOpen the settings from the Me panel → Michii Patches.": "Michii Patches รุ่นแรก\n\n• ซ่อนโฆษณา งานที่โปรโมท โพสต์ที่แนะนำ และโปรโมชัน Premium\n• ดาวน์โหลดรูปภาพ วิดีโอ รูปโปรไฟล์ และภาพหน้าปก พร้อมเลือกตำแหน่งที่บันทึกได้\n• ตัวกรองฟีด: โหมดโฟกัส การแสดงความยินดี งาน การรีโพสต์ วิดีโอ\n• ข้อความ: ซ่อนข้อความที่ได้รับการสนับสนุน และโหมดล่องหน\n• เปิดลิงก์โดยตรง (รวมถึง lnkd.in) และล้างลิงก์ที่แชร์\n• บล็อกการติดตามและปิดการถูกใจด้วยการแตะสองครั้ง\n\nเปิดการตั้งค่าจากแผงฉัน → Michii Patches"
+,
+  "Appearance": "ลักษณะที่ปรากฏ",
+  "Material You": "Material You",
+  "Remove gaps and dividers": "ลบช่องว่างและเส้นคั่น",
+  "No gaps between posts and no dividers between list items. Restart LinkedIn to apply.": "ไม่มีช่องว่างระหว่างโพสต์และไม่มีเส้นคั่นระหว่างรายการ รีสตาร์ท LinkedIn เพื่อใช้งาน",
+  "Your wallpaper's colors for accents, backgrounds, cards and borders. Restart LinkedIn to apply. Older screens keep the colors chosen when patching.": "สีจากวอลเปเปอร์ของคุณสำหรับสีเน้น พื้นหลัง การ์ด และขอบ รีสตาร์ท LinkedIn เพื่อใช้งาน หน้าจอแบบเก่าจะใช้สีที่เลือกไว้ตอนแพตช์",
+  "Hide posts from others' activity": "ซ่อนโพสต์จากกิจกรรมของผู้อื่น",
+  "Posts shown because someone liked, commented on, or reacted to them.": "โพสต์ที่แสดงเพราะมีคนกดถูกใจ แสดงความคิดเห็น หรือแสดงความรู้สึก",
+  "Hide \"Recommended for you\"": "ซ่อน \"แนะนำสำหรับคุณ\"",
+  "Suggestions of people and pages to follow in the feed.": "คำแนะนำบุคคลและเพจให้ติดตามในฟีด",
+  "Hide games": "ซ่อนเกม",
+  "LinkedIn's puzzle games in the Me panel, search, and feed.": "เกมปริศนาของ LinkedIn ในแผง ฉัน การค้นหา และฟีด"
+,
+  "AMOLED black": "ดำ AMOLED",
+  "Pure black backgrounds and cards in dark mode, to save battery on AMOLED screens. Restart LinkedIn to apply.": "พื้นหลังและการ์ดสีดำสนิทในโหมดมืด เพื่อประหยัดแบตเตอรี่บนหน้าจอ AMOLED รีสตาร์ท LinkedIn เพื่อใช้งาน"
 }

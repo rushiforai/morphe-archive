@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val canvaRemoveWatermarksPatch = bytecodePatch(
     name = "Remove Watermarks on Free Elements - Canva (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Bypasses watermark rendering on Canva freemium design elements, stock photos, and templates, allowing clean export of designs without Pro subscription watermarks.",
+    description = "⚠️ [Experimental / Untested] Bypasses watermark rendering on Canva freemium design elements, stock photos, and templates, allowing clean export of designs without Pro subscription watermarks.",
 ) {
     compatibleWith(COMPATIBILITY_CANVA)
 

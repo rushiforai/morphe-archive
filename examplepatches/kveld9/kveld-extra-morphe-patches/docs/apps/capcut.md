@@ -10,33 +10,17 @@ Technical documentation and patch catalog for CapCut on Android.
 | :--- | :--- |
 | **Target App** | CapCut |
 | **Package Name** | `com.lemon.lvoverseas` |
-| **Target Version** | `19.9.0` |
+| **Target Version** | `Single pinned version (see README Patch Catalog)` |
 | **Target Package Format** | standalone APK |
 | **Primary Architecture** | `arm64-v8a` |
 | **Authoritative Source** | APKMirror |
-| **Download Target** | [CapCut 19.9.0 (arm64-v8a, nodpi, versionCode 19900002)](https://www.apkmirror.com/apk/bytedance-pte-ltd/capcut/capcut-video-editor-19-9-0-release/capcut-video-editor-19-9-0-android-apk-download/) |
+| **Download Target** | [CapCut (arm64-v8a, nodpi)](https://www.apkmirror.com/apk/bytedance-pte-ltd/capcut/) |
 
 ---
 
 ## 2. Applied Patches Catalog
 
-| Patch Name | Typology | Default State | Dependencies | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| **Block Telemetry & Trackers** | `bytecodePatch` | `true` (Enabled) | `CapCut Telemetry Manifest Purge` | Neutralizes Google AppMeasurement, AppsFlyer, ByteDance AppLog, APM/Slardar, Gecko, Pitaya, BDTuring, and UserGrowth event dispatchers. |
-| **CapCut Telemetry Manifest Purge** | `resourcePatch` | `false` (Opt-in) | None | Strips 6 advertising/tracking permissions, disables measurement/analytics/attribution components (AppMeasurement, AppLovin, Vungle, BDInstall, ByteDance AppLog Collector, LogService, Pangle), prunes analytics discovery registrars (MLKit/messaging/crashlytics preserved), injects 8 opt-out metadata flags. |
-| **Locale Assets Slimmer** | `resourcePatch` | `false` (Opt-in) | None | Strips unselected assets/locales/*.json bundles via locales option (default en). English always preserved. res/values-* tables are covered by the canonical universal Remove Extra Languages patch. |
-| **Bypass Effects Region Restriction** | `bytecodePatch` | `true` (Enabled) | None | Spoofs device_platform to "windows" and resets deviceId in EffectConfiguration to bypass ByteDance Shark WAF effect loading blocks. |
-| **Bypass GeoBlock Region Restriction** | `bytecodePatch` | `true` (Enabled) | None | Forces CapCut GeoBlock config lists (cert, dock, entrance, page, scheme) to empty so region-blocked surfaces stay enabled. Server-refused content may still fail to load. |
-| **Bypass Signature Check** | `bytecodePatch` | `true` (Enabled) | None | Spoofs official APK SHA-256 signature, suppresses signature blacklist and abnormal-source toasts, disables Godzilla inject detection, stubs the cracking verdict persistence plus the security dialog render, and neutralizes the template-feed cracking interceptor so re-signed builds are not blocked, plus stubs Pangle PGL signature verification gates. |
-| **Bypass Unsafe Package Modal** | `bytecodePatch` | `true` (Enabled) | None | Rewrites Lynx schema default fallback URL from unsafe-package modal to template portal to bypass security notice dialogs. |
-| **Unlock Premium** | `bytecodePatch` | `true` (Enabled) | None | Forces VIP and subscription gates to return true (SubscribeImpl, PayVipImpl, UserVipInfo, UserDetailInfo, VipUserServiceImpl, SubscribeCloudImpl), plus central account-status flags. |
-| **Native Bloat Slimmer** | `rawResourcePatch` | `false` (Opt-in) | None | Zeroes AppLovin crash-reporter .so in-situ across arm64-v8a/armeabi-v7a; optional trimSpeechEngines toggle zeroes speech .so libs (breaks voice features). |
-| **Remove Watermark** | `bytecodePatch` | `true` (Enabled) | None | Forces watermark-removal gates and the default ending gate to allow export without watermark or outro. |
-| **Unlock Ultra HD Export** | `bytecodePatch` | `true` (Enabled) | None | Enables Ultra HD and 4K video export options by unlocking high-resolution export eligibility gates. |
-| **Unlock Premium Templates** | `bytecodePatch` | `true` (Enabled) | None | Marks premium template styles as available so locked template features stay usable. |
-| **Redirect API to v2 Boot** | `bytecodePatch` | `false` (Opt-in) | None | Loads effects, feeds and templates where default endpoints are blocked by using official alternate endpoints. |
-| **Neutralize Play Billing** | `bytecodePatch` | `false` (Opt-in) | `CapCut Play Billing Manifest Purge` | Stubs Google Play Billing client calls and disables billing manifest components for graceful degradation on devices without GMS. |
-| **CapCut Play Billing Manifest Purge** | `resourcePatch` | `false` (Opt-in) | None | Strips the com.android.vending.BILLING permission and disables ProxyBillingActivity and ProxyBillingActivityV2 in AndroidManifest.xml. |
+The authoritative patch catalog with descriptions and options is generated in README.md from the built .mpp; see also patches-list.json.
 
 ---
 
@@ -126,11 +110,17 @@ Technical documentation and patch catalog for CapCut on Android.
 1. **Templates Catalog**:
    The templates feed returns an empty list on re-signed builds due to remote signature verification.
 2. **Security Modal Re-prompting**:
-   The unsafe package modal dialog render and its verdict persistence are stubbed, so the blocking notice cannot display even when remote verdicts evaluate. Server-refused content (Templates catalog) may still fail to load.
+   On clean installs the blocking security notice does not appear with the published patch set. Local experiments that replaced the integrity interceptor or the effects device ID re-triggered it and were reverted; if a notice appears on a clean install from current sources, report it with the build date.
 3. **Cloud VIP Assets**:
    Remote cloud-hosted VIP assets and server-validated processing remain locked.
 4. **Server-Side Capacity and Region Rejections**:
-   The API v2-boot redirection routes requests to official alternate endpoints to bypass region-level choking ("Too many people are using this feature now"), but server-refused content or endpoints that require server-side cryptographic attestation / unbanned IP ranges may still refuse requests.
+   The API v2-boot redirection routes requests to official alternate endpoints to bypass region-level choking ("Too many people are using this feature now"), but server-refused content or endpoints that require server-side cryptographic attestation / unbanned IP ranges may still refuse requests. That message is a client string shown by the template feed error view when the server refuses the feed request; it is not a local flag the patches miss. The v2-boot redirect is opt-in (default off): builds made with default options still use the stock hosts and can show this message where the alternates would succeed. The v2-boot hosts are real and reachable; stock builds already use `-v2-boot` variants for some telemetry traffic, so those names in a patched APK are not an artifact of the redirect.
+5. **Cloud and AI Features Reporting No Connection**:
+   Image templates, smart-pack, AI workflow, and digital-human surfaces show "No internet connection" when their request fails at transport level (internal error -7: no route, timeout, or TLS failure), not when a local gate is missed. If online features worked before patching options changed, compare three builds from the same sources: stock unpatched, patched with defaults, and patched with every option on. Stock failing too means a region block no patch can fix; defaults failing while all-options passes means the v2-boot redirect (opt-in) is required in that region; all-options failing points at the manifest purge (TicketGuard / device-registration components) or another opt-in, which can be isolated by toggling one option at a time.
+6. **Third-Party Mod Builds**:
+   A widely shared mod APK advertising premium unlock, watermark removal, and working online features was compared statically against this patch set. Every advertised behavior maps to a patch already present here (Unlock Premium incl. BusinessManager flags, Remove Watermark incl. default ending, Ultra HD export, premium templates, effects region bypass, API redirect). The mod keeps stock API hosts, stock device identifiers, and all bundled ad and analytics SDKs, so its feature set is a subset of what these patches provide; differences in online-feature behavior between the mod and a patched build come from request content (hosts, app version, device identifiers) or region, not from a technique the mod has and this set lacks.
+7. **Shared Effects Device Identifier**:
+   Bypass Effects Region Restriction sends the same constant device identifier (`0`) and platform (`windows`) on every install. If the server rate-limits per device, all patched installs share one bucket, which can look like capacity throttling. This is unconfirmed; if template or effect feeds throttle while a stock build on the same network passes, report it so a per-install identifier can be evaluated.
 
 ---
 

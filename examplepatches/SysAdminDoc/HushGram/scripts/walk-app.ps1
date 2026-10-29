@@ -271,6 +271,20 @@ function Invoke-WalkApp {
                     if ($content.Valid) { return [pscustomobject]@{ Capture=$current; Expanded=$false } }
                     $section = if ($Destination.page) { Get-WalkCaptureActionArea -Capture $current -Package $Package -Title $Destination.title }
                     if ($null -ne $section) {
+                        # A heading at the foot of the list can sit in the system's bottom gesture area, where a
+                        # tap or a swipe from it opens Recents or goes home. Lift it into the list first, slowly.
+                        $listBounds = Get-WalkCaptureActionArea -Capture $current -Package $Package -Scroll
+                        $safeLine = if ($null -ne $listBounds) { [int]($listBounds.Top + ($listBounds.Bottom-$listBounds.Top)*0.8) }
+                        if ($null -ne $safeLine -and $section.Y -gt $safeLine) {
+                            $lifted = [int]($listBounds.Top + ($listBounds.Bottom-$listBounds.Top)*0.4)
+                            [void](Invoke-WalkAdb @('shell','input','swipe',[string]$listBounds.X,[string]$safeLine,[string]$listBounds.X,[string]$lifted,'1000'))
+                            Start-Sleep -Milliseconds 400
+                            $current = Read-WalkSettingsCapture
+                            $section = Get-WalkCaptureActionArea -Capture $current -Package $Package -Title $Destination.title
+                            if ($null -eq $section -or $section.Y -gt $safeLine) {
+                                throw "The settings section '$($Destination.title)' stayed at the foot of the list, where a tap can reach the system's gestures. It wasn't tapped."
+                            }
+                        }
                         Send-WalkTap $section
                         $current = Read-WalkSettingsCapture
                         $content = Test-WalkDestinationContent -Destination $Destination -Document $current.ParsedXml -Package $Package

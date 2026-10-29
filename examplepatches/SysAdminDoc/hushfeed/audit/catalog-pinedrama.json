@@ -476,9 +476,15 @@
       "open": "feed"
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "shot": "comment-box-photos-off",
@@ -499,9 +505,15 @@
       "open": "feed"
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "shot": "comment-box-photos-on",
@@ -1000,7 +1012,7 @@
       "waitMs": 2000
      },
      {
-      "log": "Contact list blocker: blocked a query to content://com\\.android\\.contacts",
+      "log": "Contact list blocker: blocked a query to \\[url omitted\\]",
       "fromStep": 3,
       "within": 3000
      },
@@ -1026,7 +1038,7 @@
    },
    {
     "id": "lets-media-queries-through",
-    "what": "The blocker only refuses the contacts authority: a media store query is not logged as blocked while the feed plays.",
+    "what": "The blocker only refuses the contacts authority: with the switch on, a media store query through the same entry point reaches the provider (its own cursor, or a SecurityException without a media permission, never the blocker's empty MatrixCursor) and nothing is logged as blocked.",
     "steps": [
      {
       "set": {
@@ -1037,14 +1049,23 @@
       "open": "feed"
      },
      {
-      "logNot": "Contact list blocker: blocked a query to content://media",
-      "within": 6000
+      "probe": "privacy-call",
+      "extras": {
+       "which": "media"
+      },
+      "expect": "^ok privacy-call media rows=-?\\d+ cursor=(?!MatrixCursor$)\\w+$",
+      "waitMs": 2000
+     },
+     {
+      "logNot": "Contact list blocker: blocked",
+      "fromStep": 3,
+      "within": 1500
      }
     ],
     "auto": true
    }
   ],
-  "notes": "The 2026-09-17 device audit saw the contact blocker fire when the Friends tab opened. On TikTok 47.1.4 (2026-10-16) the Friends tab showed \"From your contacts\" cards matched on TikTok's server and made no local read in 15 seconds, so the check now turns the switch on before a restart and reads the log from the restart's marker (fromStep), which counts a read at start-up as well as one on Friends. On 47.5.3 (2026-10-23) Android's app-op record on the S22 showed one contacts read, at 09:15:55Z, while Hide inbox items' conversation-rows check had TikTok freshly restarted on the Inbox, and none during this check, then none in a rerun that opened Friends and the Inbox after a restart. TikTok syncs contacts on its own clock, so the check opens both and stays inconclusive between syncs. A process that never reads the contacts provider is inconclusive, not a failure: the patch log's intercepted site count is then the proof. Never open Find friends or a contacts page to force a read, since that's where TikTok asks to upload them. The log line is Logger.printInfo so it needs no debug. On 47.5.3 'blocks-contacts-query' read inconclusive twice (2026-10-23, S22): TikTok made its one contacts read of the session outside the check, as above."
+  "notes": "The 2026-09-17 device audit saw the contact blocker fire when the Friends tab opened. On TikTok 47.1.4 (2026-10-16) the Friends tab showed \"From your contacts\" cards matched on TikTok's server and made no local read in 15 seconds, so the check now turns the switch on before a restart and reads the log from the restart's marker (fromStep), which counts a read at start-up as well as one on Friends. On 47.5.3 (2026-10-23) Android's app-op record on the S22 showed one contacts read, at 09:15:55Z, while Hide inbox items' conversation-rows check had TikTok freshly restarted on the Inbox, and none during this check, then none in a rerun that opened Friends and the Inbox after a restart. TikTok syncs contacts on its own clock, so the check opens both and stays inconclusive between syncs. A process that never reads the contacts provider is inconclusive, not a failure: the patch log's intercepted site count is then the proof. Never open Find friends or a contacts page to force a read, since that's where TikTok asks to upload them. The log line is Logger.printInfo, which logs only with morphe_debug on (the runner turns it on for the run), and the logger replaces every URL with [url omitted], so the line can't name the authority: lets-media-queries-through reads the cursor type of a media query instead (2026-10-28). On 47.5.3 'blocks-contacts-query' read inconclusive twice (2026-10-23, S22): TikTok made its one contacts read of the session outside the check, as above."
  },
  {
   "name": "Block installed app scanning",
@@ -1518,9 +1539,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "logNot": "Comment sort style \\d+ to 2",
@@ -1547,9 +1574,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "log": "Comment sort style \\d+ to 2",
@@ -1589,9 +1622,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "probe": "findtext",
@@ -1704,9 +1743,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "logNot": "Open the comments at full height: sheet sized",
@@ -1733,9 +1778,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "log": "Open the comments at full height: sheet sized",
@@ -1812,9 +1863,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "probe": "findtext",
@@ -2754,9 +2811,15 @@
       "expect": "recording=true"
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "probe": "findtext",
@@ -2816,9 +2879,15 @@
       "expect": "recording=true"
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "probe": "findtext",
@@ -2876,9 +2945,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "probe": "findtext",
@@ -3653,9 +3728,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "wait": 2500
@@ -3751,9 +3832,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "probe": "findtext",
@@ -3795,9 +3882,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "probe": "findtext",
@@ -5438,8 +5531,8 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.037e",
-       "getter": "LJIILL",
+       "holder": "X.bEd",
+       "getter": "LJJIIZ",
        "gap": "1200"
       },
       "expect": "speed=2\\.0 then 2\\.0.*rate=(1\\.[6-9]\\d|2\\.\\d\\d)",
@@ -5501,8 +5594,8 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.037e",
-       "getter": "LJIILL",
+       "holder": "X.bEd",
+       "getter": "LJJIIZ",
        "gap": "1200"
       },
       "expect": "speed=1\\.0 then 1\\.0",
@@ -5554,7 +5647,7 @@
    },
    {
     "id": "bridges-withheld-external",
-    "what": "With the switch on, an external link opened in PineDrama's browser (PineDrama's link-safety page for example.com) gets no Java bridge: the guard logs that it withheld them, and none of the page's bridge names reaches its Java object.",
+    "what": "With the switch on, an external link (example.com through PineDrama's webview deep link) never loads in a PineDrama WebView: PineDrama hands its link-safety page to Chrome, and no PineDrama WebView is left to carry a bridge.",
     "steps": [
      {
       "set": {
@@ -5569,33 +5662,24 @@
       "wait": 4000
      },
      {
-      "probe": "webview-bridges",
-      "expect": "^ok webview-bridges scheduled=[1-9]",
-      "waitMs": 3000
+      "back": true
      },
      {
-      "log": "bridge-exposure webview=\\d+ origin=https://www\\.tiktoklinksafety\\.\\w+/link/ tracked=[1-9]\\d* java=0 ",
-      "within": 6000
-     },
-     {
-      "logNot": "bridge-exposure webview=\\d+ origin=https://www\\.tiktoklinksafety\\.\\w+/link/ tracked=\\d+ java=(-|[1-9])",
-      "within": 1000,
-      "fromStep": 4
-     },
-     {
-      "log": "Browser privacy guard: JavaScript bridge withheld from www\\.tiktoklinksafety\\.",
+      "log": "START u0 \\{act=android\\.intent\\.action\\.VIEW dat=https://www\\.tiktoklinksafety\\.\\w+/\\S* .*cmp=com\\.android\\.chrome/",
       "within": 1000,
       "fromStep": 2
      },
      {
-      "back": true
+      "probe": "webview-bridges",
+      "expect": "^ok webview-bridges scheduled=0\\b",
+      "waitMs": 3000
      }
     ],
     "auto": true
    },
    {
     "id": "bridges-left-alone",
-    "what": "With the switch off, the same page keeps PineDrama's Java bridges (at least one bridge name reaches its Java object) and the guard withholds nothing. This is the control that shows the probe can see a bridge.",
+    "what": "With the switch off, the same link goes the same way (PineDrama hands the link-safety page to Chrome) and the guard withholds nothing, so the switch changes no route: in PineDrama the external page never reaches a WebView that could hold a bridge.",
     "steps": [
      {
       "set": {
@@ -5610,27 +5694,23 @@
       "wait": 4000
      },
      {
-      "probe": "webview-bridges",
-      "expect": "^ok webview-bridges scheduled=[1-9]",
-      "waitMs": 3000
+      "back": true
      },
      {
-      "log": "bridge-exposure webview=\\d+ origin=https://www\\.tiktoklinksafety\\.\\w+/link/ tracked=[1-9]\\d* java=[1-9]",
-      "within": 6000
+      "log": "START u0 \\{act=android\\.intent\\.action\\.VIEW dat=https://www\\.tiktoklinksafety\\.\\w+/\\S* .*cmp=com\\.android\\.chrome/",
+      "within": 1000,
+      "fromStep": 2
      },
      {
       "logNot": "Browser privacy guard: JavaScript bridge withheld",
       "within": 1000,
       "fromStep": 2
-     },
-     {
-      "back": true
      }
     ],
     "auto": true
    }
   ],
-  "notes": "The guard logs only when it changes a WebView's bridge state (BrowserPrivacyGuard.prepareForPage), so a trusted tiktok.com page proves nothing: the bridges stay as they are and no line appears. TikTok 47.1.4 opens an external address passed to snssdk1233://webview?url=<encoded page> (DeepLinkActivityV2) on its link-safety interstitial, www.tiktoklinksafety.us/link/ (\"This link may be unsafe\"), in SparkActivity, and that host is deliberately outside the trusted list, so example.com gives an untrusted page without tapping anything (discovery 8, 2026-10-16). Open external links directly is set off so the page stays in TikTok's browser. The probe's webview-bridges answers asynchronously with \"bridge-exposure webview=N origin=... tracked=T java=J exposed=...\": tracked is how many bridge names the guard holds for that WebView, and java is how many of them reach their Java object (a name counts when one of its @JavascriptInterface methods resolves as a function). exposed alone misleads: TikTok's JS SDK defines its own window.ToutiaoJSBridge (members _handleMessageFromApp and _handleMessageFromToutiao), which shows up even while the Java object is withheld. bridges-left-alone is the control with the switch off. The guard's \"withheld\" line is read from the open step on, since the probe step moves the log marker."
+  "notes": "PineDrama 47.5.3 (S22, 2026-10-28): snssdk845221://webview?url=<example.com> starts DramaDeepLinkActivityV2, CrossPlatformActivity and SparkActivity, then hands https://www.tiktoklinksafety.us/... to Chrome (IntentDispatcher, then CustomTabActivity), so no PineDrama WebView loads an external page on this route and the bridge checks TikTok runs have nothing to measure. The Custom Tab becomes the root of PineDrama's task and survives a force-stop, so every later restart resumed it until BACK closed it; both checks press BACK before any step that can fail. The guard logs only when it changes a WebView's bridge state (BrowserPrivacyGuard.prepareForPage), so a trusted tiktok.com page proves nothing: the bridges stay as they are and no line appears. TikTok 47.1.4 opens an external address passed to snssdk1233://webview?url=<encoded page> (DeepLinkActivityV2) on its link-safety interstitial, www.tiktoklinksafety.us/link/ (\"This link may be unsafe\"), in SparkActivity, and that host is deliberately outside the trusted list, so example.com gives an untrusted page without tapping anything (discovery 8, 2026-10-16). Open external links directly is set off so the page stays in TikTok's browser. The probe's webview-bridges answers asynchronously with \"bridge-exposure webview=N origin=... tracked=T java=J exposed=...\": tracked is how many bridge names the guard holds for that WebView, and java is how many of them reach their Java object (a name counts when one of its @JavascriptInterface methods resolves as a function). exposed alone misleads: TikTok's JS SDK defines its own window.ToutiaoJSBridge (members _handleMessageFromApp and _handleMessageFromToutiao), which shows up even while the Java object is withheld. bridges-left-alone is the control with the switch off. The guard's \"withheld\" line is read from the open step on, since the probe step moves the log marker."
  },
  {
   "name": "Keep a streak going",
@@ -5823,8 +5903,8 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.037e",
-       "getter": "LJIILL",
+       "holder": "X.bEd",
+       "getter": "LJJIIZ",
        "gap": "1500"
       },
       "expect": "moved=(-\\d{3,}|[6-9]\\d\\d|\\d{4,})ms",
@@ -6370,8 +6450,8 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.037e",
-       "getter": "LJIILL",
+       "holder": "X.bEd",
+       "getter": "LJJIIZ",
        "gap": "1500"
       },
       "expect": "moved=(-\\d{3,}|[6-9]\\d\\d|\\d{4,})ms",
@@ -7139,8 +7219,8 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.037e",
-       "getter": "LJIILL",
+       "holder": "X.bEd",
+       "getter": "LJJIIZ",
        "gap": "1000"
       },
       "expect": "speed=1\\.5 then 1\\.5",
@@ -7168,8 +7248,8 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.037e",
-       "getter": "LJIILL",
+       "holder": "X.bEd",
+       "getter": "LJJIIZ",
        "gap": "1000"
       },
       "expect": "speed=1\\.0 then 1\\.0",
@@ -8045,8 +8125,8 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.037e",
-       "getter": "LJIILL",
+       "holder": "X.bEd",
+       "getter": "LJJIIZ",
        "gap": "300"
       },
       "expect": "from=([3-9]\\d{3}|\\d{5,})ms",
@@ -8637,9 +8717,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "wait": 3000
@@ -8689,9 +8775,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "wait": 3000
@@ -8735,9 +8827,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "wait": 3000
@@ -10026,9 +10124,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "log": "\\[Morphe CommentBatchTranslator\\] (loaded\\.batch|requested|native\\.start)",
@@ -10052,9 +10156,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "logNot": "\\[Morphe CommentBatchTranslator\\] (requested|native\\.start)",
@@ -10085,9 +10195,15 @@
       "precondition": true
      },
      {
-      "probe": "comments",
-      "expect": "openComments\\([^)]*\\)=true",
-      "waitMs": 2500
+      "probe": "click",
+      "extras": {
+       "desc": "omment",
+       "touch": "true"
+      },
+      "expect": "^ok click \\S+ at .* touched="
+     },
+     {
+      "wait": 2000
      },
      {
       "wait": 3000

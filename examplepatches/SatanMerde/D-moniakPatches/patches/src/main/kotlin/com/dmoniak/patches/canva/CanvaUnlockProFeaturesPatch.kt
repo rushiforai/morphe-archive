@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val canvaUnlockProFeaturesPatch = bytecodePatch(
     name = "Unlock Canva Pro Features (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks Canva Pro premium templates, exclusive fonts, advanced design elements, and premium content library without an active Pro subscription.",
+    description = "⚠️ [Experimental / Untested] Unlocks Canva Pro premium templates, exclusive fonts, advanced design elements, and premium content library without an active Pro subscription.",
 ) {
     compatibleWith(COMPATIBILITY_CANVA)
 

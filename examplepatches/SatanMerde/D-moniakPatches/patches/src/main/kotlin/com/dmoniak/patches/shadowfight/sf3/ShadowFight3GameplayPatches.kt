@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val sf3InstantChestPatch = bytecodePatch(
     name = "Instant Chest Unlock - Shadow Fight 3 (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Eliminates the 3-hour, 8-hour, and 24-hour countdown timers on duel chests in Shadow Fight 3 for instant opening and card collection. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Eliminates the 3-hour, 8-hour, and 24-hour countdown timers on duel chests in Shadow Fight 3 for instant opening and card collection. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_SHADOW_FIGHT_3)
 

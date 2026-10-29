@@ -1,0 +1,11 @@
+# NRC welcome and newspaper follow-up
+
+Spec: `docs/superpowers/specs/2026-10-28-nrc-welcome-design.md`. User explicitly requested the welcome skip and investigation of newspaper access. Parent owns shared integration, builds and releases; no device or emulator work.
+
+- [x] Pin original login Skip binding e0 -> V(false) -> T, SharedPreferences persistence, deep-link/frontpage navigation, manual login U, explicit-page selection Q, splash account gate and model state. Add an independent emitted interpreter regression; observe RED on the original and previous released patched decode.
+- [x] Add conditional automatic skip helpers with strict originalInput dependency; inject after exactly one original consent-ready dispatch and before composition. Keep all original lifecycle/callback instructions and external-label fallthrough. Preserve five names/dependencies.
+- [x] Parent builds and applies consent-only/all controls; run existing font/403/source-DOM/320-method checks plus new onboarding guest/manual/account/persistence/deep-link cases and actual invoke kinds. Record original failing output and final GREEN evidence.
+- [x] Trace native newspaper guest gate, session/rights state, issue metadata, content manifest and download/reader transport. Compare actual released DPG protocols. Perform only low-volume genuine guest probes without invented credentials or purchases. Keep response/source/raw pages and auth-bearing URLs outside Git.
+- [x] Record exact newspaper delivery proof or server prerequisite/remaining unknown in `docs/NRC_NEWSPAPER_RESEARCH.md`; implement an access change only after genuine complete delivery and safe contracts are established.
+
+Original/old-release helper-required regression was RED; actual original persistence/manual and invalid-link control cases passed. Review found and corrected live-v0 scratch clobber (v2 is dead until original const) and unfinished automatic onboarding after a failing deep link (finish uses the original task-root fallback). Python suite is38/38; emitted integration remains parent-owned. Newspaper guest feed200/60 inaccessible issues and original asset POST401/no files establish no received-body unlock; remaining account/subscription cases are explicitly unknown. Subsequent user-authorized navigation removal is tracked separately in `2026-10-28-nrc-newspaper-navigation.md`.

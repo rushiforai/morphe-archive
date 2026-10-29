@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val camScannerBlockAdsDeclutterPatch = bytecodePatch(
     name = "Block Ads & Declutter UI - CamScanner (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips post-export full-screen video ads, home feed banner promotions, and upgrade popups in CamScanner.",
+    description = "⚠️ [Experimental / Untested] Strips post-export full-screen video ads, home feed banner promotions, and upgrade popups in CamScanner.",
 ) {
     compatibleWith(COMPATIBILITY_CAMSCANNER)
 

@@ -16,7 +16,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The code half on every build of Instagram 452. Each build names its own package by the same
+ * The code half on every build of Instagram 453.0.0.55.79. Each build names its own package by the same
  * uses, Redex's names aside, and every use that means the running app moves while the rest stay.
  */
 class CloneCodeTest {
@@ -24,10 +24,10 @@ class CloneCodeTest {
 
     /** The const-string loads of an authority each build has, and the loads of Instagram's package that stay. */
     private val authorityLoads = mapOf(
-        "385811006" to 32, "385811005" to 34, "385811007" to 34, "385811008" to 32,
+        "385914283" to 35, "385914282" to 35, "385914284" to 31, "385914285" to 35,
     )
     private val keptLoads = mapOf(
-        "385811006" to 87, "385811005" to 87, "385811007" to 86, "385811008" to 87,
+        "385914283" to 85, "385914282" to 86, "385914284" to 86, "385914285" to 85,
     )
     private val uses = mapOf(
         SelfUse.INLINED to 4, SelfUse.PACKAGE_MANAGER to 6, SelfUse.OWN_INTENT to 9,
@@ -37,18 +37,14 @@ class CloneCodeTest {
 
     /** Google Play's uses, the one count that differs by build: R8 keeps more or fewer of its helpers in each. */
     private val googlePlayUses = mapOf(
-        "385811006" to 8, "385811005" to 10, "385811007" to 8, "385811008" to 8,
+        "385914283" to 6, "385914282" to 7, "385914284" to 7, "385914285" to 6,
     )
 
-    /** The uses in classes Redex leaves named, the same in every build. */
+    /** The uses in classes Redex leaves named, the same in every build. 453 renames the Play billing classes, so theirs count among the LX/ ones. */
     private val namedUses = listOf(
         "Lcom/facebook/common/dextricks/achilles/Achilles; DEX_LOAD_REPORT",
         "Lcom/facebook/common/dextricks/achilles/Achilles; DEX_LOAD_REPORT",
         "Lcom/facebook/rti/mqtt/manager/MqttBackgroundServiceDelegate; NAME_CHECK",
-        "Lcom/google/android/gms/internal/play_billing/zzan; GOOGLE_PLAY",
-        "Lcom/google/android/gms/internal/play_billing/zzan; GOOGLE_PLAY",
-        "Lcom/google/android/gms/internal/play_billing/zzan; GOOGLE_PLAY",
-        "Lcom/google/android/gms/internal/play_billing/zzaw; GOOGLE_PLAY",
         "Lcom/instagram/common/resources/downloadable/impl/WaitingForStringsActivity; OWN_INTENT",
         "Lcom/instagram/inappbrowser/service/BrowserLiteCallbackService\$BrowserLiteCallbackImpl; CALLER_CHECK",
         "Lcom/instagram/process/instagram/Ig4aAppComponentFactory; RELEASE_AND_DEBUG",
@@ -61,10 +57,18 @@ class CloneCodeTest {
     @Test fun everyBuildMovesItsOwnUsesAndKeepsTheRest() {
         val builds = CloneFixtures.builds()
         assertEquals(authorityLoads.keys, builds.keys)
-        for ((build, file) in builds) {
+        // Every build is checked before any failure is reported, so one run shows each build's counts.
+        val failures = builds.mapNotNull { (build, file) ->
+            runCatching { checkBuild(build, file) }.exceptionOrNull()?.let { "[$build] ${it.message}" }
+        }
+        assertTrue(failures.joinToString("\n"), failures.isEmpty())
+    }
+
+    private fun checkBuild(build: String, file: java.io.File) {
+        run {
             val authorities = readCloneManifest(CloneFixtures.manifest(file)).authorities
             val classes = CloneFixtures.classes(file, authorities)
-            if (build == "385811006") {
+            if (build == "385914283") {
                 val withoutAnswer = PatchContexts.of(classes).planClone(clone, authorities)
                 val refusal = assertThrows(PatchException::class.java) { withoutAnswer.requireComplete() }
                 assertTrue(refusal.message, refusal.message!!.contains("OwnPackage.name()"))

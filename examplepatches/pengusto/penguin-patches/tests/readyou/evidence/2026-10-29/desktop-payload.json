@@ -1,0 +1,11 @@
+{
+  "originalSha256": "a27f6da6961f2d5cd27b515349dc71844a0d20cfacc38b5fc398152fa034ce5e",
+  "beforePayloadIdentical": true,
+  "unchangedResourceEntries": 1641,
+  "changedEntries": [
+    "classes.dex"
+  ],
+  "newEntries": [
+    "classes3.dex"
+  ]
+}

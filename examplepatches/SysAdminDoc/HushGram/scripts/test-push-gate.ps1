@@ -769,6 +769,23 @@ fun hook() {
     . (Join-Path $PSScriptRoot 'script-wiring.ps1')
     Assert-True (Test-PushGateRunsSuite (Join-Path $Root 'scripts/pre-push.ps1') 'scripts/test-push-gate.ps1') `
         'The push gate does not run this suite when the hook changes.'
+    # The hook starts every suite with -Root, and an advanced script without it dies before its first check.
+    $hookAst = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $Root 'scripts/pre-push.ps1'), [ref]$null, [ref]$null)
+    $gatedSuites = @($hookAst.FindAll({ param($node)
+            $node -is [System.Management.Automation.Language.AssignmentStatementAst] -and
+            $node.Operator -eq [System.Management.Automation.Language.TokenKind]::PlusEquals -and
+            $node.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and
+            $node.Left.VariablePath.UserPath -eq 'suites' }, $true) |
+        ForEach-Object { $_.Right.Find({ param($node) $node -is [System.Management.Automation.Language.StringConstantExpressionAst] }, $true).Value } |
+        Where-Object { $_ -like '*.ps1' } | Sort-Object -Unique)
+    Assert-True ($gatedSuites -contains 'scripts/test-walk-capture.ps1') 'The suite list was not read out of the hook.'
+    foreach ($gatedSuite in $gatedSuites) {
+        $suiteParams = [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $Root $gatedSuite), [ref]$null, [ref]$null).ParamBlock
+        $advanced = $null -ne $suiteParams -and (@($suiteParams.Attributes | Where-Object { $_.TypeName.Name -eq 'CmdletBinding' }).Count -gt 0 -or
+            @($suiteParams.Parameters.Attributes | Where-Object { $_.TypeName.Name -eq 'Parameter' }).Count -gt 0)
+        Assert-True (-not $advanced -or @($suiteParams.Parameters | Where-Object { $_.Name.VariablePath.UserPath -eq 'Root' }).Count -eq 1) `
+            "$gatedSuite takes no -Root, so the push gate can't start it."
+    }
     Write-Host "[push-gate] $passed checks passed"
 } finally {
     foreach ($name in $saved.Keys) { [Environment]::SetEnvironmentVariable($name, $saved[$name], [EnvironmentVariableTarget]::Process) }

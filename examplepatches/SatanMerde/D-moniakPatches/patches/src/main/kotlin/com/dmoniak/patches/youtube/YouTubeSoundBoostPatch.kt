@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val youtubeSoundBoostPatch = bytecodePatch(
     name = "Sound Boost (Audio Gain Amplification) - YouTube (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Amplifies YouTube audio playback volume with software gain booster up to 200% for quiet videos, recordings, and podcasts.",
+    description = "⚠️ [Experimental / Untested] Amplifies YouTube audio playback volume with software gain booster up to 200% for quiet videos, recordings, and podcasts.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)
 

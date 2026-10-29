@@ -143,7 +143,7 @@ class SwipeChatReelsHookTest {
     }
 
     /**
-     * Gates shaped like Instagram 452.1's 02JG: a test taking the session reads [CHAT_REELS_FLAG]
+     * Gates shaped like Instagram 453's 01Oo: a test taking the session reads [CHAT_REELS_FLAG]
      * through a cast config and answers it. An opener handed a chat and a message asks it.
      */
     private fun classes(

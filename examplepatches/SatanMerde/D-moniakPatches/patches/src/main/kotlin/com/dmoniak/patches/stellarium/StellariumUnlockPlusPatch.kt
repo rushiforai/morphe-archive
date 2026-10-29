@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val stellariumUnlockPlusPatch = bytecodePatch(
     name = "Unlock Plus & Gaia Star Catalog - Stellarium Mobile (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks Stellarium Plus subscription features (Gaia DR3 star catalog, full deep-sky objects, high-res planetary textures, satellite tracking) by hooking Google Play Billing and subscription verification.",
+    description = "⚠️ [Experimental / Untested] Unlocks Stellarium Plus subscription features (Gaia DR3 star catalog, full deep-sky objects, high-res planetary textures, satellite tracking) by hooking Google Play Billing and subscription verification.",
 ) {
     compatibleWith(COMPATIBILITY_STELLARIUM, COMPATIBILITY_STELLARIUM_ALT)
 

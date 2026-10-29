@@ -1,0 +1,54 @@
+{
+  "source-v1.1.0.png": {
+    "source_capture": "005-penguin-remote-v1-1-0.png",
+    "sha256": "eb63eefbac21aef151815d09ed38602f7371f398e3542366a4e49a287ad7a7aa"
+  },
+  "defaults-off.png": {
+    "source_capture": "008-patches-default-off.png",
+    "sha256": "d87f63e6a3e277cf90247ccf454c3020fb3e7655b130f9bfb370b83f2518f0a1"
+  },
+  "all-three-selected.png": {
+    "source_capture": "015-combined-jvm-selected.png",
+    "sha256": "b06573c370c5cdc968eb3f5b5381595cf113e079ea687ef7c3e11444f84c1c9a"
+  },
+  "title-only-selected.png": {
+    "source_capture": "020-mask-1-jvm-selection.png",
+    "sha256": "68882c21823d95fcf2770c7fdea4b559ad0566854d9e6c466b98202671e68fcb"
+  },
+  "artist-only-selected.png": {
+    "source_capture": "023-mask-2-jvm-selection.png",
+    "sha256": "1d3e9b823a3f90fb2cafe8c98ac1b7ff6bf20226e2916c467de7400bc6d651e8"
+  },
+  "loading-only-selected.png": {
+    "source_capture": "026-mask-4-jvm-selection.png",
+    "sha256": "cf59af108c0ccf1a3c9761efeedc19705a019e4832f25dcc22a9bd9327331733"
+  },
+  "combined-jvm-success.png": {
+    "source_capture": "017-combined-jvm-result.png",
+    "sha256": "3bb8c4b756e1bf34cc138227c7c38a4536d8fb9cf2b1b08099da1a762858aab3"
+  },
+  "combined-art-success.png": {
+    "source_capture": "031-mask-7-art-success.png",
+    "sha256": "9a95a7cdf39b0930b16f2347074f0c7aacd5c91c9cd2d18bef472e32f4b3b9c4"
+  },
+  "guard-rejected.png": {
+    "source_capture": "034-fault-art-error.png",
+    "sha256": "df4edf7361bcffd88fe415f24d874b5f78c786f6dd49bd991a33136ec4924972"
+  },
+  "recovered-art-success.png": {
+    "source_capture": "036-mask-7-art-recovery-success.png",
+    "sha256": "c7069c0c935be34b4349498e5704a6c075569f1dbfb8c852eba4b7666544876a"
+  },
+  "finamp-opened-from-manager.png": {
+    "source_capture": "001-opened-from-manager.png",
+    "sha256": "4a64f7e5f6a2e5bbe8529da3e16bc7bdc9d0ac9ac6432e0ea012c49c3b59bdfc"
+  },
+  "artist-preference-retained.png": {
+    "source_capture": "003-manager-artist-preference-visible.png",
+    "sha256": "1c94fac992d70b69eae62b71b5597bb12a55403f2b4c601cba00b022850bd64e"
+  },
+  "dark-theme-retained.png": {
+    "source_capture": "004-manager-dark-theme-retained.png",
+    "sha256": "d156a1453d625fddf45cf1bfd1ca3f00d884e1f358c47ad1c9c9d68a90767396"
+  }
+}

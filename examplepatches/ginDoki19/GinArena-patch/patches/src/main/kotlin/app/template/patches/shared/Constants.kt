@@ -26,6 +26,10 @@ object Constants {
     /** SHA-256 of the official signing certificate used by MX Player (com.mxtech.videoplayer.ad). */
     private const val MXPLAYER_SIGNER_SHA256 = "0d9b4c778672e753d45aba4f10df31e1d10bf75b1245469131ef01b82f0f91b6"
 
+    /** SHA-256 of the official signing certificate used by SK Tech TV 2.7 (17).
+     *  Identical to CRICZ_SIGNER_SHA256 — same developer key. */
+    private const val SK_TECH_SIGNER_SHA256 = "9ff349c0c047abd68e169980484b43926b6ff2d251a430fe44e3ae3e2930e1d2"
+
     val COMPATIBILITY_ONEDM = Compatibility(
         name = "1DM",
         packageName = "idm.internet.download.manager",
@@ -103,6 +107,22 @@ object Constants {
                 minSdk = 24,
                 description = "Standalone APK (arm64-v8a / armeabi-v7a, Android 7.0+), build 2001003551"
             ),
+        )
+    )
+
+    val COMPATIBILITY_SK_TECH_TV = Compatibility(
+        name = "SK Tech TV",
+        packageName = "com.live.sktechtv",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x08C7D6,
+        signatures = setOf(SK_TECH_SIGNER_SHA256),
+        targets = listOf(
+            AppTarget(
+                version = "2.7",
+                versionCode = 17,
+                minSdk = 23,
+                description = "Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 6.0+), build 17"
+            )
         )
     )
 }

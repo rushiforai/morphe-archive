@@ -345,11 +345,12 @@ public class MetaAiTest {
         assertEquals("not drawn " + when, View.GONE, row.getVisibility());
     }
 
-    /** Home's Meta AI button is left out with the search switch; every other name comes back as it was. */
+    /** Home's Meta AI and Meta AI chats buttons are left out with the search switch; every other name comes back as it was. */
     @Test
     public void onlyHomesMetaAiButtonIsLeftOut() {
         assertNull(MetaAi.homeButton("meta_ai"));
-        for (String name : new String[] {"direct", "news", "menu", "hatch", "", null}) {
+        assertNull(MetaAi.homeButton("hatch"));
+        for (String name : new String[] {"direct", "news", "menu", "", null}) {
             assertSame(name, name, MetaAi.homeButton(name));
         }
         Settings.HIDE_META_AI_SEARCH.save(false);

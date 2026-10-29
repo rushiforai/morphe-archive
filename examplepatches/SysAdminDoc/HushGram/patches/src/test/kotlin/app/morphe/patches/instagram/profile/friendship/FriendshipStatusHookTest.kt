@@ -246,7 +246,8 @@ class FriendshipStatusHookTest {
         var checked = 0
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") }) {
-                val context = PatchContexts.of(profileClasses(bundle))
+                // 453 keeps the user in a holder behind a live data interface, which the screen slice loads.
+                val context = PatchContexts.of((profileClasses(bundle) + screenClasses(bundle)).distinctBy { it.type })
 
                 val found = context.findProfileName()
                 context.labelProfileName(found)

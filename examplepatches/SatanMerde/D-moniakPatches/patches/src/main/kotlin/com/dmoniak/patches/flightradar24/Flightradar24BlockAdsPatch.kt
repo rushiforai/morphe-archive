@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val flightradar24BlockAdsPatch = bytecodePatch(
     name = "Block Ads & Map Banners - Flightradar24 (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips bottom map banner ads, interstitial aircraft viewing promos, and full-screen ads in Flightradar24.",
+    description = "⚠️ [Experimental / Untested] Strips bottom map banner ads, interstitial aircraft viewing promos, and full-screen ads in Flightradar24.",
 ) {
     compatibleWith(COMPATIBILITY_FLIGHTRADAR24)
 

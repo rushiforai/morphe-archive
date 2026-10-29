@@ -165,13 +165,36 @@ public final class SettingsActivity extends Activity {
                                 "Job cards in the home feed.")
                         .toggle(Settings.HIDE_REPOSTS, false, "Hide reposts",
                                 "Posts that reshare someone else's post.")
+                        .toggle(Settings.HIDE_ACTIVITY_POSTS, false, "Hide posts from others' activity",
+                                "Posts shown because someone liked, commented on, or reacted to them.")
+                        .toggle(Settings.HIDE_RECOMMENDATIONS, false, "Hide \"Recommended for you\"",
+                                "Suggestions of people and pages to follow in the feed.")
                         .toggle(Settings.HIDE_VIDEO_POSTS, false, "Hide video posts", "Posts that contain a video.")
+                        .toggle(Settings.HIDE_GAMES, false, "Hide games",
+                                "LinkedIn's puzzle games in the Me panel, search, and feed.")
                         .toggle(Settings.HIDE_NEW_POSTS_PILL, false, "Hide the \"New posts\" button",
                                 "The pill that appears at the top of the feed.")
                         .toggle(Settings.HIDE_TRANSLATION, false, "Hide \"See translation\"",
                                 "The translate button below posts in other languages.");
             }
             categories.add(feed);
+        }
+
+        if (Settings.isRemoveGapsAndDividersIncluded() || Settings.isMaterialYouIncluded()) {
+            Category appearance = new Category("Appearance", IconDrawable.PALETTE);
+            if (Settings.isRemoveGapsAndDividersIncluded()) {
+                appearance.toggle(Settings.REMOVE_GAPS_AND_DIVIDERS, true, "Remove gaps and dividers",
+                        "No gaps between posts and no dividers between list items. Restart LinkedIn to apply.");
+            }
+            if (Settings.isMaterialYouIncluded()) {
+                appearance.toggle(Settings.MATERIAL_YOU, true, "Material You",
+                        "Your wallpaper's colors for accents, backgrounds, cards and borders. Restart LinkedIn to "
+                                + "apply. Older screens keep the colors chosen when patching.");
+                appearance.toggle(Settings.AMOLED_BLACK, false, "AMOLED black",
+                        "Pure black backgrounds and cards in dark mode, to save battery on AMOLED screens. Restart "
+                                + "LinkedIn to apply.");
+            }
+            categories.add(appearance);
         }
 
         if (Settings.isDownloadMediaIncluded()) {
@@ -311,7 +334,7 @@ public final class SettingsActivity extends Activity {
     static void tintButtons(AlertDialog dialog, Context context) {
         boolean dark = (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
                 == Configuration.UI_MODE_NIGHT_YES;
-        int color = dark ? ACCENT_DARK : ACCENT_LIGHT;
+        int color = MaterialYou.settingsAccent(dark, dark ? ACCENT_DARK : ACCENT_LIGHT);
         for (int which : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL}) {
             if (dialog.getButton(which) != null) dialog.getButton(which).setTextColor(color);
         }
@@ -337,6 +360,13 @@ public final class SettingsActivity extends Activity {
         textPrimary = dark ? 0xFFFFFFFF : 0xFF141414;
         textSecondary = dark ? 0xFFA6A6A6 : 0xFF5F6368;
         accent = dark ? ACCENT_DARK : ACCENT_LIGHT;
+        int[] materialYou = MaterialYou.settingsColors(dark);
+        if (materialYou != null) {
+            background = materialYou[0];
+            surface = materialYou[1];
+            divider = materialYou[2];
+            accent = materialYou[3];
+        }
 
         Window window = getWindow();
         window.setStatusBarColor(background);
@@ -615,7 +645,7 @@ public final class SettingsActivity extends Activity {
         box.setOrientation(LinearLayout.VERTICAL);
         box.setGravity(Gravity.CENTER_HORIZONTAL);
         box.setPadding(dp(24), dp(28), dp(24), dp(24));
-        box.setBackground(rounded(dark ? 0xFF0B0B0B : 0xFFFFFFFF, 28));
+        box.setBackground(rounded(MaterialYou.settingsColors(dark) != null ? background : dark ? 0xFF0B0B0B : 0xFFFFFFFF, 28));
 
         ImageView icon = new ImageView(this);
         icon.setImageDrawable(getApplicationInfo().loadIcon(getPackageManager()));
@@ -713,6 +743,9 @@ public final class SettingsActivity extends Activity {
                 {"Open links directly", Settings.isOpenLinksDirectlyIncluded()},
                 {"Sanitize share links", Settings.isSanitizeShareLinksIncluded()},
                 {"Block tracking", Settings.isBlockTrackingIncluded()},
+                {"Remove gaps and dividers", Settings.isRemoveGapsAndDividersIncluded()},
+                {"Material You", Settings.isMaterialYouIncluded()},
+                {"GmsCore support", Settings.isGmsCoreSupportIncluded()},
         };
     }
 
@@ -796,7 +829,7 @@ public final class SettingsActivity extends Activity {
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
         box.setPadding(dp(24), dp(24), dp(24), dp(24));
-        box.setBackground(rounded(dark ? 0xFF0B0B0B : 0xFFFFFFFF, 28));
+        box.setBackground(rounded(MaterialYou.settingsColors(dark) != null ? background : dark ? 0xFF0B0B0B : 0xFFFFFFFF, 28));
         TextView titleView = text(title, 24, textPrimary, true);
         titleView.setGravity(Gravity.CENTER);
         box.addView(titleView, matchWidth());
@@ -1051,7 +1084,7 @@ public final class SettingsActivity extends Activity {
         TextView message = text("Restart LinkedIn to apply all changes.", 14, 0xFFFFFFFF, false);
         banner.addView(message, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-        TextView action = text("RESTART", 14, 0xFF2DBCB1, true);
+        TextView action = text("RESTART", 14, MaterialYou.settingsAccent(true, 0xFF2DBCB1), true);
         action.setPadding(dp(12), dp(10), dp(12), dp(10));
         action.setBackground(ripple(false));
         action.setOnClickListener(v -> restartApp());

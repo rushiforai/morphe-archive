@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val geometryDashPracticeMusicBypassPatch = bytecodePatch(
     name = "Practice Music Hack & Bypass - Geometry Dash (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Plays the real level soundtrack instead of the default repetitive practice loop song when playing in Practice Mode.",
+    description = "⚠️ [Experimental / Untested] Plays the real level soundtrack instead of the default repetitive practice loop song when playing in Practice Mode.",
 ) {
     compatibleWith(COMPATIBILITY_GEOMETRY_DASH)
 

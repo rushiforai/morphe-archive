@@ -10,28 +10,17 @@ Technical documentation and patch catalog for Moovit on Android.
 | :--- | :--- |
 | **Target App** | Moovit |
 | **Package Name** | `com.tranzmate` |
-| **Target Version** | `5.203.0.1812` |
+| **Target Version** | `Single pinned version (see README Patch Catalog)` |
 | **Target Package Format** | APKM |
 | **Primary Architecture** | `arm64-v8a` |
 | **Authoritative Source** | APKMirror |
-| **Download Target** | [Moovit 5.203.0.1812 (arm64-v8a, 160-640dpi, versionCode 1812 / BUNDLE 31 S)](https://www.apkmirror.com/apk/moovit/moovit-bus-train-live-info/moovit-your-transit-tracker-5-203-0-1812-release/moovit-your-transit-tracker-5-203-0-1812-android-apk-download/) |
-
-Note: `versionCode 1812` corresponds to the actual build versionCode assigned on APKMirror, not a trailing versionName fragment.
+| **Download Target** | [Moovit (arm64-v8a, 160-640dpi)](https://www.apkmirror.com/apk/moovit/moovit-bus-train-live-info/) |
 
 ---
 
 ## 2. Applied Patches Catalog
 
-| Patch Name | Typology | Default State | Dependencies | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| **Block Telemetry & Trackers** | `bytecodePatch` | `true` (Enabled) | `Moovit Telemetry Manifest Purge` | Neutralizes AppsFlyer, Braze, and Inneractive DEX dispatchers, disables analytics services/providers, and strips advertising permissions. |
-| **Moovit Telemetry Manifest Purge** | `resourcePatch` | `false` (Opt-in) | None | Strips advertising and tracking permissions, disables analytics services, providers, and receivers, and injects opt-out metadata in AndroidManifest.xml. |
-| **Fix Google Maps** | `bytecodePatch` | `true` (Enabled) | `Moovit Custom Maps API Key` | Restores Google Maps rendering by spoofing the original package signature to Google Play Services. Includes opt-in toggle to force the Google Maps engine. |
-| **Moovit Custom Maps API Key** | `resourcePatch` | `false` (Opt-in) | None | Injects the required personal Google Maps API key into AndroidManifest.xml and web-service strings. |
-| **Use Places API (New)** | `bytecodePatch` | `true` (Enabled) | `Fix Google Maps` | Redirects search autocomplete from the legacy Places API to Places API (New). Requires Places API (New) to be enabled for the API key. |
-| **Remove Ads** | `bytecodePatch` | `true` (Enabled) | None | Hides banner and inline ads and neutralizes ad unit ID lookups. |
-| **Suppress Paywalls** | `bytecodePatch` | `true` (Enabled) | None | Suppresses subscription paywalls, onboarding upgrade dialogs, and promotional cards. |
-| **Unlock Moovit+** | `bytecodePatch` | `true` (Enabled) | None | Unlocks Moovit+ premium subscription features locally, including Safe Ride and address search in favorites. |
+The authoritative patch catalog with descriptions and options is generated in README.md from the built .mpp; see also patches-list.json.
 
 ---
 

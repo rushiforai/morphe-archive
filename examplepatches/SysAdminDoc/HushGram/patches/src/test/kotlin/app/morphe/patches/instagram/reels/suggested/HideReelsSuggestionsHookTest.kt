@@ -110,9 +110,9 @@ class HideReelsSuggestionsHookTest {
             classes(converterAnswers = "Ljava/lang/Object;") to "answers Ljava/lang/Object;, which isn't a class of the app",
             classes(kindNames = SUGGESTED_KINDS.drop(1)) to "expected one enum field of $item whose type names all of $SUGGESTED_KINDS",
             classes(kindField = "Ljava/lang/String;") to "expected one enum field of $item whose type names all of $SUGGESTED_KINDS",
-            classes(dispatches = 0) to "comparing $CREATORS_TO_FOLLOW and $FRIENDS_TO_FOLLOW in this Instagram build, found none",
-            classes(dispatches = 2) to "comparing $CREATORS_TO_FOLLOW and $FRIENDS_TO_FOLLOW in this Instagram build, found Lfixture/",
-            classes(friends = "${FRIENDS_TO_FOLLOW}_v2") to "comparing $CREATORS_TO_FOLLOW and $FRIENDS_TO_FOLLOW in this Instagram build, found none",
+            classes(dispatches = 0) to "comparing $CREATORS_TO_FOLLOW in this Instagram build, found none",
+            classes(dispatches = 2) to "comparing $CREATORS_TO_FOLLOW in this Instagram build, found Lfixture/",
+            classes(creators = "${CREATORS_TO_FOLLOW}_v2") to "comparing $CREATORS_TO_FOLLOW in this Instagram build, found none",
             classes(dispatchTakes = "Lfixture/OtherItem;") to "doesn't take a $item",
             classes(unitTypeReads = listOf("iget v1, v0, $unit->size:I")) to "$oneType []",
             classes(unitTypeReads = listOf("iget-object v1, v0, $unit->type:Ljava/lang/String;", "iget-object v1, v0, $unit->subtype:Ljava/lang/String;")) to
@@ -162,7 +162,7 @@ class HideReelsSuggestionsHookTest {
     private fun builds(bundle: File, label: String) {
         val converters = FixtureDex.classesHolding(bundle, TO_CLIPS_ITEM)
         val pageMakers = FixtureDex.classesHolding(bundle, TO_FRIENDS_TAB_PAGE)
-        val dispatches = FixtureDex.classesHolding(bundle, FRIENDS_TO_FOLLOW)
+        val dispatches = FixtureDex.classesHolding(bundle, CREATORS_TO_FOLLOW)
         val itemType = converters.flatMap { it.methods }.single { method -> method.code().any { it.string() == TO_CLIPS_ITEM } }.returnType
         val itemClass = FixtureDex.classes(bundle, setOf(itemType)).values
         val fieldTypes = itemClass.flatMap { it.fields }.map { it.type }.filter { it.startsWith("L") }.toSet()
@@ -266,7 +266,7 @@ class HideReelsSuggestionsHookTest {
         kindNames: List<String> = SUGGESTED_KINDS,
         kindField: String = kind,
         dispatches: Int = 1,
-        friends: String = FRIENDS_TO_FOLLOW,
+        creators: String = CREATORS_TO_FOLLOW,
         dispatchTakes: String = item,
         unitTypeReads: List<String> = listOf("iget-object v1, v0, $unit->type:Ljava/lang/String;"),
         madeFrom: String = unit,
@@ -326,8 +326,7 @@ class HideReelsSuggestionsHookTest {
             val bind = method(type, "bind", listOf(dispatchTakes, "I"), "Lfixture/Binder;", 3, body = """
                 iget-object v0, p1, $item->unit:$unit
                 ${unitTypeReads.joinToString("\n")}
-                const-string v2, "$CREATORS_TO_FOLLOW"
-                const-string v2, "$friends"
+                const-string v2, "$creators"
                 iget-object v1, p0, $type->name:Ljava/lang/String;
                 iget-object v1, p1, $item->id:Ljava/lang/String;
                 const/4 v0, 0x0

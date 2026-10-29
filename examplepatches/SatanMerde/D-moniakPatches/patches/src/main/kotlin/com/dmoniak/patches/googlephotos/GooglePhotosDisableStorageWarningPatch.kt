@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val googlePhotosDisableStorageWarningPatch = bytecodePatch(
     name = "Disable Storage Warnings - Google Photos (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Suppresses intrusive cloud storage full popups, Google One subscription reminders, and backup disabled warnings in Google Photos.",
+    description = "⚠️ [Experimental / Untested] Suppresses intrusive cloud storage full popups, Google One subscription reminders, and backup disabled warnings in Google Photos.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_PHOTOS)
 

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val duolingoUnlimitedHeartsPatch = bytecodePatch(
     name = "Unlimited Hearts - Duolingo (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Disables hearts/lives loss when making mistakes during language lessons in Duolingo, enabling infinite learning sessions without waiting or paywalls.",
+    description = "⚠️ [Experimental / Untested] Disables hearts/lives loss when making mistakes during language lessons in Duolingo, enabling infinite learning sessions without waiting or paywalls.",
 ) {
     compatibleWith(COMPATIBILITY_DUOLINGO)
 

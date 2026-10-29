@@ -47,6 +47,13 @@ internal const val LISTENER_MANAGER = "reelViewerListenerManager"
 
 internal const val REQUEST_FOCUS = "Landroid/view/View;->requestFocus()Z"
 
+/**
+ * Strings the story reply composer's class loads in every 453 build. 453 has a second listener
+ * focusing a text box, the Live viewer's comment box (inlined into the listener on 385914282 and
+ * 385914284, a forward to IgLiveViewerPageViewHolder's controller on the others), which loads none.
+ */
+internal val COMPOSER_MARKERS = listOf("fragment_paused", "ig4a-instagram-schema")
+
 private const val MOTION_EVENT = "Landroid/view/MotionEvent;"
 private const val INTEGER = "Ljava/lang/Integer;"
 
@@ -114,7 +121,8 @@ internal class SwipeReplySites(
  *   the listener block: the listener manager read from a field and asked a no-argument boolean;
  * - that method of the listener manager, asked by nothing but the gesture handler, asking one
  *   listener interface's method of the same name;
- * - the one implementation of it that calls [REQUEST_FOCUS], the composer's.
+ * - the one implementation of it that calls [REQUEST_FOCUS] in a class loading [COMPOSER_MARKERS],
+ *   the composer's.
  *
  * Fails before anything changes when any of it isn't so, since that's an update this patch hasn't
  * seen, or when code the guards go in front of is something jumps to.
@@ -191,7 +199,9 @@ internal fun BytecodePatchContext.findSwipeReply(): SwipeReplySites {
         refuse("expected only $managerAt to ask ${listener}->${listenerCall.name}, found ${listenerAskers.joinToString { "${it.definingClass}->${it.name}" }}")
     }
 
-    val composers = classesCalling("Landroid/view/View;", "requestFocus").filter { listener in it.interfaces }.flatMap { classDef ->
+    val composers = classesCalling("Landroid/view/View;", "requestFocus").filter { classDef ->
+        listener in classDef.interfaces && COMPOSER_MARKERS.all { marker -> classDef.methods.any { loadsString(it, marker) } }
+    }.flatMap { classDef ->
         classDef.methods.filter { method ->
             !method.isStatic() && method.name == listenerCall.name && method.parameterTypes.isEmpty() && method.returnType == "Z" &&
                 method.code().any { it.reference() == REQUEST_FOCUS }

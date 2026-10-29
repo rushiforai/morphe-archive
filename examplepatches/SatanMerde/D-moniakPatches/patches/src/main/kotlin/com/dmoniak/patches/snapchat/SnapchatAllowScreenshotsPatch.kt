@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val snapchatAllowScreenshotsPatch = bytecodePatch(
     name = "Allow Screenshots & Anti-Screen Security - Snapchat (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes FLAG_SECURE restrictions on Snapchat chat and media viewer activities, allowing screen capture without black screen restrictions.",
+    description = "⚠️ [Experimental / Untested] Removes FLAG_SECURE restrictions on Snapchat chat and media viewer activities, allowing screen capture without black screen restrictions.",
 ) {
     compatibleWith(COMPATIBILITY_SNAPCHAT)
 

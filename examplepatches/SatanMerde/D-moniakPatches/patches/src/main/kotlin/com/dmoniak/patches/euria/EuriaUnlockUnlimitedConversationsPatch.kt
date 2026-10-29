@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val euriaUnlockUnlimitedConversationsPatch = bytecodePatch(
     name = "Unlock Unlimited Conversations & Memory - Euria AI (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing to bypass in-app subscription checks for Infomaniak Euria AI (enabling extended context and persistent conversation history).",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app subscription checks for Infomaniak Euria AI (enabling extended context and persistent conversation history).",
 ) {
     compatibleWith(COMPATIBILITY_EURIA)
 

@@ -1,0 +1,16 @@
+{
+  "observed_at": "2026-10-29",
+  "request": "GET https://pb-api.vi.nl/edition/200/curation?scope=public",
+  "authentication": "none",
+  "status": 200,
+  "response_sha256": "5a8034623e23dcc0c2aec5706066884e578d3015ff6e687b092824a14d8a1caf",
+  "item_count": 65,
+  "types": {
+    "marketingBlock": 5,
+    "match": 3,
+    "newsItem": 57
+  },
+  "marketing_blocks": 5,
+  "reported_hiddink_creative_in_marketing_block": true,
+  "raw_body": "private build evidence; not committed"
+}

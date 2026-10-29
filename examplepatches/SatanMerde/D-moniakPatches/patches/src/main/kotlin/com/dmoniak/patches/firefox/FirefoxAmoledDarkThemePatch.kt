@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val firefoxAmoledDarkThemePatch = bytecodePatch(
     name = "Pure AMOLED Dark Theme - Firefox (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces a true pitch-black (#000000) AMOLED dark theme across the browser UI, new tab homepage, toolbar, and reader mode.",
+    description = "⚠️ [Experimental / Untested] Forces a true pitch-black (#000000) AMOLED dark theme across the browser UI, new tab homepage, toolbar, and reader mode.",
 ) {
     compatibleWith(COMPATIBILITY_FIREFOX)
 

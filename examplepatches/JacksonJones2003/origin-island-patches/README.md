@@ -21,7 +21,24 @@ risk. See the [license](LICENSE) for details.
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.9.1](https://github.com/JacksonJones2003/origin-island-patches/releases/tag/v1.9.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.10.0](https://github.com/JacksonJones2003/origin-island-patches/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+<details open>
+<summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 21.38.123 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Comments under the video](#comments-under-the-video) | Shows the comments under the video in the wide layout, as on an opened foldable phone held sideways, instead of over the suggested videos. |  |
+| [Origin Island music card](#origin-island-music-card) | Lets the OriginOS music card on the lock screen and Origin Island like videos, show the captions of a video as its lyrics, and show what plays next as the playlist. |  |
+| [Pause on fold](#pause-on-fold) | Pauses what plays when a foldable phone is closed. |  |
+
+</details>
+
 <details open>
 <summary>📦 YouTube Music&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -51,22 +68,6 @@ risk. See the [license](LICENSE) for details.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Origin Island music card](#origin-island-music-card) | Lets the OriginOS music card on the lock screen and Origin Island show lyrics, like songs, switch between repeat and shuffle, and show the playlist and play from it. |  |
-| [Pause on fold](#pause-on-fold) | Pauses what plays when a foldable phone is closed. |  |
-
-</details>
-
-<details open>
-<summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 21.38.123 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Origin Island music card](#origin-island-music-card) | Lets the OriginOS music card on the lock screen and Origin Island like videos, show the captions of a video as its lyrics, and show what plays next as the playlist. |  |
 | [Pause on fold](#pause-on-fold) | Pauses what plays when a foldable phone is closed. |  |
 
 </details>
@@ -272,6 +273,30 @@ The card draws the cover from the image in the metadata, but prefers the address
 can only read that address from files of the device. LastWave gives the cover by its address on the
 web, so the card is given the cover as an image without its address. The cover is loaded from its
 address, since the image LastWave gives the session may only stand in for it while it loads.
+
+## Comments under the video (YouTube)
+
+In the wide layout of YouTube, as on an opened foldable phone held sideways, the comments of a
+video open over the suggested videos, and the space under the title and buttons stays empty.
+The patch shows the comments in that space instead:
+
+- the comments open under the title and buttons as a video is opened, where their teaser was,
+  and the suggested videos stay in view next to them
+- scrolling there scrolls the comments, and the title and buttons stay on the screen
+- dragging the header of the comments up expands them over the title and buttons, and dragging
+  it down brings those back
+- closed comments stay closed until another video is opened
+- the description and the other panels of a video open under it as well
+
+The comments are opened by their teaser, which is found by the word "Comments", so they only
+open by themselves while YouTube is in English.
+
+### How it works
+
+The watch page lays out its parts itself: it measures each for its space, places it there with
+an offset, and clips it there as it draws it. The patch has the panels measured, placed and drawn
+for the space under the player instead, ends them at the bottom of the screen, and keeps the
+suggested videos shown and undimmed while a panel would cover them.
 
 ## Pause on fold (YouTube, YouTube Music, LastWave)
 

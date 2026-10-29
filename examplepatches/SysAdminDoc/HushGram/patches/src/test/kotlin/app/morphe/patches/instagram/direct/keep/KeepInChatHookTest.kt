@@ -104,7 +104,25 @@ class KeepInChatHookTest {
         refusesSent("reads 2 accounts", standIns(messages = listOf(messageParser(sessions = 2))))
         refusesSent("which the reader", standIns(messages = listOf(messageParser(sessionOwner = "Lfixture/Unrelated;"))))
         refusesSent("has no userId", standIns(userId = false))
+        val twoHeld = readerClass(fields = 2)
+        refusesSent("the reader holds 2", standIns(messages = listOf(messageParser(sessions = 0), twoHeld)))
     }
+
+    /** 453's parser never reads the account, so it comes from the one account field its reader holds (#114). */
+    @Test
+    fun anAccountTheParserNeverReadsComesFromTheReader() {
+        val context = PatchContexts.of(standIns(messages = listOf(messageParser(sessions = 0), readerClass())))
+        val (parse, store) = context.findViewModeStore()
+        val sent = context.findSentMessage(parse, store)
+        assertEquals("the account field", "$READER->held0:$USER_SESSION", "${sent.session}")
+    }
+
+    /** The reader the stand-in parser casts to, holding [fields] accounts. */
+    private fun readerClass(fields: Int = 1): ClassDef = ImmutableClassDef(
+        READER, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null,
+        (0 until fields).map { ImmutableField(READER, "held$it", USER_SESSION, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, null) },
+        emptyList(),
+    )
 
     /**
      * The extension remembers each media it changed by the object itself, in a WeakHashMap, so a
@@ -226,7 +244,11 @@ class KeepInChatHookTest {
                     m.returnType == "Ljava/lang/Object;" && m.parameterTypes.size == 1 && VISUAL_MEDIA_KEYS.all { holds(m, it) }
                 }
                 assertTrue("${bundle.name}: the media class", media != null)
-                for (built in listOf(message, media)) {
+                // 453's parser leaves the account in its reader, so the reader it casts to and its superclasses come too.
+                val reader = kept.flatMap { it.methods }.firstOrNull { m -> m.name == "unsafeParseFromJson" && holds(m, "is_sent_by_viewer") }
+                    ?.implementation?.instructions?.firstOrNull { it.opcode == Opcode.CHECK_CAST }
+                    ?.let { ((it as ReferenceInstruction).reference as TypeReference).type }
+                for (built in listOf(message, media, reader)) {
                     var next: String? = built
                     while (next != null && next != "Ljava/lang/Object;") {
                         val found = FixtureDex.classes(bundle, setOf(next)).values.single()

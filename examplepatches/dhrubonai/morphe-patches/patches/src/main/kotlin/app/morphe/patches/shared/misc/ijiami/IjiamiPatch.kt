@@ -10,15 +10,19 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.misc.signature.stockSigningCertificate
 import app.morphe.util.inputStreamFromBundledResource
 import org.w3c.dom.Element
+import java.io.File
 import java.util.logging.Logger
 
 private const val NATIVE_LIBRARY = "libhxpatch.so"
-private const val NATIVE_LIBRARY_ENTRY = "lib/arm64-v8a/$NATIVE_LIBRARY"
 
-private const val PACKER_ARM64_LIBRARY = "assets/ijm_lib/arm64-v8a/libexec.so"
+private val PACKER_ABI_BY_LIBRARY_ABI = mapOf(
+    "arm64-v8a" to "arm64-v8a",
+    "armeabi-v7a" to "armeabi",
+)
 
 private const val CERTIFICATE_ASSET = "assets/hx.cer"
 private const val FACTORY_ASSET = "assets/hx.factory"
+private const val APP_HOOK_ASSET = "assets/hx.hook"
 
 private const val DELEGATE_FACTORY = "hx.Delegate"
 private const val FACTORY_ATTRIBUTE = "android:appComponentFactory"
@@ -44,20 +48,16 @@ internal fun ResourcePatchContext.editIjiamiPayload(block: IjiamiPayload.() -> U
     editable.seal()
 
     classes.writeBytes(container.rebuild(payload))
+    appendCodeOverlay(editable.editedPackerStubs)
 }
 
 internal val ijiamiPatch = resourcePatch {
     execute {
-        val packer = get(PACKER_ARM64_LIBRARY)
-        if (!packer.exists()) {
-            throw PatchException(
-                "Missing $PACKER_ARM64_LIBRARY. Ijiami support requires an arm64 APK.",
-            )
+        val profiles = nativeProfiles()
+        if (profiles.isEmpty()) {
+            throw PatchException("No supported Ijiami packer library in assets")
         }
-
-        val profile = NativeProfiles.forLibexec(packer.readBytes())
-        get(NATIVE_LIBRARY_ENTRY, copy = false).writeBytes(bundledIjiamiResource(profile.resource))
-        logger.info("Native packer profile: ${profile.name}")
+        profiles.forEach { (abi, profile) -> installNativeLibrary(abi, profile) }
 
         val dexEntry = freeDexEntry()
         get(dexEntry, copy = false).writeBytes(bundledIjiamiResource("boot.dex"))
@@ -79,6 +79,36 @@ internal val ijiamiPatch = resourcePatch {
         }
     }
 }
+
+private fun ResourcePatchContext.packerLibraries(packerAbi: String): List<File> =
+    get("assets").listFiles().orEmpty().sorted().flatMap { directory ->
+        File(directory, packerAbi).listFiles { file -> file.name.endsWith(".so") }.orEmpty().sorted()
+    }
+
+private fun ResourcePatchContext.nativeProfiles(): Map<String, NativeProfile> =
+    PACKER_ABI_BY_LIBRARY_ABI.mapNotNull { (abi, packerAbi) ->
+        val libraries = packerLibraries(packerAbi)
+        if (libraries.isEmpty() || !shipsNativeLibraries(abi)) return@mapNotNull null
+
+        val profile = libraries.firstNotNullOfOrNull { NativeProfiles.forLibexecOrNull(it.readBytes()) }
+        if (profile == null) {
+            val packer = libraries.maxBy { it.length() }
+            logger.warning(
+                "Unsupported Ijiami native packer build for $abi: " +
+                    "${packer.parentFile.parentFile.name}/$packerAbi/${packer.name} sha-256 " +
+                    NativeProfiles.sha256(packer.readBytes()),
+            )
+        }
+        profile?.let { abi to it }
+    }.toMap()
+
+private fun ResourcePatchContext.installNativeLibrary(abi: String, profile: NativeProfile) {
+    get("lib/$abi/$NATIVE_LIBRARY", copy = false).writeBytes(bundledIjiamiResource(profile.resource))
+    logger.info("Native packer profile for $abi: ${profile.name}")
+}
+
+private fun ResourcePatchContext.shipsNativeLibraries(abi: String) =
+    get("lib/$abi").isDirectory || !get("lib").isDirectory
 
 private fun ResourcePatchContext.interposeComponentFactory(): String =
     document("AndroidManifest.xml").use { manifest ->
@@ -107,7 +137,12 @@ private fun resolveComponentName(name: String, packageName: String) = when {
     else -> "$packageName.$name"
 }
 
-internal fun ResourcePatchContext.freeDexEntry() =
+private fun ResourcePatchContext.freeDexEntry() =
     generateSequence(2) { it + 1 }
         .map { "classes$it.dex" }
         .first { !get(it).exists() }
+
+internal fun ResourcePatchContext.installAppHook(hookDex: ByteArray, hookClass: String) {
+    get(freeDexEntry(), copy = false).writeBytes(hookDex)
+    get(APP_HOOK_ASSET, copy = false).writeText(hookClass)
+}

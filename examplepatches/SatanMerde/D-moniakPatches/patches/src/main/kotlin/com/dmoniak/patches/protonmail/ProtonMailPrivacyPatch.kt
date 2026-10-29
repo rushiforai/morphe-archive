@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val protonMailPrivacyPatch = bytecodePatch(
     name = "Enhanced Privacy & Tracker Blocker - Proton Mail (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Neutralizes email tracking pixels, blocks diagnostic event reporting (Sentry, Firebase), and stops background usage telemetry in Proton Mail.",
+    description = "⚠️ [Experimental / Untested] Neutralizes email tracking pixels, blocks diagnostic event reporting (Sentry, Firebase), and stops background usage telemetry in Proton Mail.",
 ) {
     compatibleWith(COMPATIBILITY_PROTON_MAIL)
 

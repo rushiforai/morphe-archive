@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val signalUnlockDonorBadgePatch = bytecodePatch(
     name = "Unlock Supporter & Donor Badge - Signal (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Activates the client-side Signal Sustainer / Supporter profile badge and unlocks exclusive supporter avatar rings and custom app icons.",
+    description = "⚠️ [Experimental / Untested] Activates the client-side Signal Sustainer / Supporter profile badge and unlocks exclusive supporter avatar rings and custom app icons.",
 ) {
     compatibleWith(COMPATIBILITY_SIGNAL)
 

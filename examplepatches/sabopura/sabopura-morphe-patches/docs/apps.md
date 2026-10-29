@@ -231,6 +231,15 @@ transparent where it is painted (YouTube's own ambient mode is hidden) and the l
 underneath, so YouTube's own text, icons and thumbnails sit directly on the light in either
 theme. The light calms down while the user touches or scrolls the page (touches on the player
 itself are ignored) and fades back after an idle delay. There is no light in the miniplayer.
+The light runs straight out of the picture: right next to the player the picture's shapes
+carry on and stay crisp, farther away they soften. Each column takes its colour from a band of
+the picture that grows to the whole height, and flat-coloured edge lines are skipped. Inside the
+player, black bars are covered with the same light and the picture's edges fade into it (bars
+in which text such as subtitles was seen recently stay untouched), so player and page read as
+one picture. The light keeps the video's colours in either theme. "Blur the light strongly"
+switches to a blurred glow that only carries the colours and tones very bright light down for
+readable text, and "Hide the progress bar under the video" skips YouTube's thin time bar while
+the controls are hidden.
 
 Open `Settings > Video and audio > Ambient light` to configure it: how the light looks
 (show the video itself behind the page, darker towards the bottom, spread the light on scene
@@ -348,8 +357,11 @@ logged none. 6.200.0 applied without changes; the unpatched app again logged App
 and Pangle at launch on the API 36 emulator and the patched app logged none, with no
 fatal errors. 6.201.0 also applied without changes: the four modified methods were
 checked in the output, and on the API 36 emulator the unpatched app logged AppLovin and
-Pangle at launch while the patched app logged none, with no fatal errors. Ad slots after
-login were not verified.
+Pangle at launch while the patched app logged none, with no fatal errors. 6.202.1 also
+applied without changes, with the same result: only the four intended methods changed,
+and the unpatched app logged AppLovin and Pangle at launch while the patched app logged
+none, with no fatal errors. 6.200.0 was retired once 6.202.1 was verified. Ad slots
+after login were not verified.
 
 ## Google News
 

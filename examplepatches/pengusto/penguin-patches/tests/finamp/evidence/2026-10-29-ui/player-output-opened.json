@@ -1,0 +1,96 @@
+{
+  "capturedAt": "2026-10-29T00:21:50.773839+00:00",
+  "serial": "emulator-5580",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Change Output",
+      "class": "android.view.View",
+      "bounds": "[407,546][653,598]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Volume",
+      "class": "android.view.View",
+      "bounds": "[72,672][1008,720]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "100%",
+      "class": "android.view.View",
+      "bounds": "[40,736][1040,864]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "100%",
+      "class": "android.widget.SeekBar",
+      "bounds": "[912,752][1008,848]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Available Devices",
+      "class": "android.view.View",
+      "bounds": "[72,904][1008,952]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Phone\nDevice Speaker",
+      "class": "android.widget.Button",
+      "bounds": "[40,968][1040,1096]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Connect to a device",
+      "class": "android.widget.Button",
+      "bounds": "[351,1128][729,1234]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Scrim",
+      "class": "android.view.View",
+      "bounds": "[0,0][1080,453]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "f44d2b23103304c85d227027eeea84e7a2643c2fd0dfd50041d2827e8f9aa86d"
+}

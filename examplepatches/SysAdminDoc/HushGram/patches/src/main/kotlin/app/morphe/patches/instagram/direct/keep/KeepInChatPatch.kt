@@ -31,6 +31,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
 
 internal const val KEEP_IN_CHAT_PATCH = "Keep in chat"
 internal const val KEEP_IN_CHAT = "$EXTENSION_PACKAGE/direct/KeepInChat;"
@@ -338,9 +339,18 @@ internal fun BytecodePatchContext.findSentMessage(mediaParse: MutableMethod, vie
         instruction.opcode == Opcode.IGET_OBJECT && (instruction as TwoRegisterInstruction).registerB == reader &&
             ((instruction as ReferenceInstruction).reference as FieldReference).type == USER_SESSION
     }.map { (it as ReferenceInstruction).reference as FieldReference }.distinct()
-    val session = sessions.singleOrNull()
-        ?: refuse("the message parser reads ${sessions.size} accounts from its reader, not one")
-    if (session.definingClass !in ancestors(readerClass)) refuse("the reader's account is in ${session.definingClass}, which the reader $readerClass isn't")
+    if (sessions.size > 1) refuse("the message parser reads ${sessions.size} accounts from its reader, not one")
+    // 453's parser no longer reads the account, but its reader still holds it in a field of its own.
+    val held = if (sessions.isNotEmpty()) emptyList() else ancestors(readerClass).flatMap { owner ->
+        classDefByOrNull(owner)?.fields?.filter { it.type == USER_SESSION && !AccessFlags.STATIC.isSet(it.accessFlags) }.orEmpty()
+    }.map(ImmutableFieldReference::of)
+    if (sessions.isEmpty() && held.size != 1) {
+        refuse("the message parser reads 0 accounts from its reader, and the reader holds ${held.size}, not one")
+    }
+    val session = sessions.singleOrNull() ?: held.single()
+    if (session.definingClass !in ancestors(readerClass)) {
+        refuse("the reader's account is in ${session.definingClass}, which the reader $readerClass isn't")
+    }
     val userSession = classDefByOrNull(USER_SESSION) ?: refuse("there's no $USER_SESSION")
     if (userSession.fields.none { it.name == "userId" && it.type == STRING }) refuse("$USER_SESSION has no userId")
 

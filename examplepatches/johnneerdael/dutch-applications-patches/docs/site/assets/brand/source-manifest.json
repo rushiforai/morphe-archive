@@ -1,0 +1,69 @@
+{
+  "kit": "Dutch App Patches Brand Kit 1.0, supplied 28 October 2026",
+  "files": {
+    "brand/readme-light.png": {
+      "source": "03-banners/dutch-app-patches-readme-light-1600x480.png",
+      "sha256": "b4b85ae0cd2570a9facd74d43eb33fe525f113eb06da8674b065b364ac8a7e26"
+    },
+    "brand/readme-dark.png": {
+      "source": "03-banners/dutch-app-patches-readme-dark-1600x480.png",
+      "sha256": "20a485105f0a5591a80ab82888703425f63a92993e9f9c8d36de70b8f638773a"
+    },
+    "brand/release-banner.png": {
+      "source": "03-banners/dutch-app-patches-readme-dark-1600x480.png",
+      "sha256": "20a485105f0a5591a80ab82888703425f63a92993e9f9c8d36de70b8f638773a"
+    },
+    "brand/social-card.png": {
+      "source": "03-banners/dutch-app-patches-social-dark-1200x630.png",
+      "sha256": "03c990da75cd755d086208e42135f3d98d85b6a6b516f759f5a0c68a867244e7"
+    },
+    "brand/mark-on-dark.svg": {
+      "source": "01-logos/mark/dutch-app-patches-mark-on-dark.svg",
+      "sha256": "a587b88925afd2517bd5da9f167b9f746fb6ad2ddcf7d319ffd0aaa3f2584c4b"
+    },
+    "brand/mark-on-light.svg": {
+      "source": "01-logos/mark/dutch-app-patches-mark-on-light.svg",
+      "sha256": "782df0c9c061ffe7e6536d02c800bf4acc99d024f0137f59dafda3ea8828f548"
+    },
+    "brand/horizontal-on-dark.svg": {
+      "source": "01-logos/horizontal/dutch-app-patches-horizontal-on-dark.svg",
+      "sha256": "1996feafdb23bb1ee0aedfb990e9fbd459b7354d855cb72f8c474e2b731484f8"
+    },
+    "brand/horizontal-on-light.svg": {
+      "source": "01-logos/horizontal/dutch-app-patches-horizontal-on-light.svg",
+      "sha256": "2c5d622742f24362e16e195323893d24c584d6c1a53c865129a455651a427046"
+    },
+    "brand/favicon.png": {
+      "source": "02-web-icons/favicon-32x32.png",
+      "sha256": "71c6d90eb90e2605e51c3fe8fa2e964f632b709da3870c00a0d1c0da7930063f"
+    },
+    "brand/favicon.svg": {
+      "source": "02-web-icons/favicon.svg",
+      "sha256": "7bd4a5f0730d0fd2cd004721af136f433b7af5090425e90b5e2cc9ac63273bac"
+    },
+    "fonts/SpaceGrotesk.woff": {
+      "source": "06-fonts/SpaceGrotesk.woff",
+      "sha256": "7b7f926bd3f5893074ee695f21fe2405f6c2f102739ab5bfa72687bc7d454d48"
+    },
+    "fonts/Inter.woff": {
+      "source": "06-fonts/Inter.woff",
+      "sha256": "dcfc3feb79a11dd8c728039a17534820dcb674734a91394287ecc472f591bb2d"
+    },
+    "fonts/IBMPlexMono-Regular.woff": {
+      "source": "06-fonts/IBMPlexMono-Regular.woff",
+      "sha256": "b4719702a5c66f55eb0de21d5e68b2e5d1666d24769232b1c15aa663df41a55e"
+    },
+    "fonts/SpaceGrotesk-OFL.txt": {
+      "source": "06-fonts/SpaceGrotesk-OFL.txt",
+      "sha256": "564ce565c371c5e5bbf286006565a7c9aa55a9f56e7ca58d56e05d649dd61a72"
+    },
+    "fonts/Inter-OFL.txt": {
+      "source": "06-fonts/Inter-OFL.txt",
+      "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57"
+    },
+    "fonts/IBMPlexMono-OFL.txt": {
+      "source": "06-fonts/IBMPlexMono-OFL.txt",
+      "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da"
+    }
+  }
+}

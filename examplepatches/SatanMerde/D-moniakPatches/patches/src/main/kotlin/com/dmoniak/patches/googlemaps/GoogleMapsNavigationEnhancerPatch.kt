@@ -12,7 +12,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val googleMapsNavigationEnhancerPatch = bytecodePatch(
     name = "Navigation Supercharged: Speed Cameras & Auto-Zoom Lock - Google Maps (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces persistent speed camera & radar audio alerts, prevents high-speed auto-zoom out to keep your chosen map view, and keeps the screen awake during route guidance.",
+    description = "⚠️ [Experimental / Untested] Forces persistent speed camera & radar audio alerts, prevents high-speed auto-zoom out to keep your chosen map view, and keeps the screen awake during route guidance.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_MAPS)
 

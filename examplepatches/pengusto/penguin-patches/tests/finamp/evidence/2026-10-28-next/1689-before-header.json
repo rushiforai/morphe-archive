@@ -1,0 +1,283 @@
+{
+  "capturedAt": "2026-10-28T21:10:41.532629+00:00",
+  "serial": "emulator-5580",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Back",
+      "class": "android.view.View",
+      "bounds": "[0,48][112,160]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "B Guest",
+      "class": "android.view.View",
+      "bounds": "[144,76][297,132]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Favorite",
+      "class": "android.widget.Button",
+      "bounds": "[904,64][984,144]",
+      "clickable": "false",
+      "enabled": "false",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "8 Tracks Downloaded",
+      "class": "android.view.View",
+      "bounds": "[330,219][607,259]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "0 Albums",
+      "class": "android.view.View",
+      "bounds": "[330,275][452,315]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Fixture Pop",
+      "class": "android.widget.Button",
+      "bounds": "[332,331][494,379]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Fixture Jazz",
+      "class": "android.widget.Button",
+      "bounds": "[502,331][675,379]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "New Queue",
+      "class": "android.view.View",
+      "bounds": "[288,452][473,506]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Play Next",
+      "class": "android.view.View",
+      "bounds": "[473,452][634,506]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Play Last",
+      "class": "android.view.View",
+      "bounds": "[634,452][792,506]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Play",
+      "class": "android.widget.Button",
+      "bounds": "[16,506][365,658]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Shuffle",
+      "class": "android.widget.Button",
+      "bounds": "[365,506][715,658]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Shuffle Albums",
+      "class": "android.widget.Button",
+      "bounds": "[715,506][1064,658]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Favorite Tracks",
+      "class": "android.view.View",
+      "bounds": "[12,658][1068,758]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "See All",
+      "class": "android.view.View",
+      "bounds": "[926,688][1064,728]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Not available in offline mode",
+      "class": "android.view.View",
+      "bounds": "[16,758][241,854]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Most Played",
+      "class": "android.widget.Button",
+      "bounds": "[16,758][241,854]",
+      "clickable": "false",
+      "enabled": "false",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Favorites",
+      "class": "android.widget.Button",
+      "bounds": "[253,758][438,854]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Random",
+      "class": "android.widget.Button",
+      "bounds": "[450,758][624,854]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Latest Releases",
+      "class": "android.widget.Button",
+      "bounds": "[636,758][906,854]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Recently Added",
+      "class": "android.widget.Button",
+      "bounds": "[918,758][1080,854]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "01 - Credit Order\nFixture Credits\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,866][1080,1006]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "03 - Credit Order\nFixture Credits\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,1006][1080,1146]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Appears On",
+      "class": "android.view.View",
+      "bounds": "[12,1174][1068,1274]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Fixture Credits\n2026\n00:32\nFavorite",
+      "class": "android.widget.Button",
+      "bounds": "[16,1286][1064,1414]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "01847da946b6fb9ce949425e026a3af2fb1740be96a6a85798180cd5ce83dfa7"
+}

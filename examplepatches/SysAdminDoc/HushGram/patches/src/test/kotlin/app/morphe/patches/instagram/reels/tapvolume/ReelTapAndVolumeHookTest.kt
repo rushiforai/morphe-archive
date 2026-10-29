@@ -122,7 +122,7 @@ class ReelTapAndVolumeHookTest {
 
     /**
      * In each of the version's three builds the Reels tap and the controller's audio toggle are found once, the hook
-     * goes in once right after the load of the pause path's string with two borrowed locals, and every other
+     * goes in once right after the load of the pause path's string with three borrowed locals, and every other
      * instruction keeps its place and its branches. Read as the patcher reads an APK, and copied.
      */
     @Test
@@ -143,7 +143,7 @@ class ReelTapAndVolumeHookTest {
                     .filter { it.implementation != null }.associateWith(::NeutralNativePath)
 
                 val site = context.findReelTapSite()
-                assertEquals("$what: two borrowed locals", 2, site.scratch.distinct().size)
+                assertEquals("$what: three borrowed locals", 3, site.scratch.distinct().size)
                 assertTrue("$what: the borrowed locals fit an invoke", site.scratch.all { it in 0..15 })
                 context.apply { applyReelTap(site) }
 
@@ -155,11 +155,19 @@ class ReelTapAndVolumeHookTest {
                 val code = tap.code()
                 val ask = code.indexOfFirst { it.referenceText() == MUTE_INSTEAD_OF_PAUSE }
                 assertEquals("$what: right after the load of the pause string", CLIPS_PAUSE, ((code[ask - 1] as ReferenceInstruction).reference as StringReference).string)
-                assertEquals("$what: the hook's last instruction", Opcode.RETURN_VOID, code[ask + hookLength - 1].opcode)
+                // 453's toggle takes a boolean after the reason, true from every audio button, so the hook loads it too.
+                val withFlag = site.toggle.parameterTypes.size == 2
+                val length = hookLength + if (withFlag) 1 else 0
+                assertEquals("$what: the hook's last instruction", Opcode.RETURN_VOID, code[ask + length - 1].opcode)
                 assertTrue("$what: a jump lands inside the hook", ask !in tap.jumpTargets())
-                val toggle = code[ask + 8].referenceText()!!
-                assertTrue("$what: the toggle is the controller's: $toggle", toggle.startsWith("${site.controller}->${site.toggle.name}(I)V"))
-                val added = (ask until ask + hookLength).toSet()
+                val toggle = code[ask + length - 2].referenceText()!!
+                assertTrue("$what: the toggle is the controller's: $toggle",
+                    toggle.startsWith("${site.controller}->${site.toggle.name}(${if (withFlag) "IZ" else "I"})V"))
+                if (withFlag) {
+                    assertEquals("$what: the toggle's flag", 1,
+                        (code[ask + length - 3] as com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction).narrowLiteral)
+                }
+                val added = (ask until ask + length).toSet()
                 for ((method, original) in originals) {
                     val mine = method.code().indices.filter { method.name == tap.name && method.definingClass == tap.definingClass && it in added }.toSet()
                     original.assertPreserved("$what ${method.name}", method, mine)
@@ -282,7 +290,7 @@ class ReelTapAndVolumeHookTest {
                     .filter { it.implementation != null }.associateWith(::NeutralNativePath)
 
                 val site = context.findVolumeSite()
-                assertTrue("$what: the borrowed locals fit an invoke", site.scratch.size == 2 && site.scratch.all { it in 0..15 })
+                assertTrue("$what: the borrowed locals fit an invoke", site.scratch.distinct().size == 3 && site.scratch.all { it in 0..15 })
                 context.apply { applyKeepMuted(site) }
 
                 val asking = holders.flatMap { type ->

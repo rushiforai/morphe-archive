@@ -24,7 +24,8 @@ public final class EruditePreferenceCategory extends ConditionalPreferenceCatego
                 || SettingsStatus.chooseCollectionSearchEnabled
                 || SettingsStatus.keepCollectionsLoadedEnabled
                 || SettingsStatus.collectionSortEnabled
-                || SettingsStatus.collectionVideosSearchEnabled;
+                || SettingsStatus.collectionVideosSearchEnabled
+                || SettingsStatus.inboxActivitySearchEnabled;
     }
 
     @Override
@@ -56,6 +57,16 @@ public final class EruditePreferenceCategory extends ConditionalPreferenceCatego
                 || SettingsStatus.collectionSortEnabled
                 || SettingsStatus.collectionVideosSearchEnabled) {
             addCollectionPreferences(context);
+        }
+        if (SettingsStatus.inboxActivitySearchEnabled) {
+            addPreference(group(context, "Inbox"));
+            addPreference(new TogglePreference(
+                    context,
+                    "Activity and new followers search bar",
+                    "Add a search bar to the Activity notifications and New followers tabs to filter "
+                            + "by user, comment, or notification text.",
+                    Settings.INBOX_ACTIVITY_SEARCH
+            ));
         }
     }
 

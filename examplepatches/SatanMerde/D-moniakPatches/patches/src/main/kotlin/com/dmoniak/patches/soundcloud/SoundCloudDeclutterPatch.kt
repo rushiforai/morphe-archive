@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val soundCloudDeclutterPatch = bytecodePatch(
     name = "Declutter UI & Hide Go+ Upsells - SoundCloud (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hides persistent 'Try SoundCloud Go+' upgrade promotions, subscription nag cards, and declutters stream navigation.",
+    description = "⚠️ [Experimental / Untested] Hides persistent 'Try SoundCloud Go+' upgrade promotions, subscription nag cards, and declutters stream navigation.",
 ) {
     compatibleWith(COMPATIBILITY_SOUNDCLOUD)
 

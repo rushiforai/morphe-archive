@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val redditDeclutterFeedPatch = bytecodePatch(
     name = "Declutter Feed & Hide Recommendations - Reddit (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hides 'Because you visited...', 'Communities you may like', 'Popular near you', awards animations, and live RPAN stream banners in Reddit.",
+    description = "⚠️ [Experimental / Untested] Hides 'Because you visited...', 'Communities you may like', 'Popular near you', awards animations, and live RPAN stream banners in Reddit.",
 ) {
     compatibleWith(COMPATIBILITY_REDDIT)
 

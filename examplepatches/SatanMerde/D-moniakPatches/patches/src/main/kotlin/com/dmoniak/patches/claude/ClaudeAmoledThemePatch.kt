@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val claudeAmoledThemePatch = bytecodePatch(
     name = "AMOLED Dark Theme - Claude AI (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces deep AMOLED pure black theme for Claude AI, optimizing contrast and reducing battery consumption on OLED displays.",
+    description = "⚠️ [Experimental / Untested] Forces deep AMOLED pure black theme for Claude AI, optimizing contrast and reducing battery consumption on OLED displays.",
 ) {
     compatibleWith(COMPATIBILITY_CLAUDE)
 

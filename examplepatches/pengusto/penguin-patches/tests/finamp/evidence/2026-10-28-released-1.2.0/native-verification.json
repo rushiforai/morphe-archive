@@ -1,0 +1,223 @@
+{
+  "original_apk_sha256": "0fc61e5cb80d37b10a735851c2217cbc855b3f1a04bde577187658531ffef581",
+  "bundle_sha256": "8f97562ad506c93c41c5ae8f622529787a59a31eef0cc33ae04496a617a476dc",
+  "masks": {
+    "1": {
+      "source": "6c1501ebdc0c6f89e359e0b3a048a97d5e3f0295",
+      "native_sha256": "226823e90e60d40a9f9c02a0d52fb7edd28421f1671ad50bbd4f86aaa541e3e0",
+      "native_bytes": 22283144,
+      "delta_bytes": 950603,
+      "verified": true
+    },
+    "2": {
+      "source": "cb88a9c77e1382488d23b52614f88c5739fbeedd",
+      "native_sha256": "0def3baaa1bbb6343206f5f69bde48e2bb9307efc15d5efb14327bc1bdfaeb22",
+      "native_bytes": 22283144,
+      "delta_bytes": 3530235,
+      "verified": true
+    },
+    "3": {
+      "source": "fd482788576a857719f89890788fd81e54bfbd04",
+      "native_sha256": "ef00aab3ac6909d6c09b6f3eccfc054e1d59075dfd2323f9236a39cc5d81319e",
+      "native_bytes": 22283144,
+      "delta_bytes": 3532795,
+      "verified": true
+    },
+    "4": {
+      "source": "2b38a855348e32457488f60c4ecfd2a424be6af4",
+      "native_sha256": "5149dc17ee0b1d077cfae52c05fb38a49b2f8174af4bcc0db0b21db246b4963d",
+      "native_bytes": 22283144,
+      "delta_bytes": 3094889,
+      "verified": true
+    },
+    "5": {
+      "source": "6944bc56e156dd9733509eac20626ffa34253888",
+      "native_sha256": "670be10886ce98e66bed005095cc876968f7cdc2474314e9ff34aa5d9725e55d",
+      "native_bytes": 22283144,
+      "delta_bytes": 3126571,
+      "verified": true
+    },
+    "6": {
+      "source": "0edcd44eea00f8d6f38ae2b893143c353d17b0a6",
+      "native_sha256": "2ebabeaa76841d76e2994281dde3cf02fcee65008dc1ddd4698b3d28596fe6a4",
+      "native_bytes": 22283144,
+      "delta_bytes": 3525878,
+      "verified": true
+    },
+    "7": {
+      "source": "20740d272b9fed9b5bf067ff5ca3291ef9332722",
+      "native_sha256": "9af3249be1360cdf3b7662137e2ca2daec90d004a59c978e9526edd42062c85e",
+      "native_bytes": 22283144,
+      "delta_bytes": 3519773,
+      "verified": true
+    },
+    "8": {
+      "source": "0aec0a7143b3ba4eab85f02bd0c3bb4dd61ec4fe",
+      "native_sha256": "46e000ec41eea5f01132d75fac6b5c28a76b04279e0e2a3dc5cc5bddad26afeb",
+      "native_bytes": 22283144,
+      "delta_bytes": 497714,
+      "verified": true
+    },
+    "9": {
+      "source": "4f1f6c1a8ed5f2e7b7e10fc17d6dfd14d7e3a1fd",
+      "native_sha256": "66f011fa9ae68eafd1ba78b7eaec89367d7a71ce0aaba558c415af683ae1c352",
+      "native_bytes": 22283144,
+      "delta_bytes": 882095,
+      "verified": true
+    },
+    "10": {
+      "source": "9600ec634a21ff38c4cce200421e34438de592b0",
+      "native_sha256": "9e8746fa87980dce35d627505e4908dd87829b9cdb0a79e4c87eddd811265f06",
+      "native_bytes": 22283144,
+      "delta_bytes": 3527019,
+      "verified": true
+    },
+    "11": {
+      "source": "61df7ad93c106f997f632c23cb3874f631729439",
+      "native_sha256": "fc2957f72ecd4bd4ed9b4ee1be39e277c808125e73bfd983f40923e8a9442cce",
+      "native_bytes": 22283144,
+      "delta_bytes": 3537016,
+      "verified": true
+    },
+    "12": {
+      "source": "43b93eed0de6f8a3c410fe95dffafffa9f29265e",
+      "native_sha256": "155c1cb4e09f8d563a75457b05ad53a59cfb79707616c87f537ad70f607ccb87",
+      "native_bytes": 22283144,
+      "delta_bytes": 3071423,
+      "verified": true
+    },
+    "13": {
+      "source": "d1fa77ba05cc6ecb4e9800b021abd4cd703f0383",
+      "native_sha256": "18342434eca8f5ef546b473d5b07cb2b6dbf34d774d9e03611d1110be8b57571",
+      "native_bytes": 22283144,
+      "delta_bytes": 3124799,
+      "verified": true
+    },
+    "14": {
+      "source": "93f096c4f921c547a41ab9606e02d739eebf53fa",
+      "native_sha256": "ca0c079e39266f35e6a91546d7f6f84f8b3ad066837979cb74d2cf5e429ec399",
+      "native_bytes": 22283144,
+      "delta_bytes": 3516352,
+      "verified": true
+    },
+    "15": {
+      "source": "fe7611b5c599336979ca7d65509542dfe1458744",
+      "native_sha256": "3b7172a5c91c2e89fa9d08f64f30d9dc13c2ddf8ba9ef438615e03d957f91d2c",
+      "native_bytes": 22283144,
+      "delta_bytes": 3518550,
+      "verified": true
+    },
+    "16": {
+      "source": "d41c02a461c6c84bfa1c385f887cefdbaa373ec4",
+      "native_sha256": "2ae49161f6cbb7c6324bc5c7e8b3c9257c941df94266a60fffa07fe1fd1598cf",
+      "native_bytes": 22283144,
+      "delta_bytes": 1521189,
+      "verified": true
+    },
+    "17": {
+      "source": "6d4fa55d7ed2379da3e63452b0728f3bc8b2a537",
+      "native_sha256": "a1bb813a81a0948795ed4776ac50f8c197da9a61820ef30585fc1fae4b9aaba2",
+      "native_bytes": 22283144,
+      "delta_bytes": 1616858,
+      "verified": true
+    },
+    "18": {
+      "source": "08f6c139a9e4a75219c35fe995cb906f4ca17e76",
+      "native_sha256": "1b37aaf037fdfdffbbf76c8895fe26d1cad9dd18204ae58f0f09cce0cfba23cd",
+      "native_bytes": 22283144,
+      "delta_bytes": 3559936,
+      "verified": true
+    },
+    "19": {
+      "source": "e9c5297b6c562ca35038a15694aa58e4bec524ea",
+      "native_sha256": "9c5a264aab253356092129857c28661dc6bd4797bddcd7249d341e2c1cea0cec",
+      "native_bytes": 22283144,
+      "delta_bytes": 3570796,
+      "verified": true
+    },
+    "20": {
+      "source": "8820950b95d39520441bf0a9eb90f75adb1bc33a",
+      "native_sha256": "d8b1451ff1e697ee0eea83713343cb98c403cf559dc0ca96c8bf5221bcc80095",
+      "native_bytes": 22283144,
+      "delta_bytes": 3239659,
+      "verified": true
+    },
+    "21": {
+      "source": "1eb6cbab2f016dffc66c9ee70ec9367da90849cc",
+      "native_sha256": "92ebf6a3a9f5aefd872660813e145dfa15f9bf9db4c32de320f4a82e02019a07",
+      "native_bytes": 22283144,
+      "delta_bytes": 3242965,
+      "verified": true
+    },
+    "22": {
+      "source": "2a9f609fc388b64b1c0d796689a2fed73a6dee27",
+      "native_sha256": "43ab6c304a765f603ccba3fbb37939f33a905dbc88e5b139cb7171ac8fbfafe2",
+      "native_bytes": 22283144,
+      "delta_bytes": 3527748,
+      "verified": true
+    },
+    "23": {
+      "source": "364f636e8f56de633f46164da9d43b187c043a3b",
+      "native_sha256": "f74793ce6a58e1c9a1b740f23621be1f7b9dc4349e545c7537e9513c53c7c529",
+      "native_bytes": 22283144,
+      "delta_bytes": 3519276,
+      "verified": true
+    },
+    "24": {
+      "source": "6af9580f2c62b2ea0bc090df66e585f7dd6dc257",
+      "native_sha256": "fc0227d5af34d9e5424dfe66577592936af0a424b405d1d73540c66e0891cbe5",
+      "native_bytes": 22283144,
+      "delta_bytes": 1569960,
+      "verified": true
+    },
+    "25": {
+      "source": "e5472b259f9545c53f183320dcb2869db78f38d1",
+      "native_sha256": "7f530efba78b0ba0fe38a9b8e9f3dc4551154c211cea23a855c8a9342f957c09",
+      "native_bytes": 22283144,
+      "delta_bytes": 1647896,
+      "verified": true
+    },
+    "26": {
+      "source": "09db3c5ab4f6285dd4466af3dd05bcf69accf0bb",
+      "native_sha256": "256f3337091dc5ecebe2e4a6d2153090bdb63379855e5afa9cf0cd7b1206f20d",
+      "native_bytes": 22283144,
+      "delta_bytes": 3281806,
+      "verified": true
+    },
+    "27": {
+      "source": "719ac15a1bd1ef8a93920a6d567fecfa6996219c",
+      "native_sha256": "945b38f0314b6536b6ffa407bdce302b3b549e56a161df71d6d388b61f4cc262",
+      "native_bytes": 22283144,
+      "delta_bytes": 3104585,
+      "verified": true
+    },
+    "28": {
+      "source": "9669e2548b336450e5e8e50e5b883382e4bc7e71",
+      "native_sha256": "df2f06cec3ade5db847d570bd0998d153640ff68bb87438d138126caaacc75ab",
+      "native_bytes": 22283144,
+      "delta_bytes": 3235705,
+      "verified": true
+    },
+    "29": {
+      "source": "8d9d740492db1ec42dc7f8c2d66e6246c84a0991",
+      "native_sha256": "66b04f470265d79b567f7ffc04ad4007f7f7928733e08fe299db6793d7822496",
+      "native_bytes": 22283144,
+      "delta_bytes": 3241268,
+      "verified": true
+    },
+    "30": {
+      "source": "551bd197c47ba9de728528d67459671e94d0d2e9",
+      "native_sha256": "ebb3c01f1b56e384e737c1ae5204ff3939fcd791ba415782dfb77204a177e812",
+      "native_bytes": 22283144,
+      "delta_bytes": 3182137,
+      "verified": true
+    },
+    "31": {
+      "source": "313694b7d4cfd5c738964b785cc78ebd721b9ea6",
+      "native_sha256": "2c593b1150acdffc4da8bdd2252cd2b299971c00d055c0f41bf533a6dbafc38d",
+      "native_bytes": 22283144,
+      "delta_bytes": 3106708,
+      "verified": true
+    }
+  }
+}

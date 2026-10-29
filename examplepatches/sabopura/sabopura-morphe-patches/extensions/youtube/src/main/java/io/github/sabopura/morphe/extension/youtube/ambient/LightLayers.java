@@ -12,10 +12,10 @@ import java.util.List;
 
 /**
  * The light on a few small surfaces, one per rectangle it covers. A light frame then only
- * replaces these buffers instead of redrawing YouTube's window. The rectangles never cover
- * the video, so no part of a surface has to be cut out over it, and each buffer can be a
- * quarter of its size: the light is a blurred image of a few dozen pixels anyway, and the
- * display scales the buffer up for free.
+ * replaces these buffers instead of redrawing YouTube's window. The buffers are transparent
+ * where nothing is drawn (the player's edge light leaves the picture clear that way), and each
+ * can be a quarter of its size: the light is a blurred image of a few dozen pixels anyway, and
+ * the display scales the buffer up for free.
  */
 final class LightLayers {
     /** The painter draws in window coordinates; each surface shows its own rectangle of it. */

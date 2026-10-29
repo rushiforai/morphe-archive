@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val bitwardenBypassAutofillRestrictionsPatch = bytecodePatch(
     name = "Bypass Local IP & HTTP Autofill Restrictions - Bitwarden (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Disables insecure HTTP warnings and local IP address autofill blocks, allowing seamless password autofilling on routers, NAS devices, and local development environments.",
+    description = "⚠️ [Experimental / Untested] Disables insecure HTTP warnings and local IP address autofill blocks, allowing seamless password autofilling on routers, NAS devices, and local development environments.",
 ) {
     compatibleWith(COMPATIBILITY_BITWARDEN)
 

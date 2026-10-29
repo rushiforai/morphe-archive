@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val sf2InfiniteEnergyPatch = bytecodePatch(
     name = "Infinite Energy - Shadow Fight 2 (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes the 5-point energy cap in Shadow Fight 2, preventing stamina depletion so you can play unlimited duels, tournaments, and boss fights without waiting. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Removes the 5-point energy cap in Shadow Fight 2, preventing stamina depletion so you can play unlimited duels, tournaments, and boss fights without waiting. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_SHADOW_FIGHT_2)
 
@@ -23,7 +23,7 @@ val sf2InfiniteEnergyPatch = bytecodePatch(
 @Suppress("unused")
 val sf2InstantDeliveryPatch = bytecodePatch(
     name = "Instant Equipment Delivery - Shadow Fight 2 (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes the real-time delivery wait timers when upgrading weapons, armor, and helmets at the Forge/Blacksmith in Shadow Fight 2. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Removes the real-time delivery wait timers when upgrading weapons, armor, and helmets at the Forge/Blacksmith in Shadow Fight 2. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_SHADOW_FIGHT_2)
 

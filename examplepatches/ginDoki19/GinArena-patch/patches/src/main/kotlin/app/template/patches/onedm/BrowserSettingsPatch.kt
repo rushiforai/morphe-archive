@@ -40,14 +40,6 @@ private fun Instruction.methodReferenceOrNull(): MethodReference? = getReference
 private fun MethodReference.hasParameters(vararg expected: String): Boolean =
     parameterTypes.map { it.toString() } == expected.toList()
 
-/**
- * Finds the settings field used in an integer loader sequence of the form:
- *
- * `const-string key; iget field; getInt(key, field); iput field`
- *
- * The current field value is the fallback, so changing it before this loader runs changes
- * only the fresh-install/missing-key default and never overwrites a saved/imported value.
- */
 private fun Method.settingsIntField(key: String): FieldReference {
     val methodInstructions = instructions.toList()
 
@@ -84,12 +76,6 @@ private fun Method.settingsIntField(key: String): FieldReference {
     throw PatchException("Could not find the settings fallback field for key \"$key\" in $this")
 }
 
-/**
- * Replaces the loader's missing-key suggestion fallback immediately after 1DM loads its
- * stock `"SUGGESTION_GOOGLE"` constant into the reserved fallback register.
- *
- * A saved/imported non-empty suggestion string is still read from the settings map and wins.
- */
 private fun MutableMethod.replaceSuggestionFallback(suggestionEnumName: String) {
     val methodInstructions = instructions.toList()
     val fallbackMatches = methodInstructions.withIndex().filter { (_, instruction) ->
@@ -198,7 +184,6 @@ private fun suggestionEnumFor(searchEngine: String, searchSuggestions: String): 
         "yahoo-japan" -> "SUGGESTION_YAHOO_JAPAN"
         "aol" -> "SUGGESTION_AOL"
         "brave" -> "SUGGESTION_BRAVE"
-        // Bing, StartPage and Yandex have no matching suggestion provider in 1DM.
         else -> "SUGGESTION_NONE"
     }
 }
@@ -288,8 +273,6 @@ val presetBrowserSettingsPatch = bytecodePatch(
             throw PatchException("Could not find the settings loader call in $constructorOriginal")
         }
 
-        // Suggestions use a string-enum fallback rather than the current integer field.
-        // Patch both the normal loader and the import/reload loader.
         loaderMatch.method.replaceSuggestionFallback(suggestionEnumName)
         importLoaderMatch.method.replaceSuggestionFallback(suggestionEnumName)
 
@@ -308,8 +291,6 @@ val presetBrowserSettingsPatch = bytecodePatch(
             throw PatchException("Settings constructor has no 4-bit register available for iput")
         }
 
-        // The loader uses each current field as getInt's fallback, so these assignments
-        // are defaults only. A present saved/imported key replaces them immediately below.
         constructor.addInstructionsAtControlFlowLabel(
             loaderInvokeIndex,
             """
@@ -340,10 +321,6 @@ private data class PromptShowSite(
     val builderRegister: Int
 )
 
-/**
- * Extracts everything needed to perform the first half of a prompt's stock dismiss
- * listener: set the in-memory shown flag and persist the same boolean setting.
- */
 private fun Match.promptShownState(key: String): PromptShownState {
     val methodInstructions = originalMethod.instructions.toList()
 
@@ -408,10 +385,6 @@ private fun Match.promptShownState(key: String): PromptShownState {
     )
 }
 
-/**
- * Finds the dialog `show()` call that follows construction of this prompt's dismiss
- * listener, and returns the first instruction index after the dialog has been shown.
- */
 private fun Method.promptShowSite(state: PromptShownState): PromptShowSite {
     val methodInstructions = instructions.toList()
     val listenerIndex = methodInstructions.indexOfFirst { instruction ->
@@ -451,15 +424,50 @@ private fun Method.promptShowSite(state: PromptShownState): PromptShowSite {
     throw PatchException("Could not find the dialog show call for ${state.listenerClass} in $this")
 }
 
+private fun MutableMethod.injectPromptShownRecord(site: PromptShowSite) {
+    val registers = getFreeRegisterProvider(
+        site.insertIndex,
+        3,
+        p0Register,
+        site.builderRegister
+    )
+    val booleanRegister = registers.getFreeRegister4Bit()
+    val objectRegister = registers.getFreeRegister4Bit()
+    val keyRegister = registers.getFreeRegister4Bit()
+    val state = site.state
+
+    // Uses the static application Context field directly so it does not depend on p0 remaining
+    // untouched across builder chains (e.g., showDefaultBrowserCheckoutDialog overwrites p0).
+    addInstructions(
+        site.insertIndex,
+        """
+            const/4 v$booleanRegister, 0x1
+            sget-object v$objectRegister, ${state.staticContextField}
+            invoke-static {v$objectRegister}, ${state.getSettingsMethod}
+            move-result-object v$objectRegister
+            iput-boolean v$booleanRegister, v$objectRegister, ${state.shownField}
+            sget-object v$objectRegister, ${state.staticContextField}
+            invoke-static {v$objectRegister}, ${state.getSettingsStoreMethod}
+            move-result-object v$objectRegister
+            const-string v$keyRegister, "${state.key}"
+            invoke-virtual {v$objectRegister, v$keyRegister, v$booleanRegister}, ${state.setBooleanMethod}
+        """
+    )
+}
+
 @Suppress("unused")
 val browserSetupPromptsOnlyOncePatch = bytecodePatch(
     name = "Browser setup prompts only once",
-    description = "Shows the browser accessibility and shortcut-menu-strip setup prompts once, then records each as shown as soon as it appears so closing the browser before dismissing it cannot make it repeat.",
+    description = "Shows the default-browser, accessibility, shortcut-menu-strip, and adblocker setup prompts once, recording each as shown as soon as it appears so closing the browser before dismissing cannot make it repeat.",
     default = false
 ) {
     compatibleWith(COMPATIBILITY_ONEDM)
 
     execute {
+        val defaultBrowserState = DefaultBrowserPromptDismissFingerprint
+            .matchAll(1..1)
+            .first()
+            .promptShownState("cdbs_shown")
         val accessibilityState = AccessibilityPromptDismissFingerprint
             .matchAll(1..1)
             .first()
@@ -468,49 +476,31 @@ val browserSetupPromptsOnlyOncePatch = bytecodePatch(
             .matchAll(1..1)
             .first()
             .promptShownState("csmss_shown")
+        val adblockerState = AdblockerPromptDismissFingerprint
+            .matchAll(1..1)
+            .first()
+            .promptShownState("cabs_shown_n")
 
+        // 1. Default-browser checkout dialog (`cdbs_shown`) in showDefaultBrowserCheckoutDialog.
+        val defaultPromptMatch = BrowserActivityShowDefaultBrowserPromptFingerprint
+            .matchAll(1..1)
+            .first()
+        val defaultPromptSite = defaultPromptMatch.originalMethod.promptShowSite(defaultBrowserState)
+        defaultPromptMatch.method.injectPromptShownRecord(defaultPromptSite)
+
+        // 2. Accessibility (`cas_shown`), shortcut strip (`csmss_shown`), and adblocker (`cabs_shown_n`)
+        //    in BrowserActivity.onCreate (patched from highest index to lowest).
         val onCreateMatch = BrowserActivityOnCreateSetupPromptsFingerprint
             .matchAll(1..1)
             .first()
         val originalOnCreate = onCreateMatch.originalMethod
-
-        // Patch the later prompt first so the earlier prompt's instruction index stays valid.
-        val showSites = listOf(accessibilityState, shortcutStripState)
+        val showSites = listOf(accessibilityState, shortcutStripState, adblockerState)
             .map { state -> originalOnCreate.promptShowSite(state) }
             .sortedByDescending { it.insertIndex }
 
         val onCreate = onCreateMatch.method
         showSites.forEach { site ->
-            val registers = onCreate.getFreeRegisterProvider(
-                site.insertIndex,
-                3,
-                onCreate.p0Register,
-                site.builderRegister
-            )
-            val booleanRegister = registers.getFreeRegister4Bit()
-            val objectRegister = registers.getFreeRegister4Bit()
-            val keyRegister = registers.getFreeRegister4Bit()
-            val state = site.state
-
-            // This is the same shown-flag write performed by the stock dismiss listener,
-            // moved to immediately after show(). The dialog still appears on a fresh install;
-            // it simply cannot repeat if the activity/process ends before onDismiss runs.
-            onCreate.addInstructions(
-                site.insertIndex,
-                """
-                    const/4 v$booleanRegister, 0x1
-                    invoke-virtual {p0}, Landroid/content/Context;->getApplicationContext()Landroid/content/Context;
-                    move-result-object v$objectRegister
-                    invoke-static {v$objectRegister}, ${state.getSettingsMethod}
-                    move-result-object v$objectRegister
-                    iput-boolean v$booleanRegister, v$objectRegister, ${state.shownField}
-                    sget-object v$objectRegister, ${state.staticContextField}
-                    invoke-static {v$objectRegister}, ${state.getSettingsStoreMethod}
-                    move-result-object v$objectRegister
-                    const-string v$keyRegister, "${state.key}"
-                    invoke-virtual {v$objectRegister, v$keyRegister, v$booleanRegister}, ${state.setBooleanMethod}
-                """
-            )
+            onCreate.injectPromptShownRecord(site)
         }
     }
 }

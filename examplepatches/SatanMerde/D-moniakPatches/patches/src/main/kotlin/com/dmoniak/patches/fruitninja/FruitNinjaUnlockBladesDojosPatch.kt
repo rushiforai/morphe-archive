@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val fruitNinjaUnlockBladesDojosPatch = bytecodePatch(
     name = "Free Shopping & Billing Bypass - Fruit Ninja (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing SDK in Fruit Ninja to bypass in-app purchase verification, unlocking free store purchases for starfruit crates, blade packs, and dojo bundles.",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing SDK in Fruit Ninja to bypass in-app purchase verification, unlocking free store purchases for starfruit crates, blade packs, and dojo bundles.",
 ) {
     compatibleWith(COMPATIBILITY_FRUIT_NINJA)
 

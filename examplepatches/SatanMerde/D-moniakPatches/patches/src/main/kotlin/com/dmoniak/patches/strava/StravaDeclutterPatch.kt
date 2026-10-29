@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val stravaDeclutterPatch = bytecodePatch(
     name = "Declutter Feed & Hide Trials - Strava (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hides persistent 'Start Free Trial' promotional banners, sponsored club challenges, and upsell carousels in the activity feed.",
+    description = "⚠️ [Experimental / Untested] Hides persistent 'Start Free Trial' promotional banners, sponsored club challenges, and upsell carousels in the activity feed.",
 ) {
     compatibleWith(COMPATIBILITY_STRAVA)
 

@@ -48,6 +48,20 @@ final class AmbientLightView extends View {
     private static final long STILL_CAPTURE_INTERVAL_MS = 200L;
     /** A mean colour change this large between two captures is a scene cut. */
     private static final int CUT_DIFFERENCE = 24;
+    /** A bar pixel this bright is text or a logo, not black. */
+    private static final int BAR_TEXT_LUMA = 48;
+    /** After text was seen in a bar, it stays uncovered this long (subtitles come and go). */
+    private static final long BAR_TEXT_HOLD_MS = 4_000L;
+    private long lastTopTextUptime;
+    private long lastBottomTextUptime;
+    /** The readback is this many times larger than the colour samples. */
+    private static final int PICTURE_SCALE = 4;
+    /**
+     * Share of the picture height the crisp light takes its colours from right under the
+     * player, so it continues the picture's edge; it grows to the whole picture one player
+     * height away.
+     */
+    private static final float NEAR_BAND = 0.08f;
 
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static HandlerThread workerThread;
@@ -70,6 +84,8 @@ final class AmbientLightView extends View {
     private final int[] pageLocation = new int[2];
     private boolean barsActive;
     private boolean pageActive;
+    /** The page light is on screen (read by the time bar hook on the main thread). */
+    private boolean pageShown;
     private volatile boolean frameReady;
 
     // Capture state (main thread).
@@ -100,6 +116,8 @@ final class AmbientLightView extends View {
     private int[] pageAccumulated = new int[0];
     private int[] pageScratch = new int[0];
     private int[] pageOutput = new int[0];
+    private int[] pageSoft = new int[0];
+    private int[] straightScratch = new int[0];
     private boolean pageValid;
 
     // Published frame (guarded by frameLock).
@@ -233,8 +251,10 @@ final class AmbientLightView extends View {
         AmbientPageGlowView page = pageRef.get();
         if (page != null) {
             page.setActive(active && pageActive);
+            page.setEdgeAnchor(this);
             page.onTick();
         }
+        pageShown = page != null && active && pageActive;
         if (!active) return;
 
         // Without media-time reports the picture itself tells whether the video moves:
@@ -356,6 +376,12 @@ final class AmbientLightView extends View {
             pageActive = Rect.intersects(pagePlayerRect, pageBounds)
                     && pageArea > viewArea * 1.05f;
         }
+        // The crisp page light lights the player's bars itself, continuing the page.
+        if (pageActive && AmbientLightSettings.getProfile().videoBackdrop
+                && !AmbientLightSettings.isSoftLightEnabled()
+                && !AmbientLightSettings.isPictureBackdropEnabled()) {
+            barsActive = false;
+        }
         return barsActive || pageActive;
     }
 
@@ -369,8 +395,8 @@ final class AmbientLightView extends View {
                 * videoRect.height() / (float) Math.max(1, videoRect.width())));
         sampleHeight = Math.min(sampleHeight, sampleWidth * 3);
         // Read back 4x larger and average down for stable colours.
-        int copyWidth = sampleWidth * 4;
-        int copyHeight = sampleHeight * 4;
+        int copyWidth = sampleWidth * PICTURE_SCALE;
+        int copyHeight = sampleHeight * PICTURE_SCALE;
         if (captureBitmap == null || captureBitmap.getWidth() != copyWidth
                 || captureBitmap.getHeight() != copyHeight) {
             captureBitmap = Bitmap.createBitmap(copyWidth, copyHeight, Bitmap.Config.ARGB_8888);
@@ -570,6 +596,7 @@ final class AmbientLightView extends View {
             pageAccumulated = new int[length];
             pageScratch = new int[length];
             pageOutput = new int[length];
+            pageSoft = new int[length];
             pageValid = false;
         }
         float scaleX = glowWidth / (float) geometry.pageWidth;
@@ -584,6 +611,16 @@ final class AmbientLightView extends View {
                 player.left * scaleX, player.top * scaleY,
                 player.right * scaleX, player.bottom * scaleY
         };
+        // The picture inside burned-in or player bars, measured again on the 4x readback (a
+        // colour sample spans dozens of screen pixels), in readback and page coordinates.
+        int[] pictureBounds = AmbientMath.refineBounds(picture, pictureWidth, pictureHeight,
+                bounds, PICTURE_SCALE);
+        float boundsScaleX = video.width() / (float) pictureWidth;
+        float boundsScaleY = video.height() / (float) pictureHeight;
+        Rect content = new Rect(video.left + Math.round(pictureBounds[0] * boundsScaleX),
+                video.top + Math.round(pictureBounds[1] * boundsScaleY),
+                video.left + Math.round(pictureBounds[2] * boundsScaleX),
+                video.top + Math.round(pictureBounds[3] * boundsScaleY));
         boolean pictureBackdrop = AmbientLightSettings.isPictureBackdropEnabled();
         int radius;
         if (pictureBackdrop) {
@@ -591,6 +628,28 @@ final class AmbientLightView extends View {
             AmbientMath.cover(picture, pictureWidth, pictureHeight, pageGlowPixels, glowWidth,
                     glowHeight);
             radius = Math.max(2, glowWidth / 24);
+        } else if (theater && !AmbientLightSettings.isSoftLightEnabled()) {
+            // Straight out of the picture, coloured from all of it, crisp next to the player
+            // and soft farther away.
+            int scratchLength = AmbientMath.straightScratchLength(pictureBounds);
+            if (straightScratch.length < scratchLength) straightScratch = new int[scratchLength];
+            // Laid out from the picture itself, so the light also continues it sideways
+            // through black bars.
+            float[] glowContent = {
+                    content.left * scaleX, content.top * scaleY,
+                    content.right * scaleX, content.bottom * scaleY
+            };
+            AmbientMath.composeStraight(picture, pictureWidth, pictureBounds, pageGlowPixels,
+                    glowWidth, glowHeight, glowContent, NEAR_BAND,
+                    glowContent[3] - glowContent[1], straightScratch);
+            System.arraycopy(pageGlowPixels, 0, pageSoft, 0, length);
+            AmbientMath.blur(pageSoft, glowWidth, glowHeight, Math.max(2, glowWidth / 14),
+                    pageScratch);
+            AmbientMath.blur(pageGlowPixels, glowWidth, glowHeight, Math.max(1, glowWidth / 40),
+                    pageScratch);
+            AmbientMath.blendByDistance(pageGlowPixels, pageSoft, glowWidth, glowHeight,
+                    glowContent, (glowContent[3] - glowContent[1]) * 0.9f);
+            radius = 0;
         } else {
             // The page light is wider and softer than the in-player bar light.
             float spread = theater ? 0.15f : 0.35f + AmbientLightSettings.getSpread() / 100f;
@@ -600,7 +659,7 @@ final class AmbientLightView extends View {
                     : Math.max(1, Math.round((0.3f + AmbientLightSettings.getBlur() / 100f)
                     * glowWidth / 6f));
         }
-        AmbientMath.blur(pageGlowPixels, glowWidth, glowHeight, radius, pageScratch);
+        if (radius > 0) AmbientMath.blur(pageGlowPixels, glowWidth, glowHeight, radius, pageScratch);
         AmbientMath.blendInto(pageAccumulated, pageGlowPixels,
                 AmbientLightSettings.getSmoothing() / 100f, !pageValid);
         pageValid = true;
@@ -618,19 +677,57 @@ final class AmbientLightView extends View {
             AmbientMath.applyPageFalloff(pageOutput, glowWidth, glowHeight, glowPlayer, falloff,
                     profile.strength, profile.floor, average, profile.averageMix);
             AmbientMath.toneLight(pageOutput, profile.gain, profile.lumaCap);
+            // The player covers the light behind it anyway. Kept opaque, the enlarged light
+            // does not fade out towards the player and show the page colour as a dark (or
+            // white) line along its bottom edge.
+            if (theater) AmbientMath.makeOpaque(pageOutput, length);
         }
         Bitmap bitmap = geometry.page.obtainBackBuffer(glowWidth, glowHeight);
         bitmap.setPixels(pageOutput, 0, glowWidth, 0, 0, glowWidth, glowHeight);
-        geometry.page.publish(bitmap, player, geometry.pageWidth, geometry.pageHeight, cut);
+        long now = SystemClock.uptimeMillis();
+        if (hasBrightPixel(picture, pictureWidth, pictureBounds[0], 0, pictureBounds[2],
+                pictureBounds[1])) lastTopTextUptime = now;
+        if (hasBrightPixel(picture, pictureWidth, pictureBounds[0], pictureBounds[3],
+                pictureBounds[2], pictureHeight)) lastBottomTextUptime = now;
+        geometry.page.publish(bitmap, player, content,
+                now - lastTopTextUptime > BAR_TEXT_HOLD_MS,
+                now - lastBottomTextUptime > BAR_TEXT_HOLD_MS,
+                geometry.pageWidth, geometry.pageHeight, cut);
     }
 
-    /** Accepts a new letterbox estimate only after it repeats, ignoring dark scenes. */
+    /**
+     * Something bright (subtitles, a logo) in a bar region of the picture, which the light
+     * inside the player must then leave uncovered.
+     */
+    private static boolean hasBrightPixel(int[] picture, int width, int left, int top,
+                                          int right, int bottom) {
+        for (int y = Math.max(0, top); y < bottom; y++) {
+            int row = y * width;
+            for (int x = Math.max(0, left); x < Math.min(width, right); x++) {
+                if (AmbientMath.luma(picture[row + x]) > BAR_TEXT_LUMA) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Accepts a new letterbox estimate only after it repeats, ignoring dark scenes. A picture
+     * that grows (bars gone, a dark scene ended) is accepted at once, so the light inside the
+     * player never stays over the picture.
+     */
     private int[] stabilizeBounds(int[] detected, int width, int height) {
         if (detected == null) return stableBounds;
         boolean significant = detected[1] >= height * 0.03f
                 || height - detected[3] >= height * 0.03f
                 || detected[0] >= width * 0.03f || width - detected[2] >= width * 0.03f;
         int[] value = significant ? detected : new int[]{0, 0, width, height};
+        if (stableBounds != null && value[0] <= stableBounds[0] && value[1] <= stableBounds[1]
+                && value[2] >= stableBounds[2] && value[3] >= stableBounds[3]) {
+            candidateBounds = value;
+            candidateCount = STABLE_BAR_FRAMES;
+            stableBounds = value;
+            return stableBounds;
+        }
         if (candidateBounds != null && java.util.Arrays.equals(candidateBounds, value)) {
             candidateCount++;
         } else {
@@ -639,6 +736,10 @@ final class AmbientLightView extends View {
         }
         if (stableBounds == null || candidateCount >= STABLE_BAR_FRAMES) stableBounds = value;
         return stableBounds;
+    }
+
+    boolean isPageLightShown() {
+        return pageShown;
     }
 
     private void setTargetAlpha(float value) {

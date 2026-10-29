@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val pictureThisPremiumPatch = bytecodePatch(
     name = "Unlock Premium & Plant Disease Diagnosis - PictureThis (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing to bypass in-app purchase verification for PictureThis Premium (unlimited plant identifications, disease diagnosis, and care guides).",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app purchase verification for PictureThis Premium (unlimited plant identifications, disease diagnosis, and care guides).",
 ) {
     compatibleWith(COMPATIBILITY_PICTURETHIS)
 

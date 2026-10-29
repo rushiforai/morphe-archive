@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val googleDriveViewOnlyBypassPatch = bytecodePatch(
     name = "Unlock View-Only Download & Export Restrictions - Google Drive (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Bypasses 'Viewers cannot download, print, or copy' restrictions on shared Google Drive files, re-enabling the download, save, print, and export menu actions for protected documents and PDFs.",
+    description = "⚠️ [Experimental / Untested] Bypasses 'Viewers cannot download, print, or copy' restrictions on shared Google Drive files, re-enabling the download, save, print, and export menu actions for protected documents and PDFs.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_DRIVE)
 

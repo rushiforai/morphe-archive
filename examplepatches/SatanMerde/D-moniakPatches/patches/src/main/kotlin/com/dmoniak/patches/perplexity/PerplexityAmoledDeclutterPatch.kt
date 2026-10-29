@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val perplexityAmoledDeclutterPatch = bytecodePatch(
     name = "AMOLED Dark Theme & Declutter - Perplexity (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Replaces gray backgrounds with pure OLED black (#000000) in Perplexity search threads and removes 'Try Pro' upgrade banners.",
+    description = "⚠️ [Experimental / Untested] Replaces gray backgrounds with pure OLED black (#000000) in Perplexity search threads and removes 'Try Pro' upgrade banners.",
 ) {
     compatibleWith(COMPATIBILITY_PERPLEXITY)
 

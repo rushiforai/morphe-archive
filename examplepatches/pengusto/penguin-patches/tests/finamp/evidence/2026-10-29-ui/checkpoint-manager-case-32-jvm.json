@@ -1,0 +1,18 @@
+{
+  "mask": 32,
+  "runtime": "jvm",
+  "runtime_log": "10-29 01:11:16.651  1498  3582 I Morphe Patcher: Runtime: name=jvm memoryLimit=1536",
+  "ui_success": true,
+  "apk_sha256": "7fe6f940aec684b2d0eddbc6b5fc105a4769c889cdbdd01db28eac782d2a4355",
+  "native_sha256": "3b3971fd02d8825a051189b74b84791841c2cabdc7bcddca0bde5a302396e3ce",
+  "changed_retained_entries": [
+    "lib/arm64-v8a/libapp.so"
+  ],
+  "abis": [
+    "arm64-v8a"
+  ],
+  "recovery": false,
+  "available_patch_mask": 63,
+  "actual_export_path": "/sdcard/Download/ui1355-manager-mask-32-jvm.apk",
+  "runner_export_path_correction": "Android saved in Downloads after source search; independently verified that fresh export instead of rerunning patching"
+}

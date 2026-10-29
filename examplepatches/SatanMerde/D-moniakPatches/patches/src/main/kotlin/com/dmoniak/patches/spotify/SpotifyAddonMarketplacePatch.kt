@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val spotifyAddonMarketplacePatch = bytecodePatch(
     name = "Spicetify Community Addons & Settings - Spotify (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Attempts to expose developer lab flags. NOTE: Spicetify extensions are made for Desktop and cannot run natively on Android without an LSPosed/Xposed framework.",
+    description = "⚠️ [Experimental / Untested] Attempts to expose developer lab flags. NOTE: Spicetify extensions are made for Desktop and cannot run natively on Android without an LSPosed/Xposed framework.",
 ) {
     compatibleWith(COMPATIBILITY_SPOTIFY)
 

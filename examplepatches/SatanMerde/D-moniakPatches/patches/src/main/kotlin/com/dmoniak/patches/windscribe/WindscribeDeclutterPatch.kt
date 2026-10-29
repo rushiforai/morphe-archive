@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val windscribeDeclutterPatch = bytecodePatch(
     name = "Declutter UI & Hide Pro Upsells - Windscribe (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hides Pro upgrade ribbons, promotional sales alerts, and persistent upgrade banners in the main location list.",
+    description = "⚠️ [Experimental / Untested] Hides Pro upgrade ribbons, promotional sales alerts, and persistent upgrade banners in the main location list.",
 ) {
     compatibleWith(COMPATIBILITY_WINDSCRIBE)
 

@@ -9,12 +9,16 @@ import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resourceLiteral
 import com.android.tools.smali.dexlib2.Opcode
 
+internal const val BROWSER_APP = "Lacr/browser/lightning/app/BrowserApp;"
+internal const val LIFECYCLE_LISTENER = "Lacr/browser/lightning/app/ActivityLifecycleListener;"
 internal const val MYAPP = "Lacr/browser/lightning/activity/MyAppCompatActivity;"
 internal const val BROWSER_ACTIVITY = "Lacr/browser/lightning/activity/BrowserActivity;"
 internal const val BANNER_MANAGER = "Lacr/browser/lightning/view/BannerManager;"
 internal const val ACR_BANNER_VIEW = "Lacr/browser/lightning/view/BannerView;"
 internal const val MAIN_ACTIVITY = "Lidm/internet/download/manager/MainActivity;"
 internal const val MAIN_ACTIVITY_FRAGMENT = "Lidm/internet/download/manager/MainActivity\$a;"
+internal const val AMAZON_SERVICE = "Lidm/internet/download/manager/amazon/AmazonService;"
+internal const val CHECK_APP_VERSION = "Lidm/internet/download/manager/CheckAppVersion;"
 internal const val LEGACY_START_PAGE = "Lacr/browser/lightning/constant/StartPage2;"
 internal const val SPONSORED_SHORTCUT = "Li/fc;"
 internal const val TORRENT_DETAILS = "Lidm/internet/download/manager/TorrentDetails;"
@@ -27,10 +31,25 @@ internal const val PP0 = "Li/pp0;"
 internal const val D82 = "Li/d82;"
 internal const val X90 = "Li/x90;"
 internal const val CONTEXT = "Landroid/content/Context;"
+internal const val INTENT = "Landroid/content/Intent;"
 internal const val DIALOG_INTERFACE = "Landroid/content/DialogInterface;"
 internal const val DISMISS_LISTENER = "Lacr/browser/lightning/view/DismissListener;"
 
 // region App-level ad initialization and banner gates (non-obfuscated app classes)
+
+object MyAppIsShowBannerFingerprint : Fingerprint(
+    definingClass = MYAPP,
+    name = "isShowBanner",
+    returnType = "Z",
+    parameters = emptyList()
+)
+
+object MyAppLoadBannerAdFingerprint : Fingerprint(
+    definingClass = MYAPP,
+    name = "loadBannerAd",
+    returnType = "V",
+    parameters = emptyList()
+)
 
 object MyAppIsShowConsentAndInitializeAdsFingerprint : Fingerprint(
     definingClass = MYAPP,
@@ -95,6 +114,13 @@ object MainIsShowBannerFingerprint : Fingerprint(
     parameters = emptyList()
 )
 
+object MainIsShowConsentAndInitializeAdsFingerprint : Fingerprint(
+    definingClass = MAIN_ACTIVITY,
+    name = "isShowConsentAndInitializeAds",
+    returnType = "Z",
+    parameters = emptyList()
+)
+
 object TorrentDetailsIsShowBannerFingerprint : Fingerprint(
     definingClass = TORRENT_DETAILS,
     name = "isShowBanner",
@@ -102,9 +128,37 @@ object TorrentDetailsIsShowBannerFingerprint : Fingerprint(
     parameters = emptyList()
 )
 
+object AmazonServiceIsInitializedFingerprint : Fingerprint(
+    definingClass = AMAZON_SERVICE,
+    name = "isInitialized",
+    returnType = "Z",
+    parameters = emptyList()
+)
+
+object AmazonServiceHasAdFingerprint : Fingerprint(
+    definingClass = AMAZON_SERVICE,
+    name = "hasAd",
+    returnType = "Z",
+    parameters = listOf("F")
+)
+
+object AmazonServiceStartFingerprint : Fingerprint(
+    definingClass = AMAZON_SERVICE,
+    name = "start",
+    returnType = "V",
+    parameters = listOf("Z")
+)
+
+object AmazonServiceFetchFingerprint : Fingerprint(
+    definingClass = AMAZON_SERVICE,
+    name = "fetch",
+    returnType = "V",
+    parameters = emptyList()
+)
+
 // endregion
 
-// region House/fallback banners
+// region House/fallback banners & nag prompts
 
 object BannerManagerLoadFingerprint : Fingerprint(
     definingClass = BANNER_MANAGER,
@@ -195,6 +249,45 @@ object AppodealBannerViewSetVisibilitySuperFingerprint : Fingerprint(
     name = "setVisibilitySuper",
     returnType = "V",
     parameters = listOf("I")
+)
+
+/**
+ * Resolves the obfuscated SQLite fallback banner adapter (`Li/l82;` in 20.0) by its
+ * stable `getTag() == "FallbackNetwork"` implementation.
+ */
+object FallbackNetworkTagFingerprint : Fingerprint(
+    name = "getTag",
+    returnType = "Ljava/lang/String;",
+    parameters = emptyList(),
+    strings = listOf("FallbackNetwork")
+)
+
+/**
+ * Resolves the daily house-banner SQLite sync helper invoked by `CheckAppVersion`
+ * (`BannerInfo` remote ad feed).
+ */
+object HouseBannerSyncFingerprint : Fingerprint(
+    definingClass = "Li/x73;",
+    isStatic = true,
+    returnType = "V",
+    parameters = listOf(
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;"
+    ),
+    strings = listOf(",")
+)
+
+/**
+ * Resolves `rate_me_maybe`'s startup gate (`Li/gl5;` in 20.0), which otherwise performs
+ * main-thread `PackageManager` IPC + synchronous `SharedPreferences.Editor.commit()` `fsync`
+ * on every `MainActivity.onCreate()` and displays "Rate 1DM" nag dialogs.
+ */
+object RateMeMaybeShouldShowFingerprint : Fingerprint(
+    returnType = "Z",
+    parameters = emptyList(),
+    strings = listOf("PREF_DONT_SHOW_AGAIN", "com.android.vending")
 )
 
 // endregion
@@ -315,6 +408,79 @@ object Pp0RefreshTimerFingerprint : Fingerprint(
         methodCall(
             smali = "Ljava/util/Timer;->scheduleAtFixedRate(Ljava/util/TimerTask;JJ)V"
         )
+    )
+)
+
+// endregion
+
+// region Cold-start, lifecycle, startup task, and background-timer fingerprints
+
+object BrowserAppInitAppFingerprint : Fingerprint(
+    definingClass = BROWSER_APP,
+    name = "initApp",
+    returnType = "V",
+    parameters = listOf("Landroid/app/Application;", CONTEXT)
+)
+
+object LifecycleOnActivityCreatedFingerprint : Fingerprint(
+    definingClass = LIFECYCLE_LISTENER,
+    name = "onActivityCreated",
+    returnType = "V",
+    parameters = listOf("Landroid/app/Activity;", "Landroid/os/Bundle;")
+)
+
+object LifecycleOnActivityResumedFingerprint : Fingerprint(
+    definingClass = LIFECYCLE_LISTENER,
+    name = "onActivityResumed",
+    returnType = "V",
+    parameters = listOf("Landroid/app/Activity;")
+)
+
+object LifecycleOnActivityDestroyedFingerprint : Fingerprint(
+    definingClass = LIFECYCLE_LISTENER,
+    name = "onActivityDestroyed",
+    returnType = "V",
+    parameters = listOf("Landroid/app/Activity;")
+)
+
+object LifecycleOnStateChangedFingerprint : Fingerprint(
+    definingClass = LIFECYCLE_LISTENER,
+    name = "onStateChanged",
+    returnType = "V",
+    parameters = listOf("L", "L")
+)
+
+/**
+ * Matches `MainActivity`'s blocking cold-start worker (`Li/d34;` in 20.0), which spawns
+ * `:CheckAppVersion`, subscribes to Firebase promo topics (`notify` / `notify_v2`), and
+ * initializes the download database.
+ */
+object MainStartupTaskDoInBackgroundFingerprint : Fingerprint(
+    name = "doInBackground",
+    returnType = "Ljava/lang/Object;",
+    parameters = emptyList(),
+    strings = listOf("notify_v2")
+)
+
+object MainActivityOnPauseFingerprint : Fingerprint(
+    definingClass = MAIN_ACTIVITY,
+    name = "onPause",
+    returnType = "V",
+    parameters = emptyList()
+)
+
+/**
+ * Matches the R8-merged `TimerTask`/`Runnable` dispatcher (`Li/q6;` in 20.0) that hosts
+ * `MainActivity`'s 1 Hz UI-refresh loop, `BannerView` animations, and `pp0`'s ad waterfall timer.
+ */
+object RunnableDispatcherRunFingerprint : Fingerprint(
+    name = "run",
+    returnType = "V",
+    parameters = emptyList(),
+    filters = listOf(
+        checkCast(MAIN_ACTIVITY),
+        checkCast(IDM_BANNER_VIEW),
+        checkCast(PP0)
     )
 )
 
@@ -449,10 +615,6 @@ private val BROWSER_SETTINGS_LOADER_STRINGS = listOf(
  * The obfuscated 1DM settings loader used when the settings singleton is created or
  * reloaded. It is matched by its descriptor and persisted keys, not by its obfuscated
  * class or method name.
- *
- * In the audited 20.0 base this is the `(Landroid/content/Context;)V` loader in the
- * settings class. The preset patch extracts the integer fallback fields from its
- * `getInt(key, currentField)` sequences.
  */
 object BrowserSettingsLoaderFingerprint : Fingerprint(
     isStatic = false,
@@ -474,23 +636,40 @@ object BrowserSettingsImportLoaderFingerprint : Fingerprint(
 )
 
 /**
- * BrowserActivity's setup-prompt chain. The two string-resource literals identify the
- * accessibility-settings prompt and the shortcut-menu-strip prompt in `onCreate`.
+ * BrowserActivity's setup-prompt chain (`cas_shown`, `csmss_shown`, `cabs_shown_n`).
+ * Matched directly via `"csmss_shown"` without scanning the resource table.
  */
 object BrowserActivityOnCreateSetupPromptsFingerprint : Fingerprint(
     definingClass = BROWSER_ACTIVITY,
     name = "onCreate",
     returnType = "V",
     parameters = listOf("Landroid/os/Bundle;"),
-    filters = listOf(
-        resourceLiteral(ResourceType.STRING, "info_checkout_accessibility_settings"),
-        resourceLiteral(ResourceType.STRING, "setup_shortcut_menu_strip_browser")
-    )
+    strings = listOf("csmss_shown")
 )
 
 /**
- * Dismiss listener for the "Checkout Accessibility settings..." prompt.
- * Its persisted shown key is `cas_shown`.
+ * BrowserActivity's "Set as default browser" prompt builder (`cdbs_shown`).
+ */
+object BrowserActivityShowDefaultBrowserPromptFingerprint : Fingerprint(
+    definingClass = BROWSER_ACTIVITY,
+    name = "showDefaultBrowserCheckoutDialog",
+    returnType = "V",
+    parameters = listOf(INTENT)
+)
+
+/**
+ * Dismiss listener for the "Set as default browser" prompt (`cdbs_shown`).
+ */
+object DefaultBrowserPromptDismissFingerprint : Fingerprint(
+    superclass = DISMISS_LISTENER,
+    name = "onDialogDismiss",
+    returnType = "V",
+    parameters = listOf(DIALOG_INTERFACE),
+    strings = listOf("cdbs_shown")
+)
+
+/**
+ * Dismiss listener for the "Checkout Accessibility settings..." prompt (`cas_shown`).
  */
 object AccessibilityPromptDismissFingerprint : Fingerprint(
     superclass = DISMISS_LISTENER,
@@ -501,8 +680,7 @@ object AccessibilityPromptDismissFingerprint : Fingerprint(
 )
 
 /**
- * Dismiss listener for the "Setup shortcut menu strip..." prompt.
- * Its persisted shown key is `csmss_shown`.
+ * Dismiss listener for the "Setup shortcut menu strip..." prompt (`csmss_shown`).
  */
 object ShortcutMenuStripPromptDismissFingerprint : Fingerprint(
     superclass = DISMISS_LISTENER,
@@ -512,4 +690,171 @@ object ShortcutMenuStripPromptDismissFingerprint : Fingerprint(
     strings = listOf("csmss_shown")
 )
 
+/**
+ * Dismiss listener for the "Setup adblocker..." prompt (`cabs_shown_n`).
+ */
+object AdblockerPromptDismissFingerprint : Fingerprint(
+    superclass = DISMISS_LISTENER,
+    name = "onDialogDismiss",
+    returnType = "V",
+    parameters = listOf(DIALOG_INTERFACE),
+    strings = listOf("cabs_shown_n")
+)
+
 // endregion
+
+// region Cold-start, Recents persistence & AdBlocker / Userscript Cloud Sync
+
+/**
+ * `MainActivity.onBackPressed()` calls `m3524(false, false)` at the fallthrough exit path,
+ * which broadcasts `action_main_app_stopped` to `:DownloadService`, calls `finishAndRemoveTask()`
+ * (erasing 1DM from Android Recents), and executes `Process.killProcess(myPid())`.
+ */
+object MainActivityOnBackPressedFingerprint : Fingerprint(
+    definingClass = MAIN_ACTIVITY,
+    name = "onBackPressed",
+    returnType = "V",
+    parameters = emptyList()
+)
+
+internal const val ADBLOCKER_SETTINGS_INFO =
+    "Lcom/aspsine/multithreaddownload/util/AdblockerSettingsInfo;"
+internal const val ADBLOCKER_LIST_SOURCE =
+    "Lcom/aspsine/multithreaddownload/util/AdblockerListSource;"
+internal const val ADBLOCKER_SOURCE_MGMT_ACTIVITY =
+    "Lacr/browser/lightning/activity/AdblockerSourceManagementActivity;"
+internal const val ADBLOCKER_SOURCE_MGMT_INIT_DATA =
+    "Lacr/browser/lightning/activity/AdblockerSourceManagementActivity\$InitData;"
+internal const val USER_SCRIPT =
+    "Lidm/internet/download/manager/userscript/UserScript;"
+internal const val ATOMIC_REFERENCE =
+    "Ljava/util/concurrent/atomic/AtomicReference;"
+internal const val ATOMIC_INTEGER =
+    "Ljava/util/concurrent/atomic/AtomicInteger;"
+
+/**
+ * Default AdBlocker settings constructor (`enableAutoUpdate = false`, `filterAutoUpdateIntervalInDays = 7`).
+ */
+object AdblockerSettingsInfoInitFingerprint : Fingerprint(
+    definingClass = ADBLOCKER_SETTINGS_INFO,
+    name = "<init>",
+    returnType = "V",
+    parameters = emptyList()
+)
+
+/**
+ * Base UI activity `onCreate(Bundle)`, invoked strictly in the UI process right as
+ * `BrowserApp.initApp(Application, Context)` completes.
+ */
+object MyAppOnCreateFingerprint : Fingerprint(
+    definingClass = MYAPP,
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;")
+)
+
+/**
+ * `Hosts & filters` (`AdblockerSourceManagementActivity`) background database loader.
+ */
+object AdblockerSourceManagementGetSourcesFingerprint : Fingerprint(
+    definingClass = ADBLOCKER_SOURCE_MGMT_ACTIVITY,
+    name = "getSourcesFromDataBase",
+    returnType = "Ljava/util/List;",
+    parameters = listOf(ATOMIC_INTEGER)
+)
+
+/**
+ * `AdblockerSourceManagementActivity$InitData.doInBackground` (`abau_shown` / `cabs_shown_n`),
+ * anchoring the `w53` cached flag and `uc1` Tray boolean setter.
+ */
+object AdblockerSourceManagementInitDataFingerprint : Fingerprint(
+    definingClass = ADBLOCKER_SOURCE_MGMT_INIT_DATA,
+    strings = listOf("abau_shown", "cabs_shown_n")
+)
+
+/**
+ * `Hosts & filters` Update Filters dialog entry point.
+ */
+object AdblockerSourceManagementShowUpdateDialogFingerprint : Fingerprint(
+    definingClass = ADBLOCKER_SOURCE_MGMT_ACTIVITY,
+    name = "showUpdateFiltersDialog",
+    returnType = "V",
+    parameters = listOf("Ljava/util/Collection;", "Z", "Z", "Z")
+)
+
+/**
+ * Binary AdBlocker engine validator (`Li/j12;->...(Context)Z`), which anchors `Li/j12;`
+ * without colliding with `Lyads/j12;` in `classes3.dex`.
+ */
+object AdblockBinaryEngineValidateFingerprint : Fingerprint(
+    isStatic = true,
+    returnType = "Z",
+    parameters = listOf(CONTEXT),
+    strings = listOf("ab_filter_compile.lock", "abnfp.bin", "abcfp.bin", ".bak")
+)
+
+/**
+ * Settings persistence setter for `abf_auto_download_last_run_new` (`Li/w53;->...(J)V`).
+ */
+object SettingsSetAdblockLastUpdatedFingerprint : Fingerprint(
+    isStatic = false,
+    returnType = "V",
+    parameters = listOf("J"),
+    strings = listOf("abf_auto_download_last_run_new")
+)
+
+/**
+ * `CheckAppVersion` filter rebuild worker (`ab_rebuild_wanted` + `ACTION_REFRESH_ADBLOCK`),
+ * which references `Li/a61;` singleton + `getAllSources(AtomicInteger)ArrayList`.
+ */
+object CheckAppVersionAdblockRebuildFingerprint : Fingerprint(
+    definingClass = CHECK_APP_VERSION,
+    returnType = "V",
+    parameters = emptyList(),
+    strings = listOf("ab_rebuild_wanted", "intent.action.ACTION_REFRESH_ADBLOCK")
+)
+
+/**
+ * `CheckAppVersion` scheduled AdBlocker auto-update check (`local_1dmfv` / `srv_1dmfv` / `abfauis`).
+ */
+object CheckAppVersionAdblockUpdateFingerprint : Fingerprint(
+    definingClass = CHECK_APP_VERSION,
+    returnType = "V",
+    parameters = emptyList(),
+    strings = listOf("local_1dmfv", "srv_1dmfv", "abfauis")
+)
+
+/**
+ * `CheckAppVersion` scheduled Userscript auto-update check (`us_update_last_run`).
+ */
+object CheckAppVersionUserscriptUpdateFingerprint : Fingerprint(
+    definingClass = CHECK_APP_VERSION,
+    returnType = "V",
+    parameters = emptyList(),
+    strings = listOf("us_update_last_run")
+)
+
+/**
+ * `UserScriptManager` (`Li/ug7;`) SQLite constructor (`userscripts.db`).
+ */
+object UserscriptManagerInitFingerprint : Fingerprint(
+    superclass = "Landroid/database/sqlite/SQLiteOpenHelper;",
+    name = "<init>",
+    returnType = "V",
+    parameters = listOf(CONTEXT),
+    strings = listOf("userscripts.db", "userscript_data_prefs.xml")
+)
+
+/**
+ * Per-script update fetcher (`Li/kh7;`), called by both background auto-update
+ * and manual "Check for update" (`Li/mf7;`).
+ */
+object UserscriptSingleUpdateCheckFingerprint : Fingerprint(
+    isStatic = true,
+    returnType = USER_SCRIPT,
+    parameters = listOf(CONTEXT, USER_SCRIPT, "L", ATOMIC_REFERENCE),
+    strings = listOf("Missing userscript update metadata", ".meta.js")
+)
+
+// endregion
+

@@ -10,19 +10,17 @@ Technical documentation and patch catalog for SD Maid SE (eu.darken.sdmse) on An
 | :--- | :--- |
 | **Target App** | SD Maid SE |
 | **Package Name** | `eu.darken.sdmse` |
-| **Target Version** | `2.2.2-rc0` |
+| **Target Version** | `Single pinned version (see README Patch Catalog)` |
 | **Target Package Format** | APK (standalone FOSS release) |
 | **Primary Architecture** | universal (`arm64-v8a` / `armeabi-v7a` / `x86` / `x86_64`) |
-| **Download Target** | [GitHub Releases](https://github.com/d4rken-org/sdmaid-se/releases) (`eu.darken.sdmse` v2.2.2-rc0 FOSS versionCode 20202000) |
+| **Download Target** | [GitHub Releases](https://github.com/d4rken-org/sdmaid-se/releases) (`eu.darken.sdmse` FOSS) |
 | **Authoritative Source** | GitHub Releases |
 
 ---
 
 ## 2. Applied Patches Catalog
 
-| Patch Name | Typology | Default State | Dependencies | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| **Unlock Pro** | `bytecodePatch` | `true` (Enabled) | None | Unlocks SD Maid SE Pro features locally for the FOSS standalone release. |
+The authoritative patch catalog with descriptions and options is generated in README.md from the built .mpp; see also patches-list.json.
 
 ---
 

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val googlePhotosUnlimitedBackupPatch = bytecodePatch(
     name = "Pixel Spoof for Unlimited Backup - Google Photos (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Spoofs the device model as an original Google Pixel to activate unlimited original-quality photo and video cloud storage backup in Google Photos.",
+    description = "⚠️ [Experimental / Untested] Spoofs the device model as an original Google Pixel to activate unlimited original-quality photo and video cloud storage backup in Google Photos.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_PHOTOS)
 

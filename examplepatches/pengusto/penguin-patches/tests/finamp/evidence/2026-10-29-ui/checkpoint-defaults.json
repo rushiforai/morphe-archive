@@ -1,0 +1,13 @@
+{
+  "available_mask": 63,
+  "all_six_default_off": true,
+  "observed_states": {
+    "1": "Fix section title validation, Disabled",
+    "2": "Song artist order, Disabled",
+    "4": "Load artist pages faster, Disabled",
+    "8": "Fix offline artist tracks, Disabled",
+    "16": "Fix track alphabet navigation, Disabled",
+    "32": "Keep player output controls accessible, Disabled"
+  },
+  "unrelated_universal_selected": 0
+}

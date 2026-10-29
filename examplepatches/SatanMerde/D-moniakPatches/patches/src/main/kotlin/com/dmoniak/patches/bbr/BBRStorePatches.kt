@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val bbrBypassAdsPatch = bytecodePatch(
     name = "Bypass Rewarded Ads - Beach Buggy Racing (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Bypasses rewarded video ads in Beach Buggy Racing for free spins of the Daily Fortune Wheel, post-race coin doublers, and instant ticket refills without viewing ads. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Bypasses rewarded video ads in Beach Buggy Racing for free spins of the Daily Fortune Wheel, post-race coin doublers, and instant ticket refills without viewing ads. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_BEACH_BUGGY_RACING)
 
@@ -22,7 +22,7 @@ val bbrBypassAdsPatch = bytecodePatch(
 @Suppress("unused")
 val bbrFreeShoppingPatch = bytecodePatch(
     name = "Free Shopping - Beach Buggy Racing (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play BillingClient and in-game purchase verification in Beach Buggy Racing to unlock car packages, gem bundles, and coin packs for free. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play BillingClient and in-game purchase verification in Beach Buggy Racing to unlock car packages, gem bundles, and coin packs for free. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_BEACH_BUGGY_RACING)
 

@@ -327,7 +327,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 || SettingsStatus.chooseCollectionSearchEnabled
                 || SettingsStatus.keepCollectionsLoadedEnabled
                 || SettingsStatus.collectionSortEnabled
-                || SettingsStatus.collectionVideosSearchEnabled) {
+                || SettingsStatus.collectionVideosSearchEnabled
+                || SettingsStatus.inboxActivitySearchEnabled) {
             addMenu(screen, Section.ERUDITE, SettingsMenuPreference.Icon.LAYOUT, countEnabled(
                     SettingsStatus.favoritePlaylistGridEnabled && Settings.FAVORITE_PLAYLIST_GRID.get(),
                     SettingsStatus.favoritePlaylistSearchEnabled && Settings.FAVORITE_PLAYLIST_SEARCH.get(),
@@ -335,7 +336,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                     SettingsStatus.chooseCollectionSearchEnabled && Settings.CHOOSE_COLLECTION_SEARCH.get(),
                     SettingsStatus.keepCollectionsLoadedEnabled && Settings.KEEP_COLLECTIONS_LOADED.get(),
                     SettingsStatus.collectionSortEnabled && !"normal".equals(Settings.COLLECTION_SORT.get()),
-                    SettingsStatus.collectionVideosSearchEnabled && Settings.COLLECTION_VIDEOS_SEARCH.get()
+                    SettingsStatus.collectionVideosSearchEnabled && Settings.COLLECTION_VIDEOS_SEARCH.get(),
+                    SettingsStatus.inboxActivitySearchEnabled && Settings.INBOX_ACTIVITY_SEARCH.get()
             ));
         }
 

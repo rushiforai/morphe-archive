@@ -94,3 +94,25 @@ brealorg/breal-morphe-patches issue #257 and its 1.4.123 custom-client implement
 inherited from wchill/Patcheddit. Penguin's focused implementation uses the original
 Infinity app APIs directly and includes no Breal/Patcheddit runtime or shared
 client credentials. Source, provenance and acceptance limits: docs/INFINITY.md.
+
+
+Finamp native backports
+----------------------
+Finamp 1.0.1 by Finamp contributors is licensed under
+MPL-2.0 (https://github.com/finamp-app/finamp). Native backports start from
+65c1a78b1d04dd8525825ecdf2cf39c7442b51e9. Complete corresponding source,
+including the original license/notices and committed dependency lock, is public
+for each selectable combination at the revisions in tests/finamp/native-sources.json
+(https://github.com/pengusto/finamp). Source contributions: PR1830, PR1831,
+PR1832, PR1834, PR1835, PR1836 and PR1837 in finamp-app/finamp. See docs/FINAMP_NATIVE.md for
+toolchain pins, original-APK provenance and the verified output profile.
+
+Read You nested OPML import
+--------------------------
+Targets Read You 0.16.2 by Ashinch / ReadYouApp and contributors, GPL-3.0
+(https://github.com/ReadYouApp/ReadYou), official source release
+091c9207527a10a135b307c9f7747306da36f686. Issue #1143 identifies missing feeds
+in nested folders. Penguin supplies a separate Java depth-first iterator and
+retains the installed application's existing feed/group construction and save
+path. Compile-only be.ceau.opml signatures are never distributed in the APK.
+See docs/READYOU.md for exact APK provenance and acceptance evidence.

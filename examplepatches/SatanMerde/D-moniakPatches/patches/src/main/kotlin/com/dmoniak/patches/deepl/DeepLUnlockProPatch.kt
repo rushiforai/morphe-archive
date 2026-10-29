@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val deepLUnlockProPatch = bytecodePatch(
     name = "Unlock Pro & Formality - DeepL (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing to bypass in-app purchase verification for DeepL Pro (tone and formality selection, extended translation limits, and dictionary features).",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app purchase verification for DeepL Pro (tone and formality selection, extended translation limits, and dictionary features).",
 ) {
     compatibleWith(COMPATIBILITY_DEEPL)
 

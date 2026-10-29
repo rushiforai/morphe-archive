@@ -1,0 +1,15 @@
+{
+  "mask": 31,
+  "runtime": "art",
+  "runtime_log": "10-28 22:53:31.445  7909 15234 I Morphe Patcher: Runtime: name=art memoryLimit=576",
+  "ui_success": true,
+  "apk_sha256": "57c76033dba87ab4ff3db36b3a8ac84bd86e1ed43dab4cd3eca2b216b84e6b43",
+  "native_sha256": "2c593b1150acdffc4da8bdd2252cd2b299971c00d055c0f41bf533a6dbafc38d",
+  "changed_retained_entries": [
+    "lib/arm64-v8a/libapp.so"
+  ],
+  "abis": [
+    "arm64-v8a"
+  ],
+  "recovery": true
+}

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val vlcBackgroundAndPipPlaybackPatch = bytecodePatch(
     name = "Background Playback & Universal PIP - VLC (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces background audio playback and automatic Picture-in-Picture (PIP) for all videos and audio streams when switching apps or minimizing VLC.",
+    description = "⚠️ [Experimental / Untested] Forces background audio playback and automatic Picture-in-Picture (PIP) for all videos and audio streams when switching apps or minimizing VLC.",
 ) {
     compatibleWith(COMPATIBILITY_VLC)
 

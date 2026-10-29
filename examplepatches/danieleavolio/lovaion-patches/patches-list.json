@@ -1,0 +1,146 @@
+{
+  "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
+  "version": "1.4.1",
+  "patches": [
+    {
+      "name": "Bypass PairIP license check",
+      "description": "Disables the PairIP license check so a re-signed build of Tickdrop starts instead of being refused. Required by every other patch.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.sgnoogle.tickdrop",
+          "name": "Tickdrop",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#22C55E",
+          "signatures": [
+            "fb3773930da3293dcce9352c40f5c17ca0623f34cb2b2571595e13ba536456ea"
+          ],
+          "targets": [
+            {
+              "version": "1.9.6",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Plus",
+      "description": "Forces the Plus entitlement to always resolve as active, unlocking the premium skins, the unlimited tasks, pinning and backup.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.sgnoogle.tickdrop",
+          "name": "Tickdrop",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#22C55E",
+          "signatures": [
+            "fb3773930da3293dcce9352c40f5c17ca0623f34cb2b2571595e13ba536456ea"
+          ],
+          "targets": [
+            {
+              "version": "1.9.6",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium",
+      "description": "Forces the premium entitlement to always resolve as active, hides the feed's premium activation banner, shows the active plan as MORHPE in the profile and disables the app's over-the-air updates, which would otherwise replace the patched bundle on the next launch.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.columnapp.column",
+          "name": "Column",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#0F172A",
+          "signatures": [
+            "1df0301d9ac41f57e3a8d9b3cadb415e512b0b86a301050c9d1b7f0a1feb5107"
+          ],
+          "targets": [
+            {
+              "version": "2.0.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium",
+      "description": "Unlocks the premium subscription, its song catalog and practice tools, and skips the subscription screen the app shows on launch.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.ovelin.guitartuna",
+          "name": "GuitarTuna",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#00A388",
+          "signatures": [
+            "432eacd50197216ca879c8fd3c1322ad6e4c51cbfc76e4138d727b75cdc4864d"
+          ],
+          "targets": [
+            {
+              "version": "7.103.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Pro",
+      "description": "Forces the Pro entitlement to always resolve as active, regardless of purchase or backend status.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "it.papalillo.moviestowatch",
+          "name": "Cinemaniac",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#D32F2F",
+          "signatures": [
+            "ca4bfb695d731fd138299522b35b185feeecc3f91e384d7c4822cef13231a2e0"
+          ],
+          "targets": [
+            {
+              "version": "5.0.7",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    }
+  ]
+}

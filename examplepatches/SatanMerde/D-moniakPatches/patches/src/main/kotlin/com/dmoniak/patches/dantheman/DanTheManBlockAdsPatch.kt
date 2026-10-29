@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val danTheManBlockAdsPatch = bytecodePatch(
     name = "Block Ads & Interstitials - Dan The Man (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Eliminates checkpoint video ads, post-stage commercials, and banner ads in Dan The Man.",
+    description = "⚠️ [Experimental / Untested] Eliminates checkpoint video ads, post-stage commercials, and banner ads in Dan The Man.",
 ) {
     compatibleWith(COMPATIBILITY_DAN_THE_MAN)
 

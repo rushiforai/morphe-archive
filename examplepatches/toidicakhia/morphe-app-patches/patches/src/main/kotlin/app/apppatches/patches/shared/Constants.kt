@@ -34,7 +34,8 @@ object Constants {
         )
     )
 
-    // HTTP Sniffer 2.5.2-ad_mob (version code 170), distributed as an XAPK.
+    // HTTP Sniffer 2.5.2-ad_mob (version code 170) and 2.4.9-ad_mob (167, last armv7 build),
+    // distributed as XAPKs.
     val HTTPMOCK_COMPATIBILITY = Compatibility(
         name = "HTTP Sniffer",
         packageName = "com.anetcapture.mock",
@@ -44,6 +45,28 @@ object Constants {
             AppTarget(
                 version = "2.5.2-ad_mob",
                 versionCode = 170
+            ),
+            AppTarget(
+                version = "2.4.9-ad_mob",
+                versionCode = 167
+            )
+        )
+    )
+
+    // TeraBox 4.27.5 (version code 702), distributed as an XAPK.
+    val TERABOX_COMPATIBILITY = Compatibility(
+        name = "TeraBox",
+        packageName = "com.dubox.drive",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x226DF6,
+        signatures = setOf(
+            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
+        ),
+        targets = listOf(
+            AppTarget(
+                version = "4.27.5",
+                versionCode = 702,
+                minSdk = 23
             )
         )
     )

@@ -160,13 +160,14 @@ internal fun BytecodePatchContext.findReelSoundSite(): ReelSoundSite {
     }
     if (!reachable) refuse("$where can't reach the audio state $stateType from the Reels viewer")
 
-    val scratch = onCreate.freeLocalsAt(PATCH, index, 3)
+    // One more local each for the setter's second flag, which 453 added.
+    val scratch = onCreate.freeLocalsAt(PATCH, index, 4)
     val onPause = viewer.lifecycle("onPause")
     val onResume = viewer.lifecycle("onResume")
     return ReelSoundSite(
         onCreate, index, config, ImmutableFieldReference(VIEWER_CONFIG, source.name, VIEWER_SOURCE),
         session, factory, getter, setter, scratch,
-        onPause, onPause.freeLocalsAt(PATCH, 0, 3), onResume, onResume.freeLocalsAt(PATCH, 0, 2),
+        onPause, onPause.freeLocalsAt(PATCH, 0, 4), onResume, onResume.freeLocalsAt(PATCH, 0, 3),
     )
 }
 
@@ -201,7 +202,13 @@ private fun ClassDef.lifecycle(name: String): Method {
  * along the way goes on to Instagram's own code.
  */
 internal fun BytecodePatchContext.applyReelSound(site: ReelSoundSite) {
-    val (flag, state, viewer) = site.scratch
+    // 453's setter also takes whether the user changed it, false here as in Start stories with sound.
+    fun setter(state: Int, value: Int, extra: Int) = if (site.setter.parameterTypes.size == 2) {
+        "const/4 v$extra, 0x0\n                invoke-virtual { v$state, v$value, v$extra }, ${site.setter}"
+    } else {
+        "invoke-virtual { v$state, v$value }, ${site.setter}"
+    }
+    val (flag, state, viewer, setterExtra) = site.scratch
     mutable(site.onCreate).apply {
         addInstructionsWithLabels(
             site.index,
@@ -226,12 +233,12 @@ internal fun BytecodePatchContext.applyReelSound(site: ReelSoundSite) {
                 move-result v$flag
                 invoke-static { v$viewer, v$flag }, $REEL_OPENED
                 const/4 v$flag, 1
-                invoke-virtual { v$state, v$flag }, ${site.setter}
+                ${setter(state, flag, setterExtra)}
             """,
             ExternalLabel("stock", getInstruction(site.index)),
         )
     }
-    val (pFlag, pState, pViewer) = site.pauseScratch
+    val (pFlag, pState, pViewer, pSetterExtra) = site.pauseScratch
     mutable(site.onPause).apply {
         addInstructionsWithLabels(
             0,
@@ -251,12 +258,12 @@ internal fun BytecodePatchContext.applyReelSound(site: ReelSoundSite) {
                 move-result v$pFlag
                 if-eqz v$pFlag, :stock
                 const/4 v$pFlag, 0
-                invoke-virtual { v$pState, v$pFlag }, ${site.setter}
+                ${setter(pState, pFlag, pSetterExtra)}
             """,
             ExternalLabel("stock", getInstruction(0)),
         )
     }
-    val (rFlag, rState) = site.resumeScratch
+    val (rFlag, rState, rSetterExtra) = site.resumeScratch
     mutable(site.onResume).apply {
         addInstructionsWithLabels(
             0,
@@ -270,7 +277,7 @@ internal fun BytecodePatchContext.applyReelSound(site: ReelSoundSite) {
                 invoke-static { v$rState }, ${site.factory}
                 move-result-object v$rState
                 const/4 v$rFlag, 1
-                invoke-virtual { v$rState, v$rFlag }, ${site.setter}
+                ${setter(rState, rFlag, rSetterExtra)}
             """,
             ExternalLabel("stock", getInstruction(0)),
         )

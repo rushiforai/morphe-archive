@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val photomathUnlockPlusPatch = bytecodePatch(
     name = "Unlock Photomath Plus - Photomath (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing to bypass in-app subscription verification for Photomath Plus (detailed math explanations, animated tutorials, and textbook solutions).",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app subscription verification for Photomath Plus (detailed math explanations, animated tutorials, and textbook solutions).",
 ) {
     compatibleWith(COMPATIBILITY_PHOTOMATH)
 

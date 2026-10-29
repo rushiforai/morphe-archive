@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val telegramDisableProximitySensorPatch = bytecodePatch(
     name = "Disable Proximity Sensor - Telegram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Prevents the proximity sensor from turning off the display or switching audio output while listening to voice and video messages.",
+    description = "⚠️ [Experimental / Untested] Prevents the proximity sensor from turning off the display or switching audio output while listening to voice and video messages.",
 ) {
     compatibleWith(COMPATIBILITY_TELEGRAM)
 

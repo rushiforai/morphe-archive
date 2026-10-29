@@ -1,0 +1,144 @@
+{
+  "recorded_at_utc": "2026-10-28T22:19:15Z",
+  "source_build": "5.13.52 (910)",
+  "account_login": false,
+  "purchase": false,
+  "stored_response_bodies": false,
+  "samples": [
+    {
+      "mode": "public",
+      "path": "/domain/200/news/2151890",
+      "utc": "2026-10-28T22:19:14.506952+00:00",
+      "http_status": 200,
+      "bytes": 4311,
+      "sha256": "b1770d0071cb1e45061b03a7f07aab38569b4c098fee39fc24b7f42d3f1ba961",
+      "block_types": {
+        "richTextBlock": 2,
+        "paywallBlock": 1
+      },
+      "block_count": 3,
+      "text_lengths": [
+        432,
+        247,
+        0
+      ],
+      "other_text_lengths": {
+        "newsText": 0,
+        "newsBold": 0,
+        "contentShort": 408
+      }
+    },
+    {
+      "mode": "native-app-header",
+      "path": "/domain/200/news/2151890?scope=premium",
+      "utc": "2026-10-28T22:19:15.003723+00:00",
+      "http_status": 200,
+      "bytes": 28929,
+      "sha256": "25f56c5bf77558e2fa7b676bd8be0a0cae1536259074d2edcfc3d539eeb37b8b",
+      "block_types": {
+        "richTextBlock": 31,
+        "quoteBlock": 9,
+        "tableBlock": 3,
+        "imageBlock": 1,
+        "relatedBlock": 1
+      },
+      "block_count": 45,
+      "text_lengths": [
+        432,
+        247,
+        65,
+        681,
+        97,
+        664,
+        413,
+        691,
+        91,
+        694,
+        37,
+        0,
+        67,
+        1143,
+        116,
+        976,
+        0,
+        1015,
+        156,
+        994,
+        447,
+        114,
+        922,
+        141,
+        54,
+        0,
+        40,
+        686,
+        96,
+        613,
+        386,
+        380,
+        134,
+        596,
+        49,
+        0,
+        44,
+        668,
+        599,
+        129,
+        742,
+        467,
+        88,
+        1038,
+        0
+      ],
+      "other_text_lengths": {
+        "newsText": 0,
+        "newsBold": 0,
+        "contentShort": 408
+      }
+    },
+    {
+      "mode": "native-app-header",
+      "path": "/domain/200/news/2151842?scope=premium",
+      "utc": "2026-10-28T22:19:15.468842+00:00",
+      "http_status": 200,
+      "bytes": 5916,
+      "sha256": "bb92379022bff4e25ad33c9a1c438f497c0e57f557df071aa5fe25b65101c912",
+      "block_types": {
+        "richTextBlock": 1,
+        "mediaBlock": 1,
+        "imageBlock": 5
+      },
+      "block_count": 7,
+      "text_lengths": [
+        269,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "other_text_lengths": {
+        "newsText": 0,
+        "newsBold": 0,
+        "contentShort": 218
+      }
+    },
+    {
+      "mode": "invalid-signature",
+      "path": "/domain/200/news/2151890?scope=premium",
+      "utc": "2026-10-28T22:19:15.523816+00:00",
+      "http_status": 401,
+      "bytes": 96,
+      "sha256": "6164ed5f7ff0c4dfdce56a00f5b28a4ec927f01964bf30a043e0e4693be3837a",
+      "block_types": {},
+      "block_count": 0,
+      "text_lengths": [],
+      "other_text_lengths": {
+        "newsText": 0,
+        "newsBold": 0,
+        "contentShort": 0
+      }
+    }
+  ]
+}

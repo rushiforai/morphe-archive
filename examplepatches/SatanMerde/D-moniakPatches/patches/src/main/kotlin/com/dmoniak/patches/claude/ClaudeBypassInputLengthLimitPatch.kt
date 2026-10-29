@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val claudeBypassInputLengthLimitPatch = bytecodePatch(
     name = "Bypass Input Length & Upload Limits - Claude AI (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Removes client-side message input text length truncation and allows pasting massive codebases or prompts without mobile UI lag in Claude AI.",
+    description = "⚠️ [Experimental / Untested] Removes client-side message input text length truncation and allows pasting massive codebases or prompts without mobile UI lag in Claude AI.",
 ) {
     compatibleWith(COMPATIBILITY_CLAUDE)
 

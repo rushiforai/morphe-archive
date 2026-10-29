@@ -73,7 +73,7 @@
 
 ![](images/divider-purple.svg)
 
-Each app targets exactly one version, the latest supported release. See the [Patch Catalog](#patch-catalog) for the per-app supported version, and each [Application Guide](#application-guides) (section 1, Target & Compatibility) for package name, exact version, variant, and download source. Always use the exact version listed there.
+Each app targets exactly one version, the latest supported release. See the [Patch Catalog](#patch-catalog) for the per-app supported version. Each [Application Guide](#application-guides) (section 1, Target & Compatibility) carries the package name, variant, and download source; always use the exact version listed in the Patch Catalog.
 
 <p align="center"><a href="#top"><b>&uarr; Back to top</b></a></p>
 
@@ -254,7 +254,7 @@ To use them, add `kveld9/kveld-morphe-patches` as a second source in Morphe Mana
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
-| **Block Telemetry & Trackers** | Neutralizes Microsoft OneDS/Aria lifecycle, aggregated-metric and failure-logging dispatch methods, nullifies ad measurement platform identifiers (AIFA, AppSetId), disables HockeyApp and DataTransport components, and strips advertising permissions. |  |
+| **Block Telemetry & Trackers** | Neutralizes Microsoft OneDS/Aria lifecycle, aggregated-metric and failure-logging dispatch methods, nullifies ad measurement platform identifiers (AIFA, AppSetId), disables HockeyApp and DataTransport components, strips advertising permissions, and neutralizes Office early-telemetry dispatch (TelemetryHelper). |  |
 | **Bypass Code Transparency** | Bypasses the code transparency checks. |  |
 | **Disable Login Requirement** | Removes login requirement and FTUX paywall screens. |  |
 | **Remove Shared User ID** | Removes the sharedUserId attribute from the manifest to prevent installation conflicts. |  |
@@ -418,6 +418,7 @@ For bug reports, patch inquiries, or feature proposals, open an issue using the 
 | Contributor | Role & Contributions |
 | :--- | :--- |
 | <a href="https://github.com/aeries0x"><img src="https://github.com/aeries0x.png" alt="@aeries0x" width="48" height="48" style="border-radius: 50%;" /><br><b>@aeries0x</b></a> | Feature request: Proposed X – Default reply sorting (open replies sorted by Likes) feature request ([#12](https://github.com/kveld9/kveld-extra-morphe-patches/issues/12)). |
+| <a href="https://github.com/TheJNXx"><img src="https://github.com/TheJNXx.png" alt="@TheJNXx" width="48" height="48" style="border-radius: 50%;" /><br><b>@TheJNXx</b></a> | Feature request: Proposed Microsoft Word patches (telemetry removal, premium unlock, login requirement removal) feature request ([#36](https://github.com/kveld9/kveld-extra-morphe-patches/issues/36)). |
 | <a href="https://github.com/springfurst"><img src="https://github.com/springfurst.png" alt="@springfurst" width="48" height="48" style="border-radius: 50%;" /><br><b>@springfurst</b></a> | Contributed the Use Places API (New) Moovit search patch ([#44](https://github.com/kveld9/kveld-extra-morphe-patches/pull/44)). |
 <!-- CONTRIBUTORS_END -->
 

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val stravaProFeaturesPatch = bytecodePatch(
     name = "Unlock Pro & Subscriber Analytics - Strava (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks 3D terrain route previews, custom segment leaderboard analytics, relative effort metrics, and training log insights.",
+    description = "⚠️ [Experimental / Untested] Unlocks 3D terrain route previews, custom segment leaderboard analytics, relative effort metrics, and training log insights.",
 ) {
     compatibleWith(COMPATIBILITY_STRAVA)
 

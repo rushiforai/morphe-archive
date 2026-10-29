@@ -12,7 +12,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val plagueIncFreeShoppingAndScenariosPatch = bytecodePatch(
     name = "Unlock Scenarios & Full Expansion - Plague Inc. (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks Official Scenarios, Custom Scenario Creator, Speed Runs, and Fast Forward (speed 3x) by hooking Google Play Billing and expansion license checks.",
+    description = "⚠️ [Experimental / Untested] Unlocks Official Scenarios, Custom Scenario Creator, Speed Runs, and Fast Forward (speed 3x) by hooking Google Play Billing and expansion license checks.",
 ) {
     compatibleWith(COMPATIBILITY_PLAGUE_INC, COMPATIBILITY_PLAGUE_INC_ALT)
 

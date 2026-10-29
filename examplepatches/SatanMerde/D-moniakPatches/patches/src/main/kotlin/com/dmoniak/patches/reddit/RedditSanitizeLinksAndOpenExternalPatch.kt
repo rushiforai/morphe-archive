@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val redditSanitizeLinksAndOpenExternalPatch = bytecodePatch(
     name = "Sanitize Links & Open Externally - Reddit (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips telemetry tracking params (utm_source, out.reddit.com redirects) and opens external links directly in the user's default browser.",
+    description = "⚠️ [Experimental / Untested] Strips telemetry tracking params (utm_source, out.reddit.com redirects) and opens external links directly in the user's default browser.",
 ) {
     compatibleWith(COMPATIBILITY_REDDIT)
 

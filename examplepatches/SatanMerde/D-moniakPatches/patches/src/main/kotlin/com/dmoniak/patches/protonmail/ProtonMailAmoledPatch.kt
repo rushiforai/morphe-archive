@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val protonMailAmoledPatch = bytecodePatch(
     name = "AMOLED Black Theme - Proton Mail (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects pure OLED pitch black (#000000) into Proton Mail's inbox, message reading view, and settings for maximum readability and battery efficiency.",
+    description = "⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into Proton Mail's inbox, message reading view, and settings for maximum readability and battery efficiency.",
 ) {
     compatibleWith(COMPATIBILITY_PROTON_MAIL)
 

@@ -1,0 +1,15 @@
+{
+  "density_restored_to_physical_420": true,
+  "demo_clock_exited": true,
+  "sysui_demo_allowed_restored": "0",
+  "manager_runtime": "jvm (both final cases verified)",
+  "stable_remote_enabled": true,
+  "local_candidate_removed": true,
+  "official_original_cache_restored": true,
+  "fault_backup_absent": true,
+  "test_fault_and_candidate_shared_inputs_removed": true,
+  "owned_fixture_pid_stopped": 15796,
+  "installed_five_fix_apk_sha256": "57c76033dba87ab4ff3db36b3a8ac84bd86e1ed43dab4cd3eca2b216b84e6b43",
+  "physical_devices_touched": false,
+  "owned_emulator_stopped": "emulator-5580 / penguin"
+}

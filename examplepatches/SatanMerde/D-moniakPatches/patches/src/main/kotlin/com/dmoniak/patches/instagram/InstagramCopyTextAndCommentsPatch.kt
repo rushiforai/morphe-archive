@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val instagramCopyTextAndCommentsPatch = bytecodePatch(
     name = "Copy Captions & Comments - Instagram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Enables text selection and direct clipboard copying on post captions, user biographies, and comments.",
+    description = "⚠️ [Experimental / Untested] Enables text selection and direct clipboard copying on post captions, user biographies, and comments.",
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 

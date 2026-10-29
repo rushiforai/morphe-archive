@@ -66,7 +66,7 @@ class CloneManifestTest {
 
             val renamed = renameManifest(manifest, clone, "Second")
 
-            assertEquals("[$build]", ManifestRename(labels = 18, authorities = 25, permissions = 3, permissionUses = 3,
+            assertEquals("[$build]", ManifestRename(labels = 20, authorities = 25, permissions = 3, permissionUses = 3,
                 affinities = 19, categories = 2, hosts = 1, processes = 0, classNames = 0), renamed)
             assertEquals(clone, manifest.documentElement.getAttribute("package"))
             assertEquals("Second", manifest.elements("application").single().getAttribute("android:label"))

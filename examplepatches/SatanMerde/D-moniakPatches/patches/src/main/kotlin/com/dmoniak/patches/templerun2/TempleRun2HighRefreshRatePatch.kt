@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val templeRun2HighRefreshRatePatch = bytecodePatch(
     name = "120 FPS High Refresh Rate & Low Latency - Temple Run 2 (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces 120Hz display refresh rate in Temple Run 2 by configuring WindowManager.LayoutParams.preferredRefreshRate on the game activity.",
+    description = "⚠️ [Experimental / Untested] Forces 120Hz display refresh rate in Temple Run 2 by configuring WindowManager.LayoutParams.preferredRefreshRate on the game activity.",
 ) {
     compatibleWith(COMPATIBILITY_TEMPLE_RUN_2)
 

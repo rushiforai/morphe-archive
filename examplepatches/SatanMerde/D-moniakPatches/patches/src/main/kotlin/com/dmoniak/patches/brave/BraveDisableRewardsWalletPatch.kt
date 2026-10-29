@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val braveDisableRewardsWalletPatch = bytecodePatch(
     name = "Disable Rewards & Crypto Wallet - Brave (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Disables Brave Rewards (BAT), crypto wallet icon, Web3 onboarding prompts, and token badges for a cleaner UI.",
+    description = "⚠️ [Experimental / Untested] Disables Brave Rewards (BAT), crypto wallet icon, Web3 onboarding prompts, and token badges for a cleaner UI.",
 ) {
     compatibleWith(COMPATIBILITY_BRAVE)
 

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val canvaAmoledDeclutterPatch = bytecodePatch(
     name = "AMOLED Dark Theme & Declutter - Canva (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects pure OLED pitch black (#000000) into Canva design workspace and dashboard, and hides Canva Pro trial banners and upgrade reminders.",
+    description = "⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into Canva design workspace and dashboard, and hides Canva Pro trial banners and upgrade reminders.",
 ) {
     compatibleWith(COMPATIBILITY_CANVA)
 

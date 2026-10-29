@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.1",
+  "version": "1.4.0",
   "patches": [
     {
       "name": "Avoid notifications for visible conversations",
@@ -153,6 +153,136 @@
       "options": []
     },
     {
+      "name": "Fix offline artist tracks",
+      "description": "Exclude unrelated songs from shared albums on offline performing-artist pages (#1689). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.unicornsonlsd.finamp",
+          "name": "Finamp",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.0.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Fix quick settings banner contrast",
+      "description": "Use the banner's matching foreground color so its text stays readable with custom accents (#1756). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.unicornsonlsd.finamp",
+          "name": "Finamp",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.0.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Fix section title validation",
+      "description": "Update validation and enable Save when a custom home-section title is entered (#1830). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.unicornsonlsd.finamp",
+          "name": "Finamp",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.0.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Fix track alphabet navigation",
+      "description": "Compare song names and target letters consistently when jumping through the Tracks alphabet (#1790). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.unicornsonlsd.finamp",
+          "name": "Finamp",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.0.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Import nested OPML feeds",
+      "description": "Import feeds inside nested OPML folders into their outer group, preserving document order and feed settings. Official GitHub Read You 0.16.2 APK only.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "me.ash.reader",
+          "name": "Read You",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "0.16.2",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Keep background conversations unread",
       "description": "Do not mark incoming messages read when their conversation is left in the background.",
       "default": true,
@@ -194,6 +324,58 @@
           "targets": [
             {
               "version": "1.6.2",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Keep player output controls accessible",
+      "description": "Open the existing output controls from the player menu even when bottom actions are hidden (#1355). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.unicornsonlsd.finamp",
+          "name": "Finamp",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.0.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Load artist pages faster",
+      "description": "Load artist previews and track counts without downloading the full discography (#1832). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.unicornsonlsd.finamp",
+          "name": "Finamp",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.0.1",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -350,6 +532,32 @@
           "targets": [
             {
               "version": "1.6.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Song artist order",
+      "description": "Choose song-credit display order, including album artists first, metadata order and alphabetical (#1831). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.unicornsonlsd.finamp",
+          "name": "Finamp",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.0.1",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

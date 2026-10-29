@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val turboVpnDeclutterPatch = bytecodePatch(
     name = "Declutter UI & Hide VIP Upsells - Turbo VPN (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hides aggressive VIP subscription popups, floating gift chests, and promotional banners for a clean connection interface.",
+    description = "⚠️ [Experimental / Untested] Hides aggressive VIP subscription popups, floating gift chests, and promotional banners for a clean connection interface.",
 ) {
     compatibleWith(COMPATIBILITY_TURBO_VPN)
 

@@ -1,0 +1,109 @@
+{
+  "original_apk_sha256": "0fc61e5cb80d37b10a735851c2217cbc855b3f1a04bde577187658531ffef581",
+  "bundle_sha256": "d8afd8a1cd55e7f5114e494afa1d099553e34d24c350f0aec2b6208d371c9038",
+  "full_manager_suite": true,
+  "cases": {
+    "127-art": {
+      "mask": 127,
+      "runtime": "art",
+      "apk_bytes": 47040964,
+      "apk_sha256": "de7f9bfe2795033d75feccaab75e7d5fc42867eec5f589bf0906e0d27cae557c",
+      "native_sha256": "8a5266e193782f3718d5e09e4a59d1b4f60ef037e0c499b833fc7d0dbf530ac9",
+      "signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+      "signature_verified": true,
+      "alignment_16k_verified": true,
+      "native_entries_uncompressed": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ]
+    },
+    "127-jvm": {
+      "mask": 127,
+      "runtime": "jvm",
+      "apk_bytes": 47040964,
+      "apk_sha256": "6faf452e91f7ca6b69a822085cd140930d7b7c80fc900339c4e030ef3ceef4ec",
+      "native_sha256": "8a5266e193782f3718d5e09e4a59d1b4f60ef037e0c499b833fc7d0dbf530ac9",
+      "signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+      "signature_verified": true,
+      "alignment_16k_verified": true,
+      "native_entries_uncompressed": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ]
+    },
+    "31-jvm": {
+      "mask": 31,
+      "runtime": "jvm",
+      "apk_bytes": 47040964,
+      "apk_sha256": "92987273bfc86d9a8a22c2e0c84c31c7cc29d73a1f74f9433b136159a074af78",
+      "native_sha256": "2c593b1150acdffc4da8bdd2252cd2b299971c00d055c0f41bf533a6dbafc38d",
+      "signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+      "signature_verified": true,
+      "alignment_16k_verified": true,
+      "native_entries_uncompressed": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ]
+    },
+    "32-jvm": {
+      "mask": 32,
+      "runtime": "jvm",
+      "apk_bytes": 47040964,
+      "apk_sha256": "e7e34157470ffadfc095611349a9cce38cbd014d75ccc2f1eb15eeb683b8b60f",
+      "native_sha256": "3b3971fd02d8825a051189b74b84791841c2cabdc7bcddca0bde5a302396e3ce",
+      "signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+      "signature_verified": true,
+      "alignment_16k_verified": true,
+      "native_entries_uncompressed": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ]
+    },
+    "64-jvm": {
+      "mask": 64,
+      "runtime": "jvm",
+      "apk_bytes": 47040964,
+      "apk_sha256": "3de300e4ef2395e8e87f7b3c0e0c140fb5eebe742aca2e0e1e2401b5b4acd4c8",
+      "native_sha256": "f7d19019147e976515a3de0cdc355a0cf6ba129a7e5f3c16218dedc221510199",
+      "signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+      "signature_verified": true,
+      "alignment_16k_verified": true,
+      "native_entries_uncompressed": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ]
+    },
+    "96-jvm": {
+      "mask": 96,
+      "runtime": "jvm",
+      "apk_bytes": 47040964,
+      "apk_sha256": "161f8079eb49cd551a041ad75f35af8cefd5cc20fb4dd7cbeb069210d8e3c243",
+      "native_sha256": "3df29ebb0c5937a9c64bae039e5cd0295a237eaeaf012fef42037759b911f19f",
+      "signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+      "signature_verified": true,
+      "alignment_16k_verified": true,
+      "native_entries_uncompressed": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ]
+    }
+  }
+}

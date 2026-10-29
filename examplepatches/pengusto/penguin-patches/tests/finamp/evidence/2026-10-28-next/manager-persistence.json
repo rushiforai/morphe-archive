@@ -1,0 +1,16 @@
+{
+  "same_key_update_chain": [
+    "original code",
+    "Manager mask8",
+    "Manager mask16",
+    "Manager recovery mask31"
+  ],
+  "login_retained": true,
+  "downloaded_album_tracks_retained": 8,
+  "offline_artist_tracks": 6,
+  "artist_order_retained": "Metadata order",
+  "first_track_credits": "B Guest, Z Lead, A Guest",
+  "existing_dark_appearance_retained": true,
+  "data_cleared": false,
+  "uninstalled": false
+}

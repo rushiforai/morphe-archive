@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val redditUnlockPremiumAndIconsPatch = bytecodePatch(
     name = "Unlock Reddit Premium & Custom App Icons - Reddit (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Locally unlocks Reddit Premium status, unlocks exclusive custom application launcher icons (Doge, Retro, Neon, Gold), and removes Premium promotional prompts.",
+    description = "⚠️ [Experimental / Untested] Locally unlocks Reddit Premium status, unlocks exclusive custom application launcher icons (Doge, Retro, Neon, Gold), and removes Premium promotional prompts.",
 ) {
     compatibleWith(COMPATIBILITY_REDDIT)
 

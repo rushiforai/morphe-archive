@@ -82,6 +82,7 @@ val ezvizSslUnpinningPatch = bytecodePatch(
     default = false
 ) {
     compatibleWith(EZVIZ_COMPATIBILITY)
+    dependsOn(ezvizSignatureCheckPatch)
     dependsOn(trustUserCertificatesPatch)
 
     execute {

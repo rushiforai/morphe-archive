@@ -1,0 +1,229 @@
+{
+  "date": "2026-10-28",
+  "scope": "actual Android Manager UI; no Desktop/API patching substitutes",
+  "manager": {
+    "package": "app.morphe.manager",
+    "version": "2.2.0",
+    "apk_sha256": "5a175a77f671088c97ebaa6fdd65b1d4ed9f07dda44d59a37d3d11a712da2c44",
+    "signer_sha256": "0b6c9515afb195fac59601696ba0a7907a0b217ccf720b43148427ccf64343e7"
+  },
+  "patcher": "2.0.1",
+  "device": {
+    "serial": "emulator-5580",
+    "avd": "penguin",
+    "properties": {
+      "ro.kernel.qemu": "1",
+      "ro.hardware": "ranchu",
+      "ro.build.version.sdk": "35",
+      "sys.boot_completed": "1"
+    },
+    "verifiedAt": "2026-10-28T18:55:59.993588+00:00"
+  },
+  "source": {
+    "kind": "remote GitHub source added through Manager UI",
+    "repository": "pengusto/penguin-patches",
+    "version": "1.1.0",
+    "manager_cached_bundle_sha256": "8002e1497b68db7b3eeade93b19503ac72d3e6ef8540a342f3326b9933b5f307"
+  },
+  "input_original_apk_sha256": "0fc61e5cb80d37b10a735851c2217cbc855b3f1a04bde577187658531ffef581",
+  "independent_selection_states": {
+    "0": {
+      "capture": "008-patches-default-off",
+      "states": {
+        "Fix section title validation": "Disabled",
+        "Load artist pages faster": "Disabled",
+        "Song artist order": "Disabled"
+      },
+      "other_bundle_selection": "0/5"
+    },
+    "1": {
+      "capture": "009-title-selected",
+      "states": {
+        "Fix section title validation": "Enabled",
+        "Load artist pages faster": "Disabled",
+        "Song artist order": "Disabled"
+      },
+      "other_bundle_selection": "0/5"
+    },
+    "3": {
+      "capture": "010-title-and-artist-selected",
+      "states": {
+        "Fix section title validation": "Enabled",
+        "Load artist pages faster": "Disabled",
+        "Song artist order": "Enabled"
+      },
+      "other_bundle_selection": "0/5"
+    },
+    "7": {
+      "capture": "011-all-three-selected",
+      "states": {
+        "Fix section title validation": "Enabled",
+        "Load artist pages faster": "Enabled",
+        "Song artist order": "Enabled"
+      },
+      "other_bundle_selection": "0/5"
+    }
+  },
+  "outputs": {
+    "original_apk_sha256": "0fc61e5cb80d37b10a735851c2217cbc855b3f1a04bde577187658531ffef581",
+    "bundle_sha256": "8002e1497b68db7b3eeade93b19503ac72d3e6ef8540a342f3326b9933b5f307",
+    "full_manager_suite": true,
+    "cases": {
+      "1-jvm": {
+        "mask": 1,
+        "runtime": "jvm",
+        "apk_bytes": 47040964,
+        "apk_sha256": "1d52d54f41f8c925f1ea9b0e8d83c6106c6e2f25c1761276e04de59f95ab5952",
+        "native_sha256": "226823e90e60d40a9f9c02a0d52fb7edd28421f1671ad50bbd4f86aaa541e3e0",
+        "signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+        "signature_verified": true,
+        "alignment_16k_verified": true,
+        "native_entries_uncompressed": true,
+        "changed_retained_entries": [
+          "lib/arm64-v8a/libapp.so"
+        ],
+        "abis": [
+          "arm64-v8a"
+        ]
+      },
+      "2-jvm": {
+        "mask": 2,
+        "runtime": "jvm",
+        "apk_bytes": 47040964,
+        "apk_sha256": "cd68a048d4b85c8317f8b6e768c86e284b4a939a4612d13b5e109c2b8fd3208a",
+        "native_sha256": "0def3baaa1bbb6343206f5f69bde48e2bb9307efc15d5efb14327bc1bdfaeb22",
+        "signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+        "signature_verified": true,
+        "alignment_16k_verified": true,
+        "native_entries_uncompressed": true,
+        "changed_retained_entries": [
+          "lib/arm64-v8a/libapp.so"
+        ],
+        "abis": [
+          "arm64-v8a"
+        ]
+      },
+      "4-jvm": {
+        "mask": 4,
+        "runtime": "jvm",
+        "apk_bytes": 47040964,
+        "apk_sha256": "b829e3ccf0e343af25fdb853ca9ee7406ec03272e26ea378fee7cca9f92d709b",
+        "native_sha256": "5149dc17ee0b1d077cfae52c05fb38a49b2f8174af4bcc0db0b21db246b4963d",
+        "signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+        "signature_verified": true,
+        "alignment_16k_verified": true,
+        "native_entries_uncompressed": true,
+        "changed_retained_entries": [
+          "lib/arm64-v8a/libapp.so"
+        ],
+        "abis": [
+          "arm64-v8a"
+        ]
+      },
+      "7-art": {
+        "mask": 7,
+        "runtime": "art",
+        "apk_bytes": 47040964,
+        "apk_sha256": "c6cd72dd5e4ca202cbe5416915a1c8504f554067f659a3c9fd3eb3b041bd98d9",
+        "native_sha256": "9af3249be1360cdf3b7662137e2ca2daec90d004a59c978e9526edd42062c85e",
+        "signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+        "signature_verified": true,
+        "alignment_16k_verified": true,
+        "native_entries_uncompressed": true,
+        "changed_retained_entries": [
+          "lib/arm64-v8a/libapp.so"
+        ],
+        "abis": [
+          "arm64-v8a"
+        ]
+      },
+      "7-jvm": {
+        "mask": 7,
+        "runtime": "jvm",
+        "apk_bytes": 47040964,
+        "apk_sha256": "a5395a134a2982e6aa59357240100335fb9bca64e5b219879b9f1b68827d2dbe",
+        "native_sha256": "9af3249be1360cdf3b7662137e2ca2daec90d004a59c978e9526edd42062c85e",
+        "signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+        "signature_verified": true,
+        "alignment_16k_verified": true,
+        "native_entries_uncompressed": true,
+        "changed_retained_entries": [
+          "lib/arm64-v8a/libapp.so"
+        ],
+        "abis": [
+          "arm64-v8a"
+        ]
+      }
+    }
+  },
+  "installation_and_start": {
+    "mask": 7,
+    "runtime": "embedded JVM (default)",
+    "ui_result": "017-combined-jvm-result",
+    "selected_capture": "015-combined-jvm-selected",
+    "export_capture": "018-combined-jvm-exported",
+    "apk_sha256": "a5395a134a2982e6aa59357240100335fb9bca64e5b219879b9f1b68827d2dbe",
+    "apk_bytes": 47040964,
+    "native_sha256": "9af3249be1360cdf3b7662137e2ca2daec90d004a59c978e9526edd42062c85e",
+    "retained_content_changes": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "signature_verified": true,
+    "gui_update_install_verified": true,
+    "installed_apk_sha256": "a5395a134a2982e6aa59357240100335fb9bca64e5b219879b9f1b68827d2dbe",
+    "finamp_opened_from_manager": true,
+    "retained_preferences": {
+      "theme": "Dark",
+      "artist_mode": "Metadata order"
+    },
+    "login_retention": {
+      "verified": true,
+      "reauthentication_performed": false,
+      "synthetic_library_visible": true,
+      "method": "Acceptance.login(require_preserved=True) completed before actual settings readback"
+    }
+  },
+  "rejection": {
+    "method": "controlled original-test-APK cache fault; not an APK-picker test",
+    "original_cache_sha256": "0fc61e5cb80d37b10a735851c2217cbc855b3f1a04bde577187658531ffef581",
+    "fault_input_sha256": "48ffaa2817b8223a7c594e46fa5cf3cb0f0e1c3cd95f16363ed75c5ceaaf5203",
+    "installed": false,
+    "failure_visible": true,
+    "success_actions_absent": true,
+    "original_cache_restored": true,
+    "owner_mode_restored": true,
+    "selected_failed_patch": "Song artist order",
+    "guard": "unsupported ARM64 libflutter.so",
+    "database_or_key_manually_modified": false,
+    "runtime": "art",
+    "runtime_log": "10-28 20:40:07.083  2031 11857 I Morphe Patcher: Runtime: name=art memoryLimit=576"
+  },
+  "recovery": {
+    "mask": 7,
+    "runtime": "art",
+    "runtime_log": "10-28 20:42:28.382  2031 13283 I Morphe Patcher: Runtime: name=art memoryLimit=576",
+    "ui_success": true,
+    "apk_sha256": "8b236cb52e997fe77504a81c092d8b2483bdf4c28322660815f776a16f5d077b",
+    "native_sha256": "9af3249be1360cdf3b7662137e2ca2daec90d004a59c978e9526edd42062c85e",
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "recovery": true,
+    "signature_verified": true,
+    "alignment_16k_verified": true
+  },
+  "production_patch_changes_needed": false,
+  "limits": [
+    "Android 15/API35 ARM64 emulator only; no physical/OEM devices",
+    "No other Android/Manager versions in this UI run",
+    "No live-library performance or RAM benchmark",
+    "Fault rejection uses a deliberately corrupted cached test input, not a claim about generic APK-picker validation"
+  ],
+  "outcome": "PASS"
+}

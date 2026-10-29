@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val cutTheRopeBlockAdsPatch = bytecodePatch(
     name = "Block Ads & Video Interruptions - Cut the Rope (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips interstitial video ads between levels, bottom banners, and promotional nag screens in Cut the Rope.",
+    description = "⚠️ [Experimental / Untested] Strips interstitial video ads between levels, bottom banners, and promotional nag screens in Cut the Rope.",
 ) {
     compatibleWith(COMPATIBILITY_CUT_THE_ROPE)
 

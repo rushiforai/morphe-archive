@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val canvaUnlockExportQualityPatch = bytecodePatch(
     name = "Unlock High Quality Export - Canva (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks maximum export resolution sliders, transparent background PNG option, and bypasses premium element watermark restrictions.",
+    description = "⚠️ [Experimental / Untested] Unlocks maximum export resolution sliders, transparent background PNG option, and bypasses premium element watermark restrictions.",
 ) {
     compatibleWith(COMPATIBILITY_CANVA)
 

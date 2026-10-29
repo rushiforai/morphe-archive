@@ -28,7 +28,7 @@
 
 .EXAMPLE
     scripts/release/preflight.ps1
-    scripts/release/preflight.ps1 -Version 0.0.16
+    scripts/release/preflight.ps1 -Version 0.0.17
 
 .NOTES
     Copyright 2026 HushGram contributors. https://github.com/SysAdminDoc/HushGram

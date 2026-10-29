@@ -17,10 +17,10 @@ github.com/ginDoki19/GinArena-patch
 
 ## 🩹 Patches list
 
-<!-- PATCHES_START EXPANDED -->
-> **[v2.4.2](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.4.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+<!-- PATCHES_START -->
+> **[v2.5.0](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
 <details open>
-<summary>📦 1DM&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 1DM&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -31,9 +31,11 @@ github.com/ginDoki19/GinArena-patch
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Browser setup prompts only once](#browser-setup-prompts-only-once) | Shows the browser accessibility and shortcut-menu-strip setup prompts once, then records each as shown as soon as it appears so closing the browser before dismissing it cannot make it repeat. |  |
+| [AdBlocker turbo & userscript bundle](#adblocker-turbo-userscript-bundle) | Syncs SHA-256-verified pre-compiled AdBlocker binary engines + per-list filter archives (28 default lists, ~1.22M active rules) automatically in the background with instant Hosts & filters hydration, accelerates on-device filter compilation via 64 KB write buffering + foreground thread scheduling, and optionally seeds and auto-updates the mobile-adapted Bypass All Shortlinks userscript. | • AdBlocker engine mode<br>• Bundle Bypass All Shortlinks userscript |
+| [Browser setup prompts only once](#browser-setup-prompts-only-once) | Shows the default-browser, accessibility, shortcut-menu-strip, and adblocker setup prompts once, recording each as shown as soon as it appears so closing the browser before dismissing cannot make it repeat. |  |
+| [Optimize cold start and battery](#optimize-cold-start-and-battery) | Eliminates cold-start Chromium WebView initialization in Download Manager and background services, defers Browser AdBlock filter parsing until Browser launch, defers the CheckAppVersion subprocess past startup, pauses MainActivity's 1 Hz background wakeup loop when minimized, and keeps 1DM alive in Android Recents on Back press without killing background downloads. |  |
 | [Preset browser settings](#preset-browser-settings) | Sets fresh-install browser fallbacks for normal and incognito modes: Brave search, matching suggestions, and Google search by image by default. Saved or imported choices are preserved and can be changed later in 1DM. | • Search engine<br>• Search suggestions<br>• Search by image |
-| [Remove ads and promotions](#remove-ads-and-promotions) | Removes visible banner/full-screen ads and 1DM+ promotions from free 1DM 20.0 (30257), including the downloads-home VPN promo bar and sponsored browser start-page tiles. User shortcuts remain available. |  |
+| [Remove ads and promotions](#remove-ads-and-promotions) | Removes banner, interstitial, fallback, and Amazon ads, 1DM+ sale/VPN/drawer/rate promotions, sponsored browser tiles, promo FCM topics, and 17 ad/telemetry SDK initializers and native/asset payloads from free 1DM 20.0 (30257). |  |
 
 </details>
 
@@ -104,6 +106,22 @@ github.com/ginDoki19/GinArena-patch
 
 </details>
 
+<details open>
+<summary>📦 SK Tech TV&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.7 |
+| :---: |
+| Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 6.0+), build 17 |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Remove ads, telemetry & restrictions](#remove-ads-telemetry-restrictions) | Replaces native signature-locked config decryption in pure Java so encrypted channel and event feeds keep loading after Morphe re-signs the APK, removes all banner/start/support/external ads, optionally disables the in-app web view, suppresses update lockouts, and optionally bypasses root/sniffer/proxy-cert checks. Strips Firebase telemetry and push notifications. | • Remove push notifications<br>• Bypass update & force-update screen<br>• Bypass root & sniffer checks<br>• Strip native & telemetry bloat<br>• Disable WebActivity (potential ad surface) |
+
+</details>
+
 <!-- PATCHES_END -->
 
 ---
@@ -111,59 +129,56 @@ github.com/ginDoki19/GinArena-patch
 ## 📦 1DM (20.0, build 30257)
 
 <details>
-<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
+<summary><b>📖 App details</b> — what it does, cloud architecture, target version and notes (click to expand)</summary>
 
 ### What it does
 
-It removes visible advertising and promotion UI from the free app while keeping the app's own
-flow intact:
+Turns free **1DM 20.0** (`idm.internet.download.manager`) into an instant-opening, zero-drain download manager and browser — backed by an automated **Cloud Pre-Built AdBlocker (`~1.22M` active rules)** and **Shortlink Bypass** pipeline so you never wait 4 minutes on *"Rebuilding filters..."* or cook your phone's CPU, while keeping the `.mpp` patch bundle tiny (`~630 KB`) and free-1DM boundaries strictly intact.
 
-- Consent / ad-SDK initialization is short-circuited, but the app's continuation callbacks still run.
-- Persistent network banners and the built-in 1DM+ house/promo banners are never loaded or shown,
-  and their views are forced `GONE`.
-- Full-screen interstitial paths are skipped, again running the caller's continuation.
-- The navigation drawer **“Upgrade to 1DM+”** item is hidden.
-- The **“1DM+ on sale”** toolbar subtitle is disabled (the legitimate *Update app* subtitle is kept).
-- The empty banner container (`MaxHeightLinearLayout`) is collapsed to 0×0 so no blank strip remains.
-- The downloads-home promo strip (`offer_vpnLL`) is forced onto the app's own hide path, so the
-  ProtonVPN installation offer—and the other promo messages rotated through that same strip—are not
-  shown. This does not alter 1DM's actual VPN settings or functionality.
-- Sponsored browser start-page tiles are removed:
-  - the modern start page no longer selects database `BannerInfo` tile ads (`isTileAd()` now
-    returns false), including previously cached *Play Quiz / Play Games* promotions;
-  - the legacy/simple start page's two remotely configured sponsored shortcuts are nulled before
-    its HTML is built.
+#### AdBlocker turbo & userscript bundle *(default: on — flagship cloud suite)*
 
-User-created browser shortcuts and the **Add Shortcut** tile use a separate path and remain available.
+Upgrades 1DM 20.0's built-in Browser AdBlocker and Userscript engine with zero `.mpp` size bloat and zero manual upkeep:
 
-#### Browser setup prompts only once (opt-in)
+- **AdBlocker engine mode** (`adblockerMode`, default: **Cloud Pre-Built + Weekly Auto-Sync**):
+  - **☁️ Cloud Pre-Built + Weekly Auto-Sync (`cloud_sync`):** Every week, GitHub Actions runs 1DM 20.0's real filter compiler headlessly against live upstream sources (with 1DM's embedded `js_resources.txt` `+js` scriptlets & `$redirect` resources mounted) and publishes a SHA-256-verified `schema: 2` pack to the rolling `onedm-cache` release. On your device, 1DM quietly fetches and swaps the pre-compiled binary engines (`abnfp.bin`, `abnhp.bin`, `abcfp.bin`) + all **28** default filter list archives (EasyList, EasyPrivacy, uBlock Origin, AdGuard, OISD Full, HaGeZi Pro, Peter Lowe, regional & anti-adblock lists) in **under 2 seconds**:
+    - **Instant `Hosts & filters` hydration:** Populates 1DM's filter database and `.adblocker_1dm` archives automatically so **Hosts & filters** immediately displays all **`~1,224,500+` active filters** alongside each list's rule count, size, and last-updated date — no manual *Update* tap required, and the redundant *"Enable filter lists auto-update?"* prompt is suppressed.
+    - **Smart hybrid handoff:** Custom **My Filter** rules keep working natively. Tapping **Update** on the default 28-list set runs a fast ~1–2s Cloud check, while toggling extra lists or adding custom filter URLs automatically hands compilation over to **Local Turbo**.
+  - **⚡ Local Turbo Parser + Weekly Auto-Rebuild (`local_turbo`):** Prefers 100% on-device compilation with `7`-day auto-updates. Replaces 1DM's unbuffered `RandomAccessFile` compiler output with a `64 KB` buffered writer + in-memory index patching (eliminating **~4,000,000 flash syscalls** per rebuild with 100% byte-identical output) and keeps worker scheduling on foreground CPU cores (`priority = 1`) so local rebuilds finish dramatically faster without UI lag.
+  - **Stock 1DM (`stock`):** Leaves 1DM's stock AdBlocker untouched.
+- **🔗 Bundled Bypass All Shortlinks userscript** (`bundleBypassShortlinks`, default: **on**):
+  - Automatically installs and updates a mobile-adapted **Bypass All Shortlinks Debloated** `.1dmus` bundle from the weekly Cloud cache — pre-authorizing redirect/background XHR `@connect` domains (which otherwise fail silently in 1DM), adding `window.close` grant support, and bundling offline `MonkeyConfig` resized for phone screens (`min(92vw, 600px)` × `min(80vh, 480px)`).
+  - Preserves your **enabled / disabled** toggle across updates, routes per-script *Check for update* safely through the mobile-adapted bundle instead of raw desktop JS, and **never re-installs** the script if you choose to delete it.
 
-This separate patch is **off by default**. The stock browser can show its
-**Accessibility settings** and **shortcut menu strip** setup
-prompts again if the browser activity/process ends before their dismiss callbacks save the
-“shown” flags. This patch lets each prompt appear normally the first time, then performs the
-same in-memory and persisted shown-flag write immediately after `show()`. Closing the browser
-before dismissing either dialog therefore cannot make that same setup prompt keep returning.
+#### Optimize cold start and battery *(default: on)*
 
-#### Preset browser settings (opt-in)
+Built specifically to eliminate opening lag (especially on budget / low-RAM / eMMC phones like Redmi 8A), phone heating, and idle background drain:
 
-This separate patch is **off by default**, so it is not selected accidentally. When a user
-enables it, it changes only the fresh-install/missing-key fallbacks for normal and incognito
-browsing:
+- **Zero `120+ MB` Chromium WebView spin-up on cold start:** Stops 1DM from initializing the Android System WebView / Trichrome engine on the main UI thread when you only open the Download Manager or run a background download. WebView only loads when you actually open the built-in Browser.
+- **Deferred Browser AdBlock & `:CheckAppVersion` startup work:** Defers AdBlock engine loading until Browser launch and delays the secondary `:CheckAppVersion` subprocess past startup (skipping it completely if the app was already minimized), keeping cold-start UI rendering fast and smooth.
+- **Zero `1 Hz` idle battery drain (86,400 wakeups/day saved):** Pauses `MainActivity`'s 1-second background `TimerTask` and `ActivityManager` Binder IPC polling whenever 1DM is minimized, resuming live progress updates instantaneously when brought back to the screen.
+- **Keeps 1DM in Android Recents & protects background downloads on Back press:** Replaces 1DM's destructive `finishAndRemoveTask()` + `Process.killProcess` Back-button behavior with standard Android `moveTaskToBack(true)` — pressing **Back** sends 1DM cleanly to the background without vanishing from Recent Apps or interrupting active downloads, while the explicit drawer **Exit** button still closes the app completely.
 
-- **Search engine:** Brave by default, with Google, DuckDuckGo/Lite, Bing, StartPage/Mobile,
-  Yahoo/Japan, Yandex/Russian, Baidu, and AOL available as patch options.
-- **Search suggestions:** matched to the selected search provider where 1DM supports it;
-  providers without a matching suggestion service use **None** instead of silently using
-  Google. A supported provider or None can also be chosen explicitly.
-- **Search by image:** Google by default, with Bing, Yandex, TinEye, SauceNAO, and Sogou
-  available. 1DM does not offer Brave or DuckDuckGo for reverse image search.
+#### Remove ads and promotions *(default: on)*
 
-Saved or imported 1DM choices are not overwritten, and every provider can still be changed
-later inside 1DM's General Settings.
+Strips all advertising, nags, and third-party tracking bloat from free **1DM 20.0 (30257)** while keeping every download, torrent (`libjlibtorrent`), FFmpeg, VPN, and browser feature working:
 
-GinArena Patch does **not** unlock any 1DM+ paid features (scheduler, higher part/concurrency
-caps, paid DNS entries, …), and it contains no 1DM+ code or resources.
+- **Manifest & startup SDK debloat:** Removes **17** startup ad/mediation/Sentry/AppMetrica/Firebase `ContentProvider`s and UnityAds initializers, **16** ad/FCM background services, **7** wakeup receivers, ~115 ad activities (keeping Dropbox, Biometric, Billing, and Play Services intact), and tracking permissions (`AD_ID`, `ACCESS_ADSERVICES_*`, Install Referrer, C2DM).
+- **~10.5 MB native & asset cleanup:** Strips **11** third-party ad/telemetry `.so` libraries per ABI and **64** MRAID/VAST/OMSDK ad asset files while keeping all **14** core functional native libraries and 1DM's built-in AdBlocker/Userscript assets untouched.
+- **Clean UI & zero nags:** Disables Appodeal, Amazon, and SQLite fallback banners, interstitials, waterfall timers, *"Rate 1DM"* popups, *"Upgrade to 1DM+"* / *"1DM+ on sale"* / VPN promo banners, sponsored browser start-page shortcuts (preserving user shortcuts and **Add Shortcut**), and promotional FCM topics.
+
+#### Browser setup prompts only once *(optional — off by default)*
+
+Records the **Set as default browser**, **Accessibility settings**, **Shortcut menu strip**, and **Setup adblocker** prompts as shown as soon as they appear, so closing the browser without dismissing them won't make them nag you again next launch.
+
+#### Preset browser settings *(optional — off by default)*
+
+Sets clean fresh-install fallbacks for normal and incognito browsing without overwriting any setting you've already saved or imported:
+
+- **Search engine:** Brave by default (Google, DuckDuckGo/Lite, Bing, StartPage/Mobile, Yahoo/Japan, Yandex/Russian, Baidu, and AOL available).
+- **Search suggestions:** Matched automatically to your chosen search engine where supported (or **None** instead of silently leaking keystrokes to Google).
+- **Search by image:** Google by default (Bing, Yandex, TinEye, SauceNAO, and Sogou available).
+
+GinArena Patch does **not** unlock paid **1DM+** features (scheduler, higher part/concurrency caps, paid DNS entries, …) and contains no 1DM+ code or resources.
 
 ### Target app (1DM)
 
@@ -180,6 +195,93 @@ caps, paid DNS entries, …), and it contains no 1DM+ code or resources.
 Do **not** use the separate **20257** variant for this patch.
 
 > **Uptodown note:** If Morphe’s “help me find an APK” flow opens Uptodown and downloads the 1DM 20.0 XAPK, that file has also been tested successfully. Select it in Morphe Manager instead of installing it. For x86/x86_64 devices, or if the Uptodown result is not exactly 20.0, use the APKMirror universal APKM above.
+
+</details>
+
+---
+
+## 📦 MX Player (3.4.1, build 2001003551)
+
+<details>
+<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
+
+### What it does
+
+Keeping it simple here: these patches turn free **MX Player** (`com.mxtech.videoplayer.ad`)
+into what it should've been in the first place — a clean, fast local video and music player.
+No ads, no online junk, no weird surprises. Patch it, open it, it just works. Signature
+stuff is handled quietly under the hood, so there's nothing extra for you to configure.
+
+Choices are **minimal on purpose**: two patches are **on by default** (that's the actual
+debloat), and two small extras are **optional**. No endless toggle maze — pick the optional
+stuff only if you want it.
+
+> **Want heavy customization instead?** Totally fair — this probably isn't your patch then.
+> Go with the OG MX Player patches by **BlazeFTL** 👉
+> [FTL-Patches](https://github.com/BlazeFTL/FTL-Patches). They go much deeper with options
+> and tweaks. GinArena's version is deliberately the opposite: few choices, debloated,
+> stable, done. Use whichever style suits you — no hard feelings. 🤝
+
+<a id="remove-ads-bloat"></a>
+#### Remove ads & bloat
+
+*On by default — the main one.* Kills ads everywhere (home banners, folder ads, player and
+pause ads, pop-ups, Me-page promos, exit ads), removes the shortcut strip at the top of
+Home and the online ad-locked *Other Themes* (Zodiac etc.), and switches off the online
+clutter: **Live TV**, **OTT shows**, **MX Tube**, **Shorts**, and **Games**. The stuff you
+actually use stays right where it was — **Local Music**, **Continue Watching**, the
+**All-Files-Access** screen, **Adaptive / Light / Dark** modes, and all **32 Classic Themes**
+(applying in 1 tap, offline and online).
+
+#### Clean Me page
+
+*On by default.* Just tidies up the **Me** tab: WhatsApp Status Saver, promo banners,
+**Legal**, **Help**, and **Data Privacy** clutter are gone, while your 8 local tool
+shortcuts (*Video Playlist*, *Private Folder*, *FolderCleaner*, *Bookmarks*, *File
+Transfer*, *Equalizer*, *Smooth Play*, *Decoder*), **App Theme**, **Settings**, and
+**Custom Pop-up Play** all stay.
+
+#### Remove bottom navigation bar
+
+*Optional — off by default.* Like the normal bottom bar (**Folders**, **Music**,
+**Transfer**, **Me**)? Leave this off. Want a cleaner, full-height folder list instead?
+Turn it on — the bottom bar hides and **Me** moves to the top-right of the Home toolbar
+(*Music* and *File Transfer* are still easy to reach inside *Me*). Entirely your call.
+
+#### Custom codec
+
+*Optional — off by default.* Only if you care about Dolby/DTS audio: pick
+`aio-v3.1.0_r1.zip` in the patch option while patching, and **E-AC-3 (Dolby Digital Plus)**,
+**TrueHD**, **MLP**, **DTS**, and **AC-3** videos just play out of the box
+(`Settings → Decoder → Custom codec` will show `Bundled custom codec (v3.1.0)`). Don't need
+it? Skip it — nothing else changes.
+
+### Target app & downloads (MX Player)
+
+> **Important:** Download the **standalone `.apk` file** (~111 MB), **not** a `.xapk` or
+> `.apkm` split bundle. APKPure, Uptodown, and APKMirror all distribute the exact same official
+> Amazon Mobile LLC signed standalone APK below.
+
+| Field | Value |
+| --- | --- |
+| Package | `com.mxtech.videoplayer.ad` |
+| Version | **3.4.1** (versionCode 2001003551) — standalone universal APK (`arm64-v8a` + `armeabi-v7a`, Android 7.0+) |
+| Stock APK — **APKPure** | [Latest 3.4.1 APK](https://apkpure.com/mx-player-app/com.mxtech.videoplayer.ad) · [Version history (`3.4.1`)](https://apkpure.com/mx-player-app/com.mxtech.videoplayer.ad/versions) *(choose the **APK** download, not `XAPK`)* |
+| Stock APK — **Uptodown** | [MX Player versions (`apk 3.4.1`)](https://mx-player.en.uptodown.com/android/versions) *(choose the **`apk`** variant)* |
+| Stock APK — **APKMirror** | [MX Player releases on APKMirror](https://www.apkmirror.com/apk/amazon-mobile-llc/mx-player/) *(choose the **`3.4.1` `APK`** variant, not `BUNDLE`)* |
+| Signing certificate SHA-256 | `0d9b4c778672e753d45aba4f10df31e1d10bf75b1245469131ef01b82f0f91b6` |
+| `3.4.1` APK SHA-256 | `db775bd81460e31bd21602cf0b842bc3e2fd769b0bd23250e70036cc4cf95bf4` |
+| Optional **Custom Codec v3.1.0** | [GitHub — `iDNA420/MX-FFmpeg` `v3.1.0_r1` (`aio-v3.1.0_r1.zip` recommended)](https://github.com/iDNA420/MX-FFmpeg/releases/tag/v3.1.0_r1) (`SHA-256: ebb0bd5db0f855caca6167747987a229836d7cc0062a2d5c23dbf91d057c617b`) — keep it as a `.zip` and select it inside the **Custom codec** patch option in Morphe Manager |
+
+---
+
+### Stock download note
+
+Morphe patch metadata does not have a dedicated “stock app download URL” field, and Morphe Manager
+does not read a download destination from a patch bundle. Exact download URLs and SHA-256 hashes
+therefore stay in this README, where they are clickable, while the in-Manager version cards carry
+short readable build labels and validate the package name, file type, version, `versionCode`,
+`minSdk`, and official signing-certificate SHA-256.
 
 </details>
 
@@ -360,90 +462,65 @@ server-compatible experience on **PlayZ TV 2.3.1** across phones, tablets, and A
 
 ---
 
-## 📦 MX Player (3.4.1, build 2001003551)
+## 📦 SK Tech TV (2.7, build 17)
 
 <details>
 <summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
 
 ### What it does
 
-Keeping it simple here: these patches turn free **MX Player** (`com.mxtech.videoplayer.ad`)
-into what it should've been in the first place — a clean, fast local video and music player.
-No ads, no online junk, no weird surprises. Patch it, open it, it just works. Signature
-stuff is handled quietly under the hood, so there's nothing extra for you to configure.
+The **Remove ads, telemetry & restrictions** patch (enabled by default) provides a clean,
+server-compatible experience on [**SK Tech TV 2.7**](https://sktech.site/) across phones, tablets, and Android TV:
 
-Choices are **minimal on purpose**: two patches are **on by default** (that's the actual
-debloat), and two small extras are **optional**. No endless toggle maze — pick the optional
-stuff only if you want it.
+- **Pure-Java signature-independent decryption:** Replaces the native signature-locked feed
+  decryption in pure Java, so the encrypted app config, live event feeds, and live TV channel
+  feeds keep loading and playing after Morphe re-signs the APK. The native library is never
+  loaded anymore, and any decode failure returns an empty result instead of crashing.
+- **Complete ad & popunder removal:** Sanitizes the parsed remote config at its single choke
+  point (banner/start ads off, sponsor-gate URL and promo marquee blanked, external-ad
+  preferences cleared), disables the browser / Chrome CustomTabs popunder, and bypasses the
+  timed "support" sponsor gate so streams open directly in the player.
+- **Startup integrity neutralized:** The Java anti-tamper crash-bombs are disabled, so the
+  re-signed build starts normally on phones and TVs.
 
-> **Want heavy customization instead?** Totally fair — this probably isn't your patch then.
-> Go with the OG MX Player patches by **BlazeFTL** 👉
-> [FTL-Patches](https://github.com/BlazeFTL/FTL-Patches). They go much deeper with options
-> and tweaks. GinArena's version is deliberately the opposite: few choices, debloated,
-> stable, done. Use whichever style suits you — no hard feelings. 🤝
+#### Options
 
-<a id="remove-ads-bloat"></a>
-#### Remove ads & bloat
+- **Remove push notifications** *(default: on)* — Disables the FCM push service and its manifest
+  entries, skips the Android 13+ notification permission prompts, and removes the push
+  permissions.
+- **Bypass update & force-update screen** *(default: on)* — Skips forced and optional update
+  lockouts at startup and on player exit, and removes the install permission used by the in-app
+  self-updater. With this on, the app will never update itself; update instead by re-patching a
+  newer audited stock build.
+- **Bypass root & sniffer checks** *(default: off)* — Neutralizes the RootBeer root lockout,
+  Frida/sniffer package detection, and the proxy-certificate lockout. Only needed if the stock
+  app refuses to run on your device (rooted, or a packet-capture app is installed); certificate
+  validation itself still goes through the system trust manager.
+- **Strip native & telemetry bloat** *(default: off)* — Deletes the now-unused native library
+  (plus the root-check library when the root bypass is also on) and strips Firebase Analytics,
+  Crashlytics, Sessions, DataTransport, and AdServices manifest entries. Purely a size saving.
+- **Disable WebActivity (potential ad surface)** *(default: off)* — Closes the in-app WebView
+  immediately so remote config can never open ad landing pages. Anything that legitimately uses
+  it (for example score pages) will simply close as well.
 
-*On by default — the main one.* Kills ads everywhere (home banners, folder ads, player and
-pause ads, pop-ups, Me-page promos, exit ads), removes the shortcut strip at the top of
-Home and the online ad-locked *Other Themes* (Zodiac etc.), and switches off the online
-clutter: **Live TV**, **OTT shows**, **MX Tube**, **Shorts**, and **Games**. The stuff you
-actually use stays right where it was — **Local Music**, **Continue Watching**, the
-**All-Files-Access** screen, **Adaptive / Light / Dark** modes, and all **32 Classic Themes**
-(applying in 1 tap, offline and online).
-
-#### Clean Me page
-
-*On by default.* Just tidies up the **Me** tab: WhatsApp Status Saver, promo banners,
-**Legal**, **Help**, and **Data Privacy** clutter are gone, while your 8 local tool
-shortcuts (*Video Playlist*, *Private Folder*, *FolderCleaner*, *Bookmarks*, *File
-Transfer*, *Equalizer*, *Smooth Play*, *Decoder*), **App Theme**, **Settings**, and
-**Custom Pop-up Play** all stay.
-
-#### Remove bottom navigation bar
-
-*Optional — off by default.* Like the normal bottom bar (**Folders**, **Music**,
-**Transfer**, **Me**)? Leave this off. Want a cleaner, full-height folder list instead?
-Turn it on — the bottom bar hides and **Me** moves to the top-right of the Home toolbar
-(*Music* and *File Transfer* are still easy to reach inside *Me*). Entirely your call.
-
-#### Custom codec
-
-*Optional — off by default.* Only if you care about Dolby/DTS audio: pick
-`aio-v3.1.0_r1.zip` in the patch option while patching, and **E-AC-3 (Dolby Digital Plus)**,
-**TrueHD**, **MLP**, **DTS**, and **AC-3** videos just play out of the box
-(`Settings → Decoder → Custom codec` will show `Bundled custom codec (v3.1.0)`). Don't need
-it? Skip it — nothing else changes.
-
-### Target app & downloads (MX Player)
-
-> **Important:** Download the **standalone `.apk` file** (~111 MB), **not** a `.xapk` or
-> `.apkm` split bundle. APKPure, Uptodown, and APKMirror all distribute the exact same official
-> Amazon Mobile LLC signed standalone APK below.
+### Target app (SK Tech TV)
 
 | Field | Value |
 | --- | --- |
-| Package | `com.mxtech.videoplayer.ad` |
-| Version | **3.4.1** (versionCode 2001003551) — standalone universal APK (`arm64-v8a` + `armeabi-v7a`, Android 7.0+) |
-| Stock APK — **APKPure** | [Latest 3.4.1 APK](https://apkpure.com/mx-player-app/com.mxtech.videoplayer.ad) · [Version history (`3.4.1`)](https://apkpure.com/mx-player-app/com.mxtech.videoplayer.ad/versions) *(choose the **APK** download, not `XAPK`)* |
-| Stock APK — **Uptodown** | [MX Player versions (`apk 3.4.1`)](https://mx-player.en.uptodown.com/android/versions) *(choose the **`apk`** variant)* |
-| Stock APK — **APKMirror** | [MX Player releases on APKMirror](https://www.apkmirror.com/apk/amazon-mobile-llc/mx-player/) *(choose the **`3.4.1` `APK`** variant, not `BUNDLE`)* |
-| Signing certificate SHA-256 | `0d9b4c778672e753d45aba4f10df31e1d10bf75b1245469131ef01b82f0f91b6` |
-| `3.4.1` APK SHA-256 | `db775bd81460e31bd21602cf0b842bc3e2fd769b0bd23250e70036cc4cf95bf4` |
-| Optional **Custom Codec v3.1.0** | [GitHub — `iDNA420/MX-FFmpeg` `v3.1.0_r1` (`aio-v3.1.0_r1.zip` recommended)](https://github.com/iDNA420/MX-FFmpeg/releases/tag/v3.1.0_r1) (`SHA-256: ebb0bd5db0f855caca6167747987a229836d7cc0062a2d5c23dbf91d057c617b`) — keep it as a `.zip` and select it inside the **Custom codec** patch option in Morphe Manager |
+| Package | `com.live.sktechtv` |
+| Version | **2.7** (versionCode 17), universal APK (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`) |
+| Official site | [sktech.site](https://sktech.site/) |
+| Stock download | [Official SK Tech download page](https://downloadsktech.pages.dev/download) — use the exact stock **2.7** APK and verify the APK SHA-256 below before patching |
+| Signing certificate SHA-256 | `9ff349c0c047abd68e169980484b43926b6ff2d251a430fe44e3ae3e2930e1d2` |
+| APK SHA-256 | `5095235d7a77e588d570780cea99a25dd807c9cb3ee814e450af82a49423cdcd` |
 
----
-
-### Stock download note
-
-Morphe patch metadata does not have a dedicated “stock app download URL” field, and Morphe Manager
-does not read a download destination from a patch bundle. Exact download URLs and SHA-256 hashes
-therefore stay in this README, where they are clickable, while the in-Manager version cards carry
-short readable build labels and validate the package name, file type, version, `versionCode`,
-`minSdk`, and official signing-certificate SHA-256.
+> **Version safety:** only **2.7 (17)** is supported. Always patch a **fresh stock** APK — never
+> re-patch an already patched build. Future SK Tech TV versions are refused by design until they
+> receive a fresh audit — do not force-patch other versions in Expert Mode.
 
 </details>
+
+---
 
 ## Usage (Morphe Manager)
 
@@ -465,15 +542,14 @@ short readable build labels and validate the package name, file type, version, `
 > patch your saved/patched APK again. Re-download the exact stock file from the links above and
 > patch it from the beginning.
 >
-> **New in v2.4.x:** adds **MX Player (`3.4.1`)** support — turns MX Player
-> into a clean, ad-free local video and music player with 1-tap offline & online **Classic Themes**
-> (16 Light + 16 Dark Slate swatches) and a tidier **Me** tab, plus optional patches to hide the
-> bottom navigation bar and bundle the **v3.1.0 Custom Codec** (`aio-v3.1.0_r1.zip`) directly into
-> the APK for Dolby / DTS audio. It also adds **PlayZ TV (`2.3.1`)** support — ad-free with
-> working encrypted channel/event feeds (pure-Java replacement of the signature-locked native
-> decryption, like CricZ TV). On CRICFy TV and CricZ TV, environment-check bypass and
-> native-library stripping remain **off by default** — if your current patched 1DM, CRICFy TV, or
-> CricZ TV works fine, you don't need to re-patch it.
+> **New in v2.5.0:** overhauls **1DM (`20.0`, build `30257`)** with an automated
+> **Cloud Pre-Built AdBlocker** (`~1.22M` active rules across 28 filter lists synced in `< 2s` with
+> full `Hosts & filters` hydration and zero 4-minute local rebuild), **Local Turbo** `64 KB`
+> buffered compilation, auto-synced mobile **Bypass All Shortlinks** userscript, zero-WebView cold
+> start, zero `1 Hz` background battery drain, **Back**-press Recents/download preservation, and
+> ~10.5 MB of ad/SDK debloat. If you use **MX Player (`3.4.1`)**, **PlayZ TV (`2.3.1`)**,
+> **CRICFy TV (`7.3`)**, or **CricZ TV (`7.3`)** and are already on `v2.4.2`, you don't need to
+> re-patch those apps.
 
 ## Building from source
 

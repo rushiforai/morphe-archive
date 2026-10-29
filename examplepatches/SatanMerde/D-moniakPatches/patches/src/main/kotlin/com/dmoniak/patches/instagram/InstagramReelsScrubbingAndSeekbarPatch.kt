@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val instagramReelsScrubbingAndSeekbarPatch = bytecodePatch(
     name = "Reels Seekbar & Fast-Forward Scrubbing - Instagram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces the interactive seekbar / progress bar to always display on Reels, allowing users to freely scrub, fast-forward, and rewind any Instagram Reel without waiting for it to loop.",
+    description = "⚠️ [Experimental / Untested] Forces the interactive seekbar / progress bar to always display on Reels, allowing users to freely scrub, fast-forward, and rewind any Instagram Reel without waiting for it to loop.",
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 

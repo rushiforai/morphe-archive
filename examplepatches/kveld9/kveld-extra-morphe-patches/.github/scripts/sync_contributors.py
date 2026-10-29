@@ -18,6 +18,7 @@ Usage:
 """
 
 import argparse
+import difflib
 import json
 import os
 import re
@@ -262,6 +263,7 @@ def main() -> None:
     parser.add_argument("--data", type=Path, default=default_json, help="Path to contributors.json")
     parser.add_argument("--readme", type=Path, default=default_readme, help="Path to README.md")
     parser.add_argument("--audit", action="store_true", help="Audit for uncredited feature requests")
+    parser.add_argument("--check", action="store_true", help="Verify README table matches contributors.json without modifying files")
     parser.add_argument("--sync", action="store_true", help="Automatically fetch and sync missing feature requests")
     parser.add_argument("--add-issue", type=int, help="Fetch issue number and add to contributors")
     parser.add_argument("--title", help="Custom title when adding an issue")
@@ -291,6 +293,40 @@ def main() -> None:
         uncredited = run_audit(data, args.repo)
         if uncredited:
             sys.exit(1)
+        return
+
+    elif args.check:
+        expected_table = generate_markdown_table(data, args.repo)
+        if not args.readme.exists():
+            print(f"[FAIL] README file not found: {args.readme}")
+            sys.exit(1)
+
+        content = args.readme.read_text(encoding="utf-8")
+        pattern = re.compile(
+            re.escape(START_MARKER) + r"(.*?)" + re.escape(END_MARKER),
+            re.DOTALL,
+        )
+        match = pattern.search(content)
+        if not match:
+            print(f"[FAIL] Missing contributor markers ({START_MARKER} / {END_MARKER}) in {args.readme.name}")
+            sys.exit(1)
+
+        current_table = match.group(1).strip()
+        expected_table_stripped = expected_table.strip()
+
+        if current_table != expected_table_stripped:
+            diff = difflib.unified_diff(
+                current_table.splitlines(keepends=True),
+                expected_table_stripped.splitlines(keepends=True),
+                fromfile=f"{args.readme.name} (current)",
+                tofile="contributors.json (expected)",
+            )
+            print("[FAIL] Contributors table does not match .github/contributors.json:")
+            sys.stdout.writelines(diff)
+            print("\nPlease update .github/contributors.json (via --add-issue or --sync) and regenerate instead of hand-editing the table.")
+            sys.exit(1)
+
+        print("[OK] Contributors table is in sync.")
         return
 
     table = generate_markdown_table(data, args.repo)

@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val hillClimbFreeShoppingPatch = bytecodePatch(
     name = "Free Shopping - Hill Climb Racing (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play BillingClient and in-app purchase verification in Hill Climb Racing to unlock vehicle bundles, gem packs, coin upgrades, and special garage paints for free.",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play BillingClient and in-app purchase verification in Hill Climb Racing to unlock vehicle bundles, gem packs, coin upgrades, and special garage paints for free.",
 ) {
     compatibleWith(COMPATIBILITY_HILL_CLIMB)
 

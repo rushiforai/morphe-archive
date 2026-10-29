@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val soundCloudHQAudioSettingsPatch = bytecodePatch(
     name = "Unlock HQ Audio & Premium Controls - SoundCloud (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks High Quality (HQ) audio streaming selector in playback settings, enables variable playback speed, and unlocks premium player controls.",
+    description = "⚠️ [Experimental / Untested] Unlocks High Quality (HQ) audio streaming selector in playback settings, enables variable playback speed, and unlocks premium player controls.",
 ) {
     compatibleWith(COMPATIBILITY_SOUNDCLOUD)
 

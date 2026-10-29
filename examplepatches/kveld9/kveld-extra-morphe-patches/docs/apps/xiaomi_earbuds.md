@@ -10,34 +10,17 @@ Technical documentation and patch catalog for Xiaomi Earbuds on Android.
 | :--- | :--- |
 | **Target App** | Xiaomi Earbuds |
 | **Package Name** | `com.mi.earphone` |
-| **Target Version** | `1.38.0i` |
+| **Target Version** | `Single pinned version (see README Patch Catalog)` |
 | **Target Package Format** | XAPK bundle |
 | **Primary Architecture** | universal (`arm64-v8a` / `armeabi-v7a`) |
-| **Download Target** | [APKPure](https://d.apkpure.com/b/XAPK/com.mi.earphone?versionCode=138000) |
+| **Download Target** | [APKPure](https://d.apkpure.com/b/XAPK/com.mi.earphone) |
 | **Authoritative Source** | APKPure |
 
 ---
 
 ## 2. Applied Patches Catalog
 
-| Patch Name | Typology | Default State | Dependencies | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| **Run on Rooted Devices** | `bytecodePatch` | `true` (Enabled) | None | Lets the app run on rooted phones and network tools without crashing. |
-| **Stop Background Activity (Setup)** | `resourcePatch` | `false` (Opt-in) | None | Turns off background services in the manifest. |
-| **Stop Background Activity** | `bytecodePatch` | `true` (Enabled) | `Stop Background Activity (Setup)` | Stops persistent notifications and background battery drain. |
-| **Block Trackers (Setup)** | `resourcePatch` | `false` (Opt-in) | None | Removes ad permissions and disables tracking components in the manifest. |
-| **Block Trackers** | `bytecodePatch` | `true` (Enabled) | `Block Trackers (Setup)` | Stops analytics and usage reporting. |
-| **Device Privacy Guard (Setup)** | `resourcePatch` | `false` (Opt-in) | None | Removes location permissions in the manifest. |
-| **Device Privacy Guard** | `bytecodePatch` | `true` (Enabled) | `Device Privacy Guard (Setup)` | Hides hardware IDs and lets Bluetooth work without location. |
-| **Skip Popups & Tutorials** | `bytecodePatch` | `true` (Enabled) | None | Skips startup agreements, tutorials, and promo banners. |
-| **Update Without Account** | `bytecodePatch` | `true` (Enabled) | None | Lets guests check and install earbud firmware updates. |
-| **Show All Models** | `bytecodePatch` | `true` (Enabled) | None | Shows every earbud model for pairing. |
-| **Safer Connections (Setup)** | `resourcePatch` | `false` (Opt-in) | None | Blocks unencrypted traffic and trusts user certificates. |
-| **Safer Connections** | `bytecodePatch` | `true` (Enabled) | `Safer Connections (Setup)` | Blocks unencrypted traffic and disables certificate pinning. |
-| **Offline Only (Setup)** | `resourcePatch` | `false` (Opt-in) | None | Removes internet and network permissions in the manifest. |
-| **Offline Only** | `bytecodePatch` | `false` (Opt-in) | `Offline Only (Setup)` | Fully disconnects the app from the internet. Pair your earbuds first. |
-| **Unlock Sound Features** | `bytecodePatch` | `true` (Enabled) | None | Enables spatial audio and hearing features on all devices. |
-| **Unlock for Other Phones** | `bytecodePatch` | `true` (Enabled) | None | Enables full features on Samsung, Pixel, and other non-Xiaomi phones. |
+The authoritative patch catalog with descriptions and options is generated in README.md from the built .mpp; see also patches-list.json.
 
 ---
 

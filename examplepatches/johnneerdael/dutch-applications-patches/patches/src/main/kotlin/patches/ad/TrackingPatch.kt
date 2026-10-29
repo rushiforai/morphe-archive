@@ -1,0 +1,137 @@
+package patches.ad
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+
+@Suppress("unused")
+val disableTracking = bytecodePatch(name = "Disable tracking", description = "Disables audited native event collectors, queued uploads, analytics re-enable paths, advertising identifiers and FIAM while preserving push, real login, manual feedback and player session synchronization.") {
+    compatibleWith(ad)
+    dependsOn(originalInput, hideAds, trackingResources)
+    execute {
+        change("Lcom/kubusapp/analytics/ComscoreEventTransmitter;", "execute(Ljava/util/Map;)V", STOP)
+        change("Lg73;", "a(Ljava/lang/String;)V", STOP)
+        change("Lbwh;", "b(Lbe/persgroep/tracking/base/model/TrackingEvent;)V", STOP)
+        change("Lhzh;", "c(Ljuh;Lfo0;)V", STOP)
+        change("Lhzh;", "d(Lgkc;Lfo0;)V", STOP)
+        change("Lbch;", "b(Lm3b;Ljava/lang/String;Ljava/lang/String;)V", STOP)
+        change("Leef;", "run()V", STOP)
+        change("Lw64;", "a()V", STOP)
+        change("Lhm0;", "e(Ljava/lang/String;Ljava/lang/Double;Landroid/os/Bundle;ZLjava/util/UUID;Ld4c;)V", STOP)
+        change("Lt9;", "c(Landroid/app/Application;Ljava/lang/String;)V", STOP)
+        change("Lcom/kubusapp/webview/TrackingEventJsListener;", "trackEvent(Ljava/lang/String;)V", STOP)
+        change("Lw49;", "sendAnalytics(Ljava/lang/String;)V", STOP)
+        change("Lcfi;", "c(Ljava/lang/String;)V", STOP)
+        change("Lcfi;", "d(Ljava/util/Map;)V", STOP)
+        change("Lnl0;", "c(Lnp6;)V", STOP)
+        change("Lnl0;", "d(Lnp6;)V", STOP)
+        change("Lbe/dpgmedia/privacy/privacygatesdk/client/metrics/MetricsClient;", "sendErrorMetric\$privacygatesdk_release(Lbe/dpgmedia/privacy/privacygatesdk/client/metrics/ErrorMessage;Lbe/dpgmedia/privacy/privacygatesdk/client/metrics/ErrorType;Ljava/lang/String;)V", STOP)
+        change("Lbe/persgroep/advertising/userprofile/IdManager;", "setExternalUserIds(Ljava/util/Map;)V", STOP)
+        change("Lf94;", "o()Z", FALSE)
+        change("Lbe/persgroep/tracking/config/FeatureFlags;", "getSnowplowEnabled()Z", FALSE)
+        change("Lixj;", "K2()Z", TRUE)
+        change("Lu64;", "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", UNIT)
+        change("Lq0d;", "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", UNIT)
+        change("Lbe/persgroep/advertising/userprofile/IdManager\$1;", "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", UNIT)
+        change("Lbe/persgroep/advertising/userprofile/IdManager\$fetchUserIds\$1;", "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", UNIT)
+        change("Ldi5;", "M(Landroid/content/Intent;)V", STOP)
+        change("Ldi5;", "N(Ljava/lang/String;Landroid/os/Bundle;)V", STOP)
+        change("Ldi5;", "W(Landroid/content/Intent;)Z", FALSE)
+        change("Ldi5;", "x()Z", FALSE)
+        disableBooleanWrites(VIDEO, "l", 3)
+        disableFiamConsumers()
+        disableIdentifierAcquisition()
+        val usability = exact("Lcfi;", "a(Lzs3;)Ljava/lang/Object;").method
+        val sends = usability.instructions.withIndex().filter { (_, insn) ->
+            val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Lcom/usabilla/sdk/ubform/Usabilla;" && ref.name == "sendEvent"
+        }
+        check(sends.size == 1) { "AD Usabilla automatic event changed" }
+        usability.replaceInstruction(sends.single().index, "nop")
+    }
+}
+
+context(patchContext: app.morphe.patcher.patch.BytecodePatchContext)
+private fun disableFiamConsumers() {
+    val cls = exact(FILTER, "morpheAds()Z").classDef
+    cls.methods.add(helper("morpheSuppressFiam", "V", listOf("Lcf6;", "Z"), 0, """
+        if-eqz p0, :done
+        iput-boolean p1, p0, Lcf6;->c:Z
+        :done
+        return-void
+    """))
+    val sites = listOf("Lcom/kubusapp/MainApplication;" to "onCreate()V", "Lcom/kubusapp/MainActivity;" to "onCreate(Landroid/os/Bundle;)V", "Lfwh;" to "b(Lzs3;)Ljava/lang/Object;")
+    sites.forEach { (owner, sig) ->
+        val method = exact(owner, sig).method
+        val code = method.instructions.toList()
+        val casts = code.withIndex().filter { (_, insn) -> insn.opcode == Opcode.CHECK_CAST &&
+            ((insn as? ReferenceInstruction)?.reference as? TypeReference)?.type == "Lcf6;" }
+        check(casts.size == 1) { "AD optional FIAM consumer changed: $owner" }
+        val cast = casts.single()
+        val receiver = (cast.value as OneRegisterInstruction).registerA
+        val end = (cast.index + 1 until code.size).firstOrNull { index ->
+            val ref = (code[index] as? ReferenceInstruction)?.reference as? FieldReference
+            ref?.definingClass == "Lcf6;" && ref.name == "c" && code[index].opcode == Opcode.IPUT_BOOLEAN
+        } ?: error("AD FIAM suppression assignment missing")
+        check(end - cast.index in 2..4)
+        val checks = (cast.index + 1 until end).filter { index ->
+            val ref = (code[index] as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Ljava/lang/Object;" && ref.name == "getClass"
+        }
+        check(checks.size == 1)
+        val field = code[end] as TwoRegisterInstruction
+        check(field.registerB == receiver)
+        method.replaceInstruction(checks.single(), "nop")
+        method.replaceInstruction(end, "invoke-static {v$receiver, v${field.registerA}}, $FILTER->morpheSuppressFiam(Lcf6;Z)V")
+    }
+}
+
+context(patchContext: app.morphe.patcher.patch.BytecodePatchContext)
+private fun disableIdentifierAcquisition() {
+    // Keep initialized provider objects and their nullable asynchronous fields.
+    val appSet = exact("Lgn0;", "<init>(Landroid/content/Context;)V").method
+    val code = appSet.instructions.toList()
+    val base = code.withIndex().filter { (_, insn) ->
+        val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference
+        insn.opcode == Opcode.INVOKE_DIRECT && ref?.definingClass == "Ljava/lang/Object;" && ref.name == "<init>"
+    }
+    check(base.size == 1)
+    appSet.addInstructions(base.single().index + 1, STOP)
+    val piano = exact("Lgk;", "<init>(Landroid/content/Context;Ljava/util/concurrent/ScheduledExecutorService;)V").method
+    val schedules = piano.instructions.withIndex().filter { (_, insn) ->
+        val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference
+        ref?.definingClass == "Ljava/util/concurrent/ScheduledExecutorService;" && ref.name == "schedule"
+    }
+    check(schedules.size == 1)
+    piano.replaceInstruction(schedules.single().index, "nop")
+    // getInfo has only one local: construct the non-null result in our helper.
+    val cls = exact(FILTER, "morpheAds()Z").classDef
+    cls.methods.add(helper("morpheAdvertisingInfo", "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$Info;", emptyList(), 3, """
+        new-instance v0, Lcom/google/android/gms/ads/identifier/AdvertisingIdClient${'$'}Info;
+        const-string v1, ""
+        const/4 v2, 0x1
+        invoke-direct {v0, v1, v2}, Lcom/google/android/gms/ads/identifier/AdvertisingIdClient${'$'}Info;-><init>(Ljava/lang/String;Z)V
+        return-object v0
+    """))
+    listOf("getAdvertisingIdInfo(Landroid/content/Context;)Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$Info;", "getInfo()Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$Info;").forEach { sig ->
+        change("Lcom/google/android/gms/ads/identifier/AdvertisingIdClient;", sig, """
+            invoke-static {}, $FILTER->morpheAdvertisingInfo()Lcom/google/android/gms/ads/identifier/AdvertisingIdClient${'$'}Info;
+            move-result-object v0
+            return-object v0
+        """)
+    }
+    val idManager = "Lbe/persgroep/advertising/userprofile/IdManager;"
+    listOf("getCachedUserIds()Ljava/util/Map;", "getUserIdsWithoutPrivacyCheck()Ljava/util/Map;").forEach { sig ->
+        change(idManager, sig, "sget-object v0, Ljt5;->a:Ljt5;\nreturn-object v0")
+    }
+    // Kotlin inline Result<String> represents success by the actual raw String.
+    change(idManager, "fetch-IoAF18A(Lxs3;)Ljava/lang/Object;", "const-string v0, \"\"\nreturn-object v0")
+}

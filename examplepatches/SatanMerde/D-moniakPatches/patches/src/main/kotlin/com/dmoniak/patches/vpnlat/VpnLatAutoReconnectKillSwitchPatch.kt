@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val vpnLatAutoReconnectKillSwitchPatch = bytecodePatch(
     name = "Auto-Reconnect & Keep-Alive Background Service - VPN.lat (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Keeps the VPN tunnel active during screen-off/doze mode, enforces auto-reconnection on network switches, and prevents dropped connections in VPN.lat.",
+    description = "⚠️ [Experimental / Untested] Keeps the VPN tunnel active during screen-off/doze mode, enforces auto-reconnection on network switches, and prevents dropped connections in VPN.lat.",
 ) {
     compatibleWith(COMPATIBILITY_VPN_LAT)
 

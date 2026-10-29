@@ -1,0 +1,34 @@
+{
+  "credits-before.png": {
+    "source_capture": "final-chain/run/00-mask0/003-matrix-original-credits.png",
+    "sha256": "712b0d529f2239f98164259173751eaf95f6cec1174d21ab9bb853a8826923ea"
+  },
+  "credits-after.png": {
+    "source_capture": "final-chain/run/01-mask7/003-matrix-default-credits.png",
+    "sha256": "7756926ceb45495d4865713d66831c3d96904afadd8f3549f60eea5014267656"
+  },
+  "artist-held-before.png": {
+    "source_capture": "suite-original-rerun/005-suite-artist-held.png",
+    "sha256": "d9cc69e84d28a88dae1236b3c71cd4318a3be846553bd3cec928939611749b42"
+  },
+  "artist-held-after.png": {
+    "source_capture": "final-chain/run/01-mask7/005-suite-artist-held.png",
+    "sha256": "b4bebc0c47d5226d4659fdb3f5478dafb8ae054c62d7828297eb740804f41d46"
+  },
+  "artist-order-setting.png": {
+    "source_capture": "final-chain/run/01-mask7/017-matrix-artist-mode.png",
+    "sha256": "8aefc169dcffe35a2111eac1bee2f0d582dd978efc5521f419062c808548fd54"
+  },
+  "artist-order-metadata.png": {
+    "source_capture": "final-chain/run/01-mask7/014-matrix-selected-metadata.png",
+    "sha256": "37c6568e479f166eb9b45100d8b39b6b9577c5884252a29247dc702d4ce29d25"
+  },
+  "title-empty-after.png": {
+    "source_capture": "final-chain/run/01-mask7/007-suite-title-live-empty.png",
+    "sha256": "636e54daedd5b77e27ace1e686256d2767bbb9b11d58d0c087f8cf31c494cfea"
+  },
+  "title-valid-after.png": {
+    "source_capture": "final-chain/run/01-mask7/008-suite-title-live-playlists.png",
+    "sha256": "89256b535ef373f9011db854f65fc2b2f931488039ae762552659a9469bb4f5d"
+  }
+}

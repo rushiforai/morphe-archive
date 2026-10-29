@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val instagramBlockAdsAndSponsoredPatch = bytecodePatch(
     name = "Block Ads & Sponsored Content - Instagram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Strips sponsored feed posts, sponsored stories, promoted reels, and shopping tags in Instagram.",
+    description = "⚠️ [Experimental / Untested] Strips sponsored feed posts, sponsored stories, promoted reels, and shopping tags in Instagram.",
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 

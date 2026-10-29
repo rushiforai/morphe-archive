@@ -1,3 +1,27 @@
+## [1.4.0](https://github.com/pengusto/penguin-patches/compare/v1.3.0...v1.4.0) (2026-10-29)
+
+### ✨ New Features
+
+* **ReadYou:** import all feeds from nested OPML folders ([cccb14e](https://github.com/pengusto/penguin-patches/commit/cccb14e27fdfe7e7d6529223e2a9f1943c288b3b))
+
+## [1.3.0](https://github.com/pengusto/penguin-patches/compare/v1.2.0...v1.3.0) (2026-10-29)
+
+### ✨ New Features
+
+* **Finamp:** keep output controls reachable and correct banner contrast ([f70e392](https://github.com/pengusto/penguin-patches/commit/f70e392614b1abb2ff2ac3da262849098ca4ee9f))
+
+## [1.2.0](https://github.com/pengusto/penguin-patches/compare/v1.1.0...v1.2.0) (2026-10-28)
+
+### ✨ New Features
+
+* **finamp:** add offline artist and track alphabet fixes ([436dc63](https://github.com/pengusto/penguin-patches/commit/436dc638e9298bf1ae6d6d061b0c7fd225db8822))
+
+## [1.1.0](https://github.com/pengusto/penguin-patches/compare/v1.0.1...v1.1.0) (2026-10-28)
+
+### ✨ New Features
+
+* **finamp:** add three selectable native fixes for Finamp 1.0.1 ([17786c3](https://github.com/pengusto/penguin-patches/commit/17786c3aeeb7c60a7b6a0c3c839c4fb83f180d51)), closes [finamp-app/finamp#1830](https://github.com/finamp-app/finamp/issues/1830) [#1831](https://github.com/pengusto/penguin-patches/issues/1831)
+
 ## [1.0.1](https://github.com/pengusto/penguin-patches/compare/v1.0.0...v1.0.1) (2026-10-25)
 
 ### 🐛 Bug Fixes

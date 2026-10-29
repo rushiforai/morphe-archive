@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val flightradar24UnlockGoldPatch = bytecodePatch(
     name = "Unlock Silver & Gold Features - Flightradar24 (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing to bypass in-app purchase verification for Flightradar24 subscription tiers (Silver & Gold features, 3D views, and aeronautical charts).",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app purchase verification for Flightradar24 subscription tiers (Silver & Gold features, 3D views, and aeronautical charts).",
 ) {
     compatibleWith(COMPATIBILITY_FLIGHTRADAR24)
 

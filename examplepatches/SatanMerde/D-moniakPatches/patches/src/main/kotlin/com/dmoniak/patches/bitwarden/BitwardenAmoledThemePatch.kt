@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val bitwardenAmoledThemePatch = bytecodePatch(
     name = "AMOLED Pure Black Theme - Bitwarden (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces deep AMOLED pure black backgrounds across Bitwarden's vault interface, reducing OLED power draw and eye strain.",
+    description = "⚠️ [Experimental / Untested] Forces deep AMOLED pure black backgrounds across Bitwarden's vault interface, reducing OLED power draw and eye strain.",
 ) {
     compatibleWith(COMPATIBILITY_BITWARDEN)
 

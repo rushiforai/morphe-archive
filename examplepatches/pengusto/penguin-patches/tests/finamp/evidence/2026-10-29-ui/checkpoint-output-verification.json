@@ -1,0 +1,24 @@
+{
+  "original_apk_sha256": "0fc61e5cb80d37b10a735851c2217cbc855b3f1a04bde577187658531ffef581",
+  "bundle_sha256": "f98e5b394b6f1d8119d8f49205b65daf8e4ad8f0f55d01543c332869ffedbdbd",
+  "full_manager_suite": false,
+  "cases": {
+    "32-jvm": {
+      "mask": 32,
+      "runtime": "jvm",
+      "apk_bytes": 47040964,
+      "apk_sha256": "7fe6f940aec684b2d0eddbc6b5fc105a4769c889cdbdd01db28eac782d2a4355",
+      "native_sha256": "3b3971fd02d8825a051189b74b84791841c2cabdc7bcddca0bde5a302396e3ce",
+      "signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+      "signature_verified": true,
+      "alignment_16k_verified": true,
+      "native_entries_uncompressed": true,
+      "changed_retained_entries": [
+        "lib/arm64-v8a/libapp.so"
+      ],
+      "abis": [
+        "arm64-v8a"
+      ]
+    }
+  }
+}

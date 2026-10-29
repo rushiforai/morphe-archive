@@ -1,0 +1,40 @@
+{
+  "managerVersion": "2.2.0",
+  "candidateVersion": "1.4.0-candidate",
+  "bundleSha256": "2d2379fbf7a65db39dc2c233695c1f0ee841825355619d2c352f4896ed75b732",
+  "inputSha256": "a27f6da6961f2d5cd27b515349dc71844a0d20cfacc38b5fc398152fa034ce5e",
+  "sourceImport": "Local file selected through normal Manager UI; cached bundle hash matches",
+  "selection": {
+    "Penguin Patches": "1/1",
+    "Morphe Patches": "0/5",
+    "patch": "Import nested OPML feeds"
+  },
+  "cases": [
+    {
+      "runtime": "jvm",
+      "success": true,
+      "exportSha256": "e2057e77e707f22d5e70b1876cfecbb0a06206c76ce2de616ab7985d3f40912b",
+      "runtimeLog": "10-29 03:46:58.596  4762  7104 I Morphe Patcher: Runtime: name=jvm memoryLimit=1536",
+      "installation": "Manager Android installer UPDATE and exact base.apk hash"
+    },
+    {
+      "runtime": "art",
+      "success": true,
+      "exportSha256": "faca7f2bcf9f4d55ddfe649807d56a0555b661541c7b3a8533d877504ac1e9b4",
+      "runtimeLog": "10-29 04:04:02.832 10083 10823 I Morphe Patcher: Runtime: name=art memoryLimit=576",
+      "installation": "ADB same-key update, retained state verified"
+    }
+  ],
+  "canonicalClassDigests": {
+    "desktopVsManagerJvm": 16342,
+    "jvmVsArt": 16342,
+    "differences": 0
+  },
+  "retention": {
+    "sameKeyManagerUpdate": true,
+    "artUpdate": true,
+    "removalReapply": true,
+    "settingsSha256": "314eabc3d7b7cea8c68660cbfb1a0d2a64b85c891f8eb8ea101a3ca8a7966e34"
+  },
+  "upstreamPR": "https://github.com/ReadYouApp/ReadYou/pull/1345"
+}

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val signalAmoledDeclutterPatch = bytecodePatch(
     name = "AMOLED Dark Theme & Hide Donation Nags - Signal (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects pure OLED pitch black (#000000) into Signal chat threads and settings, and suppresses donor badges and 'Support Signal' donation reminders.",
+    description = "⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into Signal chat threads and settings, and suppresses donor badges and 'Support Signal' donation reminders.",
 ) {
     compatibleWith(COMPATIBILITY_SIGNAL)
 

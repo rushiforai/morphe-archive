@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val pinterestMediaDownloaderPatch = bytecodePatch(
     name = "Direct Media Download - Pinterest (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Enables native high-resolution image and video downloading directly from pins without watermarks or third-party scrapers.",
+    description = "⚠️ [Experimental / Untested] Enables native high-resolution image and video downloading directly from pins without watermarks or third-party scrapers.",
 ) {
     compatibleWith(COMPATIBILITY_PINTEREST)
 

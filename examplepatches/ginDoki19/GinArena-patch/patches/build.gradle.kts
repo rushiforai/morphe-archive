@@ -108,17 +108,72 @@ val buildMxPlayerExtensionMpe = tasks.register("buildMxPlayerExtensionMpe") {
     }
 }
 
+val onedmExtClassesDir = layout.buildDirectory.dir("onedmExt/classes")
+val onedmExtWorkDir = layout.buildDirectory.dir("onedmExt/work")
+val onedmGeneratedResourcesDir = layout.buildDirectory.dir("generated/onedmMpeResources")
+
+val compileOnedmExtensionJava = tasks.register<JavaCompile>("compileOnedmExtensionJava") {
+    dependsOn(compileMxPlayerExtensionStubs)
+    source = fileTree("src/extension/onedm/java")
+    classpath = files(mxStubClassesDir)
+    destinationDirectory.set(onedmExtClassesDir)
+    options.release.set(8)
+}
+
+val buildOnedmExtensionMpe = tasks.register("buildOnedmExtensionMpe") {
+    dependsOn(compileOnedmExtensionJava)
+    inputs.dir(onedmExtClassesDir)
+    inputs.dir(mxStubClassesDir)
+    outputs.dir(onedmGeneratedResourcesDir)
+
+    doLast {
+        val classesDir = onedmExtClassesDir.get().asFile
+        val stubsDir = mxStubClassesDir.get().asFile
+        val workDir = onedmExtWorkDir.get().asFile.apply {
+            deleteRecursively()
+            mkdirs()
+        }
+        val programJar = workDir.resolve("program.jar")
+        val stubsJar = workDir.resolve("stubs.jar")
+        val dexDir = workDir.resolve("dex").apply { mkdirs() }
+
+        packDirToJar(classesDir, programJar)
+        packDirToJar(stubsDir, stubsJar)
+
+        val outResRoot = onedmGeneratedResourcesDir.get().asFile.apply {
+            deleteRecursively()
+        }
+        val outMpeFile = outResRoot.resolve("extensions/onedm.mpe").apply {
+            parentFile.mkdirs()
+        }
+
+        val d8Cmd = D8Command.builder()
+            .addProgramResourceProvider(ArchiveResourceProvider.fromArchive(programJar.toPath(), true))
+            .addClasspathFiles(listOf(stubsJar.toPath()))
+            .setMode(CompilationMode.RELEASE)
+            .setMinApiLevel(24)
+            .setOutput(dexDir.toPath(), OutputMode.DexIndexed)
+            .build()
+        D8.run(d8Cmd)
+
+        val compiledDex = dexDir.resolve("classes.dex")
+        check(compiledDex.isFile) { "D8 did not emit classes.dex in $dexDir" }
+        compiledDex.copyTo(outMpeFile, overwrite = true)
+    }
+}
+
 sourceSets.named("main") {
     resources.srcDir(mxGeneratedResourcesDir)
+    resources.srcDir(onedmGeneratedResourcesDir)
 }
 
 tasks {
     named("processResources") {
-        dependsOn(buildMxPlayerExtensionMpe)
+        dependsOn(buildMxPlayerExtensionMpe, buildOnedmExtensionMpe)
     }
 
     matching { it.name == "sourcesJar" }.configureEach {
-        dependsOn(buildMxPlayerExtensionMpe)
+        dependsOn(buildMxPlayerExtensionMpe, buildOnedmExtensionMpe)
     }
 
     register<JavaExec>("generatePatchesList") {

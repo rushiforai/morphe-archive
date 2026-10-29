@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val protonPassDeclutterAmoledPatch = bytecodePatch(
     name = "AMOLED Black & Declutter - Proton Pass (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects pure OLED pitch black (#000000) into Proton Pass vaults and hides Proton Pass Plus upgrade banners and promotional popups.",
+    description = "⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into Proton Pass vaults and hides Proton Pass Plus upgrade banners and promotional popups.",
 ) {
     compatibleWith(COMPATIBILITY_PROTON_PASS)
 

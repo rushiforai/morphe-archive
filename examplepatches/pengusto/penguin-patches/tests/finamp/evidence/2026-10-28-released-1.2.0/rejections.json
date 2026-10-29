@@ -1,0 +1,46 @@
+{
+  "wrong-app": {
+    "rejected": true,
+    "output_created": false,
+    "exit_code": 1,
+    "mutant_sha256": "eeec6ed291e2b8f5998b399f9313de7d31e5b4ee20f678bbd6808947eb892137",
+    "guard": "unsupported or already patched ARM64 libapp.so",
+    "patcher_report_json_valid": true,
+    "selected_failure_names": [
+      "Song artist order"
+    ]
+  },
+  "wrong-engine": {
+    "rejected": true,
+    "output_created": false,
+    "exit_code": 1,
+    "mutant_sha256": "614a7ab28e61de1e092241b06b03b297ede9b52cf9d385584f4d8d477fa3be28",
+    "guard": "unsupported ARM64 libflutter.so",
+    "patcher_report_json_valid": true,
+    "selected_failure_names": [
+      "Song artist order"
+    ]
+  },
+  "missing-arm64": {
+    "rejected": true,
+    "output_created": false,
+    "exit_code": 1,
+    "mutant_sha256": "131fc2af817796c989fe19b388dd7920569f4f2e446e6d5e11a01f522c94cd50",
+    "guard": "missing required ARM64 libapp.so",
+    "patcher_report_json_valid": true,
+    "selected_failure_names": [
+      "Song artist order"
+    ]
+  },
+  "wrong-version": {
+    "rejected": true,
+    "output_created": false,
+    "exit_code": 1,
+    "mutant_sha256": "bf969cccad5cd36617c3d814e22662b1fd239540b3c91973131d53264e307892",
+    "guard": "unsupported app; use the original official Finamp 1.0.1 APK",
+    "patcher_report_json_valid": true,
+    "selected_failure_names": [
+      "Song artist order"
+    ]
+  }
+}

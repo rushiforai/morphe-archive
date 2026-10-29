@@ -219,13 +219,19 @@ class StopSwipeReplyHookTest {
             }
         }
         assertEquals("$label: the gesture rule's method", listOf("${sites.delegate}->${sites.gesture}"), shaped.map { "${it.definingClass}->${it.name}" })
-        val focusers = first.flatMap { c ->
-            c.methods.filter { m ->
-                instance(m) && m.parameterTypes.isEmpty() && m.returnType == "Z" && m.code().any { it.referenceText() == REQUEST_FOCUS } &&
+        // The composer rule's markers and EditText read are its class's, the call is the method's.
+        val focusers = first.filter { c ->
+            COMPOSER_MARKERS.all { marker -> c.methods.any { m -> m.code().any { it.string() == marker } } } &&
+                c.methods.any { m ->
                     m.code().any { read ->
                         val field = (read as? ReferenceInstruction)?.reference as? FieldReference
                         field != null && field.definingClass.startsWith("LX/") && field.type == "Landroid/widget/EditText;"
                     }
+                }
+        }.flatMap { c ->
+            c.methods.filter { m ->
+                instance(m) && m.parameterTypes.isEmpty() && m.returnType == "Z" &&
+                    m.code().any { it.opcode != Opcode.INVOKE_STATIC && it.referenceText() == REQUEST_FOCUS }
             }
         }
         assertEquals("$label: the composer rule's method", listOf("${sites.composer}->${sites.composerMethod}"), focusers.map { "${it.definingClass}->${it.name}" })
@@ -357,10 +363,17 @@ class StopSwipeReplyHookTest {
             classDef("Lfixture/Field;", "Ljava/lang/Object;", emptyList(), listOf(focus("Lfixture/Field;"))),
         )
         if (composers == 0) all += classDef(composer, "Ljava/lang/Object;", listOf(listener), listOf(renamed(no, composer)))
+        // The story composer's class loads the markers elsewhere in it.
+        fun marked(owner: String) = method(
+            owner, "A00", emptyList(), "V", 1, public,
+            COMPOSER_MARKERS.joinToString("\n") { "const-string v0, \"$it\"" } + "\nreturn-void",
+        )
         repeat(composers) { at ->
             val type = if (at == 0) composer else "Lfixture/Composer$at;"
-            all += classDef(type, "Ljava/lang/Object;", listOf(listener), listOf(focus(type)))
+            all += classDef(type, "Ljava/lang/Object;", listOf(listener), listOf(focus(type), marked(type)))
         }
+        // 453's Live comment box listens too and focuses its own box, loading neither marker.
+        all += classDef("Lfixture/LiveComments;", "Ljava/lang/Object;", listOf(listener), listOf(focus("Lfixture/LiveComments;")))
         if (twoDelegates) all += delegateClass("Lfixture/ItemDelegate2;")
         if (otherAsker) all += caller("Lfixture/Elsewhere;", "$manager->GKf()Z")
         if (listenerElsewhere) all += caller("Lfixture/Dispatcher;", "$listener->GKf()Z", "invoke-interface")

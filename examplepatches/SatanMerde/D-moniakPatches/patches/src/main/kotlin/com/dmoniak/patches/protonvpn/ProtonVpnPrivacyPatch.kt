@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val protonVpnPrivacyPatch = bytecodePatch(
     name = "Enhanced Privacy & Telemetry Blocker - Proton VPN (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Blocks diagnostic telemetry, analytical event reporting (Firebase, Sentry, Mixpanel, Matomo), and crashlytics logging for zero metadata leakage.",
+    description = "⚠️ [Experimental / Untested] Blocks diagnostic telemetry, analytical event reporting (Firebase, Sentry, Mixpanel, Matomo), and crashlytics logging for zero metadata leakage.",
 ) {
     compatibleWith(COMPATIBILITY_PROTON_VPN)
 

@@ -12,7 +12,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val undercoverBlockCookieConsentBannerPatch = bytecodePatch(
     name = "Block Cookie & Consent Banner - Undercover (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Blocks and removes the GDPR / Google UMP Cookie consent dialog on first launch by spoofing consent status as OBTAINED and neutralizing consent form presentation.",
+    description = "⚠️ [Experimental / Untested] Blocks and removes the GDPR / Google UMP Cookie consent dialog on first launch by spoofing consent status as OBTAINED and neutralizing consent form presentation.",
 ) {
     compatibleWith(COMPATIBILITY_UNDERCOVER)
 

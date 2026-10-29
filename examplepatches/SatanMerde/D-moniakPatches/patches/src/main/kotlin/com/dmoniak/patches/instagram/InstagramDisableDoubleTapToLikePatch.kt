@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val instagramDisableDoubleTapToLikePatch = bytecodePatch(
     name = "Disable Double Tap To Like - Instagram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Disables accidental double-tap gestures that trigger likes on feed photos, videos, and reels while scrolling or zooming.",
+    description = "⚠️ [Experimental / Untested] Disables accidental double-tap gestures that trigger likes on feed photos, videos, and reels while scrolling or zooming.",
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 

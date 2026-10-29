@@ -9,7 +9,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val jetpackJoyrideBlockAdsPatch = bytecodePatch(
     name = "Block Ads & Video Commercials - Jetpack Joyride (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Bloque les publicités vidéo plein écran (interstitiels après crash), les bannières publicitaires et les incitations promotionnelles dans Jetpack Joyride.",
+    description = "⚠️ [Experimental / Untested] Strips full-screen video ads (crash interstitials), banner ads, and promotional popups in Jetpack Joyride.",
 ) {
     compatibleWith(COMPATIBILITY_JETPACK_JOYRIDE)
 

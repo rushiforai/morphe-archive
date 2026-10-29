@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val instagramGhostPrivacyModePatch = bytecodePatch(
     name = "Ghost Privacy Mode: Anonymous DMs & Stories - Instagram (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Disables 'Seen' receipts in Direct Messages, hides story viewed tracking, silences live stream join broadcasts, and hides DM typing indicator.",
+    description = "⚠️ [Experimental / Untested] Disables 'Seen' receipts in Direct Messages, hides story viewed tracking, silences live stream join broadcasts, and hides DM typing indicator.",
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 

@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val subwaySurfersHighRefreshRatePatch = bytecodePatch(
     name = "120 FPS High Refresh Rate & Low Latency - Subway Surfers (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces 120Hz display refresh rate in Subway Surfers by configuring WindowManager.LayoutParams.preferredRefreshRate on the game activity.",
+    description = "⚠️ [Experimental / Untested] Forces 120Hz display refresh rate in Subway Surfers by configuring WindowManager.LayoutParams.preferredRefreshRate on the game activity.",
 ) {
     compatibleWith(COMPATIBILITY_SUBWAY_SURFERS)
 

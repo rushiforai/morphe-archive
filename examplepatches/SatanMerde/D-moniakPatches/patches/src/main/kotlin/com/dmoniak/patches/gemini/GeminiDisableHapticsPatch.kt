@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val geminiDisableHapticsPatch = bytecodePatch(
     name = "Disable Response Haptics - Google Gemini (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Silences excessive continuous vibration buzzing during token streaming and AI response generation in Google Gemini.",
+    description = "⚠️ [Experimental / Untested] Silences excessive continuous vibration buzzing during token streaming and AI response generation in Google Gemini.",
 ) {
     compatibleWith(COMPATIBILITY_GEMINI)
 

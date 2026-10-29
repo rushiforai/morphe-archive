@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val firefoxUnlockAllExtensionsPatch = bytecodePatch(
     name = "Unlock Full Add-ons Catalog - Firefox (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks full Mozilla Add-ons (AMO) catalog installation on mobile Firefox without requiring Custom Add-on Collections.",
+    description = "⚠️ [Experimental / Untested] Unlocks full Mozilla Add-ons (AMO) catalog installation on mobile Firefox without requiring Custom Add-on Collections.",
 ) {
     compatibleWith(COMPATIBILITY_FIREFOX)
 

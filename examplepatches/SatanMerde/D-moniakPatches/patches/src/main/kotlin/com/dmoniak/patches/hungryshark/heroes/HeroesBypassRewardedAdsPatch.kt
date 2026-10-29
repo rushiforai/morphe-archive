@@ -8,7 +8,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val heroesBypassRewardedAdsPatch = bytecodePatch(
     name = "Bypass Rewarded Ads - Heroes (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Bypasses rewarded video ads in Hungry Shark Heroes for instant egg incubation and hatching, arena battle revives, and daily reward card multipliers. (Experimental - Not yet tested on device).",
+    description = "⚠️ [Experimental / Untested] Bypasses rewarded video ads in Hungry Shark Heroes for instant egg incubation and hatching, arena battle revives, and daily reward card multipliers. (Experimental - Not yet tested on device).",
 ) {
     compatibleWith(COMPATIBILITY_HUNGRY_SHARK_HEROES)
 

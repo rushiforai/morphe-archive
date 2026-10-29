@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val googlePhotosUnlockFeaturesPatch = bytecodePatch(
     name = "Unlock Editing Tools - Google Photos (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Enables Pixel-exclusive photo editing features, Magic Eraser UI toggles, and Portrait Blur enhancement tools in Google Photos.",
+    description = "⚠️ [Experimental / Untested] Enables Pixel-exclusive photo editing features, Magic Eraser UI toggles, and Portrait Blur enhancement tools in Google Photos.",
 ) {
     compatibleWith(COMPATIBILITY_GOOGLE_PHOTOS)
 

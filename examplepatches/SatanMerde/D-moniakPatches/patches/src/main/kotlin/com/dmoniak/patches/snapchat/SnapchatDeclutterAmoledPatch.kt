@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val snapchatDeclutterAmoledPatch = bytecodePatch(
     name = "AMOLED Dark Theme & Declutter - Snapchat (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Injects pure OLED pitch black (#000000) into Snapchat chat screens and hides sponsored Discover tiles and intrusive Spotlight ads.",
+    description = "⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into Snapchat chat screens and hides sponsored Discover tiles and intrusive Spotlight ads.",
 ) {
     compatibleWith(COMPATIBILITY_SNAPCHAT)
 

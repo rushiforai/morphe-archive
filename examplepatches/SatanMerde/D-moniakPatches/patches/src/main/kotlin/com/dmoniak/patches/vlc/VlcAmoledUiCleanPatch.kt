@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val vlcAmoledUiCleanPatch = bytecodePatch(
     name = "Pure AMOLED Dark Theme & Declutter - VLC (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Forces a pitch-black AMOLED dark theme, hides tips and audio/video discovery clutter across the VLC player UI.",
+    description = "⚠️ [Experimental / Untested] Forces a pitch-black AMOLED dark theme, hides tips and audio/video discovery clutter across the VLC player UI.",
 ) {
     compatibleWith(COMPATIBILITY_VLC)
 

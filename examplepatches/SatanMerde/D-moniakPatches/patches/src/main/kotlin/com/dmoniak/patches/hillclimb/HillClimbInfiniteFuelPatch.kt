@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val hillClimbInfiniteFuelPatch = bytecodePatch(
     name = "Infinite Fuel - Hill Climb Racing (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Prevents fuel gauge depletion in Hill Climb Racing, allowing endless hill climbing and stunt driving without engine stall.",
+    description = "⚠️ [Experimental / Untested] Prevents fuel gauge depletion in Hill Climb Racing, allowing endless hill climbing and stunt driving without engine stall.",
 ) {
     compatibleWith(COMPATIBILITY_HILL_CLIMB)
 

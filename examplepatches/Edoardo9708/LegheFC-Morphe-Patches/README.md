@@ -38,7 +38,37 @@ Il codice delle diverse app e separato per package sotto `patches/src/main/kotli
 ## Elenco automatico delle patch pubblicate
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.4.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+<details open>
+<summary>📦 Flowx&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.650 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Flowx - Test stato Gold locale](#flowx-test-stato-gold-locale) | Inserisce dati dimostrativi Gold nella cache locale dell'app per verificarne il comportamento; non modifica l'abbonamento lato server. |  |
+
+</details>
+
+<details open>
+<summary>📦 Fonometro&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 11.5 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Fonometro - Remove ads](#fonometro-remove-ads) | Removes banner and interstitial ads without modifying Premium status, licenses, or in-app purchases. |  |
+
+</details>
+
 <details open>
 <summary>📦 Leghe FC&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -94,6 +124,6 @@ Lo sviluppo avviene su `dev`; le release stabili sono pubblicate dal ramo `main`
 
 Il repository deriva dal [template di Morphe](https://github.com/MorpheApp/morphe-patches-template). La modifica relativa alla sorgente d'installazione utilizza la [Morphe Patches Library](https://github.com/MorpheApp/morphe-patches-library) come dipendenza. Sono conservati i relativi termini e avvisi di licenza.
 
-**Progetto indipendente:** non affiliato né approvato dagli sviluppatori di Leghe Fantacalcio o dal progetto Morphe. Il nome Morphe indica esclusivamente la compatibilità tecnica.
+**Progetto indipendente:** non affiliato né approvato dagli sviluppatori delle applicazioni interessate o dal progetto Morphe. Il nome Morphe indica esclusivamente la compatibilità tecnica.
 
 Licenza: [GPLv3](LICENSE). Vedi anche [NOTICE](NOTICE).

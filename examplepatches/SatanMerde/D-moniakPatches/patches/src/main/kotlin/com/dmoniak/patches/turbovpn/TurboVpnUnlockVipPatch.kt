@@ -11,7 +11,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val turboVpnUnlockVipPatch = bytecodePatch(
     name = "Unlock VIP & All Server Locations - Turbo VPN (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks Turbo VPN VIP subscription status, granting free access to high-speed VIP servers, dedicated streaming locations, and removes server country locks.",
+    description = "⚠️ [Experimental / Untested] Unlocks Turbo VPN VIP subscription status, granting free access to high-speed VIP servers, dedicated streaming locations, and removes server country locks.",
 ) {
     compatibleWith(COMPATIBILITY_TURBO_VPN)
 

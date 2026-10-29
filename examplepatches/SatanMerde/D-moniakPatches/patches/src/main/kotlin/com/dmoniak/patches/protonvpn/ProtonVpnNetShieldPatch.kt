@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val protonVpnNetShieldPatch = bytecodePatch(
     name = "Unlock NetShield DNS Blocker - Proton VPN (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks the NetShield DNS ad & malware blocking toggle in Proton VPN preferences without requiring a Plus subscription.",
+    description = "⚠️ [Experimental / Untested] Unlocks the NetShield DNS ad & malware blocking toggle in Proton VPN preferences without requiring a Plus subscription.",
 ) {
     compatibleWith(COMPATIBILITY_PROTON_VPN)
 

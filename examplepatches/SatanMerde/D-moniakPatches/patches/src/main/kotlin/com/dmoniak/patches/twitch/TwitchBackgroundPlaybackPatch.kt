@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val twitchBackgroundPlaybackPatch = bytecodePatch(
     name = "Background & Audio-Only Playback - Twitch (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Unlocks background audio playback and seamless Picture-in-Picture (PiP) mode without stream interruptions on Twitch.",
+    description = "⚠️ [Experimental / Untested] Unlocks background audio playback and seamless Picture-in-Picture (PiP) mode without stream interruptions on Twitch.",
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
 

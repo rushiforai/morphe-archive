@@ -10,23 +10,17 @@ Technical documentation and patch catalog for SUBE (Sistema Único de Boleto Ele
 | :--- | :--- |
 | **Target App** | SUBE |
 | **Package Name** | `com.sube.app` |
-| **Target Version** | `2.7.25` |
+| **Target Version** | `Single pinned version (see README Patch Catalog)` |
 | **Target Package Format** | XAPK bundle |
 | **Primary Architecture** | universal (`arm64-v8a` / `armeabi-v7a`) |
-| **Download Target** | [APKPure](https://d.apkpure.com/b/XAPK/com.sube.app?versionCode=212) |
+| **Download Target** | [APKPure](https://d.apkpure.com/b/XAPK/com.sube.app) |
 | **Authoritative Source** | APKPure |
 
 ---
 
 ## 2. Applied Patches Catalog
 
-| Patch Name | Typology | Default State | Dependencies | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| **Bypass SUBE NFC antenna check** | `bytecodePatch` | `false` (Opt-in) | None | Bypasses the com.nxp.mifare system feature check in SUBE so the app runs on devices whose ROM does not declare NXP Mifare support. |
-| **SUBE Telemetry Manifest Purge** | `resourcePatch` | `false` (Opt-in) | None | Strips advertising permissions, disables measurement services, providers, and install receivers, and injects opt-out metadata flags in AndroidManifest.xml. |
-| **Block Telemetry & Trackers** | `bytecodePatch` | `true` (Enabled) | `SUBE Telemetry Manifest Purge` | Neutralizes Google AppMeasurement, Firebase Analytics, and Firebase Crashlytics event dispatchers at bytecode entrypoints. |
-| **Cut Firebase Manifest** | `resourcePatch` | `false` (Opt-in) | None | Disables Firebase Cloud Messaging services and instance ID receivers in AndroidManifest.xml. Breaks push notifications and FCM background delivery. |
-| **Cut Firebase Entirely** | `bytecodePatch` | `false` (Opt-in) | `Cut Firebase Manifest` | Rewrites Firebase Installations API endpoint to 0.0.0.0 in DEX bytecode. WARNING: Breaks push notifications (FCM), FID registration, and token exchange. |
+The authoritative patch catalog with descriptions and options is generated in README.md from the built .mpp; see also patches-list.json.
 
 ---
 

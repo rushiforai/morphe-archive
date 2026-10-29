@@ -162,7 +162,11 @@ private fun hookLifecycleCallbacks(hookedMethods: MutableList<String>) {
 }
 
 // Telemetry dispatchers confirmed in Word DEX via surface_sweep_word.tsv:
-//   - AggregatedMetric$SendAggregationTimerTask: shared OneDS aggregation timer (event emitter).
+//   - NOTE: AggregatedMetric$SendAggregationTimerTask is intentionally NOT
+//     stubbed. It is driven by a native MSO timer; voiding run() leaves the
+//     native expiry callback without initialized state and crashes in
+//     nativeTimerExpiryHandlerInternal. The aggregator runs, but every
+//     downstream dispatch below is neutralized, so nothing is exfiltrated.
 //   - e0.logFailure: schema emitter with extra-package XREFs (TSV batching rows confirm
 //     Lcom/microsoft/applications/telemetry/core/o in classes3.dex).
 //   - HardwareInformationReceiver: privacy-controls/identifier row confirms
@@ -172,13 +176,6 @@ private fun hookLifecycleCallbacks(hookedMethods: MutableList<String>) {
 // All targets return V with no Callback/Listener/Task params -- safe to return-void.
 context(_: BytecodePatchContext)
 private fun hookTelemetryDispatchers(hookedMethods: MutableList<String>) {
-    hookVoidMethod(
-        definingClass = "Lcom/microsoft/applications/telemetry/AggregatedMetric\$SendAggregationTimerTask;",
-        name = "run",
-        parameters = emptyList(),
-        hookedMethods = hookedMethods,
-        label = "SendAggregationTimerTask.run",
-    )
     hookVoidMethod(
         definingClass = "Lcom/microsoft/applications/telemetry/core/e0;",
         name = "logFailure",
@@ -244,10 +241,37 @@ private fun hookAdMeasurementPlatformData(hookedMethods: MutableList<String>) {
     hookedMethods.add("AdMeasurementPlatformData.getAppSetId")
 }
 
+
+// Office early-telemetry dispatch -- TelemetryHelper confirmed in Word DEX
+// (7 static dispatchers: log/logReliably variants over String, EventFlags
+// and DataFieldObject payloads). All of them funnel Office telemetry
+// (milestones, recommended-documents, OEarlyTelemetryLogger events) into
+// Diagnostics.SendDiagnosticTraceNative, which crashes on the null strings
+// of resigned installs (strlen(null) in MsoSendStructuredTraceTag).
+// Neutralizing the static dispatchers keeps the dispatch from ever reaching
+// native. Constructors are left intact.
+private fun BytecodePatchContext.hookOfficeEarlyTelemetryDispatch(hookedMethods: MutableList<String>) {
+    val classDef = classDefByOrNull("Lcom/microsoft/office/plat/telemetry/TelemetryHelper;")
+        ?: error("[Word Telemetry] TelemetryHelper class not found.")
+    val mutableClass = mutableClassDefBy(classDef)
+    var count = 0
+    for (method in mutableClass.methods) {
+        if (method.name == "<init>" || method.name == "<clinit>") continue
+        if (method.returnType != "V") continue
+        if (method.parameterTypes.isEmpty()) continue
+        method.addInstructions(0, "return-void")
+        count++
+    }
+    if (count == 0) {
+        error("[Word Telemetry] No TelemetryHelper dispatchers hooked.")
+    }
+    hookedMethods.add("TelemetryHelper.dispatchers($count)")
+}
+
 @Suppress("unused")
 val wordBlockTelemetryPatch = bytecodePatch(
     name = "Block Telemetry & Trackers",
-    description = "Neutralizes Microsoft OneDS/Aria lifecycle, aggregated-metric and failure-logging dispatch methods, nullifies ad measurement platform identifiers (AIFA, AppSetId), disables HockeyApp and DataTransport components, and strips advertising permissions.",
+    description = "Neutralizes Microsoft OneDS/Aria lifecycle, aggregated-metric and failure-logging dispatch methods, nullifies ad measurement platform identifiers (AIFA, AppSetId), disables HockeyApp and DataTransport components, strips advertising permissions, and neutralizes Office early-telemetry dispatch (TelemetryHelper).",
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY_WORD)
@@ -259,6 +283,7 @@ val wordBlockTelemetryPatch = bytecodePatch(
         hookLifecycleCallbacks(hookedMethods)
         hookTelemetryDispatchers(hookedMethods)
         hookAdMeasurementPlatformData(hookedMethods)
+        hookOfficeEarlyTelemetryDispatch(hookedMethods)
 
         println("[Word Telemetry] Neutralized ${hookedMethods.size} telemetry dispatch methods: ${hookedMethods.joinToString(", ")}.")
     }

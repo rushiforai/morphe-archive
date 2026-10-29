@@ -10,7 +10,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val hideMeUnlockFeaturesPatch = bytecodePatch(
     name = "Unlock Client Features & In-App Purchases - hide.me VPN (Experimental)",
-    description = "⚠️ [En cours de développement / Non testé] Hooks Google Play Billing and installer check in hide.me VPN. NOTE: Remote VPN server connections and bandwidth require server-side authentication.",
+    description = "⚠️ [Experimental / Untested] Hooks Google Play Billing and installer check in hide.me VPN. NOTE: Remote VPN server connections and bandwidth require server-side authentication.",
 ) {
     compatibleWith(COMPATIBILITY_HIDEME)
 

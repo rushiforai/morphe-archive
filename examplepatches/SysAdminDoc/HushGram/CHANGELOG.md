@@ -4,13 +4,18 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
-### HushGram v0.0.17
+### Bug Fixes
 
-#### Features
+* **Tooling:** Patching for a phone without `-Apk` takes the declared Instagram build from the fixture folder the way the release gate does, split `.apks` bundles included. It used to skip an `.apks` and could pick up any file with the version in its name.
+
+## 0.0.17 (2026-10-28)
+
+### Features
 
 * **Instagram - Keep your place in Home:** New switch under Feed. Coming back to Instagram leaves Home on the post you were on, however long you were away. Instagram no longer reloads it or resets the app to the top. Pull down still refreshes. Starts off. Asked for in #354.
 * **Instagram - Glass tab bar:** `Hide the tab bar as you scroll` works with the glass off too. Scroll down and Instagram's own bar slides away while the page fills its space. Scroll up and it's back. Reels keep their bar. Asked for in #343.
 * **Instagram - Rounded post corners:** `Rounded corners on Reels` under Feed rounds a reel's video in the Reels tab and full screen, at the same Corner size. The seek bar, captions and buttons stay whole. Starts off. Asked for in #362.
+* **Instagram - Rounded post corners:** `Rounded corners on stories` under Feed rounds a story's photo or video, whether it opens from the tray, a profile or a highlight, at the same Corner size. The progress bar, names and stickers stay whole. Starts off. Asked for in #363 and #368.
 * **Instagram - Rounded post corners:** `Peek at the next carousel page` under Feed sits each carousel page in from the edges, with the start of the next page showing at the right. Starts off. Asked for in #361.
 * **Instagram - Thicker story progress bar:** new patch. `Thicker story progress bar` under Stories draws the bar along the top of a story twice or three times as thick. Its segments and timing don't change. Starts off. Asked for in #360.
 * **Instagram - Start reels with sound:** new patch. `Start reels with sound` under Playback plays a reel you tap open from a post on Home with sound, and Home is muted again when you go back. Starts off. Asked for in #342.
@@ -23,12 +28,12 @@ Every HushGram release, newest first.
 * **Instagram - Swipe through a chat's reels:** new patch. With `Swipe through a chat's reels` on under Messages, swiping up on a reel opened from a chat goes through the chat's other shared reels before any suggested ones. Starts off. Asked for in #350.
 * **Instagram - Hide suggested stories:** `Filter the Stories tray by verified accounts` under Stories keeps only verified accounts in the row at the top of Home, or only the ones that aren't. Your own story stays. Starts off. Asked for in #340.
 
-#### Bug Fixes
+### Bug Fixes
 
 * **Instagram - Show if a profile follows you:** On your Following list, Doesn't follow you now comes before the name. A long name used to push it off the end of the line. Reported in #351.
 * **Instagram:** `Hide the emoji row` and `Hide Follow on posts` now work the moment you switch them on. Before, nothing changed until you left Instagram and came back.
 * **Instagram:** `Hide suggested stories` adds `Keep the Stories tray in the feed` under Stories. On some accounts the row floated over Home mid-feed and stayed put while posts scrolled under it. Now it stays in the feed. Starts off. Reported in #357.
-* **Instagram:** Morphe Manager now knows the armeabi-v7a, x86 and x86_64 builds of Instagram 452.1.0.53.64, so an older 32-bit phone is pointed at the build it can install instead of the arm64 one. Reported in #346.
+* **Instagram:** Morphe Manager now knows the armeabi-v7a, x86 and x86_64 builds of Instagram too, so an older 32-bit phone is pointed at the build it can install instead of the arm64 one. Reported in #346.
 * **Instagram:** `Glass tab bar` no longer leaves a dark band under a reel opened from the feed, where Instagram hides the tab bar. Reels opened from the Reels tab still stop above the bar. Reported in #347.
 * **Instagram:** `Start stories with sound` turns Instagram's sound back off when you leave a story, so Feed and Reels stay muted. Coming back to the story turns it on again, and a story you muted yourself stays muted. Reported in #342.
 * **Instagram:** `Download any story` also adds Download to the menu of your own highlights, which Instagram builds differently from other story menus. Reported in #339.
@@ -65,8 +70,9 @@ Every HushGram release, newest first.
 * **Tooling:** The source census keeps a relicensed source's old licence pinned and records code it took from elsewhere. InstaEclipse is GPL-3.0 now, and the HushGram downloader it carries counts as ours. Stylus dropped its Instagram patch.
 * **Tooling:** The build moves to the Morphe patches plugin 2.0.0 and Kotlin 2.4.21, held to one version across the plugin's classpath. Patched apps come out the same, and the bundle carries Kotlin stdlib 2.4.21.
 
-#### Improvements
+### Improvements
 
+* **Instagram:** HushGram now patches Instagram 453.0.0.55.79 instead of 452.1.0.53.64. Get APKMirror's (arm64-v8a) (480-640dpi) (Android 9.0+) variant, build 385914283. The armeabi-v7a build (385914282) is declared too, and so are the x86 and x86_64 builds (385914284 and 385914285). Thanks to toidicakhia for #366.
 * **Instagram:** HushGram's settings use Instagram's own blues instead of pink. Switches and buttons take its indigo button color, while icons and headings use the lighter blue Instagram gives links on a dark screen.
 * **Instagram:** Every HushGram title wears Instagram's gradient now, including the settings bar, its dialogs and the lock screen. The colors drift slowly and a sheen sweeps across every few seconds, even with Android's animations turned off.
 * **Instagram:** Settings categories expand their controls directly underneath. Several sections can stay open, and tapping a heading collapses it. Search finds controls across every section and restores your open sections when cleared.
