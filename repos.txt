@@ -6,6 +6,7 @@
 2eno/2eno-patches
 2eno/morphe-patches
 6ixfalls/revanced-patches
+6jarjar6/morphe-patches
 abhis1n/Morphe-Patches
 adderalladmiral/psychonaut-journal-patches
 adderalladmiral/psychonaut-wiki-journal-patches
@@ -31,6 +32,8 @@ AlexNaga/android-patches
 Almewty/my-morphe-patches
 ameenalasady/ameen-morphe
 ameenalasady/photogrid-morphe
+amfakh/fakh-patches
+amit-0i/myspoti-morphe-patches
 Amitaisela/travian-morphe-patches
 AmpleReVanced/revanced-patches
 anddea/revanced-patches
@@ -117,6 +120,7 @@ Dabrogost/InfinityPlus-Patches
 Dan1elTheMan1el/Morphe-Patches
 danieleavolio/cinemaniac-patches
 danieleavolio/column-patches
+danieleavolio/lovaion-patches
 DarioDKM/ringconn-patches
 david419kr/niconico-yt-morphe-patches
 debakarr/morphe-patches
@@ -141,6 +145,7 @@ Edoardo9708/LegheFC-Morphe-Patches
 Educal72/educal-patches
 ekazrahul100-web/redgifs-audio-patch
 electiveDev/tiaruebar-patches-vip-fix
+ElectroHeavenVN/morphe-patches
 enccmp/mn-patches
 Entree3k/Morning-Entree-Patches
 Epxec/android-patches
@@ -157,6 +162,7 @@ FoxxoOwO/foxxo-patches
 franticg33k/morphe-patches
 Freeman022026/rustore-privacy-patches
 Fripe070/PixivPatches
+Fuku856/smartlife-patches
 furkngld/tiktok-lite-patches-for-morphe
 fynnaly/morphe-patches
 fynnaly/test-morphe-patch
@@ -243,6 +249,7 @@ Jman-Github/Awesome-ReVanced
 Jman-Github/Patch-Bundle-Registry
 Jman-Github/ReVanced-Patch-Bundles
 Jman-Github/Universal-ReVanced-Manager
+johnneerdael/dutch-applications-patches
 Joly0/joly0-patches
 jordanwoodson/lurk-morphe-patches
 Joristdh/Platypatch
@@ -283,6 +290,7 @@ liongalahad/nuviotv-patches
 liongalahad/stremio-androidTV-morphe-patches
 LOCKhart07/morphe-patches
 logm1lo/logm1lo-patches
+loody227/masajid-patches
 lootdev78/morphe-patches-sc
 lootdev78/psylos-morphe-patches
 loskutov/youtube-domain-fronting-patch
@@ -291,6 +299,7 @@ LuckyToShine/czyeru
 luvztroy/muse-patches
 Lynx6319/patch-youtube-scroll-block
 lyyako/realme-link-patches
+M4TH1EU/veloce-patches
 madhu-gowda6/atharv-patches
 madushas/morphe-patches-custom
 madushas/pdb_patch
@@ -300,6 +309,7 @@ Manishrdy/honista-patches
 Manishrdy/piko
 MarcaDian/morphe-patches-yavot
 markpaul099/gboard-extended-search
+markpaul099/gboard-gifs-extended
 matthewclso/chrome-morphe
 MauroGamerVN/Morphe-Patches
 meridianfresco/morphe-meta-patches
@@ -344,6 +354,7 @@ pengusto/penguin-patches
 PerfLite/morphe-patches-zona
 phamleduy04/duy-patches
 picarica/My-moprhe-patches
+Piel-M/piko-gif-patch
 pigfoot/morphe-patches
 Pilotkosinus/morphe-waze-patches
 Pilotkosinus/Muellpatch
@@ -493,3 +504,4 @@ Z-drgon/morphe-patches
 zalfafa/piko
 Zanuaimi/UniPatches
 zeldrisho/morphe-patches
+ZoomSass/Mighty-Morphing

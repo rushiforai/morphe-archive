@@ -2235,14 +2235,6 @@
                 "updatedAt": 1790481171651
             },
             {
-                "name": "lawnchair-morphe-patches",
-                "source": "https://raw.githubusercontent.com/latanvillegas/lawnchair-morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 303,
-                "createdAt": 1790481173870,
-                "updatedAt": 1790481173870
-            },
-            {
                 "name": "anghami-patches",
                 "source": "https://raw.githubusercontent.com/mohamedamrnady/anghami-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -3385,6 +3377,102 @@
                 "sortOrder": 467,
                 "createdAt": 1793161013048,
                 "updatedAt": 1793161013048
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/6jarjar6/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 468,
+                "createdAt": 1793249477115,
+                "updatedAt": 1793249477115
+            },
+            {
+                "name": "fakh-patches",
+                "source": "https://raw.githubusercontent.com/amfakh/fakh-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 469,
+                "createdAt": 1793249478508,
+                "updatedAt": 1793249478508
+            },
+            {
+                "name": "myspoti-morphe-patches",
+                "source": "https://raw.githubusercontent.com/amit-0i/myspoti-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 470,
+                "createdAt": 1793249478935,
+                "updatedAt": 1793249478935
+            },
+            {
+                "name": "lovaion-patches",
+                "source": "https://raw.githubusercontent.com/danieleavolio/lovaion-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 471,
+                "createdAt": 1793249482512,
+                "updatedAt": 1793249482512
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/ElectroHeavenVN/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 472,
+                "createdAt": 1793249483738,
+                "updatedAt": 1793249483738
+            },
+            {
+                "name": "smartlife-patches",
+                "source": "https://raw.githubusercontent.com/Fuku856/smartlife-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 473,
+                "createdAt": 1793249484760,
+                "updatedAt": 1793249484760
+            },
+            {
+                "name": "dutch-applications-patches",
+                "source": "https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 474,
+                "createdAt": 1793249489054,
+                "updatedAt": 1793249489054
+            },
+            {
+                "name": "masajid-patches",
+                "source": "https://raw.githubusercontent.com/loody227/masajid-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 475,
+                "createdAt": 1793249490735,
+                "updatedAt": 1793249490735
+            },
+            {
+                "name": "veloce-patches",
+                "source": "https://raw.githubusercontent.com/M4TH1EU/veloce-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 476,
+                "createdAt": 1793249491316,
+                "updatedAt": 1793249491316
+            },
+            {
+                "name": "gboard-gifs-extended",
+                "source": "https://raw.githubusercontent.com/markpaul099/gboard-gifs-extended/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 477,
+                "createdAt": 1793249491880,
+                "updatedAt": 1793249491880
+            },
+            {
+                "name": "piko-gif-patch",
+                "source": "https://raw.githubusercontent.com/Piel-M/piko-gif-patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 478,
+                "createdAt": 1793249494154,
+                "updatedAt": 1793249494154
+            },
+            {
+                "name": "Mighty-Morphing",
+                "source": "https://raw.githubusercontent.com/ZoomSass/Mighty-Morphing/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 479,
+                "createdAt": 1793249498764,
+                "updatedAt": 1793249498764
             }
         ]
     }
