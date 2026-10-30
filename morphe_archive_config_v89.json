@@ -3323,14 +3323,6 @@
                 "updatedAt": 1792988406123
             },
             {
-                "name": "VK-IM",
-                "source": "https://raw.githubusercontent.com/oviron/VK-IM/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 461,
-                "createdAt": 1792988407595,
-                "updatedAt": 1792988407595
-            },
-            {
                 "name": "pixkk-patches",
                 "source": "https://raw.githubusercontent.com/pixkk/pixkk-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -3473,6 +3465,14 @@
                 "sortOrder": 479,
                 "createdAt": 1793249498764,
                 "updatedAt": 1793249498764
+            },
+            {
+                "name": "maps-automotive-for-byd-patches",
+                "source": "https://raw.githubusercontent.com/romanchukg-cloud/maps-automotive-for-byd-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 480,
+                "createdAt": 1793335943634,
+                "updatedAt": 1793335943634
             }
         ]
     }
