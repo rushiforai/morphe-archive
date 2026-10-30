@@ -17,20 +17,26 @@ import app.morphe.patches.telegram.misc.chattypefolders.CLIENT_USER_ID
 import app.morphe.patches.telegram.misc.chattypefolders.CONTROLLER_INSTANCE
 import app.morphe.patches.telegram.misc.chattypefolders.MESSAGES_CONTROLLER
 import app.morphe.patches.telegram.misc.chattypefolders.SELECTED_ACCOUNT
+import app.morphe.patches.telegram.misc.chattypefolders.STORAGE
+import app.morphe.patches.telegram.misc.chattypefolders.USER_CONFIG
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.extension.localRegisterCount
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.util.ControlFlow
+import app.morphe.util.RegisterLiveness
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -224,6 +230,8 @@ class HiddenChatsFixtureTest {
                 "resort" to (11 to listOf(CONTROLLER_INSTANCE, sort, NOTIFICATIONS_INSTANCE, DIALOGS_NEED_RELOAD, POST_NOTIFICATION)),
                 "addMenuItem" to (4 to listOf(refs.addSubItem)),
                 "selectedChats" to (7 to listOf(refs.listener, refs.selected)),
+                "recount" to (5 to listOf(STORAGE_INSTANCE, RECOUNT)),
+                "onStorageThread" to (6 to listOf(STORAGE_INSTANCE, STORAGE_QUEUE, POST_RUNNABLE)),
             )
             for ((stub, want) in expected) {
                 val body = stubs.getValue(stub).body()
@@ -235,12 +243,24 @@ class HiddenChatsFixtureTest {
             val resort = stubs.getValue("resort").body()
             val call = resort.single { it.ref() == sort }
             assertEquals(Opcode.CONST_4, resort[resort.indexOf(call) - 1].opcode)
+            // resetAllUnreadCounters(false): every folder, not only the ones leaving muted chats out.
+            val recount = stubs.getValue("recount").body()
+            val reset = recount.single { it.ref() == RECOUNT }
+            val flag = recount[recount.indexOf(reset) - 1]
+            assertEquals(name, Opcode.CONST_4, flag.opcode)
+            assertEquals(name, 0, (flag as NarrowLiteralInstruction).narrowLiteral)
+            assertEquals(name, flag.namedRegisters().single(), reset.namedRegisters()[1])
             assertEquals(1L, statusOf(context, "hiddenChats"))
+            assertEquals(1L, statusOf(context, "hiddenUnread"))
             assertEquals(1L, statusOf(context, "launchFolder"))
             assertEquals(1, context.mutableClassDefBy(MESSAGES_CONTROLLER).methods.single { it.name == "sortDialogs" }.body()
                 .count { it.ref() == "$HIDDEN_CHATS->prune(Ljava/lang/Object;)V" })
             assertEquals(1, context.mutableClassDefBy(MESSAGES_CONTROLLER).methods.single { it.name == "reorderPinnedDialogs" }.body()
                 .count { it.ref() == PIN_ORDER })
+            // One skip in each unread count.
+            assertEquals(name, mapOf("calcUnreadCounters" to 1, "updateFiltersReadCounter" to 1),
+                context.mutableClassDefBy(STORAGE).methods.groupBy { it.name }
+                    .mapValues { (_, methods) -> methods.sumOf { m -> m.body().count { it.ref() == UNCOUNTED } } }.filterValues { it > 0 })
             // The long press item's three calls, each once in the whole app.
             for (hook in listOf(MENU_ITEM, MENU_SHOWN, MENU_CHOICE)) {
                 val calls = hosts.filter { !it.type.startsWith("Lapp/hushtelegram/") }
@@ -270,6 +290,92 @@ class HiddenChatsFixtureTest {
                     .sumOf { cls -> context.mutableClassDefBy(cls.type).methods.sumOf { m -> m.body().count { it.ref() == hook } } }
                 assertEquals("$name: $hook", 0, calls)
             }
+        }
+    }
+
+    @Test fun `the unread counts ask about each chat right after reading its id`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = PatchContexts.of(ExtensionDex.classes() + launchFolderHosts(build))
+            context.requireHiddenChatsRuntime()
+            val plan = context.resolveUnreadCounts()
+            assertNull("$name: ${plan.missing}", plan.missing)
+            assertEquals(name, listOf("calcUnreadCounters", "updateFiltersReadCounter"), plan.skips.map { it.method.name })
+            // controllerUser takes either as the BaseController it is.
+            for (type in listOf(MESSAGES_CONTROLLER, STORAGE)) {
+                assertEquals("$name: $type", "Lorg/telegram/messenger/BaseController;", context.mutableClassDefBy(type).superclass)
+            }
+            val stock = plan.skips.map { it.method.body().code() }
+            val landings = plan.skips.map { operands(it.method.body()[it.to]) }
+            plan.apply()
+            for ((i, skip) in plan.skips.withIndex()) {
+                val where = "$name ${skip.method.name}"
+                val body = skip.method.body()
+                assertEquals("$where: three instructions", stock[i].size + UNCOUNTED_SIZE, body.code().size)
+                // Right after the chat's id lands, the hook is handed the storage and that id.
+                assertEquals(where, Opcode.MOVE_RESULT_WIDE, body[skip.at - 1].opcode)
+                assertEquals(where, listOf(skip.chat), body[skip.at - 1].namedRegisters())
+                assertEquals(where, listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_NEZ),
+                    (skip.at until skip.at + UNCOUNTED_SIZE).map { body[it].opcode })
+                assertEquals(where, UNCOUNTED, body[skip.at].ref())
+                assertEquals(where, listOf(skip.storage, skip.chat, skip.chat + 1), body[skip.at].namedRegisters())
+                assertEquals(where, listOf(skip.scratch), body[skip.at + 1].namedRegisters())
+                assertEquals(where, listOf(skip.scratch), body[skip.at + 2].namedRegisters())
+                // A no falls through to Telegram's next instruction, a yes lands where the plan says.
+                val landing = if (skip.to < skip.at) skip.to else skip.to + UNCOUNTED_SIZE
+                assertEquals(where, listOf(skip.at + UNCOUNTED_SIZE, landing).sorted(), ControlFlow.of(skip.method).normal[skip.at + 2].sorted())
+                assertEquals(where, landings[i], operands(body[landing]))
+                assertEquals("$where: Telegram's own code is unchanged around it", stock[i],
+                    (body.take(skip.at) + body.drop(skip.at + UNCOUNTED_SIZE)).code())
+                // The answer's register is Telegram's to write before it reads it, either way on.
+                val liveness = RegisterLiveness.of(skip.method)
+                for (next in listOf(skip.at + UNCOUNTED_SIZE, landing)) assertTrue("$where: v${skip.scratch} at $next", skip.scratch !in liveness.liveInto(next))
+            }
+            // calcUnreadCounters' yes is the walk's next row; updateFiltersReadCounter's is the way of a chat whose
+            // count didn't change, so a hidden chat skips the read side and the new messages side alike.
+            val (rows, reads) = plan.skips
+            assertEquals(name, "Lorg/telegram/SQLite/SQLiteCursor;->next()Z", rows.method.body()[rows.to].ref())
+            assertTrue(name, rows.to < rows.at)
+            val read = reads.method.body()
+            assertEquals(name, Opcode.IF_EQZ, read[reads.at + UNCOUNTED_SIZE].opcode)
+            assertEquals(name, listOf(reads.method.localRegisterCount() + 3), read[reads.at + UNCOUNTED_SIZE].namedRegisters())
+            assertTrue(name, read[reads.at + UNCOUNTED_SIZE + 2].ref().orEmpty().startsWith("$STORAGE->dialogsWithUnread:"))
+            assertTrue(name, reads.to < reads.at)
+            // Right after the same copy a changed chat starts with, where the count's test sends an unchanged one.
+            val changed = read[reads.at - 3]
+            val unchanged = read[reads.to - 1]
+            assertEquals(name, changed.opcode to changed.namedRegisters(), unchanged.opcode to unchanged.namedRegisters())
+            val flow = ControlFlow.of(reads.method)
+            val value = (reads.to - 1 downTo 0).first { read[it].ref() == "Lorg/telegram/messenger/support/LongSparseIntArray;->valueAt(I)I" }
+            assertTrue(name, (value + 1 until reads.to - 1).any { read[it].opcode == Opcode.IF_NEZ && reads.to - 1 in flow.normal[it] })
+            val live = RegisterLiveness.of(reads.method).liveInto(reads.to)
+            assertTrue("$name: $live", reads.chat !in live && reads.chat + 1 !in live)
+        }
+    }
+
+    @Test fun `unread counts that changed stay as they were and only warn`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val hosts = (folderCounterHosts(build) + launchFolderHosts(build) + menuHosts(build)).distinctBy { it.type }
+            val context = PatchContexts.of((ExtensionDex.classes() + hosts).distinctBy { it.type })
+            val storage = context.mutableClassDefBy(STORAGE)
+            // A reworded query: which rows the walk reads is no longer clear.
+            val calc = storage.methods.single { it.name == "calcUnreadCounters" }
+            val query = calc.body().indexOfFirst { it.opcode == Opcode.CONST_STRING && it.ref().orEmpty().startsWith("SELECT did, folder_id, unread_count") }
+            calc.replaceInstruction(query, "const-string v${(calc.body()[query] as OneRegisterInstruction).registerA}, \"SELECT did FROM dialogs\"")
+            val counts = listOf("calcUnreadCounters", "updateFiltersReadCounter")
+            val before = counts.map { count -> storage.methods.single { it.name == count }.body().code() }
+            val warnings = PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) }
+            assertEquals("$name: $warnings", 1, warnings.size)
+            assertTrue("$name: ${warnings.single()}", "the unread count's query is missing or ambiguous" in warnings.single() &&
+                "Hidden chats go on with their unread counts" in warnings.single())
+            assertEquals(1L, statusOf(context, "hiddenChats"))
+            assertEquals(0L, statusOf(context, "hiddenUnread"))
+            assertEquals(name, before, counts.map { count -> storage.methods.single { it.name == count }.body().code() })
+            assertTrue("$name: recount stays a stub", context.mutableClassDefBy(HIDDEN_CHATS).methods.single { it.name == "recount" }.body()
+                .none { it.ref() == RECOUNT })
+            assertTrue("$name: onStorageThread stays a stub", context.mutableClassDefBy(HIDDEN_CHATS).methods.single { it.name == "onStorageThread" }.body()
+                .none { it.ref() == POST_RUNNABLE })
         }
     }
 
@@ -304,6 +410,18 @@ class HiddenChatsFixtureTest {
                 .filter { it.type != "Lorg/telegram/messenger/NotificationCenter;" })
             val plan = context.resolveHiddenChats()
             assertTrue("${build.name}: ${plan.missing}", plan.missing.orEmpty().contains("isn't reachable from the extension"))
+        }
+    }
+
+    @Test fun `without the account count the switch is left out`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val hosts = launchFolderHosts(build).map { host ->
+                if (host.type != USER_CONFIG) host
+                else ImmutableClassDef(host.type, host.accessFlags, host.superclass, host.interfaces, host.sourceFile,
+                    host.annotations, host.fields.filter { it.name != "MAX_ACCOUNT_COUNT" }, host.methods)
+            }
+            val plan = PatchContexts.of(ExtensionDex.classes() + hosts).resolveHiddenChats()
+            assertTrue("${build.name}: ${plan.missing}", plan.missing.orEmpty().contains("$ACCOUNT_SLOTS isn't reachable"))
         }
     }
 

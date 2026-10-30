@@ -31,6 +31,8 @@ first. CONTRIBUTING.md has the rules contributors see; keep the two in line with
   `patches/.../shared/apps/` (one `LurkApp` per app in `Apps.kt`); the app's file keeps name and description.
 - When patches are tested on a new app version, update that version in the app's `targets`.
 - Fingerprint on strings, method signatures and instruction patterns, not obfuscated class names.
+  Fingerprint strings must be whole dex strings: Morphe Patcher 2.0 compares them exactly when a 2.0-built
+  bundle is in the run (`tests/verify_fingerprint_strings.py`, part of `bin/test-host`).
 - Java that runs inside the app goes in `extensions/` (`extensions/shared` has `Logger`, tag `lurk`).
   `patches/.../shared/Extensions.kt` has the extension paths and the Logger descriptor.
 - Kick is React Native: logic is Hermes bytecode in `assets/index.android.bundle`. Use `hermesPatch`

@@ -22,4 +22,17 @@ object Constants {
     )
 
     const val GIF_HOOKS_DESCRIPTOR = "Lapp/pielm/extension/twitter/gif/GifPatchHooks;"
+    const val PATCH_INFO_HOOK_DESCRIPTOR = "Lapp/pielm/extension/twitter/gif/PatchInfoHook;"
+
+    val PATCH_VERSION: String by lazy {
+        try {
+            Constants::class.java.getResourceAsStream("/patch-version.properties")?.use { stream ->
+                val props = java.util.Properties()
+                props.load(stream)
+                props.getProperty("version")
+            } ?: "1.2.0"
+        } catch (_: Throwable) {
+            "1.2.0"
+        }
+    }
 }

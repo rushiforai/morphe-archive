@@ -42,8 +42,7 @@ public class StreamingDisplayTest {
     for(int e=0;e<ranges.length;e++){
       StringBuilder source=new StringBuilder();
       for(int t=ranges[e][0];t<=ranges[e][1];t++)source.append(t==ranges[e][0]?"":" ").append(tokens.getJSONArray(t).getString(1));
-      events.put(new JSONObject().put("from",tokens.getJSONArray(ranges[e][0]).getInt(0))
-          .put("to",tokens.getJSONArray(ranges[e][1]).getInt(0)).put("source",source.toString()).put("text",TEXTS[e]));
+      events.put(new JSONObject().put("source",source.toString()).put("text",TEXTS[e]));
     }
     return new JSONObject().put("block",input.getString("block")).put("events",events).toString();
   }
@@ -118,17 +117,17 @@ public class StreamingDisplayTest {
     assertTrue("engine did not reach the expected observable state",done.getAsBoolean());
   }
 
-  @Test public void firstEventIsShownWhileTheReplyIsStillStreaming() throws Exception {
+  @Test public void firstCoherentClauseIsShownWhileTheReplyIsStillStreaming() throws Exception {
     RebuildController.activate(context,url,false,true);
     await(()->!shown.isEmpty(),10);
-    assertEquals(TEXTS[0],shown.get(0));
+    assertEquals(TEXTS[0]+TEXTS[1],shown.get(0));
     long early=TimeUnit.NANOSECONDS.toMillis(firstShownAt-landingRequestedAt);
     assertTrue("first event took "+early+" ms of a ~4 s stream",early<2500);
     // The accepted plan equals the shown prefix: the caption is not re-shown or replaced.
     long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(8);
     while(System.nanoTime()<deadline){Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(40));Thread.sleep(10);}
-    assertEquals(Collections.singletonList(TEXTS[0]),new ArrayList<>(new LinkedHashSet<>(shown)));
-    assertEquals(1,Collections.frequency(shown,TEXTS[0]));
+    assertEquals(Collections.singletonList(TEXTS[0]+TEXTS[1]),new ArrayList<>(new LinkedHashSet<>(shown)));
+    assertEquals(1,Collections.frequency(shown,TEXTS[0]+TEXTS[1]));
     // Only the ordinary loading status; no configuration or failure message.
     assertTrue("status shown: "+statuses,statuses.stream().allMatch("caption_translating"::equals));
   }
@@ -150,10 +149,10 @@ public class StreamingDisplayTest {
   @Test public void aStreamCutByAnErrorEventIsRequestedAgainWithoutStreaming() throws Exception {
     cutStream=true;
     RebuildController.activate(context,url,false,true);
-    // The validated prefix of the cut stream may show the first event early; the engine then asks
-    // again without streaming and keeps the complete reply instead of failing on the prefix.
+    // A cut after an introductory fragment must not publish that fragment. The same request
+    // falls back to a complete plain response and displays the readable clause.
     await(()->plainRequests.get()>=1&&!shown.isEmpty(),10);
-    assertEquals(TEXTS[0],shown.get(0));
+    assertEquals(TEXTS[0]+TEXTS[1]+TEXTS[2],shown.get(0));
     assertTrue("status shown: "+statuses,statuses.stream().allMatch("caption_translating"::equals));
     // Each request tried the stream first; the cut did not switch streaming off for later ones.
     assertTrue(streamedRequests.get()>=1);

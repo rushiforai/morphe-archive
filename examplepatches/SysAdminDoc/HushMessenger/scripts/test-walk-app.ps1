@@ -128,6 +128,41 @@ try {
     Assert-WalkApp ($seen[0] -match 'PID: 4400' -and $seen[1] -match 'videoplayer') 'The counted crashes should be the walk-time Java and native ones.'
     Assert-WalkApp (@(Select-WalkCrashes -Lines $buffer -Package 'com.facebook.orca' -SinceEpoch 1729580000).Count -eq 0) 'A crash before the walk started should not count.'
 
+    # The emulator's ARM translator aborting while it sets up a child Messenger forked (585's BloksDeviceGpuM probe on
+    # the API 32 emulator, 2026-10-29, cut down) isn't Messenger's crash. Any other tombstone still counts, translator
+    # frames or not, and so does a later tombstone that crash_dump writes under the same pid. Two dumps written at once
+    # interleave their lines, so each frame belongs to its own dump's header, and a package whose name only starts with
+    # Messenger's is someone else's abort.
+    $translated = @(
+        '1729570010.100  5000  4990 F libc    : Fatal signal 6 (SIGABRT), code -1 (SI_QUEUE) in tid 5000 (BloksDeviceGpuM), pid 5000 (BloksDeviceGpuM)',
+        '1729570011.200  5003  5003 F DEBUG   : pid: 5000, tid: 5000, name: BloksDeviceGpuM  >>> com.facebook.orca <<<',
+        '1729570011.201  5003  5003 F DEBUG   : Abort message: ''fdsan: attempted to close file descriptor 287, expected to be unowned, actually owned by unique_fd 0x7249c8312a54''',
+        '1729570011.202  5003  5003 F DEBUG   :       #11 pc 00000000001a1976  /system/lib64/libndk_translation.so (ndk_translation::ResetCurrentGuestThreadAfterFork(ndk_translation::GuestThread*)+166) (BuildId: 0aa939b0529a9e922917788d475acf7f)',
+        '1729570012.300  5103  5103 F DEBUG   : pid: 5100, tid: 5100, name: Thread-9  >>> com.facebook.orca <<<',
+        '1729570012.301  5103  5103 F DEBUG   :       #13 pc 0000000000220b15  /system/lib64/libndk_translation.so (ndk_translation::(anonymous namespace)::RunGuestSyscallImpl(long, long, long, long, long, long, long)+2917)',
+        '1729570013.400  5003  5003 F DEBUG   : pid: 5200, tid: 5200, name: main  >>> com.facebook.orca <<<',
+        '1729570013.401  5003  5003 F DEBUG   :       #00 pc 0000000000012000  /data/app/com.facebook.orca/lib/arm64/libfb.so',
+        '1729570014.500  5303  5303 F DEBUG   : pid: 5300, tid: 5300, name: BloksDeviceGpuM  >>> com.facebook.katana <<<',
+        '1729570014.501  5303  5303 F DEBUG   :       #11 pc 00000000001a1976  /system/lib64/libndk_translation.so (ndk_translation::ResetCurrentGuestThreadAfterFork(ndk_translation::GuestThread*)+166)',
+        '1729570015.600  5403  5403 F DEBUG   : pid: 5400, tid: 5400, name: BloksDeviceGpuM  >>> com.facebook.orca <<<',
+        '1729570015.601  5503  5503 F DEBUG   : pid: 5500, tid: 5500, name: RenderThread  >>> com.facebook.orca <<<',
+        '1729570015.602  5503  5503 F DEBUG   :       #00 pc 0000000000034000  /data/app/com.facebook.orca/lib/arm64/libgraphics.so',
+        '1729570015.603  5403  5403 F DEBUG   :       #11 pc 00000000001a1976  /system/lib64/libndk_translation.so (ndk_translation::ResetCurrentGuestThreadAfterFork(ndk_translation::GuestThread*)+166)',
+        '1729570016.700  5603  5603 F DEBUG   : pid: 5600, tid: 5600, name: BloksDeviceGpuM  >>> com.facebook.orca.x <<<',
+        '1729570016.701  5603  5603 F DEBUG   :       #11 pc 00000000001a1976  /system/lib64/libndk_translation.so (ndk_translation::ResetCurrentGuestThreadAfterFork(ndk_translation::GuestThread*)+166)'
+    )
+    $counted = @(Select-WalkCrashes -Lines $translated -Package 'com.facebook.orca' -SinceEpoch 1729569999)
+    Assert-WalkApp ($counted.Count -eq 3 -and $counted[0] -match 'Thread-9' -and $counted[1] -match 'pid: 5200' -and
+        $counted[2] -match 'pid: 5500') `
+        "Only the translator's fork-time aborts should be left out ($($counted.Count) counted: $($counted -join ' | '))."
+    $aborts = @(Select-WalkTranslatorAborts -Lines $translated -Package 'com.facebook.orca' -SinceEpoch 1729569999)
+    Assert-WalkApp ($aborts.Count -eq 2 -and $aborts[0] -match 'pid: 5000, .*BloksDeviceGpuM  >>> com\.facebook\.orca <<<' -and
+        $aborts[1] -match 'pid: 5400, ') `
+        "The translator's fork-time aborts of Messenger should be reported on their own ($($aborts.Count) found: $($aborts -join ' | '))."
+    $late = @(Select-WalkTranslatorAborts -Lines $translated -Package 'com.facebook.orca' -SinceEpoch 1729570012)
+    Assert-WalkApp ($late.Count -eq 1 -and $late[0] -match 'pid: 5400, ') `
+        'A translator abort before the walk started should not be reported.'
+
     # The receipts those results produce, held to the gate the publish stage uses.
     $walkedBundle = Join-Path $work 'patches-0.26.0.mpp'
     [IO.File]::WriteAllText($walkedBundle, 'walk-app contract bundle')
@@ -201,6 +236,19 @@ try {
     Assert-WalkApp ($close[0] -eq 78 -and $close[1] -eq 154) "Close should be found by its description ($($close -join ','))."
     Assert-WalkApp ($null -eq (Find-WalkNodeCenter -Xml $restorePrompt -Text 'Close')) 'Close has no text, so a text lookup should not find it.'
 
+    # The keyboard an empty chat's composer opens, as the API 32 emulator's dumpsys input_method showed it.
+    Assert-WalkApp (Test-WalkKeyboardShown @('  mServedView=com.facebook.orca...', '  mInputShown=true mShowRequested=true')) 'An open keyboard should read as shown.'
+    Assert-WalkApp (-not (Test-WalkKeyboardShown @('  mInputShown=false'))) 'A closed keyboard should not read as shown.'
+    Assert-WalkApp (-not (Test-WalkKeyboardShown @())) 'No dumpsys output should not read as a keyboard.'
+
+    # The empty chat's keyboard came up after the walk checked for it, so the first dump failed (emulator, 2026-10-29).
+    $settle = @{ Closes = 0; Reads = 0 }
+    $late = Read-WalkSettledScreen -CloseKeyboard { $settle.Closes++ } -ReadScreen { $settle.Reads++; if ($settle.Reads -gt 1) { '<hierarchy/>' } else { '' } }
+    Assert-WalkApp ($late -eq '<hierarchy/>' -and $settle.Closes -eq 2) "A failed dump should close the keyboard and dump again ($($settle.Closes) closes)."
+    $settle = @{ Closes = 0; Reads = 0 }
+    $never = Read-WalkSettledScreen -CloseKeyboard { $settle.Closes++ } -ReadScreen { $settle.Reads++; '' }
+    Assert-WalkApp ($never -eq '' -and $settle.Reads -eq 3) "A screen that never dumps should give up after three tries ($($settle.Reads) reads)."
+
     # The walk's own judgment of a step, the same one publish makes again.
     $controls = Get-WalkStepDefinition 'settings-controls'
     Assert-WalkApp ($null -eq (Test-WalkStepScreen -Definition $controls -Activity 'com.facebook.orca/app.hushmessenger.extension.SettingsActivity' -Xml (Get-WalkFixtureXml 'settings-controls'))) `
@@ -211,7 +259,7 @@ try {
     # A patched APK is used again only for the same bundle, stock APK and key, and only while it's unchanged.
     $patchDir = Join-Path $work 'patched'
     [void][IO.Directory]::CreateDirectory($patchDir)
-    $stockFile = Join-Path $work 'messenger-584-346814894.apk'
+    $stockFile = Join-Path $work 'messenger-585.0-347015062.apk'
     [IO.File]::WriteAllText($stockFile, 'stock contract apk')
     $keyFile = Join-Path $work 'walk.keystore'
     [IO.File]::WriteAllText($keyFile, 'contract key')
@@ -242,6 +290,25 @@ try {
     [IO.File]::WriteAllText((Join-Path $patchDir 'patch-inputs.json'), '{ not json')
     Assert-WalkApp ($null -eq (Find-WalkPatched -Destination $patchDir -Inputs $sameInputs)) 'An unreadable record should patch again.'
     Assert-WalkApp ((Find-WalkPatchRecord -Destination $patchDir -BundleSha256 $walkedSha256) -ceq '') 'An unreadable record should prove nothing.'
+
+    # The stock APK a walk patches is the build the device already has.
+    $dumpsys = @('Packages:', '  Package [com.facebook.orca] (5d1c0e2):', '    versionCode=347015065 minSdk=28 targetSdk=35', '    versionName=585.0.0.53.94')
+    Assert-WalkApp ((Read-WalkVersionCode $dumpsys) -ceq '347015065') 'dumpsys package should give the installed versionCode.'
+    Assert-WalkApp ((Read-WalkVersionCode @('Unable to find package: com.facebook.orca')) -ceq '') 'A package that is not installed should read as no versionCode.'
+    $fixtureDir = Join-Path $work 'fixtures'
+    [void][IO.Directory]::CreateDirectory($fixtureDir)
+    foreach ($fixtureName in 'messenger-585.0-347014974.apk', 'messenger-585.0-347015062.apk', 'messenger-585.0-347015065.apk') {
+        [IO.File]::WriteAllText((Join-Path $fixtureDir $fixtureName), 'stock contract apk')
+    }
+    Assert-WalkApp ((Split-Path -Leaf (Select-WalkFixtureApk -Directory $fixtureDir -InstalledCode '347015062')) -ceq 'messenger-585.0-347015062.apk') `
+        'The fixture of the installed build should be patched, not the newest one.'
+    Assert-WalkApp ((Split-Path -Leaf (Select-WalkFixtureApk -Directory $fixtureDir -InstalledCode '')) -ceq 'messenger-585.0-347015065.apk') `
+        'With Messenger not installed, the newest fixture should be patched.'
+    $noMatch = try { Select-WalkFixtureApk -Directory $fixtureDir -InstalledCode '346817024'; '' } catch { $_.Exception.Message }
+    Assert-WalkApp ($noMatch -like '*build 346817024*' -and $noMatch -like '*347014974, 347015062, 347015065*' -and $noMatch -like '*-Apk*') `
+        "A device build no fixture matches should be refused, naming the fixtures and -Apk: $noMatch"
+    $prefixOnly = try { Select-WalkFixtureApk -Directory $fixtureDir -InstalledCode '34701506'; '' } catch { $_.Exception.Message }
+    Assert-WalkApp ($prefixOnly -like '*build 34701506,*') 'A code that is only the start of a fixture code should not match it.'
 
     Write-Host "walk-app contracts passed ($checks checks)"
 } finally {

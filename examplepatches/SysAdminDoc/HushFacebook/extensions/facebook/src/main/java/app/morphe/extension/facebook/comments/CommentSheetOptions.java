@@ -33,8 +33,10 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * {@link #holdsViewerButtons} once they're built; a yes drops both. What comes after a post's comments is drawn
  * through another socket of the same kind, and the patch asks {@link #holdsBottomContent} first in
  * its check. The few comments under a feed post's buttons come through a third, and the patch asks
- * {@link #holdsPostComments} first in its check. The buttons under each comment come through a
- * fourth, and the patch asks {@link #holdsCommentButton} first in its check. A long press on Like opens the reaction
+ * {@link #holdsPostComments} first in its check. The Dislike button under a comment is built by its
+ * own plugin, and the patch asks {@link #holdsCommentDislike} first in that builder; a yes builds
+ * nothing, and the socket of a comment's buttons draws the rest of the row as it would without a
+ * Dislike. A long press on Like opens the reaction
  * picker through one method, and the patch asks {@link #skipReactionPicker} first there; a yes
  * returns before anything opens. A comment keeps whether its reply thread is open in its state,
  * which starts closed until a tap on View replies opens it. The patch hands
@@ -73,15 +75,32 @@ public final class CommentSheetOptions {
     public static final String INLINE_COMMENTS_CLIENT_RANKING =
             "com.facebook.feed.plugins.belowufifooter.impl.inlinecommentwithclientranking.InlineCommentWithClientRankingPlugin";
 
-    /** The Dislike button under a comment, next to Like, as the comment buttons' name table gives it (#241). */
-    public static final String DOWNVOTE =
-            "com.facebook.feedback.comments.plugins.commentufi.commentsdownvote.CommentsUFIInlineDownvotePlugin";
+    /**
+     * The comment box under a feed post, which in 584 draws the post's pinned comment above itself
+     * (#305, #253), as the same name table gives it.
+     */
+    public static final String INLINE_COMMENT_COMPOSER =
+            "com.facebook.feed.plugins.belowufifooter.impl.inlinecommentcomposer.InlineCommentComposerPlugin";
 
-    /** Counted each time a comment's Dislike button is kept out. */
+    /** The same comment box with the comment a post was opened for lifted above it. */
+    public static final String INLINE_COMMENT_COMPOSER_HOISTED =
+            "com.facebook.feed.plugins.belowufifooter.impl.hoiststoryinlinecommentcomposer.HoistStoryInlineCommentComposerPlugin";
+
+    /** The same comment box for a group that takes anonymous comments, its identity picker included. */
+    public static final String INLINE_COMMENT_COMPOSER_ANONYMOUS =
+            "com.facebook.feed.plugins.belowufifooter.impl.anoninlinecommentcomposer.AnonInlineCommentComposerPlugin";
+
+    /** Every plugin that draws comments, or a comment box with comments above it, under a feed post's buttons. */
+    private static final String[] POST_COMMENT_PLUGINS = {
+            INLINE_COMMENTS, INLINE_COMMENTS_DWELL_TIME, INLINE_COMMENTS_CLIENT_RANKING,
+            INLINE_COMMENT_COMPOSER, INLINE_COMMENT_COMPOSER_HOISTED, INLINE_COMMENT_COMPOSER_ANONYMOUS,
+    };
+
+    /** Counted each time a comment's Dislike button is kept out (#241). */
     static final String DOWNVOTE_HIDDEN = "Comment Dislike button kept out";
 
-    /** The member the report names once the socket of a comment's buttons has asked about Dislike. */
-    static final String COMMENT_BUTTONS = "comment buttons";
+    /** The member the report names once the Dislike plugin's builder has asked. */
+    static final String COMMENT_DISLIKE = "comment dislike";
 
     /** Counted each time a feed post's inline comments are kept out from under its buttons. */
     static final String POST_COMMENTS_HIDDEN = "Comments under a post kept out";
@@ -136,6 +155,12 @@ public final class CommentSheetOptions {
 
     static final String VIEWER_COMPOSER = "video viewer comment composer";
     static final String COMPOSER_HIDDEN = "Video comment composer hidden";
+
+    /** The member the report names once the socket over the comment box has asked about the emoji row (#290). */
+    static final String EMOJI_ROW = "emoji row over the comment box";
+
+    /** Counted each time the emoji row is kept out from over the comment box. */
+    static final String EMOJI_ROW_HIDDEN = "Comment emoji row kept out";
 
     /** The member the report names once the socket under a post's comments has asked about Related groups. */
     static final String BOTTOM = "related groups under comments";
@@ -259,6 +284,24 @@ public final class CommentSheetOptions {
     }
 
     /**
+     * The hook, first thing in the check of whether the socket over the comment box shows its emoji
+     * row (#290). True answers no while the switch is on, and the box draws without the row; false
+     * leaves the check to Facebook. Meta AI's pills, the socket's other plugin, never reach it.
+     */
+    public static boolean holdsEmojiRow() {
+        try {
+            HookStatus.invoked(FAMILY);
+            HookStatus.bound(FAMILY, EMOJI_ROW);
+            if (!Utils.settingsReady() || !Settings.HIDE_COMMENT_EMOJI_ROW.get()) return false;
+            HookStatus.counted(FAMILY, EMOJI_ROW_HIDDEN);
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "comment emoji row", failure);
+            return false;
+        }
+    }
+
+    /**
      * The hook immediately before the full-screen video's comment bar returns its rendered object.
      * True replaces that object with null while Hide the video comment box is on; false preserves
      * Facebook's original render result.
@@ -297,15 +340,20 @@ public final class CommentSheetOptions {
 
     /**
      * The hook, first thing in the check of what shows under a feed post's buttons, handed the
-     * plugin's name. True answers no for the post's inline comments while Hide comments under posts
-     * is on; false leaves the check to Facebook, for the comment box, Meta AI's summary and every
-     * other plugin, and otherwise.
+     * plugin's name. True answers no for the post's inline comments, and for the comment boxes
+     * that draw a pinned or lifted comment above themselves (#305), while Hide comments under
+     * posts is on; false leaves the check to Facebook, for Meta AI's summary and every other
+     * plugin, and otherwise.
      */
     public static boolean holdsPostComments(@Nullable String plugin) {
         try {
             HookStatus.invoked(FAMILY);
-            if (!INLINE_COMMENTS.equals(plugin) && !INLINE_COMMENTS_DWELL_TIME.equals(plugin)
-                    && !INLINE_COMMENTS_CLIENT_RANKING.equals(plugin)) return false;
+            // Every plugin asked while the switch is on, so a Debug report names the one that drew
+            // a preview the switch missed (#253, #305).
+            if (Utils.settingsReady() && Settings.HIDE_POST_COMMENT_PREVIEWS.get()) {
+                Logger.printDebug(() -> "Under post buttons: " + plugin);
+            }
+            if (!drawsPostComments(plugin)) return false;
             HookStatus.bound(FAMILY, POST_COMMENTS);
             if (!Utils.settingsReady() || !Settings.HIDE_POST_COMMENT_PREVIEWS.get()) return false;
             HookStatus.counted(FAMILY, POST_COMMENTS_HIDDEN);
@@ -316,21 +364,31 @@ public final class CommentSheetOptions {
         }
     }
 
+    /** True for a plugin that draws comments under a feed post's buttons, one of [POST_COMMENT_PLUGINS]. */
+    static boolean drawsPostComments(@Nullable String plugin) {
+        if (plugin == null) return false;
+        for (String held : POST_COMMENT_PLUGINS) {
+            if (held.equals(plugin)) return true;
+        }
+        return false;
+    }
+
     /**
-     * The hook, first thing in the check of which buttons a comment gets under it, handed the
-     * plugin's name. True answers no for the Dislike button while Hide Dislike on comments is on;
-     * false leaves the check to Facebook, for Like, Reply and every other button, and otherwise.
+     * The hook, first thing where the Dislike plugin builds a comment's Dislike button. True builds
+     * nothing while Hide Dislike on comments is on, so the row keeps Like, Reply, the reaction icons
+     * and their count as Facebook lays them out next to a Dislike; false leaves the button to
+     * Facebook, and otherwise. Answering no for the plugin in the socket's own check instead took
+     * the reaction icons with it (#241).
      */
-    public static boolean holdsCommentButton(@Nullable String plugin) {
+    public static boolean holdsCommentDislike() {
         try {
             HookStatus.invoked(FAMILY);
-            if (!DOWNVOTE.equals(plugin)) return false;
-            HookStatus.bound(FAMILY, COMMENT_BUTTONS);
+            HookStatus.bound(FAMILY, COMMENT_DISLIKE);
             if (!Utils.settingsReady() || !Settings.HIDE_COMMENT_DOWNVOTE_BUTTON.get()) return false;
             HookStatus.counted(FAMILY, DOWNVOTE_HIDDEN);
             return true;
         } catch (Throwable failure) {
-            HookStatus.threw(FAMILY, "comment buttons check", failure);
+            HookStatus.threw(FAMILY, "comment dislike", failure);
             return false;
         }
     }

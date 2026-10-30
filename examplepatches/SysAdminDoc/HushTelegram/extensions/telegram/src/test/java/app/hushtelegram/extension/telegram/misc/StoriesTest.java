@@ -51,6 +51,8 @@ public class StoriesTest {
 
     @Test public void enabledByDefaultAndAllFiveGuardsCountTheirOwnSuppression() {
         assertTrue(Settings.HIDE_STORIES.get());
+        // The chat list sets up the Post Story button and loads the story list once, when it's built.
+        assertTrue(Settings.HIDE_STORIES.rebootApp);
         assertTrue(Stories.skipStoryRequests());
         assertTrue(Stories.hideStoryBar());
         assertFalse(Stories.showStoryCamera(true));

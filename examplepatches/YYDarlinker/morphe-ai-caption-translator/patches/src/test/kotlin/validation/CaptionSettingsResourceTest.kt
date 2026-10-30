@@ -61,6 +61,10 @@ object CaptionSettingsResourceTest {
                     check(screens.size == 1)
                     val screen = screens.single()
                     check(screen.getAttribute("android:title") == "@string/cap_ai_title")
+                    check(screen.getAttribute("android:summary") == "@string/cap_ai_summary")
+                    check(screen.getAttribute("android:singleLineTitle") == "false")
+                    (0 until screen.childNodes.length).mapNotNull { screen.childNodes.item(it) as? Element }
+                        .forEach { check(it.getAttribute("android:iconSpaceReserved") == "false") }
                     val keys = elements.map { it.getAttribute("android:key") }
                     check(keys.count { it == "deepseek_caption_enabled" } == 1)
                     check(keys.containsAll(listOf("deepseek_caption_profiles", "deepseek_caption_api_key",

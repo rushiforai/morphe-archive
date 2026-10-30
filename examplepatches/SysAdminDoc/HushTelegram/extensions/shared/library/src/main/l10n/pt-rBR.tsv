@@ -436,7 +436,7 @@ Turn chat translation on again. It's now set per account.	Ative de novo a tradu�
 Ask before sending a GIF	Perguntar antes de enviar um GIF
 Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it. Scheduled GIFs go out without asking.	Pergunta Enviar ou Cancelar antes de um GIF em que você tocou entrar na conversa. Cancelar o descarta. GIFs agendados saem sem perguntar.
 Ask before sending a voice or video message	Perguntar antes de enviar uma mensagem de voz ou de vídeo
-Asks Send or Cancel before a voice or video message you recorded goes out. Cancel throws the recording away.	Pergunta Enviar ou Cancelar antes de uma mensagem de voz ou de vídeo que você gravou sair. Cancelar descarta a gravação.
+Asks Send or Cancel before a voice or video message you recorded goes out. The recording pauses first, and Cancel leaves it paused, ready to play, delete or send.	Pergunta Enviar ou Cancelar antes de uma mensagem de voz ou de vídeo que você gravou sair. A gravação é pausada antes, e Cancelar a deixa pausada, pronta para reproduzir, apagar ou enviar.
 Ask before starting a call	Perguntar antes de iniciar uma chamada
 Asks Call or Cancel before the call button in a chat or on a profile starts a call.	Pergunta Ligar ou Cancelar antes de o botão de chamada em uma conversa ou perfil iniciar uma chamada.
 Send sticker	Enviar sticker
@@ -887,6 +887,14 @@ Hide All Chats	Ocultar Todos os Chats
 The folder tabs leave out All Chats, so the chat list opens on the folder picked above or your first one. Archived Chats moves to the chat list's menu, and to the side menu when that's on. Tabs can't be dragged into a new order while this is on. Restart Telegram to see the change.	As abas de pastas deixam Todos os Chats de fora, então a lista de conversas abre na pasta escolhida acima ou na sua primeira. Conversas arquivadas passa para o menu da lista de conversas e, quando ativado, para o menu lateral. Enquanto isso estiver ativado, as abas não podem ser arrastadas para uma nova ordem. Reinicie o Telegram para ver a mudança.
 # context: Toast when someone starts dragging folder tabs while Hide All Chats is on. Keep it to two short lines
 Turn off Hide All Chats to drag tabs	Desative Ocultar Todos os Chats para arrastar abas
+# context: Added to the Hide All Chats summary when the chat list kept All Chats because nothing else opens the archive. All Chats (FilterAllChats) and Archived Chats (ArchivedChats) are Telegram's names: use Telegram's translations. The side menu is HushTelegram's Side menu switch
+All Chats is still showing because it holds your only way to Archived Chats. Turn on the side menu to give the archive another way in.	Todos os Chats continua aparecendo porque é o seu único caminho até Conversas arquivadas. Ative o menu lateral para dar ao arquivo outra entrada.
+# context: Added to the Hide All Chats summary when the chat list kept All Chats because nothing else opens the archive and the build has no side menu. All Chats (FilterAllChats) and Archived Chats (ArchivedChats) are Telegram's names: use Telegram's translations. Disable pull to archive is a patch name: use its own row's translation
+All Chats is still showing because it holds your only way to Archived Chats. Patch again with Disable pull to archive to give the archive another way in.	Todos os Chats continua aparecendo porque é o seu único caminho até Conversas arquivadas. Aplique o patch de novo com Desativar puxar para o arquivo para dar ao arquivo outra entrada.
+# context: Added to the Hide All Chats summary when the chat list kept All Chats because the account has no folder to open instead. All Chats is Telegram's name (FilterAllChats): use Telegram's translation
+All Chats is still showing because this account has no folder of its own to open, or each one is locked.	Todos os Chats continua aparecendo porque esta conta não tem nenhuma pasta própria para abrir, ou todas estão bloqueadas.
+# context: Added to the Hide All Chats summary when the chat list kept All Chats because the folder tabs couldn't be read. All Chats is Telegram's name (FilterAllChats). The diagnostic report is the one Export diagnostic report saves
+All Chats is still showing because the folder tabs couldn't be read. The diagnostic report has the details.	Todos os Chats continua aparecendo porque não foi possível ler as abas de pastas. O relatório de diagnóstico tem os detalhes.
 # context: Telegram's own name for the folder tab with every chat (FilterAllChats). Use Telegram's translation
 All Chats	Todos os Chats
 # context: Toast when Folder to open is tapped and the account has no chat folders
@@ -901,8 +909,12 @@ which folder the chat list opens on	pasta em que a lista de conversas abre
 the All Chats tab	a aba Todos os Chats
 # context: Switch on the Chat list page under Hide folder tab counters, off by default. With it on, the chats the user ticks in Chats to hide stop showing in the chat list
 Hide picked chats	Ocultar conversas escolhidas
-# context: Summary of Hide picked chats. All Chats is Telegram's own name for the first folder tab and Archived Chats Telegram's name for the archive (ArchivedChats): use Telegram's translations. The app badge is the unread count on the app's icon
-The chats you pick below leave All Chats, your folders and archived chats. They keep their messages and notifications, search still finds them, and nothing changes on your other devices. Each account keeps its own list. Folder tab counts and the app badge still count their unread messages.	As conversas que você escolher abaixo saem de Todos os Chats, das suas pastas e de Conversas arquivadas. Elas mantêm as mensagens e notificações, a busca continua encontrando elas e nada muda nos seus outros aparelhos. Cada conta tem a própria lista. As contagens das abas de pastas e o selo do app continuam contando as mensagens não lidas delas.
+# context: Summary of Hide picked chats, followed by one of the next two sentences. All Chats is Telegram's own name for the first folder tab and Archived Chats Telegram's name for the archive (ArchivedChats): use Telegram's translations
+The chats you pick below leave All Chats, your folders and archived chats. They keep their messages and notifications, search still finds them, and nothing changes on your other devices. Each account keeps its own list.	As conversas que você escolher abaixo saem de Todos os Chats, das suas pastas e de Conversas arquivadas. Elas mantêm as mensagens e notificações, a busca continua encontrando elas e nada muda nos seus outros aparelhos. Cada conta tem a própria lista.
+# context: Ends the summary of Hide picked chats when this build's folder tab counts leave the hidden chats out. The app badge is the unread count on the app's icon
+Folder tab counts leave them out, but the app badge still counts their unread messages.	As contagens das abas de pastas deixam elas de fora, mas o selo do app continua contando as mensagens não lidas delas.
+# context: Ends the summary of Hide picked chats when this build's folder tab counts still count the hidden chats. The app badge is the unread count on the app's icon
+Folder tab counts and the app badge still count their unread messages.	As contagens das abas de pastas e o selo do app continuam contando as mensagens não lidas delas.
 # context: Row under Hide picked chats. Its summary names the hidden chats, and a tap lists the account's chats to tick
 Chats to hide	Conversas a ocultar
 # context: Summary of Chats to hide when no chat is ticked
@@ -919,6 +931,8 @@ Hide from chat list	Ocultar da lista de conversas
 Hidden from your chat list.	Ocultado da sua lista de conversas.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that hides picked chats
 chats hidden from the chat list	conversas ocultas da lista de conversas
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that leaves hidden chats out of the folder tabs' unread counts
+hidden chats in the unread counts	conversas ocultas nas contagens de não lidas
 # context: Chats to hide's list names the account's own chat this way, as Telegram's chat list does (SavedMessages): use Telegram's applied translation
 Saved Messages	Mensagens Salvas
 # context: Chat list page switch title, under Hide Contacts tab. When on, the round pencil button (new message) on the chat list is removed.
@@ -957,7 +971,7 @@ Collapsed	Recolhido
 # context: Switch title under Save downloaded files. It moves the folder Telegram keeps its own downloads in from Android/data to the phone's main storage.
 Keep Telegram's files in internal storage	Guardar os arquivos do Telegram no armazenamento interno
 # context: Summary under that switch. Internal storage/Telegram and Android/data are folder paths: translate Internal storage as Android's Files app does, keep Telegram and Android/data as they are. All files access is Android's name for the special app access page.
-New photos, videos and files Telegram downloads go to Internal storage/Telegram, where file managers and other apps can open them, instead of Android/data. Files downloaded before stay in Android/data. Needs All files access and a restart.	Novas fotos, vídeos e arquivos que o Telegram baixa vão para Armazenamento interno/Telegram, onde gerenciadores de arquivos e outros apps podem abri-los, em vez de Android/data. Os arquivos baixados antes continuam em Android/data. Precisa de Acesso a todos os arquivos e de reiniciar.
+New photos, videos and files Telegram downloads go to Internal storage/Telegram, where file managers and other apps can open them, instead of Android/data. Files downloaded before stay in Android/data, and Telegram still opens them from there. Needs All files access and a restart.	Novas fotos, vídeos e arquivos que o Telegram baixa vão para Armazenamento interno/Telegram, onde gerenciadores de arquivos e outros apps podem abri-los, em vez de Android/data. Os arquivos baixados antes continuam em Android/data, e o Telegram ainda os abre de lá. Precisa de Acesso a todos os arquivos e de reiniciar.
 # context: Second line of that summary when Android has given Telegram All files access.
 All files access is on.	O acesso a todos os arquivos está ativado.
 # context: Second line of that summary when Android hasn't given Telegram All files access. Android/data is a folder path, keep it as it is.
@@ -966,3 +980,9 @@ All files access is off, so Telegram's files stay in Android/data. Turning this 
 Couldn't open All files access.	Não deu para abrir o acesso.
 # context: Noun phrase in a status line. It names the part of Save downloaded files that keeps Telegram's own folder in the phone's main storage.
 Telegram's own files in internal storage	arquivos do próprio Telegram no armazenamento interno
+# context: a second switch under UnifiedPush notifications on the Notifications page. Turned on, a reaction to your own message shows a notification from Telegram's open connection, for phones where no push arrives. "Push" means a push notification; "reaction" is Telegram's word for an emoji reaction to a message.
+Reaction notifications without push	Notificações de reações sem push
+# context: that switch's summary.
+Shows a notification when someone reacts to your message while Telegram is connected, even when no push arrives. A reaction that also comes by push shows once.	Mostra uma notificação quando alguém reage à sua mensagem enquanto o Telegram está conectado, mesmo sem chegar nenhum push. Uma reação que também chega por push aparece só uma vez.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of UnifiedPush notifications that shows reactions without a push.
+reaction notifications without push	as notificações de reações sem push

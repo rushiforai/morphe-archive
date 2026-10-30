@@ -1,3 +1,10 @@
+import java.security.KeyFactory
+import java.security.MessageDigest
+import java.security.Signature
+import java.security.spec.EdECPrivateKeySpec
+import java.security.spec.NamedParameterSpec
+import java.security.spec.X509EncodedKeySpec
+import java.util.Base64
 import org.apache.tools.ant.filters.FixCrLfFilter
 import org.gradle.jvm.tasks.Jar
 
@@ -54,6 +61,55 @@ tasks.named<Jar>("jar") {
         // Git writes LF or CRLF depending on the checkout; the bundle bytes must not.
         filter(mapOf("eol" to FixCrLfFilter.CrLf.newInstance("lf")), FixCrLfFilter::class.java)
     }
+}
+
+// MorpheSig1, the bundle signature morphe-patcher 2.1 checks and Morphe Manager 2.3 pins per source:
+// Ed25519 over "MorpheSig1" and the SHA-256 of the archive with an empty comment, stored in the zip
+// comment as "MorpheSig1 <public key> <signature>". scripts/bundle_signature.py checks it the same
+// way. MORPHE_SIGNING_KEY is the Base64 private key, as the Morphe patches plugin 2.1 reads it, and
+// release.ps1 sets it. Without it the bundle stays unsigned, which only a release refuses.
+fun signBundle(bundle: File, privateKey: String?, publicKey: String) {
+    val bytes = bundle.readBytes()
+    // The end of central directory record is the last one whose comment reaches the end.
+    fun length(at: Int) = (bytes[at].toInt() and 0xFF) or ((bytes[at + 1].toInt() and 0xFF) shl 8)
+    val end = (bytes.size - 22 downTo maxOf(0, bytes.size - 22 - 0xFFFF)).firstOrNull {
+        bytes[it] == 0x50.toByte() && bytes[it + 1] == 0x4b.toByte() && bytes[it + 2] == 5.toByte() &&
+            bytes[it + 3] == 6.toByte() && length(it + 20) == bytes.size - it - 22
+    } ?: throw GradleException("$bundle is not a zip archive")
+    // A rerun of buildAndroid rewrites the archive, so an earlier signature no longer applies.
+    val unsigned = bytes.copyOf(end + 22).also { it[end + 20] = 0; it[end + 21] = 0 }
+    if (privateKey.isNullOrBlank()) {
+        if (unsigned.size != bytes.size) bundle.writeBytes(unsigned)
+        return
+    }
+    val message = "MorpheSig1".toByteArray(Charsets.US_ASCII) + MessageDigest.getInstance("SHA-256").digest(unsigned)
+    val keys = KeyFactory.getInstance("Ed25519")
+    val signature = Signature.getInstance("Ed25519").run {
+        initSign(keys.generatePrivate(EdECPrivateKeySpec(NamedParameterSpec.ED25519, Base64.getDecoder().decode(privateKey.trim()))))
+        update(message)
+        sign()
+    }
+    // A raw Ed25519 public key behind its fixed X.509 prefix.
+    val x509 = byteArrayOf(0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00) +
+        Base64.getDecoder().decode(publicKey)
+    val matches = Signature.getInstance("Ed25519").run {
+        initVerify(keys.generatePublic(X509EncodedKeySpec(x509)))
+        update(message)
+        verify(signature)
+    }
+    if (!matches) throw GradleException("MORPHE_SIGNING_KEY is not the key morphe-signing.pub publishes")
+    val comment = "MorpheSig1 $publicKey ${Base64.getEncoder().encodeToString(signature)}".toByteArray(Charsets.US_ASCII)
+    unsigned[end + 20] = (comment.size and 0xFF).toByte()
+    unsigned[end + 21] = (comment.size shr 8).toByte()
+    bundle.writeBytes(unsigned + comment)
+}
+
+tasks.named("buildAndroid") {
+    val bundle = tasks.named<Jar>("jar").flatMap { it.archiveFile }
+    val privateKey = providers.environmentVariable("MORPHE_SIGNING_KEY")
+    val publicKey = rootProject.file("morphe-signing.pub")
+    // After the plugin's own action, which writes classes.dex into the archive.
+    doLast { signBundle(bundle.get().asFile, privateKey.orNull, publicKey.readText().trim()) }
 }
 
 dependencyLocking {

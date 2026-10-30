@@ -214,7 +214,8 @@ public final class ChatArtProbe {
         Resources system = Resources.getSystem();
         Resources resources = new Resources(system.getAssets(), new DisplayMetrics(), new Configuration()) {
             @Override public String getString(int id) {
-                return id == 0x7f15032a ? "message deleted" : super.getString(id);
+                // R.string.chat_message_deleted in Twitch 31.8.0 (0x7f15032a in 31.7.0).
+                return id == 0x7f150312 ? "message deleted" : super.getString(id);
             }
         };
         Context context = new ContextWrapper(null) {

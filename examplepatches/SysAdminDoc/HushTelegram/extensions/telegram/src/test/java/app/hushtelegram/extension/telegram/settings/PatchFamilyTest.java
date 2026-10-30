@@ -122,6 +122,7 @@ public class PatchFamilyTest {
         Settings.SAVE_RESTRICTED_DOWNLOADS.resetToDefault();
         Settings.CHAT_TYPE_FOLDERS.resetToDefault();
         Settings.UNIFIED_PUSH.resetToDefault();
+        Settings.REACTION_ALERTS.resetToDefault();
         Settings.ASK_BEFORE_GIF.resetToDefault();
         Settings.ASK_BEFORE_VOICE_VIDEO.resetToDefault();
         Settings.ASK_BEFORE_CALL.resetToDefault();
@@ -446,12 +447,16 @@ public class PatchFamilyTest {
         PatchFamily family = PatchFamily.UNIFIED_PUSH;
         assertEquals("UnifiedPush notifications", family.patchName);
         assertEquals("unifiedPush", family.statusMethod);
-        assertEquals(Collections.singletonList(Settings.UNIFIED_PUSH), family.switches);
+        // The second switch, reaction notifications without push, starts on and works with or without UnifiedPush.
+        assertEquals(Arrays.asList(Settings.UNIFIED_PUSH, Settings.REACTION_ALERTS), family.switches);
         assertFalse(Settings.UNIFIED_PUSH.defaultValue);
+        assertTrue(Settings.REACTION_ALERTS.defaultValue);
         // The switch signs up or ends the sign-up when it changes, so no restart is needed.
         assertFalse(Settings.UNIFIED_PUSH.rebootApp);
+        assertFalse(Settings.REACTION_ALERTS.rebootApp);
         assertNull(family.staysWhilePaused);
-        assertTrue(family.expectedCapabilities().isEmpty());
+        assertEquals(EnumSet.of(PatchFamily.Capability.REACTION_ALERTS), family.expectedCapabilities());
+        assertEquals("reactionAlerts", PatchFamily.Capability.REACTION_ALERTS.statusMethod);
         assertOnItsPage(family);
         assertEquals(PatchFamily.Page.NOTIFICATIONS, PatchFamily.Page.of(family));
     }
@@ -482,10 +487,11 @@ public class PatchFamilyTest {
             assertEquals(setting.key, setting == Settings.HIDE_ALL_CHATS, setting.rebootApp);
         }
         assertEquals(EnumSet.of(PatchFamily.Capability.LAUNCH_FOLDER, PatchFamily.Capability.HIDE_ALL_CHATS,
-                PatchFamily.Capability.HIDDEN_CHATS), family.expectedCapabilities());
+                PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.HIDDEN_UNREAD), family.expectedCapabilities());
         assertEquals("launchFolder", PatchFamily.Capability.LAUNCH_FOLDER.statusMethod);
         assertEquals("hideAllChats", PatchFamily.Capability.HIDE_ALL_CHATS.statusMethod);
         assertEquals("hiddenChats", PatchFamily.Capability.HIDDEN_CHATS.statusMethod);
+        assertEquals("hiddenUnread", PatchFamily.Capability.HIDDEN_UNREAD.statusMethod);
         assertOnItsPage(family);
     }
 

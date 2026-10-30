@@ -49,7 +49,8 @@ internal fun appIconAliasMap(type: String) = fixtureMethod("$type-><clinit>()V",
 
 private const val MANAGER = "LX/7Ya;"
 private const val PICKER_GATE = "$MANAGER->A02($FB_USER_SESSION)Z"
-private const val SETTING_GATE = "$MANAGER->A03($FB_USER_SESSION)Z"
+/** 585's second check is an instance method that also reads a Context. */
+private const val SETTING_GATE = "$MANAGER->A03(Landroid/content/Context;$FB_USER_SESSION)Z"
 private const val UNLOCK_CALL = "$SETTINGS->unlockAppIcons()Z"
 private const val SET_COMPONENT = "Landroid/content/pm/PackageManager;->setComponentEnabledSetting(Landroid/content/ComponentName;II)V"
 
@@ -59,8 +60,10 @@ class AppIconsTest {
     }
 
     private val staticPublic = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
+    private val public = AccessFlags.PUBLIC.value
 
-    private fun gate(id: String, body: String = APP_ICON_GATE_BODY, flags: Int = staticPublic) = fixtureMethod(id, body, 5, flags)
+    private fun gate(id: String, body: String = APP_ICON_GATE_BODY, flags: Int = if (id == SETTING_GATE) public else staticPublic) =
+        fixtureMethod(id, body, 5, flags)
 
     private fun manager(vararg gates: MutableMethod, aliases: Boolean = true) =
         fixtureClass(MANAGER, (if (aliases) listOf(appIconAliasMap(MANAGER)) else emptyList()) + gates)
@@ -76,29 +79,35 @@ class AppIconsTest {
         for (changed in listOf(
             listOf(manager(gate(PICKER_GATE), gate(SETTING_GATE), aliases = false)),
             listOf(manager(gate(PICKER_GATE), gate(SETTING_GATE, APP_ICON_GATE_BODY.replace(APP_ICON_BENEFIT, "CUSTOM_THEME")))),
-            listOf(manager(gate(PICKER_GATE), gate(SETTING_GATE, flags = AccessFlags.PUBLIC.value))),
+            listOf(manager(gate(PICKER_GATE, flags = public), gate(SETTING_GATE))),
+            listOf(manager(gate(PICKER_GATE), gate(SETTING_GATE, flags = staticPublic))),
+            // 584's second check, on the session alone, as an instance method.
+            listOf(manager(gate(PICKER_GATE), gate("$MANAGER->A03($FB_USER_SESSION)Z", flags = public))),
         )) assertFailsWith<PatchException> { validateControls(mirroredControls(changed, null), setOf(APP_ICONS)) }
     }
 
     @Test fun onAnswersYesAndOffRunsMessengersOwnCheckUntouched() {
-        val method = gate(PICKER_GATE)
-        val original = method.implementation!!.instructions.toList()
-        method.injectAppIconGate()
-        val code = method.implementation!!.instructions.toList()
-        assertEquals(UNLOCK_CALL, (code[0] as ReferenceInstruction).reference.toString())
-        assertEquals(listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CONST_4, Opcode.RETURN), code.take(5).map { it.opcode })
-        assertEquals(1, (code[3] as NarrowLiteralInstruction).narrowLiteral)
-        val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
-        assertEquals(addresses[5], addresses[2] + (code[2] as OffsetInstruction).codeOffset)
-        assertEquals(original, code.drop(5))
+        for (method in listOf(gate(PICKER_GATE), gate(SETTING_GATE))) {
+            val original = method.implementation!!.instructions.toList()
+            method.injectAppIconGate()
+            val code = method.implementation!!.instructions.toList()
+            assertEquals(UNLOCK_CALL, (code[0] as ReferenceInstruction).reference.toString())
+            assertEquals(listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CONST_4, Opcode.RETURN), code.take(5).map { it.opcode })
+            assertEquals(1, (code[3] as NarrowLiteralInstruction).narrowLiteral)
+            val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
+            assertEquals(addresses[5], addresses[2] + (code[2] as OffsetInstruction).codeOffset)
+            assertEquals(original, code.drop(5))
+        }
     }
 
     @Test fun aChangedBenefitCheckStopsThePatchBeforeAnyEdit() {
         for (method in listOf(
             gate(PICKER_GATE, APP_ICON_GATE_BODY.replace(APP_ICON_BENEFIT, "CUSTOM_THEME")),
-            gate(PICKER_GATE, flags = AccessFlags.PUBLIC.value),
-            // No local register left for the switch's answer.
+            gate(PICKER_GATE, flags = public),
+            gate(SETTING_GATE, flags = staticPublic),
+            // No local register left for the switch's answer, counting the instance check's this.
             fixtureMethod(PICKER_GATE, "const-string p0, \"$APP_ICON_BENEFIT\"\nconst/4 p0, 0x0\nreturn p0", 1, staticPublic),
+            fixtureMethod(SETTING_GATE, "const-string p0, \"$APP_ICON_BENEFIT\"\nconst/4 p0, 0x0\nreturn p0", 3, public),
         )) {
             val before = method.implementation!!.instructions.toList()
             assertFailsWith<PatchException> { method.injectAppIconGate() }
@@ -139,7 +148,7 @@ class AppIconsTest {
                 assertEquals(before, after.drop(5), code)
             }
         }
-        // One icon manager per 584.1 bytecode family.
-        assertEquals(4, families.size)
+        // One icon manager per 585 naming: every arm64 build calls it 7m4, and each armv7 build has its own.
+        assertEquals(3, families.size)
     }
 }

@@ -11,7 +11,8 @@ import java.util.function.Predicate;
  * <p>Replaces the upstream pairwise join (previous lead + current event), which re-showed the lead
  * as part of the next page and slid through runs of short events. Pages are chosen per block with a
  * small cost search: a page should not end in the middle of a clause, flash for under a second, or
- * hold only a short lead, and joined pages stay within the reading limits.
+ * hold only a short lead. A semantic continuation can span several measured pages; it does not
+ * have to fit a single page.
  */
 final class RebuildDisplayGroups {
     static final long SHORT_EVENT_MS = 1000;
@@ -19,7 +20,7 @@ final class RebuildDisplayGroups {
     /** Nominal page time for a joined unit; a fragment the speaker continues may run past it. */
     static final long MAX_UNIT_MS = 7000;
 
-    /** Ceiling for such a continued fragment: long enough to finish the thought, not a soliloquy. */
+    /** Ceiling for optional grouping. Explicit semantic dependency chains are paginated afterward. */
     static final long EXTENDED_UNIT_MS = 10500;
 
     /** Below the planner's hard source break, a pause does not split a joined unit. */
@@ -91,6 +92,7 @@ final class RebuildDisplayGroups {
         String[] separator = new String[n];
         double[] breakCost = new double[n];
         boolean[] linked = new boolean[n];
+        boolean[] continuation = new boolean[n];
         for (int j = 1; j < n; j++) {
             RebuildProtocol.Event left = events.get(j - 1), right = events.get(j);
             linked[j] =
@@ -98,42 +100,45 @@ final class RebuildDisplayGroups {
                             && joinable(right, blocked)
                             && adjacent(source, left, right);
             boolean clause = clauseEnd(left.text);
-            boolean continuous = !clause && continuous(source, context, left.to, punctuated);
+            continuation[j] = requiresContinuation(source, context, left);
+            boolean continuous = continuation[j]
+                    || !clause && continuous(source, context, left.to, punctuated);
             separator[j] = separator(left.text.trim(), right.text.trim(), spec, continuous);
             if (!linked[j]) continue;
             breakCost[j] =
                     clause
                             ? 0
-                            : continuous
-                                    ? 4
-                                    : sourceBreakCost(source, context, left.to, punctuated);
-            // A short lead without a sentence end belongs with what follows (the former lead join),
-            // and
-            // a short tail that closes the sentence belongs with the open text before it.
-            if (lead(left, spec)) breakCost[j] += 1;
+                            : continuous ? 4 : 0;
+            // Missing punctuation is not continuation evidence in ASR. Preserve an independently
+            // readable event; the existing minimum-page time still protects flashing fragments.
+            if (lead(left, spec)
+                    && (clause || left.end - left.start < RebuildPageLayout.MIN_PAGE_MS))
+                breakCost[j] += 1;
             // "……的人写的，毕竟" must not be a page: a connective that introduces the next
             // clause carries the reader forward.
-            if (endsWithConnective(left.text)) breakCost[j] += 40;
-            if (!clause && tail(right, j == n - 1, spec)) breakCost[j] += 1;
+            if (continuation[j]) breakCost[j] += 40;
+            if (!clause && right.end - right.start < RebuildPageLayout.MIN_PAGE_MS
+                    && tail(right, j == n - 1, spec)) breakCost[j] += 1;
         }
         double[] best = new double[n + 1];
         int[] cut = new int[n + 1];
         Arrays.fill(best, Double.MAX_VALUE);
         best[0] = 0;
         for (int i = 1; i <= n; i++) {
+            boolean continuationChain = true;
             for (int j = i - 1; j >= 0 && i - j <= MAX_GROUP; j--) {
                 if (j < i - 1 && !linked[j + 1]) break;
+                if (j < i - 1) continuationChain &= continuation[j + 1];
                 List<RebuildProtocol.Event> group = events.subList(j, i);
                 List<String> separators = separators(separator, j, i);
-                // A group that starts with text the speaker obviously continues ("据该邮件显示，", a
-                // short lead like "而且") may run past the nominal page time: reading the fragment
-                // together with its continuation beats a page that stops mid-thought. A page
-                // planner may still split genuinely long text on punctuation.
+                // Optional joins retain their measured fit/time limits. A positive dependency
+                // chain is one semantic span; its physical pages are planned afterward.
                 long limit =
                         completeUtterance(group.get(0).text) || sourceSentenceEnd(source, group.get(0))
                                 ? MAX_UNIT_MS
                                 : EXTENDED_UNIT_MS;
-                if (group.size() > 1 && !readable(group, separators, spec, fits, limit)) {
+                if (group.size() > 1 && !continuationChain
+                        && !readable(group, separators, spec, fits, limit)) {
                     if (group.get(group.size() - 1).end - group.get(0).start > limit) break;
                     continue;
                 }
@@ -233,15 +238,6 @@ final class RebuildDisplayGroups {
                 && spec.readingUnits(text) <= Math.max(1, spec.profile.referenceCpl * 3 / 4);
     }
 
-    /** Ending a page where the target carries no punctuation, judged from the source boundary. */
-    private static double sourceBreakCost(
-            RebuildSource source, CaptionLanguageContext context, int token, boolean punctuated) {
-        String word = source.words.get(token).text;
-        if (punctuated) return RebuildSource.terminal(word) ? 0.5 : 1;
-        int score = RebuildPlanner.resourceScore(source, token, context);
-        return score >= 50 ? 0.5 : score >= 30 ? 1 : 2;
-    }
-
     /**
      * The source runs on through this boundary: no punctuation in punctuated captions, or a
      * dependent ending (article, preposition, protected pair) in unpunctuated ones.
@@ -315,6 +311,17 @@ final class RebuildDisplayGroups {
         return !text.isEmpty() && punctuation(text.codePointBefore(text.length()));
     }
 
+    static boolean requiresContinuation(RebuildSource source, CaptionLanguageContext context,
+            RebuildProtocol.Event event) {
+        if (sentenceEnd(event.text) || sourceSentenceEnd(source, event)) return false;
+        return endsWithConnective(event.text)
+                || RebuildPageLayout.trailingIntroduction(event.text, context.renderSpec)
+                || !clauseEnd(event.text)
+                        && (RebuildPlanner.dependentEnding(source, event.to, context)
+                            || RebuildPlanner.protectedCut(source, event.to, context)
+                            || RebuildPlanner.complementCut(source, event.to, context));
+    }
+
     private static boolean readable(
             List<RebuildProtocol.Event> group,
             List<String> separators,
@@ -380,11 +387,6 @@ final class RebuildDisplayGroups {
         // legal page boundary when the source continues across it; it never reaches the screen.
         if (spec.compactScript && !continuous) return "\u200b";
         return "";
-    }
-
-    private static boolean opening(int c) {
-        int type = Character.getType(c);
-        return type == Character.START_PUNCTUATION || type == Character.INITIAL_QUOTE_PUNCTUATION;
     }
 
     private static boolean punctuation(int c) {

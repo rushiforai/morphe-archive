@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
 import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.shared.Constants.COMPATIBILITY_CHZZK
+import app.s.chzzk.shared.nativeKeyboxPatch
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.w3c.dom.Element
@@ -19,6 +20,7 @@ val changePackageNamePatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_CHZZK)
+    dependsOn(nativeKeyboxPatch)
     val packageName by stringOption(
         key = "packageName",
         default = "$ORIGINAL_PACKAGE.morphe",
@@ -108,6 +110,7 @@ val customBrandingPatch = resourcePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_CHZZK)
+    dependsOn(nativeKeyboxPatch)
     val appName by stringOption(
         key = "appName",
         default = "치지직 S",

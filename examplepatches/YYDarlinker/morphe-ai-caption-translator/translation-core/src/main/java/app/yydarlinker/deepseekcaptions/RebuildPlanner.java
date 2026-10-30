@@ -217,16 +217,7 @@ final class RebuildPlanner {
                     words(
                             "if|because|although|though|while|which|that|so|as|than|and|or|but|to|of|with|without|for|from|in|on|at|by|about|including|into|between|like|rather|whether|unless|until|before|after|where|when|what|who|how|more|less|not|no|its|their|his|her|this|that|a|an|the|every|each|any|some|another|firstly|secondly|thirdly"),
             STRONG_DEPENDENT = words("if|because|although|unless|whether|including|the|an"),
-            PROTECTED_PAIR =
-                    words(
-                            "modernization picture|out past|range out|ballistic missile|ballistic"
-                                + " missiles|cruise missile|cruise missiles|surface-to-air"
-                                + " missile|surface-to-air missiles|aircraft carrier|aircraft"
-                                + " carriers|fifth generation|5th generation|generation"
-                                + " fighter|generation fighters|generation aircraft|korean"
-                                + " peninsula|purchasing power|power parity"),
             COMPARATIVE = words("than|then"),
-            PHASE = words("phased|replaced|adopted"),
             NOT_SUBJECT =
                     words(
                             "and|or|but|then|also|was|were|is|are|be|been|being|has|have|had|can|could|will|would|not|never|that|which|who"),
@@ -312,15 +303,10 @@ final class RebuildPlanner {
     static boolean protectedCut(RebuildSource s, int i) {
         if (i < 0 || i + 1 >= s.words.size() || boundary(s, i)) return false;
         String left = s.words.get(i).key, right = s.words.get(i + 1).key;
-        String pair = left + " " + right;
-        // A direction particle belongs with its verb even when the time ceiling is near.
-        if (PROTECTED_PAIR.contains(pair)) return true;
         // ASR 'then' is left unchanged. Comparative context is a dependency hint, not a correction.
         if (COMPARATIVE.contains(left)
                 && matches(s.text(Math.max(0, i - 35), i), "(?s).*\\b(more|less|rather)\\b.*"))
             return true;
-        if (left.equals("past") && lowerWord(right, "-")) return true;
-        if (left.equals("universally") && PHASE.contains(right)) return true;
         // A finite verb after a lexical subject is a weak syntactic signal; do not hard-reject it.
         return REPORTING.contains(right) && lowerWord(left, "'-") && !NOT_SUBJECT.contains(left);
     }
@@ -398,6 +384,19 @@ final class RebuildPlanner {
 
     static boolean protectedCut(RebuildSource s, int i, CaptionLanguageContext context) {
         return context.englishSource && protectedCut(s, i);
+    }
+
+    /** Display dependency only; it does not change request cuts or cache identities. */
+    private static final Set<String> REPORTED_COMPLEMENT = words(
+            "claim|claims|claimed|claiming|say|says|said|saying|state|states|stated|stating|"
+                    + "report|reports|reported|reporting|argue|argues|argued|arguing|"
+                    + "explain|explains|explained|explaining");
+
+    static boolean complementCut(RebuildSource s, int i, CaptionLanguageContext context) {
+        if (!context.englishSource || i < 0 || i + 1 >= s.words.size() || boundary(s, i))
+            return false;
+        String left = s.words.get(i).key, right = s.words.get(i + 1).key;
+        return right.equals("that") && REPORTED_COMPLEMENT.contains(left);
     }
 
     /** A token that only introduces or links the next clause, never a page on its own. */

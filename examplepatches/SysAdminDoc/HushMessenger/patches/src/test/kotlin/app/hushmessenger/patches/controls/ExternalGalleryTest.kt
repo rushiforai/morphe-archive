@@ -301,6 +301,26 @@ class ExternalGalleryTest {
         assertItemsHook(MutableMethod(found.single { it.hookId() == GALLERY_ITEMS }), GALLERY_ITEMS)
     }
 
+    @Test fun aProviderMovedIntoTheEditorsRangeStillOpensTheRoute() {
+        // 585 reads the provider into one register and moves it, with the event, into a range call to the editor.
+        val ranged = GALLERY_HANDLER_BODY.replace("invoke-static {p1, v1}, $GALLERY_EDITOR",
+            "move-object/from16 v3, p1\nmove-object v4, v1\ninvoke-static/range {v3 .. v4}, $GALLERY_EDITOR")
+        val found = mirroredControls(galleryClasses(handlerClass(ranged))).getValue(EXTERNAL_GALLERY)
+        assertEquals(setOf(GALLERY_HANDLER, GALLERY_PLUGIN, CHAT_CAMERA_START, COMPOSER_RESULT, GALLERY_ITEMS), found.map { it.hookId() }.toSet())
+        assertEquals(GalleryHandler(GALLERY_HANDLER, GALLERY_PROVIDER, "LX/0c8;"), galleryRoute!!.handlers.single { it.id == GALLERY_HANDLER })
+        val handler = MutableMethod(found.single { it.hookId() == GALLERY_HANDLER })
+        val before = handler.code()
+        val site = handler.gallerySite()
+        injectControl(EXTERNAL_GALLERY, mapOf(EXTERNAL_GALLERY to listOf(handler)))
+        assertGalleryHook(before, handler.code(), site.at, GALLERY_HANDLER, "ranged")
+        // A move from anything but the handler's own field read still proves nothing about what the provider holds.
+        for ((case, body) in listOf("moved from a parameter" to ranged.replace("move-object v4, v1", "move-object/from16 v4, p2"),
+            "moved from another field" to ranged.replace("iget-object v1, v0, $GALLERY_PROVIDER", "iget-object v1, v0, LX/6CD;->A0L:LX/0c8;"))) {
+            assertTrue(mirroredControls(galleryClasses(handlerClass(body))).getValue(EXTERNAL_GALLERY).isEmpty(), case)
+            assertEquals(null, galleryRoute, case)
+        }
+    }
+
     @Test fun aPhotoHandlerTheHookCantReachRefusesBeforeMutation() {
         // No local for the intent, or the thread past v15 where the hook's plain invoke can't reach it. CompatReport has to
         // refuse both as well, or it would pass a build the patch then stops on.
@@ -481,11 +501,15 @@ class ExternalGalleryTest {
                 handler.injectExternalGallery()
                 assertGalleryHook(before, handler.code(), site.at, routed.id, "$code ${routed.id}")
             }
-            // 584's launcher is abstract and both its subclasses inherit the hooked start, so the hook checks for the launcher itself.
+            // 585's launcher is abstract, as 583's was: one subclass inherits the hooked start and the other brings its own,
+            // so the hook checks for the subclass that runs it.
             val start = galleryRoute!!.start
-            assertEquals(start.substringBefore("->"), galleryRoute!!.launcher, code)
-            assertTrue(classes.none { it.superclass == galleryRoute!!.launcher &&
-                it.methods.any { method -> method.hookId().substringAfter("->") == start.substringAfter("->") } }, code)
+            val base = start.substringBefore("->")
+            fun ClassDef.declaresStart() = methods.any { method -> method.hookId().substringAfter("->") == start.substringAfter("->") }
+            val subclasses = classes.filter { it.superclass == base }
+            assertEquals(2, subclasses.size, code)
+            assertEquals(listOf(galleryRoute!!.launcher), subclasses.filterNot { it.declaresStart() }.map { it.type }, code)
+            assertTrue(classes.none { it.superclass == galleryRoute!!.launcher }, code)
             assertReaderHook(MutableMethod(found.single { it.hookId() == galleryRoute!!.reader }), code)
             assertEquals(ITEMS_INTENT, galleryRoute!!.itemsIntent, code)
             assertItemsHook(MutableMethod(found.single { it.hookId() == galleryRoute!!.items }), code)

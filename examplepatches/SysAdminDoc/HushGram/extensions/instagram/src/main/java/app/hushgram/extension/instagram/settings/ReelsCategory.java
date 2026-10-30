@@ -178,6 +178,11 @@ final class ReelsCategory {
                             + "with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek "
                             + "bar is on too, this look wins. It also keeps the bar on short reels.")));
         }
+        if (build.contains(PatchFamily.REEL_ZOOM)) {
+            reels.add(toggle(context, Settings.PINCH_ZOOM_REELS, L10n.t("Pinch to zoom"),
+                    L10n.t("Two fingers zoom into a playing reel, the way a photo zooms. Lift them and it goes back. "
+                            + "Restart Instagram to see the change.")));
+        }
         if (build.contains(PatchFamily.REEL_BLUR_BARS)) {
             reels.add(toggle(context, Settings.BLUR_REEL_BARS, L10n.t("Blur the bars around a reel"),
                     L10n.t("A reel that doesn't fill the screen shows a blurred copy of itself above and below it "

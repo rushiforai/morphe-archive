@@ -19,6 +19,11 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
+private const val WORKER_CLASS = "LX/7je;"
+
+/** The worker as 585 ships it: an instance method on an obfuscated class, taking the context, a request and the session. */
+internal const val ATTRIBUTION_WORKER = "$WORKER_CLASS->A02(Landroid/content/Context;LX/7jf;${FB_USER_SESSION}IJZ)V"
+
 private val STATIC = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
 
 /** The worker cut down to what every build shares: the Binder fallback's interface name, then the send's failure text. */
@@ -28,20 +33,23 @@ private val WORKER_BODY = """
     return-void
 """.trimIndent()
 
+// this, Context, the request, the session, I, J (two words) and Z are eight parameter words.
 private fun worker(
     id: String = ATTRIBUTION_WORKER,
     body: String = WORKER_BODY,
-    registers: Int = 8,
-    flags: Int = STATIC,
+    registers: Int = 10,
+    flags: Int = AccessFlags.PUBLIC.value,
 ): MutableMethod = fixtureMethod(id, body, registers, flags)
 
-/** The job as Messenger ships it: the worker beside the constructor and a session helper that never get a hook. */
+/** The worker beside the job's own step that calls it and a helper that names only the send. Neither gets a hook. */
 internal fun attributionUploadFixture(workerMethod: MutableMethod = worker()): List<MutableClass> = listOf(
-    fixtureClass(LAT_STATUS_JOB, listOf(
+    fixtureClass(workerMethod.definingClass, listOf(
         workerMethod,
-        fixtureMethod("$LAT_STATUS_JOB-><init>()V", "return-void"),
-        fixtureMethod("$LAT_STATUS_JOB->A01($LAT_STATUS_JOB$FB_USER_SESSION)V",
-            "const-string v0, \"$ATTRIBUTION_SEND_MARK\"\nreturn-void", flags = STATIC),
+        fixtureMethod("${workerMethod.definingClass}->A01($FB_USER_SESSION)V",
+            "const-string v0, \"$ATTRIBUTION_SEND_MARK\"\nreturn-void", registers = 3),
+    )),
+    fixtureClass(LAT_STATUS_JOB, listOf(
+        fixtureMethod("$LAT_STATUS_JOB->A00($LAT_STATUS_JOB$FB_USER_SESSION)V", "return-void", flags = STATIC),
     )),
 )
 
@@ -54,12 +62,24 @@ class AttributionUploadsTest {
 
     private fun found(classes: List<MutableClass>) = mirroredControls(classes).getValue(ATTRIBUTION_UPLOADS).map { it.hookId() }
 
-    @Test fun theWorkerIsFoundByItsClassShapeAndBothRoutesItNames() {
+    @Test fun theWorkerIsFoundByTheSessionAndBothRoutesItNames() {
         assertEquals(listOf(ATTRIBUTION_WORKER), found(attributionUploadFixture()))
         validateControls(mirroredControls(attributionUploadFixture()), setOf(ATTRIBUTION_UPLOADS))
     }
 
-    @Test fun everyProfileHooksTheSameNamedWorker() {
+    @Test fun aStaticWorkerOnAnyClassIsFoundToo() {
+        val id = "LX/Other;->A00($LAT_STATUS_JOB$FB_USER_SESSION)V"
+        assertEquals(listOf(id), found(attributionUploadFixture(worker(id = id, registers = 4, flags = STATIC))))
+    }
+
+    @Test fun everyProfileHooksOneWorkerOfTheSameShape() {
+        // 585 names the worker's class differently per family (7je, 7nN, 7hg), so the method's shape is what every build shares.
+        val shape = Regex("""LX/\w+;->A02\(Landroid/content/Context;LX/\w+;${Regex.escape(FB_USER_SESSION)}IJZ\)V""")
+        for ((code, profile) in controlProfiles) {
+            val hooks = profile.hooks.getValue(ATTRIBUTION_UPLOADS)
+            assertEquals(1, hooks.size, "$code")
+            assertTrue(shape.matches(hooks.single()), "$code hooks ${hooks.single()}")
+        }
         for (profile in listOf(SYNTHETIC_PROFILE, BASE_PROFILE)) {
             assertEquals(setOf(ATTRIBUTION_WORKER), profile.hooks.getValue(ATTRIBUTION_UPLOADS))
             activeProfile = profile
@@ -71,11 +91,10 @@ class AttributionUploadsTest {
         val cases = mapOf(
             "no Binder fallback" to attributionUploadFixture(worker(body = "const-string v1, \"$ATTRIBUTION_SEND_MARK\"\nreturn-void")),
             "no send" to attributionUploadFixture(worker(body = "const-string v0, \"$AD_ID_SERVICE\"\nreturn-void")),
-            "instance method" to attributionUploadFixture(worker(flags = AccessFlags.PUBLIC.value)),
-            "other parameters" to attributionUploadFixture(worker(id = "$LAT_STATUS_JOB->A00($FB_USER_SESSION)V")),
-            "returns a value" to attributionUploadFixture(worker(id = "$LAT_STATUS_JOB->A00($LAT_STATUS_JOB$FB_USER_SESSION)Z",
+            "no session" to attributionUploadFixture(worker(id = "$WORKER_CLASS->A02(Landroid/content/Context;LX/7jf;IJZ)V", registers = 9)),
+            "returns a value" to attributionUploadFixture(worker(id = ATTRIBUTION_WORKER.dropLast(1) + "Z",
                 body = WORKER_BODY.replace("return-void", "const/4 v0, 0x0\nreturn v0"))),
-            "another class" to listOf(fixtureClass("LX/Other;", listOf(worker(id = "LX/Other;->A00($LAT_STATUS_JOB$FB_USER_SESSION)V")))),
+            "two workers" to attributionUploadFixture() + listOf(fixtureClass("LX/Other;", listOf(worker(id = ATTRIBUTION_WORKER.replace(WORKER_CLASS, "LX/Other;"))))),
             "no job" to listOf(fixtureClass("LX/Unrelated;")),
         )
         for ((case, classes) in cases) {
@@ -101,11 +120,11 @@ class AttributionUploadsTest {
 
     @Test fun anUnusableWorkerRefusesTheSwitchBeforeAnyEdit() {
         val cases = mapOf(
-            // Two registers are exactly the parameter words, so v0 would be the job.
-            "no free register" to worker(registers = 2),
+            // Eight registers are exactly the parameter words, so v0 would be this.
+            "no free register" to worker(registers = 8),
             "no send" to worker(body = "const-string v0, \"$AD_ID_SERVICE\"\nreturn-void"),
-            "session helper" to fixtureMethod("$LAT_STATUS_JOB->A01($LAT_STATUS_JOB$FB_USER_SESSION)V",
-                "const-string v0, \"$ATTRIBUTION_SEND_MARK\"\nreturn-void", flags = STATIC),
+            "send helper" to fixtureMethod("$WORKER_CLASS->A01($FB_USER_SESSION)V",
+                "const-string v0, \"$ATTRIBUTION_SEND_MARK\"\nreturn-void", registers = 3),
         )
         for ((case, bad) in cases) {
             val badBefore = bad.code()

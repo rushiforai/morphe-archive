@@ -2,10 +2,13 @@
 """Compile production UI transforms and execute emitted Hermes caller probes."""
 from pathlib import Path
 import os
+import re
 import subprocess
 import sys
 
 repo = Path(__file__).resolve().parents[1]
+constants = repo / "patches/src/main/kotlin/io/github/jordanwoodson/patches/twitch/shared/Constants.kt"
+version = re.search(r'AppTarget\(version = "([^"]+)"', constants.read_text()).group(1)
 work = Path(os.environ.get("MORPHE_WORK", Path.home() / "build/lurk-morphe-patches"))
 root = work / "twitch-interface"
 root.mkdir(parents=True, exist_ok=True)
@@ -20,7 +23,8 @@ sources = [repo / "patches/src/main/kotlin/io/github/jordanwoodson/patches/twitc
            repo / "tests/twitch/InterfaceHermesProbe.kt", repo / "tests/twitch/InterfaceClipNavigationProbe.kt",
            repo / "tests/twitch/HermesEditSafetyProbe.kt", stub]
 java = str(Path(os.environ["JAVA_HOME"]) / "bin/java") if os.environ.get("JAVA_HOME") else "java"
-stock = sys.argv[1] if len(sys.argv) > 1 else str(work / "twitch/31.7.0/apktool/assets/index.android.bundle")
+# The stock bundle of the targeted version, decoded by bin/decompile twitch.
+stock = sys.argv[1] if len(sys.argv) > 1 else str(work / f"twitch/{version}/apktool/assets/index.android.bundle")
 probe = str(root / "interface-probe.jar") + os.pathsep + classpath
 commands = [[java, "-cp", classpath, "org.jetbrains.kotlin.cli.jvm.K2JVMCompiler", "-no-stdlib", "-no-reflect",
              "-classpath", classpath, "-d", str(root / "interface-probe.jar"), *map(str, sources)],

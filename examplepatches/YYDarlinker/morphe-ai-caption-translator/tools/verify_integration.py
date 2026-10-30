@@ -9,6 +9,90 @@ CORE_BANNED=['CaptionApplication','CaptionOverlay','CaptionActions','DeepSeekCon
 UI_BANNED=['RebuildController','RebuildApi','RebuildProtocol','RebuildPlanner','TranslationRuntime','TranslationAudit','ProviderRequestPolicy','MeaningTransport','MeaningWire','CaptionCore']
 DEAD=['app/yydarlinker/caption/core/CaptionCore','MeaningTransport','MeaningWire','MeaningPlannerWire','PlainMeaningWire','BatchMeaningWire','SourcePreparationWire','N39Application','RebuildSourcePlan','RebuildSemanticTimeline','RebuildSemanticStore','RebuildSupplyPolicy','RelationCandidate','FrozenDev3','CaptionSemanticUnit','CaptionRenderFrame','CaptionPageScheduler','CaptionPresentationCursor','CaptionPresentationState','MeaningPager','SentenceCandidate','TranslationRetryPolicy']
 def sha(data):return hashlib.sha256(data).hexdigest()
+
+# Source ownership, rather than a list of future helper names, defines these edges.
+# Host/infrastructure/UI still compile together; this is a lexical source guard, not an AST
+# or a claim about reflection. Every same-side helper is scanned, including unreferenced ones.
+SOURCE_AREAS = ('caption-contracts', 'caption-shared', 'translation-core',
+                'application-host', 'infrastructure', 'presentation', 'ui',
+                'extensions/extension', 'ui-preview', 'patches')
+SOURCE_FORBIDDEN = {
+    'translation-core': {'application-host', 'infrastructure', 'presentation', 'ui',
+                         'extensions/extension', 'ui-preview', 'patches'},
+    'caption-shared': {'translation-core', 'application-host', 'infrastructure',
+                       'presentation', 'ui', 'extensions/extension', 'ui-preview', 'patches'},
+    'caption-contracts': set(SOURCE_AREAS) - {'caption-contracts'},
+    'ui': {'translation-core'},
+    'presentation': {'translation-core'},
+}
+
+def source_code(text):
+    """Erase comments and literals in one pass, so URLs cannot eat following code.
+
+    Java/Kotlin strings, text blocks/raw strings, chars and nested Kotlin block comments
+    are ignored. Java Unicode escapes are expanded before tokenization (JLS ordering).
+    Kotlin interpolation/dynamic lookup is outside this lexical guard's scope.
+    """
+    text = re.sub(r'\\u+([0-9a-fA-F]{4})', lambda m: chr(int(m[1], 16)), text)
+    out = []; at = 0
+    token = re.compile(r'//[^\n]*|/\*|"""[\s\S]*?"""|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'')
+    while (match := token.search(text, at)):
+        out.append(text[at:match.start()]); end = match.end()
+        if match.group() == '/*':
+            depth = 1
+            while depth and end < len(text):
+                if text.startswith('/*', end): depth += 1; end += 2
+                elif text.startswith('*/', end): depth -= 1; end += 2
+                else: end += 1
+        erased = text[match.start():end]
+        out.append(''.join('\n' if c == '\n' else ' ' for c in erased)); at = end
+    out.append(text[at:]); return ''.join(out)
+
+def source_dependencies(root):
+    """Discover top-level project types, then reject references across forbidden areas.
+
+    Imports (including static/wildcard and Kotlin aliases), qualified references and
+    same-package simple names are checked. Unknown external/generated types, ambiguous
+    shadowing and runtime/reflection edges require review or separate package checks.
+    """
+    units = []; owners = {}
+    for area in SOURCE_AREAS:
+        for language in ('java', 'kotlin'):
+            for path in sorted((root / area / 'src/main' / language).rglob('*')):
+                if path.suffix not in ('.java', '.kt'): continue
+                code = source_code(path.read_text(encoding='utf-8-sig'))
+                package = re.search(r'\bpackage\s+([\w.]+)', code)
+                package = package[1] if package else ''
+                depth = 0; types = []
+                for m in re.finditer(r'[{}]|\b(?:class|interface|enum|record|object|typealias)\s+(\w+)', code):
+                    if m.group() == '{': depth += 1
+                    elif m.group() == '}': depth -= 1
+                    elif depth == 0: types.append(m[1])
+                for name in types: owners.setdefault(package + '.' + name, set()).add(area)
+                units.append((path, area, package, code))
+    errors = []
+    for path, area, package, code in units:
+        forbidden = SOURCE_FORBIDDEN.get(area, set())
+        if not forbidden: continue
+        # Dotted tokens cover imports, nested types and static methods too.
+        refs = set(re.findall(r'\b[A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*', code))
+        refs = {re.sub(r'\s+', '', value) for value in refs}
+        imports = re.findall(r'\bimport\s+(?:static\s+)?([\w.]+(?:\*)?)', code)
+        for fq, target_areas in owners.items():
+            if not target_areas.intersection(forbidden): continue
+            target_package, name = fq.rsplit('.', 1)
+            qualified = any(ref == fq or ref.startswith(fq + '.') for ref in refs)
+            imported = any(value == fq or value.startswith(fq + '.')
+                           or value == target_package + '.*' for value in imports)
+            local = package == target_package and any(ref == name or ref.startswith(name + '.') for ref in refs)
+            if qualified or imported or local:
+                errors.append(f'{path.relative_to(root).as_posix()} depends on {fq} '
+                              f'[{area} -> {",".join(sorted(target_areas.intersection(forbidden)))}]')
+        if area == 'translation-core' and re.search(r'\bandroid\.(app|view|widget)\.', code):
+            errors.append(f'{path.relative_to(root).as_posix()} references an Android UI component')
+    return dict(errors=sorted(set(errors)), source_files=len(units), project_types=len(owners),
+                scope='Lexical Java/Kotlin main-source ownership; no reflection/runtime reachability proof')
+
 def constants(path):
     data=long_path(path).read_bytes();assert data[:4]==b'\xca\xfe\xba\xbe'
     count=int.from_bytes(data[8:10],'big');at=10;i=1;out=[]
@@ -23,8 +107,14 @@ def constants(path):
         else:raise ValueError(f'unknown constant tag {tag}')
         i+=1
     return out
-# Literals of upstream code that is unused (an uncalled helper, an empty-string default) and was deleted.
-REMOVED_DEAD_LITERALS={'"HTTP_CONFIG"','""','"layout_overflow"','"paragraph"','","','" "',r'"\\s+"',r'"(?<![\\p{L}\\p{N}])[+-]?\\d+(?:,\\d{3})*(?:\\.\\d+)?"','"numeric_substitution"'}
+# Reviewed source-quote wire policy. Hash the complete literal multiset, including counts.
+# Snapshots remain independently hash-pinned by provenance; no arbitrary literal change is allowed.
+PINNED_LITERAL_COUNTS_SHA256 = {'RebuildApi': '9c4bf64fd6fa5acfd6509d26d176c49f083d3dec0126a078e572137c6703c287', 'RebuildProtocol': 'adbc7a11c060a473688a5aff228cd1ffa5e9776810fcc2fd75cb800b3aade866'}
+
+def literal_contract(name, original, current):
+    counts = sorted(Counter(current).items())
+    return sha(json.dumps(counts, separators=(',', ':')).encode()) == PINNED_LITERAL_COUNTS_SHA256[name]
+
 def literals(path):
     pattern=r'//[^\n]*|/\*[\s\S]*?\*/|"(?:\\.|[^"\\])*"'
     # Adjacent literals joined by + are one value, so re-wrapping a long prompt is not a change.
@@ -33,9 +123,12 @@ def literals(path):
     return [m.group() for m in re.finditer(pattern,text) if m.group().startswith('"')]
 def inspect(source_only=False,core_classes=None,mpp=None,mpe=None,ui_apk=None):
     errors=[];facts={}
+    dependencies = source_dependencies(R)
+    errors.extend(dependencies['errors'])
+    facts['source_dependencies'] = dependencies
     for module,banned in [('translation-core',CORE_BANNED),('caption-shared',CORE_BANNED+UI_BANNED),('ui',UI_BANNED),('presentation',UI_BANNED)]:
         for path in (R/module/'src/main/java').rglob('*.java'):
-            source=re.sub(r'//[^\n]*|/\*[\s\S]*?\*/','',path.read_text(encoding='utf-8-sig'))
+            source=source_code(path.read_text(encoding='utf-8-sig'))
             for name in banned:
                 if re.search(r'\b'+name+r'\b',source):errors.append(f'{path.relative_to(R)} depends on {name}')
             if module=='translation-core' and re.search(r'\bimport\s+android\.(app|view|widget)\.',source):errors.append(f'{path.relative_to(R)} imports a UI component')
@@ -45,12 +138,6 @@ def inspect(source_only=False,core_classes=None,mpp=None,mpe=None,ui_apk=None):
         if sha((R/row['destination']).read_bytes())!=row['sha256']:errors.append('unrecorded core adaptation: '+row['destination'])
     for row in provenance.get('new_files',[]):
         if sha((R/row['path']).read_bytes())!=row['sha256']:errors.append('unrecorded core adapter: '+row['path'])
-    entry=json.loads((R/'docs/ui-preservation.json').read_text(encoding='utf-8'))
-    protected=[]
-    for row in entry['files']:
-        if '/captionlocales/' in row['path'] or row['path'].startswith('localization/') or row['path'].startswith('ui/src/') and not row['path'].endswith(('CaptionOverlayV2.java','CaptionActions.java')):
-            if (R/row['path']).exists():protected.append(row['path'])
-    facts['latest_ui_localization_exact_files']=len(protected)
     for row in provenance.get('protected_abi',[]):
         text=(R/row['path']).read_text(encoding='utf-8-sig')
         signatures=sorted(re.sub(r'\s+',' ',m.group(1)).strip() for m in re.finditer(r'(public\s+static\s+[\w<>?,\[\]. ]+\s+\w+\s*\([^)]*\))\s*\{',text))
@@ -60,12 +147,16 @@ def inspect(source_only=False,core_classes=None,mpp=None,mpe=None,ui_apk=None):
     for name in ['RebuildApi','RebuildProtocol']:
         original=literals(R/'translation-core/upstream'/(name+'.java.txt'))
         current=literals(R/'translation-core/src/main/java/app/yydarlinker/deepseekcaptions'/(name+'.java'))
-        if name=='RebuildProtocol':current.remove('"1.4.0"')
-        # Only literals of code removed as dead may disappear; none may be added or altered.
-        gone=Counter(original)-Counter(current);added=Counter(current)-Counter(original)
-        if added or any(k not in REMOVED_DEAD_LITERALS for k in gone):errors.append('upstream prompt/protocol literals changed: '+name)
+        if name=='RebuildProtocol':
+            if current.count('"1.4.0"') != 1:
+                errors.append('upstream prompt/protocol literals changed: '+name)
+            else:
+                current.remove('"1.4.0"')
+        if not literal_contract(name,original,current):
+            errors.append('upstream prompt/protocol literals changed: '+name)
     facts['pinned_core']={k:provenance[k] for k in ['repository','branch','commit']}
-    facts['prompt_and_protocol_literals_unchanged']=not any('literals changed' in e for e in errors)
+    facts['prompt_and_protocol_literals_unchanged']=False  # Source-only wire and fidelity guidance are explicit local adaptations.
+    facts['prompt_and_protocol_literals_authorized']=not any('literals changed' in e for e in errors)
     settings=(R/'settings.gradle.kts').read_text(encoding='utf-8-sig')
     if ':caption-core' in settings or 'archive/' in settings:errors.append('retired implementation included in Gradle settings')
     preview=(R/'ui-preview/build.gradle.kts').read_text(encoding='utf-8-sig')
@@ -115,7 +206,7 @@ def inspect(source_only=False,core_classes=None,mpp=None,mpe=None,ui_apk=None):
                     if (PREFIX+name).encode() in dex:errors.append('UI preview contains a translator: '+name)
                 if b'android.permission.INTERNET' in z.read('AndroidManifest.xml').replace(b'\x00',b''):errors.append('UI preview requests INTERNET')
             facts['independent_ui_apk']={'path':str(ui_apk.resolve()),'sha256':sha(ui_apk.read_bytes()),'translation_core_present':False}
-    facts['errors']=errors;facts['scope']='Actual sources, independently compiled core constants and package content; not an OEM or semantic-quality certification.'
+    facts['errors']=errors;facts['scope']='Main source ownership and legacy name guards; compiled constants scan only the supplied core classes, not the extension; package exclusions/provenance/ABI/protocol remain separate. No dynamic/reflection reachability, OEM or semantic-quality certification.'
     return facts
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--source-only',action='store_true');p.add_argument('--output',type=Path,default=R/'validation/boundaries.json')

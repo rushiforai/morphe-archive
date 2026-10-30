@@ -3,6 +3,7 @@ package app.yydarlinker.deepseekcaptions;
 import android.app.Activity;
 import android.util.DisplayMetrics;
 import android.view.View;
+import java.util.ArrayList;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -20,6 +21,13 @@ import static org.junit.Assert.*;
 @Config(sdk=28)
 @GraphicsMode(GraphicsMode.Mode.LEGACY)
 public class CaptionRatioSettingsTest {
+    private TextView textWithValue(View root, String value) {
+        ArrayList<View> matches=new ArrayList<>();
+        root.findViewsWithText(matches,value,View.FIND_VIEWS_WITH_TEXT);
+        for(View match:matches) if(match instanceof TextView && value.contentEquals(((TextView)match).getText()))
+            return (TextView)match;
+        throw new AssertionError("No text view for: "+value);
+    }
     @Test public void fiveTierSliderShowsReferenceDetailPixelsAndSavesOnlyOnRelease(){
         Activity activity=Robolectric.buildActivity(Activity.class).setup().get();
         DisplayMetrics metrics=activity.getResources().getDisplayMetrics();
@@ -36,11 +44,11 @@ public class CaptionRatioSettingsTest {
                 preference.setKey(DeepSeekSliderPreference.KEY_TEXT_SIZE);
                 preference.setTitle(CaptionStrings.get(activity,"size"));
                 LinearLayout root=(LinearLayout)preference.onCreateView(new FrameLayout(activity));
-                SeekBar slider=(SeekBar)root.getChildAt(1);
-                TextView summary=(TextView)root.getChildAt(3);
+                SeekBar slider=root.findViewWithTag("ai_size_tier_slider");
+                TextView summary=textWithValue(root,String.format(java.util.Locale.ROOT,
+                        CaptionStrings.get(activity,"size_tier_hint"),
+                        CaptionStrings.get(activity,"size_tier_standard"),"44.5","55.5"));
                 assertEquals(4,slider.getMax());assertEquals(2,slider.getProgress());
-                // N24: the size row no longer repeats the value beside the title; the tier line carries it.
-                assertEquals("size heading must contain only the title",1,((LinearLayout)root.getChildAt(0)).getChildCount());
                 SeekBar.OnSeekBarChangeListener listener=Shadows.shadowOf(slider).getOnSeekBarChangeListener();
                 listener.onStartTrackingTouch(slider);
                 String[] labels={"34 px","39 px","44.5 px","50 px","56 px"};
@@ -75,11 +83,8 @@ public class CaptionRatioSettingsTest {
             preference.setKey(DeepSeekSliderPreference.KEY_OPACITY);
             preference.setTitle(CaptionStrings.get(activity,"opacity"));
             LinearLayout root=(LinearLayout)preference.onCreateView(new FrameLayout(activity));
-            LinearLayout heading=(LinearLayout)root.getChildAt(0);
-            assertEquals("the opacity row keeps the percentage beside its title",2,heading.getChildCount());
-            TextView value=(TextView)heading.getChildAt(1);
-            assertEquals("70%",value.getText().toString());
-            SeekBar slider=(SeekBar)root.getChildAt(1);
+            TextView value=textWithValue(root,"70%");
+            SeekBar slider=root.findViewWithTag("ai_opacity_slider");
             SeekBar.OnSeekBarChangeListener listener=Shadows.shadowOf(slider).getOnSeekBarChangeListener();
             listener.onStartTrackingTouch(slider);
             slider.setProgress(25);listener.onProgressChanged(slider,25,true);

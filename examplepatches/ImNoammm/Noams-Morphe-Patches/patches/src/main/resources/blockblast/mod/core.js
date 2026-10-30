@@ -2,6 +2,43 @@
 // bundle, so hooks exist before any game module. Also holds the settings ui.js edits: values live in
 // localStorage, looked up live as user choice > patch option > declared default.
 (function () {
+    // Hot-update defense, first and self-contained so it survives any later error in this file. The game
+    // applies a downloaded update (HotUpdate) or a server-driven architecture switch
+    // (TraitServerTraitCheckInfo.toIosStable) by staging <writable>/patch and calling cc.game.restart()
+    // in-process. That reboot reloads the boot script from the search paths, and the native
+    // PatchGuardProvider only runs at process start, so an in-process restart would load the staged stock
+    // boot script and drop every mod until the next cold start. Wiping the staged update and its search
+    // paths before every restart makes the reboot load the patched boot script again.
+    (function () {
+        if (typeof cc === 'undefined' || !cc.game || !cc.game.restart) return;
+        var fu = (typeof jsb === 'object' && jsb.fileUtils) ? jsb.fileUtils : null;
+        function wipe() {
+            if (!fu) return;
+            try {
+                var base = fu.getWritablePath();
+                ['patch/main.js', 'patch/project.manifest', 'patch/version.manifest'].forEach(function (f) {
+                    if (fu.isFileExist(base + f)) fu.removeFile(base + f);
+                });
+                ['patch/src/', 'patch/assets/', 'patch/jsb-adapter/', 'patch_temp/'].forEach(function (d) {
+                    if (fu.isDirectoryExist(base + d)) fu.removeDirectory(base + d);
+                });
+                var paths = fu.getSearchPaths(), kept = [], dropped = false;
+                for (var i = 0; i < paths.length; i++) {
+                    var p = paths[i];
+                    if (p.indexOf(base) === 0 && (p.indexOf('patch') >= 0 || p.indexOf('blockBlastHotUpdate') >= 0)) { dropped = true; continue; }
+                    kept.push(p);
+                }
+                if (dropped) fu.setSearchPaths(kept);
+            } catch (e) {}
+        }
+        var original = cc.game.restart.bind(cc.game);
+        cc.game.restart = function () {
+            wipe();
+            if (window.bb && bb.log) bb.log('restart: staged update wiped');
+            return original.apply(this, arguments);
+        };
+    })();
+
     var config = window.__bbmod || {};
     var fileUtils = jsb.fileUtils;
     var logPath = fileUtils.getWritablePath() + 'bbmod.log';

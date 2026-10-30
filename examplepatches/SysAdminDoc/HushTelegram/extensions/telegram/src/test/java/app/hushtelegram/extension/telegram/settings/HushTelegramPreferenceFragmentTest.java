@@ -634,7 +634,8 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("Hide picked chats", String.valueOf(page.findPreference(Settings.HIDDEN_CHATS.key).getTitle()));
             assertEquals("The chats you pick below leave All Chats, your folders and archived chats. They keep their messages "
                     + "and notifications, search still finds them, and nothing changes on your other devices. Each account "
-                    + "keeps its own list. Folder tab counts and the app badge still count their unread messages.",
+                    + "keeps its own list. Folder tab counts leave them out, but the app badge still counts their "
+                    + "unread messages.",
                     String.valueOf(page.findPreference(Settings.HIDDEN_CHATS.key).getSummary()));
             // Every chat shows until the switch is turned on.
             assertFalse(Settings.HIDDEN_CHATS.key,
@@ -856,8 +857,8 @@ public class HushTelegramPreferenceFragmentTest {
             assertFalse(Settings.ASK_BEFORE_GIF.key,
                     ((SwitchPreference) page.findPreference(Settings.ASK_BEFORE_GIF.key)).isChecked());
             assertEquals("Ask before sending a voice or video message", String.valueOf(page.findPreference(Settings.ASK_BEFORE_VOICE_VIDEO.key).getTitle()));
-            assertEquals("Asks Send or Cancel before a voice or video message you recorded goes out. Cancel throws the"
-                    + " recording away.",
+            assertEquals("Asks Send or Cancel before a voice or video message you recorded goes out. The recording"
+                    + " pauses first, and Cancel leaves it paused, ready to play, delete or send.",
                     String.valueOf(page.findPreference(Settings.ASK_BEFORE_VOICE_VIDEO.key).getSummary()));
             assertFalse(Settings.ASK_BEFORE_VOICE_VIDEO.key,
                     ((SwitchPreference) page.findPreference(Settings.ASK_BEFORE_VOICE_VIDEO.key)).isChecked());
@@ -1289,8 +1290,8 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("Keep Telegram's files in internal storage", String.valueOf(storage.getTitle()));
             assertFalse(storage.isChecked());
             assertEquals("New photos, videos and files Telegram downloads go to Internal storage/Telegram, where file managers"
-                    + " and other apps can open them, instead of Android/data. Files downloaded before stay in Android/data."
-                    + " Needs All files access and a restart.\nAll files access is off, so Telegram's files stay in Android/data."
+                    + " and other apps can open them, instead of Android/data. Files downloaded before stay in Android/data,"
+                    + " and Telegram still opens them from there. Needs All files access and a restart.\nAll files access is off, so Telegram's files stay in Android/data."
                     + " Turning this on opens the setting.", String.valueOf(storage.getSummary()));
 
             assertTrue(storage.getOnPreferenceChangeListener().onPreferenceChange(storage, true));
@@ -1396,6 +1397,21 @@ public class HushTelegramPreferenceFragmentTest {
         throw new AssertionError("no Persian row");
     }
 
+    /** A build whose unread counts can't skip the hidden chats says the folder tabs still count them. */
+    @Test
+    public void hidePickedChatsSaysWhenTheFolderTabsStillCountThem() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_FOLDER_COUNTERS);
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDDEN_CHATS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            assertEquals("The chats you pick below leave All Chats, your folders and archived chats. They keep their messages "
+                    + "and notifications, search still finds them, and nothing changes on your other devices. Each account "
+                    + "keeps its own list. Folder tab counts and the app badge still count their unread messages.",
+                    String.valueOf(pageOf(controller).findPreference(Settings.HIDDEN_CHATS.key).getSummary()));
+        } finally {
+            PatchFamily.capabilitiesForTests = null;
+        }
+    }
+
     /**
      * Hide folder tab counters brings the folder at launch switch and, under it, a row that lists
      * All Chats and the account's folders and saves the pick for the account shown.
@@ -1468,6 +1484,51 @@ public class HushTelegramPreferenceFragmentTest {
         }
     }
 
+    /** With Hide All Chats on and All Chats still in the tabs, its summary names why the chat list kept it (#38). */
+    @Test
+    public void hideAllChatsNamesWhyTheChatListKeptAllChats() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_FOLDER_COUNTERS, PatchFamily.HIDE_CONTACTS_TAB);
+        String base = HushTelegramPreferenceFragment.hideAllChatsSummary();
+        String sideMenu = base + " All Chats is still showing because it holds your only way to Archived Chats. Turn on "
+                + "the side menu to give the archive another way in.";
+        Settings.HIDE_ALL_CHATS.save(true);
+        try {
+            assertNull("a list that leaves it out", LaunchFolderForTests.built(true, "Work"));
+            assertEquals(base, HushTelegramPreferenceFragment.hideAllChatsSummary());
+
+            assertEquals(LaunchFolder.Kept.NO_FOLDER, LaunchFolderForTests.built(true));
+            assertEquals(base + " All Chats is still showing because this account has no folder of its own to open, or "
+                    + "each one is locked.", HushTelegramPreferenceFragment.hideAllChatsSummary());
+
+            assertEquals(LaunchFolder.Kept.NO_ARCHIVE, LaunchFolderForTests.built(false, "Work"));
+            assertEquals(sideMenu, HushTelegramPreferenceFragment.hideAllChatsSummary());
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                assertEquals("the page's row", sideMenu,
+                        String.valueOf(pageOf(controller).findPreference(Settings.HIDE_ALL_CHATS.key).getSummary()));
+            }
+            // A build without the side menu has the menu entry as its other way in.
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDE_ALL_CHATS);
+            assertEquals(base + " All Chats is still showing because it holds your only way to Archived Chats. Patch "
+                    + "again with Disable pull to archive to give the archive another way in.",
+                    HushTelegramPreferenceFragment.hideAllChatsSummary());
+            PatchFamily.capabilitiesForTests = null;
+
+            // Tabs the stubs can't read.
+            LaunchFolderForTests.signedIn(1000, "Work");
+            LaunchFolder.firstTabs(new Object());
+            assertEquals(LaunchFolder.Kept.NO_STRIP, LaunchFolder.kept());
+            assertEquals(base + " All Chats is still showing because the folder tabs couldn't be read. The diagnostic "
+                    + "report has the details.", HushTelegramPreferenceFragment.hideAllChatsSummary());
+
+            // Turned off, the summary only says what the switch does.
+            Settings.HIDE_ALL_CHATS.save(false);
+            assertEquals(base, HushTelegramPreferenceFragment.hideAllChatsSummary());
+        } finally {
+            LaunchFolderForTests.restore();
+            Settings.HIDE_ALL_CHATS.resetToDefault();
+        }
+    }
+
     /**
      * Hide folder tab counters also brings the hidden chats switch and, under it, a row that lists
      * the account's chats, archived ones included, and saves the ticked ones for that account.
@@ -1529,11 +1590,13 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals(Collections.emptySet(), HiddenChats.hidden(1000));
             assertEquals("No chats hidden yet.", String.valueOf(chats.getSummary()));
 
-            // Flipping the switch sorts the chat list again too.
+            // Flipping the switch sorts each signed-in account's chat list again too.
             telegram.resorted.clear();
+            telegram.users.put(2, 3000L);
             assertTrue(rows.get(toggle).getOnPreferenceChangeListener().onPreferenceChange(rows.get(toggle), Boolean.TRUE));
             ShadowLooper.idleMainLooper();
-            assertEquals(Collections.singletonList(0), telegram.resorted);
+            assertEquals(Arrays.asList(0, 2), telegram.resorted);
+            telegram.users.remove(2);
 
             // Signed out, no chats yet, or chats that can't be read: a note instead of a list.
             for (Object[] state : new Object[][]{{0L, "Sign in to Telegram first."}, {1000L, "You don't have any chats yet."},
@@ -1549,6 +1612,30 @@ public class HushTelegramPreferenceFragmentTest {
                 assertEquals(state[1], ShadowToast.getTextOfLatestToast());
             }
             assertEquals("No chats hidden yet.", HushTelegramPreferenceFragment.hiddenChatsSummary(null));
+        } finally {
+            HiddenChatsForTests.restore();
+        }
+    }
+
+    /**
+     * Folder tabs ask for their counts only when the counts change, so flipping Hide folder tab
+     * counters has every signed-in account's tabs counted again instead of waiting for a restart.
+     */
+    @Test
+    public void hideFolderCountersCountsTheTabsAgainAtOnce() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_FOLDER_COUNTERS);
+        HiddenChatsForTests.Fake telegram = HiddenChatsForTests.use(new HiddenChatsForTests.Fake());
+        telegram.users.put(0, 1000L);
+        telegram.users.put(2, 3000L);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Preference counters = pageOf(controller).findPreference(Settings.HIDE_FOLDER_COUNTERS.key);
+            for (Boolean value : new Boolean[]{Boolean.TRUE, Boolean.FALSE}) {
+                telegram.recounted.clear();
+                assertTrue(counters.getOnPreferenceChangeListener().onPreferenceChange(counters, value));
+                assertTrue("not before the switch is saved", telegram.recounted.isEmpty());
+                ShadowLooper.idleMainLooper();
+                assertEquals(value + " counts each signed-in account again", Arrays.asList(0, 2), telegram.recounted);
+            }
         } finally {
             HiddenChatsForTests.restore();
         }

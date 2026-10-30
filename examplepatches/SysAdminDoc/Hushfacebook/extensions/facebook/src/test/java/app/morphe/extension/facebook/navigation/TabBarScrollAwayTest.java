@@ -54,8 +54,49 @@ public class TabBarScrollAwayTest {
         Settings.KEEP_TAB_BAR.resetToDefault();
         Settings.KEEP_TOP_BAR.resetToDefault();
         Settings.BOTTOM_TAB_BAR.resetToDefault();
+        Settings.TRANSLUCENT_BARS.resetToDefault();
         TabBarScrollAway.topBarsTakenBack();
+        TabBarScrollAway.forgetBuilt();
         HookStatus.clear();
+    }
+
+    @Test
+    public void aKeptBarsSeeThroughChangeWaitsForARestartUntilItIsPutBack() {
+        Settings.KEEP_TAB_BAR.save(true);
+        assertFalse("a restart was owed before the bar was built", TabBarScrollAway.seeThroughRestartOwed());
+        // The main screen starts: the bar is built kept, without see-through.
+        assertTrue(TabBarScrollAway.staysPut());
+        assertFalse("a restart was owed for the layout the bar was built with", TabBarScrollAway.seeThroughRestartOwed());
+
+        Settings.TRANSLUCENT_BARS.save(true);
+        assertTrue("the kept bar's see-through change didn't wait for a restart", TabBarScrollAway.seeThroughRestartOwed());
+        // The floating button asks again later: the bar keeps the layout it was built with.
+        assertFalse(TabBarScrollAway.staysPut());
+        assertTrue(TabBarScrollAway.slidesAway());
+        assertTrue("a later ask forgot the built layout", TabBarScrollAway.seeThroughRestartOwed());
+
+        Settings.TRANSLUCENT_BARS.save(false);
+        assertFalse("a change put back still waited", TabBarScrollAway.seeThroughRestartOwed());
+    }
+
+    @Test
+    public void seeThroughShowsRightAwayOnABarThatIsntKept() {
+        // Built with the bar left to Facebook.
+        assertFalse(TabBarScrollAway.staysPut());
+        assertFalse(TabBarScrollAway.slidesAway());
+        Settings.TRANSLUCENT_BARS.save(true);
+        assertFalse("see-through waited on a bar that isn't kept", TabBarScrollAway.seeThroughRestartOwed());
+        // Keeping the bar now waits under its own switch, not under See-through bars.
+        Settings.KEEP_TAB_BAR.save(true);
+        assertFalse("see-through waited under its own key for a bar kept after the start", TabBarScrollAway.seeThroughRestartOwed());
+
+        // A bar built kept and see-through, then set to slide away: that switch says its own restart.
+        TabBarScrollAway.forgetBuilt();
+        assertFalse(TabBarScrollAway.staysPut());
+        assertTrue(TabBarScrollAway.slidesAway());
+        Settings.TAB_BAR_SCROLL_AWAY.save(true);
+        Settings.TRANSLUCENT_BARS.save(false);
+        assertFalse("see-through waited for a bar set to slide away", TabBarScrollAway.seeThroughRestartOwed());
     }
 
     private static String statusLine() {
@@ -137,6 +178,71 @@ public class TabBarScrollAwayTest {
     }
 
     @Test
+    public void aKeptSeeThroughBarTakesFacebooksScrollAwayLayoutAndIsHeldInIt() {
+        // A kept bar alone answers Facebook's check no, so its pages are padded up to it, and
+        // the bar's entry is left to Facebook as before.
+        Settings.KEEP_TAB_BAR.save(true);
+        assertTrue(TabBarScrollAway.staysPut());
+        assertFalse(TabBarScrollAway.slidesAway());
+        assertEquals("the bar's entry was held without see-through", 96,
+                TabBarScrollAway.topBarOffset(TabBarScrollAway.BOTTOM_TABS, 96));
+        assertEquals("the bar's entry was kept from fading without see-through", 0.5f,
+                TabBarScrollAway.topBarFade(TabBarScrollAway.BOTTOM_TABS, 0.5f), 0f);
+
+        // With See-through bars on it answers yes instead, so Facebook builds the layout with the
+        // pages under the bar (#250), then holds the bar's own entry where it rests, fully drawn.
+        Settings.TRANSLUCENT_BARS.save(true);
+        assertFalse("the see-through bar was kept by a no", TabBarScrollAway.staysPut());
+        assertTrue("the see-through bar didn't take the scroll-away layout", TabBarScrollAway.slidesAway());
+        assertEquals("the see-through bar's entry slid away", 0, TabBarScrollAway.topBarOffset(TabBarScrollAway.BOTTOM_TABS, 96));
+        assertEquals("the see-through bar's entry faded", 0f, TabBarScrollAway.topBarFade(TabBarScrollAway.BOTTOM_TABS, 0.5f), 0f);
+        assertEquals("the top bar was held by the bar's switches", -120,
+                TabBarScrollAway.topBarOffset(TabBarScrollAway.APP_HEADER, -120));
+        assertEquals("another entry was held", -50, TabBarScrollAway.topBarOffset("some_other_entry", -50));
+
+        // Hide the tab bar while scrolling still wins over both.
+        Settings.TAB_BAR_SCROLL_AWAY.save(true);
+        assertTrue(TabBarScrollAway.slidesAway());
+        assertEquals("the sliding bar's entry was held", 96, TabBarScrollAway.topBarOffset(TabBarScrollAway.BOTTOM_TABS, 96));
+
+        String line = statusLine();
+        assertTrue(line, line != null && line.contains(TabBarScrollAway.STAYS_PUT + " 1"));
+        assertTrue(line, line.contains(TabBarScrollAway.PAGES_RUN_UNDER + " 1"));
+        assertTrue(line, line.contains(TabBarScrollAway.BAR_HELD + " 1"));
+        assertTrue(line, line.contains(TabBarScrollAway.SLIDES_AWAY + " 1"));
+        assertFalse("a top bar move was counted as held: " + line, line.contains(TabBarScrollAway.TOP_BAR_HELD));
+    }
+
+    @Test
+    public void aKeptSeeThroughBarGoesWithFacebooksOwnHideOffTheFeed() {
+        Settings.KEEP_TAB_BAR.save(true);
+        Settings.TRANSLUCENT_BARS.save(true);
+        assertEquals("on the feed, the bar's entry slid away", 0, TabBarScrollAway.topBarOffset(TabBarScrollAway.BOTTOM_TABS, 96));
+
+        TabBarScrollAway.topBarsLetGo();
+        assertEquals("the bar was held over a reel", 96, TabBarScrollAway.topBarOffset(TabBarScrollAway.BOTTOM_TABS, 96));
+        assertEquals("the bar was kept from fading over a reel", 1f,
+                TabBarScrollAway.topBarFade(TabBarScrollAway.BOTTOM_TABS, 1f), 0f);
+
+        TabBarScrollAway.topBarsTakenBack();
+        assertEquals("back on the feed, the bar's entry slid away", 0, TabBarScrollAway.topBarOffset(TabBarScrollAway.BOTTOM_TABS, 96));
+        String line = statusLine();
+        assertTrue(line, line != null && line.contains(TabBarScrollAway.BAR_HELD + " 2"));
+        assertTrue(line, line.contains(TabBarScrollAway.BAR_LET_GO + " 1"));
+    }
+
+    @Test
+    public void aKeptSeeThroughBarsPagesGetNoPaddingListener() {
+        android.content.Context context = org.robolectric.RuntimeEnvironment.getApplication();
+        Settings.KEEP_TAB_BAR.save(true);
+        Settings.TRANSLUCENT_BARS.save(true);
+        android.view.View pager = new android.widget.FrameLayout(context);
+        TabBarScrollAway.padsPager(pager, 0, 0, 0, 147);
+        assertEquals("Facebook's padding wasn't set first", 147, pager.getPaddingBottom());
+        assertNull("a see-through bar's pager got the kept bar's listener", TabBarScrollAway.CLEARED_PAGERS.get(pager));
+    }
+
+    @Test
     public void aKeptTopBarHoldsStillAndTheOtherEntriesMove() {
         assertFalse("the top bar's switch doesn't start off", Settings.KEEP_TOP_BAR.get());
         assertEquals("off, the top bar was held", -120, TabBarScrollAway.topBarOffset(TabBarScrollAway.APP_HEADER, -120));
@@ -147,7 +253,7 @@ public class TabBarScrollAwayTest {
                 TabBarScrollAway.topBarOffset(TabBarScrollAway.TITLE_AND_TABS, -80));
         // A move of nothing passes straight through, so it isn't counted: the count below stays 2.
         assertEquals("a top bar back home moved", 0, TabBarScrollAway.topBarOffset(TabBarScrollAway.APP_HEADER, 0));
-        assertEquals("the bottom bar's entry was held", 96, TabBarScrollAway.topBarOffset("bottom_tabs_container", 96));
+        assertEquals("the bottom bar's entry was held", 96, TabBarScrollAway.topBarOffset(TabBarScrollAway.BOTTOM_TABS, 96));
         assertEquals("an entry with no name was held", -50, TabBarScrollAway.topBarOffset(null, -50));
         String line = statusLine();
         assertTrue(line, line != null && line.contains("Counted: " + TabBarScrollAway.TOP_BAR_HELD + " 2"));
@@ -165,7 +271,7 @@ public class TabBarScrollAwayTest {
         // Nothing hidden passes straight through, so it isn't counted: the count below stays 2.
         assertEquals("a top bar in full view faded", 0f, TabBarScrollAway.topBarFade(TabBarScrollAway.APP_HEADER, 0f), 0f);
         assertEquals("the bottom bar's entry was kept from fading", 0.5f,
-                TabBarScrollAway.topBarFade("bottom_tabs_container", 0.5f), 0f);
+                TabBarScrollAway.topBarFade(TabBarScrollAway.BOTTOM_TABS, 0.5f), 0f);
         assertEquals("an entry with no name was kept from fading", 0.5f, TabBarScrollAway.topBarFade(null, 0.5f), 0f);
         String line = statusLine();
         assertTrue(line, line != null && line.contains("Counted: " + TabBarScrollAway.TOP_BAR_UNFADED + " 2"));
@@ -183,7 +289,7 @@ public class TabBarScrollAwayTest {
                 TabBarScrollAway.topBarOffset(TabBarScrollAway.TITLE_AND_TABS, -80));
         assertEquals("the top bar was kept from fading over a reel", 1f,
                 TabBarScrollAway.topBarFade(TabBarScrollAway.APP_HEADER, 1f), 0f);
-        assertEquals("the bottom bar's entry was held", 96, TabBarScrollAway.topBarOffset("bottom_tabs_container", 96));
+        assertEquals("the bottom bar's entry was held", 96, TabBarScrollAway.topBarOffset(TabBarScrollAway.BOTTOM_TABS, 96));
 
         // Back on the feed: Facebook turns scroll-away on again and shows the bars, then the feed's scrolls hold it.
         TabBarScrollAway.topBarsTakenBack();

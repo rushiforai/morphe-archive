@@ -53,12 +53,17 @@ private const val LIST_COPY = "$IMMUTABLE_LIST->copyOf(Ljava/util/Collection;)$I
 private val FACTORY_RETURNS = setOf("Ljava/lang/Object;", "Ljava/lang/Iterable;", "Ljava/util/Collection;", "Ljava/util/List;", IMMUTABLE_LIST)
 private const val CONTEXT = "Landroid/content/Context;"
 
+private const val LIST_BUILDER = "Lcom/google/common/collect/ImmutableList\$Builder;"
+
 /**
- * Where Messenger's newer chat top bar, a static factory, hands back the button list its builder just built: [site] is
- * its one return, of [list]. [session], [thread] and [mig] are the parameters that are never reassigned, and [scratch]
- * three low locals the call may use, since only [list] is read after the site.
+ * Where Messenger's newer chat top bar, its factory, hands back the button list its builder just built: [site] is the
+ * one return the details button reaches, of [list], built by the [build] call. [session], [thread] and [mig] are the
+ * parameters that are never reassigned, and [scratch] three low locals the call may use, since only [list] is read
+ * after the site.
  */
-internal data class MarkReadFactory(val site: Int, val list: Int, val session: Int, val thread: Int, val mig: Int, val scratch: List<Int>)
+internal data class MarkReadFactory(
+    val site: Int, val list: Int, val session: Int, val thread: Int, val mig: Int, val scratch: List<Int>, val build: String,
+)
 
 /**
  * How this build's chat top bar makes its QR scanner button, which the Mark as read button copies with Messenger's own
@@ -91,6 +96,8 @@ internal data class MarkReadRecipe(
     val socket: Int,
     val factory: Method,
     val factorySite: MarkReadFactory,
+    /** The details button's builder, which both bars call. */
+    val details: String,
 )
 
 internal var markReadRecipe: MarkReadRecipe? = null
@@ -151,49 +158,85 @@ internal fun Method.markReadSite(list: Int, socket: Int, socketType: String): In
     return site
 }
 
-/** Messenger's top bar keeps the first [MARK_READ_MOST_BUTTONS] buttons: its one subList end is a register set once, to that constant. */
+/**
+ * Messenger's top bar keeps the first [MARK_READ_MOST_BUTTONS] buttons: its one subList end is moved from a register
+ * whose one reaching definition is that constant. 585's armv7 bar reuses the register for other values before it sets
+ * the cap, so it's the definition that reaches the cut, not the only write.
+ */
 internal fun Method.markReadCapMatches(): Boolean {
     val code = markCode()
     val cut = code.indices.singleOrNull { code[it].markRef()?.toString() == SUB_LIST } ?: return false
     val end = code[cut].markArgs().getOrNull(2) ?: return false
     val move = code.getOrNull(cut - 1) as? TwoRegisterInstruction ?: return false
     val cap = if (move.registerA == end && (move as Instruction).opcode in setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)) move.registerB else return false
-    val writes = code.filter { it.markWrites(cap) }
-    val const = writes.singleOrNull() as? NarrowLiteralInstruction ?: return false
-    return (const as Instruction).opcode in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST) && const.narrowLiteral == MARK_READ_MOST_BUTTONS
+    val flow = try { ReadFlow(this) } catch (_: PatchException) { return false }
+    return flow.narrowConstantAt(cut - 1, cap, depth = 0) == MARK_READ_MOST_BUTTONS
 }
 
 /**
- * The newer bar's seam: a static factory whose one return hands back the list an ImmutableList builder just built, with
- * nothing between that build and the return that writes the list, branches or is landed on. The account, chat and
- * colors are parameters of their own types, each declared once and never reassigned. Null when the shape moved.
+ * A call to a static helper that takes an ImmutableList builder and only builds it, null-checks the list and returns
+ * it, which 585's factory builds its button list through.
  */
-internal fun Method.markReadFactorySite(): MarkReadFactory? {
-    if (!AccessFlags.STATIC.isSet(accessFlags) || returnType !in FACTORY_RETURNS || implementation == null) return null
+private fun Instruction.isListBuildHelper(byType: Map<String, ClassDef>): Boolean {
+    val ref = markRef() as? MethodReference ?: return false
+    if (opcode != Opcode.INVOKE_STATIC || ref.params() != listOf(LIST_BUILDER) || ref.returnType != IMMUTABLE_LIST) return false
+    val helper = byType[ref.definingClass]?.methods?.singleOrNull { it.hookId() == ref.toString() } ?: return false
+    if (!AccessFlags.STATIC.isSet(helper.accessFlags) || helper.implementation == null) return false
+    val hc = helper.markCode().toMutableList()
+    val built = (hc.getOrNull(1) as? OneRegisterInstruction)?.registerA
+    val check = hc.getOrNull(2)?.markRef() as? MethodReference
+    if (hc.size == 4 && hc[2].opcode == Opcode.INVOKE_STATIC && check != null && check.params() == listOf("Ljava/lang/Object;") &&
+        check.returnType == "V" && hc[2].markArgs() == listOf(built)) hc.removeAt(2)
+    return hc.size == 3 && hc[0].opcode == Opcode.INVOKE_VIRTUAL && hc[0].markRef()?.toString() == LIST_BUILD &&
+        hc[0].markArgs() == listOf(helper.parameterRegister(0)) && hc[1].opcode == Opcode.MOVE_RESULT_OBJECT &&
+        hc[2].opcode == Opcode.RETURN_OBJECT && built == (hc[2] as OneRegisterInstruction).registerA
+}
+
+/**
+ * The newer bar's seam. The factory, static or (585) an instance method, calls the [details] builder once, and that
+ * call reaches exactly one return: the list an ImmutableList builder just built, directly or through a call [isBuild]
+ * accepts, with nothing between that build and the return that writes the list, branches or is landed on. Returns the
+ * details button never reaches, such as 585's early lists, are left alone. The account, chat and colors are parameters
+ * of their own types, each declared once and never reassigned. Null when the shape moved.
+ */
+internal fun Method.markReadFactorySite(details: String, isBuild: (Instruction) -> Boolean): MarkReadFactory? {
+    if (returnType !in FACTORY_RETURNS || implementation == null) return null
     val code = markCode()
-    val site = code.indices.singleOrNull { code[it].opcode == Opcode.RETURN_OBJECT } ?: return null
+    val call = code.indices.singleOrNull { code[it].markRef()?.toString() == details } ?: return null
+    val reached = mutableSetOf<Int>()
+    try {
+        val flow = ReadFlow(this)
+        val pending = ArrayDeque<Int>().apply { add(call) }
+        while (pending.isNotEmpty()) {
+            val at = pending.removeFirst()
+            if (reached.add(at)) pending.addAll(flow.successors(at))
+        }
+    } catch (_: PatchException) { return null }
+    val site = reached.singleOrNull { code[it].opcode == Opcode.RETURN_OBJECT } ?: return null
     val list = (code[site] as OneRegisterInstruction).registerA
-    val build = (site - 1 downTo 0).firstOrNull { code[it].markRef()?.toString() == LIST_BUILD } ?: return null
+    val build = (site - 1 downTo 0).firstOrNull { code[it].markRef()?.toString() == LIST_BUILD || isBuild(code[it]) } ?: return null
     if (code[build + 1].opcode != Opcode.MOVE_RESULT_OBJECT || (code[build + 1] as OneRegisterInstruction).registerA != list) return null
     if ((build + 2 until site).any { code[it].markWrites(list) || code[it] is OffsetInstruction }) return null
     val edges = markEdges() ?: return null
     if (edges.any { (_, to) -> to in build + 1..site }) return null
     val types = parameterTypes.map { it.toString() }
+    val self = if (AccessFlags.STATIC.isSet(accessFlags)) 0 else 1
     fun words(of: List<String>) = of.sumOf { if (it == "J" || it == "D") 2 else 1 }
-    fun param(type: String) = types.indices.singleOrNull { types[it] == type }?.let { i -> parameterRegister(words(types.take(i))) }
+    fun param(type: String) = types.indices.singleOrNull { types[it] == type }?.let { i -> parameterRegister(self + words(types.take(i))) }
     val session = param(FB_USER_SESSION) ?: return null
     val thread = param(THREAD_KEY_TYPE) ?: return null
     val mig = param(MIG_SCHEME) ?: return null
     if (code.any { insn -> insn.markWrites(session) || insn.markWrites(thread) || insn.markWrites(mig) }) return null
-    val locals = implementation!!.registerCount - words(types)
+    // Locals only: an instance factory's receiver sits right above them.
+    val locals = implementation!!.registerCount - words(types) - self
     val scratch = (0 until minOf(16, locals)).filter { it != list }.take(3)
     if (list > 15 || scratch.size < 3) return null
-    return MarkReadFactory(site, list, session, thread, mig, scratch)
+    return MarkReadFactory(site, list, session, thread, mig, scratch, code[build].markRef().toString())
 }
 
 /**
- * The narrow constant a register holds at [target], following plain moves to the register they copy. The 584.1 armv7
- * bar hoists the listener case into a high register and moves it down at the call, so the definition is not always a
+ * The narrow constant a register holds at [target], following plain moves to the register they copy. Messenger's armv7
+ * bars hoist the listener case into a high register and move it down at the call, so the definition is not always a
  * literal. Null unless one definition reaches each step.
  */
 private fun ReadFlow.narrowConstantAt(target: Int, register: Int, depth: Int = 4): Int? {
@@ -289,19 +332,20 @@ internal fun resolveMarkReadRecipe(classes: Iterable<ClassDef>): MarkReadRecipe?
     }.distinct().singleOrNull() ?: return null
     val provider = iconProvider ?: return null
     val providerType = provider.substringAfter(')')
-    // The builder keeps its icon in an int field, which one public static helper on it fills from the provider's result.
-    val setters = byType[builder]?.methods?.filter { m ->
-        AccessFlags.STATIC.isSet(m.accessFlags) && AccessFlags.PUBLIC.isSet(m.accessFlags) && m.returnType == "V" &&
+    // The builder keeps its icon in an int field, which a public static helper fills from the provider's result. 585
+    // carries copies of that helper on other public classes; every copy must do the same steps, and the first is used.
+    val setters = classes.filter { it.isPublic() }.flatMap { it.methods }.filter { m ->
+        AccessFlags.STATIC.isSet(m.accessFlags) && AccessFlags.PUBLIC.isSet(m.accessFlags) && m.returnType == "V" && m.implementation != null &&
             m.parameterTypes.map(CharSequence::toString).let { it.size == 3 && it[1] == providerType && it[2] == builder }
-    }.orEmpty()
-    val setterMethod = setters.singleOrNull() ?: return null
+    }.map { it to it.iconSetterSteps() }
+    if (setters.isEmpty() || setters.any { it.second == null } || setters.map { it.second }.distinct().size != 1) return null
+    val setterMethod = setters.minBy { it.first.hookId() }.first
     val setter = setterMethod.hookId()
     val iconType = setterMethod.parameterTypes[0].toString()
     val setterCode = setterMethod.markCode()
     val resolve = setterCode.getOrNull(0)?.markRef() as? MethodReference
     val store = setterCode.getOrNull(2)?.markRef() as? FieldReference
-    if (setterCode.map { it.opcode } != listOf(Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.IPUT, Opcode.RETURN_VOID) ||
-        resolve == null || resolve.definingClass != providerType || resolve.params() != listOf(iconType) || resolve.returnType != "I" ||
+    if (resolve == null || resolve.definingClass != providerType || resolve.params() != listOf(iconType) || resolve.returnType != "I" ||
         store == null || store.definingClass != builder || store.type != "I") return null
     // The QR block does the same two steps inline, so the helper is the button's own way of setting an icon.
     if (block.none { it.second.markRef()?.toString() == resolve.toString() } ||
@@ -361,12 +405,26 @@ internal fun resolveMarkReadRecipe(classes: Iterable<ClassDef>): MarkReadRecipe?
     // The newer bar is the one other method that makes the details button.
     val titleBar = classes.flatMap { it.methods }.filter { m -> m.hookId() != bar.hookId() && m.markCode().any { it.markRef()?.toString() == detailsRef } }
         .singleOrNull() ?: return null
-    val titleBarSite = titleBar.markReadFactorySite() ?: return null
+    val titleBarSite = titleBar.markReadFactorySite(detailsRef) { it.isListBuildHelper(byType) } ?: return null
     // Its list goes back through ImmutableList.copyOf, since the bar casts what the factory returns.
     if (byType[IMMUTABLE_LIST]?.methods?.none { it.hookId() == LIST_COPY && AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) } != false) return null
     return MarkReadRecipe(bar, click, socketType, session, thread, scheme, mig ?: return null, builder, builderScheme ?: return null,
         tag, listenerField ?: return null, iconSource, provider, setter, icon, listenerType,
-        listenerCase ?: return null, target, specType, site, list, pluginRead.registerB, titleBar, titleBarSite)
+        listenerCase ?: return null, target, specType, site, list, pluginRead.registerB, titleBar, titleBarSite, detailsRef)
+}
+
+/**
+ * The icon setter's steps, or null when it does more: resolve the icon through the provider (its second parameter)
+ * and store the int on the builder (its third), as `resolve|store`.
+ */
+private fun Method.iconSetterSteps(): String? {
+    val code = markCode()
+    if (code.map { it.opcode } != listOf(Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.IPUT, Opcode.RETURN_VOID)) return null
+    val p0 = parameterRegister(0)
+    val put = code[2] as TwoRegisterInstruction
+    if (code[0].markArgs() != listOf(p0 + 1, p0) || (code[1] as OneRegisterInstruction).registerA != put.registerA ||
+        put.registerB != p0 + 2) return null
+    return "${code[0].markRef()}|${code[2].markRef()}"
 }
 
 internal fun findMarkReadButton(classes: Iterable<ClassDef>): Pair<List<Method>, List<Method>> {
@@ -383,7 +441,8 @@ internal fun MutableMethod.validateMarkReadBar(): MarkReadRecipe {
     val recipe = markReadRecipe
     markReadRequire(recipe != null && (recipe.bar.hookId() == hookId() || recipe.factory.hookId() == hookId()), "no button recipe")
     if (recipe!!.factory.hookId() == hookId()) {
-        markReadRequire(markReadFactorySite() == recipe.factorySite, "button list return")
+        markReadRequire(markReadFactorySite(recipe.details) { it.markRef()?.toString() == recipe.factorySite.build } == recipe.factorySite,
+            "button list return")
         return recipe
     }
     markReadRequire(markReadSite(recipe.list, recipe.socket, recipe.socketType) == recipe.site, "list walk")

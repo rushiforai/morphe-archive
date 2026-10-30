@@ -8,9 +8,11 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.os.Handler;
 import android.os.Looper;
 import android.util.Pair;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import app.hushtelegram.extension.shared.L10n;
 import app.hushtelegram.extension.shared.Utils;
@@ -19,6 +21,8 @@ import app.hushtelegram.extension.shared.settings.BooleanSetting;
 import app.hushtelegram.extension.shared.ui.CustomDialog;
 import app.hushtelegram.extension.telegram.settings.FamilyNames;
 import app.hushtelegram.extension.telegram.settings.Settings;
+import java.lang.ref.WeakReference;
+import java.util.function.Predicate;
 
 /**
  * Four questions Telegram doesn't ask: send this sticker, this GIF, this voice or video message,
@@ -27,12 +31,16 @@ import app.hushtelegram.extension.telegram.settings.Settings;
  *
  * <p>A question's hook returns true to let Telegram go on and false when it asked instead. Send
  * runs the same method again with the same arguments, once: the hook is told to let that one call
- * through, and the flag clears as soon as it has. Cancel drops the send, and for a recording stops
- * and throws it away, the way Telegram's own slide to cancel does. Backing out of the question
- * counts as Cancel, so a recording never keeps running behind a closed dialog.
+ * through, and the flag clears as soon as it has. Cancel drops the send, and backing out of the
+ * question counts as Cancel.
+ *
+ * <p>A recording is paused before its question shows, the way Telegram pauses it before its own
+ * paid-message question, so nothing said or filmed while the question is open ends up in the clip.
+ * Send sends the paused clip, as Telegram's send from its preview does, and Cancel leaves it in
+ * that preview, where Telegram's own buttons play it, delete it or send it.
  *
  * <p>Only what a person starts by hand is asked about: a sticker or GIF picked in Telegram's
- * panels or its suggestion strip, a recording sent from the record button, and the call buttons in
+ * panels or its suggestion strip, a recording sent from the record button or from its preview, and the call buttons in
  * a chat's header and on a profile. A scheduled send, a send that already carries its own paid-message confirmation and a
  * call started from anywhere else go through untouched.
  */
@@ -46,8 +54,18 @@ public final class SendConfirm {
     private static final int CALL = 5;
     private static final int STRIP = 6;
 
+    /** The state Telegram's chat bar sends a paused round video in, the one its paid-message question sends with. */
+    static final int VIDEO_PREVIEW = 4;
+
+    /** How many times, {@link #PREVIEW_STEP_MS} apart, Send looks for the preview of a paused clip: five seconds. */
+    static final int PREVIEW_TRIES = 50;
+    static final long PREVIEW_STEP_MS = 100L;
+
     /** The kind of send the next call through its hook is the answered one of, or 0. */
     private static volatile int passing;
+
+    /** The last question shown, so a second send while it's up asks nothing more. */
+    private static WeakReference<Dialog> asked = new WeakReference<>(null);
 
     /**
      * In front of the chat bar's sticker send.
@@ -103,38 +121,171 @@ public final class SendConfirm {
 
     /**
      * In front of Telegram's end of a voice recording. Only sending is asked about, and everything
-     * else, cancelling, previewing and the send that waits for a date, goes through.
+     * else, cancelling, previewing and the send that waits for a date, goes through. Send sends the
+     * paused clip from the chat bar's preview, which leaving the chat while the question is up keeps.
      */
     public static boolean voice(Object media, int send, boolean notify, int scheduleDate, boolean once, long stars) {
         if (passed(VOICE)) return true;
         if (!voiceSend(send, notify, scheduleDate, stars) || !on(Settings.ASK_BEFORE_VOICE_VIDEO)) return true;
+        if (asking()) return false;
         Activity window = current();
-        if (window == null) return true;
-        return ask(VOICE, window, L10n.t(window, "Send voice message"), L10n.t(window, "Send this voice message to this chat?"), L10n.t(window, "Send"),
-                () -> resumeVoice(media, send, notify, scheduleDate, once, stars),
-                () -> resumeVoice(media, 0, false, 0, once, 0L));
+        if (window == null || !mainThread() || !holdVoice(media, once)) return true;
+        return askHeld(VOICE, window, L10n.t(window, "Send voice message"), L10n.t(window, "Send this voice message to this chat?"),
+                () -> fromPreview(VOICE, window, () -> resumeVoice(media, send, notify, scheduleDate, once, stars), PREVIEW_TRIES));
     }
 
     /** In front of the chat's handling of the round video recorder, in the order one build gives its arguments. */
     public static boolean video(Object chat, int state, boolean notify, int scheduleDate, int ttl, long effect, long stars) {
         if (passed(VIDEO)) return true;
         if (!videoSend(state, notify, scheduleDate, stars) || !on(Settings.ASK_BEFORE_VOICE_VIDEO)) return true;
+        if (asking()) return false;
         Activity window = current();
-        if (window == null) return true;
-        return ask(VIDEO, window, L10n.t(window, "Send video message"), L10n.t(window, "Send this video message to this chat?"), L10n.t(window, "Send"),
-                () -> resumeVideo(chat, state, notify, scheduleDate, ttl, effect, stars),
-                () -> resumeVideo(chat, 2, true, 0, ttl, effect, 0L));
+        if (window == null || !mainThread() || !holdVideo(chat)) return true;
+        return askHeld(VIDEO, window, L10n.t(window, "Send video message"), L10n.t(window, "Send this video message to this chat?"),
+                () -> fromPreview(VIDEO, window, () -> resumeVideo(chat, VIDEO_PREVIEW, notify, scheduleDate, ttl, effect, stars), PREVIEW_TRIES));
     }
 
     /** {@link #video} for the build that gives the date, the timer and the effect before the sound flag. */
     public static boolean videoReordered(Object chat, int state, int scheduleDate, int ttl, long effect, long stars, boolean notify) {
         if (passed(VIDEO)) return true;
         if (!videoSend(state, notify, scheduleDate, stars) || !on(Settings.ASK_BEFORE_VOICE_VIDEO)) return true;
+        if (asking()) return false;
         Activity window = current();
+        if (window == null || !mainThread() || !holdVideo(chat)) return true;
+        return askHeld(VIDEO, window, L10n.t(window, "Send video message"), L10n.t(window, "Send this video message to this chat?"),
+                () -> fromPreview(VIDEO, window, () -> resumeVideoReordered(chat, VIDEO_PREVIEW, scheduleDate, ttl, effect, stars, notify), PREVIEW_TRIES));
+    }
+
+    /**
+     * In front of the chat bar's send of the round video waiting in its preview, the one its send
+     * button runs, before that send clears the preview, so Cancel leaves the clip there. Send runs
+     * the bar's send again, and the answered call goes on to {@link #video}, which takes the flag,
+     * so the clip isn't asked about twice.
+     *
+     * @param notify 0 for a send without sound
+     * @param repeat how often a scheduled send repeats, 0 for an ordinary send
+     * @param confirm whether Telegram's paid-message question may still ask, which a send with stars says anyway
+     */
+    public static boolean previewVideo(Object bar, int scheduleDate, int notify, int repeat, int confirm, long stars) {
+        if (passing == VIDEO) return true;
+        return preview(VIDEO, bar, scheduleDate, notify, repeat, stars, () -> sendFromBar(bar));
+    }
+
+    /** {@link #previewVideo} for the voice clip, whose send never reaches {@link #voice}, so this one takes the flag. */
+    public static boolean previewVoice(Object bar, int scheduleDate, int notify, int repeat, int confirm, long stars) {
+        if (passed(VOICE)) return true;
+        return preview(VOICE, bar, scheduleDate, notify, repeat, stars, () -> sendFromBar(bar));
+    }
+
+    /**
+     * Asks about the clip waiting in [bar]'s preview; Send runs [send], the bar's send again. A tap
+     * while a question is up keeps the preview and asks nothing more.
+     */
+    static boolean preview(int kind, Object bar, int scheduleDate, int notify, int repeat, long stars, Runnable send) {
+        if (!previewSend(scheduleDate, notify, repeat, stars) || !on(Settings.ASK_BEFORE_VOICE_VIDEO)) return true;
+        Activity window = activity(bar);
         if (window == null) return true;
-        return ask(VIDEO, window, L10n.t(window, "Send video message"), L10n.t(window, "Send this video message to this chat?"), L10n.t(window, "Send"),
-                () -> resumeVideoReordered(chat, state, scheduleDate, ttl, effect, stars, notify),
-                () -> resumeVideoReordered(chat, 2, 0, ttl, effect, 0L, true));
+        if (asking()) return false;
+        String title = kind == VIDEO ? L10n.t(window, "Send video message") : L10n.t(window, "Send voice message");
+        String message = kind == VIDEO ? L10n.t(window, "Send this video message to this chat?") : L10n.t(window, "Send this voice message to this chat?");
+        return ask(kind, window, title, message, L10n.t(window, "Send"), send, null);
+    }
+
+    /**
+     * Whether a question is up. A second send that reaches a hook meanwhile asks nothing more and
+     * sends nothing: the older voice recorder pauses a moment after it's asked to, and a second
+     * pause before then would start it recording again.
+     */
+    static boolean asking() {
+        Dialog open = asked.get();
+        return open != null && open.isShowing();
+    }
+
+    /** Whether a send from the preview goes out now, with sound, once and with nothing to pay. */
+    static boolean previewSend(int scheduleDate, int notify, int repeat, long stars) {
+        return scheduleDate == 0 && notify != 0 && repeat == 0 && stars == 0L;
+    }
+
+    /**
+     * {@link #ask} for a recording already paused for its question. When the question can't show,
+     * the clip goes out the way Send sends it, since Telegram's own send no longer finds it recording.
+     */
+    static boolean askHeld(int kind, Activity window, String title, String message, Runnable sendAction) {
+        if (ask(kind, window, title, message, L10n.t(window, "Send"), sendAction, null)) answered(kind, sendAction);
+        return false;
+    }
+
+    /**
+     * Pauses the voice recording unless it's paused already, so the question stands in front of a
+     * finished clip. False when it couldn't pause, and then Telegram sends at once rather than
+     * recording on behind the question.
+     */
+    static boolean holdVoice(Object media, boolean once) {
+        try {
+            if (!voicePaused(media)) pauseVoice(media, once);
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ASK_BEFORE_STICKER, "voice pause", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Pauses the round video recorder unless it's paused already, and Send then sends from its
+     * preview, since the older of Telegram's two round video recorders sends a paused clip only
+     * from there. False when it couldn't pause, and then Telegram sends at once.
+     */
+    static boolean holdVideo(Object chat) {
+        try {
+            if (!videoPaused(chat)) pauseVideo(chat);
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ASK_BEFORE_STICKER, "video pause", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Sends a paused recording with the chat bar's own send, the one its send button runs, which
+     * sends the clip in its preview and closes the preview behind it. Ending the recording instead
+     * sends the clip too, but a chat bar that saw it paused never hears about that, and its preview
+     * stays up. The preview shows once the paused clip is written, a moment after the pause, so Send
+     * waits for it; with none by then, [stop] ends the recording, which sends the clip everywhere but
+     * on the older voice recorder. A window closed meanwhile gives way to the main window in front.
+     */
+    static void fromPreview(int kind, Activity window, Runnable stop, int tries) {
+        if (!mainThread()) {
+            new Handler(Looper.getMainLooper()).post(() -> fromPreview(kind, window, stop, tries));
+            return;
+        }
+        Object bar = previewBar(usable(window, false) ? window : current(), kind);
+        if (bar != null) answered(kind, () -> sendFromBar(bar));
+        else if (tries > 0) new Handler(Looper.getMainLooper()).postDelayed(() -> fromPreview(kind, window, stop, tries - 1), PREVIEW_STEP_MS);
+        else answered(kind, stop);
+    }
+
+    /** The chat bar on screen in [window] that holds a paused clip of this kind, or null. */
+    static Object previewBar(Activity window, int kind) {
+        try {
+            if (window == null || window.isDestroyed() || window.getWindow() == null) return null;
+            return find(window.getWindow().getDecorView(),
+                    view -> view.isShown() && chatBar(view) && (kind == VIDEO ? videoClip(view) : voiceClip(view)) != null);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ASK_BEFORE_STICKER, "preview", failure);
+            return null;
+        }
+    }
+
+    /** The first view in [root]'s tree, [root] included, that [wanted] takes. */
+    static View find(View root, Predicate<View> wanted) {
+        if (wanted.test(root)) return root;
+        if (!(root instanceof ViewGroup)) return null;
+        ViewGroup group = (ViewGroup) root;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View found = find(group.getChildAt(i), wanted);
+            if (found != null) return found;
+        }
+        return null;
     }
 
     /**
@@ -191,7 +342,7 @@ public final class SendConfirm {
      * nowhere to ask or asking failed, and false once the dialog is up and the answer will decide.
      */
     static boolean ask(int kind, Activity window, String title, String message, String send, Runnable sendAction, Runnable cancelAction) {
-        if (window == null || Looper.myLooper() != Looper.getMainLooper()) return true;
+        if (window == null || !mainThread()) return true;
         try {
             boolean[] decided = {false};
             Runnable yes = () -> {
@@ -207,12 +358,18 @@ public final class SendConfirm {
             Pair<Dialog, LinearLayout> dialog = CustomDialog.create(window, title, message, null, send, yes, no, null, null, false);
             dialog.first.setOnDismissListener(shown -> no.run());
             dialog.first.show();
+            asked = new WeakReference<>(dialog.first);
             HookStatus.counted(FamilyNames.ASK_BEFORE_STICKER, "asked");
             return false;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.ASK_BEFORE_STICKER, "question", failure);
             return true;
         }
+    }
+
+    /** Whether this runs on the app's main thread, the only one a question shows from. */
+    static boolean mainThread() {
+        return Looper.myLooper() == Looper.getMainLooper();
     }
 
     /** Runs [action], the one call Telegram's own method is let through for. */
@@ -270,11 +427,35 @@ public final class SendConfirm {
     /** Telegram's own end of a recording, again. Replaced when patching. */
     public static void resumeVoice(Object media, int send, boolean notify, int scheduleDate, boolean once, long stars) {}
 
+    /** Whether Telegram's voice recording is paused. Replaced when patching. */
+    public static boolean voicePaused(Object media) { return false; }
+
+    /** Telegram's pause of a voice recording, with its view-once flag. Replaced when patching. */
+    public static void pauseVoice(Object media, boolean once) {}
+
+    /** Whether the chat's round video recorder is paused. Replaced when patching. */
+    public static boolean videoPaused(Object chat) { return false; }
+
+    /** The chat's pause of the round video recorder. Replaced when patching. */
+    public static void pauseVideo(Object chat) {}
+
     /** Telegram's own handling of the round video recorder, again. Replaced when patching. */
     public static void resumeVideo(Object chat, int state, boolean notify, int scheduleDate, int ttl, long effect, long stars) {}
 
     /** {@link #resumeVideo} for the other order of arguments. Replaced when patching. */
     public static void resumeVideoReordered(Object chat, int state, int scheduleDate, int ttl, long effect, long stars, boolean notify) {}
+
+    /** Whether a view is Telegram's chat bar. Replaced when patching. */
+    public static boolean chatBar(Object view) { return false; }
+
+    /** The paused voice clip in the chat bar's preview, or null. Replaced when patching. */
+    public static Object voiceClip(Object bar) { return null; }
+
+    /** The paused round video in the chat bar's preview, or null. Replaced when patching. */
+    public static Object videoClip(Object bar) { return null; }
+
+    /** The chat bar's send, as its send button runs it: now, with sound. Replaced when patching. */
+    public static void sendFromBar(Object bar) {}
 
     /** Telegram's own start of a call. Replaced when patching. */
     public static void startCall(Object user, boolean video, boolean canVideo, Object activity, Object userFull, Object account) {}

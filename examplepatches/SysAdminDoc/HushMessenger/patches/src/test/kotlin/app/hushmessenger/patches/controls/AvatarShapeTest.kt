@@ -145,14 +145,13 @@ class AvatarShapeTest {
             "LX/$tile;->A09(Landroid/content/Context;Landroid/graphics/Path;Landroid/graphics/drawable/Drawable;" +
                 "Lcom/facebook/auth/usersession/FbUserSession;LX/$a;LX/$b;LX/$placeholder;FIIZZ)V",
             "LX/$placeholder;->draw(Landroid/graphics/Canvas;)V")
-        assertEquals(setOf("LX/4wU;-><init>([FFZZZ)V", "LX/OaT;->A04(LX/RNd;LX/4j2;)V") + tile("2qY", "2pB", "2ql", "2rf"),
-            PROFILE_346816935.hooks.getValue(AVATAR_SHAPE))
-        assertEquals(setOf("LX/4sN;-><init>([FFZZZ)V", "LX/4zO;->A04(LX/5Jl;LX/4es;)V") + tile("2rR", "2q4", "2re", "2sY"),
-            PROFILE_346816951.hooks.getValue(AVATAR_SHAPE))
-        assertEquals(setOf("LX/4uP;-><init>([FFZZZ)V", "LX/Ioi;->A04(LX/LSY;LX/4gu;)V") + tile("2rR", "2q4", "2re", "2sY"),
-            PROFILE_346816973.hooks.getValue(AVATAR_SHAPE))
-        assertEquals(setOf("LX/4t1;-><init>([FFZZZ)V", "LX/LpG;->A04(LX/OP6;LX/4fW;)V") + tile("2rr", "2qU", "2s4", "2sy"),
-            PROFILE_346816966.hooks.getValue(AVATAR_SHAPE))
+        val arm64 = setOf("LX/4dq;-><init>([FFZZZ)V", "LX/QE4;->A04(LX/Sli;LX/4cM;)V") + tile("2lH", "2jg", "2lQ", "2lt")
+        assertEquals(arm64, PROFILE_347015062.hooks.getValue(AVATAR_SHAPE))
+        assertEquals(arm64, PROFILE_347014996.hooks.getValue(AVATAR_SHAPE))
+        assertEquals(setOf("LX/4gQ;-><init>([FFZZZ)V", "LX/NhC;->A04(LX/QIU;LX/4ev;)V") + tile("2mn", "2lC", "2mw", "2nP"),
+            PROFILE_347014974.hooks.getValue(AVATAR_SHAPE))
+        assertEquals(setOf("LX/4dE;-><init>([FFZZZ)V", "LX/NEI;->A04(LX/Q7X;LX/4bk;)V") + tile("2lh", "2k6", "2lq", "2mJ"),
+            PROFILE_347014990.hooks.getValue(AVATAR_SHAPE))
     }
 
     // Only some pictures changing would look broken, so anything we can't prove about either path gets no hook at all.

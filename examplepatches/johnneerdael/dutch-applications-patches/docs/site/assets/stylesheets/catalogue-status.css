@@ -1,0 +1,25 @@
+/* Release status is an overlay: never add a text row or increase card height. */
+.dap-app-card { position: relative; }
+.dap-app-card__meta { display: block; min-height: 0; }
+.dap-app-card__badge {
+  position: absolute;
+  top: .8rem;
+  right: .8rem;
+  display: inline-block;
+  padding: .18rem .45rem;
+  border: 0;
+  border-radius: var(--dap-radius-control);
+  background: var(--dap-primary);
+  color: var(--dap-onPrimary);
+  font: 500 .55rem/1.4 var(--dap-font-data);
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+.dap-catalogue__channel { white-space: nowrap; }
+.md-typeset .dap-app-card__channel {
+  margin: .4rem 0;
+  color: var(--dap-muted);
+  font: .55rem/1.6 var(--dap-font-data);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}

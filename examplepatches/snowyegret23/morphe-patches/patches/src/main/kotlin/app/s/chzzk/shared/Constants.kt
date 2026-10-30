@@ -13,6 +13,10 @@ object Constants {
         signatures = setOf("0b8b8523bb4aeffa346e4bdd4fbf7d193450569aa14aaad4adfd94a3f7b227bb"),
         targets = listOf(
             AppTarget(
+                version = "3.16.0",
+                minSdk = 26,
+            ),
+            AppTarget(
                 version = "3.15.2",
                 minSdk = 26,
             ),

@@ -50,6 +50,15 @@ def method(root, cls, signature):
     return code, labels
 
 
+def abstract_method(root, cls, descriptor):
+    """The name of the one abstract method of `cls` with `descriptor`, such as the Spade callback's success."""
+    paths = list(root.glob(f"smali*/{cls}.smali"))
+    assert len(paths) == 1, (cls, paths)
+    names = re.findall(rf"(?m)^\.method public abstract (\w+){re.escape(descriptor)}$", paths[0].read_text())
+    assert len(names) == 1, (cls, descriptor, names)
+    return names[0]
+
+
 def normalized(code, labels, shift=0):
     return [re.sub(r"(?<!\w):\w+", lambda m: "@" + str(labels[m[0]] - shift), i) for i in code]
 
@@ -79,6 +88,7 @@ def verify(stock, patched):
     # Each one is a method a privacy hook patches; the fallbacks are Twitch 31.7.0's R8 names.
     core = loc.method("twitch.match.spade_event", "jn0", "d(Ljava/lang/String;Ljava/util/LinkedHashMap;Lkx50;Z)V")
     callback_type = re.search(r"L(\w+);Z\)V$", core[1])[1]
+    success = abstract_method(stock, callback_type, "(Ljava/lang/Object;)V")
     before, _ = method(stock, *core)
     assert any('"branch_campaign"' in i for i in before)
     assert any('"x_untrusted_minute-watched_spade"' in i for i in before)
@@ -91,11 +101,12 @@ def verify(stock, patched):
     assert off
     end = labels[off[1]]
     assert code[4:end] == ["move-object/from16 v1, p3", code[5], "const/4 v0, 0x0",
-                           f"invoke-virtual {{v1, v0}}, L{callback_type};->K(Ljava/lang/Object;)V", "return-void"]
+                           f"invoke-virtual {{v1, v0}}, L{callback_type};->{success}(Ljava/lang/Object;)V", "return-void"]
     nullable = re.fullmatch(r"if-eqz v1, (:\w+)", code[5])
     assert nullable and labels[nullable[1]] == end - 1
     assert normalized(code[end:], labels, end) == normalized(before, method(stock, *core)[1])
-    callback, _ = method(stock, "in0", "K(Ljava/lang/Object;)V")
+    # A coroutine's Spade callback (Twitch 31.8.0's dn0) resumes with TRUE on success.
+    callback, _ = method(stock, "dn0", f"{success}(Ljava/lang/Object;)V")
     assert any("Ljava/lang/Boolean;->TRUE" in i for i in callback)
     assert any("->resumeWith(Ljava/lang/Object;)V" in i for i in callback)
     for cls, signature in (loc.method("twitch.match.spade_batch", "dn00", "a(Ljava/util/ArrayList;)V"),

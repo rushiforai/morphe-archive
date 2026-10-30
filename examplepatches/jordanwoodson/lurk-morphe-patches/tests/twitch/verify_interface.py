@@ -35,7 +35,7 @@ def main():
                         return defaultTab;
                     }
                     public static boolean isEnabled(String key) {
-                        if (!key.equals("hide_clips") && !key.equals("hide_tipping"))
+                        if (!key.equals("hide_clips") && !key.equals("hide_tipping") && !key.equals("hide_subscription_upsells"))
                             throw new AssertionError("Unexpected key " + key);
                         return enabled;
                     }

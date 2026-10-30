@@ -186,21 +186,25 @@ internal class ReadFlow(method: Method) {
  * (its if-eqz, getter and result follow it), the null path's copy and the dispatch.
  */
 internal class ReplyReadShape(
-    val size: Int, val composer: Int, val session: Int, val nullThread: Int, val absent: Int, val dispatch: Int,
+    /** The exact body sizes the seam is known at. */
+    val sizes: Set<Int>, val composer: Int, val session: Int, val nullThread: Int, val absent: Int, val dispatch: Int,
     /** The register the composer copy lives in, and how many instructions before the dispatch the thread is staged into v12. */
     val composerReg: Int = 20, val stage: Int = 2,
 )
 
-/** Messenger 584's 392-instruction dispatcher. The composer is copied to v19 and the staging sits four before the dispatch. */
-internal val REPLY_READ_SHAPE = ReplyReadShape(size = 392, composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 233, composerReg = 19, stage = 4)
+/**
+ * Messenger 585's dispatcher, 397 instructions on arm64 and 393 on the 32-bit builds, with the seam at the same indices
+ * in both. The composer is copied to v19 and the staging sits four before the dispatch.
+ */
+internal val REPLY_READ_SHAPE = ReplyReadShape(sizes = setOf(393, 397), composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 233, composerReg = 19, stage = 4)
 
-/** The exact 584 staging seam. The thread survives in v12 until the account is staged there for dispatch. */
+/** The exact 585 staging seam. The thread survives in v12 until the account is staged there for dispatch. */
 internal fun MutableMethod.validateReplyRead(): Int {
     readRequire(isReplyReadDispatch() && implementation!!.registerCount == 35)
     val flow = ReadFlow(this)
     val c = flow.code
     val shape = REPLY_READ_SHAPE
-    readRequire(shape.size == c.size)
+    readRequire(c.size in shape.sizes)
     val d = shape.dispatch
     val s = d - shape.stage
     val cr = shape.composerReg

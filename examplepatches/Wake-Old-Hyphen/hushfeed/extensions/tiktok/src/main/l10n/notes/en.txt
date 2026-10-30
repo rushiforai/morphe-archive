@@ -18,6 +18,7 @@
 * **TikTok:** Settings search knows everyday names like autoplay, PiP and AI, and finds a choice row by any of its options.
 * **TikTok:** Lock the feed at set times locks the feed by itself during the hours you pick, and the lock panel says when it opens again.
 * **TikTok:** Save only on Wi-Fi keeps saves off mobile data. A save waits for Wi-Fi for up to 30 minutes, and you can cancel it from Downloads.
+* **TikTok:** A new switch turns off Hushfeed's Save media box for chat stickers (#274).
 * **TikTok:** On PineDrama, the Inbox switches work now, including Hide conversations (#156).
 * **TikTok:** On PineDrama, the version line in settings names PineDrama and its build instead of TikTok (#156).
 * **TikTok:** A settings search result far down a page now opens right at its row.
@@ -61,6 +62,7 @@
 * **TikTok:** Screen recording asks Android to capture only the patched app's sound.
 * **TikTok:** Service+ cleanup checks the same first LIVE preview entry TikTok shows (#94).
 * **TikTok:** The comment pause can tell the first frame is playing before TikTok's first progress update (#151).
+* **TikTok:** Hide TikTok's Auto scroll button also hides the round Auto scroll button at the video's top right (#234).
 
 ## 0.79.0 (2026-10-24)
 

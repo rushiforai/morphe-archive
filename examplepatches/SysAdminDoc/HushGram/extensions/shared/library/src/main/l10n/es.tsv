@@ -26,7 +26,7 @@ Diagnostic data put back.	Se restauraron los datos de diagnóstico.
 Diagnostic report copied to the clipboard.	Informe de diagnóstico copiado en el portapapeles.
 Download failed	No se pudo descargar
 Downloading	Descargando
-Empties the activity log that a diagnostic report would include.	Vacía el registro de actividad que incluiría un informe de diagnóstico.
+Empties the activity log and any kept crash that a diagnostic report would include.	Vacía el registro de actividad y cualquier fallo guardado que incluiría un informe de diagnóstico.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados, y lo que se aplicó al parchear se mantiene. Tu configuración no cambia.
 Export diagnostic report	Exportar informe de diagnóstico
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Desde el próximo inicio, todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados. Lo que se aplicó al parchear se mantiene, y tus preferencias quedan guardadas.
@@ -151,6 +151,8 @@ Downloads	Descargas
 Save videos other apps can open	Guardar videos que otras apps puedan abrir
 For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	Para WhatsApp, editores de video como CapCut e InShot, o una galería o un reproductor que reproduzca sin sonido los videos guardados. Puede bajar la calidad.
 Convert to keep the full size	Convertir para mantener el tamaño completo
+For phones that play AV1 badly. A video Instagram has at full size only as AV1 is saved as VP9 when it has one, or at its largest H.264 size. Convert to keep the full size then converts only VP9.	Para teléfonos que reproducen mal AV1. Un vídeo que Instagram solo tiene a tamaño completo como AV1 se guarda como VP9 cuando lo hay, o en su mayor tamaño H.264. Convertir para mantener el tamaño completo entonces solo convierte VP9.
+Never save AV1 video	Nunca guardar vídeos AV1
 Saves videos other apps can open, at full size. A video Instagram only has as VP9 or AV1 is converted to H.264 on your phone instead of saved smaller. Slower, and videos over 3 minutes stay smaller.	Guarda videos que otras apps pueden abrir, en tamaño completo. Un video que Instagram solo tiene en VP9 o AV1 se convierte a H.264 en tu teléfono en vez de guardarse más pequeño. Es más lento, y los videos de más de 3 minutos se guardan más pequeños.
 Converting to H.264	Convirtiendo a H.264
 Download quality	Calidad de descarga
@@ -534,6 +536,8 @@ View live anonymously	Ver directos de forma anónima
 Photos and videos sent as view once or replayable stay in the chat so you can open them again. Open the chat again to update ones already loaded.	Las fotos y videos enviados para ver una vez o reproducibles se quedan en el chat para que puedas abrirlos otra vez. Abre el chat de nuevo para actualizar los ya cargados.
 Swipe through a chat's reels	Desliza por los reels de un chat
 Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Back takes you to the chat.	Al deslizar hacia arriba en un reel que abriste desde un chat, pasas por los demás reels compartidos en ese chat antes de cualquier reel sugerido. Atrás te lleva al chat.
+Stop after the chat's reels	Parar después de los reels del chat
+Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	Los reels que abriste desde un chat terminan después del último compartido en ese chat, sin reels sugeridos después. Funciona con Desliza por los reels de un chat activado.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	Añade Descargar portada debajo de Descargar. Guarda la imagen fija que muestra un reel antes de reproducirse, en su tamaño más grande.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	Añade Descargar audio debajo de Descargar. Guarda el sonido del reel como archivo de audio.
 After 20 reels, swiping in Reels stops until Instagram has been in the background for 15 minutes. A reel you open from a message or a post still plays.	Después de 20 reels, deslizar en Reels se detiene hasta que Instagram haya estado 15 minutos en segundo plano. Un reel que abras desde un mensaje o una publicación se sigue reproduciendo.
@@ -590,6 +594,8 @@ Hide story rewinds	Ocultar rewinds de historias
 Nothing in the row of stories at the top of Home loads, your own story included, and highlights on profiles stay empty too. Saves data. A story ring on a profile or in a chat still opens its stories.	No se carga nada en la fila de historias de arriba de Inicio, ni siquiera tu propia historia, y las historias destacadas de los perfiles también quedan vacías. Ahorra datos. Un anillo de historia en un perfil o en un chat sigue abriendo sus historias.
 Expandable categories	Categorías desplegables
 Tap a category to show or hide its settings on this page.	Toca una categoría para mostrar u ocultar sus ajustes en esta página.
+Descriptions behind an info button	Descripciones tras un botón de información
+Shows each switch by its name alone. Tap the i next to a name to read what it does.	Muestra cada interruptor solo con su nombre. Toca la i junto a un nombre para leer qué hace.
 Expanded	Expandida
 Collapsed	Contraída
 Hide the HushGram row in Instagram's menu	Ocultar la fila de HushGram en el menú de Instagram
@@ -673,7 +679,7 @@ Details	Detalles
 Details in a post's menu	Detalles en el menú de una publicación
 Media ID %1$s	ID de contenido %1$s
 Media link	Enlace del contenido
-Media link copied	Enlace del contenido copiado
+Media link copied. It stops working after a few days.	Enlace del contenido copiado. Deja de funcionar al cabo de unos días.
 No direct link for this one	No hay enlace directo para este
 Posted %1$s	Publicado el %1$s
 Size %1$d × %2$d	Tamaño %1$d × %2$d
@@ -904,14 +910,14 @@ Show all settings as a list	Mostrar todos los ajustes como lista
 Show settings by category	Mostrar los ajustes por categoría
 Tab bar opacity	Opacidad de la barra de pestañas
 Tab bar height	Altura de la barra de pestañas
-Clearest	Lo más transparente
-Clear	Transparente
-Frosted	Esmerilado
 Standard	Estándar
 Blur strength	Intensidad del desenfoque
-# context: a blur strength step of the tab bar
-Light	Suave
-Strong	Fuerte
+# context: the blur slider's value under its title; dp is Android's screen unit, keep it
+%1$d dp	%1$d dp
+# context: the tab bar opacity slider's value under its title
+%1$d%%	%1$d %%
+# context: a slider's value when it sits at the starting setting, %1$s is the value
+%1$s (standard)	%1$s (estándar)
 Compact	Compacta
 Tall	Alta
 Tab bar corners	Esquinas de la barra de pestañas
@@ -1031,6 +1037,8 @@ Rounded corners on Reels	Esquinas redondeadas en Reels
 Rounded corners on stories	Esquinas redondeadas en las historias
 Seek bar on stories	Barra de búsqueda en historias
 Shows a bar near the bottom of a video story. Drag it to jump to any point in the video. Photos don't get one.	Muestra una barra cerca de la parte inferior de una historia de video. Arrástrala para saltar a cualquier punto del video. Las fotos no la tienen.
+Seek bar on feed videos	Barra de búsqueda en videos del feed
+Shows a bar along the bottom of the video playing in a feed. Drag it and let go to jump to that point in the video.	Muestra una barra en la parte inferior del video que se reproduce en un feed. Arrástrala y suéltala para saltar a ese punto del video.
 Thicker story progress bar	Barra de progreso de historias más gruesa
 Draws the bar along the top of a story as thick as the choice below. Its segments and timing stay as they were.	Dibuja la barra de la parte superior de una historia tan gruesa como indica la opción de abajo. Sus segmentos y sus tiempos se quedan como estaban.
 Thickness	Grosor
@@ -1292,3 +1300,5 @@ The row of stories at the top of Home keeps only the accounts the choice below n
 Stories to keep	Historias que se quedan
 Only verified accounts	Solo cuentas verificadas
 Only accounts that aren't verified	Solo cuentas no verificadas
+Pinch to zoom	Pellizcar para hacer zoom
+Two fingers zoom into a playing reel, the way a photo zooms. Lift them and it goes back. Restart Instagram to see the change.	Con dos dedos haces zoom en un reel que se está reproduciendo, como en una foto. Al levantarlos vuelve a su tamaño. Reinicia Instagram para ver el cambio.

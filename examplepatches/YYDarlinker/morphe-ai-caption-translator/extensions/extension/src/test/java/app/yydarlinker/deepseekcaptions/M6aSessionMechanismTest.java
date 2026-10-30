@@ -77,7 +77,6 @@ public class M6aSessionMechanismTest {
             TranslationSettings settings(Context c){return app.settings(c);}
             TranslationSourceAccess.Source load(Context c,String url,boolean translate,DeepSeekApiClient.RequestControl ctl) throws Exception{return app.load(c,url,translate,ctl);}
             String target(){return "en";}
-            boolean translates(){return false;}
             void mark(Context c,String stage,String detail,CaptionCredentialRef credential){
                 CaptionDiagnostics.mark(c,stage,detail,credential);
                 if(stage.equals("REBUILD_SOURCE_READY")){trace.add("ready:"+Thread.currentThread().getName());ready.get().countDown();}
@@ -94,7 +93,7 @@ public class M6aSessionMechanismTest {
     void drain(Class<?> c,String name) throws Exception {((ExecutorService)field(c,name)).submit(()->{}).get(3,TimeUnit.SECONDS);}
     void retired(RebuildController.Session s) throws Exception {
         barrier.submit(s::awaitRetirement).get(5,TimeUnit.SECONDS);assertNull(s.publication.reserve());assertNull(s.sourceJob);
-        if(s.jobs!=null)for(RebuildController.Job j:s.jobs)assertNull(j);
+        if(s.work.slots!=null)for(RebuildWorkSet.Slot slot:s.work.slots)assertNull(slot.attempt);
     }
     @After public void after() throws Exception {
         try {

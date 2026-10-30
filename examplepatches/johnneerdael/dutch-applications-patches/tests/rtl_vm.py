@@ -45,11 +45,15 @@ class Memory:
         return False
 
     def get(self, instance, field):
+        if is_zero(instance):
+            raise VmThrown(Reference({}, 'Ljava/lang/NullPointerException;'))
         assert isinstance(instance, Reference) and isinstance(instance.value, dict), 'RTL field receiver needs explicit object memory'
         assert field in instance.value, 'Unknown RTL field: ' + field
         return instance.value[field]
 
     def put(self, instance, field, value):
+        if is_zero(instance):
+            raise VmThrown(Reference({}, 'Ljava/lang/NullPointerException;'))
         assert isinstance(instance, Reference) and isinstance(instance.value, dict), 'RTL field receiver needs explicit object memory'
         instance.value[field] = value
 
@@ -202,20 +206,38 @@ def execute(program, registers, invoke, start=0, limit=10000, memory=None, stop_
             elif op == 'new-instance':
                 registers[args[0]] = Reference({}, args[1])
             elif op == 'new-array':
-                registers[args[0]] = Reference([None] * registers[args[1]], args[2])
+                registers[args[0]] = Reference(([0] if args[2]=='[I' else [None]) * registers[args[1]], args[2])
             elif op == 'array-length':
                 array = registers[args[1]]
                 assert isinstance(array, Reference) and isinstance(array.value, list) and (array.descriptor or '').startswith('['), 'RTL array length requires an array'
                 registers[args[0]] = len(array.value)
+            elif op == 'aget':
+                array,index=registers[args[1]],registers[args[2]]
+                assert isinstance(array,Reference) and array.descriptor=='[I' and isinstance(array.value,list), 'RTL int array required'
+                assert type(index) is int and 0<=index<len(array.value), 'RTL array index outside bounds'
+                value=array.value[index]
+                assert type(value) is int and -2**31<=value<2**31, 'RTL int array element required'
+                registers[args[0]]=value
+            elif op == 'aput':
+                array,index,value=registers[args[1]],registers[args[2]],registers[args[0]]
+                assert isinstance(array,Reference) and array.descriptor=='[I' and isinstance(array.value,list), 'RTL int array required'
+                assert type(index) is int and 0<=index<len(array.value), 'RTL array index outside bounds'
+                assert type(value) is int and -2**31<=value<2**31, 'RTL int array element required'
+                array.value[index]=value
             elif op == 'aget-object':
                 array, index = registers[args[1]], registers[args[2]]
                 assert isinstance(array, Reference) and isinstance(array.value, list), 'RTL object array required'
                 assert type(index) is int and 0 <= index < len(array.value), 'RTL array index outside bounds'
                 registers[args[0]] = array.value[index]
-            elif op == 'filled-new-array':
+            elif op in {'filled-new-array','filled-new-array/range'}:
                 match = re.fullmatch(r'\{([^}]*)\}, (\[.+)', operands)
                 assert match, 'Malformed RTL filled array'
-                result = Reference([registers[name] for name in match[1].split(', ') if name], match[2])
+                if op.endswith('/range'):
+                    span=re.fullmatch(r'([vp])(\d+) \.\. \1(\d+)',match[1])
+                    assert span and int(span[2])<=int(span[3]),'Malformed RTL filled array range'
+                    names=[span[1]+str(i) for i in range(int(span[2]),int(span[3])+1)]
+                else:names=[name for name in match[1].split(', ') if name]
+                result = Reference([registers[name] for name in names], match[2])
             elif op == 'monitor-enter':
                 assert not is_zero(registers[operands]), 'Null RTL monitor'
                 monitors.append(registers[operands])
@@ -233,10 +255,11 @@ def execute(program, registers, invoke, start=0, limit=10000, memory=None, stop_
                 assert type(registers[args[1]]) is int, 'RTL multiplication needs primitive int'
                 value = (registers[args[1]] * int(args[2], 0)) & 0xffffffff
                 registers[args[0]] = value - 0x100000000 if value >= 0x80000000 else value
-            elif op == 'sub-long/2addr':
+            elif op in {'sub-long/2addr', 'add-long/2addr'}:
                 a, b = registers[args[0]], registers[args[1]]
-                assert type(a) is int and type(b) is int, 'RTL long subtraction needs primitives'
-                registers[args[0]] = (a - b + 2**63) % 2**64 - 2**63
+                assert type(a) is int and type(b) is int, 'RTL long arithmetic needs primitives'
+                value = a + b if op == 'add-long/2addr' else a - b
+                registers[args[0]] = (value + 2**63) % 2**64 - 2**63
                 registers[args[0][0] + str(int(args[0][1:]) + 1)] = 0
             elif op.startswith(('and-int', 'or-int', 'xor-int', 'add-int', 'sub-int')):
                 if '/2addr' in op:

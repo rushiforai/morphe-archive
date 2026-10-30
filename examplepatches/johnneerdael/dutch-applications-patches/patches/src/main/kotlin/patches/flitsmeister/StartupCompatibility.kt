@@ -8,6 +8,8 @@ import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import java.security.MessageDigest
@@ -80,7 +82,14 @@ private fun smaliString(value: String): String = buildString {
 }
 
 context(context: BytecodePatchContext)
-private fun replaceBody(descriptor: String, registerCount: Int, instructionCount: Int, code: String) {
+private fun replaceBody(
+    descriptor: String,
+    registerCount: Int,
+    instructionCount: Int,
+    code: String,
+    program: String? = null,
+    exceptions: Int = 0,
+) {
     val cls = descriptor.substringBefore("->")
     val signature = descriptor.substringAfter("->")
     val parameters = Regex("\\[*L[^;]+;|\\[*[ZBCSIJFD]")
@@ -90,10 +99,19 @@ private fun replaceBody(descriptor: String, registerCount: Int, instructionCount
     check(implementation.registerCount == registerCount && method.instructions.size == instructionCount) {
         "Changed startup method layout: $descriptor; expected registers=$registerCount instructions=$instructionCount, actual registers=${implementation.registerCount} instructions=${method.instructions.size}"
     }
+    if (program != null) {
+        val strings = method.instructions.mapNotNull {
+            ((it as? ReferenceInstruction)?.reference as? StringReference)?.string
+        }
+        check(strings == listOf(program)) { "Changed protected callback program: $descriptor" }
+    }
     val replacement = MutableMethod(ImmutableMethod(method.definingClass, method.name,
         method.parameters, method.returnType, method.accessFlags, method.annotations,
         method.hiddenApiRestrictions, ImmutableMethodImplementation(registerCount,
-            emptyList(), emptyList(), emptyList()))).apply { addInstructions(0, code) }
+            emptyList(), emptyList(), emptyList()))).apply {
+                if (program == null) addInstructions(0, code)
+                else addRuntimeCallbackInstructions(code, exceptions)
+            }
     val mutableClass = context.mutableClassDefBy(method.definingClass)
     check(mutableClass.methods.remove(method))
     check(mutableClass.methods.add(replacement))
@@ -127,7 +145,7 @@ private fun classConstant(type: String): String = when (type) {
 
 internal val startupCompatibility = bytecodePatch(
     name = "Fix PairIP startup",
-    description = "Restores captured startup strings and reflection registrations, merges the original embedded lifecycle DEX and bypasses only the damaged startup dispatcher and Java signature gate.",
+    description = "Restores captured startup data, lifecycle helpers and functional car, audio, connectivity, location and background-work callbacks while avoiding damaged PairIP execution.",
     default = true,
 ) {
     compatibleWith(flitsmeister)
@@ -184,6 +202,9 @@ internal val startupCompatibility = bytecodePatch(
             invoke-virtual {p0}, Lcom/pairip/licensecheck/LicenseActivity;->finish()V
             return-void
         """.trimIndent())
+        runtimeCallbackRestorations.forEach { callback ->
+            replaceBody(callback.descriptor, callback.registers, callback.instructions, callback.code, callback.program, callback.exceptions)
+        }
         replaceBody("Lcom/pairip/VMRunner;-><clinit>()V", 1, 3, "return-void")
         replaceBody("Lcom/pairip/VMRunner;->invoke(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;", 8, 46, "const/4 v0, 0x0\nreturn-object v0")
         replaceBody("Lcom/pairip/VMRunner;->isDebuggingEnabled()Z", 2, 5, "const/4 v0, 0x1\nreturn v0")

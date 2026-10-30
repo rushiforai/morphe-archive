@@ -70,7 +70,7 @@ final class MessageLogRenderProbe {
             final View button = open;
             instrumentation.runOnMainSync(button::performClick);
             // The list shows the retention line and then the first page of cards.
-            int total = stored.entries.size(), firstPage = Math.min(total, SettingsActivity.MESSAGE_LOG_PAGE);
+            int total = stored.entries.size(), firstPage = Math.min(total, MessageLogSheet.MESSAGE_LOG_PAGE);
             LinearLayout list = null;
             long shownAt = -1;
             while (SystemClock.elapsedRealtime() - clicked < 60_000) {
@@ -152,9 +152,11 @@ final class MessageLogRenderProbe {
     }
 
     private static LinearLayout listOf(SettingsActivity settings) throws Exception {
-        Field field = SettingsActivity.class.getDeclaredField("messageLogList");
+        Field sheet = SettingsActivity.class.getDeclaredField("messageLog");
+        sheet.setAccessible(true);
+        Field field = MessageLogSheet.class.getDeclaredField("messageLogList");
         field.setAccessible(true);
-        return (LinearLayout) field.get(settings);
+        return (LinearLayout) field.get(sheet.get(settings));
     }
 
     private int children(LinearLayout list) {

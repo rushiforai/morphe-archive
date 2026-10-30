@@ -426,6 +426,11 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Rewritten by the Pinch to zoom on Reels patch. */
+    public static boolean reelZoom() {
+        return false;
+    }
+
     public static boolean reelAutoScroll() {
         return false;
     }
@@ -528,6 +533,11 @@ public final class SettingsStatus {
 
     /** Rewritten by the Tap a feed video to pause it patch. */
     public static boolean feedTapPause() {
+        return false;
+    }
+
+    /** Rewritten by the Seek bar on feed videos patch. */
+    public static boolean feedSeekBar() {
         return false;
     }
 

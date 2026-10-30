@@ -37,24 +37,8 @@ final class TranslationRuntime {
             return false;
         }
 
-        boolean translates() {
-            return true;
-        }
-
         String target() {
             return "";
-        }
-
-        boolean isShorts() {
-            return false;
-        }
-
-        boolean isCompactType(String type) {
-            return false;
-        }
-
-        boolean authoritativeType() {
-            return false;
         }
 
         boolean transitioning() {
@@ -102,6 +86,9 @@ final class TranslationRuntime {
                 String metadata) {}
 
         void clearSourceCache(Context context) {}
+
+        /** Delivered on main only after both caches clear, or when clearing fails. */
+        void cacheClearFinished(Context context, boolean success) {}
 
         String redact(String text, String key, int limit) {
             String safe = text == null ? "" : text;
@@ -163,24 +150,8 @@ final class TranslationRuntime {
         return host().selectionOn();
     }
 
-    static boolean translates() {
-        return host().translates();
-    }
-
     static String target() {
         return host().target();
-    }
-
-    static boolean isShorts() {
-        return host().isShorts();
-    }
-
-    static boolean isCompactType(String type) {
-        return host().isCompactType(type);
-    }
-
-    static boolean authoritativeType() {
-        return host().authoritativeType();
     }
 
     static boolean transitioning() {

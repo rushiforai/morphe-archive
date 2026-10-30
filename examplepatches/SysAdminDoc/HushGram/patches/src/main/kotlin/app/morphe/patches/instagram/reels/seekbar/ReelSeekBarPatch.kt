@@ -9,6 +9,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesCalling
 import app.morphe.patches.instagram.misc.extension.classesLoadingString
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
@@ -108,7 +109,7 @@ val reelSeekBarPatch = bytecodePatch(
     description = "Keeps a seek bar under every reel, short ones too, with the time played and the reel's length " +
         "above it, like 0:10 / 0:55. Starts off. Turn it on in HushGram settings > Reels.",
 ) {
-    category("Reels")
+    category("Playback")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
 
@@ -189,19 +190,25 @@ internal fun BytecodePatchContext.findReelSeekBarSites(): ReelSeekBarSites {
  * component that way, in a lambda reading that component, which makes no bar of its own (on 451's
  * 385713073 that's LX/0ea6 reading LX/0ROh beside LX/0BXG reading LX/07UR). The tag is loaded
  * itself or asked of a static string pool: 451's 385713109 and 385713111 ask LX/0000->A00 for it,
- * the way 450 loaded the legacy component's. It reads the ad field once;
+ * the way 450 loaded the legacy component's. 453's 385914510 builds it, with the reel's id, in a
+ * static method of its own (LX/0JcH->A01) that the binder calls instead. It reads the ad field once;
  * the call goes right after the read, where nothing jumps, with the read's register and the tagged
  * view, a parameter's register that nothing writes over but a cast.
  */
 internal fun BytecodePatchContext.findBindSite(row: Method, lazy: FlagLoad): BindSite {
     val field = adField(row, lazy)
+    val holders = classesLoadingString(SCRUBBER_TAG)
+    val builders = holders.flatMap { it.methods }.filter { buildsTag(it) }
+    val built = builders.mapTo(HashSet()) { it.signature() }
+    fun tagLoadedAt(code: List<Instruction>, at: Int) = stringLoadedAt(code, at) == SCRUBBER_TAG || code[at].methodSignature() in built
     val tagging = mutableListOf<Method>()
-    val loading = classesLoadingString(SCRUBBER_TAG).mapTo(HashSet()) { it.type }
+    val loading = (holders + builders.flatMap { classesCalling(it.definingClass, it.name, it.parameterTypes.map(CharSequence::toString), it.returnType) })
+        .mapTo(HashSet()) { it.type }
     classDefForEach { classDef ->
         if (classDef.type !in loading || classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
         classDef.methods.forEach { method ->
             val code = method.implementation?.instructions?.toList() ?: return@forEach
-            if (code.any { it.methodSignature() == SET_TAG } && code.indices.any { stringLoadedAt(code, it) == SCRUBBER_TAG }) {
+            if (code.any { it.methodSignature() == SET_TAG } && code.indices.any { tagLoadedAt(code, it) }) {
                 tagging += method
             }
         }
@@ -213,7 +220,7 @@ internal fun BytecodePatchContext.findBindSite(row: Method, lazy: FlagLoad): Bin
     val taggings = tagging.flatMap { method ->
         val code = method.implementation!!.instructions.toList()
         code.indices.filter { code[it].methodSignature() == SET_TAG }.mapNotNull { call ->
-            val load = (call - 1 downTo maxOf(0, call - 6)).firstOrNull { stringLoadedAt(code, it) == SCRUBBER_TAG } ?: return@mapNotNull null
+            val load = (call - 1 downTo maxOf(0, call - 6)).firstOrNull { tagLoadedAt(code, it) } ?: return@mapNotNull null
             val makesBar = (load - 1 downTo maxOf(0, load - 10)).any { at ->
                 val reference = (code[at] as? ReferenceInstruction)?.reference
                 (code[at].opcode == Opcode.IGET_OBJECT && makesSeekBar(code[at].fieldReference()!!.type)) ||
@@ -308,6 +315,20 @@ private fun adField(row: Method, lazy: FlagLoad): String {
     val overwrites = (after intersect before).filter { it != test && code[it].writes(register) }.sorted()
     if (overwrites.isNotEmpty()) refuse("$where writes over $field before testing it, at instruction(s) ${overwrites.joinToString()}")
     return field
+}
+
+/**
+ * Whether [method] builds the binder's tag: a static method answering a String that loads
+ * [SCRUBBER_TAG] and tags nothing. A pool of shared strings takes an int and isn't one.
+ */
+private fun BytecodePatchContext.buildsTag(method: Method): Boolean {
+    if (!AccessFlags.STATIC.isSet(method.accessFlags) || method.returnType != "Ljava/lang/String;" ||
+        method.parameterTypes.map(CharSequence::toString) == listOf("I")
+    ) {
+        return false
+    }
+    val code = method.implementation?.instructions?.toList() ?: return false
+    return code.none { it.methodSignature() == SET_TAG } && code.indices.any { stringLoadedAt(code, it) == SCRUBBER_TAG }
 }
 
 /** Whether [type] is a class with a method answering [SEEK_BAR]: the primitive that makes the bar. */

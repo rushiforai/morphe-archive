@@ -31,7 +31,7 @@ class ControlDiscoveryTest {
     )
 
     private fun completeFixture(): List<MutableClass> {
-        val methods = syntheticHooks.filter { it.key !in setOf("unsent_indicator", "delta_unsent", "ai_sticker_cell", "ai_sticker_grid", "screenshot_viewers", COMMUNITY_INBOX, EMOJI_DRAWER, EMOJI_SEARCH, TAB_BADGES, FACEBOOK_BADGE, TAB_CONFIG, AI_MENTIONS, AI_COMMANDS, AI_SEARCH_HINT, AI_SEARCH_SCREEN_HINT, AI_MENTION_ROWS, XHE_AUDIO, XHE_TRANSCODE, DISAPPEARING_SWIPE, RECENT_MEDIA, ANALYTICS_UPLOADS, ATTRIBUTION_UPLOADS, AD_EVENTS, MQTT_TELEMETRY, PINNED_CHATS, NEARBY_SCANS, WIFI_IDENTITY, PHONE_ID_SYNC, STORY_HOLD, SHARE_STORY, AVATAR_SHAPE, QUIET_CALL_RING, QUIET_CALL_NOTIFICATION, MARK_READ_BAR, MARK_READ_CLICK, TEXT_STYLE, MESSAGE_LOG, AUTO_REPLY, SYSTEM_CAMERA, EXTERNAL_GALLERY, HIDE_READ_RECEIPTS, REPLY_READ) + CUSTOM_FONT_HOOKS }.flatMap { (key, ids) ->
+        val methods = syntheticHooks.filter { it.key !in setOf("unsent_indicator", "delta_unsent", "ai_sticker_cell", "ai_sticker_grid", "screenshot_viewers", COMMUNITY_INBOX, EMOJI_DRAWER, EMOJI_SEARCH, TAB_BADGES, FACEBOOK_BADGE, FACEBOOK_PROFILE_HEADER, TAB_CONFIG, AI_MENTIONS, AI_COMMANDS, AI_SEARCH_HINT, AI_SEARCH_SCREEN_HINT, AI_MENTION_ROWS, XHE_AUDIO, XHE_TRANSCODE, DISAPPEARING_SWIPE, RECENT_MEDIA, ANALYTICS_UPLOADS, ATTRIBUTION_UPLOADS, AD_EVENTS, MQTT_TELEMETRY, PINNED_CHATS, NEARBY_SCANS, WIFI_IDENTITY, PHONE_ID_SYNC, STORY_HOLD, SHARE_STORY, AVATAR_SHAPE, QUIET_CALL_RING, QUIET_CALL_NOTIFICATION, MARK_READ_BAR, MARK_READ_CLICK, TEXT_STYLE, MESSAGE_LOG, AUTO_REPLY, SYSTEM_CAMERA, EXTERNAL_GALLERY, HIDE_READ_RECEIPTS, REPLY_READ) + CUSTOM_FONT_HOOKS }.flatMap { (key, ids) ->
             ids.map { id ->
                 if (key == "people_jewel") return@map peopleJewelMethod()
                 if (key == "people_tab") return@map peopleTabMethod()
@@ -80,7 +80,7 @@ class ControlDiscoveryTest {
                         invoke-virtual {v2, v1}, $LIST_BUILDER->addAll(Ljava/lang/Iterable;)$LIST_BUILDER
                         invoke-static {v2}, LX/32c;->A00($LIST_BUILDER)$IMMUTABLE_LIST
                         move-result-object v3
-                        return-void
+                        return-object v3
                     """.trimIndent()
                     "ai_search_chip" -> "const/4 v0, 0x0\nreturn-object v0"
                     "typing_mailbox" -> "const-string v0, \"$TYPING_MAILBOX_CALL\"\nconst/4 v0, 0x0\nreturn-object v0"
@@ -103,8 +103,9 @@ class ControlDiscoveryTest {
                     "browser" -> "const/4 v0, 0x0\nreturn v0"
                     else -> error("Missing synthetic resolver fixture for $key")
                 }
-                val staticGate = (key in pluginGates || key == "ai_search" || key == "growth_story_card" || key == APP_ICONS) &&
-                    !id.substringAfter('(').startsWith(')')
+                // 585's Context-reading app icon check is the one instance gate.
+                val staticGate = (key in pluginGates || key == "ai_search" || key == "growth_story_card" ||
+                    (key == APP_ICONS && "Landroid/content/Context;" !in id)) && !id.substringAfter('(').startsWith(')')
                 fixtureMethod(id, body, registers = when (key) { "original_photo" -> 22; ORIGINAL_VIDEO -> 24;"chat_animation", "chat_legacy" -> 5; else -> 8 }, flags = AccessFlags.PUBLIC.value or
                     if (staticGate) AccessFlags.STATIC.value else 0)
             }
@@ -123,7 +124,7 @@ class ControlDiscoveryTest {
             fixtureMethod("$IMMUTABLE_LIST->copyOf(Ljava/util/Collection;)$IMMUTABLE_LIST",
                 "const/4 v0, 0x0\nreturn-object v0", flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value),
         )), peopleJewelKeyHolder(), storyCardKeyHolder(), debugDumperFixture(), messageWrapperFixture(type = "LX/K1Y;"), searchFieldFixture()) +
-            aiStickerCellFixture(grid = true) + communityInboxFixture().filter { it.type != IMMUTABLE_LIST } + emojiDrawerFixture() + emojiSearchFixture() + tabBadgesFixture() + tabConfigFixture() + aiMentionsFixture() + searchBarFixture() + searchScreenFixture() + aiMentionRowsFixture() + shareCopyFixture() + disappearingSwipeFixture() + recentMediaFixture() + analyticsUploadFixture() + attributionUploadFixture() + adEventsFixture() + mqttClientFixture() + pinnedChatLimitFixture() + nearbyScansFixture() + phoneIdFixture() + storyHoldFixture() + shareStoryFixture() + avatarShapeFixture() + quietCallsFixture() + markReadFixture(immutableList = false) + textFieldFixture() + messageLogFixture() + readReceiptsFixture() + systemCameraFixture() + externalGalleryFixture() + customFontFixture() +
+            aiStickerCellFixture(grid = true) + communityInboxFixture().filter { it.type != IMMUTABLE_LIST } + emojiDrawerFixture() + emojiSearchFixture() + tabBadgesFixture() + tabConfigFixture() + aiMentionsFixture() + searchBarFixture() + searchScreenFixture() + profileHeaderFixture() + aiMentionRowsFixture() + shareCopyFixture() + disappearingSwipeFixture() + recentMediaFixture() + analyticsUploadFixture() + attributionUploadFixture() + adEventsFixture() + mqttClientFixture() + pinnedChatLimitFixture() + nearbyScansFixture() + phoneIdFixture() + storyHoldFixture() + shareStoryFixture() + avatarShapeFixture() + quietCallsFixture() + markReadFixture(immutableList = false) + textFieldFixture() + messageLogFixture() + readReceiptsFixture() + systemCameraFixture() + externalGalleryFixture() + customFontFixture() +
             syntheticHooks.getValue("screenshot_viewers").map { screenshotViewerFixture(it) }
                 .groupBy { it.definingClass }.map { (type, group) -> fixtureClass(type, group) })
         .let { classes ->

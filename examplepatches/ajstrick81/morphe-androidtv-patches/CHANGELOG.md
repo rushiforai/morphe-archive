@@ -1,3 +1,10 @@
+## [1.46.1](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.46.0...v1.46.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* **hbomax:** playback speed chip remote control + auto-hide ([#258](https://github.com/ajstrick81/morphe-androidtv-patches/issues/258)) ([#277](https://github.com/ajstrick81/morphe-androidtv-patches/issues/277)) ([cf49000](https://github.com/ajstrick81/morphe-androidtv-patches/commit/cf490003b918101dcba33a9dc65cd131652ad20d))
+
 # [1.46.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.45.0...v1.46.0) (2026-10-29)
 
 

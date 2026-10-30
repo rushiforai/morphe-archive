@@ -18,6 +18,7 @@
 * **TikTok:** Pencarian pengaturan mengenal nama sehari-hari seperti autoplay, PiP, dan AI, dan menemukan baris pilihan lewat opsi apa pun di dalamnya.
 * **TikTok:** Kunci feed pada jam tertentu mengunci feed dengan sendirinya selama jam yang kamu pilih, dan panel kunci menyebut kapan feed terbuka lagi.
 * **TikTok:** Simpan hanya lewat Wi-Fi menjaga penyimpanan tidak memakai data seluler. Penyimpanan menunggu Wi-Fi sampai 30 menit, dan kamu bisa membatalkannya dari Unduhan.
+* **TikTok:** Sakelar baru mematikan kotak Simpan media dari Hushfeed untuk stiker obrolan (#274).
 * **TikTok:** Di PineDrama, sakelar Kotak masuk sekarang berfungsi, termasuk Sembunyikan percakapan (#156).
 * **TikTok:** Di PineDrama, baris versi di pengaturan menyebut PineDrama dan build-nya, bukan TikTok (#156).
 * **TikTok:** Hasil pencarian pengaturan yang jauh di bawah halaman sekarang terbuka tepat di barisnya.
@@ -61,6 +62,7 @@
 * **TikTok:** Perekaman layar meminta Android menangkap suara aplikasi yang dipatch saja.
 * **TikTok:** Pembersihan Service+ memeriksa entri pertama pratinjau LIVE yang sama dengan yang ditampilkan TikTok (#94).
 * **TikTok:** Jeda komentar bisa mengetahui bahwa frame pertama sedang diputar sebelum pembaruan progres pertama dari TikTok (#151).
+* **TikTok:** Sembunyikan tombol Auto scroll TikTok juga menyembunyikan tombol bulat Auto scroll di kanan atas video (#234).
 
 ## 0.79.0 (2026-10-24)
 

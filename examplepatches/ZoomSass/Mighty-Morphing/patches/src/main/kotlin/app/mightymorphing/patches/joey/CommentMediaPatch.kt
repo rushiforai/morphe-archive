@@ -30,7 +30,7 @@ private const val COMMENT_HTML = """
 @Suppress("unused")
 val commentMediaPatch = bytecodePatch(
     name = "Inline comment media",
-    description = "Shows GIFs, pictures, subreddit emojis and reddit videos inline in the comments instead of as links. Tap to open. Extra settings to tweak in Joey - Settings - Morphe Settings.",
+    description = "[v1.2.2: Redesigned YouTube inline video card with 16:9 previews and titles] Shows GIFs, pictures, subreddit emojis and reddit videos inline in the comments instead of as links. Tap to open. Extra settings to tweak in Joey - Settings - Morphe Settings.",
 ) {
     compatibleWith(JOEY)
 

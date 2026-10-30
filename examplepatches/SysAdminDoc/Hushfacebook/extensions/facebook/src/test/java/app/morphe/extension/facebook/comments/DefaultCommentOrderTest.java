@@ -112,10 +112,14 @@ public class DefaultCommentOrderTest {
         assertEquals(RELEVANT, CommentOrder.MOST_RELEVANT.token);
         assertEquals(NEWEST, CommentOrder.NEWEST.token);
         assertEquals(ALL, CommentOrder.ALL_COMMENTS.token);
+        assertEquals("Oldest asks for All comments' other row", ALL_ROW, CommentOrder.OLDEST.token);
         for (CommentOrder order : CommentOrder.values()) {
             assertSame(order, CommentOrder.fromFile(order.fileValue));
-            if (order.token != null) assertSame(order, CommentOrder.ofToken(order.token));
+            if (order.token != null && order != CommentOrder.OLDEST) {
+                assertSame(order, CommentOrder.ofToken(order.token));
+            }
         }
+        assertTrue(CommentOrder.OLDEST.isNamedBy(ALL_ROW));
         assertNull(CommentOrder.fromFile("NEWEST"));
         assertNull(CommentOrder.fromFile(2));
         assertNull(CommentOrder.ofToken("STARS_INTENT_V1"));
@@ -147,6 +151,17 @@ public class DefaultCommentOrderTest {
         assertFalse(DefaultCommentOrder.deferred(CommentOrder.NEWEST));
         assertFalse(DefaultCommentOrder.deferred(CommentOrder.MOST_RELEVANT));
         assertTrue(DefaultCommentOrder.deferred(CommentOrder.ALL_COMMENTS));
+    }
+
+    /** Oldest (#295) goes out up front on every post, even one whose menu offers no such row. */
+    @Test
+    public void oldestIsAskedForUpFront() {
+        Settings.COMMENT_ORDER.save(CommentOrder.OLDEST);
+        assertSame(CommentOrder.OLDEST, CommentOrder.fromFile("oldest"));
+        assertFalse(DefaultCommentOrder.deferred(CommentOrder.OLDEST));
+        assertEquals(ALL_ROW, DefaultCommentOrder.requestedOrder(null, POST, null));
+        assertEquals(ALL_ROW, DefaultCommentOrder.requestedOrder("", OTHER_POST, ""));
+        assertEquals("oldest (" + ALL_ROW + ")", DefaultCommentOrder.describe(CommentOrder.OLDEST));
     }
 
     /** A menu offering [offered], with Facebook's answer [selected], built for [post]. */

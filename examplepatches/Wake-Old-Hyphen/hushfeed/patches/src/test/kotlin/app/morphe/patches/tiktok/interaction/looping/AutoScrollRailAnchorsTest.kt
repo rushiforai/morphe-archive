@@ -85,4 +85,59 @@ class AutoScrollRailAnchorsTest {
             assertEquals("$version: every read carries the hide answer", hooked, seen)
         }
     }
+
+    /**
+     * #234, second report: unfolded, the video also gets a round Auto scroll button at its top
+     * right, which shows or hides itself on the tablet service's default auto scroll read.
+     */
+    @Test
+    fun `each build's tablet button reads the default auto scroll answer and every read gets the hide answer`() {
+        Fixtures.forEachDeclared { apk ->
+            val version = Fixtures.versionOf(apk)
+            val gates = mutableListOf<Pair<Method, Set<String>>>()
+            var button: List<Method>? = null
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            for (entry in container.dexEntryNames) {
+                for (classDef in container.getEntry(entry)!!.dexFile.classes) {
+                    for (method in classDef.methods) {
+                        if (TabletDefaultGate.takes(method, classDef)) gates += method to classDef.interfaces.toSet()
+                    }
+                    if (classDef.type == TABLET_BUTTON) button = classDef.methods.toList()
+                }
+            }
+            assertEquals("$version: default auto scroll reads ${gates.map { "${it.first.definingClass}->${it.first.name}" }}", 1, gates.size)
+            val (gate, services) = gates.single()
+            assertTrue("$version: the tablet service implements no interface", services.isNotEmpty())
+            val methods = button
+            assertNotNull("$version: the tablet Auto scroll button is gone", methods)
+
+            var hooked = 0
+            var seen = 0
+            for (native in methods!!) {
+                if (native.implementation == null) continue
+                val before = native.implementation!!.instructions.toList()
+                val patched = MutableMethod(native)
+                val reads = patched.answerTabletGate(gate.name, services)
+                val after = patched.implementation!!.instructions.toList()
+                assertEquals("$version: ${native.name}, two instructions per read", before.size + 2 * reads, after.size)
+                hooked += reads
+                after.forEachIndexed { index, instruction ->
+                    val target = instruction.getReference<MethodReference>()
+                    if (instruction.opcode != Opcode.INVOKE_INTERFACE || target?.name != gate.name ||
+                        target.definingClass !in services || target.returnType != "Z"
+                    ) return@forEachIndexed
+                    val register = (after[index + 1] as OneRegisterInstruction).registerA
+                    val call = after[index + 2]
+                    assertEquals("$version: the hide answer follows ${native.name}'s read at $index", Opcode.INVOKE_STATIC_RANGE, call.opcode)
+                    assertEquals("railAvailable", call.getReference<MethodReference>()!!.name)
+                    assertEquals(register, (call as RegisterRangeInstruction).startRegister)
+                    assertEquals(register, (after[index + 3] as OneRegisterInstruction).registerA)
+                    seen++
+                }
+            }
+            // onViewCreated, the account-change refresh and the page-change refresh each read it.
+            assertTrue("$version: only $hooked default auto scroll reads hooked", hooked >= 3)
+            assertEquals("$version: every read carries the hide answer", hooked, seen)
+        }
+    }
 }

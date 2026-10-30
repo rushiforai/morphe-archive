@@ -20,7 +20,7 @@ from zipfile import is_zipfile, ZipFile
 from hermes_dec.parsers.hbc_bytecode_parser import parse_hbc_bytecode
 from hermes_dec.parsers.hbc_file_parser import HBCReader
 
-STOCK_SHA256 = "928f89c5766562e9cb266485282e90c058dd7947f73c9bcafa1d0fc626debf5e"
+STOCK_SHA256 = "059f4713e0cea80b58e68b675fb05d63053056869e2ac60c79f5d57567a3e583"
 
 
 def footer(data):

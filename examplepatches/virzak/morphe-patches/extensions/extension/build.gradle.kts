@@ -3,5 +3,5 @@ extension {
 }
 
 android {
-    namespace = "app.rutube.extension"
+    namespace = "com.irzak.extension"
 }

@@ -175,7 +175,7 @@ final class SettingsText {
         ENGLISH.put("bubble_conversations", "Android conversation settings");
         ENGLISH.put("bubble_settings_missing", "Screen not found. Open app info, then Notifications.");
         ENGLISH.put("facebook_keep_profile", "Keep the Profile button");
-        ENGLISH.put("facebook_keep_profile_help", "Leaves the Profile button on a chat's details page, so you can still open the person's Facebook profile. The other Facebook shortcuts stay hidden.");
+        ENGLISH.put("facebook_keep_profile_help", "Leaves the Profile button on a chat's details page and the View profile button at the top of a new chat, so you can still open the person's Facebook profile. The other Facebook shortcuts stay hidden.");
         ENGLISH.put("avatar_shape_rounded", "Round the corners");
         ENGLISH.put("avatar_shape_rounded_help", "Gives the squares rounded corners instead of sharp ones.");
         ENGLISH.put("tab_badges_keep_chats", "Keep the Chats badge");
@@ -192,6 +192,19 @@ final class SettingsText {
         ENGLISH.put("light", "Light theme");
         ENGLISH.put("light_help", "Makes these settings light. Messenger itself stays unchanged.");
         ENGLISH.put("theme_help", "Dark by default. Your choice stays saved.");
+        ENGLISH.put("theme_status_wallpaper", "Material You takes its colors from your wallpaper. Paste a theme to pick your own.");
+        ENGLISH.put("theme_status_saved", "Your %s theme is saved. It colors dark mode while Material You is on.");
+        ENGLISH.put("theme_status_unnamed", "Your theme is saved. It colors dark mode while Material You is on.");
+        ENGLISH.put("theme_paste", "Use copied theme");
+        ENGLISH.put("theme_copy", "Copy theme");
+        ENGLISH.put("theme_clear", "Back to wallpaper colors");
+        ENGLISH.put("theme_pasted", "Theme saved");
+        ENGLISH.put("theme_paste_empty", "Nothing to paste. Copy a theme first.");
+        ENGLISH.put("theme_paste_invalid", "That isn't a theme. Your colors didn't change.");
+        ENGLISH.put("theme_copied", "Theme copied");
+        ENGLISH.put("theme_copy_failed", "Couldn't copy the theme. Try again.");
+        ENGLISH.put("theme_cleared", "Back to your wallpaper colors");
+        ENGLISH.put("theme_file_help", "A theme is a bit of text like {\"name\": \"Sunset\", \"accent\": \"#E1306C\", \"neutral\": \"#1A1418\", \"pure_black\": true}. Accent tints Messenger's blues and neutral tints its grays. Both keep Messenger's own brightness, so text stays easy to read. Copy theme gives you the colors in use to edit or share.");
         ENGLISH.put("about", "About HushMessenger");
         ENGLISH.put("version", "Version");
         ENGLISH.put("installed", "Installed controls");

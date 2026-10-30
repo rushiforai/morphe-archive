@@ -166,9 +166,10 @@ class StopSwipeReplyHookTest {
 
     /**
      * Reads the classes the patch looks through: the delegate, what holds [LISTENER_MANAGER], what
-     * calls [REQUEST_FOCUS], then the delegate's field types and those callers again, and whatever
-     * calls into any of them, so the checks that only the delegate asks the listener manager and
-     * nothing calls the composer directly see the whole build.
+     * calls [REQUEST_FOCUS], then the delegate's LX/ field types and those callers again, and whatever
+     * calls into any of them. The first pass reads the whole build, so the checks that only the
+     * delegate asks the listener manager and only the composer calls [REQUEST_FOCUS] still see every
+     * class that could break them.
      */
     private fun builds(bundle: File, label: String) {
         val first = mutableListOf<ClassDef>()
@@ -185,8 +186,9 @@ class StopSwipeReplyHookTest {
         assertEquals("$label: classes named $ITEM_DELEGATE", 1, delegates.size)
         val focusing = first.filter { c -> c.methods.any { m -> m.code().any { it.referenceText() == REQUEST_FOCUS } } }.map { it.type }
         // 452.1's delegate holds Strings, Lists and Maps too, and their callers are a quarter of the app.
-        val near = delegates.single().fields.map { it.type }
-            .filter { it.startsWith("L") && !it.startsWith("Ljava/") && !it.startsWith("Landroid/") }.toSet() + focusing
+        // 57.79's holds the UserSession, a Media and the viewer's config as well, and copying their
+        // callers runs the test heap out. The swipe's manager, listener and composer are Redex's LX/ types.
+        val near = delegates.single().fields.map { it.type }.filter { it.startsWith("LX/") }.toSet() + focusing
         val have = first.mapTo(HashSet()) { it.type }
         val second = mutableListOf<ClassDef>()
         FixtureDex.forEach(bundle) { dex ->

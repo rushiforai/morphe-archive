@@ -44,8 +44,9 @@ Right now it has patches for these apps:
   Openverse) through a small helper app, the only part that goes online. Only English's dictionary comes with
   Gboard: turn on Download dictionaries from Google and the helper fetches the other languages' dictionaries, for
   word suggestions and autocorrect, from Google's dictionary folder and nowhere else on Google. A switch keeps
-  Gboard in incognito mode everywhere. Right-to-left languages only change the letters on the keys. It installs
-  next to the normal Gboard and its switches are under No-Google in Gboard's settings.
+  Gboard in incognito mode everywhere, with its clipboard still working. Right-to-left languages only change the
+  letters on the keys. It installs next to the normal Gboard and its switches are under No-Google in Gboard's
+  settings.
 - Geocaching 10.21.0: Premium-only features work on a Basic account, each as its own switch: map filters,
   statistics from your own finds, log templates, lists, experimental features and sorting your finds and hides,
   and the upgrade badges are gone. Caches the app locks behind Premium open too: they load from geocaching.com the

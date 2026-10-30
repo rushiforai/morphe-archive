@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -29,6 +30,8 @@ import app.hushgram.extension.instagram.download.FileNameTemplate;
 import app.hushgram.extension.instagram.download.SaveFolder;
 import app.hushgram.extension.instagram.direct.MessageBox;
 import app.hushgram.extension.instagram.profile.ProfileTabs;
+import app.hushgram.extension.instagram.misc.GlassBlur;
+import app.hushgram.extension.instagram.misc.GlassOpacity;
 import app.hushgram.extension.instagram.misc.SettingsRows;
 import app.hushgram.extension.instagram.misc.SpoofLocation;
 import app.hushgram.extension.instagram.reels.TabOrder;
@@ -36,6 +39,7 @@ import app.hushgram.extension.instagram.share.ShareSheetActions;
 import app.hushgram.extension.instagram.share.SharingDomain;
 import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.settings.BaseSettings;
+import app.hushgram.extension.shared.settings.IntegerSetting;
 import app.hushgram.extension.shared.settings.Setting;
 import app.hushgram.extension.shared.settings.SettingsJson;
 import app.hushgram.extension.shared.settings.preference.AbstractPreferenceFragment;
@@ -155,7 +159,7 @@ public final class ConfigurationBackup {
         }
         if (PatchFamily.GLASS_TAB_BAR.inBuild()) {
             settings.put(Settings.GLASS_TAB_BAR_HAPTIC_STYLE.key, Settings.GLASS_TAB_BAR_HAPTIC_STYLE);
-            settings.put(Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key, Settings.GLASS_TAB_BAR_BLUR_STRENGTH);
+            settings.put(Settings.GLASS_TAB_BAR_BLUR_RADIUS.key, Settings.GLASS_TAB_BAR_BLUR_RADIUS);
             settings.put(Settings.GLASS_TAB_BAR_OPACITY.key, Settings.GLASS_TAB_BAR_OPACITY);
             settings.put(Settings.GLASS_TAB_BAR_HEIGHT.key, Settings.GLASS_TAB_BAR_HEIGHT);
             settings.put(Settings.GLASS_TAB_BAR_CORNERS.key, Settings.GLASS_TAB_BAR_CORNERS);
@@ -214,6 +218,7 @@ public final class ConfigurationBackup {
         settings.put(Settings.SETTINGS_SHORTCUT.key, Settings.SETTINGS_SHORTCUT);
         settings.put(Settings.SETTINGS_LOGO_PRESS.key, Settings.SETTINGS_LOGO_PRESS);
         settings.put(Settings.CATEGORY_PAGES.key, Settings.CATEGORY_PAGES);
+        settings.put(Settings.DESCRIPTIONS_BEHIND_INFO.key, Settings.DESCRIPTIONS_BEHIND_INFO);
         settings.put(Settings.DATE_SETTINGS_EXPORT.key, Settings.DATE_SETTINGS_EXPORT);
         return settings;
     }
@@ -283,6 +288,19 @@ public final class ConfigurationBackup {
                 if (entry.length() != 2 || !(entry.get("type") instanceof String) || !entry.has("value")) throw invalid();
                 Setting<?> setting = allowed.get(key);
                 Object value = setting == null ? null : accepted(setting, entry.getString("type"), entry.get("value"));
+                if (setting == null) {
+                    // A file from before the glass sliders carries a step, which comes back as the value it drew (#391).
+                    Map.Entry<Setting<?>, Object> step = oldGlassStep(key, entry.getString("type"), entry.get("value"), allowed);
+                    if (step != null) {
+                        setting = step.getKey();
+                        value = step.getValue();
+                        // A file with both the step and the slider is a hand-made one; the slider wins.
+                        if (values.has(setting.key)) {
+                            skipped++;
+                            continue;
+                        }
+                    }
+                }
                 if (value == null || !setting.includeWithImportExport) {
                     skipped++;
                     continue;
@@ -342,6 +360,13 @@ public final class ConfigurationBackup {
     static Object accepted(Setting<?> setting, String declared, Object value) {
         Object fallback = setting.defaultValue;
         if (fallback instanceof Boolean) return "boolean".equals(declared) && value instanceof Boolean ? value : null;
+        // A slider's whole number, inside the range its row offers.
+        if (setting instanceof IntegerSetting) {
+            IntegerSetting number = (IntegerSetting) setting;
+            if (!"integer".equals(declared) || !(value instanceof Integer)) return null;
+            int given = (Integer) value;
+            return given < number.minimum() || given > number.maximum() ? null : value;
+        }
         int longest = setting == Settings.REELS_BLOCKED_WORDS || setting == Settings.HIDDEN_SETTINGS_ROWS
                 ? MAX_WORDS_TEXT : MAX_TEXT;
         if (!(value instanceof String) || ((String) value).length() > longest) return null;
@@ -354,6 +379,27 @@ public final class ConfigurationBackup {
         }
         if (fallback instanceof String) return "string".equals(declared) && textAllowed(setting, (String) value) ? value : null;
         return null;
+    }
+
+    /**
+     * The slider and its value for an entry under the key a glass step had before its slider, from a file
+     * an older build exported, or null for any other entry or a step this build never had (#391).
+     */
+    @Nullable
+    static Map.Entry<Setting<?>, Object> oldGlassStep(String key, String declared, Object value,
+                                                       Map<String, Setting<?>> allowed) {
+        if (!"enum".equals(declared) || !(value instanceof String)) return null;
+        IntegerSetting slider = null;
+        Integer drawn = null;
+        if (Settings.OLD_GLASS_BLUR_KEY.equals(key)) {
+            slider = Settings.GLASS_TAB_BAR_BLUR_RADIUS;
+            drawn = GlassBlur.dpOf((String) value);
+        } else if (Settings.OLD_GLASS_OPACITY_KEY.equals(key)) {
+            slider = Settings.GLASS_TAB_BAR_OPACITY;
+            drawn = GlassOpacity.percentOf((String) value);
+        }
+        if (slider == null || drawn == null || allowed.get(slider.key) != slider) return null;
+        return new AbstractMap.SimpleImmutableEntry<>(slider, drawn);
     }
 
     /** Whether [text] is a list of blocked words its row could have saved: no control characters but line breaks. */
@@ -498,6 +544,7 @@ public final class ConfigurationBackup {
 
     private static String type(Object value) throws IOException {
         if (value instanceof Boolean) return "boolean";
+        if (value instanceof Integer) return "integer";
         if (value instanceof Enum) return "enum";
         if (value instanceof String) return "string";
         throw invalid();

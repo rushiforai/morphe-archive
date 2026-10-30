@@ -12,8 +12,10 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
 import app.morphe.patches.telegram.misc.extension.parameterRegisterNumber
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
 import app.morphe.patches.telegram.misc.extension.writeStub
@@ -126,10 +128,18 @@ val unifiedPushPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.telegram())
     execute {
         val plan = resolveUnifiedPush()
-        // Assembled on a copy first, so a refusal leaves the app untouched.
+        val (reactions, reactionsMissing) = resolveReactionAlerts()
+        // Assembled on copies first, so a refusal leaves the app untouched.
         insertUnifiedPushGate(MutableMethod(ImmutableMethod.of(plan.signUp)))
+        reactions?.applyTo(MutableMethod(ImmutableMethod.of(reactions.updates)))
         insertUnifiedPushGate(plan.signUp)
         writeUnifiedPushStubs(plan.accounts)
+        if (reactions != null) {
+            reactions.applyTo(reactions.updates)
+            enableCapability("reactionAlerts")
+        } else {
+            patchLog.warning("UnifiedPush notifications: $reactionsMissing. The patch goes on without reaction notifications without push.")
+        }
         enableStatus("unifiedPush")
     }
 }
@@ -219,6 +229,8 @@ internal fun BytecodePatchContext.resolveUnifiedPush(): UnifiedPushPlan {
     controlHook(UNIFIED_PUSH, "onStageQueue", listOf(RUNNABLE), "V")
     controlHook(UNIFIED_PUSH, "wakeAccounts", emptyList(), "V")
     controlHook(UNIFIED_PUSH, "requestPushToken", emptyList(), "V")
+    controlHook(REACTION_ALERTS, "changed", listOf("Ljava/lang/Object;", "Ljava/lang/Object;"), "V")
+    requireStatusMethod("reactionAlerts")
 
     val controller = mutableClassDefByOrNull(PUSH_CONTROLLER)
     controlShape(controller != null && AccessFlags.PUBLIC.isSet(controller.accessFlags), "PushListenerController is missing")

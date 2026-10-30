@@ -43,7 +43,6 @@ public final class DeepSeekActionPreference extends CaptionSettingPreference {
             toast(CaptionStrings.get(context, "message_a25bd037963d"));
         } else if (KEY_CLEAR_CACHE.equals(key)) {
             CaptionActions.clearCache(context);
-            toast(CaptionStrings.get(context, "message_e8b2177e1cd3"));
         } else if (KEY_DELETE_KEY.equals(key)) {
             new ApiProfilesPreference(context).clearCurrentKey();
         } else if (KEY_CLEAR_DIAGNOSTICS.equals(key)) {

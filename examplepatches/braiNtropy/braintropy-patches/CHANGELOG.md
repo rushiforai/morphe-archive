@@ -1,3 +1,39 @@
+## [2.5.0](https://github.com/braiNtropy/braintropy-patches/compare/v2.4.0...v2.5.0) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **Waking Up:** Drop version-pinned UI no-op fingerprints ([ddb3c0a](https://github.com/braiNtropy/braintropy-patches/commit/ddb3c0a1b37467a9f033d04169469dc6828efe98))
+* **Waking Up:** Spoof app version headers in "Disable update prompt" ([22f2863](https://github.com/braiNtropy/braintropy-patches/commit/22f28632197d177b5da977d31dc023285f27c7be))
+
+### ✨ New Features
+
+* **Waking Up:** Add "Disable update prompt" patch ([0dac931](https://github.com/braiNtropy/braintropy-patches/commit/0dac931ae2ae36b54f314f0512fc372d2ebc9f12)), closes [#12](https://github.com/braiNtropy/braintropy-patches/issues/12)
+* **Waking Up:** Make "Unlock Premium" version-resilient, support v3.27.0 ([88de8e0](https://github.com/braiNtropy/braintropy-patches/commit/88de8e0bff23293529c7e9c05e2e50873d36645f))
+
+## [2.5.0-dev.4](https://github.com/braiNtropy/braintropy-patches/compare/v2.5.0-dev.3...v2.5.0-dev.4) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **Waking Up:** Drop version-pinned UI no-op fingerprints ([ddb3c0a](https://github.com/braiNtropy/braintropy-patches/commit/ddb3c0a1b37467a9f033d04169469dc6828efe98))
+
+## [2.5.0-dev.3](https://github.com/braiNtropy/braintropy-patches/compare/v2.5.0-dev.2...v2.5.0-dev.3) (2026-10-29)
+
+### ✨ New Features
+
+* **Waking Up:** Make "Unlock Premium" version-resilient, support v3.27.0 ([88de8e0](https://github.com/braiNtropy/braintropy-patches/commit/88de8e0bff23293529c7e9c05e2e50873d36645f))
+
+## [2.5.0-dev.2](https://github.com/braiNtropy/braintropy-patches/compare/v2.5.0-dev.1...v2.5.0-dev.2) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **Waking Up:** Spoof app version headers in "Disable update prompt" ([22f2863](https://github.com/braiNtropy/braintropy-patches/commit/22f28632197d177b5da977d31dc023285f27c7be))
+
+## [2.5.0-dev.1](https://github.com/braiNtropy/braintropy-patches/compare/v2.4.0...v2.5.0-dev.1) (2026-10-29)
+
+### ✨ New Features
+
+* **Waking Up:** Add "Disable update prompt" patch ([0dac931](https://github.com/braiNtropy/braintropy-patches/commit/0dac931ae2ae36b54f314f0512fc372d2ebc9f12)), closes [#12](https://github.com/braiNtropy/braintropy-patches/issues/12)
+
 ## [2.4.0](https://github.com/braiNtropy/braintropy-patches/compare/v2.3.0...v2.4.0) (2026-10-12)
 
 ### 🐛 Bug Fixes

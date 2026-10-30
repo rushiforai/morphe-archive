@@ -61,6 +61,7 @@ import app.morphe.extension.facebook.misc.ShareSheetItems;
 import app.morphe.extension.facebook.misc.TextSize;
 import app.morphe.extension.facebook.feed.ReactionCeiling;
 import app.morphe.extension.facebook.theme.AccentColor;
+import app.morphe.extension.facebook.theme.MarkColors.Mark;
 import app.morphe.extension.facebook.navigation.FeedsSubtab;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.L10n;
@@ -403,8 +404,9 @@ public class SettingsBackupPreference extends Preference {
             if (snapshot.reelsOrderChange() != null) parts.add(reelsOrderSentence(snapshot.reelsOrderChange()));
             if (snapshot.backgroundChange() != null) parts.add(backgroundSentence(snapshot.backgroundChange()));
             if (snapshot.lightBackgroundChange() != null) parts.add(lightBackgroundSentence(snapshot.lightBackgroundChange()));
-            if (snapshot.badgeChange() != null) parts.add(markColorSentence(false, snapshot.badgeChange()));
-            if (snapshot.logoChange() != null) parts.add(markColorSentence(true, snapshot.logoChange()));
+            if (snapshot.badgeChange() != null) parts.add(markColorSentence(Mark.BADGE, snapshot.badgeChange()));
+            if (snapshot.logoChange() != null) parts.add(markColorSentence(Mark.LOGO, snapshot.logoChange()));
+            if (snapshot.tabChange() != null) parts.add(markColorSentence(Mark.TAB, snapshot.tabChange()));
             if (snapshot.headerTextChange() != null) parts.add(headerTextSentence(snapshot.headerTextChange()));
             if (snapshot.seenKeep != null && snapshot.changes().containsKey(SettingsBackup.SEEN_KEEP)) {
                 parts.add(L10n.f("Posts you've seen will stay hidden for %1$s.",
@@ -568,6 +570,7 @@ public class SettingsBackupPreference extends Preference {
     /** The sentence that says in what order comments open after an import. */
     static String commentOrderSentence(CommentOrder order) {
         if (order == CommentOrder.FACEBOOK) return L10n.t("Comments will open in the order Facebook picks.");
+        if (order == CommentOrder.OLDEST) return L10n.t("Comments will open oldest first.");
         return L10n.f("Comments will open with %1$s picked in their sort menu.",
                 HushfacebookPreferenceFragment.commentOrderLabel(order));
     }
@@ -609,15 +612,24 @@ public class SettingsBackupPreference extends Preference {
                 L10n.isolate(background));
     }
 
-    /** The sentence that says which color the badges, or with [logo] the logo, will take after an import, [code] blank or a code. */
-    static String markColorSentence(boolean logo, String code) {
+    /** The sentence that says which color the badges, the logo or the selected tab will take after an import, [code] blank or a code. */
+    static String markColorSentence(Mark mark, String code) {
         if (code.isEmpty()) {
-            return logo ? L10n.t("If your patched Facebook includes Badge and logo colors, the logo will be Facebook's blue.")
-                    : L10n.t("If your patched Facebook includes Badge and logo colors, badges will be Facebook's red.");
+            switch (mark) {
+                case LOGO: return L10n.t("If your patched Facebook includes Badge and logo colors, the logo will be Facebook's blue.");
+                case TAB: return L10n.t("If your patched Facebook includes Badge and logo colors, the selected tab will be "
+                        + "Facebook's color.");
+                default: return L10n.t("If your patched Facebook includes Badge and logo colors, badges will be Facebook's red.");
+            }
         }
-        return logo ? L10n.f("If your patched Facebook includes Badge and logo colors, the logo will be %1$s.",
-                L10n.isolate(code))
-                : L10n.f("If your patched Facebook includes Badge and logo colors, badges will be %1$s.", L10n.isolate(code));
+        switch (mark) {
+            case LOGO: return L10n.f("If your patched Facebook includes Badge and logo colors, the logo will be %1$s.",
+                    L10n.isolate(code));
+            case TAB: return L10n.f("If your patched Facebook includes Badge and logo colors, the selected tab will be %1$s.",
+                    L10n.isolate(code));
+            default: return L10n.f("If your patched Facebook includes Badge and logo colors, badges will be %1$s.",
+                    L10n.isolate(code));
+        }
     }
 
     /** The sentence that says which color light mode's backgrounds will take after an import, [background] blank or a code. */
@@ -945,8 +957,9 @@ public class SettingsBackupPreference extends Preference {
                     + (snapshot.reelsOrderChange() == null ? "" : " " + reelsOrderSentence(snapshot.reelsOrderChange()))
                     + (snapshot.backgroundChange() == null ? "" : " " + backgroundSentence(snapshot.backgroundChange()))
                     + (snapshot.lightBackgroundChange() == null ? "" : " " + lightBackgroundSentence(snapshot.lightBackgroundChange()))
-                    + (snapshot.badgeChange() == null ? "" : " " + markColorSentence(false, snapshot.badgeChange()))
-                    + (snapshot.logoChange() == null ? "" : " " + markColorSentence(true, snapshot.logoChange()))
+                    + (snapshot.badgeChange() == null ? "" : " " + markColorSentence(Mark.BADGE, snapshot.badgeChange()))
+                    + (snapshot.logoChange() == null ? "" : " " + markColorSentence(Mark.LOGO, snapshot.logoChange()))
+                    + (snapshot.tabChange() == null ? "" : " " + markColorSentence(Mark.TAB, snapshot.tabChange()))
                     + (snapshot.headerTextChange() == null ? "" : " " + headerTextSentence(snapshot.headerTextChange()));
             accepted = Utils.runOnBackgroundThread(() -> {
                 try {

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.2](https://github.com/VipinVIP/railone-patches/compare/v1.2.1...v1.2.2) (2026-10-29)
+
+### 📱 Updated app support
+
+* **RailOne 2.1.71:** All seven patches now apply to the latest Play Store release.
+
 ## [1.2.1](https://github.com/VipinVIP/railone-patches/compare/v1.2.0...v1.2.1) (2026-10-18)
 
 ### 🐛 Bug Fixes
@@ -16,7 +22,7 @@
 
 ### 🐛 Bug Fixes
 
-* **Source:** Re-release, no patch changes - the 1.1.0 download was missing classes.dex and could not load. Update the source if it showed as failed.
+* **Source:** Re-release, no patch changes - the 1.1.0 download could not load. Update the source if it showed as failed.
 
 ## [1.1.0](https://github.com/VipinVIP/railone-patches/compare/v1.0.0...v1.1.0) (2026-10-11)
 

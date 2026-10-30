@@ -127,19 +127,19 @@ public class NetworkFailureContractTest {
         for(int status:new int[]{429,503}){
             server.enqueue(error(status,"fixture outage").setHeader("Retry-After","17"));RebuildApi.Failure f=failed(config("fixture-key"));
             RebuildController.Session s=new RebuildController.Session(RuntimeEnvironment.getApplication(),"fixture",owner(),"scope","zh-Hans",config("fixture-key"),false,true,language);
-            s.states=new int[]{RebuildController.RUNNING};s.attempts=new int[]{1};s.retryAt=new long[1];s.reasons=new String[1];s.plans=new RebuildProtocol.Plan[1];
-            RebuildController.Job job=new RebuildController.Job(s,0,true);s.jobs=new RebuildController.Job[]{job};
+            s.work.initialize(1);s.work.slots[0].state=RebuildController.RUNNING;s.work.slots[0].attempts=1;
+            RebuildController.Job job=new RebuildController.Job(s,0,true);s.work.slots[0].attempt=job.attempt;
             Field active=RebuildController.class.getDeclaredField("active");active.setAccessible(true);active.set(null,s);
             Method rejected=RebuildController.class.getDeclaredMethod("rejected",RebuildController.Session.class,RebuildController.Job.class,RebuildPlanner.Block.class,Exception.class);rejected.setAccessible(true);
             long now=SystemClock.elapsedRealtime();rejected.invoke(null,s,job,block,f);
-            assertEquals(RebuildController.WAITING,s.states[0]);assertFalse(s.terminal);assertEquals(now+17000,s.retryAt[0]);assertEquals(now+17000,s.providerRetry);
-            s.attempts[0]=3;s.jobs[0]=job;rejected.invoke(null,s,job,block,new IOException("fixture network"));
-            assertEquals("late network failure retains the existing parent gate",now+17000,s.retryAt[0]);assertEquals("network errors retain the previous provider gate",now+17000,s.providerRetry);
+            assertEquals(RebuildController.WAITING,s.work.slots[0].state);assertFalse(s.terminal);assertEquals(now+17000,s.work.slots[0].retryAt);assertEquals(now+17000,s.work.providerRetry);
+            s.work.slots[0].attempts=3;s.work.slots[0].attempt=job.attempt;rejected.invoke(null,s,job,block,new IOException("fixture network"));
+            assertEquals("late network failure retains the existing parent gate",now+17000,s.work.slots[0].retryAt);assertEquals("network errors retain the previous provider gate",now+17000,s.work.providerRetry);
             RebuildController.Session fresh=new RebuildController.Session(RuntimeEnvironment.getApplication(),"fixture",owner(),"scope","zh-Hans",config("fixture-key"),false,true,language);
-            fresh.states=new int[]{RebuildController.RUNNING};fresh.attempts=new int[]{3};fresh.retryAt=new long[1];fresh.reasons=new String[1];fresh.plans=new RebuildProtocol.Plan[1];
-            RebuildController.Job freshJob=new RebuildController.Job(fresh,0,true);fresh.jobs=new RebuildController.Job[]{freshJob};active.set(null,fresh);
+            fresh.work.initialize(1);fresh.work.slots[0].state=RebuildController.RUNNING;fresh.work.slots[0].attempts=3;
+            RebuildController.Job freshJob=new RebuildController.Job(fresh,0,true);fresh.work.slots[0].attempt=freshJob.attempt;active.set(null,fresh);
             rejected.invoke(null,fresh,freshJob,block,new IOException("fixture network without older gate"));
-            assertEquals("independent Session retains exact local backoff",now+15000,fresh.retryAt[0]);assertEquals(0,fresh.providerRetry);
+            assertEquals("independent Session retains exact local backoff",now+15000,fresh.work.slots[0].retryAt);assertEquals(0,fresh.work.providerRetry);
             RebuildController.stop();
         }
         assertEquals(2,server.getRequestCount());
@@ -180,7 +180,7 @@ public class NetworkFailureContractTest {
         Field active=RebuildController.class.getDeclaredField("active");active.setAccessible(true);active.set(null,s);
         ExecutorService executor=Executors.newSingleThreadExecutor();
         try{
-            Future<RebuildProtocol.Plan> pending=executor.submit(()->call(old,sent));assertTrue(arrived.await(2,TimeUnit.SECONDS));assertTrue(sent.sent);
+            Future<RebuildProtocol.Plan> pending=executor.submit(()->call(old,sent));assertTrue(arrived.await(2,TimeUnit.SECONDS));assertTrue(sent.attempt.sent);
             s.retire();assertFalse(RebuildController.current(s));assertNull(s.publication.reserve());assertFalse(sent.isCancelled());assertTrue(unsent.isCancelled());
             release.countDown();try{pending.get(3,TimeUnit.SECONDS);fail("retired negotiation admitted");}
             catch(ExecutionException expected){assertTrue(expected.getCause() instanceof InterruptedException);}

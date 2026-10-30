@@ -9,7 +9,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 
 /**
- * The checks behind the Meta AI, imagine and imagine yourself rows in Messenger 584's newer @ list. That list is a
+ * The checks behind the Meta AI, imagine and imagine yourself rows in Messenger's newer @ list (584 on). That list is a
  * render of its own that asks these checks directly instead of running the mention plugin dispatchers. The Meta AI row
  * asks a different check per chat type: regular chats, encrypted chats and community channels.
  */
@@ -18,16 +18,16 @@ internal const val AI_MENTION_ROWS = "ai_mention_rows"
 internal const val CAPABILITIES = "Lcom/facebook/xapp/messaging/capability/vector/Capabilities;"
 
 /**
- * The server flags each Meta AI row check reads in 584, and the one each imagine check reads. Meta renumbers them with
+ * The server flags each Meta AI row check reads in 585, and the one each imagine check reads. Meta renumbers them with
  * each release, so a check reading another release's numbers isn't taken. META_AI_SHARED_FLAG is the one every Meta AI
  * check reads.
  */
-internal const val META_AI_SHARED_FLAG = 0x81062d011b2d6cL
-internal val META_AI_ROW_FLAGS = setOf(META_AI_SHARED_FLAG, 0x81062d01042d65L)
-internal val META_AI_CHAT_FLAGS = setOf(META_AI_SHARED_FLAG, 0x81062d00042d22L)
-internal const val META_AI_ENCRYPTED_FLAG = 0x81062d00052d23L
-internal const val IMAGINE_ROW_FLAG = 0x81062d00402d33L
-internal const val IMAGINE_YOURSELF_ROW_FLAG = 0x81062d00f92d61L
+internal const val META_AI_SHARED_FLAG = 0x810620011b2d61L
+internal val META_AI_ROW_FLAGS = setOf(META_AI_SHARED_FLAG, 0x81062001042d5aL)
+internal val META_AI_CHAT_FLAGS = setOf(META_AI_SHARED_FLAG, 0x81062000042d17L)
+internal const val META_AI_ENCRYPTED_FLAG = 0x81062000052d18L
+internal const val IMAGINE_ROW_FLAG = 0x81062000402d28L
+internal const val IMAGINE_YOURSELF_ROW_FLAG = 0x81062000f92d56L
 
 private fun rowsChanged(detail: String): Nothing =
     throw PatchException("Messenger controls: the @ list's Meta AI checks moved ($detail)")

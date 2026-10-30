@@ -102,6 +102,31 @@ class InputStagingTests(unittest.TestCase):
 
 
 class TargetRoutingTests(unittest.TestCase):
+    def test_9292_uses_its_own_apk_bound_verifier(self):
+        self.assertEqual(validator.APPS['9292'], {
+            'Fix PairIP startup': [], 'Hide ads': ['Fix PairIP startup'],
+            'Disable tracking': ['Hide ads', 'Fix PairIP startup'],
+            'Skip consent screens': ['Disable tracking', 'Hide ads', 'Fix PairIP startup']})
+        command=validator.verifier_command('9292',Path('decoded'),{'Hide ads'},apk=Path('rebuilt.apk'))
+        self.assertEqual(command,[sys.executable,'tests/verify_9292.py','decoded','--apk','rebuilt.apk','-e','Hide ads'])
+
+    def test_tvgids_binds_original_and_rebuilt_native_images(self):
+        self.assertEqual(validator.APPS.get('tvgids'), {'Hide ads': [], 'Disable tracking': ['Hide ads'],
+                         'Skip consent screens': ['Disable tracking', 'Hide ads']})
+        command = validator.verifier_command('tvgids', Path('decoded'), {'Hide ads'},
+                                             apk=Path('rebuilt.apk'), original_reference=Path('original.apk'))
+        self.assertEqual(command, [sys.executable, 'tests/verify_tvgids.py', 'decoded',
+                                   '--apk', 'rebuilt.apk', '--original', 'original.apk', '-e', 'Hide ads'])
+        with self.assertRaisesRegex(ValueError, 'original'):
+            validator.verifier_command('tvgids', Path('decoded'), {'Hide ads'}, apk=Path('rebuilt.apk'))
+
+
+    def test_marktplaats_uses_its_own_apk_bound_verifier(self):
+        self.assertEqual(validator.APPS.get('marktplaats'), {'Hide ads': [], 'Disable tracking': ['Hide ads'], 'Disable ThreatMetrix': [], 'Skip consent screens': ['Disable tracking', 'Hide ads'], 'Google sign-in via microG-Re': []})
+        command=validator.verifier_command('marktplaats',Path('decoded'),{'Hide ads'},apk=Path('rebuilt.apk'))
+        self.assertEqual(command,[sys.executable,'tests/verify_marktplaats.py','decoded','--apk','rebuilt.apk','-e','Hide ads'])
+        self.assertEqual(validator.patch_selections(validator.APPS['marktplaats'],['all']),[['Hide ads','Disable tracking','Disable ThreatMetrix','Skip consent screens','Google sign-in via microG-Re']])
+
     def test_teletekst_controls_are_independent_and_bind_the_apk(self):
         self.assertEqual(validator.APPS.get('teletekst'),{'Disable tracking':[],'Hide promotions':[]})
         command=validator.verifier_command('teletekst',Path('decoded'),{'Disable tracking'},apk=Path('rebuilt.apk'))

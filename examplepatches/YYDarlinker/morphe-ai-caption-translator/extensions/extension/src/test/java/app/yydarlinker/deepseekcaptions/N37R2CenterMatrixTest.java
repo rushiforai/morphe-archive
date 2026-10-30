@@ -5,7 +5,6 @@ import android.graphics.Rect;
 import android.os.Looper;
 import android.view.*;
 import android.widget.*;
-import java.nio.file.*;
 import java.util.*;
 import org.junit.*;
 import org.junit.runner.RunWith;
@@ -28,7 +27,7 @@ public class N37R2CenterMatrixTest {
     return rows;
   }
   final String app,target,scene;
-  N39UiGeometryFixture h;FrameLayout host;final List<String> ledger=new ArrayList<>();
+  N39UiGeometryFixture h;FrameLayout host;
   public N37R2CenterMatrixTest(String app,String target,String scene){this.app=app;this.target=target;this.scene=scene;}
   @Before public void setup(){
     CaptionPlayerAuthority.resetForTests();CaptionPlayerTransitionGuard.resetForTests();
@@ -56,7 +55,6 @@ public class N37R2CenterMatrixTest {
       float center=outer.getLeft()+outer.getTranslationX()+outer.getWidth()/2f-host.getScrollX();
       float expected=scene.equals("shorts")?(host.getPaddingLeft()+host.getWidth()-host.getPaddingRight())/2f:video.exactCenterX();
       float error=center-expected;
-      ledger.add("app="+app+";target="+target+";scene="+scene+";shape="+kind+";root_direction="+host.getLayoutDirection()+";outer_direction="+outer.getLayoutDirection()+";text_direction="+text.getTextDirection()+";gravity="+((FrameLayout.LayoutParams)outer.getLayoutParams()).gravity+";video="+video+";actual_center="+center+";error="+error);
       assertEquals(View.VISIBLE,outer.getVisibility());
       assertTrue("physical center error "+error,Math.abs(error)<=1f);
       assertEquals(target.equals("ar")?View.TEXT_DIRECTION_RTL:View.TEXT_DIRECTION_LTR,text.getTextDirection());
@@ -64,8 +62,6 @@ public class N37R2CenterMatrixTest {
     }
   }
   @After public void done()throws Exception{
-    String out=System.getenv("N30_EVIDENCE_DIR");
-    if(out!=null)Files.write(Paths.get(out,"center-matrix-"+app+"-"+target+"-"+scene+".txt"),ledger);
     h.done();CaptionPlayerAuthority.resetForTests();CaptionPlayerTransitionGuard.resetForTests();
   }
 }

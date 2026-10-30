@@ -30,11 +30,16 @@ import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
 
-import app.hushgram.extension.instagram.misc.GlassBlur;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.SeekBar;
+import android.widget.TextView;
+
+import org.robolectric.shadows.ShadowSeekBar;
+
 import app.hushgram.extension.instagram.misc.GlassCorners;
 import app.hushgram.extension.instagram.misc.GlassHeight;
 import app.hushgram.extension.instagram.misc.GlassLift;
-import app.hushgram.extension.instagram.misc.GlassOpacity;
 import app.hushgram.extension.instagram.misc.GlassReelsHide;
 import app.hushgram.extension.instagram.misc.HapticStyle;
 import app.hushgram.extension.shared.SettingsContextRule;
@@ -84,7 +89,7 @@ public class TabBarAndBatterySettingsTest {
         Settings.GLASS_TAB_BAR_HEIGHT.resetToDefault();
         Settings.GLASS_TAB_BAR_CORNERS.resetToDefault();
         Settings.GLASS_TAB_BAR_LIFT.resetToDefault();
-        Settings.GLASS_TAB_BAR_BLUR_STRENGTH.resetToDefault();
+        Settings.GLASS_TAB_BAR_BLUR_RADIUS.resetToDefault();
         Settings.GLASS_TAB_BAR_REELS_HIDE.resetToDefault();
         Settings.GLASS_TAB_BAR_FLOAT.resetToDefault();
         Settings.SAVED_ON_PROFILE.resetToDefault();
@@ -109,7 +114,7 @@ public class TabBarAndBatterySettingsTest {
     @Test public void withoutThePatchesNoneOfTheirRowsShow() throws Exception {
         open();
         for (String key : List.of(Settings.GLASS_TAB_BAR.key, Settings.GLASS_TAB_BAR_HAPTIC_STYLE.key, Settings.GLASS_TAB_BAR_OPACITY.key, Settings.GLASS_TAB_BAR_HEIGHT.key,
-                Settings.GLASS_TAB_BAR_CORNERS.key, Settings.GLASS_TAB_BAR_LIFT.key, Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key, Settings.GLASS_TAB_BAR_REELS_HIDE.key, Settings.SAVED_ON_PROFILE.key, Settings.STOP_HEARTBEAT.key,
+                Settings.GLASS_TAB_BAR_CORNERS.key, Settings.GLASS_TAB_BAR_LIFT.key, Settings.GLASS_TAB_BAR_BLUR_RADIUS.key, Settings.GLASS_TAB_BAR_REELS_HIDE.key, Settings.SAVED_ON_PROFILE.key, Settings.STOP_HEARTBEAT.key,
                 Settings.STOP_UPLOAD_ALARM.key)) {
             assertNull(key, row(key));
         }
@@ -147,26 +152,31 @@ public class TabBarAndBatterySettingsTest {
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.GLASS_TAB_BAR_HAPTIC_STYLE.key));
     }
 
-    @Test public void opacityAndHeightAreListsThatStartOnTodaysLookAndAreBackedUp() throws Exception {
+    /** Tab bar opacity (#391) is a slider in steps of 5%, from see-through to past solid, starting on today's tint. */
+    @Test public void opacityIsASliderAndHeightAListBothStartingOnTodaysLookAndBackedUp() throws Exception {
         open(PatchFamily.GLASS_TAB_BAR);
         Preference opacityFound = row(Settings.GLASS_TAB_BAR_OPACITY.key);
-        assertTrue(opacityFound instanceof HushgramPreferenceFragment.GlassOpacityRow);
-        HushgramPreferenceFragment.GlassOpacityRow opacity = (HushgramPreferenceFragment.GlassOpacityRow) opacityFound;
-        List<String> entries = new ArrayList<>();
-        for (CharSequence entry : opacity.getEntries()) entries.add(String.valueOf(entry));
-        assertEquals(Arrays.asList("Clearest", "Clear", "Standard", "Frosted"), entries);
-        assertEquals("STANDARD", opacity.getValue());
-        assertEquals("Standard", String.valueOf(opacity.getSummary()));
+        assertTrue(opacityFound instanceof HushgramPreferenceFragment.SliderRow);
+        HushgramPreferenceFragment.SliderRow opacity = (HushgramPreferenceFragment.SliderRow) opacityFound;
+        assertEquals("Tab bar opacity", String.valueOf(opacity.getTitle()));
+        assertEquals("100% (standard)", String.valueOf(opacity.getSummary()));
         assertEquals("Tab bar", String.valueOf(sectionOf(page.getPreferenceScreen(), opacity).getTitle()));
-        opacity.setValue("CLEAR");
+        assertFalse("a change shows on the bar at once", Settings.GLASS_TAB_BAR_OPACITY.rebootApp);
+
+        SeekBar slider = sliderOf(opacity);
+        assertEquals("0% to 150% in 5% notches", 30, slider.getMax());
+        assertEquals(20, slider.getProgress());
+        opacity.choose(50);
         ShadowLooper.idleMainLooper();
-        assertEquals(GlassOpacity.CLEAR, Settings.GLASS_TAB_BAR_OPACITY.savedValue());
-        assertEquals("Clearest", String.valueOf(opacity.getSummary()));
+        assertEquals(50, (int) Settings.GLASS_TAB_BAR_OPACITY.savedValue());
+        assertEquals("50%", String.valueOf(opacity.getSummary()));
+        assertFalse(AbstractPreferenceFragment.restartPending.contains(Settings.GLASS_TAB_BAR_OPACITY.key));
+        assertEquals(10, sliderOf(opacity).getProgress());
 
         Preference heightFound = row(Settings.GLASS_TAB_BAR_HEIGHT.key);
         assertTrue(heightFound instanceof HushgramPreferenceFragment.GlassHeightRow);
         HushgramPreferenceFragment.GlassHeightRow height = (HushgramPreferenceFragment.GlassHeightRow) heightFound;
-        entries = new ArrayList<>();
+        List<String> entries = new ArrayList<>();
         for (CharSequence entry : height.getEntries()) entries.add(String.valueOf(entry));
         assertEquals(Arrays.asList("Compact", "Standard", "Tall"), entries);
         assertEquals("STANDARD", height.getValue());
@@ -222,14 +232,15 @@ public class TabBarAndBatterySettingsTest {
     }
 
     /**
-     * Blur strength (#289) is a list right after Blur behind the tab bar, starting on the blur the pill has always
-     * had, backed up, waiting on a restart, and offered only where that blur applies.
+     * Blur strength (#289, a slider since #391) sits right after Blur behind the tab bar, starts on the blur the
+     * pill has always had, is backed up, shows on the bar without a restart, and is offered only where that
+     * blur applies.
      */
     @Test public void blurStrengthFollowsTheBlurSwitchStartsOnStandardAndIsBackedUp() throws Exception {
         open(PatchFamily.GLASS_TAB_BAR);
-        Preference found = row(Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key);
-        assertTrue(found instanceof HushgramPreferenceFragment.GlassBlurRow);
-        HushgramPreferenceFragment.GlassBlurRow strength = (HushgramPreferenceFragment.GlassBlurRow) found;
+        Preference found = row(Settings.GLASS_TAB_BAR_BLUR_RADIUS.key);
+        assertTrue(found instanceof HushgramPreferenceFragment.SliderRow);
+        HushgramPreferenceFragment.SliderRow strength = (HushgramPreferenceFragment.SliderRow) found;
         assertEquals("Blur strength", String.valueOf(strength.getTitle()));
         PreferenceGroup section = sectionOf(page.getPreferenceScreen(), strength);
         assertEquals("Tab bar", String.valueOf(section.getTitle()));
@@ -238,31 +249,55 @@ public class TabBarAndBatterySettingsTest {
         for (int i = 0; i < section.getPreferenceCount(); i++) {
             String key = section.getPreference(i).getKey();
             if (Settings.GLASS_TAB_BAR_BLUR.key.equals(key)) blurAt = i;
-            if (Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key.equals(key)) strengthAt = i;
+            if (Settings.GLASS_TAB_BAR_BLUR_RADIUS.key.equals(key)) strengthAt = i;
         }
         assertEquals("right after Blur behind the tab bar", blurAt + 1, strengthAt);
-        List<String> entries = new ArrayList<>();
-        for (CharSequence entry : strength.getEntries()) entries.add(String.valueOf(entry));
-        assertEquals(Arrays.asList("Light", "Standard", "Strong"), entries);
-        assertEquals("STANDARD", strength.getValue());
-        assertEquals("Standard", String.valueOf(strength.getSummary()));
-        assertTrue(Settings.GLASS_TAB_BAR_BLUR_STRENGTH.rebootApp);
-        strength.setValue("STRONG");
+        assertEquals("18 dp (standard)", String.valueOf(strength.getSummary()));
+        assertFalse("the row opens no dialog, the slider is the control", strength.isSelectable());
+        assertFalse(Settings.GLASS_TAB_BAR_BLUR_RADIUS.rebootApp);
+
+        SeekBar slider = sliderOf(strength);
+        assertEquals("2 dp to 48 dp a notch at a time", 46, slider.getMax());
+        assertEquals(16, slider.getProgress());
+        assertEquals("Blur strength", String.valueOf(slider.getContentDescription()));
+        SeekBar.OnSeekBarChangeListener listener = ((ShadowSeekBar) org.robolectric.Shadows.shadowOf(slider)).getOnSeekBarChangeListener();
+        assertNotNull(listener);
+        // A drag shows each value as it goes and saves once it's let go.
+        listener.onStartTrackingTouch(slider);
+        slider.setProgress(28);
+        listener.onProgressChanged(slider, 28, true);
+        TextView summary = (TextView) ((View) slider.getParent()).findViewById(android.R.id.summary);
+        assertEquals("30 dp", String.valueOf(summary.getText()));
+        assertEquals("not saved mid-drag", 18, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
+        listener.onStopTrackingTouch(slider);
         ShadowLooper.idleMainLooper();
-        assertEquals(GlassBlur.STRONG, Settings.GLASS_TAB_BAR_BLUR_STRENGTH.savedValue());
-        assertEquals("Strong", String.valueOf(strength.getSummary()));
-        assertTrue(AbstractPreferenceFragment.restartPending.contains(Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key));
-        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key));
+        assertEquals(30, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
+        assertEquals("30 dp", String.valueOf(strength.getSummary()));
+        // A key or a screen reader moves it a notch with no drag, and each notch saves.
+        slider.setProgress(29);
+        listener.onProgressChanged(slider, 29, true);
+        ShadowLooper.idleMainLooper();
+        assertEquals(31, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
+        assertFalse(AbstractPreferenceFragment.restartPending.contains(Settings.GLASS_TAB_BAR_BLUR_RADIUS.key));
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.GLASS_TAB_BAR_BLUR_RADIUS.key));
 
         Settings.GLASS_TAB_BAR.save(false);
         Settings.GLASS_TAB_BAR_BLUR.save(true);
-        assertFalse("no glass bar, no blur to size", Settings.GLASS_TAB_BAR_BLUR_STRENGTH.isAvailable());
+        assertFalse("no glass bar, no blur to size", Settings.GLASS_TAB_BAR_BLUR_RADIUS.isAvailable());
         Settings.GLASS_TAB_BAR.save(true);
         Settings.GLASS_TAB_BAR_BLUR.save(false);
-        assertFalse("blur is off", Settings.GLASS_TAB_BAR_BLUR_STRENGTH.isAvailable());
+        assertFalse("blur is off", Settings.GLASS_TAB_BAR_BLUR_RADIUS.isAvailable());
         Settings.GLASS_TAB_BAR_BLUR.save(true);
-        assertTrue(Settings.GLASS_TAB_BAR_BLUR_STRENGTH.isAvailable());
-        assertEquals(Collections.singletonList(Settings.GLASS_TAB_BAR_BLUR), Settings.GLASS_TAB_BAR_BLUR_STRENGTH.getParentSettings());
+        assertTrue(Settings.GLASS_TAB_BAR_BLUR_RADIUS.isAvailable());
+        assertEquals(Collections.singletonList(Settings.GLASS_TAB_BAR_BLUR), Settings.GLASS_TAB_BAR_BLUR_RADIUS.getParentSettings());
+    }
+
+    /** The slider the row puts under its summary, from a freshly bound view of the row. */
+    private SeekBar sliderOf(Preference row) {
+        View view = row.getView(null, (ViewGroup) controller.get().findViewById(android.R.id.content));
+        View slider = view.findViewWithTag("hushgram_slider");
+        assertTrue("the row carries its slider", slider instanceof SeekBar);
+        return (SeekBar) slider;
     }
 
     /**
@@ -431,7 +466,7 @@ public class TabBarAndBatterySettingsTest {
         int liquidAt = -1;
         for (int i = 0; i < section.getPreferenceCount(); i++) {
             String key = section.getPreference(i).getKey();
-            if (Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key.equals(key)) blurAt = i;
+            if (Settings.GLASS_TAB_BAR_BLUR_RADIUS.key.equals(key)) blurAt = i;
             if (Settings.GLASS_TAB_BAR_LIQUID.key.equals(key)) liquidAt = i;
         }
         assertTrue(blurAt >= 0);
@@ -526,17 +561,28 @@ public class TabBarAndBatterySettingsTest {
     }
 
     /**
-     * The pill's look, its height, the space under it and the wait on Reels are read as Instagram builds
+     * The pill's height, its corners, the space under it and the wait on Reels are read as Instagram builds
      * the bar, so a pick waits on a restart. The page says so and the screen offers the restart; without
-     * that, a pick looked like it did nothing (#87, on the S22).
+     * that, a pick looked like it did nothing (#87, on the S22). The opacity and blur sliders are read on
+     * every draw (#391), so moving them owes nothing.
      */
     @Test public void theGlassChoicesAskForARestart() throws Exception {
-        for (Setting<?> setting : List.<Setting<?>>of(Settings.GLASS_TAB_BAR_OPACITY, Settings.GLASS_TAB_BAR_HEIGHT,
+        for (Setting<?> setting : List.<Setting<?>>of(Settings.GLASS_TAB_BAR_HEIGHT,
                 Settings.GLASS_TAB_BAR_CORNERS, Settings.GLASS_TAB_BAR_LIFT, Settings.GLASS_TAB_BAR_REELS_HIDE)) {
             assertTrue(setting.key, setting.rebootApp);
         }
+        for (Setting<?> setting : List.<Setting<?>>of(Settings.GLASS_TAB_BAR_OPACITY, Settings.GLASS_TAB_BAR_BLUR_RADIUS)) {
+            assertFalse(setting.key, setting.rebootApp);
+        }
         open(PatchFamily.GLASS_TAB_BAR);
         assertFalse("nothing owed yet", page.restartActionAvailable());
+
+        ((HushgramPreferenceFragment.SliderRow) row(Settings.GLASS_TAB_BAR_OPACITY.key)).choose(70);
+        ((HushgramPreferenceFragment.SliderRow) row(Settings.GLASS_TAB_BAR_BLUR_RADIUS.key)).choose(40);
+        ShadowLooper.idleMainLooper();
+        assertEquals(70, (int) Settings.GLASS_TAB_BAR_OPACITY.savedValue());
+        assertEquals(40, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
+        assertFalse("the sliders show at once", page.restartActionAvailable());
 
         HushgramPreferenceFragment.GlassLiftRow lift = (HushgramPreferenceFragment.GlassLiftRow) row(Settings.GLASS_TAB_BAR_LIFT.key);
         lift.setValue("MORE");

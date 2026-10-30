@@ -82,7 +82,7 @@ $Java = Resolve-Java -Explicit $Java
 $DesktopJar = Resolve-DesktopCli -Explicit $DesktopJar -Root $root -Required
 $catalogPath = Join-Path $root 'patches-list.json'
 if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) { throw "No patch list found: $catalogPath" }
-try { $catalog = Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json }
+try { $catalog = ConvertFrom-PatchJson (Get-Content -LiteralPath $catalogPath -Raw) }
 catch { throw "Could not read patch list ${catalogPath}: $($_.Exception.Message)" }
 $target = Get-PatchTarget -PatchList $catalog
 if (-not $Apk -and $env:HUSHGRAM_FIXTURE_DIR -and (Test-Path -LiteralPath $env:HUSHGRAM_FIXTURE_DIR -PathType Container)) {
@@ -212,7 +212,10 @@ try {
 # The same report check the throwaway verification applies: every requested patch, every
 # step, the target, and a real APK. The build that goes onto a phone deserves no less.
 $report = $null
-if (Test-Path -LiteralPath $result -PathType Leaf) { $report = Get-Content -LiteralPath $result -Raw | ConvertFrom-Json }
+if (Test-Path -LiteralPath $result -PathType Leaf) {
+    try { $report = ConvertFrom-PatchJson (Get-Content -LiteralPath $result -Raw) }
+    catch { throw "Patching did not produce a complete APK: the patch result doesn't parse ($($_.Exception.Message))" }
+}
 $validation = Test-PatchingReport -Report $report -ExpectedNames $names `
     -AllowedDependencyNames $dependencyNames -OutputPath $out `
     -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $stock.versionName

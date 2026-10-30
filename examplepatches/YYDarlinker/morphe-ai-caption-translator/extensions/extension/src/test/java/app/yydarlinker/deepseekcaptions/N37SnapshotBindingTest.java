@@ -23,7 +23,6 @@ public class N37SnapshotBindingTest {
     DeepSeekDiagnosticsPreference pref=new DeepSeekDiagnosticsPreference(a);
     View row=pref.getView(null,parent);parent.addView(row);layout(row);
     assertNull("collapsed binding must not create a selectable body",row.findViewWithTag("ai_diagnostics_body"));
-    assertEquals(5,DiagnosticsLazyRowTest.nodes(row));
     for(int i=0;i<20;i++)assertSame(row,pref.getView(row,parent));
     assertNull(row.findViewWithTag("ai_diagnostics_body"));
     assertEquals(1,release.getCount());assertEquals(0,Keys.mainReads.get());

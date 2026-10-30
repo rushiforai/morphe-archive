@@ -39,22 +39,21 @@ val chatActionBarButtonPatch =
 
         execute {
 
-            ChatActionBarBuilderFingerprint.apply {
-                val layoutIndex = instructionMatches.last().index
-                method
-                    .apply {
-                        val viewGroupInstruction = getInstruction(indexOfFirstInstruction(Opcode.CHECK_CAST))
-                        val viewGroupRegister = viewGroupInstruction.registersUsed[0]
+            // The header container is the view the builder looks up and casts first. piko hooked it
+            // after the header layout is inflated into it, but from 453 the inflated view is written
+            // to the container's register, so the hook received a plain View and the builder failed
+            // to verify, crashing DMs. It is hooked right after the cast instead, where the register
+            // is the container, and the extension adds the button once the header is in place.
+            ChatActionBarBuilderFingerprint.method.apply {
+                val viewGroupIndex = indexOfFirstInstruction(Opcode.CHECK_CAST)
+                val viewGroupRegister = getInstruction(viewGroupIndex).registersUsed[0]
 
-                        val fistMoveResultObjectAfterLayoutIndex = indexOfFirstInstruction(layoutIndex, Opcode.MOVE_RESULT_OBJECT)
-
-                        addInstruction(
-                            fistMoveResultObjectAfterLayoutIndex + 1,
-                            """
-                            invoke-static {v$viewGroupRegister}, $ACTIONBAR_DESCRIPTOR->chatActionBarButton(Landroid/view/ViewGroup;)V
-                            """.trimIndent(),
-                        )
-                    }
+                addInstruction(
+                    viewGroupIndex + 1,
+                    """
+                    invoke-static {v$viewGroupRegister}, $ACTIONBAR_DESCRIPTOR->chatActionBarButton(Landroid/view/ViewGroup;)V
+                    """.trimIndent(),
+                )
             }
         }
     }

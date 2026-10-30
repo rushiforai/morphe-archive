@@ -128,4 +128,4 @@ node_modules/
 # Ignore IDEA files
 .idea/
 local.properties
-rutube.keystore
+*.keystore

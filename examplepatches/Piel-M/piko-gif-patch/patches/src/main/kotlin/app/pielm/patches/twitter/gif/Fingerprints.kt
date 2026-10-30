@@ -71,3 +71,27 @@ internal object TwitterJsonMediaEntityFingerprint : Fingerprint(
     definingClass = "Lcom/twitter/model/json/core/JsonMediaEntity;",
     filters = OpcodesFilter.opcodesToFilters(Opcode.IGET_BOOLEAN),
 )
+
+/**
+ * Piko's "Patch information" screen, used to advertise this add-on.
+ */
+internal object PikoSettingsAboutOnCreateFingerprint : Fingerprint(
+    definingClass = "Lapp/morphe/extension/twitter/settings/fragments/SettingsAboutFragment;",
+    name = "onCreate",
+    returnType = "V",
+)
+
+/**
+ * Placeholder methods of this add-on's extension whose bodies are filled in at patch time.
+ */
+internal object GifHooksPatchVersionFingerprint : Fingerprint(
+    definingClass = Constants.GIF_HOOKS_DESCRIPTOR,
+    name = "getPatchVersion",
+    returnType = "Ljava/lang/String;",
+)
+
+internal object GifHooksIntegrationsFingerprint : Fingerprint(
+    definingClass = Constants.GIF_HOOKS_DESCRIPTOR,
+    name = "getEnabledIntegrations",
+    returnType = "Ljava/lang/String;",
+)

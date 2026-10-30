@@ -520,6 +520,51 @@ public class ExternalGalleryTest {
         assertTrue(Settings.hookErrors.isEmpty());
     }
 
+    /** Google Photos, and the phone's MediaStore, which know a video or a song from its path. */
+    public static class PhotosProvider extends PickedProvider {
+        @Override public String getType(Uri uri) {
+            String path = uri.getPath();
+            return path.startsWith("/external/audio/") ? "audio/mpeg" : path.contains("/video/") ? "video/mp4" : "image/jpeg";
+        }
+    }
+
+    /** Photos wraps a photo or video already on the phone around its MediaStore URI, and Messenger gets that one (#103). */
+    @Test public void aGooglePhotosPickOfSomethingOnThePhoneComesBackAsItsMediaStoreItem() {
+        Robolectric.setupContentProvider(PhotosProvider.class, GalleryPicker.PHOTOS_PROVIDER);
+        Robolectric.setupContentProvider(PhotosProvider.class, "media");
+        String photos = "content://" + GalleryPicker.PHOTOS_PROVIDER + "/-1/2/";
+        Uri video = Uri.parse(photos + "content%3A%2F%2Fmedia%2Fexternal%2Fvideo%2Fmedia%2F2017/ORIGINAL/NONE/video%2Fmp4/94870622");
+        Uri photo = Uri.parse(photos + "content%3A%2F%2Fmedia%2Fexternal%2Fimages%2Fmedia%2F2018/ORIGINAL/NONE/image%2Fjpeg/94870623");
+        Uri videoOnPhone = Uri.parse("content://media/external/video/media/2017");
+        Uri photoOnPhone = Uri.parse("content://media/external/images/media/2018");
+        // The type comes from the phone's item, not from what Photos said about its own URI.
+        Intent one = GalleryPicker.handBack(app, new Intent().setDataAndType(video, "video/webm"));
+        assertEquals(videoOnPhone, one.getData());
+        assertEquals("video/mp4", one.getType());
+        assertNotEquals(0, one.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        // The first item in the data and again in the clip is still one item.
+        Intent several = GalleryPicker.handBack(app, withClip(new Intent().setData(video), video, photo));
+        assertEquals(videoOnPhone, several.getData());
+        assertEquals("video/mp4", several.getType());
+        assertEquals(Arrays.asList(videoOnPhone, photoOnPhone), urisOf(several.getClipData()));
+        assertEquals("image/jpeg", several.getClipData().getDescription().getMimeType(1));
+        assertTrue(several.getBooleanExtra(GalleryPicker.ITEMS_MARK, false));
+
+        // A cloud-only item has nothing on the phone, and one Messenger can't open itself keeps Photos' grant.
+        Uri cloud = Uri.parse(photos + "mediakey%3A%2Flocal%253A9f1c/ORIGINAL/NONE/image%2Fjpeg/94870624");
+        Uri unreadable = Uri.parse(photos + "content%3A%2F%2Fmedia%2Fexternal%2Fimages%2Fmedia%2Frevoked/ORIGINAL/NONE/image%2Fjpeg/94870625");
+        for (Uri kept : new Uri[] {cloud, unreadable}) assertEquals(kept, GalleryPicker.handBack(app, new Intent().setData(kept)).getData());
+        // Nor is anything the phone doesn't list as a photo or video.
+        Uri song = Uri.parse(photos + "content%3A%2F%2Fmedia%2Fexternal%2Faudio%2Fmedia%2F2019/ORIGINAL/NONE/image%2Fjpeg/94870626");
+        assertEquals(song, GalleryPicker.onPhone(app, song));
+        // Only Photos' own URIs are unwrapped.
+        String authority = "com.example.gallery.picked";
+        Robolectric.setupContentProvider(PickedProvider.class, authority);
+        Uri other = Uri.parse("content://" + authority + "/content%3A%2F%2Fmedia%2Fexternal%2Fimages%2Fmedia%2F2018");
+        assertEquals(other, GalleryPicker.handBack(app, new Intent().setData(other)).getData());
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
     @Test public void thePickScreenHandsSeveralItemsBackToTheChat() {
         installGallery();
         String authority = "com.example.gallery.picked";

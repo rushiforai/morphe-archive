@@ -62,7 +62,8 @@ public class ConvertSaveTest {
             representation(AV1, 1080, 1920, 1_525_000, "1080p", "v1080"),
             sound("mp4a.40.2", 64_000, "lc"));
 
-    private static final String FULL_AV1 = "video/mp4 " + AV1 + " 1080x1920 1525kbps 1080p + audio/mp4 mp4a.40.2 0x0 64kbps";
+    private static final String AV1_TRACK = "video/mp4 " + AV1 + " 1080x1920 1525kbps 1080p";
+    private static final String FULL_AV1 = AV1_TRACK + " + audio/mp4 mp4a.40.2 0x0 64kbps";
     private static final String H264 = "video/mp4 avc1.64001f 720x1280 1200kbps 720p + audio/mp4 mp4a.40.2 0x0 64kbps";
     private static final String CONVERTED = ", converted to H.264 for other apps";
     private static final String KEPT = ", kept to files other apps can open";
@@ -106,6 +107,7 @@ public class ConvertSaveTest {
         MediaSave.policyForTests = null;
         Settings.DOWNLOAD_COMPATIBLE.resetToDefault();
         Settings.DOWNLOAD_CONVERT.resetToDefault();
+        Settings.DOWNLOAD_NO_AV1.resetToDefault();
         Settings.DOWNLOAD_QUALITY.resetToDefault();
         PauseForTests.resume();
         LogBufferManager.clearLogBuffer();
@@ -147,6 +149,61 @@ public class ConvertSaveTest {
         assertFalse(report, report.contains("in a format other apps can open"));
         // Every save here is refused before it connects, so the fallback shows in the report.
         assertTrue(report, report.contains("saving the tracks as they are: " + H264));
+    }
+
+    /**
+     * Never save AV1 video (#379): with it on, the AV1 1080p is passed over for the H.264 720p even
+     * on a phone that decodes AV1, the report says the switch did it rather than calling the save
+     * lower than the manifest's best, and Convert to keep the full size leaves it alone too, saying so.
+     */
+    @Test
+    public void theAv1SwitchPassesAv1OverOnAPhoneThatDecodesIt() throws Exception {
+        assertFalse(Settings.DOWNLOAD_NO_AV1.get());
+        assertFalse(MediaSave.skipsAv1());
+        String control = save(false, false, MANIFEST, SD);
+        assertTrue(control, control.contains("saving the video from its DASH manifest: " + FULL_AV1
+                + ", instead of mp4 (360p)\n"));
+
+        Settings.DOWNLOAD_NO_AV1.save(true);
+        assertTrue(MediaSave.skipsAv1());
+        String report = save(false, false, MANIFEST, SD);
+        assertTrue(report, report.contains("saving the video from its DASH manifest: " + H264
+                + ", instead of mp4 (360p), passing over the manifest's " + AV1_TRACK
+                + " as Never save AV1 video is on\n"));
+        assertFalse(report, report.contains(FULL_AV1));
+        assertFalse("a choice isn't a shortfall", report.contains("below the manifest's " + AV1_TRACK));
+        // The refused DASH save falls back to the single file, which is below the H.264 the manifest offers.
+        assertTrue(report, report.contains("below the manifest's " + H264.substring(0, H264.indexOf(" + "))));
+
+        report = save(true, true, MANIFEST, SD);
+        assertTrue(report, report.contains("saving the video from its DASH manifest: " + H264));
+        assertFalse(report, report.contains(CONVERTED));
+        assertTrue(report, report.contains(": Never save AV1 video is on"));
+
+        report = save(false, false, AV1_ONLY, SD);
+        assertTrue(report, report.contains("has no track to save with Never save AV1 video on: "));
+        assertTrue(report, report.contains("saving video mp4 (360p)"));
+        assertFalse("a choice isn't a shortfall", report.contains("below the manifest's " + AV1_TRACK));
+
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertFalse("paused, the switch is off", MediaSave.skipsAv1());
+    }
+
+    /** Details shows what the switch leaves: the H.264 720p, or the single file of an AV1-only manifest. */
+    @Test
+    public void detailsShowsThePictureTheAv1SwitchLeaves() {
+        Settings.DOWNLOAD_NO_AV1.save(true);
+        MediaSave.Planned planned = MediaSave.plannedVideo(SavesForTests.renditions(SD), MANIFEST);
+        assertEquals(720, planned.width());
+        assertEquals("avc1.64001f", planned.joined.codecs);
+
+        planned = MediaSave.plannedVideo(SavesForTests.renditions(SD), AV1_ONLY);
+        assertNull("the single file", planned.joined);
+        assertEquals(SD, planned.file.url);
+
+        Settings.DOWNLOAD_NO_AV1.save(false);
+        planned = MediaSave.plannedVideo(SavesForTests.renditions(SD), MANIFEST);
+        assertEquals(1080, planned.width());
     }
 
     /** Details shows the picture a Download saves: the full size it converts. */

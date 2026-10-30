@@ -5,7 +5,9 @@
 package app.hushmessenger.patches.coexist
 
 import app.hushmessenger.patches.MessengerTarget
+import app.hushmessenger.patches.controls.indexOfAnchor
 import app.hushmessenger.patches.controls.jumpTargets
+import app.hushmessenger.patches.controls.redexStringTables
 import app.hushmessenger.patches.controls.settingsExtension
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -20,6 +22,8 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
@@ -29,6 +33,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val PACKAGE_INFO = "Landroid/content/pm/PackageInfo;"
 
@@ -86,20 +91,25 @@ internal object FbnsPackageCheckFingerprint : Fingerprint(
     ),
 )
 
+internal const val THREADS_LINK_TAG = "ThreadsLinkLauncher"
+internal const val INSTAGRAM_LINK_TAG = "InstagramLinkLauncher"
+
 /**
  * Messenger's Threads and Instagram link launchers: each takes the tapped link, builds a view intent
  * for its app and hands it to Meta's family launcher, logging under its own tag when that throws.
+ * The app's package is checked apart from the fingerprint ([requireLinkPackage]), since some 585
+ * builds load Threads' from a string table instead of a literal.
  */
 internal object ThreadsLinkLauncherFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(CONTEXT, URI),
-    filters = listOf(string("com.instagram.barcelona"), string("ThreadsLinkLauncher")),
+    filters = listOf(string(THREADS_LINK_TAG)),
 )
 
 internal object InstagramLinkLauncherFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(CONTEXT, URI),
-    filters = listOf(string("com.instagram.android"), string("InstagramLinkLauncher")),
+    filters = listOf(string(INSTAGRAM_LINK_TAG)),
 )
 
 @Suppress("unused")
@@ -132,6 +142,9 @@ val restoreTrustPatch = bytecodePatch(
 
         val threads = ThreadsLinkLauncherFingerprint.method
         val instagram = InstagramLinkLauncherFingerprint.method
+        val tables = redexStringTables(mutableListOf<ClassDef>().apply { classDefForEach { add(it) } })
+        threads.requireLinkPackage("Threads", "com.instagram.barcelona", THREADS_LINK_TAG, tables)
+        instagram.requireLinkPackage("Instagram", "com.instagram.android", INSTAGRAM_LINK_TAG, tables)
         // Both launchers are checked before either changes.
         val sites = listOf(threads.linkLaunchSites("Threads"), instagram.linkLaunchSites("Instagram"))
 
@@ -140,6 +153,14 @@ val restoreTrustPatch = bytecodePatch(
         threads.reportLinkLaunches(sites[0])
         instagram.reportLinkLaunches(sites[1])
     }
+}
+
+/** Stops the patch unless the launcher loads [pkg], as a literal or a [redexStringTables] lookup, before its [tag]. */
+internal fun Method.requireLinkPackage(app: String, pkg: String, tag: String, tables: Map<String, Map<Int, String>>) {
+    val code = implementation?.instructions?.toList().orEmpty()
+    val named = code.indexOfAnchor(pkg, tables)
+    val tagged = code.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == tag }
+    if (named < 0 || named > tagged) throw PatchException("Restore screens on re-signed builds: $app's link launcher doesn't load $pkg before its tag")
 }
 
 /** Where a link launcher hands its intent to the family launcher, and the three registers of that call. */

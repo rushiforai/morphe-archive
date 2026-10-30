@@ -63,7 +63,9 @@ private const val PATCH = "Clean up Reels"
  * the Reels tab draws it in on its own draw nothing (#200, see ReelAnchors.kt). A fourteenth, also
  * off, keeps a video that's slow to load from showing "This is taking a while. Try checking your
  * network connection." (#222, see ReelSlowConnection.kt). A fifteenth, also off, plays whole reels
- * in the feed's Reels row instead of the short clip each tile repeats (#228, see FeedReelPreviews.kt). With Debug
+ * in the feed's Reels row instead of the short clip each tile repeats (#228, see FeedReelPreviews.kt). A
+ * sixteenth, also off, keeps the sidebar's Comment button on a reel whose comments are turned off, so
+ * they can still be read (#299, see ReelCommentButton.kt). With Debug
  * logging on, it also reports whether a reel that ends
  * is on the player the Reels auto-advance controller holds (see ReelBinding.kt), with no switch.
  *
@@ -80,7 +82,7 @@ val cleanUpReelsPatch = bytecodePatch(
     name = "Clean up Reels",
     description = "Hides clutter on reels, such as the Follow button, comment previews, Remix and Use template " +
         "buttons and Threads cards between reels, so more of the video shows, and can play each reel once " +
-        "instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Share, Save or speaker button, or the line naming the reel's sound. It can also open a video you tap in the feed on its own, with no reels after it, stop the \"This is taking a while\" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
+        "instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Share, Save or speaker button, or the line naming the reel's sound. It can also open a video you tap in the feed on its own, with no reels after it, stop the \"This is taking a while\" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over, or keep the Comment button on reels with comments turned off so you can read them. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
 ) {
     category("Reels")
     dependsOn(settingsPatch)
@@ -107,6 +109,8 @@ val cleanUpReelsPatch = bytecodePatch(
         hideReelCounts()
         // #190, #243, #265: Like, Comment, Share, Save and the direct WhatsApp button, skipped as their icon types come up.
         hideReelSaveButton()
+        // #299: the Comment button on a reel whose comments are turned off.
+        showReelCommentButton()
         // #190: the speaker button under the sidebar, from whichever place a server flag picks:
         // the video controls, through Facebook's own check for it, or the footer, through its null check.
         hideReelSoundButton()

@@ -1,3 +1,31 @@
+## [1.16.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.15.0...v1.16.0) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* version fix ([41cfb75](https://github.com/ShuhaibNC/morphe-patches/commit/41cfb75a691aae404bb7d94f9e6cbc93a7922579))
+* wmt patch ([b6b6e05](https://github.com/ShuhaibNC/morphe-patches/commit/b6b6e05734719228c6844adae0138080ccbadbba))
+* wmt version ([ea9132b](https://github.com/ShuhaibNC/morphe-patches/commit/ea9132b2aeec7c139b5f3cd3d2e35e0d6182f2c7))
+
+### ✨ New Features
+
+* wmt more patches ([ca44892](https://github.com/ShuhaibNC/morphe-patches/commit/ca4489271ddbcd98fb18d0cc91c3063bf010b7fd))
+* wmt patches ([8f2f065](https://github.com/ShuhaibNC/morphe-patches/commit/8f2f065342206bc3e4fea0f7683c15fe57ae99c9))
+
+## [1.16.0-dev.2](https://github.com/ShuhaibNC/morphe-patches/compare/v1.16.0-dev.1...v1.16.0-dev.2) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* version fix ([41cfb75](https://github.com/ShuhaibNC/morphe-patches/commit/41cfb75a691aae404bb7d94f9e6cbc93a7922579))
+* wmt patch ([b6b6e05](https://github.com/ShuhaibNC/morphe-patches/commit/b6b6e05734719228c6844adae0138080ccbadbba))
+* wmt version ([ea9132b](https://github.com/ShuhaibNC/morphe-patches/commit/ea9132b2aeec7c139b5f3cd3d2e35e0d6182f2c7))
+
+## [1.16.0-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.15.0...v1.16.0-dev.1) (2026-10-28)
+
+### ✨ New Features
+
+* wmt more patches ([ca44892](https://github.com/ShuhaibNC/morphe-patches/commit/ca4489271ddbcd98fb18d0cc91c3063bf010b7fd))
+* wmt patches ([8f2f065](https://github.com/ShuhaibNC/morphe-patches/commit/8f2f065342206bc3e4fea0f7683c15fe57ae99c9))
+
 ## [1.15.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.14.1...v1.15.0) (2026-10-25)
 
 ### 🐛 Bug Fixes

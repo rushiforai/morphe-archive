@@ -68,10 +68,12 @@ import app.morphe.extension.facebook.theme.AmoledBackground;
 import app.morphe.extension.facebook.theme.AmoledLightBackground;
 import app.morphe.extension.facebook.theme.AmoledTheme;
 import app.morphe.extension.facebook.theme.MarkColors;
+import app.morphe.extension.facebook.theme.MarkColors.Mark;
 import app.morphe.extension.facebook.navigation.HiddenTabs;
 import app.morphe.extension.facebook.navigation.FeedsSubtab;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.facebook.navigation.MarketplaceOnly;
+import app.morphe.extension.facebook.navigation.TabBarScrollAway;
 import app.morphe.extension.facebook.notifications.QuietHour;
 import app.morphe.extension.facebook.settings.SettingsRows.Heading;
 import app.morphe.extension.facebook.settings.SettingsRows.Row;
@@ -830,7 +832,21 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         super.updateUIAvailability();
         showMarketplaceSettings();
         showSaveFolder();
+        noteSeeThroughRestart();
         if (refreshWaysIn != null) refreshWaysIn.run();
+    }
+
+    /**
+     * See-through bars shows right away, except on a kept tab bar, whose layout Facebook builds as
+     * the main screen starts (#250). That change waits for a restart, and the restart row says so
+     * under the switch's own key, the way a restart-gated switch does; put back, it owes nothing.
+     * Asked after every change on the page, since the switch itself isn't restart-gated.
+     */
+    private void noteSeeThroughRestart() {
+        String key = Settings.TRANSLUCENT_BARS.key;
+        boolean changed = TabBarScrollAway.seeThroughRestartOwed()
+                ? restartPending.add(key) : restartPending.remove(key);
+        if (changed) onRestartPendingChanged();
     }
 
     @Override
@@ -1380,6 +1396,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 return L10n.t("Newest");
             case ALL_COMMENTS:
                 return L10n.t("All comments");
+            case OLDEST:
+                return L10n.t("Oldest");
             default:
                 return L10n.t("Facebook's choice");
         }
@@ -1393,6 +1411,10 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     static String commentOrderSummary(CommentOrder order) {
         if (order == CommentOrder.FACEBOOK) {
             return L10n.t("Comments open in the order Facebook picks, which is usually Most relevant.");
+        }
+        if (order == CommentOrder.OLDEST) {
+            // Facebook's own menu names this order All comments, so the summary says which it means.
+            return L10n.t("Comments open oldest first, on every post. Facebook's sort menu then shows All comments.");
         }
         return L10n.f("A post's comments open with %1$s picked in their sort menu, where the post offers it.",
                 commentOrderLabel(order));
@@ -1773,21 +1795,34 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         return row;
     }
 
+    /** The setting a Badge and logo colors row keeps its code in. */
+    static StringSetting markColorSetting(Mark mark) {
+        switch (mark) {
+            case LOGO: return Settings.LOGO_COLOR;
+            case TAB: return Settings.TAB_COLOR;
+            default: return Settings.BADGE_COLOR;
+        }
+    }
+
     /**
-     * Badge and logo colors (#263): a color code the count badges on the tabs take, or with [logo]
-     * the Facebook logo at the top of Home. What's saved is the code in capitals, blank for
-     * Facebook's own.
+     * Badge and logo colors (#263): a color code the count badges on the tabs take, the Facebook
+     * logo at the top of Home, or the selected tab (#297), by [mark]. What's saved is the code in
+     * capitals, blank for Facebook's own.
      */
-    MarkColorRow markColorRow(Context context, boolean logo) {
-        StringSetting setting = logo ? Settings.LOGO_COLOR : Settings.BADGE_COLOR;
-        MarkColorRow row = new MarkColorRow(context, logo);
+    MarkColorRow markColorRow(Context context, Mark mark) {
+        StringSetting setting = markColorSetting(mark);
+        MarkColorRow row = new MarkColorRow(context, mark);
         row.setKey(setting.key);
-        String title = logo ? L10n.t("Logo color") : L10n.t("Badge color");
+        String title = mark == Mark.LOGO ? L10n.t("Logo color")
+                : mark == Mark.TAB ? L10n.t("Selected tab color") : L10n.t("Badge color");
         row.setTitle(title);
         row.setDialogTitle(title);
-        row.setDialogMessage(logo
+        row.setDialogMessage(mark == Mark.LOGO
                 ? L10n.t("A color code (#RRGGBB) for the Facebook logo at the top of Home, like #2ECC71. Leave it "
                         + "blank for Facebook's blue.")
+                : mark == Mark.TAB
+                ? L10n.t("A color code (#RRGGBB) for the selected tab's icon and the line over it in the tab bar, like "
+                        + "#2ECC71. Leave it blank for Facebook's own.")
                 : L10n.t("A color code (#RRGGBB) for the count badges on the tabs, like #2ECC71. Leave it blank for "
                         + "Facebook's red."));
         row.setPositiveButtonText(L10n.t("Save"));
@@ -1813,15 +1848,25 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     }
 
     /** What a Badge and logo colors row says for [text], the code typed there. One it refuses keeps Facebook's own. */
-    static String markColorSummary(boolean logo, String text) {
+    static String markColorSummary(Mark mark, String text) {
         String stored = MarkColors.stored(text);
         if (stored == null || stored.isEmpty()) {
-            return logo ? L10n.t("The Facebook logo keeps its blue. Type a color code to change it.")
-                    : L10n.t("Badges keep Facebook's red. Type a color code to change it.");
+            switch (mark) {
+                case LOGO: return L10n.t("The Facebook logo keeps its blue. Type a color code to change it.");
+                case TAB: return L10n.t("The selected tab keeps Facebook's color. Type a color code to change it.");
+                default: return L10n.t("Badges keep Facebook's red. Type a color code to change it.");
+            }
         }
-        return logo ? L10n.f("The Facebook logo at the top of Home is %1$s. Restart Facebook to see the change.",
-                L10n.isolate(stored))
-                : L10n.f("Count badges on the tabs are %1$s. Restart Facebook to see the change.", L10n.isolate(stored));
+        switch (mark) {
+            case LOGO:
+                return L10n.f("The Facebook logo at the top of Home is %1$s. Restart Facebook to see the change.",
+                        L10n.isolate(stored));
+            case TAB:
+                return L10n.f("The selected tab in the tab bar is %1$s. Restart Facebook to see the change.",
+                        L10n.isolate(stored));
+            default:
+                return L10n.f("Count badges on the tabs are %1$s. Restart Facebook to see the change.", L10n.isolate(stored));
+        }
     }
 
     /**

@@ -1,0 +1,75 @@
+name: Instagram version watch
+
+# Instagram ships a new build every 1-2 weeks and obfuscates heavily, so the
+# pinned target in com/irzak/patches/instagram/shared/Constants.kt drifts out of
+# date fast. This checks the latest published version daily and opens a tracking
+# issue when it moves ahead of the pin, so fingerprints can be re-validated and
+# the target bumped (bump: commit) promptly.
+
+on:
+  schedule:
+    - cron: '17 6 * * *'   # daily, 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  ACT:
+
+jobs:
+  check:
+    name: Check for a newer Instagram build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Read pinned version
+        id: pinned
+        run: |
+          CONST=patches/src/main/kotlin/com/irzak/patches/instagram/shared/Constants.kt
+          PINNED=$(grep -oE 'version = "[0-9]+\.0\.0\.[0-9]+\.[0-9]+"' "$CONST" | head -1 | grep -oE '[0-9]+\.0\.0\.[0-9]+\.[0-9]+')
+          echo "version=$PINNED" >> "$GITHUB_OUTPUT"
+          echo "Pinned: $PINNED"
+
+      - name: Fetch latest published version
+        id: latest
+        run: |
+          # Best-effort scrape. The version source is the maintenance-sensitive
+          # part of this workflow: if it stops returning a version, adjust the URL
+          # or selector below (APKMirror / APKPure both carry com.instagram.android).
+          UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
+          HTML=$(curl -fsSL -A "$UA" 'https://www.apkmirror.com/apk/instagram/instagram-instagram/' || true)
+          LATEST=$(printf '%s' "$HTML" | grep -oE 'Instagram [0-9]+\.0\.0\.[0-9]+\.[0-9]+' | grep -oE '[0-9]+\.0\.0\.[0-9]+\.[0-9]+' | sort -V | tail -1)
+          if [ -z "$LATEST" ]; then
+            echo "::warning::Could not determine latest Instagram version; source may need adjusting."
+            echo "version=" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=$LATEST" >> "$GITHUB_OUTPUT"
+            echo "Latest: $LATEST"
+          fi
+
+      - name: Open tracking issue if a newer build exists
+        if: steps.latest.outputs.version != '' && steps.pinned.outputs.version != '' && steps.latest.outputs.version != steps.pinned.outputs.version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PINNED: ${{ steps.pinned.outputs.version }}
+          LATEST: ${{ steps.latest.outputs.version }}
+        run: |
+          NEWER=$(printf '%s\n%s\n' "$PINNED" "$LATEST" | sort -V | tail -1)
+          [ "$NEWER" = "$PINNED" ] && { echo "Pinned ($PINNED) is not behind latest ($LATEST); nothing to do."; exit 0; }
+          TITLE="Instagram $LATEST available (pinned: $PINNED)"
+          if gh issue list --state open --search "$TITLE in:title" --json title --jq '.[].title' | grep -qxF "$TITLE"; then
+            echo "Issue already open: $TITLE"
+            exit 0
+          fi
+          gh issue create --title "$TITLE" --label "app-update" \
+            --body "A newer Instagram build is published.
+
+          - Pinned: \`$PINNED\`
+          - Latest: \`$LATEST\`
+
+          Re-validate the Instagram fingerprints against \`$LATEST\`, update the \`AppTarget(version = ...)\` in \`patches/src/main/kotlin/com/irzak/patches/instagram/shared/Constants.kt\`, and land it as a \`bump:\` commit." \
+            || echo "::warning::Issue creation failed (ensure the 'app-update' label exists and Actions can write issues)."

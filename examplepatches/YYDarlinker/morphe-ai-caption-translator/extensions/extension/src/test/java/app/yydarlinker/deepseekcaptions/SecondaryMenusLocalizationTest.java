@@ -9,10 +9,7 @@ import android.view.*;
 import android.widget.*;
 import android.preference.*;
 import java.lang.reflect.*;
-import java.nio.file.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import org.json.*;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.robolectric.*;
@@ -24,9 +21,9 @@ import app.morphe.extension.shared.settings.*;
 @RunWith(RobolectricTestRunner.class) @Config(sdk=35,qualifiers="w320dp-h800dp-mdpi") @GraphicsMode(GraphicsMode.Mode.NATIVE) @LooperMode(LooperMode.Mode.PAUSED)
 public class SecondaryMenusLocalizationTest {
     public static class Settings extends PreferenceActivity {}
-    Settings activity;final JSONArray audit=new JSONArray();
+    Settings activity;int checkedMenus;
     @Before public void start(){activity=Robolectric.buildActivity(Settings.class).setup().visible().get();activity.getApplicationInfo().flags|=android.content.pm.ApplicationInfo.FLAG_SUPPORTS_RTL;Configuration config=new Configuration(activity.getResources().getConfiguration());config.setLocale(Locale.SIMPLIFIED_CHINESE);config.fontScale=1.3f;activity.getResources().updateConfiguration(config,activity.getResources().getDisplayMetrics());}
-    @After public void finish()throws Exception{Dialog dialog=ShadowDialog.getLatestDialog();if(dialog!=null)dialog.dismiss();BaseSettings.MORPHE_LANGUAGE.save(AppLanguage.DEFAULT);activity.finish();java.nio.file.Path out=Paths.get(System.getProperty("scheduler.output"),"localization");Files.createDirectories(out);Files.write(out.resolve("secondary-menus-"+System.nanoTime()+".json"),audit.toString(2).getBytes(StandardCharsets.UTF_8));}
+    @After public void finish()throws Exception{Dialog dialog=ShadowDialog.getLatestDialog();if(dialog!=null)dialog.dismiss();BaseSettings.MORPHE_LANGUAGE.save(AppLanguage.DEFAULT);activity.finish();}
     void choose(AppLanguage language){BaseSettings.MORPHE_LANGUAGE.save(language);Shadows.shadowOf(Looper.getMainLooper()).idle();}
     String text(String key){return CaptionStrings.get(activity,key);}
     static TextView label(View root,String value){if(root instanceof TextView&&value.contentEquals(((TextView)root).getText()))return (TextView)root;if(root instanceof ViewGroup)for(int i=0;i<((ViewGroup)root).getChildCount();i++){TextView found=label(((ViewGroup)root).getChildAt(i),value);if(found!=null)return found;}return null;}
@@ -37,7 +34,7 @@ public class SecondaryMenusLocalizationTest {
         View root=current();for(String key:keys){TextView value=label(root,text(key));assertNotNull(menu+" "+key+" "+CaptionTextResolver.locale(activity),value);
             if(value instanceof Button){value.measure(View.MeasureSpec.makeMeasureSpec(280,View.MeasureSpec.AT_MOST),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));value.layout(0,0,value.getMeasuredWidth(),value.getMeasuredHeight());assertNotNull(value.getLayout());assertEquals(key,value.length(),value.getLayout().getLineEnd(value.getLayout().getLineCount()-1));for(int i=0;i<value.getLineCount();i++)assertEquals(key,0,value.getLayout().getEllipsisCount(i));}
         }
-        audit.put(new JSONObject().put("language",CaptionTextResolver.locale(activity).toLanguageTag()).put("menu",menu).put("keys",new JSONArray(Arrays.asList(keys))).put("actual_widgets",true));
+        checkedMenus++;
     }
     @Test public void allFourteenLanguagesCoverConfirmProfilesRenameDeleteAddClearKey()throws Exception{
         for(AppLanguage language:AppLanguage.values())if(language!=AppLanguage.DEFAULT){choose(language);int[] confirmations={0};
@@ -54,7 +51,7 @@ public class SecondaryMenusLocalizationTest {
             click("profile_delete");required("profile-delete","profile_keep","profile_confirm_delete");click("profile_keep");ShadowDialog.getLatestDialog().dismiss();
             profiles.showProfiles();click("profile_add");required("add-profile","profile_new_summary","cancel","profile_save");click("cancel");
             profiles.clearCurrentKey();required("clear-key","profile_clear_key_summary","cancel","profile_clear_key");click("cancel");ApiProfiles.delete(activity,extra);
-        }assertEquals(112,audit.length());
+        }assertEquals(112,checkedMenus);
     }
     @Test public void modelMenusAndEditorActionsUseAddonLanguageAndKeepModelIdsVerbatim()throws Exception{
         for(AppLanguage language:AppLanguage.values())if(language!=AppLanguage.DEFAULT){choose(language);LinearLayout root=new LinearLayout(activity);((FrameLayout)activity.findViewById(android.R.id.content)).addView(root,new FrameLayout.LayoutParams(-1,100));
@@ -68,7 +65,7 @@ public class SecondaryMenusLocalizationTest {
             Method showMenu=DeepSeekModelPreference.class.getDeclaredMethod("showModelMenu");showMenu.setAccessible(true);showMenu.invoke(preference);Field menu=DeepSeekModelPreference.class.getDeclaredField("modelMenu");menu.setAccessible(true);PopupWindow popup=(PopupWindow)menu.get(preference);assertNotNull(language+" popup",popup);assertTrue(popup.isShowing());
             assertNotNull(label(popup.getContentView(),"    "+text("model")+" (2)"));assertNotNull(label(popup.getContentView(),"    provider-model-42"));popup.dismiss();
             Method copyPages=DeepSeekDiagnosticsPreference.class.getDeclaredMethod("copyPages",Context.class,String.class);copyPages.setAccessible(true);copyPages.invoke(null,activity,"offline diagnostic record");Dialog chunks=ShadowDialog.getLatestDialog();required("diagnostic-copy-parts","cancel");assertNotNull(label(current(),text("copy_parts_title")));chunks.dismiss();
-            audit.put(new JSONObject().put("language",language.name()).put("model_id_verbatim",true).put("editor_menu_localized",true));((FrameLayout)activity.findViewById(android.R.id.content)).removeView(root);
+            checkedMenus++;((FrameLayout)activity.findViewById(android.R.id.content)).removeView(root);
         }
     }
     @Test public void settingsWithoutPromptHasContinuousApiStyleDiagnosticsAndPreservesLegacyBytes()throws Exception{
@@ -80,8 +77,8 @@ public class SecondaryMenusLocalizationTest {
             for(int i=0;i<screen.getPreferenceCount();i++){Preference item=screen.getPreference(i);page.addView(item.getView(null,page));if(item instanceof PreferenceGroup)for(int j=0;j<((PreferenceGroup)item).getPreferenceCount();j++)page.addView(((PreferenceGroup)item).getPreference(j).getView(null,page));}
             page.measure(View.MeasureSpec.makeMeasureSpec(320,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));page.layout(0,0,320,page.getMeasuredHeight());
             assertEquals(text("api_config"),categories.get(0).getTitle());assertEquals(text("style"),categories.get(1).getTitle());assertEquals(text("cache_diagnostics"),categories.get(2).getTitle());assertEquals(before,ApiProfiles.values(activity).getAll());assertNull(label(page,text("translation_requirements")));
-            java.nio.file.Path out=Paths.get(System.getProperty("scheduler.output"),"localization");Files.createDirectories(out);Bitmap pixels=Bitmap.createBitmap(320,page.getHeight(),Bitmap.Config.ARGB_8888);page.draw(new Canvas(pixels));try(java.io.OutputStream stream=Files.newOutputStream(out.resolve("settings-no-prompt-"+language.name()+".png"))){pixels.compress(Bitmap.CompressFormat.PNG,100,stream);}pixels.recycle();
-            audit.put(new JSONObject().put("language",language.name()).put("width_dp",320).put("font_scale",1.3).put("prompt_ui_absent",true).put("nonempty_categories",3).put("legacy_settings_preserved",true).put("height_px",page.getHeight()));
+
+            checkedMenus++;
         }
     }
 }

@@ -16,6 +16,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.telegram.misc.downloadspeed.LOAD_OPERATION
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -36,7 +37,7 @@ import org.junit.Test
 /** MediaController's Save to Gallery writes on both declared builds, where the gallery folder is chosen. */
 class GalleryFolderFixtureTest {
     private val hosts = setOf(IMAGE_LOADER, FILE_LOADER, MESSAGE_OBJECT, TL_MESSAGE, DOCUMENT, DIALOG_OBJECT, MESSAGES_CONTROLLER,
-        MESSAGES_STORAGE, GALLERY_MEDIA_CONTROLLER, ANDROID_UTILITIES)
+        MESSAGES_STORAGE, GALLERY_MEDIA_CONTROLLER, ANDROID_UTILITIES, LOAD_OPERATION)
 
     private fun context(build: File): BytecodePatchContext {
         val images = FixtureDex.classes(build, setOf(IMAGE_LOADER)).values.single()

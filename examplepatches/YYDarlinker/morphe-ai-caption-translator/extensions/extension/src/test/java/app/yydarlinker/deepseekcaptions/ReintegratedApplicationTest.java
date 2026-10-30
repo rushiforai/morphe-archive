@@ -254,9 +254,22 @@ public class ReintegratedApplicationTest extends N39UiGeometryFixture {
         CaptionSessionIntent.userToggled(a,true);
         selectNative("zh-Hans",true);
         assertEquals(CaptionNativeProjection.UNKNOWN,CaptionNativeProjection.ccState());
-        RebuildController.prewarm(a,SOURCE);
+        Field active=RebuildController.class.getDeclaredField("active");active.setAccessible(true);
+        assertNull("the scenario begins without an engine session",active.get(null));
+        CaptionActions.command(Action.PREWARM,url);
         idle(500);assertEquals(0,sourceGets.get());assertFalse(CaptionActions.isVisibleActive());
+        assertNull("the real PREWARM port must not start even an invisible session",active.get(null));
         assertEquals("no CC observation was consulted",CaptionNativeProjection.UNKNOWN,CaptionNativeProjection.ccState());
+    }
+    @Test public void prewarmWithNativePermissionUsesTheRealPortWithoutShowingTheSession() throws Exception {
+        assertEquals(CaptionNativeProjection.ON,CaptionNativeProjection.ccState());
+        assertNotNull("native selection must be available",CaptionSessionReconciler.currentSelection());
+        Field active=RebuildController.class.getDeclaredField("active");active.setAccessible(true);
+        assertNull("the scenario begins without an engine session",active.get(null));
+        CaptionActions.command(Action.PREWARM,url);
+        assertNotNull("permission allows a real prewarm session",active.get(null));
+        assertFalse("prewarm itself does not show the session",CaptionActions.isVisibleActive());
+        await(()->sourceGets.get()>0);
     }
     /**
      * The real port, not a test shadow: the caption menu's Off must write the USER_OFF intent and

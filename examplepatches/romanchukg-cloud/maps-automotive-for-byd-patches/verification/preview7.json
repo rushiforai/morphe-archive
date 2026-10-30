@@ -1,0 +1,53 @@
+{
+  "agent": "Claude",
+  "status": "published_test_preview",
+  "version": "0.1.0-preview.7",
+  "mpp_sha256": "241da5726592d5fc3847c676b54349c31b73320cb28ab2040d6cfb52e83f6a01",
+  "bytes": 693138,
+  "maps_functional_revision": "54R",
+  "google_functional_revision": "08",
+  "maps_extension_identical_to_build_54R": true,
+  "google_extension_identical_to_preview6": true,
+  "patch_dex_identical_to_preview6": true,
+  "build_jdk": "OpenJDK 21.0.8 (reproduces the 54R and preview 6 extensions; JDK 24 does not)",
+  "maps_desktop_apply": {
+    "desktop": "1.18.1",
+    "classes_identical_to_54R": 31310,
+    "non_signature_entries_identical_to_54R": 3258,
+    "native_diff": "PASS 70/70 hooks, 0 failures",
+    "hook_flow": "PASS 0 failures"
+  },
+  "host_checks": {
+    "recovery": 71,
+    "stalled_recovery": 25,
+    "google_provider_routes": 301,
+    "pointer_horizontal": 151,
+    "pointer_54N_contract": 74,
+    "navigation_hook_original_dex": 50,
+    "pointer_x_consumers": 10,
+    "wheel_learning": 41,
+    "gemini_button": 14,
+    "gemini_button_54I": 35,
+    "prior_suites": "26 PASS; 38K-wheel stale as on its base"
+  },
+  "car": {
+    "model": "BYD Tang DiLink 5.0 API 32",
+    "installed_by_owner_via_manager": [
+      "54O",
+      "54P",
+      "54Q"
+    ],
+    "data_preserved": true,
+    "installed_code_matched_builds": true,
+    "compact_gemini_opened": true,
+    "manual_google_reregister_fixed_half_bound_service": true,
+    "not_tested": [
+      "automatic stalled recovery after car start",
+      "second press closes Gemini (54R)",
+      "horizontal pointer",
+      "wheel button assignment"
+    ]
+  },
+  "public_candidate_no_apks_keys_private_paths": true,
+  "telegram_photo": null
+}

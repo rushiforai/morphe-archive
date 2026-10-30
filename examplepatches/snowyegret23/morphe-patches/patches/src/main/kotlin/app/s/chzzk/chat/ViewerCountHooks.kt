@@ -90,7 +90,8 @@ internal fun BytecodePatchContext.addViewerCountHooks() {
     val playableType = "${COMMUNITY}data/core/entity/player/StreamingLivePlayableData;"
     val view = mutableClassDefBy(viewType)
     val modelGetter = view.methods.single { it.name == "getViewModel" && it.returnType == modelType }
-    val playable = classDefBy(modelType).fields.single { it.name == "o0" && it.type == "Landroidx/lifecycle/MutableLiveData;" }
+    val playableField = if (packageMetadata.versionName == "3.16.0") "k0" else "o0"
+    val playable = classDefBy(modelType).fields.single { it.name == playableField && it.type == "Landroidx/lifecycle/MutableLiveData;" }
     check(classDefBy(playableType).methods.any { it.name == "getChannelId" && it.returnType == "Ljava/lang/String;" })
     bridge("currentChannel", 3, """
         check-cast p0, $viewType

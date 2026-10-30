@@ -33,6 +33,7 @@ public final class NoGoogleSettings {
     // Keyboard: right-to-left languages change only the letters (KeyboardDirection)
     public static final String KEEP_LTR = "keep_ltr";
     public static final String ALWAYS_INCOGNITO = "always_incognito";
+    public static final String INCOGNITO_CLIPBOARD = "incognito_clipboard"; // copied text still kept while it is on
     // Other languages' dictionaries from Google, through the network helper (Dictionaries)
     public static final String DICTIONARY_DOWNLOADS = "dictionary_downloads";
     public static final String VOICE_ENGINE = "voice_engine";          // "whisper" | "stock"
@@ -104,8 +105,9 @@ public final class NoGoogleSettings {
     }
 
     static boolean defaultBool(String key) {
-        // Every blocking / hiding switch defaults to on, GIF sources and dictionary downloads (network)
-        // and always-incognito to off, and the ported Gboard-patches features as in Gboard-patches.
+        // Every blocking / hiding switch and the incognito clipboard default to on, GIF sources and
+        // dictionary downloads (network) and always-incognito to off, and the ported Gboard-patches
+        // features as in Gboard-patches.
         if (key.startsWith(PortedFeatures.PREF_PREFIX)) return PortedFeatures.defaultOn(key);
         return !key.startsWith(GIF_SOURCE_PREFIX) && !key.equals(ALWAYS_INCOGNITO) && !key.equals(DICTIONARY_DOWNLOADS);
     }

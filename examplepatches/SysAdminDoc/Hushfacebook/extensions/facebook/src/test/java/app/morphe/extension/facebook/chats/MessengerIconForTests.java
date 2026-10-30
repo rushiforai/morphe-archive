@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.Signature;
 
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.shadows.ShadowPackageManager;
@@ -33,7 +34,12 @@ public final class MessengerIconForTests {
      * activity, the entry a home screen icon starts.
      */
     public static void install() {
-        MessengerCardForTests.install(true);
+        install(null);
+    }
+
+    /** Installs Messenger with its launcher entry, carrying [signer] as its current certificate. */
+    static void install(Signature signer) {
+        MessengerCardForTests.install(true, signer);
         ShadowPackageManager packages = shadowOf(app().getPackageManager());
         packages.addActivityIfNotPresent(HOME);
         IntentFilter launcher = new IntentFilter(Intent.ACTION_MAIN);

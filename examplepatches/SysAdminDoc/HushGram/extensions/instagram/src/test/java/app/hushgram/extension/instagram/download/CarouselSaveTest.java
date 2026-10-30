@@ -745,7 +745,8 @@ public class CarouselSaveTest {
 
     /**
      * The video a cover is taken from is the largest picture the phone decodes, of the files and
-     * the manifest's tracks: AV1 only on a phone with an AV1 decoder, and only Meta's addresses.
+     * the manifest's tracks: AV1 only on a phone with an AV1 decoder and Never save AV1 video off
+     * (#379), and only Meta's addresses.
      */
     @Test public void theCoverComesFromTheLargestVideoThePhoneDecodes() {
         Object av1Before = org.robolectric.util.ReflectionHelpers.getStaticField(DashSave.class, "canWriteAv1");
@@ -765,6 +766,11 @@ public class CarouselSaveTest {
             org.robolectric.util.ReflectionHelpers.setStaticField(DashSave.class, "canWriteAv1", Boolean.TRUE);
             assertEquals(cdn + "v1080.mp4?oh=1&oe=2", CoverFrame.source(files, manifest, still).url);
 
+            Settings.DOWNLOAD_NO_AV1.save(true);
+            assertEquals("the switch passes the AV1 over on a phone that decodes it", cdn + "v720.mp4?oh=1&oe=2",
+                    CoverFrame.source(files, manifest, still).url);
+            Settings.DOWNLOAD_NO_AV1.save(false);
+
             org.robolectric.util.ReflectionHelpers.setStaticField(DashSave.class, "canWriteAv1", Boolean.FALSE);
             assertEquals("of two at 720, the track that states the smaller file", cdn + "v720.mp4?oh=1&oe=2",
                     CoverFrame.source(files, manifest, still).url);
@@ -776,6 +782,7 @@ public class CarouselSaveTest {
             assertNull(CoverFrame.source(null, null, still));
         } finally {
             org.robolectric.util.ReflectionHelpers.setStaticField(DashSave.class, "canWriteAv1", av1Before);
+            Settings.DOWNLOAD_NO_AV1.resetToDefault();
         }
     }
 

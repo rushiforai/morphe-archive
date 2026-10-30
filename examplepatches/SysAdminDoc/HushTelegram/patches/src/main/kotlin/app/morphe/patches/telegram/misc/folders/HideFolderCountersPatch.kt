@@ -92,6 +92,16 @@ val hideFolderCountersPatch = bytecodePatch(
                 "the long press item's stubs don't build (${failed.javaClass.simpleName}: ${failed.message})"
             }
         }
+        // So do the unread counts, which leave the hidden chats out or count them all as before.
+        val counts = if (unhidden == null) resolveUnreadCounts() else null
+        val uncounted = counts?.let {
+            it.missing ?: try {
+                writeRecountStub()
+                null
+            } catch (failed: Exception) {
+                "the unread counts' stub doesn't build (${failed.javaClass.simpleName}: ${failed.message})"
+            }
+        }
         insertCounterAnswer(counter)
         enableStatus("hideFolderCounters")
         if (missing == null) {
@@ -104,6 +114,9 @@ val hideFolderCountersPatch = bytecodePatch(
             }
             launch.apply()
             enableCapability("launchFolder")
+            if (launch.refs!!.scrollTo == null) {
+                patchLog.warning("Hide folder tab counters: the folder tabs can't be scrolled. A picked folder past the screen's edge opens out of view.")
+            }
         } else {
             patchLog.warning("Hide folder tab counters: $missing. The patch goes on without opening a folder at launch.")
         }
@@ -114,6 +127,12 @@ val hideFolderCountersPatch = bytecodePatch(
                 menu!!.apply()
             } else {
                 patchLog.warning("Hide folder tab counters: $noMenu. Hidden chats go on without Hide from chat list in the long press menu.")
+            }
+            if (uncounted == null) {
+                counts!!.apply()
+                enableCapability("hiddenUnread")
+            } else {
+                patchLog.warning("Hide folder tab counters: $uncounted. Hidden chats go on with their unread counts.")
             }
         } else {
             patchLog.warning("Hide folder tab counters: $unhidden. The patch goes on without hiding chats.")

@@ -1,3 +1,10 @@
+## [0.30.43](https://github.com/Forsigh/waze-patches/compare/v0.30.42...v0.30.43) (2026-10-29)
+
+### New
+
+* **Change Waze icon**: use the Forsigh Reaper, the stock ghost in any colour, or your own square image (PNG/JPG/WebP, 432x432 recommended)
+* **Rename app**: changes the Waze name under the icon only; the package stays `com.waze`
+
 ## [0.30.42](https://github.com/Forsigh/waze-patches/compare/v0.30.41...v0.30.42) (2026-10-27)
 
 ### Fixes

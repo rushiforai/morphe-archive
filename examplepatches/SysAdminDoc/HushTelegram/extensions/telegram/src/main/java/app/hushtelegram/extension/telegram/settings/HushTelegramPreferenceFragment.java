@@ -403,9 +403,15 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         }
         if (build.contains(PatchFamily.HIDE_FOLDER_COUNTERS)) {
             PreferenceCategory folderTabs = on(pages, PatchFamily.HIDE_FOLDER_COUNTERS);
-            folderTabs.addPreference(toggle(context, Settings.HIDE_FOLDER_COUNTERS, L10n.t("Hide folder tab counters"),
+            SwitchPreference counters = toggle(context, Settings.HIDE_FOLDER_COUNTERS, L10n.t("Hide folder tab counters"),
                     PatchFamily.HIDE_FOLDER_COUNTERS.coverageSummary(L10n.t("Folder tabs above the chat list show just their names, without unread counts. "
-                            + "Chats stay unread and the app icon badge doesn't change."))));
+                            + "Chats stay unread and the app icon badge doesn't change.")));
+            counters.setOnPreferenceChangeListener((row, value) -> {
+                // The tabs only ask for their counts when the counts change, so they're counted again once the switch is saved.
+                Utils.runOnMainThreadDelayed(HiddenChats::refreshAll, 0);
+                return true;
+            });
+            folderTabs.addPreference(counters);
             if (PatchFamily.Capability.LAUNCH_FOLDER.installed()) {
                 folderTabs.addPreference(toggle(context, Settings.LAUNCH_FOLDER, L10n.t("Open a folder at launch"),
                         L10n.t("The chat list opens on the folder you pick below instead of All Chats. Each account keeps its "
@@ -414,21 +420,20 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 folderTabs.addPreference(launchFolderRow(context));
             }
             if (PatchFamily.Capability.HIDE_ALL_CHATS.installed()) {
-                folderTabs.addPreference(toggle(context, Settings.HIDE_ALL_CHATS, L10n.t("Hide All Chats"),
-                        L10n.t("The folder tabs leave out All Chats, so the chat list opens on the folder picked above or "
-                                + "your first one. Archived Chats moves to the chat list's menu, and to the side menu when "
-                                + "that's on. Tabs can't be dragged into a new order while this is on. Restart Telegram to "
-                                + "see the change.")));
+                folderTabs.addPreference(toggle(context, Settings.HIDE_ALL_CHATS, L10n.t("Hide All Chats"), hideAllChatsSummary()));
             }
             if (PatchFamily.Capability.HIDDEN_CHATS.installed()) {
                 SwitchPreference hide = toggle(context, Settings.HIDDEN_CHATS, L10n.t("Hide picked chats"),
                         L10n.t("The chats you pick below leave All Chats, your folders and archived chats. They keep their "
                                 + "messages and notifications, search still finds them, and nothing changes on your other "
-                                + "devices. Each account keeps its own list. Folder tab counts and the app badge still count "
-                                + "their unread messages."));
+                                + "devices. Each account keeps its own list.") + " "
+                                // The badge follows their notifications, which they keep.
+                                + (PatchFamily.Capability.HIDDEN_UNREAD.installed()
+                                        ? L10n.t("Folder tab counts leave them out, but the app badge still counts their unread messages.")
+                                        : L10n.t("Folder tab counts and the app badge still count their unread messages.")));
                 hide.setOnPreferenceChangeListener((row, value) -> {
                     // Once the switch is saved, so the chat list sorts by what it says.
-                    Utils.runOnMainThreadDelayed(HiddenChats::refreshShown, 0);
+                    Utils.runOnMainThreadDelayed(HiddenChats::refreshAll, 0);
                     return true;
                 });
                 folderTabs.addPreference(hide);
@@ -589,7 +594,7 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                             + "Scheduled GIFs go out without asking."))));
             on(pages, PatchFamily.ASK_BEFORE_STICKER).addPreference(toggle(context, Settings.ASK_BEFORE_VOICE_VIDEO, L10n.t("Ask before sending a voice or video message"),
                     PatchFamily.ASK_BEFORE_STICKER.coverageSummary(L10n.t("Asks Send or Cancel before a voice or video message you recorded goes out. "
-                            + "Cancel throws the recording away."))));
+                            + "The recording pauses first, and Cancel leaves it paused, ready to play, delete or send."))));
             on(pages, PatchFamily.ASK_BEFORE_STICKER).addPreference(toggle(context, Settings.ASK_BEFORE_CALL, L10n.t("Ask before starting a call"),
                     PatchFamily.ASK_BEFORE_STICKER.coverageSummary(L10n.t("Asks Call or Cancel before the call button in a chat or on a profile starts a "
                             + "call."))));
@@ -689,8 +694,8 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     /** What the storage folder switch does, then whether Android gives Telegram the access it needs, read when the page shows. */
     static String storageFolderSummary(boolean access) {
         return L10n.t("New photos, videos and files Telegram downloads go to Internal storage/Telegram, where file managers"
-                + " and other apps can open them, instead of Android/data. Files downloaded before stay in Android/data."
-                + " Needs All files access and a restart.")
+                + " and other apps can open them, instead of Android/data. Files downloaded before stay in Android/data,"
+                + " and Telegram still opens them from there. Needs All files access and a restart.")
                 + "\n" + (access ? L10n.t("All files access is on.")
                 : L10n.t("All files access is off, so Telegram's files stay in Android/data. Turning this on opens the setting."));
     }
@@ -823,6 +828,13 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             });
             on(pages, PatchFamily.UNIFIED_PUSH).addPreference(push);
             on(pages, PatchFamily.UNIFIED_PUSH).addPreference(app);
+            // Works with or without UnifiedPush, for builds where no push arrives at all.
+            if (PatchFamily.Capability.REACTION_ALERTS.installed()) {
+                on(pages, PatchFamily.UNIFIED_PUSH).addPreference(toggle(context, Settings.REACTION_ALERTS,
+                        L10n.t("Reaction notifications without push"), L10n.t("Shows a notification when someone reacts to your"
+                                + " message while Telegram is connected, even when no push arrives. A reaction that also"
+                                + " comes by push shows once.")));
+            }
         }
         if (build.contains(PatchFamily.SILENCE_NON_CONTACTS)) {
             on(pages, PatchFamily.SILENCE_NON_CONTACTS).addPreference(toggle(context, Settings.SILENCE_NON_CONTACTS, L10n.t("Silence people outside your contacts"),
@@ -1675,6 +1687,32 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         return choice == 0 ? L10n.t("All Chats") : shown.folders.get(choice - 1).name;
     }
 
+    /** What Hide All Chats does, and with it on, why the chat list kept All Chats when it did. */
+    static String hideAllChatsSummary() {
+        String summary = L10n.t("The folder tabs leave out All Chats, so the chat list opens on the folder picked above or "
+                + "your first one. Archived Chats moves to the chat list's menu, and to the side menu when "
+                + "that's on. Tabs can't be dragged into a new order while this is on. Restart Telegram to "
+                + "see the change.");
+        LaunchFolder.Kept kept = Settings.HIDE_ALL_CHATS.get() ? LaunchFolder.kept() : null;
+        if (kept == null) return summary;
+        String why;
+        if (kept == LaunchFolder.Kept.NO_ARCHIVE) {
+            // With the side menu in the build, it's off: Disable pull to archive is the other way in.
+            why = PatchFamily.Capability.SIDE_MENU.installed()
+                    ? L10n.t("All Chats is still showing because it holds your only way to Archived Chats. Turn on the "
+                            + "side menu to give the archive another way in.")
+                    : L10n.t("All Chats is still showing because it holds your only way to Archived Chats. Patch again "
+                            + "with Disable pull to archive to give the archive another way in.");
+        } else if (kept == LaunchFolder.Kept.NO_FOLDER) {
+            why = L10n.t("All Chats is still showing because this account has no folder of its own to open, or each "
+                    + "one is locked.");
+        } else {
+            why = L10n.t("All Chats is still showing because the folder tabs couldn't be read. The diagnostic report "
+                    + "has the details.");
+        }
+        return summary + " " + why;
+    }
+
     /** The chats hidden for the account shown now: the row names them, and a tap lists every chat to tick. */
     private Preference hiddenChatsRow(Context context) {
         Row row = new Row(context);
@@ -1802,6 +1840,7 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         row.setSummary(TitleEmojiEditor.summary(Settings.TITLE_EMOJI.savedValue()));
         row.setOnPreferenceClickListener(p -> {
             Activity activity = getActivity();
+            if (SettingsLock.refuses()) return true;
             if (activity != null && !activity.isFinishing() && !activity.isDestroyed()) {
                 own(TitleEmojiEditor.open(activity, p, before -> titleEmojiSaved(activity, before)));
             }

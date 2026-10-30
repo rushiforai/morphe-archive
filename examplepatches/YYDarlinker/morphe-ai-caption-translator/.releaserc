@@ -83,7 +83,8 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "python3 .github/scripts/normalize_release_metadata.py \"${nextRelease.version}\" && python3 tools/verify_current.py --mode release --version \"${nextRelease.version}\" && python3 .github/scripts/generate_patches_readme.py YYDarlinker/morphe-ai-caption-translator main && python3 .github/scripts/validate_morphe_metadata.py \"${nextRelease.version}\" && python3 .github/scripts/verify_bundle.py \"${nextRelease.version}\""
+        "prepareCmd": "python3 .github/scripts/normalize_release_metadata.py \"${nextRelease.version}\" && python3 tools/verify_current.py --mode release --version \"${nextRelease.version}\" && python3 .github/scripts/generate_patches_readme.py YYDarlinker/morphe-ai-caption-translator main && python3 .github/scripts/validate_morphe_metadata.py \"${nextRelease.version}\" && python3 .github/scripts/verify_bundle.py \"${nextRelease.version}\"",
+        "publishCmd": "python3 .github/scripts/verify_bundle.py \"${nextRelease.version}\""
       }
     ],
     [

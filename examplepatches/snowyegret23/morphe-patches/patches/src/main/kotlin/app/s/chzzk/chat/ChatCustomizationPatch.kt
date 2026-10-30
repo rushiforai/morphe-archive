@@ -12,6 +12,7 @@ import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.utils.rewrite
 import app.s.chzzk.common.utils.smaliReference
 import app.s.chzzk.shared.Constants.COMPATIBILITY_CHZZK
+import app.s.chzzk.shared.nativeKeyboxPatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -53,9 +54,10 @@ private fun BytecodePatchContext.bridge(name: String, body: String) {
 val chatCustomizationPatch = bytecodePatch(
     name = "Chat customization",
     description = "Adds in-player Morphe settings, draggable chat width, chat styling, individual badge controls, " +
-        "device icons, live viewer count, live catch-up, audio compression and volume boost, player button visibility, recent chat and settings copy/paste.",
+        "device icons, chat input buttons, live viewer count, live rewind and catch-up, audio compression and volume boost, player button visibility, recent chat and settings copy/paste.",
 ) {
     compatibleWith(COMPATIBILITY_CHZZK)
+    dependsOn(nativeKeyboxPatch)
     extendWith("extensions/chzzk.mpe")
     dependsOn(playerResources)
 
@@ -170,6 +172,7 @@ val chatCustomizationPatch = bytecodePatch(
             "3.14.10" -> setOf("Lpw0;", "Laq0;")
             "3.15.0" -> setOf("Lvx0;", "Lmm0;")
             "3.15.2" -> setOf("Lvx0;", "Lnm0;")
+            "3.16.0" -> setOf("La01;", "Lvn0;")
             else -> error("Unsupported CHZZK version: ${packageMetadata.versionName}")
         }
         var widthMethods = 0

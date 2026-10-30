@@ -154,8 +154,8 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_GROUPS,
                         L10n.t("Hides the row of groups to join between posts. Posts from groups you're in stay.")));
                 feed.addPreference(toggle(context, Settings.HIDE_GROUP_POSTS_NOT_JOINED,
-                        L10n.t("Hides posts from groups you haven't joined, like a friend's post in a public group. Posts "
-                                + "from your groups and a friend's share of a group post stay.")));
+                        L10n.t("Hides posts from groups you haven't joined, like a friend's post in a public group, and a "
+                                + "group post a friend commented on or shared. Posts from your groups stay.")));
                 feed.addPreference(toggle(context, Settings.HIDE_STORIES_YOU_MIGHT_LIKE,
                         L10n.t("Hides the row of Stories from people you aren't connected to, between posts. Your friends' Stories "
                                 + "and the Stories tray stay.")));
@@ -242,6 +242,12 @@ final class FeedPages {
             if (build.contains(PatchFamily.FULL_POST_TEXT)) {
                 feed.addPreference(toggle(context, Settings.SHOW_FULL_POST_TEXT,
                         L10n.t("Posts in the feed show all of their text, so there's no See more to tap.")));
+            }
+            if (build.contains(PatchFamily.REEL_GESTURES)) {
+                // Read on each long press, so a change shows on the next one.
+                feed.addPreference(toggle(context, Settings.SELECT_POST_TEXT,
+                        L10n.t("Holding a post's text still copies all of it, and also opens the text in a box where you "
+                                + "can select just the part you want and copy that.")));
             }
             if (build.contains(PatchFamily.AUTO_TRANSLATION)) {
                 // Each post and reel reads the answer as it's drawn, so a change shows on the next ones.
@@ -466,6 +472,8 @@ final class FeedPages {
                     L10n.t("A long press on Like doesn't open the reactions. A tap still likes.")));
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS,
                     L10n.t("The comment box loses its GIF and sticker buttons. Typing, photos and posting work as before.")));
+            comments.addPreference(toggle(context, Settings.HIDE_COMMENT_EMOJI_ROW,
+                    L10n.t("The row of emoji over the comment box goes away. You can still type emoji from your keyboard.")));
             comments.addPreference(toggle(context, Settings.HIDE_VIDEO_COMMENT_COMPOSER,
                     L10n.t("The Add a comment box under a full-screen video goes away. Comment boxes on posts stay.")));
             comments.addPreference(toggle(context, Settings.OPEN_REPLY_THREADS,

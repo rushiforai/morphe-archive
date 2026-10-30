@@ -85,7 +85,7 @@ public class AttemptAdmissionTest {
     /** Server dispatch and the client completion callback are independent observations. */
     void awaitBodySent(RebuildController.Job job, Future<?> pending) throws Exception {
         long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(3);
-        while(!job.sent){
+        while(!job.attempt.sent){
             if(pending.isDone())pending.get(); // surface a transport failure instead of hiding it
             if(System.nanoTime()>=deadline)fail("client bodySent not observed before retirement; timeline="+timeline);
             java.util.concurrent.locks.LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(1));
@@ -108,7 +108,7 @@ public class AttemptAdmissionTest {
         ExecutorService executor=Executors.newSingleThreadExecutor();
         try {
             Future<RebuildProtocol.Plan> pending=executor.submit(()->call(old,job));
-            assertTrue(arrived.await(3,TimeUnit.SECONDS));awaitBodySent(job,pending);assertTrue("first bodySent before retirement",job.sent);timeline.add("first_bodySent=true");
+            assertTrue(arrived.await(3,TimeUnit.SECONDS));awaitBodySent(job,pending);assertTrue("first bodySent before retirement",job.attempt.sent);timeline.add("first_bodySent=true");
             s.retire();timeline.add("retired");assertFalse(RebuildController.current(s));assertNull(s.publication.reserve());assertFalse(job.isCancelled());
             if(stop){s.cancel();timeline.add("STOPPED");assertTrue(job.isCancelled());}
             release.countDown();timeline.add("released");
@@ -117,11 +117,11 @@ public class AttemptAdmissionTest {
             else interrupted(pending);
             if(success&&!stop)assertEquals("old usage retained",1,responses.size());
             if(!success)assertEquals("old refusal audit retained",1,failures.size());
-            assertTrue(job.sent);assertFalse(RebuildController.current(s));assertNull(s.publication.reserve());
+            assertTrue(job.attempt.sent);assertFalse(RebuildController.current(s));assertNull(s.publication.reserve());
             assertEquals("no new old POST",1,server.getRequestCount());assertEquals("no new old audit attempt",1,attempts);
             assertSame(old,scopes.get(0));
             RebuildController.Session fresh=session(replacement,"new");RebuildController.Job current=new RebuildController.Job(fresh,0,true);
-            assertNotNull(call(replacement,current));assertTrue(current.sent);assertTrue(RebuildController.current(fresh));
+            assertNotNull(call(replacement,current));assertTrue(current.attempt.sent);assertTrue(RebuildController.current(fresh));
             assertEquals(2,server.getRequestCount());assertEquals(2,attempts);assertSame(replacement,scopes.get(scopes.size()-1));
             RecordedRequest a=server.takeRequest(2,TimeUnit.SECONDS),b=server.takeRequest(2,TimeUnit.SECONDS);
             assertEquals("Bearer fixture-old-key",a.getHeader("Authorization"));assertEquals("Bearer fixture-new-key",b.getHeader("Authorization"));
@@ -157,9 +157,9 @@ public class AttemptAdmissionTest {
         try {
             Future<RebuildProtocol.Plan> pending=worker.submit(()->call(s.config,new ObservedControl()));
             assertTrue(arrived.await(3,TimeUnit.SECONDS));assertTrue(callbackEntered.await(3,TimeUnit.SECONDS));
-            assertFalse("server receipt is not the client sent acknowledgement",job.sent);
+            assertFalse("server receipt is not the client sent acknowledgement",job.attempt.sent);
             assertTrue(RebuildController.current(s));assertEquals(1,server.getRequestCount());
-            markSent.countDown();awaitBodySent(job,pending);assertTrue(job.sent);
+            markSent.countDown();awaitBodySent(job,pending);assertTrue(job.attempt.sent);
             s.retire();assertFalse(RebuildController.current(s));assertNull(s.publication.reserve());
             reply.countDown();assertNotNull(pending.get(3,TimeUnit.SECONDS));
             assertEquals(1,server.getRequestCount());assertEquals(1,attempts);assertTrue(failures.isEmpty());
@@ -176,7 +176,7 @@ public class AttemptAdmissionTest {
         try {
             Future<?> pending=executor.submit(()->{queued.countDown();assertTrue(release.await(3,TimeUnit.SECONDS));return call(old,job);});
             assertTrue(queued.await(2,TimeUnit.SECONDS));s.retire();RebuildController.Session fresh=session(config("fixture-new-key"),"new");release.countDown();
-            interrupted(pending);assertFalse(job.sent);assertEquals(0,server.getRequestCount());assertEquals(0,attempts);
+            interrupted(pending);assertFalse(job.attempt.sent);assertEquals(0,server.getRequestCount());assertEquals(0,attempts);
             server.enqueue(ok());assertNotNull(call(fresh.config,new RebuildController.Job(fresh,0,true)));assertEquals(1,server.getRequestCount());fresh.cancel();
         }finally{release.countDown();s.cancel();executor.shutdownNow();assertTrue(executor.awaitTermination(3,TimeUnit.SECONDS));}
     }
@@ -210,7 +210,7 @@ public class AttemptAdmissionTest {
         });
         try {
             Future<?> pending=executor.submit(()->call(s.config,job));assertTrue(admitted.await(2,TimeUnit.SECONDS));s.cancel();timeline.add("STOPPED_before_transport");release.countDown();interrupted(pending);
-            assertFalse(job.sent);assertEquals(1,attempts);assertEquals(1,scopes.size());assertEquals(0,server.getRequestCount());assertTrue(responses.isEmpty());
+            assertFalse(job.attempt.sent);assertEquals(1,attempts);assertEquals(1,scopes.size());assertEquals(0,server.getRequestCount());assertTrue(responses.isEmpty());
         }finally{release.countDown();s.cancel();executor.shutdownNow();assertTrue(executor.awaitTermination(3,TimeUnit.SECONDS));}
     }
 }

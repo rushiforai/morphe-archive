@@ -215,7 +215,7 @@ internal fun BytecodePatchContext.findGhostEntries(): List<GhostEntry> {
         val keys = onClick.callsStart().flatMap { caseReaching(onClick, it) }.distinct()
         if (keys.isEmpty()) refuse("no case of the tap listener ${listener.type} starts a new message")
         classesCreating(listener.type).flatMap { owner ->
-            owner.methods.flatMap { method -> keys.mapNotNull { listening(method, listener.type, it) }.map { method to it } }
+            owner.methods.flatMap { method -> keys.mapNotNull { key -> listening(method, listener.type) { it == key } }.map { method to it } }
         }
     }
     val entries = makers.mapNotNull { (builder, made) -> entryAt(builder, made, controller.type) }
@@ -228,8 +228,9 @@ internal fun BytecodePatchContext.findGhostEntries(): List<GhostEntry> {
  * Finds the newer top bar's New message button. The bar's binder is the one method of
  * [IGDS_ACTION_BAR] taking an ImageView and an action model and setting the button's tap
  * listener. The model's tap is a Kotlin lambda: a Function0 class whose invoke() starts a new
- * message the way the older bar's listener does, in one case of its switch. The one method that
- * makes such a lambda with such a case's number and answers a model of the binder's type is the New
+ * message the way the older bar's listener does, in one case of its switch, or on one side of a
+ * test of its number against zero where Redex merged it with a single other lambda. The one method
+ * that makes such a lambda with such a number and answers a model of the binder's type is the New
  * message model's maker.
  */
 internal fun BytecodePatchContext.findGhostAction(): GhostAction {
@@ -254,15 +255,22 @@ internal fun BytecodePatchContext.findGhostAction(): GhostAction {
     if (lambdas.isEmpty()) refuse("expected one lambda class that starts a new message, found 0")
 
     // 452 has two lambda classes that start a new message (0Au0 and 0675), and only the bar's is
-    // made by a method answering its action model, so the makers are gathered over every switch
-    // lambda and the one maker decides. A lambda without a switch has no case to match.
+    // made by a method answering its action model, so the makers are gathered over every lambda
+    // and the one maker decides. Most builds' bar lambda is a switch over its number. 453.0.0.57.79's
+    // 385914510 merged it with one other lambda instead (0A3z: onNewMessageButtonClick at 0,
+    // onTitleBadgeBind otherwise), and its invoke tests the number against zero. A lambda with
+    // neither has no number to match.
     val makers = lambdas.flatMap { lambda ->
         val invoke = lambda.methods.single { it.name == "invoke" && it.parameterTypes.isEmpty() && it.callsStart().isNotEmpty() }
-        if (invoke.code().none { it.opcode == Opcode.PACKED_SWITCH || it.opcode == Opcode.SPARSE_SWITCH }) return@flatMap emptyList<Method>()
-        val keys = invoke.callsStart().flatMap { caseReaching(invoke, it) }.distinct()
-        if (keys.isEmpty()) refuse("no case of the lambda ${lambda.type} starts a new message")
+        val starts: (Int) -> Boolean = if (invoke.code().any { it.opcode == Opcode.PACKED_SWITCH || it.opcode == Opcode.SPARSE_SWITCH }) {
+            val keys = invoke.callsStart().flatMap { caseReaching(invoke, it) }.distinct()
+            if (keys.isEmpty()) refuse("no case of the lambda ${lambda.type} starts a new message")
+            ({ it in keys })
+        } else {
+            invoke.callsStart().singleOrNull()?.let { zeroTestReaching(invoke, it) } ?: return@flatMap emptyList<Method>()
+        }
         classesCreating(lambda.type).flatMap { owner ->
-            owner.methods.filter { method -> method.returnType == action && keys.any { listening(method, lambda.type, it) != null } }
+            owner.methods.filter { method -> method.returnType == action && listening(method, lambda.type, starts) != null }
         }
     }
     val maker = makers.singleOrNull() ?: refuse("expected one method making the New message action of the newer top bar, found ${makers.size}")
@@ -367,13 +375,48 @@ private fun caseReaching(onClick: Method, call: Int): List<Int> {
     }.map { it.key }
 }
 
+/**
+ * Which numbers reach the instruction at [call] in [invoke], a lambda's invoke that reads its own
+ * int field and tests it against zero instead of switching on it. Null unless that one test stands
+ * between the start of the method and the call, and the call is on one side of it only.
+ */
+private fun zeroTestReaching(invoke: Method, call: Int): ((Int) -> Boolean)? {
+    val code = invoke.code()
+    val read = code.indexOfFirst {
+        val field = it.reference() as? FieldReference
+        it.opcode == Opcode.IGET && field != null && field.definingClass == invoke.definingClass && field.type == "I"
+    }
+    if (read < 0) return null
+    val number = (code[read] as TwoRegisterInstruction).registerA
+    val flow = try { ControlFlow.of(invoke) } catch (failure: IllegalArgumentException) { return null }
+    val test = (read + 1..code.lastIndex).firstOrNull { at ->
+        (code[at].opcode == Opcode.IF_EQZ || code[at].opcode == Opcode.IF_NEZ) && (code[at] as OneRegisterInstruction).registerA == number
+    } ?: return null
+    if ((read + 1 until test).any { at -> code[at].opcode.setsRegister() && (code[at] as? OneRegisterInstruction)?.registerA == number }) return null
+    fun reached(from: Int): Set<Int> {
+        val seen = HashSet<Int>()
+        val pending = ArrayDeque<Int>().apply { add(from) }
+        while (pending.isNotEmpty()) {
+            val index = pending.removeFirst()
+            if (index == test || !seen.add(index)) continue
+            pending.addAll(flow.normal[index])
+        }
+        return seen
+    }
+    if (call in reached(0)) return null
+    val jump = flow.normal[test].singleOrNull { it != test + 1 } ?: return null
+    val onJump = call in reached(jump)
+    if (onJump == call in reached(test + 1)) return null
+    val zeroJumps = code[test].opcode == Opcode.IF_EQZ
+    return if (onJump == zeroJumps) ({ made: Int -> made == 0 }) else ({ made: Int -> made != 0 })
+}
+
 
 /**
  * The index of the `invoke-direct` in [method] that makes a [listener] (a tap listener or a lambda)
- * with [number] as the int it is constructed with, set by a constant just before the call, or null
- * when there isn't one.
+ * with an int that [accepts], set by a constant just before the call, or null when there isn't one.
  */
-private fun listening(method: Method, listener: String, number: Int): Int? {
+private fun listening(method: Method, listener: String, accepts: (Int) -> Boolean): Int? {
     val code = method.code()
     return code.indices.firstOrNull { at ->
         val call = code[at].call()
@@ -384,6 +427,6 @@ private fun listening(method: Method, listener: String, number: Int): Int? {
             code[before].opcode.setsRegister() && (code[before] as? OneRegisterInstruction)?.registerA == counter
         } ?: return@firstOrNull false
         val literal = code[write] as? NarrowLiteralInstruction
-        literal != null && literal.narrowLiteral == number
+        literal != null && accepts(literal.narrowLiteral)
     }
 }

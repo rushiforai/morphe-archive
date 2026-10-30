@@ -14,8 +14,8 @@ object Constants {
         // Original signing cert (apksigner "certificate SHA-256 digest"). bin/apk-add pins it.
         signatures = setOf("b12320227268c9c37e190b493120a7f6ce83c0e9a761f9213df677b58d095b73"),
         targets = listOf(
-            // Latest stable on APKMirror on 2026-10-25. Update to the version you develop against.
-            AppTarget(version = "40.32.5"),
+            // Latest stable on APKMirror on 2026-10-29. Update to the version you develop against.
+            AppTarget(version = "40.33.0"),
         ),
     )
 

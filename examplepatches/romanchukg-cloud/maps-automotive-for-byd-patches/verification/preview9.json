@@ -1,0 +1,81 @@
+{
+ "agent": "Claude",
+ "status": "test_preview",
+ "version": "0.1.0-preview.9",
+ "mpp_sha256": "41dfcb4c849e5b0112fd90c1495ae3b24b50fda6be454ac9c1f6bedf54cd6d49",
+ "bytes": 739828,
+ "maps_functional_revision": "55E",
+ "google_functional_revision": "20 (unchanged from preview 8)",
+ "runtime_byte_identical_to_owner_components": true,
+ "extension_sha256": {
+  "aaos": "5db011ee8526a2f8e943e9a786580c43a432ffb2dacfb97c1e82efd3f469b1ed",
+  "gsa": "6fe5d76f19c13cce9d0c7b8270aeee79bbe48b2bd62f4dac5235f6cedb7a5e8a"
+ },
+ "host_tests": {
+  "recovery_protocol": 71,
+  "stalled_recovery": 25,
+  "google_provider_routes": 301,
+  "live_state": 17,
+  "voice_state": 21,
+  "focus_lifecycle": 86,
+  "short_links": 45,
+  "send_to_car": 27,
+  "total": 593,
+  "result": "PASS"
+ },
+ "maps_native_diff": {
+  "allow_listed_hooks_changed": "76/76",
+  "failures": 0,
+  "hook_register_flow_failures": 0,
+  "google_classes_changed_vs_54U": [
+   "hyk",
+   "yyz",
+   "zdd"
+  ]
+ },
+ "car": {
+  "model": "BYD Tang",
+  "dilink": "5.0",
+  "android_api": 32,
+  "microg_re": "7.2.2",
+  "installed_by_owner_via_morphe": true,
+  "installed_build": "55E (Maps output byte-identical to this release)",
+  "send_to_car": "PASS: car listed as byd on the owner's phone; 3 routes in a row opened (2 after automatic 404 retry)",
+  "switch_shown_on": true,
+  "battery_exemption": "set once by hand with the same dumpsys command; switch-driven exemption and a car restart afterwards not yet tested",
+  "other_dilink_or_firmware_tested": false
+ },
+ "emulator": "Android 12 (API 32) AVD with the owner's account in read-only mode: full send-to-car chain reproduced (55A/55B)",
+ "upstream": {
+  "microg_re_issue": "https://github.com/MorpheApp/MicroG-RE/issues/329",
+  "morphe_patches_precedent": "https://github.com/MorpheApp/morphe-patches/pull/3481"
+ },
+ "control_builds": {
+  "desktop": "1.18.1",
+  "exact_selection": true,
+  "apk_payload_identity": [
+   {
+    "app": "maps",
+    "selected_patch": "Maps Automotive for BYD (MicroG-RE TEST)",
+    "reference": "tested 55E",
+    "entry_count": 3265,
+    "content_differences": 0
+   },
+   {
+    "app": "google",
+    "selected_patch": "Google app for BYD (MicroG-RE TEST)",
+    "reference": "preview 8 bundle, same APKM input",
+    "entry_count": 14020,
+    "content_differences": 0
+   }
+  ],
+  "no_force_or_continue_on_error": true
+ },
+ "reproducible_build": "OpenJDK 21.0.8: three builds, identical SHA-256",
+ "known_limitations": [
+  "each route is delivered to Maps twice internally; no visible effect seen",
+  "DiLink 3/5.1 not tested",
+  "Live-to-Maps directions unverified"
+ ],
+ "no_google_apks_keys_private_logs_or_account_material": true
+}

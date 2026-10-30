@@ -15,6 +15,8 @@ merge request !6833 (Messenger, restore old emoji drawer), under GPL-3.0.
 Keep emoji search on emoji takes its text watcher anchor from the ReVanced
 patch "Disable switching emoji to sticker" (Messenger), under GPL-3.0.
 The bubble eligibility anchor originates from NeonOrbit/ChatHeadEnabler.
+GmsCore support is adapted from HushPinterest's port of MorpheApp/morphe-patches
+(e72fe6e) and ReVanced's revanced-patches (724e6d6), under GPL-3.0.
 The runtime settings and checked 580 integrations are HushMessenger changes.
 
 7c. Project Name Restriction

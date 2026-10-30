@@ -81,16 +81,17 @@ public class RebuildR211RegressionTest {
     JSONArray captured=qwen();RebuildSource evidence=sourceFor(captured);
     JSONObject licenseRecord=captured.getJSONObject(0);
     RebuildProtocol.Plan license=RebuildProtocol.parseBound(licenseRecord.getJSONObject("response").toString(),evidence,RebuildR26Test.block(licenseRecord,evidence));
-    assertTrue(license.issues.stream().anyMatch(x->x.code.equals("possible_authorization_expansion")));
+    assertFalse(license.issues.stream().anyMatch(x->x.code.equals("possible_authorization_expansion")));
     RebuildProtocol.Plan longCaption=RebuildR28CapturedTest.plan(38);
     assertTrue(longCaption.issues.stream().anyMatch(x->x.code.equals("dense_long_event_watch")));
     JSONObject numberRecord=captured.getJSONObject(1);
     RebuildProtocol.Plan number=RebuildProtocol.parseBound(numberRecord.getJSONObject("response").toString(),evidence,RebuildR26Test.block(numberRecord,evidence));
-    assertTrue(number.issues.stream().anyMatch(x->x.code.equals("possible_number_loss")));
+    assertFalse(number.issues.stream().anyMatch(x->x.code.equals("possible_number_loss")));
     RebuildSource src=RebuildContractTest.source("the americans have",400);
     RebuildPlanner.Block b=RebuildContractTest.block(src);
     RebuildProtocol.Event fragment=new RebuildProtocol.Event(b.from,b.to,b.start,b.end,"呢");
     assertTrue(RebuildReview.inspect(src,b,Collections.singletonList(fragment)).stream().anyMatch(x->x.code.equals("fragmentary_translation")));
-    assertFalse("advisory is not a hard semantic validator",RebuildReview.blocked(new RebuildProtocol.Plan(Collections.singletonList(fragment),"{}",RebuildReview.inspect(src,b,Collections.singletonList(fragment))),fragment));
+    List<RebuildDisplayGroups.Unit> units=RebuildDisplayGroups.partition(0,Collections.singletonList(fragment),src,CaptionLanguageContext.LEGACY,null,null);
+    assertEquals(1,units.size());assertFalse("advisory remains displayable",units.get(0).blocked);assertEquals(fragment.text,units.get(0).text);
   }
 }

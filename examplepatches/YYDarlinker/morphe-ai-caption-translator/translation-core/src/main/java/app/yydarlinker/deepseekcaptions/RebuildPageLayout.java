@@ -3,10 +3,13 @@ package app.yydarlinker.deepseekcaptions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /** Presentation-only pages inside one accepted event; never changes source ownership. */
 final class RebuildPageLayout {
     static final long MIN_PAGE_MS = 1200;
+    private static final long PREFERRED_TIMED_PAGE_MS = 2200;
 
     static final class Page {
         final String text;
@@ -128,19 +131,22 @@ final class RebuildPageLayout {
             return Collections.singletonList(
                     new Page(text, start, end, spec.authored ? "AUTHORED_CUE" : "SOURCE_EVENT"));
         if (twoLines) {
-            int pages = targetPages(text, start, end, spec, cuts.size());
-            if (pages > 1) {
-                java.util.List<String> balanced =
-                        balancedPages(text, cuts, fitsOne, fitsTwo, spec, start, end, pages);
-                if (balanced != null && balanced.size() > 1) {
-                    for (String part : balanced) if (!fitsTwo.test(part)) return null;
-                    return allocate(
-                            balanced,
-                            start,
-                            end,
-                            spec,
-                            sourceAnchors,
-                            spec.authored ? "AUTHORED_OVERFLOW" : null);
+            // Prefer comfortable pages before relaxing to the shared minimum. A shorter page is
+            // useful only when no comfortable partition exists; it must still carry real content.
+            for (long minimum : new long[] {PREFERRED_TIMED_PAGE_MS, MIN_PAGE_MS}) {
+                for (int pages = targetPages(text, start, end, spec, cuts.size()); pages > 1; pages--) {
+                    java.util.List<String> balanced =
+                            balancedPages(text, cuts, fitsOne, fitsTwo, spec, start, end, pages, minimum);
+                    if (balanced != null && balanced.size() > 1) {
+                        for (String part : balanced) if (!fitsTwo.test(part)) return null;
+                        return allocate(
+                                balanced,
+                                start,
+                                end,
+                                spec,
+                                sourceAnchors,
+                                spec.authored ? "AUTHORED_OVERFLOW" : null);
+                    }
                 }
             }
             return Collections.singletonList(
@@ -153,7 +159,7 @@ final class RebuildPageLayout {
         cuts.add(text.length());
         java.util.Map<String, Boolean> measured = new java.util.HashMap<>();
         int leadLimit = Math.max(4, spec.profile.referenceCpl / 2);
-        List<String> parts = pack(text, cuts, fitsOne, fitsTwo, measured, leadLimit);
+        List<String> parts = pack(text, cuts, fitsOne, fitsTwo, measured, leadLimit, spec.compactScript);
         if (parts == null) return null;
         parts = foldTinyOrLeadPages(parts, fitsTwo, leadLimit);
         for (String part : parts) if (!fitsTwo.test(part)) return null;
@@ -215,7 +221,8 @@ final class RebuildPageLayout {
             CaptionRenderSpec spec,
             long start,
             long end,
-            int pages) {
+            int pages,
+            long minimum) {
         if (pages < 2 || cuts.isEmpty()) return null;
         List<String> parts = new ArrayList<>(pages);
         int from = 0;
@@ -244,6 +251,11 @@ final class RebuildPageLayout {
             for (int i = first; i <= lastAllowed; i++) {
                 String part = text.substring(from, cuts.get(i));
                 if (!fitsTwo.test(part)) continue;
+                int lastClause = i == first ? from : cuts.get(i - 1);
+                // Capacity/weight cannot borrow a bare introduction from the next clause.
+                String lastPart = text.substring(lastClause, cuts.get(i)).trim();
+                if (leadClause(lastPart, leadLimit)
+                        || minimum < PREFERRED_TIMED_PAGE_MS && lastPart.endsWith("、")) continue;
                 double partWeight = Math.max(1, weight(part));
                 double cost = Math.abs(partWeight - target);
                 if (!fitsOne.test(part)) cost += target * 0.3;
@@ -259,8 +271,12 @@ final class RebuildPageLayout {
             from = cuts.get(best);
         }
         if (parts.isEmpty() || parts.get(parts.size() - 1).length() == 0) return null;
-        // A split that creates a 1.5 s lead page and leaves a 6 s page is worse than the original
-        // page. Only accept a partition whose pages are all readable in their own right.
+        if (minimum < PREFERRED_TIMED_PAGE_MS) {
+            parts = foldTinyOrLeadPages(parts, fitsTwo, leadLimit);
+            if (parts.size() < 2) return null;
+        }
+        // The relaxed pass reuses the capacity planner's fragment protection. A page below the
+        // preferred duration must contain more than the existing short-introduction allowance.
         int totalWeight = 0;
         int[] partWeights = new int[parts.size()];
         for (int i = 0; i < parts.size(); i++) {
@@ -270,7 +286,9 @@ final class RebuildPageLayout {
         long duration = end - start;
         for (int i = 0; i < parts.size(); i++) {
             long estimated = duration * partWeights[i] / Math.max(1, totalWeight);
-            if (estimated < 2200) return null;
+            if (estimated < minimum
+                    || minimum < PREFERRED_TIMED_PAGE_MS && estimated < PREFERRED_TIMED_PAGE_MS
+                            && visible(parts.get(i)) <= leadLimit) return null;
         }
         return parts;
     }
@@ -281,9 +299,11 @@ final class RebuildPageLayout {
      * when the model itself supplied no mark.
      */
     private static List<Integer> pageCuts(String text) {
-        int[] ends = CaptionClauses.of(text).ends();
-        List<Integer> cuts = new ArrayList<>(ends.length + 4);
-        for (int end : ends) if (end > 0 && end < text.length()) cuts.add(end);
+        CaptionClauses clauses = CaptionClauses.of(text);
+        int[] ends = clauses.ends();
+        Set<Integer> cuts = new TreeSet<>();
+        for (int end : ends)
+            if (end > 0 && end < text.length() && !clauses.insideQuoted(end)) cuts.add(end);
         for (int at = 0; at < text.length(); ) {
             int cp = text.codePointAt(at);
             at += Character.charCount(cp);
@@ -293,11 +313,9 @@ final class RebuildPageLayout {
                     && (Character.isWhitespace(text.codePointAt(cut))
                             || text.codePointAt(cut) == 0x200b))
                 cut += Character.charCount(text.codePointAt(cut));
-            if (cut < text.length() && (cuts.isEmpty() || cut > cuts.get(cuts.size() - 1)))
-                cuts.add(cut);
+            if (cut < text.length() && !clauses.insideQuoted(cut)) cuts.add(cut);
         }
-        Collections.sort(cuts);
-        return cuts;
+        return new ArrayList<>(cuts);
     }
 
     /** Greedy clause packing: the longest run of whole clauses that still fits one line. */
@@ -307,7 +325,8 @@ final class RebuildPageLayout {
             java.util.function.Predicate<String> fitsOne,
             java.util.function.Predicate<String> fitsTwo,
             java.util.Map<String, Boolean> measured,
-            int leadLimit) {
+            int leadLimit,
+            boolean compactScript) {
         List<String> parts = new ArrayList<>();
         int from = 0;
         while (from < text.length()) {
@@ -333,6 +352,9 @@ final class RebuildPageLayout {
                 // break wide enough to help.
                 String clause = text.substring(from, cuts.get(first));
                 if (!fitsTwo.test(clause)) {
+                    // Spaced scripts need the existing word-aware search and duration floor.
+                    // A glyph-only prefix can otherwise leave half a word as a flashing tail.
+                    if (!compactScript) return null;
                     List<String> emergency = splitToFit(clause, fitsTwo);
                     if (emergency == null) return null;
                     parts.addAll(emergency);
@@ -345,7 +367,7 @@ final class RebuildPageLayout {
             }
             // Never end a page on a clause that introduces what follows: step back to the last
             // boundary that closes a thought, as long as the page keeps at least one clause.
-            int chosen = best;
+            int chosen = first;
             for (int i = best; i >= first; i--) {
                 int start = i == first ? from : cuts.get(i - 1);
                 if (!leadClause(text.substring(start, cuts.get(i)), leadLimit)) {
@@ -363,6 +385,13 @@ final class RebuildPageLayout {
      * Ends with a colon, or is a short clause ending on a comma ("当然，", "正如其名所示，"): it
      * introduces the clause that follows rather than completing the one before.
      */
+    static boolean trailingIntroduction(String text, CaptionRenderSpec spec) {
+        if (text == null || text.isEmpty()) return false;
+        int[] ends = CaptionClauses.of(text).ends();
+        int from = ends.length < 2 ? 0 : ends[ends.length - 2];
+        return leadClause(text.substring(from), Math.max(4, spec.profile.referenceCpl / 2));
+    }
+
     private static boolean leadClause(String clause, int limit) {
         String value = clause.replace("\u200b", "").trim();
         if (value.isEmpty()) return false;

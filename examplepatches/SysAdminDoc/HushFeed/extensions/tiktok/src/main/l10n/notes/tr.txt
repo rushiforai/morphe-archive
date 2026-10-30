@@ -18,6 +18,7 @@
 * **TikTok:** Ayar araması autoplay, PiP ve AI gibi günlük adları tanıyor ve bir seçim satırını seçeneklerinden herhangi biriyle buluyor.
 * **TikTok:** Akışı belirli saatlerde kilitle, seçtiğin saatlerde akışı kendiliğinden kilitliyor ve kilit paneli ne zaman yeniden açılacağını söylüyor.
 * **TikTok:** Yalnızca Wi-Fi'da kaydet, kayıtları mobil veriden uzak tutuyor. Bir kayıt Wi-Fi için en fazla 30 dakika bekler ve İndirmeler'den iptal edebilirsin.
+* **TikTok:** Yeni bir anahtar, sohbet çıkartmaları için Hushfeed'in Medyayı kaydet kutusunu kapatır (#274).
 * **TikTok:** PineDrama'da Gelen Kutusu anahtarları artık çalışıyor, Sohbetleri gizle de dahil (#156).
 * **TikTok:** PineDrama'da ayarlardaki sürüm satırı artık TikTok yerine PineDrama'yı ve derlemesini gösteriyor (#156).
 * **TikTok:** Bir sayfanın çok aşağısındaki ayar arama sonucu artık doğrudan kendi satırında açılıyor.
@@ -61,6 +62,7 @@
 * **TikTok:** Ekran kaydı, Android'den yalnızca yamalı uygulamanın sesini yakalamasını istiyor.
 * **TikTok:** Service+ temizliği, TikTok'un gösterdiği aynı ilk LIVE önizleme girdisini kontrol ediyor (#94).
 * **TikTok:** Yorum duraklatması, TikTok'un ilk ilerleme güncellemesinden önce ilk karenin oynadığını anlayabiliyor (#151).
+* **TikTok:** TikTok'un Otomatik kaydırma düğmesini gizle, videonun sağ üstündeki yuvarlak Auto scroll düğmesini de gizler (#234).
 
 ## 0.79.0 (2026-10-24)
 

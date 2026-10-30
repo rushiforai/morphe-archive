@@ -107,7 +107,7 @@ internal fun verifyClipNavigation(bundle: HermesBundle, patched: ByteArray, stoc
         }
         error("Caller did not terminate")
     }
-    // Offsets and registers below are Twitch 31.7.0's DiscoveryFeedContent compiler output.
+    // Offsets and registers below are Twitch 31.8.0's DiscoveryFeedContent compiler output.
     val model = bundle.matchingFunction(hex("48 04 03 00 ${bundle.id16("Object")} 44 03 04 02 ${bundle.id8("keys")} " +
         "6e 04 03 04 05 45 03 04 03 ${bundle.id16("sort")}"))
     modelId = model.id
@@ -120,30 +120,30 @@ internal fun verifyClipNavigation(bundle: HermesBundle, patched: ByteArray, stoc
     val content = bundle.function("DiscoveryFeedContent")
     // Actual pager array/assignment/jump/props instructions: third child must never be constructed.
     val pagerProps = linkedMapOf<Any?, Any?>().apply { (0..8).forEach { put(it, undefined) } }
-    val pager = mutableMapOf<Int, Any?>(86 to pagerProps, 90 to "following")
-    run(content.id, 0x6666, 0x666e, pager, null, emptyList())
-    pager[90] = "live"
-    run(content.id, 0x67fe, 0x6967, pager, null, emptyList())
+    val pager = mutableMapOf<Int, Any?>(90 to pagerProps, 94 to "following")
+    run(content.id, 0x6a27, 0x6a2f, pager, null, emptyList())
+    pager[94] = "live"
+    run(content.id, 0x6bbf, 0x6d28, pager, null, emptyList())
     check(pagerProps[8] == tabs)
     // Execute both real scroll-range reads, and real initialTab lookup + Math.max fallback.
-    for (at in listOf(0xa05, 0xa42)) {
-        val r = mutableMapOf<Int, Any?>(24 to exports)
+    for (at in listOf(0xa2b, 0xa68)) {
+        val r = mutableMapOf<Int, Any?>(26 to exports)
         run(content.id, at, at + 11, r, null, emptyList())
-        check(r[24] == 2)
+        check(r[26] == 2)
     }
     for (initial in listOf("following", "live", "clips", "missing")) {
         val env = Env(mutableMapOf(0 to mapOf("initialTab" to initial)))
-        val r = mutableMapOf<Int, Any?>(15 to exports, 97 to env)
-        run(content.id, 0x276, 0x28c, r, null, emptyList())
-        r[21] = r[15]
-        run(content.id, 0x2ac, 0x2c5, r, null, emptyList())
+        val r = mutableMapOf<Int, Any?>(18 to exports, 101 to env)
+        run(content.id, 0x29c, 0x2b2, r, null, emptyList())
+        r[23] = r[18]
+        run(content.id, 0x2d2, 0x2eb, r, null, emptyList())
         check(env.slots[6] == if (initial == "live") 1 else 0)
     }
     // Execute actual hook props construction; the same closure handles tap and initial requests.
-    val propsRegs = mutableMapOf<Int, Any?>(97 to componentEnv, 14 to mutableMapOf<Any?, Any?>())
-    listOf(78,75,84,105,63,79,101,74).forEach { propsRegs[it] = Any() }
-    run(content.id, 0x2045, 0x20a3, propsRegs, null, emptyList())
-    val props = propsRegs[62] as Map<*, *>
+    val propsRegs = mutableMapOf<Int, Any?>(101 to componentEnv, 16 to mutableMapOf<Any?, Any?>())
+    listOf(83,82,91,109,78,88,105,79).forEach { propsRegs[it] = Any() }
+    run(content.id, 0x20af, 0x210d, propsRegs, null, emptyList())
+    val props = propsRegs[67] as Map<*, *>
     val nativeEntry = props["openClipDeepLink"] as Fn
     val nativeFunction = bundle.matchingFunction(hex("45 03 03 00 ${bundle.id16("FEED_TAB_INDEX")} 45 03 03 01 ${bundle.id16("clips")}"))
     val nativeBody = patched.copyOfRange(nativeFunction.offset, nativeFunction.offset + nativeFunction.body.size)
@@ -196,12 +196,12 @@ internal fun verifyClipNavigation(bundle: HermesBundle, patched: ByteArray, stoc
     val pending = bundle.matchingFunction(hex("34 02 00 3b 04 02 0c 95 05 89 07 02 89 08 01"))
     check(run(pending.id, 0, -1, mutableMapOf(), hookEnv, listOf("PendingSlug", "SeedSlug")) === undefined)
     // The actual readiness assignment must work even with no feed edges and loading=true.
-    val ready = mutableMapOf<Int, Any?>(75 to false, 139 to true, 24 to emptyList<Any?>())
-    run(content.id, 0x1fb9, 0x1fbe, ready, null, emptyList())
-    check(ready[75] == true)
+    val ready = mutableMapOf<Int, Any?>(82 to false, 145 to true, 27 to emptyList<Any?>())
+    run(content.id, 0x2023, 0x2028, ready, null, emptyList())
+    check(ready[82] == true)
     val initialEffect = bundle.matchingFunction(hex("34 01 00 3b 03 01 00 b2 27 03 3b 02 01 01 b2 20 02 3b 02 01 08"))
     validateCallbackMetadata(initialEffect.id)
-    val initialEnv = Env(mutableMapOf(0 to "EmptyFeedSlug", 1 to ready[75], 3 to nativeEntry,
+    val initialEnv = Env(mutableMapOf(0 to "EmptyFeedSlug", 1 to ready[82], 3 to nativeEntry,
         8 to mutableMapOf<Any?, Any?>("current" to undefined)))
     repeat(3) { check(run(initialEffect.id, 0, -1, mutableMapOf(), initialEnv, emptyList()) === undefined) }
     for (absent in listOf(undefined, null, "")) {
@@ -211,7 +211,7 @@ internal fun verifyClipNavigation(bundle: HermesBundle, patched: ByteArray, stoc
     initialEnv.slots[0] = "SecondInitialSlug"
     check(run(initialEffect.id, 0, -1, mutableMapOf(), initialEnv, emptyList()) === undefined)
     check(calls == listOf(listOf("TappedSlug", ""), listOf("InitialSlug", ""), listOf("PendingSlug", ""), listOf("EmptyFeedSlug", ""), listOf("SecondInitialSlug", "")))
-    check(props["initialClipSlug"] === propsRegs[78] && props["onTabRequested"] === propsRegs[105])
-    check((propsRegs[14] as Map<*, *>)[189] == null) // omitted dependency forces safe props recompute
+    check(props["initialClipSlug"] === propsRegs[83] && props["onTabRequested"] === propsRegs[109])
+    check((propsRegs[16] as Map<*, *>)[190] == null) // omitted dependency forces safe props recompute
     println("PASS: emitted Clips model, initial selection, scroll bounds, pager children and native clip caller data flow")
 }

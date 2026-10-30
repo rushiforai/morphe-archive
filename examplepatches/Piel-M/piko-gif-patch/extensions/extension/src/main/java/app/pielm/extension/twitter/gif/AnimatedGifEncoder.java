@@ -21,7 +21,6 @@ public final class AnimatedGifEncoder {
     private byte[] colorTab;
     private boolean firstFrame = true;
     private int sample = 15; // NeuQuant sampling factor (1..30, higher = faster)
-    private int[] argbBuffer;
 
     public void setDelayMs(int ms) {
         // GIF delay is in 1/100th of a second; minimum 2 cs (20ms) for viewer compatibility
@@ -52,14 +51,32 @@ public final class AnimatedGifEncoder {
 
     public boolean addFrame(Bitmap im, int delayMs) {
         if (im == null || out == null) return false;
+        int w = firstFrame ? im.getWidth() : width;
+        int h = firstFrame ? im.getHeight() : height;
+        if (im.getWidth() != w || im.getHeight() != h) {
+            im = Bitmap.createScaledBitmap(im, w, h, false);
+        }
+        int[] argb = new int[w * h];
+        im.getPixels(argb, 0, w, 0, 0, w, h);
+        return addFrame(argb, w, h, delayMs);
+    }
+
+    /**
+     * Adds a frame from a packed ARGB pixel array (row-major, {@code w * h} entries).
+     * All frames must share the dimensions of the first frame.
+     */
+    public boolean addFrame(int[] argb, int w, int h, int delayMs) {
+        if (argb == null || out == null) return false;
         setDelayMs(delayMs);
         try {
             if (firstFrame) {
-                width = im.getWidth();
-                height = im.getHeight();
+                width = w;
+                height = h;
                 writeLSD();
+            } else if (w != width || h != height) {
+                return false;
             }
-            extractPixels(im);
+            extractPixels(argb);
             analyzePixels();
             if (firstFrame) {
                 writePalette();
@@ -91,23 +108,14 @@ public final class AnimatedGifEncoder {
         }
     }
 
-    private void extractPixels(Bitmap image) {
-        int w = image.getWidth();
-        int h = image.getHeight();
-        if (w != width || h != height) {
-            image = Bitmap.createScaledBitmap(image, width, height, false);
-        }
+    private void extractPixels(int[] argb) {
         int totalPixels = width * height;
-        if (argbBuffer == null || argbBuffer.length != totalPixels) {
-            argbBuffer = new int[totalPixels];
-        }
         if (pixels == null || pixels.length != totalPixels * 3) {
             pixels = new byte[totalPixels * 3];
         }
-        image.getPixels(argbBuffer, 0, width, 0, 0, width, height);
         int k = 0;
         for (int i = 0; i < totalPixels; i++) {
-            int c = argbBuffer[i];
+            int c = argb[i];
             pixels[k++] = (byte) (c & 0xff);         // Blue
             pixels[k++] = (byte) ((c >> 8) & 0xff);  // Green
             pixels[k++] = (byte) ((c >> 16) & 0xff); // Red

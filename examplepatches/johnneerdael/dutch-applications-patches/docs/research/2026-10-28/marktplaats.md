@@ -1,6 +1,6 @@
 # Marktplaats — static research, 2026-10-28
 
-Status: **static research complete; runtime and server validation outstanding**. Research only: no application patch, build, signing, device/emulator, account, login, transaction, purchase, commit or push action.
+Status: **original static research complete**. The subsequent [implementation audit](../../marktplaats-audit.md) and [privacy README](../../privacy/marktplaats/README.md) describe the development candidate. Phone/backend acceptance remains pending. The report below records the original research scope; later implementation evidence supersedes its candidate and unexecuted-test notes.
 
 **Seen:** this build has multiple independent advertising paths and several app-wired telemetry systems. SDK display banners, Google custom native banners, first-party native advertising and sponsored content are distinct from the marketplace's real seller listings. Removing every class or endpoint containing “ad” would break its core product. No reader ad-free subscription gate was identified; business subscriptions and seller promotion purchases are genuine server-backed products.
 

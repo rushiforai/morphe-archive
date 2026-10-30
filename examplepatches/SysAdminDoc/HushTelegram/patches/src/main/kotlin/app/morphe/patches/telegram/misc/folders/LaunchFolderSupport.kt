@@ -29,6 +29,7 @@ import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlField
 import app.morphe.patches.telegram.misc.localcontrols.controlHook
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
+import app.morphe.patches.telegram.misc.localcontrols.controlString
 import app.morphe.patches.telegram.misc.localcontrols.forEachClassMentioning
 import app.morphe.patches.telegram.misc.localcontrols.requireReachable
 import app.morphe.util.ControlFlow
@@ -71,6 +72,9 @@ private const val ARCHIVED_CHATS = "Lorg/telegram/messenger/R\$string;->Archived
 private const val GET_STRING = "Lorg/telegram/messenger/LocaleController;->getString(I)$STRING"
 /** The folder id Telegram's archive row opens a chat list with. */
 private const val ARCHIVE_FOLDER = 1
+private const val RECYCLER_VIEW = "Landroidx/recyclerview/widget/RecyclerView;"
+/** What RecyclerView.scrollToPosition logs without a layout manager, which finds it under any name. */
+private const val NO_LAYOUT_TO_SCROLL = "Cannot scroll to position a LayoutManager set. Call setLayoutManager with a non-null argument."
 
 /** The call that lets the extension pick the first tab: one instruction. */
 internal const val LAUNCH_FOLDER_SIZE = 1
@@ -102,6 +106,10 @@ internal class LaunchRefs(
     val arguments: String,
     /** BaseFragment.getCurrentAccount(). */
     val account: String,
+    /** FilterTabsView's list of tabs, a RecyclerView, or null when this build's can't be found. */
+    val tabList: String? = null,
+    /** RecyclerView.scrollToPosition(int), null with [tabList]. */
+    val scrollTo: String? = null,
 )
 
 /**
@@ -143,6 +151,7 @@ internal fun BytecodePatchContext.requireLaunchFolderRuntime() {
     for ((name, result) in listOf("folderId" to "I", "folderName" to STRING, "folderLocked" to "Z", "folderDefault" to "Z")) {
         controlHook(LAUNCH_FOLDER, name, listOf("I", "I"), result)
     }
+    controlHook(LAUNCH_FOLDER, "scrollStrip", listOf(OBJECT, "I"), "Z")
 }
 
 /** Why this build's chat list can't take a picked folder. */
@@ -253,8 +262,36 @@ private fun BytecodePatchContext.firstTabs(): LaunchFolderPlan {
             throw Unpicked("$reference isn't reachable from the extension")
         }
     }
-    val refs = LaunchRefs(list, stripField.toString(), tabsField.toString(), selected, pages.single(), selectedType, arguments, account)
+    val scroll = stripScroll(strip)
+    val refs = LaunchRefs(list, stripField.toString(), tabsField.toString(), selected, pages.single(), selectedType, arguments, account,
+        scroll?.first, scroll?.second)
     return LaunchFolderPlan(method, at, self, refs, null)
+}
+
+/**
+ * [strip]'s list of tabs and RecyclerView.scrollToPosition, which brings a picked tab past the
+ * screen's edge into view: nothing in the first build scrolls the strip. Null when this build
+ * doesn't have them that way, and the pick then opens with the strip where Telegram leaves it.
+ */
+private fun BytecodePatchContext.stripScroll(strip: String): Pair<String, String>? {
+    val views = classDefByOrNull(strip)?.fields?.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && extends(it.type, RECYCLER_VIEW) }.orEmpty()
+    val scrolls = classDefByOrNull(RECYCLER_VIEW)?.methods?.filter { method ->
+        method.parameterTypes.map(CharSequence::toString) == listOf("I") && method.returnType == "V" &&
+            !AccessFlags.STATIC.isSet(method.accessFlags) &&
+            method.controlBody().any { it.controlString() == NO_LAYOUT_TO_SCROLL }
+    }.orEmpty()
+    if (views.size != 1 || scrolls.size != 1) return null
+    val view = views.single()
+    if (classDefByOrNull(view.type)?.let { AccessFlags.PUBLIC.isSet(it.accessFlags) } != true) return null
+    val scroll = "$RECYCLER_VIEW->${scrolls.single().name}(I)V"
+    val tabList = "${view.definingClass}->${view.name}:${view.type}"
+    return try {
+        requireReachable(tabList, false)
+        requireReachable(scroll, false)
+        tabList to scroll
+    } catch (failed: PatchException) {
+        null
+    }
 }
 
 /** What Hide All Chats' stubs reach beyond the folder pick's, each a method reference. */
@@ -585,6 +622,21 @@ internal fun BytecodePatchContext.writeLaunchFolderStubs(refs: LaunchRefs) {
         "folderDefault" to "invoke-virtual {v0}, $FILTER_IS_DEFAULT\n move-result v0\n return v0",
     )) {
         writeStub(LAUNCH_FOLDER, stub, 3, folderAt + read)
+    }
+    // Without the strip's list the stub stays as it is and answers false.
+    if (refs.tabList != null && refs.scrollTo != null) {
+        writeStub(LAUNCH_FOLDER, "scrollStrip", 3, """
+            check-cast p0, ${refs.list}
+            const/4 v0, 0x0
+            iget-object p0, p0, ${refs.strip}
+            if-eqz p0, :hush_none
+            iget-object p0, p0, ${refs.tabList}
+            if-eqz p0, :hush_none
+            invoke-virtual {p0, p1}, ${refs.scrollTo}
+            const/4 v0, 0x1
+            :hush_none
+            return v0
+        """)
     }
 }
 

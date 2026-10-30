@@ -1,58 +1,40 @@
-# 本地工作区与资料分层
+# Repository assets and local storage
 
-2026-10-26（Asia/Shanghai）。唯一活动仓库：`E:\Projects\DeepSeek morphe-ai-caption-translator`；当前公开 **1.5.8 / release-1.5.8**。先前本地整理及后续用户明确授权的[GitHub发布/收尾](maintenance/GITHUB-UPDATE-PLAN.md)均已完成，历史只读盘点不当作当前未完成状态。
+The maintainer's checkout is `E:\Projects\DeepSeek morphe-ai-caption-translator`. Project writes stay on E:. Shared tools, Codex/application/session storage and OS-managed files on C: are outside this repository and outside cleanup.
 
-## 当前入口
+## What belongs where
 
-普通使用看[中文说明](README.zh-CN.md)，接手维护看[文档索引](README.md)、[状态](PROJECT-STATE.md)、[开发环境](DEVELOPMENT.md)和[日常操作](maintenance/OPERATIONS.md)。[验收结论](maintenance/reviews/M7-FINAL-ACCEPTANCE.md)和[本次整理结果](maintenance/results/WORKSPACE-ORGANIZATION-RESULT.md)分别记录产品验收与工作区操作，不能互相替代。
-
-| 目录/文件 | 类别与当前处理 |
+| Area | Role / retention |
 | --- | --- |
-| application-host、caption-contracts、caption-shared、translation-core、infrastructure、presentation、ui、ui-preview、patches、extensions、localization | 当前源码/测试/资源；保持原布局/字节，本次不重构或改产品 |
-| tools/workspace、当前verify/provenance/localization工具、.github、Gradle配置 | 当前构建/验证链；只增加[tools导航](../tools/README.md)，不改工具实现/依赖/发布行为 |
-| docs当前入口、architecture、maintenance | 当前说明、合同、任务/结果/复核；状态与镜像同字节；历史执行报告不倒填新结果 |
-| docs/N*、旧RELEASE/CAPTIONS/ROOT-CAUSE/流程、ACCEPTANCE.md、scoreboard、recovered/1.3.5、tools/n* | 历史冻结/研究/回放层；原路径/内容保留，增加[历史导航](history/README.md)、[scoreboard说明](../scoreboard/README.md)及[recovered说明](../recovered/README.md) |
-| build/delivery、build/release-artifacts、build/maintenance及N*交付 | 正式/历史/候选产物；全部保留，不能因为旧或文件名相同就覆盖/删除 |
-| validation/runs、.verification | 证据/状态镜像/私有可恢复归档；保留封存证据，含原始设备/模型内容的材料不公开上传 |
-| work/toolchain、work/gradle-home、work/android-user-home | 工具/依赖/Android构建输入；保持，不清共享工具缓存或用户配置 |
-| work/test-temp | JVM测试生成的字体、本地库和fixture临时目录；整理阶段原文件已内容去重归档，根目录保留；后续发布/测试可再生，不表示目录永久为空，不是设备用户缓存 |
-| work/temp、work/pycache | 进程临时工作/字节码缓存；本次保持，前者还存在旧发布检查输入，不能按名字整目录删除 |
-| .tmp | 一次性研究和演练；286个根层散文件已归档收纳，本机`.tmp/README.md`说明恢复（该私有索引不随源码分发）。子目录、M7a隔离源码演练、失败/回退演练、研究源及APK/DEX输入均未移动 |
-| YouTube/ | 6个原始APK输入，本次保留；新增目录级忽略，不打包发布专有APK |
-| .devenv/ | 忽略的兼容别名；新增共享ignore规则，不变更文件或本机exclude |
-| .git | 历史/索引/分支配置；整理阶段的入场保护见原报告；随后按新授权完成有界commit/push/merge/fetch同步，不reset/clean或重写旧历史 |
+| patches | Kotlin patch definitions, typed host bindings and resources; runs at patch time, not as the phone translation engine |
+| caption-contracts, caption-shared, translation-core | Runtime contracts/values, parsing/planning/provider/cache/controller; actual Gradle dependencies |
+| application-host, infrastructure, presentation, ui | Runtime source areas compiled together into the extension; not four independent Gradle modules |
+| extensions/extension | Extension build, real Android/Robolectric tests and resources; raw MPE embedded in MPP |
+| ui-preview | Standalone UI fixture/stubs; staged copies under work are generated and not extra production implementations |
+| localization + patches resources | Canonical translation data and checked generated fourteen-locale XML; both have live generation/runtime consumers |
+| translation-core/upstream + docs/core-provenance.json | Fixed .java.txt snapshots plus current adaptation hashes/protocol guard inputs; not compiled and not generic historical clutter |
+| Retired UI preservation inventory | Old path/hash list only counted existing paths; it did not verify those hashes. Archived with its ineffective counter; actual localization/layout/package checks remain |
+| tools/workspace, tools, .github, Gradle/npm locks | Current development, verification and publication inputs; node_modules/build/cache content is not source |
+| docs and root docs/licences | Current user/developer knowledge, source attribution, changelog and legal obligations; old execution diaries are archived |
+| work/toolchain, work/gradle-home | Installed tools and reusable dependencies; keep, do not repeatedly copy into new task directories |
+| work/test-temp, work/temp, .tmp | Test/scratch work. Completed native extraction and compiler output are regenerable; unique source probes/raw inputs must be distinguished before removal |
+| build | Generated builds plus valuable release/candidate/rollback bytes. Keep named deliveries, clean reproducible intermediates only after checking evidence requirements |
+| validation/runs, .verification | Private evidence, diagnostics, state mirror and indexed recovery archives; ignored, excluded from public source |
+| YouTube | Private original host APK inputs; not source or public release assets |
+| .git | Shared committed history/tags/object database; not repeated current production code and not inside release packages |
 
-`.gitignore`新增Python编译缓存和本地输入规则；已跟踪的文件仍被跟踪，旧诊断本轮另作外部输入迁移并取消跟踪、本机字节保留；gradle.properties仍受版本管理，不凭ignore隐去。`.gitattributes`保留原`* -text`，仅把恢复树标为generated；将来提交后才影响GitHub语言统计。生产/测试字节及本次前后构建输入指纹保持，候选不重建。
+Historical 1.3.5 MPPs now live in `.verification/release-archive/1.3.5/` with exact-byte/path mapping in the governance run. They are not ordinary public source inputs. Their original copies are also recoverable from Git/entry archive. The duplicate loose root diagnostic was removed only after matching the retained frozen private original.
 
-## 本次可恢复收纳
+## Read sizes correctly
 
-私有归档目录：`.verification/archives/workspace-organization-20261026/`。
+Production size counts runtime Java once and patch-time Kotlin separately; preview stubs, staged UI copies, tests, snapshots, disassembly, XML and cached dependencies are separate. Physical line count includes comments/formatting. Long methods expanded by formatting can add lines while removing logic; compare source/token/behavior changes as well.
 
-- `source-before-organization.zip`：整理入场的2269个Git可见现存文件及清单，包含既有未提交/未跟踪源码，约8.96MB。它是本机恢复快照，含历史材料，不是可直接上传的公共源码包；不含Git数据库、工具链/依赖缓存。
-- `transient-content.zip`：5755个临时文件按SHA-256内容去重为1641个对象，原路径/大小/SHA映射在同目录及本轮证据的`transient-archive-manifest.json`。原内容4790399832 B，归档181627308 B，SHA-256 `9d909ea36f8e889970560284e257b001a0dc0eefe5803c0617754b8e4ca5de50`。
-- 移除原位置的文件包括286个`.tmp`散文件、5468个JVM测试临时文件和1个Python编译缓存；没有删除原始数据唯一副本。净文件体积约减少4.60GB（十进制，计入主要备份；精确盘点见本轮最终JSON），不是对全盘空闲量或文件系统分配块的保证。
+Local disk size includes original APKs, full patched APK evidence, old test extraction and tools. It is not the source size or final MPP size. File-length inventories count logical bytes, not allocated filesystem blocks; junction/symlink targets are not traversed. Do not call archived bytes deleted or count moving files within this checkout as disk savings.
 
-恢复工具位于`validation/runs/20261026-workspace-organization-01/restore-archived.py`，**默认只检查**。示例：
+## Prevent another accumulation
 
-```powershell
-& '.\work\toolchain\python\python.exe' -B -X utf8 `
-  '.\validation\runs\20261026-workspace-organization-01\restore-archived.py'
-```
+Current state has one owner: [PROJECT-STATE](PROJECT-STATE.md). Keep build instructions in [DEVELOPMENT](DEVELOPMENT.md), source contracts in [ARCHITECTURE](ARCHITECTURE.md), and routine criteria in [MAINTAINING](MAINTAINING.md). A completed task does not require a new durable roadmap/prompt/review trilogy.
 
-仅明确需要恢复时才追加`--apply`；可用重复的`--path`选确切原路径。它先验证完整选择集、归档哈希、路径范围和后续冲突，任一冲突拒绝，不覆盖未来文件。实际仓库只做check，隔离演练验证了精确恢复、冲突拒绝及其他缺失目标零写入。恢复临时文件会重新占用原始空间；对当前产品行为没有必要。
+Keep exact proof for unresolved defects and real release/rollback deliveries. Git and Releases cover committed history; unique uncommitted material has one indexed archive. Historical reports can be extracted individually through [history](history/README.md), without restoring the whole old tree or executing its scripts. Recount only after material changes, not to create another cleanup target.
 
-## 其他E:工作区
-
-| 路径 | 只读观察 | 本次决定 |
-| --- | --- | --- |
-| `E:\Projects\morphe-ai-caption-translator-1.5.4` | dev/1.5.4-work，HEAD2c960540，51条未提交/未跟踪状态 | 有独有工作，原位置保留；不是当前开发入口 |
-| `E:\Projects\morphe-ai-caption-upstream` | feat/youtube-ai-caption-translation，HEAD027c4e1f，5条未跟踪状态 | 上游尝试/历史输入保留；当前方向仍为独立包 |
-| `E:\Projects\morphe-caption-upstream-integrated-claude` | codex/upstream-core-integration，HEADf266f19c，73条未提交/未跟踪状态 | 独有整合工作保留，不作为当前源码或重复目录删除 |
-
-只读查看了上述身份/状态，没有修改、重命名或删除其他仓库，未触碰C:共享安装/会话存储。若将来专门退役某旧仓库，应先对独有源码/历史资产作单独可恢复核对；它们不属于本轮已删除项目。
-
-## 日常保持整洁的规则
-
-新开发只用活动仓库；临时工作用新的`.tmp/<明确任务>/`子目录，正式证据用`validation/runs/<独占ID>/`，构建交付用`build/`。不要重新散放根诊断、APK、MPP或依赖目录。临时文件在所属进程退出后可按明确清单归档/清理；正式包、封存证据、历史回放输入及共享依赖不套用临时规则。
-
-GitHub1.5.8发布、远端CI及本轮依赖/分支整理已完成，收尾维护记录快进同步main/dev；本地原未提交成果通过有界提交入库，私有原件/源快照保留。工作树整洁来自提交和可恢复收纳，未用git clean/reset丢弃修改。未来新需求和发布按用户新请求安排，私有材料不随源码上传。
+After successful composition and artifact/audit preservation, Patcher-created session-*/patcher and session-*/workspace are derived extraction, not historical deliveries. They may be removed after checking the retained complete APK and absence of failure evidence. Do not repeatedly snapshot these directories; preserve the input/selection/recipe/logs, resulting APK and identity. Failed or unidentified sessions require individual review.

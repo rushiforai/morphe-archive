@@ -26,7 +26,7 @@ import app.hushgram.extension.shared.settings.BaseSettings;
 import app.hushgram.extension.shared.settings.HushgramPause;
 import app.hushgram.extension.shared.settings.PauseForTests;
 
-/** What the tab bar gate answers for each choice, and that paused and not ready are Instagram's own (#356). */
+/** What the tab bar gate answers for each choice, the classic bar's quick search wait, and that paused and not ready are Instagram's own (#356, #383). */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = {28, 37})
 public class TabBarLayoutTest {
@@ -101,6 +101,22 @@ public class TabBarLayoutTest {
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         assertTrue(TabBarLayout.newTabBar(0));
+    }
+
+    /** With no swipe pager, a long press on Search waits for no pages; paused or not ready it's Instagram's own wait (#383). */
+    @Test
+    public void quickSearchOnTheClassicBarWaitsForNoSwipePages() {
+        assertEquals(0, TabBarLayout.quickSearchPages(5));
+        String report = report();
+        assertTrue(report, report.contains(TabBarLayout.QUICK_SEARCH + " 1"));
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertEquals(5, TabBarLayout.quickSearchPages(5));
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> assertEquals(5, TabBarLayout.quickSearchPages(5)));
+        report = report();
+        assertTrue(report, report.contains(TabBarLayout.QUICK_SEARCH + " 1"));
     }
 
     /** Before the settings are ready the hook can't read the choice and keeps Instagram's answer. */

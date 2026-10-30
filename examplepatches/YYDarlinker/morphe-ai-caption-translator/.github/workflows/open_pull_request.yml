@@ -1,9 +1,6 @@
 name: Open a PR to main
 
 on:
-  push:
-    branches:
-      - dev
   workflow_dispatch:
 
 permissions:
@@ -13,6 +10,7 @@ permissions:
 jobs:
   pull-request:
     name: Open pull request
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

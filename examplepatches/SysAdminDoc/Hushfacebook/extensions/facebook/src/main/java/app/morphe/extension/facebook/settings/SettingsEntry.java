@@ -51,6 +51,7 @@ import app.morphe.extension.facebook.ads.AudienceNetwork;
 import app.morphe.extension.facebook.download.ClipboardLink;
 import app.morphe.extension.facebook.download.SaveLeftovers;
 import app.morphe.extension.facebook.download.SavedFileActions;
+import app.morphe.extension.facebook.feed.LinkedPost;
 import app.morphe.extension.facebook.feed.ReturnRefresh;
 import app.morphe.extension.facebook.media.ResumePlayback;
 import app.morphe.extension.facebook.menu.MenuLayoutDump;
@@ -754,6 +755,7 @@ public final class SettingsEntry {
 
         @Override
         public void onActivityCreated(Activity activity, Bundle state) {
+            LinkedPost.activityCreated(activity);
             TapToPlay.activityCreated(activity, state);
             ScreenTransitions.activityCreated(activity);
             if (SettingsStatus.storySeen()) StorySeenButton.activityCreated(activity);

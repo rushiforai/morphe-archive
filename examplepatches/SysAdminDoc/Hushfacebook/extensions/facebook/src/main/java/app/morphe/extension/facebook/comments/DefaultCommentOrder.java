@@ -264,7 +264,7 @@ public final class DefaultCommentOrder {
                 log("left " + describe(order.token) + " for the post's menu to offer.");
                 return token;
             }
-            log("asked for " + describe(order.token) + ".");
+            log("asked for " + describe(order) + ".");
             return order.token;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.DEFAULT_COMMENT_ORDER, "comment request", failure);
@@ -300,7 +300,7 @@ public final class DefaultCommentOrder {
                 log("left " + describe(order.token) + " for a post page's menu to offer.");
                 return token;
             }
-            log("asked for " + describe(order.token) + " on a post's page.");
+            log("asked for " + describe(order) + " on a post's page.");
             return order.token;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.DEFAULT_COMMENT_ORDER, "post page request", failure);
@@ -467,6 +467,11 @@ public final class DefaultCommentOrder {
         } catch (Throwable failure) {
             return null;
         }
+    }
+
+    /** The chosen [order] as a line names it, which a token alone can't tell from another's row. */
+    static String describe(CommentOrder order) {
+        return order.fileValue + " (" + order.token + ")";
     }
 
     /** An order as a line names it: its name here and Facebook's token, or the token alone. */

@@ -30,7 +30,8 @@
                  receipt, which reads those kept runs instead of patching each build again. The
                  bundle, SBOM, receipt and SHA256SUMS.txt go to build/release-assets/<version>.
       publish    First -Walk, the walk-receipt.json of a whole-app walk of the built bundle on a
-                 release phone or an emulator (walk-receipt.ps1): nothing goes out without one.
+                 release phone or an emulator for each Telegram build it patches, the Play build's
+                 signed in (walk-receipt.ps1): nothing goes out without them.
                  Then release notes from -Intro, -Install and -Validation around every bullet of
                  the version's CHANGELOG section, a lightweight tag on the release commit, the
                  GitHub release with the four assets, each downloaded back and compared, and the
@@ -48,7 +49,7 @@
 
 .EXAMPLE
     scripts/release/release.ps1 -Stage prepare -Version 0.0.12
-    scripts/release/release.ps1 -Stage publish -Version 0.0.12 -Intro intro.md -Install install.md -Validation validation.md -Walk <walk folder>/walk-receipt.json
+    scripts/release/release.ps1 -Stage publish -Version 0.0.12 -Intro intro.md -Install install.md -Validation validation.md -Walk <web walk>/walk-receipt.json,<play walk>/walk-receipt.json
     scripts/release/release.ps1 -Stage index -Version 0.0.12 -Description manager.txt
 #>
 [CmdletBinding()]
@@ -61,8 +62,8 @@ param(
     [string]$Intro,
     [string]$Install,
     [string]$Validation,
-    # publish: the walk-receipt.json a whole-app walk of this exact bundle left.
-    [string]$Walk,
+    # publish: the walk-receipt.json each whole-app walk of this exact bundle left, one per Telegram build.
+    [string[]]$Walk,
     # index: a file holding the text Morphe Manager shows for the bundle.
     [string]$Description,
     [string]$Repository = 'SysAdminDoc/HushTelegram',
@@ -474,13 +475,15 @@ switch ($Stage) {
             throw "The assets in $assets don't match SHA256SUMS.txt and the build that wrote them. Run -Stage build again."
         }
         # Nothing goes public until the whole app has been walked with this exact bundle.
-        if (-not $Walk) { throw '-Walk names the walk-receipt.json a whole-app walk of this bundle left on a release phone or an emulator.' }
-        $walked = Test-WalkReceipt -Path $Walk -BundlePath (Join-Path $assets $bundleName) -PatchListPath (Join-Path $Root 'patches-list.json')
+        if (-not $Walk) { throw '-Walk names the walk-receipt.json each whole-app walk of this bundle left on a release phone or an emulator, one per Telegram build.' }
+        $walked = Test-WalkReceipts -Path $Walk -BundlePath (Join-Path $assets $bundleName) -PatchListPath (Join-Path $Root 'patches-list.json')
         if (-not $walked.Valid) {
-            throw ("The whole-app walk doesn't back $bundleName, so nothing was published: $($walked.Reason). " +
-                'Patch an APK from this bundle, walk the whole app on a release phone or an emulator, and pass its walk-receipt.json as -Walk.')
+            throw ("The whole-app walks don't back $bundleName, so nothing was published: $($walked.Reason). " +
+                'Patch an APK of each Telegram build from this bundle, walk the whole app on a release phone or an emulator (signed in for the Play build), and pass each walk-receipt.json as -Walk.')
         }
-        Write-Step "walked on $($walked.Receipt.device) ($($walked.Kind)): $($walked.Receipt.screens) screens, no crash"
+        foreach ($one in $walked.Walks) {
+            Write-Step "walked $($one.Receipt.package) on $($one.Receipt.device) ($($one.Kind)): $($one.Receipt.screens) screens, no crash"
+        }
         foreach ($part in @(@('-Intro', $Intro), @('-Install', $Install), @('-Validation', $Validation))) {
             if (-not $part[1] -or -not (Test-Path -LiteralPath $part[1] -PathType Leaf)) {
                 throw "$($part[0]) names the file holding that part of the release notes."

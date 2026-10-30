@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.4.0...v1.5.0) (2026-10-29)
+
+### ✨ New Features
+
+* **dnschanger:** publish stable Force Pro test D2 without Spotify ([e3d914e](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e3d914eb52f48706d29a866972172d04505a0381))
+
 ## [1.4.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.3.0...v1.4.0) (2026-10-28)
 
 ### ✨ New Features

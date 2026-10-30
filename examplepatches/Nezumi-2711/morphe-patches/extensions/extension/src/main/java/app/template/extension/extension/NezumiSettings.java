@@ -187,7 +187,7 @@ public final class NezumiSettings {
 
     private static boolean isVietnamese(Context context) {
         try {
-            String language = (String) Class.forName("com.google.android.play.core.appupdate.b")
+            Object language = Class.forName("com.google.android.play.core.appupdate.b")
                     .getField("b").get(null);
             if ("vi".equals(language)) return true;
             if ("en".equals(language)) return false;

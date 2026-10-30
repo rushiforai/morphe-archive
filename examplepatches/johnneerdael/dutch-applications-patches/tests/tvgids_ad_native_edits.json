@@ -1,0 +1,359 @@
+{
+  "arm64-v8a": [
+    {
+      "name": "slot",
+      "address": 7849136,
+      "size": 124,
+      "sha256": "ac66a80457505588b4225f25eb022628a3d2a9f57c5d7a55c3372124c122d411",
+      "at": 7849136,
+      "before": "fd79bfa9fd030faaef2100d1",
+      "after": "60234091001843f9c0035fd6"
+    },
+    {
+      "name": "growable",
+      "address": 7618200,
+      "size": 816,
+      "sha256": "63f413dea3f0dbb0911eaf5fcfbfc645035970952d0ebde48a20de8d89243ccd",
+      "at": 7618200,
+      "before": "fd79bfa9fd030faaef2101d1",
+      "after": "60234091001843f9c0035fd6"
+    },
+    {
+      "name": "sticky",
+      "address": 7856120,
+      "size": 772,
+      "sha256": "d909340c577c78b8c8ba7d59950eff0cc3a93b740682261b61372a24515d9848",
+      "at": 7856120,
+      "before": "fd79bfa9fd030faaefa101d1",
+      "after": "60234091001843f9c0035fd6"
+    },
+    {
+      "name": "failure",
+      "address": 7837484,
+      "size": 508,
+      "sha256": "799e9ff92a7b4a49763255d84b2cab794c0ef5df02e4216328dc0e60fda59dba",
+      "at": 7837484,
+      "before": "fd79bfa9fd030faaefc100d1",
+      "after": "60234091001843f9c0035fd6"
+    },
+    {
+      "name": "nlziet",
+      "address": 9663080,
+      "size": 908,
+      "sha256": "70732f63d7c3418fd0c1cb507e11ea67533f38b4e2305855b2e33ad0b1cfebb3",
+      "at": 9663080,
+      "before": "fd79bfa9fd030faaefe100d1",
+      "after": "60234091001843f9c0035fd6"
+    },
+    {
+      "name": "sliverDelegate",
+      "address": 6223592,
+      "size": 384,
+      "sha256": "2b7cf2c06aa6d77842489a1ebde500add142f7e3021eb20371ebaaa866375997",
+      "at": 6223592,
+      "before": "fd79bfa9fd030faaef8100d1",
+      "after": "60234091001843f9c0035fd6"
+    },
+    {
+      "name": "sliverBuild",
+      "address": 7853312,
+      "size": 832,
+      "sha256": "6123277476a5398dff5af85959bad9484cf6e9a74dfd5eab430d9ef36bcdbc7f",
+      "at": 7854020,
+      "before": "a0035bfc",
+      "after": "e003679e"
+    },
+    {
+      "name": "sliverBuild",
+      "address": 7853312,
+      "size": 832,
+      "sha256": "6123277476a5398dff5af85959bad9484cf6e9a74dfd5eab430d9ef36bcdbc7f",
+      "at": 7854032,
+      "before": "a08359fc",
+      "after": "e003679e"
+    },
+    {
+      "name": "sliverBuild",
+      "address": 7853312,
+      "size": 832,
+      "sha256": "6123277476a5398dff5af85959bad9484cf6e9a74dfd5eab430d9ef36bcdbc7f",
+      "at": 7854040,
+      "before": "a0035afc",
+      "after": "e003679e"
+    },
+    {
+      "name": "sliverBuild",
+      "address": 7853312,
+      "size": 832,
+      "sha256": "6123277476a5398dff5af85959bad9484cf6e9a74dfd5eab430d9ef36bcdbc7f",
+      "at": 7854048,
+      "before": "a0835afc",
+      "after": "e003679e"
+    },
+    {
+      "name": "adsFetch",
+      "address": 7851668,
+      "size": 1644,
+      "sha256": "d3769e4b9a634172d1f4eaa1caf348f87ea728690ad4b0f6da3058c266723ffd",
+      "at": 7851712,
+      "before": "a00359f8",
+      "after": "8c010014"
+    },
+    {
+      "name": "homeItemFactory",
+      "address": 7193008,
+      "size": 912,
+      "sha256": "4794771b8c01318c7ead81efd75e031f5352eb8bab708eb1414d3990875bc589",
+      "at": 7193192,
+      "before": "417041b821801c8ba1831ff8",
+      "after": "60234091001843f984000014"
+    },
+    {
+      "name": "homeCard",
+      "address": 7193920,
+      "size": 1796,
+      "sha256": "66ac6e9a14d2beb615aeae4df3a5d1da771a6834d2dc62bddafe9c6f95d54222",
+      "at": 7195076,
+      "before": "a0835df8",
+      "after": "08000014"
+    }
+  ],
+  "armeabi-v7a": [
+    {
+      "name": "slot",
+      "address": 9453704,
+      "size": 116,
+      "sha256": "a0539e37cc9b5c0ac870830fdc5972d480da633f916b89903e3cd03d1673cd15",
+      "at": 9453704,
+      "before": "00482de900b08de204d04de2",
+      "after": "df0404e3000095e71eff2fe1"
+    },
+    {
+      "name": "growable",
+      "address": 9235268,
+      "size": 840,
+      "sha256": "293f0134b29ac58eb878c4a57d9aa8c5c6a9dd5b56bc4a6e42cc43835acb595e",
+      "at": 9235268,
+      "before": "00482de900b08de22cd04de2",
+      "after": "df0404e3000095e71eff2fe1"
+    },
+    {
+      "name": "sticky",
+      "address": 9460812,
+      "size": 840,
+      "sha256": "2c4a9a444b2e9812deccb663f0fc75fc8bfbfb3f1ff99f0cb84d156316feb05b",
+      "at": 9460812,
+      "before": "00482de900b08de238d04de2",
+      "after": "df0404e3000095e71eff2fe1"
+    },
+    {
+      "name": "failure",
+      "address": 9443672,
+      "size": 488,
+      "sha256": "e5020076aacf7b61d797f6b62434ce16d207044b72f51043699d88d4bcdafc24",
+      "at": 9443672,
+      "before": "00482de900b08de218d04de2",
+      "after": "df0404e3000095e71eff2fe1"
+    },
+    {
+      "name": "nlziet",
+      "address": 8509092,
+      "size": 948,
+      "sha256": "fa94c80aa9ceaf5fcc2e52dc889976e6daa1db312ce9fe22501e528421c45275",
+      "at": 8509092,
+      "before": "00482de900b08de21cd04de2",
+      "after": "df0404e3000095e71eff2fe1"
+    },
+    {
+      "name": "sliverDelegate",
+      "address": 7307120,
+      "size": 428,
+      "sha256": "488eb472d173722fa914a04d3be134f0948cdb7f597b6743d6a54c90336b7c98",
+      "at": 7307120,
+      "before": "00482de900b08de218d04de2",
+      "after": "df0404e3000095e71eff2fe1"
+    },
+    {
+      "name": "sliverBuild",
+      "address": 9457836,
+      "size": 904,
+      "sha256": "710cbe4e7fdeb7c42500a586ee4382e63c09b93a1d3a816df3e728d0f6002db6",
+      "at": 9458620,
+      "before": "0b0b1bed",
+      "after": "100100f3"
+    },
+    {
+      "name": "sliverBuild",
+      "address": 9457836,
+      "size": 904,
+      "sha256": "710cbe4e7fdeb7c42500a586ee4382e63c09b93a1d3a816df3e728d0f6002db6",
+      "at": 9458636,
+      "before": "110b1bed",
+      "after": "100100f3"
+    },
+    {
+      "name": "sliverBuild",
+      "address": 9457836,
+      "size": 904,
+      "sha256": "710cbe4e7fdeb7c42500a586ee4382e63c09b93a1d3a816df3e728d0f6002db6",
+      "at": 9458648,
+      "before": "0f0b1bed",
+      "after": "100100f3"
+    },
+    {
+      "name": "sliverBuild",
+      "address": 9457836,
+      "size": 904,
+      "sha256": "710cbe4e7fdeb7c42500a586ee4382e63c09b93a1d3a816df3e728d0f6002db6",
+      "at": 9458660,
+      "before": "0d0b1bed",
+      "after": "100100f3"
+    },
+    {
+      "name": "adsFetch",
+      "address": 9456172,
+      "size": 1664,
+      "sha256": "4a0a1ea67b91c1f966e136cc5fa70b1aca726c755348ae8ac92d8f5edf69fa47",
+      "at": 9456220,
+      "before": "38001be5",
+      "after": "900100ea"
+    },
+    {
+      "name": "homeItemFactory",
+      "address": 9044124,
+      "size": 940,
+      "sha256": "10c9167107a6cb800fd5fa15bd99cad7947d75caadc6276bf0a1a8cb231aafc2",
+      "at": 9044336,
+      "before": "131092e504100be500008de5",
+      "after": "df0404e3000095e7ae0000ea"
+    },
+    {
+      "name": "homeCard",
+      "address": 9045064,
+      "size": 1880,
+      "sha256": "01f66003f1391abea251506f2f3b30fc715c43d8db8d1c96114210f02a290335",
+      "at": 9046276,
+      "before": "14101be5",
+      "after": "050000ea"
+    }
+  ],
+  "x86_64": [
+    {
+      "name": "slot",
+      "address": 8582652,
+      "size": 108,
+      "sha256": "37b8b8a51dba7e0c2e3d9b5efa58d07c7dd73abf02dabd9844578bed9a6b789b",
+      "at": 8582652,
+      "before": "554889e54883ec08",
+      "after": "498b87bf860000c3"
+    },
+    {
+      "name": "growable",
+      "address": 8357824,
+      "size": 828,
+      "sha256": "a4ce60cda8a6b766ff8fa89d628e925faa30fe4f7335623d2e26155948658bc2",
+      "at": 8357824,
+      "before": "554889e54883ec48",
+      "after": "498b87bf860000c3"
+    },
+    {
+      "name": "sticky",
+      "address": 8589860,
+      "size": 776,
+      "sha256": "499b7955fc6e2a553cef978de9581103377dfc34d9dc7c15bb2ecec974146cfc",
+      "at": 8589860,
+      "before": "554889e54883ec68",
+      "after": "498b87bf860000c3"
+    },
+    {
+      "name": "failure",
+      "address": 8572340,
+      "size": 480,
+      "sha256": "7fa25820e36b9a760e58fc317b73438a6544fbbce85883ac0877e9da265539f3",
+      "at": 8572340,
+      "before": "554889e54883ec30",
+      "after": "498b87bf860000c3"
+    },
+    {
+      "name": "nlziet",
+      "address": 7632600,
+      "size": 944,
+      "sha256": "9c72a629c67f326c830524b878368ec72b037ad81bf8870c1a173b6f4538cf0f",
+      "at": 7632600,
+      "before": "554889e54883ec38",
+      "after": "498b87bf860000c3"
+    },
+    {
+      "name": "sliverDelegate",
+      "address": 6470740,
+      "size": 392,
+      "sha256": "9bc8f1daa45f50db6046611130e3e620295a812fd2de1e2e3dcacf3d9d34f5ac",
+      "at": 6470740,
+      "before": "554889e54883ec20",
+      "after": "498b87bf860000c3"
+    },
+    {
+      "name": "sliverBuild",
+      "address": 8586976,
+      "size": 856,
+      "sha256": "46b85f9724c2496014f9f1ed3eb392c608bff6848cafd39955a3b425ad903090",
+      "at": 8587692,
+      "before": "f20f1045b0",
+      "after": "660f57c090"
+    },
+    {
+      "name": "sliverBuild",
+      "address": 8586976,
+      "size": 856,
+      "sha256": "46b85f9724c2496014f9f1ed3eb392c608bff6848cafd39955a3b425ad903090",
+      "at": 8587706,
+      "before": "f20f104598",
+      "after": "660f57c090"
+    },
+    {
+      "name": "sliverBuild",
+      "address": 8586976,
+      "size": 856,
+      "sha256": "46b85f9724c2496014f9f1ed3eb392c608bff6848cafd39955a3b425ad903090",
+      "at": 8587716,
+      "before": "f20f1045a0",
+      "after": "660f57c090"
+    },
+    {
+      "name": "sliverBuild",
+      "address": 8586976,
+      "size": 856,
+      "sha256": "46b85f9724c2496014f9f1ed3eb392c608bff6848cafd39955a3b425ad903090",
+      "at": 8587726,
+      "before": "f20f1045a8",
+      "after": "660f57c090"
+    },
+    {
+      "name": "adsFetch",
+      "address": 8585212,
+      "size": 1764,
+      "sha256": "13033f6bc224bd6cd5858dd0e973ed81734f084e0cbf9b86ac240de43dd043cb",
+      "at": 8585264,
+      "before": "488b45908b48ff",
+      "after": "e9920600009090"
+    },
+    {
+      "name": "homeItemFactory",
+      "address": 8167728,
+      "size": 876,
+      "sha256": "421c47b6f9e55fcc60d91fea6b1f0349bf94cb2c54813db61cf1a867ad3c76a1",
+      "at": 8167885,
+      "before": "8b7a1749037e5848897df848890424",
+      "after": "498b87bf860000e99a020000909090"
+    },
+    {
+      "name": "homeCard",
+      "address": 8168604,
+      "size": 1868,
+      "sha256": "5a0954b462b71949a62849101f7c5f2b68c99242db4df8c970986d22b5737a7f",
+      "at": 8169835,
+      "before": "488b45d8",
+      "after": "eb219090"
+    }
+  ]
+}

@@ -192,6 +192,7 @@
       "download_saves_at_once",
       "download_unmetered_only",
       "download_sticker_format",
+      "dm_sticker_save_box",
       "download_video_path",
       "download_photo_path",
       "download_sticker_path",
@@ -1318,6 +1319,12 @@
       "key": "disable_long_press_repost",
       "type": "boolean",
       "default": false
+    },
+    "dm_sticker_save_box": {
+      "field": "DM_STICKER_SAVE_BOX",
+      "key": "dm_sticker_save_box",
+      "type": "boolean",
+      "default": true
     },
     "dm_translation_preview": {
       "field": "DM_TRANSLATION_PREVIEW",

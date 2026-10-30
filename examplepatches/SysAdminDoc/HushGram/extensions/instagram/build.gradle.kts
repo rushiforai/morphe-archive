@@ -1348,7 +1348,7 @@ tasks.register("verifyAndroidBoundaries") {
                     }) throw GradleException("Android boundary case did not pass exactly once: $suiteName.$name")
             }
         }
-        logger.lifecycle("Verified Android API 28/29/37 boundary cases with the Instagram 450 target SDK (36).")
+        logger.lifecycle("Verified Android API 28/29/37 boundary cases with the Instagram 453 target SDK (37).")
     }
 }
 
@@ -1370,7 +1370,8 @@ android {
     namespace = "app.hushgram.extension.instagram"
 
     defaultConfig {
-        // Instagram 450 declares minSdk 28, so nothing below it can run this code.
+        // Instagram 453's arm64 builds declare minSdk 28 and the patch raises the others' 26 to
+        // it, so nothing below it can run this code.
         minSdk = 28
     }
 

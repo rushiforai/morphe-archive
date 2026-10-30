@@ -40,48 +40,6 @@ Request-block disk cache: lookups 2,480 · hit blocks 2,443 · missed units 2,51
   Core: Event rebuild / rebuild-1.4.0/ac65fe8: viewed 2.8 s · 2,406 tok
 Request body: total 2,110 bytes · average 2 bytes/API attempt
 Note: 2,147 2xx responses lacked usage; only request counts, not exact tokens, are known for these.
-[en raw]
-Token cost audit (since last reset)
-Current model: model-x
-Current engine: Event rebuild / rebuild-1.4.0/ac65fe8
-API: 1,037 attempts · 1,703 successful (2xx) · 1,518 failures · internal retries 1,777
-Failure breakdown: 429 1,592 · 5xx 1,666 · other 4xx 1,629 · timeout 2,369 · network 1,888 · cancelled/interrupted 1,259 · other 3,665
-Structural and deterministic checks: accepted / rejected (not semantic acceptance): 1,000 / 2,073 (2,036)
-Tokens: 2,406 = input 1,999 + output 1,333
-Input cache: hit 1,185 / miss 1,222 · hit rate 49.2%
-V4 Flash current provider estimate: ¥0.00000 (only responses priced by built-in V4 Flash rates)
-Requests by purpose:
-  Current priority: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Current anchor: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Gap rescue: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Background prefetch: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Page merge: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Block (fallback): 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Boundary recheck: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Time anchor / current batch: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Time anchor / background batch: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Core: Semantic Ledger v2: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Core: Contextual Unit v1: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Display slicing: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Page merge efficiency: added 1,296 core atoms · input per atom 1.5 tok · cache-miss input per atom 0.9 tok
-  Block (fallback) efficiency: added 1,296 core atoms · input per atom 1.5 tok · cache-miss input per atom 0.9 tok
-  Boundary recheck efficiency: added 1,296 core atoms · input per atom 1.5 tok · cache-miss input per atom 0.9 tok
-Page merge progress: 1,148 fixed blocks completed by 1,851 page requests (0.6 blocks/request; <1.0 means repeated requests without progress)
-Boundary recheck: triggered 1,074 times (at most once/page) · sent 1,851 requests · recovered 1,296 atoms
-Page fallback: 1,111 cached pages exceeded the failure threshold; falling back to block requests
-Sent but unread requests: 2,332 requests · 2,295 bytes. Provider processing and billing are unknown; the token and cost totals exclude this usage, so the actual spend cannot be determined.
-Display slicing: local zero-token successes 1,444 times · kept whole sentences 1,481 times · handed off to AI 1,407 times (AI calls 1,037 · with usage 3 · failures 1,518)
-  Core: Event rebuild / rebuild-1.4.0/ac65fe8: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-Current video: viewed 2.7 s · 2,406 tokens
-Semantic window: core 2,184 atoms · exposed 4,479 atoms · context exposure ratio 2.05x
-Request blocks: target 2,665 blocks · read-only context 2,591 sections · context sections/block 0.97x · character exposure ratio 0.97x
-Request-block disk cache: lookups 2,480 · hit blocks 2,443 · missed units 2,517
-  Current engine: legacy engine: viewed 2.8 s · 2,406 tok
-  Current engine: Legacy compatibility engine: viewed 2.9 s · 2,406 tok
-  Core: Event rebuild / rebuild-1.4.0/ac65fe8: viewed 2.8 s · 2,406 tok
-Request body: total 2,110 bytes · average 2 bytes/API attempt
-Note: 2,147 2xx responses lacked usage; only request counts, not exact tokens, are known for these.
-## variant 0
 [zh-CN]
 Token 成本审计（自上次重置起）
 当前模型：model-x
@@ -123,48 +81,6 @@ V4 Flash 按当前提供商估算：¥0.00000 （仅计入按内置 V4 Flash 价
   核心：事件重建 / rebuild-1.4.0/ac65fe8: 已观看 2.8 秒 · 2,406 token
 请求体：合计 2,110 字节 · 平均每次 API 尝试 2 字节
 注意：2,147 个 2xx 响应没有用量；这些请求只能确知次数，无法确知 token 数。
-[zh-CN raw]
-Token cost audit (since last reset)
-Current model: model-x
-Current engine: Event rebuild / rebuild-1.4.0/ac65fe8
-API: 1,037 attempts · 1,703 successful (2xx) · 1,518 failures · internal retries 1,777
-Failure breakdown: 429 1,592 · 5xx 1,666 · other 4xx 1,629 · timeout 2,369 · network 1,888 · cancelled/interrupted 1,259 · other 3,665
-Structural and deterministic checks: accepted / rejected (not semantic acceptance): 1,000 / 2,073 (2,036)
-Tokens: 2,406 = input 1,999 + output 1,333
-Input cache: hit 1,185 / miss 1,222 · hit rate 49.2%
-V4 Flash current provider estimate: ¥0.00000 (only responses priced by built-in V4 Flash rates)
-Requests by purpose:
-  Current priority: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Current anchor: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Gap rescue: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Background prefetch: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Page merge: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Block (fallback): 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Boundary recheck: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Time anchor / current batch: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Time anchor / background batch: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Core: Semantic Ledger v2: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Core: Contextual Unit v1: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Display slicing: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-  Page merge efficiency: added 1,296 core atoms · input per atom 1.5 tok · cache-miss input per atom 0.9 tok
-  Block (fallback) efficiency: added 1,296 core atoms · input per atom 1.5 tok · cache-miss input per atom 0.9 tok
-  Boundary recheck efficiency: added 1,296 core atoms · input per atom 1.5 tok · cache-miss input per atom 0.9 tok
-Page merge progress: 1,148 fixed blocks completed by 1,851 page requests (0.6 blocks/request; <1.0 means repeated requests without progress)
-Boundary recheck: triggered 1,074 times (at most once/page) · sent 1,851 requests · recovered 1,296 atoms
-Page fallback: 1,111 cached pages exceeded the failure threshold; falling back to block requests
-Sent but unread requests: 2,332 requests · 2,295 bytes. Provider processing and billing are unknown; the token and cost totals exclude this usage, so the actual spend cannot be determined.
-Display slicing: local zero-token successes 1,444 times · kept whole sentences 1,481 times · handed off to AI 1,407 times (AI calls 1,037 · with usage 3 · failures 1,518)
-  Core: Event rebuild / rebuild-1.4.0/ac65fe8: 1,851 logical requests / 1,037 API calls · 2,406 tok · focus misses 1,555 · local circuit breakers 1,814 · ¥0.00000 (only responses priced by built-in V4 Flash rates)
-Current video: viewed 2.7 s · 2,406 tokens
-Semantic window: core 2,184 atoms · exposed 4,479 atoms · context exposure ratio 2.05x
-Request blocks: target 2,665 blocks · read-only context 2,591 sections · context sections/block 0.97x · character exposure ratio 0.97x
-Request-block disk cache: lookups 2,480 · hit blocks 2,443 · missed units 2,517
-  Current engine: legacy engine: viewed 2.8 s · 2,406 tok
-  Current engine: Legacy compatibility engine: viewed 2.9 s · 2,406 tok
-  Core: Event rebuild / rebuild-1.4.0/ac65fe8: viewed 2.8 s · 2,406 tok
-Request body: total 2,110 bytes · average 2 bytes/API attempt
-Note: 2,147 2xx responses lacked usage; only request counts, not exact tokens, are known for these.
-## variant 0
 [ar]
 تدقيق تكلفة الرموز (منذ آخر إعادة تعيين)
 الطراز الحالي: model-x
@@ -206,7 +122,7 @@ API: 1,037 محاولة · 1,703 ناجحة (2xx) · 1,518 فاشلة · إعا�
   النواة: إعادة بناء الأحداث / rebuild-1.4.0/ac65fe8: شوهد 2.8 ث · 2,406 رمز
 جسم الطلب: الإجمالي 2,110 بايت · المتوسط 2 بايت لكل محاولة API
 ملاحظة: 2,147 استجابة 2xx بلا بيانات استخدام؛ لا يُعرف عنها سوى الأعداد لا الرموز الدقيقة.
-[ar raw]
+[raw]
 Token cost audit (since last reset)
 Current model: model-x
 Current engine: Event rebuild / rebuild-1.4.0/ac65fe8
@@ -289,48 +205,6 @@ Request-block disk cache: lookups 1 · hit blocks 1 · missed units 1
   Core: Event rebuild / rebuild-1.4.0/ac65fe8: viewed 0.0 s · 1 tok
 Request body: total 1 bytes · average 1 bytes/API attempt
 Note: 1 2xx responses lacked usage; only request counts, not exact tokens, are known for these.
-[en raw]
-Token cost audit (since last reset)
-Current model: model-x
-Current engine: Event rebuild / rebuild-1.4.0/ac65fe8
-API: 1 attempts · 1 successful (2xx) · 1 failures · internal retries 1
-Failure breakdown: 429 1 · 5xx 1 · other 4xx 1 · timeout 1 · network 1 · cancelled/interrupted 1 · other 2
-Structural and deterministic checks: accepted / rejected (not semantic acceptance): 1 / 1 (1)
-Tokens: 1 = input 1 + output 1
-Input cache: hit 1 / miss 1 · hit rate 50.0%
-V4 Flash current provider estimate: ¥0.00000
-Requests by purpose:
-  Current priority: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Current anchor: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Gap rescue: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Background prefetch: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Page merge: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Block (fallback): 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Boundary recheck: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Time anchor / current batch: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Time anchor / background batch: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Core: Semantic Ledger v2: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Core: Contextual Unit v1: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Display slicing: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Page merge efficiency: added 1 core atoms · input per atom 1.0 tok · cache-miss input per atom 1.0 tok
-  Block (fallback) efficiency: added 1 core atoms · input per atom 1.0 tok · cache-miss input per atom 1.0 tok
-  Boundary recheck efficiency: added 1 core atoms · input per atom 1.0 tok · cache-miss input per atom 1.0 tok
-Page merge progress: 1 fixed blocks completed by 1 page requests (1.0 blocks/request; <1.0 means repeated requests without progress)
-Boundary recheck: triggered 1 times (at most once/page) · sent 1 requests · recovered 1 atoms
-Page fallback: 1 cached pages exceeded the failure threshold; falling back to block requests
-Sent but unread requests: 1 requests · 1 bytes. Provider processing and billing are unknown; the token and cost totals exclude this usage, so the actual spend cannot be determined.
-Display slicing: local zero-token successes 1 times · kept whole sentences 1 times · handed off to AI 1 times (AI calls 1 · with usage 1 · failures 1)
-  Core: Event rebuild / rebuild-1.4.0/ac65fe8: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-Current video: viewed 0.0 s · 1 tokens
-Semantic window: core 1 atoms · exposed 2 atoms · context exposure ratio 2.00x
-Request blocks: target 1 blocks · read-only context 1 sections · context sections/block 1.00x · character exposure ratio 1.00x
-Request-block disk cache: lookups 1 · hit blocks 1 · missed units 1
-  Current engine: legacy engine: viewed 0.0 s · 1 tok
-  Current engine: Legacy compatibility engine: viewed 0.0 s · 1 tok
-  Core: Event rebuild / rebuild-1.4.0/ac65fe8: viewed 0.0 s · 1 tok
-Request body: total 1 bytes · average 1 bytes/API attempt
-Note: 1 2xx responses lacked usage; only request counts, not exact tokens, are known for these.
-## variant 1
 [zh-CN]
 Token 成本审计（自上次重置起）
 当前模型：model-x
@@ -372,48 +246,6 @@ V4 Flash 按当前提供商估算：¥0.00000
   核心：事件重建 / rebuild-1.4.0/ac65fe8: 已观看 0.0 秒 · 1 token
 请求体：合计 1 字节 · 平均每次 API 尝试 1 字节
 注意：1 个 2xx 响应没有用量；这些请求只能确知次数，无法确知 token 数。
-[zh-CN raw]
-Token cost audit (since last reset)
-Current model: model-x
-Current engine: Event rebuild / rebuild-1.4.0/ac65fe8
-API: 1 attempts · 1 successful (2xx) · 1 failures · internal retries 1
-Failure breakdown: 429 1 · 5xx 1 · other 4xx 1 · timeout 1 · network 1 · cancelled/interrupted 1 · other 2
-Structural and deterministic checks: accepted / rejected (not semantic acceptance): 1 / 1 (1)
-Tokens: 1 = input 1 + output 1
-Input cache: hit 1 / miss 1 · hit rate 50.0%
-V4 Flash current provider estimate: ¥0.00000
-Requests by purpose:
-  Current priority: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Current anchor: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Gap rescue: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Background prefetch: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Page merge: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Block (fallback): 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Boundary recheck: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Time anchor / current batch: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Time anchor / background batch: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Core: Semantic Ledger v2: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Core: Contextual Unit v1: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Display slicing: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-  Page merge efficiency: added 1 core atoms · input per atom 1.0 tok · cache-miss input per atom 1.0 tok
-  Block (fallback) efficiency: added 1 core atoms · input per atom 1.0 tok · cache-miss input per atom 1.0 tok
-  Boundary recheck efficiency: added 1 core atoms · input per atom 1.0 tok · cache-miss input per atom 1.0 tok
-Page merge progress: 1 fixed blocks completed by 1 page requests (1.0 blocks/request; <1.0 means repeated requests without progress)
-Boundary recheck: triggered 1 times (at most once/page) · sent 1 requests · recovered 1 atoms
-Page fallback: 1 cached pages exceeded the failure threshold; falling back to block requests
-Sent but unread requests: 1 requests · 1 bytes. Provider processing and billing are unknown; the token and cost totals exclude this usage, so the actual spend cannot be determined.
-Display slicing: local zero-token successes 1 times · kept whole sentences 1 times · handed off to AI 1 times (AI calls 1 · with usage 1 · failures 1)
-  Core: Event rebuild / rebuild-1.4.0/ac65fe8: 1 logical request / 1 API call · 1 tok · focus misses 1 · local circuit breakers 1 · ¥0.00000
-Current video: viewed 0.0 s · 1 tokens
-Semantic window: core 1 atoms · exposed 2 atoms · context exposure ratio 2.00x
-Request blocks: target 1 blocks · read-only context 1 sections · context sections/block 1.00x · character exposure ratio 1.00x
-Request-block disk cache: lookups 1 · hit blocks 1 · missed units 1
-  Current engine: legacy engine: viewed 0.0 s · 1 tok
-  Current engine: Legacy compatibility engine: viewed 0.0 s · 1 tok
-  Core: Event rebuild / rebuild-1.4.0/ac65fe8: viewed 0.0 s · 1 tok
-Request body: total 1 bytes · average 1 bytes/API attempt
-Note: 1 2xx responses lacked usage; only request counts, not exact tokens, are known for these.
-## variant 1
 [ar]
 تدقيق تكلفة الرموز (منذ آخر إعادة تعيين)
 الطراز الحالي: model-x
@@ -455,7 +287,7 @@ API: 1 محاولة · 1 ناجحة (2xx) · 1 فاشلة · إعادات داخ
   النواة: إعادة بناء الأحداث / rebuild-1.4.0/ac65fe8: شوهد 0.0 ث · 1 رمز
 جسم الطلب: الإجمالي 1 بايت · المتوسط 1 بايت لكل محاولة API
 ملاحظة: 1 استجابة 2xx بلا بيانات استخدام؛ لا يُعرف عنها سوى الأعداد لا الرموز الدقيقة.
-[ar raw]
+[raw]
 Token cost audit (since last reset)
 Current model: model-x
 Current engine: Event rebuild / rebuild-1.4.0/ac65fe8
@@ -499,17 +331,11 @@ Note: 1 2xx responses lacked usage; only request counts, not exact tokens, are k
 ## variant 2
 [en]
 Token cost audit: no API usage yet. Play AI captions to see usage, cache hits, request purposes, and cost per viewing minute.
-[en raw]
-Token cost audit: no API usage yet. Play AI captions to see usage, cache hits, request purposes, and cost per viewing minute.
-## variant 2
 [zh-CN]
 Token 成本审计：尚无 API 用量。播放 AI 字幕后可查看用量、缓存命中、请求用途与每分钟观看成本。
-[zh-CN raw]
-Token cost audit: no API usage yet. Play AI captions to see usage, cache hits, request purposes, and cost per viewing minute.
-## variant 2
 [ar]
 تدقيق تكلفة الرموز: لا يوجد استخدام لـ API بعد. شغِّل ترجمات الذكاء الاصطناعي لعرض الاستخدام وإصابات الذاكرة المؤقتة وأغراض الطلبات والتكلفة لكل دقيقة مشاهدة.
-[ar raw]
+[raw]
 Token cost audit: no API usage yet. Play AI captions to see usage, cache hits, request purposes, and cost per viewing minute.
 ## variant 3
 [en]
@@ -553,48 +379,6 @@ Request-block disk cache: lookups 99,360 · hit blocks 98,126 · missed units 10
   Core: Event rebuild / rebuild-1.4.0/ac65fe8: viewed 109 s · 96,892 tok · 53,222 tok/viewing minute · ¥0.00003/minute
 Request body: total 87,020 bytes · average 1 bytes/API attempt
 Note: 88,254 2xx responses lacked usage; only request counts, not exact tokens, are known for these.
-[en raw]
-Token cost audit (since last reset)
-Current model: model-x
-Current engine: Event rebuild / rebuild-1.4.0/ac65fe8
-API: 51,234 attempts · 73,446 successful (2xx) · 67,276 failures · internal retries 75,914
-Failure breakdown: 429 69,744 · 5xx 72,212 · other 4xx 70,978 · timeout 95,658 · network 79,616 · cancelled/interrupted 58,638 · other 155,530
-Structural and deterministic checks: accepted / rejected (not semantic acceptance): 50,000 / 85,786 (84,552)
-Tokens: 96,892 = input 83,318 + output 61,106
-Input cache: hit 56,170 / miss 57,404 · hit rate 49.5%
-V4 Flash current provider estimate: ¥0.00006 (only responses priced by built-in V4 Flash rates)
-Requests by purpose:
-  Current priority: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Current anchor: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Gap rescue: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Background prefetch: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Page merge: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Block (fallback): 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Boundary recheck: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Time anchor / current batch: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Time anchor / background batch: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Core: Semantic Ledger v2: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Core: Contextual Unit v1: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Display slicing: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Page merge efficiency: added 59,872 core atoms · input per atom 1.4 tok · cache-miss input per atom 1.0 tok
-  Block (fallback) efficiency: added 59,872 core atoms · input per atom 1.4 tok · cache-miss input per atom 1.0 tok
-  Boundary recheck efficiency: added 59,872 core atoms · input per atom 1.4 tok · cache-miss input per atom 1.0 tok
-Page merge progress: 54,936 fixed blocks completed by 78,382 page requests (0.7 blocks/request; <1.0 means repeated requests without progress)
-Boundary recheck: triggered 52,468 times (at most once/page) · sent 78,382 requests · recovered 59,872 atoms
-Page fallback: 53,702 cached pages exceeded the failure threshold; falling back to block requests
-Sent but unread requests: 94,424 requests · 93,190 bytes. Provider processing and billing are unknown; the token and cost totals exclude this usage, so the actual spend cannot be determined.
-Display slicing: local zero-token successes 64,808 times · kept whole sentences 66,042 times · handed off to AI 63,574 times (AI calls 51,234 · with usage 106,764 · failures 67,276)
-  Core: Event rebuild / rebuild-1.4.0/ac65fe8: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-Current video: viewed 108 s · 96,892 tokens · 53,830 tokens/viewing minute · ¥0.00003/minute
-Semantic window: core 89,488 atoms · exposed 182,678 atoms · context exposure ratio 2.04x
-Request blocks: target 105,530 blocks · read-only context 103,062 sections · context sections/block 0.98x · character exposure ratio 0.98x
-Request-block disk cache: lookups 99,360 · hit blocks 98,126 · missed units 100,594
-  Current engine: legacy engine: viewed 110 s · 96,892 tok · 52,627 tok/viewing minute · ¥0.00003/minute
-  Current engine: Legacy compatibility engine: viewed 112 s · 96,892 tok · 52,046 tok/viewing minute · ¥0.00003/minute
-  Core: Event rebuild / rebuild-1.4.0/ac65fe8: viewed 109 s · 96,892 tok · 53,222 tok/viewing minute · ¥0.00003/minute
-Request body: total 87,020 bytes · average 1 bytes/API attempt
-Note: 88,254 2xx responses lacked usage; only request counts, not exact tokens, are known for these.
-## variant 3
 [zh-CN]
 Token 成本审计（自上次重置起）
 当前模型：model-x
@@ -636,48 +420,6 @@ V4 Flash 按当前提供商估算：¥0.00006 （仅计入按内置 V4 Flash 价
   核心：事件重建 / rebuild-1.4.0/ac65fe8: 已观看 109 秒 · 96,892 token · 每观看分钟 53,222 token · ¥0.00003/minute
 请求体：合计 87,020 字节 · 平均每次 API 尝试 1 字节
 注意：88,254 个 2xx 响应没有用量；这些请求只能确知次数，无法确知 token 数。
-[zh-CN raw]
-Token cost audit (since last reset)
-Current model: model-x
-Current engine: Event rebuild / rebuild-1.4.0/ac65fe8
-API: 51,234 attempts · 73,446 successful (2xx) · 67,276 failures · internal retries 75,914
-Failure breakdown: 429 69,744 · 5xx 72,212 · other 4xx 70,978 · timeout 95,658 · network 79,616 · cancelled/interrupted 58,638 · other 155,530
-Structural and deterministic checks: accepted / rejected (not semantic acceptance): 50,000 / 85,786 (84,552)
-Tokens: 96,892 = input 83,318 + output 61,106
-Input cache: hit 56,170 / miss 57,404 · hit rate 49.5%
-V4 Flash current provider estimate: ¥0.00006 (only responses priced by built-in V4 Flash rates)
-Requests by purpose:
-  Current priority: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Current anchor: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Gap rescue: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Background prefetch: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Page merge: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Block (fallback): 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Boundary recheck: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Time anchor / current batch: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Time anchor / background batch: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Core: Semantic Ledger v2: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Core: Contextual Unit v1: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Display slicing: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-  Page merge efficiency: added 59,872 core atoms · input per atom 1.4 tok · cache-miss input per atom 1.0 tok
-  Block (fallback) efficiency: added 59,872 core atoms · input per atom 1.4 tok · cache-miss input per atom 1.0 tok
-  Boundary recheck efficiency: added 59,872 core atoms · input per atom 1.4 tok · cache-miss input per atom 1.0 tok
-Page merge progress: 54,936 fixed blocks completed by 78,382 page requests (0.7 blocks/request; <1.0 means repeated requests without progress)
-Boundary recheck: triggered 52,468 times (at most once/page) · sent 78,382 requests · recovered 59,872 atoms
-Page fallback: 53,702 cached pages exceeded the failure threshold; falling back to block requests
-Sent but unread requests: 94,424 requests · 93,190 bytes. Provider processing and billing are unknown; the token and cost totals exclude this usage, so the actual spend cannot be determined.
-Display slicing: local zero-token successes 64,808 times · kept whole sentences 66,042 times · handed off to AI 63,574 times (AI calls 51,234 · with usage 106,764 · failures 67,276)
-  Core: Event rebuild / rebuild-1.4.0/ac65fe8: 78,382 logical requests / 51,234 API calls · 96,892 tok · focus misses 68,510 · local circuit breakers 77,148 · ¥0.00006 (only responses priced by built-in V4 Flash rates)
-Current video: viewed 108 s · 96,892 tokens · 53,830 tokens/viewing minute · ¥0.00003/minute
-Semantic window: core 89,488 atoms · exposed 182,678 atoms · context exposure ratio 2.04x
-Request blocks: target 105,530 blocks · read-only context 103,062 sections · context sections/block 0.98x · character exposure ratio 0.98x
-Request-block disk cache: lookups 99,360 · hit blocks 98,126 · missed units 100,594
-  Current engine: legacy engine: viewed 110 s · 96,892 tok · 52,627 tok/viewing minute · ¥0.00003/minute
-  Current engine: Legacy compatibility engine: viewed 112 s · 96,892 tok · 52,046 tok/viewing minute · ¥0.00003/minute
-  Core: Event rebuild / rebuild-1.4.0/ac65fe8: viewed 109 s · 96,892 tok · 53,222 tok/viewing minute · ¥0.00003/minute
-Request body: total 87,020 bytes · average 1 bytes/API attempt
-Note: 88,254 2xx responses lacked usage; only request counts, not exact tokens, are known for these.
-## variant 3
 [ar]
 تدقيق تكلفة الرموز (منذ آخر إعادة تعيين)
 الطراز الحالي: model-x
@@ -719,7 +461,7 @@ API: 51,234 محاولة · 73,446 ناجحة (2xx) · 67,276 فاشلة · إع
   النواة: إعادة بناء الأحداث / rebuild-1.4.0/ac65fe8: شوهد 109 ث · 96,892 رمز · 53,222 رمز لكل دقيقة مشاهدة · ¥0.00003/minute
 جسم الطلب: الإجمالي 87,020 بايت · المتوسط 1 بايت لكل محاولة API
 ملاحظة: 88,254 استجابة 2xx بلا بيانات استخدام؛ لا يُعرف عنها سوى الأعداد لا الرموز الدقيقة.
-[ar raw]
+[raw]
 Token cost audit (since last reset)
 Current model: model-x
 Current engine: Event rebuild / rebuild-1.4.0/ac65fe8

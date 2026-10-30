@@ -87,15 +87,21 @@ public final class AdsProbe {
         }
     }
 
-    /** The React Native player view's role for its session: a View that is the session's display. */
-    static final class SessionDisplay extends FrameLayout implements com.twitchrn.player.PlaybackDisplay {
+    /**
+     * The React Native player view's role for its session: a View that is the session's display, the
+     * PlaybackEdge (a PlaybackDisplay) a 31.8.0 playback slot is attached to.
+     */
+    static final class SessionDisplay extends FrameLayout implements com.twitchrn.player.PlaybackEdge {
         SessionDisplay(Context context) { super(context); }
+        @Override public boolean getSurfaceHidesUntilRevealed() { return false; }
+        @Override public void hideSurface() {}
         @Override public void onContentSize(int width, int height) {}
-        @Override public void onPlaybackStarted() {}
-        @Override public void onSecureSurfaceRequired(boolean required) {}
-        @Override public void onSourceLoadStarted(boolean warm) {}
-        @Override public void onSurfaceArrived() {}
-        @Override public void onWarmPlayerAdopted() {}
+        @Override public void onSecureSurfaceRequired(boolean secure) {}
+        @Override public void revealSurface(long fadeMs) {}
+        @Override public com.facebook.react.bridge.ReactContext getReactContext() { return null; }
+        @Override public int getReactTag() { return 0; }
+        @Override public void clearEventListener() {}
+        @Override public void setEventListener(EventListener listener) {}
     }
 
     private static void settings() throws Exception {
@@ -241,7 +247,7 @@ public final class AdsProbe {
 
         // Mute stitched ads, native player: the real metadata handler and stream load.
         // Names from the APK's locators; the fallbacks are Twitch 31.7.0's: native player aoa, ad overlay vw
-        // with states rw (playing) and sw (hidden, not located).
+        // with state rw (playing). The hidden state isn't located: pw is Twitch 31.8.0's (sw in 31.7.0).
         Class<?> nativeType = Class.forName(ProbeLocators.type("twitch.match.native_ad_cue", "aoa"));
         Method cue = nativeType.getMethod(ProbeLocators.method("twitch.match.native_ad_cue", "h"), JSONObject.class);
         Method load = null;
@@ -287,7 +293,8 @@ public final class AdsProbe {
         Method render = overlayType.getMethod(ProbeLocators.method("twitch.match.stitched_ad_overlay", "u"),
             Class.forName("tv.twitch.android.core.mvp.viewdelegate.ViewDelegateState"));
         Object playing = allocate(Class.forName(ProbeLocators.type("twitch.match.stitched_ad_playing", "rw")));
-        Object hidden = Class.forName("sw").getField("a").get(null);
+        Object hidden = Class.forName("pw").getField("a").get(null);
+        check(hidden.getClass().getSuperclass() == playing.getClass().getSuperclass(), "pw is not the overlay's hidden state");
         switches.put("mute_stitched_ads", true);
         originalContinues(render, renderer, playing);
         check(overlay.getBackground() != null && overlay.getBackground().getClass().getName().endsWith("AdCover"),
@@ -329,8 +336,11 @@ public final class AdsProbe {
         // hooks, and the two helpers the patch adds to the session (its display as a View, and the
         // metadata hook with the session's own player). The display is the player view in the app.
         // An allocated session's original code may return early or fail on a null field; both are fine.
-        Class<?> sessionType = Class.forName("com.twitchrn.player.PlaybackSession");
-        Class<?> displayType = Class.forName("com.twitchrn.player.PlaybackDisplay");
+        // Names from the APK's locators; the fallbacks are Twitch 31.8.0's (PlaybackSlot, attached to a PlaybackEdge).
+        Class<?> sessionType = Class.forName(ProbeLocators.type("twitch.mute_stitched_ads.rn_session",
+            "com.twitchrn.player.PlaybackSlot"));
+        Class<?> displayType = Class.forName(ProbeLocators.fieldType("twitch.mute_stitched_ads.rn_display",
+            "com.twitchrn.player.PlaybackEdge"));
         Class<?> custodyType = Class.forName("com.twitchrn.player.PlayerCustody");
         Object session = allocate(sessionType);
         SessionDisplay display = new SessionDisplay(context);
@@ -378,7 +388,7 @@ public final class AdsProbe {
         switches.put("mute_stitched_ads", true);
         FakePlayer lost = new FakePlayer();
         Object timed = allocate(nativeType);
-        set(timed, nativeType, "t", lost.player);
+        set(timed, nativeType, ProbeLocators.field("twitch.mute_stitched_ads.native_player", "t"), lost.player);
         originalContinues(cue, timed, ad("0.5", "1", "0"));
         check(lost.mutes.equals(List.of(true)), "Timer test break did not start");
         new Handler(Looper.getMainLooper()).postDelayed(() -> {

@@ -842,6 +842,9 @@ With the switch above on, only a hold on the right third of a reel plays it at d
 Hold a feed video for 2x	Mantener pulsado un vídeo del feed para 2x
 # context: summary of that switch; Watch is Facebook's video tab, keep its name; the switches above are Hold a reel for 2x and Only on the right edge
 Holding a video in the feed or in Watch plays it at double speed until you let go. It works without the switches above.	Mantener pulsado un vídeo del feed o de Watch lo reproduce al doble de velocidad hasta que lo sueltes. Funciona sin los interruptores de arriba.
+Hide the pull down to lock hint	Ocultar el aviso de deslizar hacia abajo para bloquear
+# context: summary of that switch; the quoted hint is Facebook's own text on the pill over a video held for 2x, translate it the way Facebook would; the switches above are Hold a reel for 2x's
+Holding a video for 2x shows the plain 2x pill, without the "Pull down to lock 2x speed" hint. Pulling down still locks it. It works without the switches above.	Al mantener pulsado un vídeo para 2x se muestra solo la etiqueta 2x, sin el aviso "Desliza hacia abajo para bloquear la velocidad 2x". Deslizar hacia abajo sigue bloqueándola. Funciona sin los interruptores de arriba.
 Default playback quality	Calidad de reproducción predeterminada
 Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.	Reproduce vídeos, reels e historias en la calidad de abajo. Una calidad elegida en el menú de un vídeo sigue teniendo prioridad.
 Playback quality	Calidad de reproducción
@@ -1860,8 +1863,8 @@ Silent parts play in this video	Las partes en silencio se reproducen en este vid
 Skipping silent parts again	Se vuelven a saltar las partes en silencio
 # context: switch title under News feed; posts Facebook shows from groups the user hasn't joined, which come with a Join button next to the group's name
 Hide posts from groups you're not in	Ocultar publicaciones de grupos en los que no estás
-# context: summary of that switch; a friend's share of a group post is a post on the friend's own profile that shares a group post, and it stays
-Hides posts from groups you haven't joined, like a friend's post in a public group. Posts from your groups and a friend's share of a group post stay.	Oculta las publicaciones de grupos a los que no te has unido, como la publicación de un amigo en un grupo público. Las publicaciones de tus grupos y las que un amigo comparte de un grupo se mantienen.
+# context: summary of that switch; a group post a friend commented on or shared reaches the feed wrapped in the friend's activity, and the switch hides it too
+Hides posts from groups you haven't joined, like a friend's post in a public group, and a group post a friend commented on or shared. Posts from your groups stay.	Oculta las publicaciones de grupos a los que no te has unido, como la publicación de un amigo en un grupo público, y las publicaciones de grupo que un amigo comentó o compartió. Las publicaciones de tus grupos se mantienen.
 # context: switch title under Search; For you is the section of searches Facebook suggests on the search screen before anything is typed, under a header that reads For you
 Hide For you in search	Ocultar Para ti en la búsqueda
 # context: summary of that switch; recent searches are the user's own past searches, and the suggestions as you type are the ones under the search box while typing
@@ -2086,3 +2089,26 @@ If your patched Facebook includes Badge and logo colors, the logo will be Facebo
 If your patched Facebook includes Badge and logo colors, badges will be %1$s.	Si tu Facebook parcheado incluye Colores de insignias y logo, las insignias serán %1$s.
 # context: import preview sentence: the file sets the Logo color row; %1$s is a color code like #2ECC71; "Badge and logo colors" is the patch's name, keep it as translated for that patch
 If your patched Facebook includes Badge and logo colors, the logo will be %1$s.	Si tu Facebook parcheado incluye Colores de insignias y logo, el logo será %1$s.
+# context: title of the row that holds a color code for the selected tab's icon and the line over it in the tab bar
+Selected tab color	Color de la pestaña seleccionada
+# context: dialog message of the Selected tab color row; keep #RRGGBB and #2ECC71 as they are
+A color code (#RRGGBB) for the selected tab's icon and the line over it in the tab bar, like #2ECC71. Leave it blank for Facebook's own.	Un código de color (#RRGGBB) para el icono de la pestaña seleccionada y la línea encima en la barra de pestañas, como #2ECC71. Déjalo vacío para el color de Facebook.
+# context: summary of the Selected tab color row while it's blank
+The selected tab keeps Facebook's color. Type a color code to change it.	La pestaña seleccionada conserva el color de Facebook. Escribe un código de color para cambiarlo.
+# context: summary of the Selected tab color row; %1$s is a color code like #2ECC71
+The selected tab in the tab bar is %1$s. Restart Facebook to see the change.	La pestaña seleccionada en la barra de pestañas es %1$s. Reinicia Facebook para ver el cambio.
+# context: import preview sentence: the file sets the Selected tab color row back to blank; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, the selected tab will be Facebook's color.	Si tu Facebook parcheado incluye Colores de insignias y logo, la pestaña seleccionada tendrá el color de Facebook.
+# context: import preview sentence: the file sets the Selected tab color row; %1$s is a color code like #2ECC71; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, the selected tab will be %1$s.	Si tu Facebook parcheado incluye Colores de insignias y logo, la pestaña seleccionada será %1$s.
+Hide the emoji row on comments	Ocultar la fila de emojis en los comentarios
+The row of emoji over the comment box goes away. You can still type emoji from your keyboard.	La fila de emojis sobre el cuadro de comentarios desaparece. Puedes seguir escribiendo emojis desde tu teclado.
+Show Comment when comments are off	Mostrar Comentar cuando los comentarios están desactivados
+Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	Mantiene el botón Comentar en los reels con los comentarios desactivados, para que puedas seguir leyendo los que ya hay. El cambio se ve desde el siguiente reel.
+Select part of a post's text	Seleccionar parte del texto de una publicación
+Holding a post's text still copies all of it, and also opens the text in a box where you can select just the part you want and copy that.	Mantener pulsado el texto de una publicación lo sigue copiando entero y además lo abre en un cuadro donde puedes seleccionar solo la parte que quieras y copiarla.
+Select text	Seleccionar texto
+Done	Listo
+Oldest	Más antiguos
+Comments open oldest first, on every post. Facebook's sort menu then shows All comments.	Los comentarios se abren con los más antiguos primero, en todas las publicaciones. El menú de orden de Facebook muestra entonces Todos los comentarios.
+Comments will open oldest first.	Los comentarios se abrirán con los más antiguos primero.

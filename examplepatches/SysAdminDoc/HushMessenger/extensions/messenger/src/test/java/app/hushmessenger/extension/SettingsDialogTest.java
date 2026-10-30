@@ -195,7 +195,7 @@ public class SettingsDialogTest {
     }
 
     @Test public void aLongLogBuildsItsCardsAPageAtATimeAsItScrolls() throws Exception {
-        int page = SettingsActivity.MESSAGE_LOG_PAGE, count = 3 * page + 5;
+        int page = MessageLogSheet.MESSAGE_LOG_PAGE, count = 3 * page + 5;
         long now = System.currentTimeMillis();
         List<MessageLog.Entry> entries = new ArrayList<>();
         for (int i = 0; i < count; i++) entries.add(new MessageLog.Entry(now - (count - i) * 1000L, "t", "Message " + i));
@@ -227,7 +227,7 @@ public class SettingsDialogTest {
     }
 
     @Test public void aClearedLogNeverBuildsThePageItHadWaiting() throws Exception {
-        int page = SettingsActivity.MESSAGE_LOG_PAGE, count = 2 * page + 3;
+        int page = MessageLogSheet.MESSAGE_LOG_PAGE, count = 2 * page + 3;
         long now = System.currentTimeMillis();
         List<MessageLog.Entry> entries = new ArrayList<>();
         for (int i = 0; i < count; i++) entries.add(new MessageLog.Entry(now - (count - i) * 1000L, "t", "Message " + i));
@@ -269,7 +269,7 @@ public class SettingsDialogTest {
     }
 
     @Test public void aWindowTallerThanAPageFillsWithoutAScroll() throws Exception {
-        int page = SettingsActivity.MESSAGE_LOG_PAGE, count = 10 * page;
+        int page = MessageLogSheet.MESSAGE_LOG_PAGE, count = 10 * page;
         long now = System.currentTimeMillis();
         List<MessageLog.Entry> entries = new ArrayList<>();
         for (int i = 0; i < count; i++) entries.add(new MessageLog.Entry(now - (count - i) * 1000L, "t", "Message " + i));
@@ -301,7 +301,7 @@ public class SettingsDialogTest {
     }
 
     @Test public void aPageAskedForJustBeforeTheLogClosesIsNotBuilt() throws Exception {
-        int page = SettingsActivity.MESSAGE_LOG_PAGE, count = 2 * page + 3;
+        int page = MessageLogSheet.MESSAGE_LOG_PAGE, count = 2 * page + 3;
         long now = System.currentTimeMillis();
         List<MessageLog.Entry> entries = new ArrayList<>();
         for (int i = 0; i < count; i++) entries.add(new MessageLog.Entry(now - (count - i) * 1000L, "t", "Message " + i));

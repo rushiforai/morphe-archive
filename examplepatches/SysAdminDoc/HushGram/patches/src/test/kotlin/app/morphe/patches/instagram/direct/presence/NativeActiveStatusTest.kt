@@ -72,6 +72,6 @@ class NativeActiveStatusTest {
 
     private companion object {
         const val PRESENCE_CLIENT = "Lcom/instagram/distribgw/client/presence/IgDgwPresenceClientImpl;"
-        val BUILDS = listOf(385914283, 385914282, 385914284, 385914285)
+        val BUILDS = listOf(385914557, 385914503, 385914510, 385914517, 385914518, 385914546, 385914556, 385914558)
     }
 }

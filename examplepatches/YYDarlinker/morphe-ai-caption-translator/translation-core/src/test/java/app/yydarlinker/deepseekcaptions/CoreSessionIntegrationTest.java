@@ -25,6 +25,9 @@ public class CoreSessionIntegrationTest {
     MockWebServer server;Recorder recorder;AtomicInteger calls=new AtomicInteger();
     volatile int failureCode;volatile boolean block;
     CountDownLatch received,release;
+    final List<Boolean> clearResults=new CopyOnWriteArrayList<>();
+    final AtomicInteger clearCalls=new AtomicInteger();
+    volatile boolean clearOnMain, resultOnMain, failClear;
     final String url="https://www.youtube.com/api/timedtext?v=abcdefghijk&lang=en&tlang=zh-Hans";
     @Before public void setup() throws Exception {
         RebuildController.stop();RebuildApi.reset();RebuildCache.clear(context);
@@ -51,6 +54,13 @@ public class CoreSessionIntegrationTest {
                 return new TranslationSourceAccess.Source(body,CaptionDocument.parse(body,"application/json"),"",0,null);
             }
             String target(){return "zh-Hans";}
+            void clearSourceCache(Context c){
+                clearOnMain=Looper.myLooper()==Looper.getMainLooper();clearCalls.incrementAndGet();
+                if(failClear)throw new IllegalStateException("fixture clear failure");
+            }
+            void cacheClearFinished(Context c,boolean success){
+                resultOnMain=Looper.myLooper()==Looper.getMainLooper();clearResults.add(success);
+            }
         });
         recorder=new Recorder();TranslationOutput.install(recorder);TranslationAudit.install(new TranslationAudit.Sink(){});
         RebuildController.activity(context);RebuildController.video("abcdefghijk");RebuildController.time(0);
@@ -102,6 +112,37 @@ public class CoreSessionIntegrationTest {
         RebuildController.activate(context,url,false,true);await(()->!recorder.results.isEmpty());
         RebuildController.clearCache(context);await(()->calls.get()==2&&!recorder.results.isEmpty()&&RebuildController.visible());
         assertTrue(RebuildController.ownsNativeTrack());
+        assertEquals(Collections.singletonList(true),clearResults);
+        assertFalse(clearOnMain);assertTrue(resultOnMain);
+    }
+    @Test public void fullCleanupQueueReturnsToMainWithoutClearingOrClaimingSuccess() throws Exception {
+        RebuildController.activate(context,url.replace("&tlang=zh-Hans",""),true,true);
+        await(()->!recorder.results.isEmpty());
+        TranslationOutput.RenderGuard old=recorder.last;
+        java.lang.reflect.Field field=RebuildController.class.getDeclaredField("CLEANUP");field.setAccessible(true);
+        ThreadPoolExecutor cleanup=(ThreadPoolExecutor)field.get(null);
+        CountDownLatch blocked=new CountDownLatch(1),unblock=new CountDownLatch(1);
+        cleanup.execute(()->{blocked.countDown();try{unblock.await(8,TimeUnit.SECONDS);}catch(InterruptedException e){Thread.currentThread().interrupt();}});
+        assertTrue(blocked.await(3,TimeUnit.SECONDS));
+        try {
+            for(int i=0;i<16;i++)cleanup.execute(()->{});
+            RebuildController.clearCache(context);
+            assertFalse(old.isValid());assertFalse(RebuildController.visible());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(Collections.singletonList(false),clearResults);assertTrue(resultOnMain);
+            assertEquals(0,clearCalls.get());assertEquals(0,calls.get());
+            assertEquals("worker remains blocked while main handles the rejection",1,unblock.getCount());
+        } finally {
+            unblock.countDown();
+            await(()->cleanup.getQueue().isEmpty()&&cleanup.getActiveCount()==0);
+        }
+    }
+    @Test public void backgroundClearFailureReportsFailureAndDoesNotRestart() throws Exception {
+        failClear=true;
+        RebuildController.clearCache(context);await(()->!clearResults.isEmpty());
+        assertEquals(Collections.singletonList(false),clearResults);
+        assertFalse(clearOnMain);assertTrue(resultOnMain);
+        assertFalse(RebuildController.visible());assertEquals(0,calls.get());
     }
     @Test public void stopAfterCacheClearPreventsItsQueuedRestart() throws Exception {
         RebuildController.activate(context,url,false,true);await(()->!recorder.results.isEmpty());

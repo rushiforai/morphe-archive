@@ -27,6 +27,7 @@ import android.widget.TextView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.UiCapture;
 import app.morphe.extension.tiktok.settings.L10n;
+import app.morphe.extension.tiktok.settings.Settings;
 import com.bytedance.lighten.loader.SmartImageView;
 import com.ss.android.ugc.aweme.views.RoundingCornerLayout;
 
@@ -115,6 +116,27 @@ public class DmStickerPreviewTest {
         second.layout(0, 0, 80, 80);
         assertNull(StickerGallerySaver.dmStickerImage(bubble));
         assertNull(StickerGallerySaver.dmStickerImage(new RoundingCornerLayout(activity)));
+    }
+
+    /** #274: with the save box off, a chat sticker's tap is TikTok's alone. */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void theSaveBoxSwitchOffLeavesTheTapToTikTok() {
+        AtomicInteger actions = new AtomicInteger();
+        RoundingCornerLayout bubble = bubble();
+        Settings.DM_STICKER_SAVE_BOX.save(false);
+        try {
+            StickerGallerySaver.openDmStickerPreview(bubble, template("switched-off", null, actions));
+            assertNull(ShadowAlertDialog.getLatestAlertDialog());
+            assertEquals(0, actions.get());
+        } finally {
+            Settings.DM_STICKER_SAVE_BOX.resetToDefault();
+        }
+        assertTrue(Settings.DM_STICKER_SAVE_BOX.get());
+        StickerGallerySaver.openDmStickerPreview(bubble, template("switched-on", null, actions));
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull(dialog);
+        dialogs.add(dialog);
+        assertTrue(dialog.isShowing());
     }
 
     @Test public void anIncompleteOrTooLargeViewTreeIsRefusedRatherThanPartlyScanned() {

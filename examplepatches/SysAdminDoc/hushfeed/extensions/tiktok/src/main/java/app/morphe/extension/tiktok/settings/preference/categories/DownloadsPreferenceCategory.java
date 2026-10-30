@@ -241,6 +241,9 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new ChoicePreference(context, "Animated sticker format", Settings.DOWNLOAD_STICKER_FORMAT,
                     new String[]{"Video (MP4)", "GIF", "WebP, exactly as TikTok sent it"},
                     new String[]{"mp4", "gif", "webp"}));
+            addPreference(new TogglePreference(context, "Save box for chat stickers",
+                    "Tapping a sticker someone sent you in a chat opens a box with Save media. Turn "
+                            + "this off to skip it.", Settings.DM_STICKER_SAVE_BOX));
         }
         if (SettingsStatus.advancedDownloadsEnabled) {
             addPreference(new SectionHeadingPreference(context, "Long press"));

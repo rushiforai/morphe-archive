@@ -1479,6 +1479,7 @@ Save a story from its share sheet,Save a story from its share sheet
 Save a story on a long press,Save a story on a long press
 Save again,Save again
 Save as video,Save as video
+Save box for chat stickers,Save box for chat stickers
 Save build details,Save build details
 Save cancelled. Nothing was saved.,Save cancelled. Nothing was saved.
 Save comments to Favorites,Save comments to Favorites
@@ -1868,6 +1869,7 @@ Tap the like heart twice within %1$d seconds. Removing a like stays immediate.,T
 Tap to start the feed,Tap to start the feed
 "Tap to start, then scroll until the feed problem shows up and come back here to save it. The file has no captions or names, and videos and creators appear only as short codes. Read it before you share it.","Tap to start, then scroll until the feed problem shows up and come back here to save it. The file has no captions or names, and videos and creators appear only as short codes. Read it before you share it."
 "Tap, then go to the screen with what you want hidden. After %1$d seconds Hushfeed records how that screen is built, without any of its text, for the diagnostic report.","Tap, then go to the screen with what you want hidden. After %1$d seconds Hushfeed records how that screen is built, without any of its text, for the diagnostic report."
+Tapping a sticker someone sent you in a chat opens a box with Save media. Turn this off to skip it.,Tapping a sticker someone sent you in a chat opens a box with Save media. Turn this off to skip it.
 Tapping more under a video opens its comments with the whole caption at the top instead of spreading the caption over the video. A tap on the caption itself does the same. Photo posts keep TikTok's own page for this.,Tapping more under a video opens its comments with the whole caption at the top instead of spreading the caption over the video. A tap on the caption itself does the same. Photo posts keep TikTok's own page for this.
 Technical details,Technical details
 "Technical details, %1$s","Technical details, %1$s"

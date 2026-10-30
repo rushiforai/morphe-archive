@@ -60,7 +60,7 @@ public class ContinuousDisplayTest {
       RebuildController.Session s=session();
       if(s==null)return "active=null;fixturePosition="+position.get();
       synchronized(s){return "session="+s.id+";generation="+s.generation+";position="+s.position
-          +";fixturePosition="+position.get()+";state="+Arrays.toString(s.states)
+          +";fixturePosition="+position.get()+";state="+Arrays.toString(Arrays.stream(s.work.slots).mapToInt(slot -> slot.state).toArray())
           +";shown="+shown+";hidden="+hidden+";http="+(server==null?0:server.getRequestCount());}
     }catch(Exception e){return "state_error="+e.getClass().getSimpleName();}
   }
@@ -239,7 +239,7 @@ public class ContinuousDisplayTest {
     awaitState("first sentence displayed",()->shown.stream().anyMatch(x->x.startsWith("第0句")));
     awaitState("fixture received missing-range HTTP",()->holeEntered.getCount()==0);
     RebuildController.Session s=session();
-    synchronized(s){assertTrue(diagnostic("published partial Plan"),s.plans[1].partial);assertFalse(s.plans[1].holes.isEmpty());}
+    synchronized(s){assertTrue(diagnostic("published partial Plan"),s.work.slots[1].accepted.partial);assertFalse(s.work.slots[1].accepted.holes.isEmpty());}
     return s;
   }
 
@@ -330,14 +330,14 @@ public class ContinuousDisplayTest {
    */
   @Test public void aHoleSubRequestFillsTheMissingHalf() throws Exception {
     RebuildController.Session s=startHeldHole();int generation=s.generation;
-    RebuildProtocol.Plan partial=s.plans[1];
+    RebuildProtocol.Plan partial=s.work.slots[1].accepted;
     continuousTo(8000);
     awaitState("good half displayed while hole response held",()->shown.contains("第1句的前半句。"));
-    assertFalse(missingHalfShown());assertSame(partial,s.plans[1]);
+    assertFalse(missingHalfShown());assertSame(partial,s.work.slots[1].accepted);
     releaseHole.countDown();
     awaitState("REBUILD_HOLE_FILLED",()->marked("REBUILD_HOLE_FILLED"));
-    assertNotSame(partial,s.plans[1]);assertTrue(s.plans[1].holes.isEmpty());
-    assertSame("merge must retain the original good event",partial.events.get(0),s.plans[1].events.get(0));
+    assertNotSame(partial,s.work.slots[1].accepted);assertTrue(s.work.slots[1].accepted.holes.isEmpty());
+    assertSame("merge must retain the original good event",partial.events.get(0),s.work.slots[1].accepted.events.get(0));
     continuousTo(12000);assertMissingHalf(10000);
     assertEquals(diagnostic("continuous playback retains generation"),generation,s.generation);
     assertFalse(marked("REBUILD_SEEK"));
@@ -346,7 +346,7 @@ public class ContinuousDisplayTest {
   /** Same held HTTP, but an actual jump invalidates its display generation before it returns. */
   @Test public void aSeekBeforeHoleResponseRejectsTheOldGeneration() throws Exception {
     RebuildController.Session s=startHeldHole();int generation=s.generation;
-    RebuildProtocol.Plan partial=s.plans[1];TranslationOutput.RenderGuard oldGuard=lastGuard;
+    RebuildProtocol.Plan partial=s.work.slots[1].accepted;TranslationOutput.RenderGuard oldGuard=lastGuard;
     // The old test's two jumps deliberately model seek here, not continuous playback.
     position.set(8000);RebuildController.time(8000);Shadows.shadowOf(Looper.getMainLooper()).idle();
     awaitState("good half after seek",()->shown.contains("第1句的前半句。"));
@@ -355,7 +355,7 @@ public class ContinuousDisplayTest {
     assertTrue(marked("REBUILD_SEEK"));assertFalse(oldGuard.isValid());
     releaseHole.countDown();drainLane("PREFETCH_IO");drainLane("PRIORITY_IO");
     Shadows.shadowOf(Looper.getMainLooper()).idle();
-    assertSame(diagnostic("old generation must not merge"),partial,s.plans[1]);
+    assertSame(diagnostic("old generation must not merge"),partial,s.work.slots[1].accepted);
     assertFalse(marked("REBUILD_HOLE_FILLED"));assertFalse(missingHalfShown());
     AssertionError failure=assertThrows(AssertionError.class,()->assertMissingHalf(100));
     event("EXPECTED_OLD_POSITIVE_FAILURE "+failure.getMessage());

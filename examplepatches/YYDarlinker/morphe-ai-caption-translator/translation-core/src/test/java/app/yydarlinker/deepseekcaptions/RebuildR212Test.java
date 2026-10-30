@@ -55,21 +55,18 @@ public class RebuildR212Test {
     assertFalse(RebuildReview.structuralRetry("http_500"));
   }
 
-  @Test public void releaseEquipmentRiskAndAdjacentNumberRejection() throws Exception {
+  @Test public void retiredEquipmentAndAdjacentNumberRulesDoNotTrigger() throws Exception {
     RebuildSource equipment=RebuildContractTest.source("the size of a country's tank fleet",300);
     RebuildPlanner.Block eb=RebuildContractTest.block(equipment);
     RebuildProtocol.Plan ep=RebuildProtocol.parse(
         RebuildContractTest.reply(eb,new JSONArray().put(RebuildContractTest.event(0,equipment.words.size()-1,"一个国家坦克舰队的规模"))),equipment,eb);
-    assertTrue(ep.issues.stream().anyMatch(x->x.code.equals("possible_equipment_term")&&x.repair));
+    assertFalse(ep.issues.stream().anyMatch(x->x.code.equals("possible_equipment_term")));
 
     RebuildSource numbers=RebuildContractTest.source("about 50 20 aircraft",300);
     RebuildPlanner.Block nb=RebuildContractTest.block(numbers);
-    try {
-      RebuildProtocol.parse(RebuildContractTest.reply(nb,new JSONArray().put(
-          RebuildContractTest.event(0,numbers.words.size()-1,"大约50至20架飞机"))),numbers,nb);
-      fail("Published parser rejects the whole candidate on invented range");
-    } catch(RebuildProtocol.Invalid expected) {
-      assertEquals("numeric_range_invention",expected.code);
-    }
+    RebuildProtocol.Plan np=RebuildProtocol.parse(RebuildContractTest.reply(nb,new JSONArray().put(
+        RebuildContractTest.event(0,numbers.words.size()-1,"大约50至20架飞机"))),numbers,nb);
+    assertTrue(np.issues.stream().anyMatch(x->x.code.equals("source_number_ambiguity")&&!x.repair));
+    assertFalse(np.issues.stream().anyMatch(x->x.code.equals("possible_number_range_invention")));
   }
 }

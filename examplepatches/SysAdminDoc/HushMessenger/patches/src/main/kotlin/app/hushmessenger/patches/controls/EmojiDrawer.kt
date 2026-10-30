@@ -7,6 +7,7 @@ package app.hushmessenger.patches.controls
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -18,8 +19,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal const val EMOJI_DRAWER = "emoji_drawer"
 
-/** Meta's server flag for the redesigned emoji drawer as 584 numbers it. Meta renumbers it with each release. */
-internal const val EMOJI_DRAWER_FLAG = 36320584214265525L
+/** Meta's server flag for the redesigned emoji drawer as 585 numbers it. Meta renumbers it with each release. */
+internal const val EMOJI_DRAWER_FLAG = 36320528377659062L
 
 /** The drawer renderer throws this when the redesign can't draw. It's what ties the flag to the emoji drawer. */
 internal const val EMOJI_DRAWER_ANCHOR = "Cannot render redesigned drawer with search icon "
@@ -33,11 +34,31 @@ internal fun Instruction.isEmojiDrawerFlag() =
 
 /**
  * Every method that reads the redesign flag, but only when the one renderer that throws [EMOJI_DRAWER_ANCHOR] reads it
- * too. Without that link nothing is found, so the switch can't patch an unrelated flag.
+ * too, itself or through a call to a [isEmojiDrawerGetter] reader. Without that link nothing is found, so the switch
+ * can't patch an unrelated flag.
  */
 internal fun connectEmojiDrawer(readers: List<Method>, anchors: List<Method>): List<Method> {
     val anchor = anchors.singleOrNull() ?: return emptyList()
-    return if (readers.any { it.hookId() == anchor.hookId() }) readers.distinctBy { it.hookId() } else emptyList()
+    val getters = readers.filter { it.isEmojiDrawerGetter() }.map { it.hookId() }.toSet()
+    val linked = readers.any { it.hookId() == anchor.hookId() } || anchor.implementation?.instructions?.any {
+        it.opcode == Opcode.INVOKE_STATIC && (it as ReferenceInstruction).reference.toString() in getters
+    } == true
+    return if (linked) readers.distinctBy { it.hookId() } else emptyList()
+}
+
+/**
+ * 585's renderer asks a static ()Z getter instead of reading the flag. The getter has to be the read alone: the config
+ * object from a no-argument static call, the one flag read, and its answer returned as is.
+ */
+internal fun Method.isEmojiDrawerGetter(): Boolean {
+    if (!AccessFlags.STATIC.isSet(accessFlags) || returnType != "Z" || parameterTypes.isNotEmpty()) return false
+    val code = implementation?.instructions?.toList() ?: return false
+    val site = try { emojiDrawerSites().singleOrNull() } catch (_: PatchException) { null } ?: return false
+    val config = code.getOrNull(0) as? FiveRegisterInstruction ?: return false
+    val back = code.getOrNull(site.result + 1)
+    return site.flag == 2 && config.opcode == Opcode.INVOKE_STATIC && config.registerCount == 0 &&
+        code[1].opcode == Opcode.MOVE_RESULT_OBJECT && code.size == site.result + 2 &&
+        back?.opcode == Opcode.RETURN && (back as OneRegisterInstruction).registerA == site.register
 }
 
 /** One flag read: the constant's index, the move-result that takes the answer and the register it fills. */

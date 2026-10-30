@@ -556,13 +556,15 @@ class CloneInstallPatchTest {
 
     @Test fun eachBuildFamilyHasItsOwnPinnedSites() {
         val families = MessengerTarget.VERSION_CODES.map { expectedCloneSitesFor(it.toString()) }.toSet()
-        assertEquals(4, families.size)
+        assertEquals(3, families.size)
         assertTrue(families.all { it.size == 7 && it.count { id -> '@' in id } == 5 })
-        assertEquals(setOf("LX/FQg;-><init>()V", "LX/4Tx;->A00(Ljava/lang/String;)Z",
-            "LX/38k;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
-            "LX/8bJ;->A04(Landroid/os/Bundle;)LX/B1g;@228", "LX/8bJ;->A04(Landroid/os/Bundle;)LX/B1g;@328",
-            "LX/IDE;->onClick(Landroid/view/View;)V@63", "LX/DFf;->onClick(Landroid/view/View;)V@160"), expectedCloneSitesFor("346816937"))
-        assertEquals(expectedCloneSitesFor("346816951"), expectedCloneSitesFor("346817024"))
+        assertEquals(setOf("LX/OnZ;-><init>()V", "LX/4ae;->A00(Ljava/lang/String;)Z",
+            "LX/KeQ;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
+            "LX/8cK;->A04(Landroid/os/Bundle;)LX/9be;@225", "LX/8cK;->A04(Landroid/os/Bundle;)LX/9be;@318",
+            "LX/CVD;->onClick(Landroid/view/View;)V@81", "LX/Jig;->onClick(Landroid/view/View;)V@174"), expectedCloneSitesFor("347015064"))
+        // The second arm64 profile differs only in controls; its clone sites are the base's.
+        assertEquals(expectedCloneSitesFor("347015062"), expectedCloneSitesFor("347014996"))
+        assertEquals(expectedCloneSitesFor("347015062"), expectedCloneSitesFor("347015067"))
         assertFailsWith<PatchException> { expectedCloneSitesFor("346611999") }
     }
 

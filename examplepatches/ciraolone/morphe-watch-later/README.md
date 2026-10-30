@@ -1,3 +1,15 @@
+# morphe-watch-later
+
+**Cosa fa.** Patch di Morphe per YouTube che aggiunge un pulsante "Guarda più tardi" nella barra di navigazione in basso, accanto a Home e Iscrizioni.
+
+**Dove gira.** Il pacchetto si compila con le GitHub Actions di `ciraolone/morphe-watch-later` e si aggiunge come sorgente in più in Morphe Manager, sul telefono.
+
+**Chi lo usa.** Andrea, sull'app YouTube patchata del telefono.
+
+**Stato.** Versione 1.1.0 del 24 luglio 2026; l'icona del pulsante è ancora vuota.
+
+---
+
 # 👋🧩 Morphe Patches template
 
 Template repository for Morphe Patches.

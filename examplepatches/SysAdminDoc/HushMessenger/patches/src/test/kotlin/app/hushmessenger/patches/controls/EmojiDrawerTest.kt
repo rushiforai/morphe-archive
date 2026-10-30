@@ -20,9 +20,10 @@ private const val CONFIG = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsaf
 private const val DRAWER_HELPER = "$CONFIG->A02()Z"
 internal const val DRAWER_EFFECT = "LX/H1n;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"
 internal const val DRAWER_RENDERER = "LX/4wu;->render(LX/5Sd;)V"
-/** The drawer's flag in 584. */
+/** The drawer's flag in 585. */
 private const val FLAG = EMOJI_DRAWER_FLAG
-/** 583 and 582 numbered it differently. */
+/** 584, 583 and 582 numbered it differently. */
+private const val FLAG_584 = 36320584214265525L
 private const val FLAG_583 = 36320635751841408L
 private const val FLAG_582 = 36320652931710646L
 /** An older release's number for the same flag. */
@@ -30,18 +31,19 @@ private const val OLD_FLAG = 36320704471318256L
 private val STATIC = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
 
 /**
- * An older release's static helper: the config object, the flag, the interface check and its answer, returned as is.
- * Its renderer only called it, a link discovery no longer follows.
+ * 585's static getter: the config object, the flag, the interface check and its answer, returned as is. The renderer
+ * only calls it. [extra] goes in just before the return.
  */
-private fun drawerHelper(id: String = DRAWER_HELPER, flag: Long = FLAG) = fixtureMethod(id, """
+private fun drawerHelper(id: String = DRAWER_HELPER, flag: Long = FLAG, extra: String = "", flags: Int = STATIC) = fixtureMethod(id, """
     invoke-static {}, LX/1Aa;->A0A()LX/5V6;
     move-result-object v2
     const-wide v0, ${flag}L
     check-cast v2, $CONFIG
     invoke-interface {v2, v0, v1}, $CONFIG->Ah8(J)Z
     move-result v0
+    $extra
     return v0
-""".trimIndent(), registers = 3, flags = STATIC)
+""".trimIndent().lines().filter { it.isNotBlank() }.joinToString("\n"), registers = 3, flags = flags)
 
 /** A drawer component that reads the flag through a static (Object, J) check and inverts the answer. */
 private fun drawerEffect(id: String = DRAWER_EFFECT, flag: Long = FLAG) = fixtureMethod(id, """
@@ -55,7 +57,7 @@ private fun drawerEffect(id: String = DRAWER_EFFECT, flag: Long = FLAG) = fixtur
     return-object v0
 """.trimIndent())
 
-/** The older renderer: it asks the helper, then throws the anchor when the redesign can't draw. */
+/** 585's renderer: it asks the getter, then throws the anchor when the redesign can't draw. */
 private fun helperRenderer(call: String = DRAWER_HELPER) = fixtureMethod("LX/4tE;->A00(LX/5bm;)V", """
     invoke-static {}, $call
     move-result v0
@@ -129,6 +131,20 @@ class EmojiDrawerTest {
         validateControls(mirroredControls(emojiDrawerFixture()), setOf(EMOJI_DRAWER))
     }
 
+    @Test fun theDrawerIsFoundWhereTheRendererAsksAStaticGetterThatReadsTheFlag() {
+        // 585: the renderer calls MobileConfigUnsafeContext's getter, so the getter is the read that gets hooked.
+        val classes = emojiDrawerFixture().filter { it.type != "LX/4wu;" } + configClass(drawerHelper()) +
+            fixtureClass("LX/4tE;", listOf(helperRenderer()))
+        assertEquals(setOf(DRAWER_HELPER, DRAWER_EFFECT), found(classes))
+        val base = SYNTHETIC_PROFILE
+        activeProfile = ControlProfile(base.hooks + (EMOJI_DRAWER to setOf(DRAWER_HELPER, DRAWER_EFFECT)), base.pluginSentinel,
+            base.preferenceGetter, base.peopleKey, base.peopleFlagCheck, base.subtabsSupplier, base.browserPreferenceKey,
+            base.browserPreferenceIndex, base.bubbleCapabilityGetter, base.bubbleRolloutGetter, base.nativeBubbleRoutes,
+            base.nativeCommunityInbox)
+        validateControls(mirroredControls(classes), setOf(EMOJI_DRAWER))
+        assertEquals(1, assertEmojiDrawerInjected(drawerHelper(), "getter"))
+    }
+
     @Test fun theFlagCountsOnlyWhenTheRendererThatThrowsTheAnchorReadsIt() {
         val readers = emojiDrawerFixture().filter { it.type != "LX/4wu;" }
         val cases = mapOf(
@@ -136,8 +152,12 @@ class EmojiDrawerTest {
             "two renderers" to readers + fixtureClass("LX/4wu;", listOf(drawerRenderer())) +
                 fixtureClass("LX/4wv;", listOf(drawerRenderer(id = "LX/4wv;->render(LX/5Sd;)V"))),
             "a renderer that doesn't read the flag" to readers + fixtureClass("LX/4wu;", listOf(drawerRenderer(flag = 0x1L))),
-            "a renderer asking a static helper that reads it" to readers + configClass(drawerHelper()) +
+            // A getter that does more than hand back the read, or one the renderer can't call statically, proves nothing.
+            "a getter that inverts the answer" to readers + configClass(drawerHelper(extra = "xor-int/lit8 v0, v0, 0x1")) +
                 fixtureClass("LX/4tE;", listOf(helperRenderer())),
+            "a getter that isn't static" to readers + configClass(drawerHelper(flags = AccessFlags.PUBLIC.value)) +
+                fixtureClass("LX/4tE;", listOf(helperRenderer())),
+            "a getter of 584's flag" to readers + configClass(drawerHelper(flag = FLAG_584)) + fixtureClass("LX/4tE;", listOf(helperRenderer())),
         )
         for ((case, classes) in cases) {
             assertTrue(found(classes).isEmpty(), case)
@@ -146,7 +166,7 @@ class EmojiDrawerTest {
     }
 
     @Test fun anOlderReleasesFlagIsNotTheDrawer() {
-        for (flag in listOf(FLAG_583, FLAG_582, OLD_FLAG)) {
+        for (flag in listOf(FLAG_584, FLAG_583, FLAG_582, OLD_FLAG)) {
             val other = drawerEffect("LX/EfL;->invoke(Ljava/lang/Object;)Ljava/lang/Object;", flag)
             val classes = listOf(fixtureClass("LX/51i;", listOf(drawerRenderer("LX/51i;->render(LX/5XD;)V", flag))), fixtureClass("LX/EfL;", listOf(other)))
             assertTrue(found(classes).isEmpty(), "$flag")

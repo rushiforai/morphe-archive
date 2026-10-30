@@ -20,14 +20,14 @@ manifest = json.loads(Path(sys.argv[4]).read_text())
 edits = [e for e in manifest['edits'] if e['key'] == 'autoplay_next_video_off']
 assert len(edits) == 1
 edit = edits[0]
-assert edit['original'] == '440c070178'  # GetByIdShort r12, r7, 'enabled' (31.7.0 string 120)
+assert edit['original'] == '440c070171'  # GetByIdShort r12, r7, 'enabled' (31.8.0 string 113)
 assert edit['replacement'] == '960c100c0c'
 offset = edit['offset']
 stock = Path(sys.argv[2]).read_bytes()[offset:offset + 5]
 patched = Path(sys.argv[3]).read_bytes()[offset:offset + 5]
 assert stock.hex() == edit['original']
 def enabled(code, requested):
-    if code == bytes.fromhex('440c070178'):
+    if code == bytes.fromhex('440c070171'):
         return requested
     assert code == bytes.fromhex('960c100c0c'), code.hex()
     # LoadConstFalse r12; Mov r12,r12. Two reachable instructions, no padding/relocation.

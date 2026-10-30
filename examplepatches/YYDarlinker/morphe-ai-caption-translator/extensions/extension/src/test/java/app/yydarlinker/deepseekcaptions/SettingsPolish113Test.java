@@ -4,14 +4,10 @@ import android.app.Activity;
 import android.graphics.*;
 import android.view.*;
 import android.widget.*;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.*;
 import org.robolectric.annotation.*;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
 import static org.junit.Assert.*;
 
 /** Actual native Android view rasterization in an isolated fixture, not a YouTube/device screenshot. */
@@ -164,7 +160,6 @@ public class SettingsPolish113Test {
         }
     }
     @Test @Config(qualifiers="zh-rCN-w420dp-h900dp") public void renderNativeLightAndDarkSettingsFixtures()throws Exception{
-        JSONArray fixtureRecord=new JSONArray();
         for(int tier:new int[]{0,CaptionFontSize.DEFAULT_TIER,4}) for(boolean dark:new boolean[]{false,true}){
             String tierName=new String[]{"xs","s","standard","l","xl"}[tier];
             Activity activity=Robolectric.buildActivity(Activity.class).setup().get();activity.setTheme(dark?android.R.style.Theme_Material_NoActionBar:android.R.style.Theme_Material_Light_NoActionBar);
@@ -204,23 +199,10 @@ public class SettingsPolish113Test {
             float fullScreenGlyph=CaptionFontSize.fullScreenGlyphHeightPx(tier);
             float previewGlyph=SubtitleStyleMetrics.previewGlyphHeightPx(tier,previewWidth);
             assertEquals(fullScreenGlyph/SubtitleStylePreview.LANDSCAPE_REFERENCE_WIDTH_PX,previewGlyph/previewWidth,.0001f);
-            fixtureRecord.put(new JSONObject().put("file","settings-"+(dark?"dark":"light")+"-"+tierName+"-landscape.png")
-                    .put("theme",dark?"dark":"light").put("size_tier",tier).put("tier_name",tierName)
-                    .put("preview_width_px",previewWidth).put("preview_height_px",preview.getHeight())
-                    .put("reference_full_screen_width_px",SubtitleStylePreview.LANDSCAPE_REFERENCE_WIDTH_PX)
-                    .put("detail_glyph_px",Double.parseDouble(pixels(activity,tier,false)))
-                    .put("full_screen_glyph_px",Double.parseDouble(pixels(activity,tier,true)))
-                    .put("preview_glyph_px",Double.parseDouble(String.format(java.util.Locale.ROOT,"%.2f",previewGlyph)))
-                    .put("preview_scale",Double.parseDouble(String.format(java.util.Locale.ROOT,"%.6f",previewWidth/SubtitleStylePreview.LANDSCAPE_REFERENCE_WIDTH_PX))));
-            String output=System.getenv("CAPTION_UI_PREVIEW_OUTPUT");if(output!=null){File file=new File(output,"settings-"+(dark?"dark":"light")+"-"+tierName+"-landscape.png");file.getParentFile().mkdirs();try(FileOutputStream out=new FileOutputStream(file)){assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG,100,out));}
-                if(!dark&&tier==CaptionFontSize.DEFAULT_TIER){try(FileOutputStream out=new FileOutputStream(new File(output,"settings-size-tiers.png"))){assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG,100,out));}}
-            }
             activity.finish();
         }
-        String output=System.getenv("CAPTION_UI_PREVIEW_OUTPUT");
-        if(output!=null){File file=new File(output,"preview-measurements.json");file.getParentFile().mkdirs();
-            try(FileOutputStream out=new FileOutputStream(file)){out.write(new JSONObject().put("fixtures",fixtureRecord).toString(2).getBytes(StandardCharsets.UTF_8));}}
     }
+
     private static String pixels(Activity activity,int tier,boolean fullScreen){
         float value=fullScreen?CaptionFontSize.fullScreenGlyphHeightPx(tier):CaptionFontSize.detailGlyphHeightPx(tier);
         return value==Math.round(value)?Integer.toString(Math.round(value)):String.format(java.util.Locale.ROOT,"%.1f",value);

@@ -394,7 +394,7 @@ val runtimeTogglesPatch = bytecodePatch(
     name = "Runtime feature toggles",
     description = "Lets the No-Google settings turn off Gboard features that only work through " +
         "Google servers (Emoji Kitchen, Tenor, Assistant voice, proofread…), hide the GIF and " +
-        "sticker tabs, and keep Gboard in incognito mode everywhere.",
+        "sticker tabs, and keep Gboard in incognito mode everywhere (with the clipboard still working).",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
@@ -412,6 +412,25 @@ val runtimeTogglesPatch = bytecodePatch(
         startInput.forEach {
             mutable(it).addInstructions(0, "invoke-static/range {p1 .. p1}, $INCOGNITO->apply(Landroid/view/inputmethod/EditorInfo;)V")
         }
+        // Gboard's clipboard (ClipboardDataHandler.onPrimaryClipChanged) drops copied text while the field is
+        // incognito: its static incognito check, then return-void. Incognito.clipboardBlocked keeps the text
+        // for fields that are incognito only because of "Always use incognito mode".
+        val clipChanged = single("clipboard listener") { cd, m ->
+            "Landroid/content/ClipboardManager\$OnPrimaryClipChangedListener;" in cd.interfaces &&
+                m.name == "onPrimaryClipChanged" && m.params().isEmpty() && "clipboard_primary_uri" in m.strings()
+        }
+        val clipIns = clipChanged.implementation!!.instructions.toList()
+        val incognitoCheck = clipIns.indices.lastOrNull { i ->
+            clipIns[i].opcode == Opcode.INVOKE_STATIC && ((clipIns[i] as ReferenceInstruction).reference as MethodReference).let {
+                it.returnType == "Z" && it.parameterTypes.isEmpty()
+            } && clipIns.getOrNull(i + 1)?.opcode == Opcode.MOVE_RESULT && clipIns.getOrNull(i + 2)?.opcode == Opcode.IF_EQZ &&
+                clipIns.getOrNull(i + 3)?.opcode == Opcode.RETURN_VOID
+        } ?: throw PatchException("clipboard listener: incognito check not found")
+        val incognito = (clipIns[incognitoCheck + 1] as OneRegisterInstruction).registerA
+        clipChanged.addInstructions(incognitoCheck + 2, """
+            invoke-static/range {v$incognito .. v$incognito}, $INCOGNITO->clipboardBlocked(Z)Z
+            move-result v$incognito
+        """)
         // The flag hook is shared with the Gboard-patches features: the online rules come with this patch.
         mutableClassDefBy(FLAGS).methods.single { it.name == "<clinit>" }.addInstructions(0, """
             const/4 v0, 0x1

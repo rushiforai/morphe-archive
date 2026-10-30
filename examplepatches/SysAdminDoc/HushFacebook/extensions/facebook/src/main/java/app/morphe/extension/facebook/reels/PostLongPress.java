@@ -72,6 +72,10 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * A press on a Pinch to zoom copy that stays up is the zoom's, so it starts no timer. A hold on a
  * feed video is Hold a feed video for 2x's while that switch is on ({@link FeedVideoHold#takes}).
  *
+ * <p>The same timer serves Select part of a post's text (#294): every hold that reaches the time
+ * arms {@link PostTextSelect}, which opens the text Facebook's own long press copies. With only
+ * that switch on, the hold itself is always left to Facebook.
+ *
  * <p>A held press left to Facebook counts why, and with Debug logging on logs the view under the
  * finger, so a phone's report says which check passed the hold over.
  */
@@ -141,6 +145,7 @@ public final class PostLongPress {
     public static void touch(@Nullable Activity activity, @Nullable MotionEvent event) {
         try {
             if (activity == null || event == null) return;
+            if (event.getActionMasked() == MotionEvent.ACTION_DOWN) PostTextSelect.pressedOn(activity);
             Window window = activity.getWindow();
             touch(window == null ? null : window.getDecorView(), event);
         } catch (Throwable failure) {
@@ -157,9 +162,12 @@ public final class PostLongPress {
             presses++;
             swallowing = false;
             stop();
-            if (root == null || !Utils.settingsReady() || !Settings.LONG_PRESS_OPENS_COMMENTS.get()) return;
+            if (root == null || !Utils.settingsReady()) return;
+            boolean select = Settings.SELECT_POST_TEXT.get();
+            if (!select && !Settings.LONG_PRESS_OPENS_COMMENTS.get()) return;
             if (PinchZoom.covers(root)) return;
             HookStatus.invoked(FAMILY);
+            if (select) PostTextSelect.listen(root.getContext());
             pressedRoot = new WeakReference<>(root);
             downX = event.getRawX();
             downY = event.getRawY();
@@ -192,13 +200,20 @@ public final class PostLongPress {
         View root = pressedRoot.get();
         pressedRoot = new WeakReference<>(null);
         try {
-            if (root == null || !Settings.LONG_PRESS_OPENS_COMMENTS.get()) return;
+            if (root == null) return;
+            boolean comments = Settings.LONG_PRESS_OPENS_COMMENTS.get();
+            boolean select = Settings.SELECT_POST_TEXT.get();
+            if (!comments && !select) return;
             HookStatus.counted(FAMILY, TIMED);
             // A call, a task switch or a dialog that took the window mid-press leaves it alone.
             if (!root.isAttachedToWindow() || !root.hasWindowFocus()) {
                 passed(LOST_FOCUS, root);
                 return;
             }
+            // Facebook copies a post's text on its own long press. Whatever a hold copies opens to
+            // select once the copy lands, and a hold that copies nothing opens nothing.
+            if (select) PostTextSelect.armed();
+            if (!comments) return;
             if (FeedVideoHold.takes(root, Math.round(downX), Math.round(downY))) {
                 passed(ON_VIDEO, root);
                 return;

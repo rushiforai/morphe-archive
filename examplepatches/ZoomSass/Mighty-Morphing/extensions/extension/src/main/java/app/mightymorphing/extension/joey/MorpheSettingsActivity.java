@@ -124,6 +124,8 @@ public final class MorpheSettingsActivity extends Activity {
                     () -> EditorBar.show(activity)));
             showHide.addView(actionRow(activity, "Sidebar", "Choose which sidebar entries are shown. Core options can't be toggled off.",
                     () -> Sidebar.show(activity)));
+            showHide.addView(actionRow(activity, "Subreddit toolbar", "Choose which items appear on the top bar and overflow menu, and change their order.",
+                    () -> SubredditToolbar.show(activity)));
             column.addView(showHide);
         }
         if (MorpheSettings.backupControls()) {

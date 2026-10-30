@@ -18,6 +18,7 @@
 * **TikTok:** La ricerca nelle impostazioni conosce nomi di tutti i giorni come autoplay, PiP e AI, e trova una riga di scelta da una qualsiasi delle sue opzioni.
 * **TikTok:** Blocca il feed a orari fissi blocca il feed da solo nelle ore che scegli, e il pannello di blocco dice quando si riapre.
 * **TikTok:** Salva solo con Wi-Fi tiene i salvataggi lontani dai dati mobili. Un salvataggio aspetta il Wi-Fi per al massimo 30 minuti, e puoi annullarlo da Download.
+* **TikTok:** Un nuovo interruttore disattiva la finestra Salva i media di Hushfeed per gli sticker in chat (#274).
 * **TikTok:** Su PineDrama ora funzionano gli interruttori della Posta in arrivo, compreso Nascondi le conversazioni (#156).
 * **TikTok:** Su PineDrama, la riga della versione nelle impostazioni ora indica PineDrama e la sua build invece di TikTok (#156).
 * **TikTok:** Un risultato della ricerca nelle impostazioni che sta in fondo a una pagina ora si apre proprio sulla sua riga.
@@ -61,6 +62,7 @@
 * **TikTok:** La registrazione dello schermo chiede ad Android di catturare solo l'audio dell'app modificata.
 * **TikTok:** La pulizia di Service+ controlla la stessa prima voce dell'anteprima LIVE che mostra TikTok (#94).
 * **TikTok:** La pausa dei commenti capisce che il primo fotogramma è in riproduzione prima del primo aggiornamento di avanzamento di TikTok (#151).
+* **TikTok:** Nascondi il pulsante Scorrimento automatico di TikTok nasconde anche il pulsante tondo Auto scroll in alto a destra nel video (#234).
 
 ## 0.79.0 (2026-10-24)
 

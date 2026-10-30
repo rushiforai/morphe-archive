@@ -1,2 +1,0 @@
-package app.yydarlinker.deepseekcaptions;
-final class N39TestEvidence { static void export(String name,org.json.JSONObject data) throws Exception {java.io.File dir=new java.io.File(System.getProperty("scheduler.output"));dir.mkdirs();try(java.io.FileOutputStream out=new java.io.FileOutputStream(new java.io.File(dir,name))){out.write(data.toString(2).getBytes(java.nio.charset.StandardCharsets.UTF_8));}} }

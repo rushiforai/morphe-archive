@@ -59,6 +59,7 @@ final class RebuildCache {
             boolean authored) {
         StringBuilder b =
                 new StringBuilder(RebuildProtocol.VERSION)
+                        .append("|source-coverage-v2")
                         .append('|')
                         .append(context.fingerprint(config))
                         .append('|')

@@ -133,6 +133,11 @@ public class LaunchFolderTest {
         @Override public boolean openArchive(Object list) { return archives.add(list); }
         @Override public String archiveTitle() { return archiveTitle; }
 
+        /** Each place the strip was scrolled to. */
+        final List<Integer> scrolls = new ArrayList<>();
+
+        @Override public boolean scrollStrip(Object list, int position) { return scrolls.add(position); }
+
         @Override public int selectedAccount() { return selected; }
         @Override public long userId(int account) { return users.getOrDefault(account, 0L); }
         @Override public int folderCount(int account) { return folders.getOrDefault(account, new ArrayList<>()).size(); }
@@ -214,6 +219,9 @@ public class LaunchFolderTest {
         assertTrue(LaunchFolder.editing(telegram.strip, 1));
         assertFalse(LaunchFolder.skipsDone(list, 1));
         assertFalse(report(), report().contains(LaunchFolder.HIDDEN));
+        // With the switch off nothing was kept for a reason.
+        assertNull(LaunchFolder.kept());
+        assertFalse(report(), report().contains("All Chats kept"));
     }
 
     @Test public void hideAllChatsOpensOnTheFirstFolderItCanOpen() {
@@ -227,6 +235,7 @@ public class LaunchFolderTest {
         assertTrue(LaunchFolder.hides(list));
         assertTrue(LaunchFolder.archiveShown());
         assertTrue(report(), report().contains(LaunchFolder.HIDDEN + " 1"));
+        assertNull(LaunchFolder.kept());
         // Its later builds aren't counted again.
         buildTabs(list, 0);
         assertTrue(report(), report().contains(LaunchFolder.HIDDEN + " 1"));
@@ -285,12 +294,19 @@ public class LaunchFolderTest {
         assertFalse(LaunchFolder.hides(list));
         assertFalse(LaunchFolder.archiveShown());
         assertTrue(LaunchFolder.editing(telegram.strip, 1));
+        assertEquals(LaunchFolder.Kept.NO_FOLDER, LaunchFolder.kept());
+        assertTrue(report(), report().contains(LaunchFolder.Kept.NO_FOLDER.counted + " 1"));
+        // A later build that keeps it again names it again, counted once like the build that hides.
+        buildTabs(list, 0);
+        assertEquals(LaunchFolder.Kept.NO_FOLDER, LaunchFolder.kept());
+        assertTrue(report(), report().contains(LaunchFolder.Kept.NO_FOLDER.counted + " 1"));
         // A folder made later hides it at the next build, since the list read the switch at its first.
         telegram.folder(2, 6, "New", false);
         assertTrue(buildTabs(list, 0));
-        assertEquals(Arrays.asList("All Chats"), telegram.tabs);
+        assertEquals(Arrays.asList("All Chats", "All Chats"), telegram.tabs);
         assertEquals(2, telegram.type);
         assertTrue(LaunchFolder.hides(list));
+        assertNull("nothing kept now", LaunchFolder.kept());
     }
 
     @Test public void noWayToTheArchiveOrNoTabStripKeepsAllChats() {
@@ -299,15 +315,41 @@ public class LaunchFolderTest {
         Object list = new Object();
         assertTrue(buildTabs(list, 1));
         assertFalse(LaunchFolder.hides(list));
+        assertEquals(LaunchFolder.Kept.NO_ARCHIVE, LaunchFolder.kept());
+        assertTrue(report(), report().contains(LaunchFolder.Kept.NO_ARCHIVE.counted + " 1"));
         telegram.archive = true;
         telegram.noStrip = true;
         Object stripless = new Object();
         assertTrue(buildTabs(stripless, 1));
         assertFalse(LaunchFolder.hides(stripless));
+        assertEquals(LaunchFolder.Kept.NO_STRIP, LaunchFolder.kept());
+        assertTrue(report(), report().contains(LaunchFolder.Kept.NO_STRIP.counted + " 1"));
         assertEquals(Arrays.asList("All Chats", "All Chats"), telegram.tabs);
         assertEquals(new ArrayList<String>(), telegram.picks);
         assertFalse(LaunchFolder.archiveShown());
         assertFalse(report(), report().contains(LaunchFolder.HIDDEN));
+    }
+
+    @Test public void noWayToTheArchiveIsNamedBeforeAMissingFolder() {
+        Settings.HIDE_ALL_CHATS.save(true);
+        telegram.archive = false;
+        telegram.folder(2, 0, "All Chats", false);
+        telegram.listAccount = 2;
+        buildTabs(new Object(), 1);
+        // The archive is the build's, the same on every account, so it's what turning on the side menu fixes first.
+        assertEquals(LaunchFolder.Kept.NO_ARCHIVE, LaunchFolder.kept());
+        assertFalse(report(), report().contains(LaunchFolder.Kept.NO_FOLDER.counted));
+    }
+
+    @Test public void aListThatIsntTheMainOneLeavesTheReasonAlone() {
+        Settings.HIDE_ALL_CHATS.save(true);
+        telegram.archive = false;
+        buildTabs(new Object(), 1);
+        telegram.archive = true;
+        telegram.args = main();
+        telegram.args.putBoolean("onlySelect", true);
+        buildTabs(new Object(), 1);
+        assertEquals("the share picker reads no switch", LaunchFolder.Kept.NO_ARCHIVE, LaunchFolder.kept());
     }
 
     @Test public void theArchiveIsReachableThroughTheMenuEntryOrTheSideMenu() {
@@ -341,6 +383,8 @@ public class LaunchFolderTest {
         assertFalse(LaunchFolder.archiveShown());
         assertEquals(Arrays.asList("All Chats"), telegram.tabs);
         assertTrue(report(), report().contains("folder at launch"));
+        assertEquals(LaunchFolder.Kept.NO_STRIP, LaunchFolder.kept());
+        assertTrue(report(), report().contains(LaunchFolder.Kept.NO_STRIP.counted + " 1"));
     }
 
     @Test public void aListBuiltWithAllChatsTakesTheArchiveOutOfTheSideMenu() {
@@ -482,6 +526,54 @@ public class LaunchFolderTest {
         build(new Object());
         assertEquals(Arrays.asList("0/2", "0/2"), telegram.picks);
         assertTrue(report(), report().contains(LaunchFolder.OPENED + " 2"));
+    }
+
+    @Test public void thePickedTabStartsTheStripSoAPickPastTheEdgeIsInView() {
+        Settings.LAUNCH_FOLDER.save(true);
+        LaunchFolder.pick(1000, FRIENDS);
+        Object list = new Object();
+        build(list);
+        assertEquals(Arrays.asList(2), telegram.scrolls);
+        // A view built again acts as stock, so the strip isn't moved a second time.
+        telegram.built.remove(list);
+        build(list);
+        assertEquals(Arrays.asList(2), telegram.scrolls);
+        // Nothing picked, or a pick that's gone, leaves the strip at its start.
+        LaunchFolder.pick(1000, new LaunchFolder.Folder(42, "Gone"));
+        build(new Object());
+        Settings.LAUNCH_FOLDER.save(false);
+        build(new Object());
+        assertEquals(Arrays.asList(2), telegram.scrolls);
+    }
+
+    @Test public void aPickTheStripStartsWithAnywayDoesntScrollIt() {
+        Settings.LAUNCH_FOLDER.save(true);
+        LaunchFolder.pick(1000, WORK);
+        telegram.folders.get(0).add(0, telegram.folders.get(0).remove(1));
+        build(new Object());
+        assertEquals("Work is the first tab", Arrays.asList("0/0"), telegram.picks);
+        assertEquals(new ArrayList<Integer>(), telegram.scrolls);
+    }
+
+    @Test public void withAllChatsLeftOutThePickedTabIsOneFurtherBack() {
+        Settings.HIDE_ALL_CHATS.save(true);
+        Settings.LAUNCH_FOLDER.save(true);
+        LaunchFolder.pick(1000, FRIENDS);
+        Object list = new Object();
+        buildTabs(list, 0);
+        assertEquals(Arrays.asList(1), telegram.scrolls);
+        // The first folder, which opens with no pick, is the strip's first tab.
+        LaunchFolder.pick(1000, null);
+        buildTabs(new Object(), 0);
+        assertEquals(Arrays.asList(1), telegram.scrolls);
+        // A view built again opens on the pick, and the strip follows it.
+        LaunchFolder.pick(1000, FRIENDS);
+        telegram.built.remove(list);
+        buildTabs(list, 0);
+        assertEquals(Arrays.asList(1, 1), telegram.scrolls);
+        // A rebuild of tabs already in leaves the strip where the user put it.
+        buildTabs(list, 0);
+        assertEquals(Arrays.asList(1, 1), telegram.scrolls);
     }
 
     @Test public void aListAlreadyBuiltWhenTheSwitchWentOnStaysWhereItIs() {

@@ -25,13 +25,16 @@ import app.hushtelegram.extension.telegram.settings.Settings;
  * reach. With {@link Settings#STORAGE_FOLDER} on and All files access granted, {@link #telegramFolder}
  * hands Telegram Internal storage/Telegram instead, the way it worked before Android 11 and the way
  * Plus Messenger does it. Telegram reads the folder once when it sets up its paths, so a change
- * takes a restart. Files already downloaded stay where they were.
+ * takes a restart. Files already downloaded stay where they were, and {@link #olderFile} still
+ * finds them there.
  */
 public final class StorageFolder {
     /** How long a hook that runs before the app's settings load waits for them. */
     static long startupWaitMillis = 10_000L;
     /** AppOpsManager.OPSTR_MANAGE_EXTERNAL_STORAGE, which the SDK keeps hidden. */
     private static final String MANAGE_EXTERNAL_STORAGE_OP = "android:manage_external_storage";
+    /** Telegram's own folder and the one it moved to, as one pair, or null while it hasn't moved. */
+    static volatile File[] moved;
 
     private StorageFolder() {}
 
@@ -45,15 +48,49 @@ public final class StorageFolder {
         try {
             // Telegram sets up its folders on its own queue, sometimes before the settings have loaded.
             boolean chosen = Utils.awaitSettingsReady(startupWaitMillis) && Settings.STORAGE_FOLDER.get();
-            File moved = folderFor(folder, Build.VERSION.SDK_INT, chosen, chosen && allFilesAccess(),
+            File chosenFolder = folderFor(folder, Build.VERSION.SDK_INT, chosen, chosen && allFilesAccess(),
                     chosen ? Environment.getExternalStorageDirectory() : null);
-            if (moved == folder) return folder;
+            moved = chosenFolder == folder ? null : new File[] {folder, chosenFolder};
+            if (chosenFolder == folder) return folder;
             HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, "storage folder");
-            return moved;
+            return chosenFolder;
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.SAVE_DOWNLOADS, "storage folder", t);
+            moved = null;
             return folder;
         }
+    }
+
+    /**
+     * Called on the path FileLoader.getPathToAttach makes for a downloaded file, right before it
+     * hands it back, and on the one FileLoadOperation.start makes for a photo or video it's about
+     * to load, right before it checks it. Once Telegram's folder has moved, a file it downloaded
+     * earlier is still in the old one under Android/data, so a path that isn't there in the moved
+     * folder but is in the old one gives the old one, and Telegram opens it instead of downloading
+     * it again. An older file at the wrong size is downloaded again where it is. Anything else
+     * comes back as it came, so new downloads still go in the moved folder.
+     */
+    public static File olderFile(File file) {
+        File[] pair = moved;
+        if (pair == null || file == null) return file;
+        try {
+            File older = olderFor(file, pair[0], pair[1]);
+            if (older == file) return file;
+            HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, "older file");
+            return older;
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.SAVE_DOWNLOADS, "older file", t);
+            return file;
+        }
+    }
+
+    /** [file] under [from] instead of [to] when it's under [to], missing there and present in [from], else [file]. */
+    static File olderFor(File file, File from, File to) {
+        String root = to.getPath() + File.separator;
+        String path = file.getPath();
+        if (!path.startsWith(root) || file.exists()) return file;
+        File older = new File(from, path.substring(root.length()));
+        return older.isFile() ? older : file;
     }
 
     /**

@@ -110,15 +110,18 @@ private fun MethodReference.isLauncherCall() = returnType == "Z" && parameterTyp
     parameterTypes[0].toString() == BUNDLE && parameterTypes[1].toString().startsWith("L")
 
 /**
- * A capture event owns its fresh per-launch extras. Messenger 584 inlines its handler into two composer event
- * dispatchers, each casting the event to [ACTIVATE_CAMERA] and making exactly one launcher call. Editor events share the
- * launcher, but never cast to the capture event, so they don't match. The launcher interface comes back for the match
- * against the chat camera factory's.
+ * A capture event owns its fresh per-launch extras. Messenger 585's two composer event dispatchers cast the event to
+ * [ACTIVATE_CAMERA] and hand it to one static helper, which takes it first and makes exactly one launcher call; an
+ * instance handler that casts the event and makes that call itself matches too. Editor events share the launcher, but
+ * never carry the capture event, so they don't match. The launcher interface comes back for the match against the chat
+ * camera factory's.
  */
 internal fun Method.captureLauncherType(): String? {
-    if (AccessFlags.STATIC.isSet(accessFlags) || returnType != "V") return null
+    if (returnType != "V") return null
     val code = implementation?.instructions ?: return null
-    if (code.none { it.opcode == Opcode.CHECK_CAST && ((it as ReferenceInstruction).reference as? TypeReference)?.type == ACTIVATE_CAMERA }) return null
+    val carries = if (AccessFlags.STATIC.isSet(accessFlags)) parameterTypes.firstOrNull()?.toString() == ACTIVATE_CAMERA
+        else code.any { it.opcode == Opcode.CHECK_CAST && ((it as ReferenceInstruction).reference as? TypeReference)?.type == ACTIVATE_CAMERA }
+    if (!carries) return null
     return code.filter { it.opcode == Opcode.INVOKE_INTERFACE }.mapNotNull { it.methodRef()?.takeIf { ref -> ref.isLauncherCall() } }
         .singleOrNull()?.definingClass
 }

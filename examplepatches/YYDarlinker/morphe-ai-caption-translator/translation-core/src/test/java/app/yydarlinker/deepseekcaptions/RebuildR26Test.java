@@ -29,10 +29,11 @@ public class RebuildR26Test {
   static JSONObject quoted(RebuildSource s,int f,int t,String translation)throws Exception {
     return RebuildContractTest.event(f,t,translation).put("source",s.text(f,t));
   }
-  @Test public void capturedRepairedTanksCarriersDriftIsRejected()throws Exception {
+  @Test public void capturedEquipmentDriftIsNoLongerDictionaryRejected()throws Exception {
     JSONArray rows=fixture();RebuildSource s=source(rows);JSONObject row=rows.getJSONObject(4);assertEquals(7,row.getInt("request"));
-    try{RebuildProtocol.parse(row.getJSONObject("response").toString(),s,block(row,s));fail("captured semantic drift passed");}
-    catch(RebuildProtocol.Invalid e){assertEquals("semantic_anchor_leak",e.code);assertTrue(e.detail.contains("268-294"));}
+    RebuildProtocol.Plan p=RebuildProtocol.parse(row.getJSONObject("response").toString(),s,block(row,s));
+    assertEquals(4,p.events.size()); // parsing is not a semantic-quality certificate
+    assertEquals(268,p.events.get(1).from);assertEquals(294,p.events.get(1).to);
   }
   @Test public void correctedSourceAlignedComparisonPasses()throws Exception {
     RebuildSource s=source(fixture());RebuildPlanner.Block b=new RebuildPlanner.Block(3,243,325,s);
@@ -75,15 +76,12 @@ public class RebuildR26Test {
     RebuildSource s=RebuildContractTest.source("The carrier filled a water tank near an armada.",500);RebuildPlanner.Block b=RebuildContractTest.block(s);
     RebuildProtocol.parseBound(RebuildContractTest.reply(b,new JSONArray().put(quoted(s,0,s.words.size()-1,"运输者在舰队附近装满了水箱"))),s,b);
   }
-  @Test public void adjacentAsrDigitsCannotInventRange()throws Exception {
+  @Test public void adjacentAsrDigitsAreObservedWithoutGuessingARange()throws Exception {
     RebuildSource s=RebuildContractTest.source("about 50 20 fifth generation aircraft",400);RebuildPlanner.Block b=RebuildContractTest.block(s);
-    try {
-      RebuildProtocol.parseBound(RebuildContractTest.reply(b,new JSONArray().put(
-          quoted(s,0,s.words.size()-1,"约50至20架五代战机"))),s,b);
-      fail("Published parser must reject this invented range");
-    } catch(RebuildProtocol.Invalid expected) {
-      assertEquals("numeric_range_invention",expected.code);
-    }
+    RebuildProtocol.Plan p=RebuildProtocol.parseBound(RebuildContractTest.reply(b,new JSONArray().put(
+        quoted(s,0,s.words.size()-1,"约50至20架五代战机"))),s,b);
+    assertTrue(p.issues.stream().anyMatch(x->x.code.equals("source_number_ambiguity")&&!x.repair));
+    assertFalse(p.issues.stream().anyMatch(x->x.code.equals("possible_number_range_invention")));
   }
   @Test public void authenticNumberRangeAndGroupedThousandsRemainValid()throws Exception {
     for(String raw:Arrays.asList("50 to 60 aircraft","10 000 tanks")){
@@ -113,7 +111,13 @@ public class RebuildR26Test {
       catch(RebuildProtocol.Invalid e){result=e.code;rejected++;}
       results.put("request_"+r.getInt("request"),result);
     }
-    assertEquals(31,rows.length());assertTrue(rejected+reviewed>=4);
+    assertEquals(31,rows.length());assertEquals(2,rejected);assertEquals(1,reviewed);
+    for(int i=0;i<rows.length();i++) {
+      int request=rows.getJSONObject(i).getInt("request");
+      String expected=request==6?"source_coverage":request==19?"dependent_source_end":
+          request==18?"paragraph_review_display_ready_NOT_semantic_proof":"passes_local_checks_NOT_semantic_proof";
+      assertEquals("unchanged captured result except retired request 7",expected,results.getString("request_"+request));
+    }
     System.out.println("R26_CAPTURE_REPLAY="+results);
   }
 }

@@ -29,7 +29,7 @@ need it rather than skipping them.
 
 | Check | What it covers |
 |---|---|
-| `tests/twitch/verify_interface.py` | Twitch's interface extension: startup destinations, Home and profile tabs, Clips routing, settings switched off. |
+| `tests/twitch/verify_interface.py` | Twitch's interface extension: startup destinations, Home and profile tabs, Clips routing, the chat header's Bits and subscription offers, settings switched off. |
 | `tests/twitch/verify_playback_links.py` | Twitch's playback and share-link helpers. |
 | `tests/twitch/verify_fill_screen.py` | Twitch's *Fill screen* on a view-tree double of the landscape theatre with a display cutout: the container's cutout padding, the scaled video, the views kept clear of the cutout, and everything given back next to the chat, in portrait, in picture-in-picture, for vertical videos and when the player leaves; Android 10's window cutout mode and the React Native player's resize mode. |
 | `tests/twitch/test_async.py` | The backup stream behind *Avoid stitched ads* against a slow local HTTP server: deadlines, cancellation, ad fallback, oversized and trickling responses, stale results. |
@@ -47,6 +47,7 @@ need it rather than skipping them.
 | `tests/test_release.py` | The release script on local Git fixtures, without GitHub or a build: recovering unpublished releases (also when the other branch's release commit is newer), the stable backmerge, generated files, release notes and the host gate itself. |
 | `tests/test_patch.py` | `bin/patch` staging and cleanup with a stand-in for Morphe, `bin/bump`'s sorting of failures and the version-literal scanner. |
 | `tests/verify_version_literals.py` | No app version in a string literal under `patches/src` outside `shared/Constants.kt`. |
+| `tests/verify_fingerprint_strings.py` | Every literal in a fingerprint's `strings = listOf(...)` is a whole dex string of the stored APK of each target version, since Morphe Patcher 2.0 compares them exactly. Skips an app whose target APK isn't in `apks/` (so it checks nothing in CI). |
 
 The JVM checks compile the production extension classes unchanged and replace only the Android
 boundary (context, preferences, HTTP, UI) with small doubles, so they test the code that ships.

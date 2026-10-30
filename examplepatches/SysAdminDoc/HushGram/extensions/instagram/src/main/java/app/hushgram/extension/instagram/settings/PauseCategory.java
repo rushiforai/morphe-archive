@@ -61,7 +61,7 @@ final class PauseCategory {
         hushgram.addPreference(mark(export, SettingsIcons.LICENSE));
         ClearLogBufferPreference clear = new ClearRow(context);
         clear.setTitle(L10n.t("Clear diagnostic data"));
-        clear.setClearAndUndoSummaries(L10n.t("Empties the activity log that a diagnostic report would include."),
+        clear.setClearAndUndoSummaries(L10n.t("Empties the activity log and any kept crash that a diagnostic report would include."),
                 L10n.t("Diagnostic data cleared. Tap again to put it back."));
         hushgram.addPreference(mark(clear, SettingsIcons.DELETE));
         String stays = PatchFamily.staysWhilePausedSummary(build);

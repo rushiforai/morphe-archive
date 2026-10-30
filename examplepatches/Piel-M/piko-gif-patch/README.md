@@ -20,7 +20,7 @@ Click the button below, or manually add this repo url to Morphe Manager (with **
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/Piel-M/piko-gif-patch/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.3.0](https://github.com/Piel-M/piko-gif-patch/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 Twitter&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>

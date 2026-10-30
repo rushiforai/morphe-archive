@@ -254,4 +254,34 @@ public class N52DisplayRepairTest {
         assertTrue("a page-sized repair reached the box: " + shown, shown.contains(REPAIRED));
         assertTrue("the placeholder stood in meanwhile", !waiting.isEmpty());
     }
+
+    @Test
+    public void aWiderQuoteIsRepairedWithoutFirstShowingItsAmbiguousTranslation() throws Exception {
+        String ambiguous = "这段译文提前包含后续整段内容，不能挤进开头的短时间窗口。";
+        java.util.concurrent.atomic.AtomicInteger repairs = new java.util.concurrent.atomic.AtomicInteger();
+        server.setDispatcher(new Dispatcher() {
+            public MockResponse dispatch(RecordedRequest request) {
+                try {
+                    JSONObject input = new JSONObject(new JSONObject(request.getBody().readUtf8())
+                            .getJSONArray("messages").getJSONObject(1).getString("content"));
+                    if (!input.optString("repair").isEmpty()) {
+                        repairs.incrementAndGet();
+                        return body(reply(input, REPAIRED));
+                    }
+                    JSONObject bad = new JSONObject(reply(input, ambiguous));
+                    JSONObject event = bad.getJSONArray("events").getJSONObject(0);
+                    event.put("to", event.getInt("from"));
+                    return body(bad.toString());
+                } catch (Exception failure) {
+                    return new MockResponse().setResponseCode(500).setBody("fixture error");
+                }
+            }
+        });
+        RebuildController.activate(context, url + "&kind=asr", false, true);
+        await(() -> shown.contains(REPAIRED));
+        play(600);
+        assertFalse("the ambiguous paragraph must never acquire display time", shown.contains(ambiguous));
+        assertTrue("the normal bounded repair path supplied the translation", repairs.get() > 0);
+        assertTrue("one block cannot exceed the existing page and hole limits", repairs.get() <= 5);
+    }
 }

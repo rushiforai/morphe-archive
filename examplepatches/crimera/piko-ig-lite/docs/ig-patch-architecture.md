@@ -119,9 +119,12 @@ the APK at patch time — class presence plus shape — not from the version str
 - The Downloads patch and its decoder closure are fail-closed: binder/selector lookups
   assert exactly one match, the image-variant accessor asserts at most one after `distinct()`,
   and order-contractual anchor scans carry directives explaining the contract.
-- Download sheet thumbnails ride emitted bridges resolved by the `SaveAsStickerHelper` /
-  `Error getting bitmap from cache` log anchors plus the static `(String) -> Bitmap` shape
-  (`LX/0PoN.A00` on 448, `LX/0jhc.A00` on 449). `ThumbnailLoader.cachedBitmap(String)` keeps
+- Download sheet thumbnails ride emitted bridges resolved by the `Error getting bitmap from cache`
+  log anchor plus the static `(String) -> Bitmap` shape (`LX/0PoN.A00` on 448, `LX/0jhc.A00` on
+  449). The `SaveAsStickerHelper` logger tag remains inline on older builds, but 453 routes it
+  through the string indexer, so it cannot be required in the lookup method. The resolver then
+  validates the image-URL factory, cache-key getter, cache receiver chain, cache interface lookup,
+  and bitmap field from the exact matched method. `ThumbnailLoader.cachedBitmap(String)` keeps
   Instagram's own helper as the fallback tier and `cachedBitmap(Object, String)` replays the same
   cache chain for the real `ExtendedImageUrl`, whose `ImageCacheKey` carries the width/height that a
   `SimpleImageUrl` built from a bare URL always reports as -1. The app ships no

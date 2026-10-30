@@ -38,6 +38,14 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * move of an entry asks {@link #topBarOffset}, which keeps a kept top bar where it rests, and
  * {@link #topBarFade}, which keeps it from fading out as it would have gone. Its entry keeps its
  * place in Facebook's insets, so the feed still starts below it.
+ *
+ * <p>A kept bar with See-through bars on is kept another way (#250). Answering the check no has
+ * Facebook pad the pages up to the bar, so nothing is drawn under it and the see-through showed
+ * black. With both on the check is answered yes instead, so Facebook builds its scroll-away layout,
+ * the one that runs the pages under the bar, and the bar's own entry is then held where it rests
+ * the way a kept top bar is. Off the feed it goes with Facebook's own hide, like the top bar.
+ * That layout is built as the main screen starts, so on a kept bar a See-through bars change waits
+ * for a restart, and {@link #seeThroughRestartOwed} tells the settings page to say so.
  */
 public final class TabBarScrollAway {
     /** Counted under the patch's name each time the check is answered yes. */
@@ -52,11 +60,19 @@ public final class TabBarScrollAway {
     static final String PAGES_CLEARED = "Pages kept clear of the kept tab bar";
     /** Counted each time a kept top bar lets a move through because Facebook left the bars' surface. */
     static final String TOP_BAR_LET_GO = "Top bar let go off the feed";
+    /** Counted each time the check is answered yes for a kept see-through bar, so its pages run under it. */
+    static final String PAGES_RUN_UNDER = "Tab bar kept with its pages under it";
+    /** Counted each time a kept see-through bar's entry is held where it rests inside Facebook's scroll-away. */
+    static final String BAR_HELD = "Tab bar held on screen";
+    /** Counted each time a kept see-through bar lets a move through because Facebook left the bars' surface. */
+    static final String BAR_LET_GO = "Tab bar let go off the feed";
 
     /** The name Facebook's main screen gives the top bar's scroll-away entry. */
     static final String APP_HEADER = "app_header_container";
     /** The entry's name when the tabs sit at the top, under the top bar, and move with it. */
     static final String TITLE_AND_TABS = "title_bar_tab_bar_container";
+    /** The name Facebook's main screen gives the bottom bar's scroll-away entry. */
+    static final String BOTTOM_TABS = "bottom_tabs_container";
 
     private static final String FAMILY = FamilyNames.BOTTOM_TAB_BAR;
 
@@ -68,7 +84,50 @@ public final class TabBarScrollAway {
      */
     private static volatile boolean offTheFeed;
 
+    /**
+     * Whether the bar was kept, and whether it was see-through, as Facebook's check first ran in
+     * this process: the layout the bar was built with, whatever the settings say now. Null until
+     * the check runs.
+     */
+    @Nullable
+    private static volatile Boolean builtKept;
+    @Nullable
+    private static volatile Boolean builtSeeThrough;
+
     private TabBarScrollAway() {
+    }
+
+    /** The first run of Facebook's check builds the bar's layout: remembered, so a later change can be compared with it. */
+    private static void noteBuilt() {
+        if (builtKept != null) return;
+        builtSeeThrough = Settings.TRANSLUCENT_BARS.get();
+        builtKept = !Settings.TAB_BAR_SCROLL_AWAY.get() && Settings.KEEP_TAB_BAR.get();
+    }
+
+    /**
+     * Whether a See-through bars change waits for a restart: the bar was built kept and is still
+     * kept, and the see-through switch differs from the one it was built with. A bar that isn't
+     * kept, or one not built yet, shows the change right away, and a kept bar's own switches say
+     * their restart themselves. Never throws.
+     */
+    public static boolean seeThroughRestartOwed() {
+        try {
+            Boolean kept = builtKept;
+            Boolean seeThrough = builtSeeThrough;
+            if (kept == null || seeThrough == null || !kept || !Utils.settingsReady()) return false;
+            if (Settings.TAB_BAR_SCROLL_AWAY.get() || !Settings.KEEP_TAB_BAR.get()) return false;
+            boolean seeThroughNow = Settings.TRANSLUCENT_BARS.get();
+            return seeThrough != seeThroughNow;
+        } catch (Throwable failure) {
+            Logger.printException(() -> "Could not tell whether See-through bars waits for a restart", failure);
+            return false;
+        }
+    }
+
+    /** Forgets the layout the bar was built with, for a test that builds it again. */
+    public static void forgetBuilt() {
+        builtKept = null;
+        builtSeeThrough = null;
     }
 
     /**
@@ -91,11 +150,21 @@ public final class TabBarScrollAway {
     public static boolean slidesAway() {
         try {
             HookStatus.invoked(FAMILY);
-            if (!Utils.settingsReady() || !Settings.TAB_BAR_SCROLL_AWAY.get()) return false;
-            HookStatus.bound(FAMILY, "tab bar scroll-away");
-            HookStatus.counted(FAMILY, SLIDES_AWAY);
-            Logger.printDebug(() -> "Tab bar scroll-away: the bar at the bottom slides away");
-            return true;
+            if (!Utils.settingsReady()) return false;
+            noteBuilt();
+            if (Settings.TAB_BAR_SCROLL_AWAY.get()) {
+                HookStatus.bound(FAMILY, "tab bar scroll-away");
+                HookStatus.counted(FAMILY, SLIDES_AWAY);
+                Logger.printDebug(() -> "Tab bar scroll-away: the bar at the bottom slides away");
+                return true;
+            }
+            if (keptUnderSeeThrough()) {
+                HookStatus.bound(FAMILY, "tab bar kept see-through");
+                HookStatus.counted(FAMILY, PAGES_RUN_UNDER);
+                Logger.printDebug(() -> "Tab bar scroll-away: the kept see-through bar takes the layout with the pages under it");
+                return true;
+            }
+            return false;
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "tab bar scroll-away", failure);
             return false;
@@ -105,14 +174,17 @@ public final class TabBarScrollAway {
     /**
      * Asked just ahead of {@link #slidesAway()}. True answers Facebook's check no outright, so the
      * bar keeps its place whatever the server settings say. Hide the tab bar while scrolling wins
-     * when both are on, the way the settings page greys this switch out while that one is on.
+     * when both are on, the way the settings page greys this switch out while that one is on. A
+     * kept bar with See-through bars on answers yes there instead and is held in the layout that
+     * gives (#250), so this is false for it.
      */
     public static boolean staysPut() {
         try {
             HookStatus.invoked(FAMILY);
-            if (!Utils.settingsReady() || Settings.TAB_BAR_SCROLL_AWAY.get() || !Settings.KEEP_TAB_BAR.get()) {
-                return false;
-            }
+            if (!Utils.settingsReady()) return false;
+            noteBuilt();
+            if (Settings.TAB_BAR_SCROLL_AWAY.get() || !Settings.KEEP_TAB_BAR.get()) return false;
+            if (Settings.TRANSLUCENT_BARS.get()) return false;
             HookStatus.bound(FAMILY, "tab bar kept");
             HookStatus.counted(FAMILY, STAYS_PUT);
             Logger.printDebug(() -> "Tab bar scroll-away: the bar at the bottom stays put");
@@ -124,23 +196,35 @@ public final class TabBarScrollAway {
     }
 
     /**
+     * Whether the kept bar is held inside Facebook's scroll-away layout rather than kept by a no:
+     * Keep the tab bar on screen and See-through bars on, Hide the tab bar while scrolling off. The
+     * settings are read, so the caller checks they're ready first.
+     */
+    static boolean keptUnderSeeThrough() {
+        return !Settings.TAB_BAR_SCROLL_AWAY.get() && Settings.KEEP_TAB_BAR.get() && Settings.TRANSLUCENT_BARS.get();
+    }
+
+    /**
      * The hook at the start of each method that moves a scroll-away view, with the entry's name and
      * the distance Facebook is about to move it from where it rests. A kept top bar gets 0, so it
-     * stays where it rests; every other entry, and the top bar while the switch is off, keeps
-     * Facebook's distance. So does a kept top bar while the main screen is off the feed, where
-     * Facebook hides the bars itself.
+     * stays where it rests, and so does the bottom bar's entry for a kept see-through bar; every
+     * other entry, and each bar while its switch is off, keeps Facebook's distance. So does a kept
+     * bar while the main screen is off the feed, where Facebook hides the bars itself.
      */
     public static int topBarOffset(@Nullable String entry, int offset) {
         try {
-            if (offset == 0 || !(APP_HEADER.equals(entry) || TITLE_AND_TABS.equals(entry))) return offset;
+            if (offset == 0) return offset;
+            boolean topBar = APP_HEADER.equals(entry) || TITLE_AND_TABS.equals(entry);
+            if (!topBar && !BOTTOM_TABS.equals(entry)) return offset;
             HookStatus.invoked(FAMILY);
-            if (!Utils.settingsReady() || !Settings.KEEP_TOP_BAR.get()) return offset;
-            HookStatus.bound(FAMILY, "top bar kept");
+            if (!Utils.settingsReady()) return offset;
+            if (topBar ? !Settings.KEEP_TOP_BAR.get() : !keptUnderSeeThrough()) return offset;
+            HookStatus.bound(FAMILY, topBar ? "top bar kept" : "tab bar kept see-through");
             if (offTheFeed) {
-                HookStatus.counted(FAMILY, TOP_BAR_LET_GO);
+                HookStatus.counted(FAMILY, topBar ? TOP_BAR_LET_GO : BAR_LET_GO);
                 return offset;
             }
-            HookStatus.counted(FAMILY, TOP_BAR_HELD);
+            HookStatus.counted(FAMILY, topBar ? TOP_BAR_HELD : BAR_HELD);
             return 0;
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "top bar kept", failure);
@@ -152,15 +236,19 @@ public final class TabBarScrollAway {
      * The hook beside {@link #topBarOffset} in the same moves, with how far out of sight the move
      * takes the entry, 0 to 1. Facebook fades some entries by it as they go (an entry over a
      * see-through navigation bar, and one part of the top bar on some accounts), which a held
-     * distance doesn't stop. A kept top bar gets 0, so it stays fully drawn.
+     * distance doesn't stop. A kept top bar gets 0, so it stays fully drawn, and so does the bottom
+     * bar's entry for a kept see-through bar.
      */
     public static float topBarFade(@Nullable String entry, float hidden) {
         try {
-            if (hidden == 0f || !(APP_HEADER.equals(entry) || TITLE_AND_TABS.equals(entry))) return hidden;
+            if (hidden == 0f) return hidden;
+            boolean topBar = APP_HEADER.equals(entry) || TITLE_AND_TABS.equals(entry);
+            if (!topBar && !BOTTOM_TABS.equals(entry)) return hidden;
             HookStatus.invoked(FAMILY);
-            if (!Utils.settingsReady() || !Settings.KEEP_TOP_BAR.get() || offTheFeed) return hidden;
-            HookStatus.bound(FAMILY, "top bar kept drawn");
-            HookStatus.counted(FAMILY, TOP_BAR_UNFADED);
+            if (!Utils.settingsReady() || offTheFeed) return hidden;
+            if (topBar ? !Settings.KEEP_TOP_BAR.get() : !keptUnderSeeThrough()) return hidden;
+            HookStatus.bound(FAMILY, topBar ? "top bar kept drawn" : "tab bar kept see-through");
+            if (topBar) HookStatus.counted(FAMILY, TOP_BAR_UNFADED);
             return 0f;
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "top bar kept drawn", failure);
@@ -174,7 +262,8 @@ public final class TabBarScrollAway {
      * navigation bar the bar's holder covers the navigation bar too, so the bottom of each page, a
      * reel's progress bar with it, sat behind the tab bar. For a kept bar the pager then adds that
      * overlap each time it's laid out with Facebook's padding, and leaves any other padding alone.
-     * One listener per pager, however often Facebook sets it up.
+     * One listener per pager, however often Facebook sets it up. A kept see-through bar's pages run
+     * under it by design, so they get no listener either.
      */
     public static void padsPager(@Nullable View pager, int left, int top, int right, int bottom) {
         if (pager == null) return;
@@ -182,6 +271,7 @@ public final class TabBarScrollAway {
         try {
             HookStatus.invoked(FAMILY);
             if (bottom <= 0 || !Utils.settingsReady() || Settings.TAB_BAR_SCROLL_AWAY.get() || !Settings.KEEP_TAB_BAR.get()) return;
+            if (Settings.TRANSLUCENT_BARS.get()) return;
             HookStatus.bound(FAMILY, "tab bar kept pages");
             ClearsNavigationBar listening;
             synchronized (CLEARED_PAGERS) {

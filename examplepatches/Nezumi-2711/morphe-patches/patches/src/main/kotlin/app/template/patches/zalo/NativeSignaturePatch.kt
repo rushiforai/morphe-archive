@@ -16,7 +16,7 @@ private val PATCHED_RETURN = byteArrayOf(0x20, 0x00, 0x80.toByte(), 0x52)
 @Suppress("unused")
 val nativeSignaturePatch = rawResourcePatch(
     name = "Native signature fix",
-    description = "Allow Zalo 26.08.01 ARM64 to start after patching and re-signing.",
+    description = "Allow Zalo 26.08.01 and 26.10.02 ARM64 to start after patching and re-signing. ARMv7 is not supported.",
     default = false,
 ) {
     compatibleWith(Compatibility(
@@ -24,7 +24,7 @@ val nativeSignaturePatch = rawResourcePatch(
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(AppTarget(version = "26.08.01")),
+        targets = listOf(AppTarget(version = "26.08.01"), AppTarget(version = "26.10.02")),
     ))
 
     execute {

@@ -116,8 +116,9 @@ gradle-app.setting
 # Potentially copyrighted test APK
 *.apk
 
-# Ignore vscode config
-.vscode/
+# Ignore vscode config except shared workspace tasks
+.vscode/*
+!.vscode/tasks.json
 
 # Dependency directories
 node_modules/
@@ -129,3 +130,6 @@ node_modules/
 .idea/
 local.properties
 gradle/gradle-daemon-jvm.properties
+.gitignore
+.vscode/tasks.json
+.gitignore

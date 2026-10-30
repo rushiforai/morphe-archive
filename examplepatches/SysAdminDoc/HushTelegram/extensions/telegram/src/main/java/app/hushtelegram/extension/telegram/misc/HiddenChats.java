@@ -42,9 +42,12 @@ import app.hushtelegram.extension.telegram.settings.SettingsLock;
  * sends when you pin or move a chat keeps it in its place. Chats get picked on the settings page,
  * or with Hide from chat list in the more menu of a long press.
  *
+ * <p>The unread counts on the folder tabs leave them out too: Telegram counts each folder's unread
+ * chats on its storage thread, and the count skips the hidden ones. The app icon's badge still
+ * counts them, since it follows their notifications.
+ *
  * <p>Each account keeps its own hidden chats on this phone, by the account's user id, so another
- * account signed in to the same slot never gets them. The unread counts on the folder tabs and
- * the app icon still count them.
+ * account signed in to the same slot never gets them.
  */
 public final class HiddenChats {
     private HiddenChats() {}
@@ -54,6 +57,9 @@ public final class HiddenChats {
 
     /** What the report counts each pinned order sent with the hidden pins put back as. */
     static final String KEPT_PINNED = "pinned order kept the hidden pins";
+
+    /** What the report counts each hidden chat an unread count skipped as. */
+    static final String UNCOUNTED = "unread count skipped a hidden chat";
 
     private static final String PREFS = "hushtelegram_hidden_chats";
 
@@ -215,6 +221,23 @@ public final class HiddenChats {
     }
 
     /**
+     * Injected in MessagesStorage.calcUnreadCounters and updateFiltersReadCounter right after each
+     * chat's id is read, on the storage thread. A yes skips the chat, so the unread counts on the
+     * folder tabs, All Chats and the archive go without the hidden chats.
+     */
+    public static boolean uncounted(Object storage, long chat) {
+        try {
+            if (chat == 0 || !Utils.settingsReady() || !Settings.HIDDEN_CHATS.get()) return false;
+            if (!hidden(telegram.controllerUser(storage)).contains(chat)) return false;
+            HookStatus.counted(FamilyNames.HIDE_FOLDER_COUNTERS, UNCOUNTED);
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_FOLDER_COUNTERS, "unread counts", failure);
+            return false;
+        }
+    }
+
+    /**
      * The account Telegram shows now, its chats and the hidden ones, or null when Telegram's side
      * can't be read, which the settings page says rather than going down with it. Main thread only:
      * Telegram's lists change there.
@@ -290,19 +313,28 @@ public final class HiddenChats {
         return edit.commit();
     }
 
-    /** Sorts [account]'s chats again and redraws its chat lists, so a change shows now. Main thread only. */
+    /**
+     * Sorts [account]'s chats again and redraws its chat lists, then has its unread counts made
+     * again, so a change shows now. Main thread only.
+     */
     public static void refresh(int account) {
         try {
             telegram.resort(account);
+            telegram.recount(account);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.HIDE_FOLDER_COUNTERS, "chat list refresh", failure);
         }
     }
 
-    /** {@link #refresh} for the account Telegram shows now. */
-    public static void refreshShown() {
+    /**
+     * {@link #refresh} for each signed-in account, not only the one on screen: the switch covers
+     * them all, and each keeps its own counts. Main thread only.
+     */
+    public static void refreshAll() {
         try {
-            refresh(telegram.selectedAccount());
+            for (int account = 0, slots = telegram.accountSlots(); account < slots; account++) {
+                if (telegram.userId(account) != 0) refresh(account);
+            }
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.HIDE_FOLDER_COUNTERS, "chat list refresh", failure);
         }
@@ -411,6 +443,8 @@ public final class HiddenChats {
 
         int selectedAccount();
 
+        int accountSlots();
+
         long userId(int account);
 
         @Nullable
@@ -420,6 +454,8 @@ public final class HiddenChats {
         String peerName(int account, long id);
 
         void resort(int account);
+
+        void recount(int account);
 
         @Nullable
         Object addMenuItem(Object more, int id, int icon, String text);
@@ -437,17 +473,37 @@ public final class HiddenChats {
         @Override public boolean pinned(Object dialog) { return HiddenChats.pinned(dialog); }
         @Override public int pinnedNum(Object dialog) { return HiddenChats.pinnedNum(dialog); }
         @Override public int selectedAccount() { return HiddenChats.selectedAccount(); }
+
+        /** {@code UserConfig.MAX_ACCOUNT_COUNT}, read the way KeepDeletedBridge reads it. */
+        @Override public int accountSlots() {
+            try {
+                return Class.forName("org.telegram.messenger.UserConfig", true, HiddenChats.class.getClassLoader())
+                        .getField("MAX_ACCOUNT_COUNT").getInt(null);
+            } catch (ReflectiveOperationException missing) {
+                throw new IllegalStateException("no account slots", missing);
+            }
+        }
+
         @Override public long userId(int account) { return HiddenChats.userId(account); }
         @Override public List<?> dialogs(int account, int folder) { return HiddenChats.dialogs(account, folder); }
         @Override public String peerName(int account, long id) { return HiddenChats.peerName(account, id); }
         @Override public void resort(int account) { HiddenChats.resort(account); }
+        @Override public void recount(int account) {
+            HiddenChats.onStorageThread(account, () -> {
+                try {
+                    HiddenChats.recount(account);
+                } catch (Throwable failure) {
+                    HookStatus.threw(FamilyNames.HIDE_FOLDER_COUNTERS, "unread recount", failure);
+                }
+            });
+        }
         @Override public Object addMenuItem(Object more, int id, int icon, String text) { return HiddenChats.addMenuItem(more, id, icon, text); }
         @Override public List<?> selectedChats(Object listener) { return HiddenChats.selectedChats(listener); }
     }
 
     // Stubs. The patch gives each one Telegram's code; until then they do nothing.
 
-    /** {@code controller.getUserConfig().getClientUserId()}. */
+    /** {@code controller.getUserConfig().getClientUserId()}, for a MessagesController or a MessagesStorage. */
     public static long controllerUser(Object controller) { return 0; }
 
     /** {@code controller.dialogsByFolder}, each folder's chats by folder id. */
@@ -490,6 +546,19 @@ public final class HiddenChats {
      * {@code NotificationCenter.getInstance(account).postNotificationName(dialogsNeedReload)}.
      */
     public static void resort(int account) {}
+
+    /**
+     * {@code MessagesStorage.getInstance(account).resetAllUnreadCounters(false)}, which counts every
+     * folder's unread chats again. Storage thread only. Left empty when this build's counts can't
+     * skip the hidden chats.
+     */
+    public static void recount(int account) {}
+
+    /**
+     * {@code MessagesStorage.getInstance(account).getStorageQueue().postRunnable(work)}. Left empty
+     * with {@link #recount}.
+     */
+    public static void onStorageThread(int account, Runnable work) {}
 
     /** {@code more.addSubItem(id, icon, text)}, the long press menu's new item. */
     @Nullable

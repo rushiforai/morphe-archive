@@ -1,3 +1,55 @@
+## [3.72.3](https://github.com/crimera/piko-newx/compare/v3.72.2...v3.72.3) (2026-10-29)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** handle launch reveal parameter order drift ([31282e4](https://github.com/crimera/piko/commit/31282e4274fee4b313c6a3e23bccc93877b3f0fe))
+
+## [3.72.2](https://github.com/crimera/piko-newx/compare/v3.72.1...v3.72.2) (2026-10-29)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** mark alpha compatibility as experimental ([2add263](https://github.com/crimera/piko/commit/2add2633e6f99859483493c2c20972e5735d0155))
+
+## [3.72.1](https://github.com/crimera/piko-newx/compare/v3.72.0...v3.72.1) (2026-10-29)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** translate full long posts and allow overflow scrolling ([d826f52](https://github.com/crimera/piko/commit/d826f52512fbd3d01289831f1a86f1170fd12ecf))
+
+## [3.72.0](https://github.com/crimera/piko-newx/compare/v3.71.1...v3.72.0) (2026-10-29)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** skip X launch reveal with Twitter branding ([84a96cc](https://github.com/crimera/piko/commit/84a96cc5205776232946b531eef8b8b4bb21b5e4))
+
+### ✨ New Features
+* **Twitter:** Support 12.38.1-prod.01 ([30a0166](https://github.com/crimera/piko/commit/30a0166c5e76bc81bc7b83bbc2ddf5b4461a17da))
+
+## [3.71.1](https://github.com/crimera/piko-newx/compare/v3.71.0...v3.71.1) (2026-10-29)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** use permanent profile share URLs ([0bfa362](https://github.com/crimera/piko/commit/0bfa362dd7dc80e4c8f5346d9f218c771f98f887))
+
+## [3.71.0](https://github.com/crimera/piko-newx/compare/v3.70.0...v3.71.0) (2026-10-29)
+
+### ✨ New Features
+* **Twitter - newx:** add user ID filename template token ([6988a7f](https://github.com/crimera/piko/commit/6988a7f14afdfde6fa555489a5b3354fdba1a286))
+* **Twitter - newx:** remove share tracking parameters ([8feb49f](https://github.com/crimera/piko/commit/8feb49f962d9045281cd1ad536b6a2dc58c79f2d))
+* **Twitter - newx:** add permanent share links ([383c907](https://github.com/crimera/piko/commit/383c9073807fcae2406588b151e150e11890d9d0))
+* **Twitter - newx:** add shared link rewriting ([1be2785](https://github.com/crimera/piko/commit/1be2785cc6bdf59bdf17d936ec828180fe9c38e4))
+
+### 🔧 Improvements
+* **Twitter - newx:** remove code paths for dropped targets ([d73ade2](https://github.com/crimera/piko/commit/d73ade22fcdb6f9aeaa5c0db493147eb3768e60e))
+
+### New Patches
+* **Twitter:** NewX: Permanent share links
+* **Twitter:** NewX: Remove share tracking parameters
+
+## [3.70.0](https://github.com/crimera/piko-newx/compare/v3.69.0...v3.70.0) (2026-10-29)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** keep restored timeline positions across server cache trims ([ec29bb8](https://github.com/crimera/piko/commit/ec29bb8ed768c1b374722f65b5220847bb7c3d1b))
+* **Twitter - newx:** translate only the post text X renders ([ba6080a](https://github.com/crimera/piko/commit/ba6080aa3b9c036b082f202536eb0c1ae75e08ae))
+
+### ✨ New Features
+* **Twitter - newx:** drop 12.37.2 and older targets ([c79b8d0](https://github.com/crimera/piko/commit/c79b8d0f3344e7b79f400d414b909aa593d386d1))
+
 ## [3.69.0](https://github.com/crimera/piko-newx/compare/v3.68.0...v3.69.0) (2026-10-29)
 
 ### 🐛 Bug Fixes

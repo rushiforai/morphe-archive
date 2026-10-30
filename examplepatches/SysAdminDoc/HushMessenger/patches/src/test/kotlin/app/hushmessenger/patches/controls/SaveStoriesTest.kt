@@ -5,7 +5,9 @@ import app.morphe.patcher.PatcherConfig
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.resource.ResourceMode
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
@@ -17,8 +19,11 @@ import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Files
 import java.nio.file.Path
 
 private const val FRAGMENT = "LX/HAs;"
@@ -41,7 +46,7 @@ private val CARD_TYPES = """
     if-eqz v1, :own_rest
 """.trimIndent()
 
-/** 580's builds 346013423 and 346013374 asked the card's controller instead. No 583 build does, so it's refused. */
+/** 585's arm64 builds and 347014974 ask the card's controller instead, as 580's 346013423 and 346013374 did. */
 private val CARD_ANSWER = """
     invoke-virtual {v2}, LX/JQP;->A08()Z
     move-result v1
@@ -167,6 +172,7 @@ class SaveStoriesTest {
         assertEquals(MENU, save.menuType)
         assertEquals(CONTROLLER, save.controller)
         assertEquals(listOf("LX/HBq;", "LX/IVH;", "LX/IVG;"), save.saveable)
+        assertNull(save.canSave)
         assertEquals(SAVE_ID, save.id)
         assertEquals(0x7f142dffL, save.label)
         assertEquals(LABEL_OF, save.labelOf)
@@ -175,11 +181,32 @@ class SaveStoriesTest {
         assertEquals(HANDLER, save.handler)
     }
 
-    @Test fun aSaveItemThatAsksTheCardsControllerIsRefused() {
-        val method = builder(builderBody(CARD_ANSWER))
-        val before = method.implementation!!.instructions.toList()
-        assertFailsWith<PatchException> { method.validateStorySave() }
-        assertEquals(before, method.implementation!!.instructions.toList())
+    @Test fun buildsThatAskTheControllerAreFoundToo() {
+        val save = builder(builderBody(CARD_ANSWER)).validateStorySave()
+        assertEquals(emptyList(), save.saveable)
+        assertEquals("LX/JQP;->A08()Z", save.canSave)
+        assertEquals(SAVE_ID, save.id)
+        assertEquals(14, save.others)
+    }
+
+    @Test fun aControllerQuestionThatChangedShapeIsRefused() {
+        val body = builderBody(CARD_ANSWER)
+        for (changed in listOf(
+            // Asked of something other than the card, of another type, with an argument, or for a number.
+            body.replace("invoke-virtual {v2}, LX/JQP;->A08()Z", "invoke-virtual {v7}, LX/JQP;->A08()Z"),
+            body.replace("invoke-virtual {v2}, LX/JQP;->A08()Z", "invoke-virtual {v2}, LX/JQQ;->A08()Z"),
+            body.replace("invoke-virtual {v2}, LX/JQP;->A08()Z", "invoke-virtual {v2, v1}, LX/JQP;->A08(I)Z"),
+            body.replace("invoke-virtual {v2}, LX/JQP;->A08()Z", "invoke-virtual {v2}, LX/JQP;->A08()I"),
+            // A yes that skips the item, or a no that doesn't.
+            body.replace("if-eqz v1, :own_rest\n:save", "if-nez v1, :own_rest\n:save"),
+            body.replace("if-eqz v1, :own_rest\n:save", "if-eqz v1, :handler\n:save"),
+            body.replace("move-result v1\nif-eqz v1, :own_rest", "move-result v1\nif-eqz v3, :own_rest"),
+        )) {
+            val method = builder(changed)
+            val before = method.implementation!!.instructions.toList()
+            assertFailsWith<PatchException> { method.validateStorySave() }
+            assertEquals(before, method.implementation!!.instructions.toList())
+        }
     }
 
     @Test fun helperAddsTheSameItemOnlyWhileTheSwitchIsOn() {
@@ -203,6 +230,16 @@ class SaveStoriesTest {
         assertEquals(listOf(4, 1), args(code[add + 2]))
         assertEquals(ADD_ITEM, reference(code[done - 1]))
         assertEquals(listOf(1, 4, 5, 2, 3), args(code[done - 1]))
+    }
+
+    @Test fun helperAsksTheControllerWhereTheBuildDoes() {
+        val code = storySaveHelper("LX/JgG;", builder(builderBody(CARD_ANSWER)).validateStorySave()).implementation!!.instructions.toList()
+        assertEquals("LX/JQP;->A08()Z", reference(code[6]))
+        assertEquals(listOf(0), args(code[6]))
+        assertEquals(Opcode.IF_EQZ, code[8].opcode)
+        assertEquals(code.lastIndex, code.branchTarget(8))
+        assertEquals(SAVE_ID, (code[9] as WideLiteralInstruction).wideLiteral)
+        assertTrue(code.none { it.opcode == Opcode.INSTANCE_OF })
     }
 
     @Test fun otherPeoplesStoriesCallTheHelperBeforeTheirOwnItems() {
@@ -241,9 +278,9 @@ class SaveStoriesTest {
         assertFailsWith<PatchException> { fixtureMethod("LX/JgG;->A01(Landroid/view/View;)V", body, registers = 16).validateStorySave() }
     }
 
-    @Test fun a582MergedCheckOfTheSameShapeWithoutAMenuIsRefused() {
-        // 582's 346415706 family asked its fragment manager the same way later in this merged onClick. Every 583 build
-        // asks just once, so a second question means the menu moved.
+    @Test fun aLaterCheckOfTheSameShapeWithoutAMenuIsSkipped() {
+        // 585's arm64 builds ask their fragment manager the same way later in this merged onClick, with no menu built
+        // first. That question is skipped, and the same question asked right after a second menu build is refused.
         val decoy = listOf(
             "invoke-virtual {p1}, Landroidx/fragment/app/Fragment;->getParentFragmentManager()LX/0XE;",
             "move-result-object v8",
@@ -256,8 +293,52 @@ class SaveStoriesTest {
             ":done",
             "return-void",
         ).joinToString("\n")
-        assertEquals(14, builder().validateStorySave().others)
-        assertFailsWith<PatchException> { builder(builderBody().replace("return-void", decoy)).validateStorySave() }
+        val save = builder(builderBody().replace("return-void", decoy)).validateStorySave()
+        assertEquals(listOf(14, 6, 5), listOf(save.others, save.fragment, save.menu))
+        assertEquals(MENU, save.menuType)
+        val menuBuilt = decoy.replace("invoke-virtual {p1}, Landroidx/fragment/app/Fragment;->getParentFragmentManager()LX/0XE;",
+            "invoke-static {v7}, LX/JXT;->A01(Landroid/content/Context;)$MENU")
+        assertFailsWith<PatchException> { builder(builderBody().replace("return-void", menuBuilt)).validateStorySave() }
+        // With no menu built before the real question either, nothing is left to patch.
+        assertFailsWith<PatchException> { builder(builderBody().replace("return-void", decoy).replace(
+            "invoke-static {v7}, LX/JXT;->A01(Landroid/content/Context;)$MENU", "invoke-virtual {v6}, $FRAGMENT->A1q()$MENU")).validateStorySave() }
+    }
+
+    @Test fun everySupportedBuildGetsSaveFromItsOwnMenu() {
+        val root = System.getenv("HUSH_NATIVE_FIXTURES")
+        assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
+        val apks = Files.list(Path.of(root!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
+        assertEquals(controlProfiles.size, apks.size)
+        try {
+            for (apk in apks) {
+                val code = apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')
+                activeProfile = controlProfileFor(code)
+                val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
+                val classes = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
+                val discovered = mirroredControls(classes)
+                validateControls(discovered, setOf("save_stories"))
+                val original = discovered.getValue("save_stories").single()
+                assertEquals(activeProfile.hooks.getValue("save_stories"), setOf(original.hookId()), code)
+                val builder = MutableMethod(original)
+                val save = builder.validateStorySave()
+                classes.single { it.type == save.handler }.validateStoryMenuHandler(save)
+                // 347014990 still lists the card types. The arm64 builds and 347014974 ask the card's controller.
+                if (code == "347014990") assertTrue(save.canSave == null && save.saveable.isNotEmpty(), code)
+                else assertTrue(save.canSave != null && save.saveable.isEmpty(), code)
+                storySaveHelper(original.definingClass, save)
+                val before = builder.implementation!!.instructions.toList()
+                builder.injectStorySave(save)
+                val after = builder.implementation!!.instructions.toList()
+                assertEquals("${original.definingClass}->$STORY_SAVE_HELPER(${save.fragmentType}${save.menuType})V", reference(after[save.others]), code)
+                val call = after[save.others] as FiveRegisterInstruction
+                assertEquals(listOf(2, save.fragment, save.menu), listOf(call.registerCount, call.registerC, call.registerD), code)
+                // The call can drop the nop that pads a switch table further down, so padding isn't stock code here.
+                fun List<Instruction>.unpadded() = filter { it.opcode != Opcode.NOP }
+                assertStockKept(before.unpadded(), after.filterIndexed { i, _ -> i != save.others }.unpadded(), code)
+            }
+        } finally {
+            activeProfile = SYNTHETIC_PROFILE
+        }
     }
 
     @Test fun theHandlerMustSaveTheItemTheMenuAdds() {

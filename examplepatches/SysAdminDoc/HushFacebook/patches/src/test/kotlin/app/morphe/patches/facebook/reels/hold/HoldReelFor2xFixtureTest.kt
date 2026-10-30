@@ -196,10 +196,29 @@ class HoldReelFor2xFixtureTest {
                 assertTrue("$name: ${key(setter)} isn't public", AccessFlags.PUBLIC.isSet(setter.accessFlags))
                 assertTrue("$name: the attach has fewer than two locals", attach.localRegisterCount() >= 2)
 
+                // Hide the pull down to lock hint: one enum naming the 2x pill's seven states, and one
+                // constructor taking it, a float and a boolean, the state first.
+                val stateEnums = FixtureDex.classesHolding(bundle, "LOCK_HINT").filter(::isPillStates)
+                assertEquals("$name: 2x pill state enums: ${stateEnums.map { it.type }}", 1, stateEnums.size)
+                val pillStates = stateEnums.single()
+                val pills = FixtureDex.methodsWhere(bundle, { true }) { isPillConstructor(it, pillStates.type) }
+                assertEquals("$name: 2x pill constructors: ${pills.map(::key)}", 1, pills.size)
+                val pill = pills.single()
+                val pillClass = FixtureDex.classes(bundle, setOf(pill.definingClass)).values.single()
+                // Reels draw their own pill: one enum naming its six states, and one constructor taking
+                // the session, that enum, one more object and two booleans, the hints flag first.
+                val reelStateEnums = FixtureDex.classesHolding(bundle, "INITIATING_LOCK").filter(::isReelPillStates)
+                assertEquals("$name: Reels 2x pill state enums: ${reelStateEnums.map { it.type }}", 1, reelStateEnums.size)
+                val reelPillStates = reelStateEnums.single()
+                val reelPills = FixtureDex.methodsWhere(bundle, { true }) { isReelPillConstructor(it, reelPillStates.type) }
+                assertEquals("$name: Reels 2x pill constructors: ${reelPills.map(::key)}", 1, reelPills.size)
+                val reelPill = reelPills.single()
+                val reelPillClass = FixtureDex.classes(bundle, setOf(reelPill.definingClass)).values.single()
+
                 val activity = FixtureDex.classes(bundle, setOf(FRAGMENT_ACTIVITY)).values.single()
                 val componentClasses = components.filter { c -> checks.any { it.definingClass == c.type } }
                 val classes: List<ClassDef> = (handlers + listeners + componentClasses + edgeClass + activity + player + configClass +
-                    speedUpClasses + speedClass + attachHolders + ExtensionDex.classDef(REEL_HOLD) +
+                    speedUpClasses + speedClass + attachHolders + pillStates + pillClass + reelPillStates + reelPillClass + ExtensionDex.classDef(REEL_HOLD) +
                     ExtensionDex.classDef(FEED_VIDEO_HOLD) + ExtensionDex.classDef(SETTINGS_STATUS))
                     .distinctBy { it.type }
                 // A guard-only build, as Keep the reel speed has without this patch: the listeners'
@@ -224,6 +243,8 @@ class HoldReelFor2xFixtureTest {
                 assertEquals("$name: the guard hooks the feed video touch", 0,
                     hooks(activity.methods.single { it.name == "dispatchTouchEvent" && it.implementation != null }, FEED_TOUCH))
                 assertEquals("$name: the guard hooks the attach", 0, hooks(attach, FEED_ATTACHED))
+                assertEquals("$name: the guard hooks the 2x pill", 0, hooks(pill, LOCK_HINT_PILL))
+                assertEquals("$name: the guard hooks the Reels 2x pill", 0, hooks(reelPill, LOCK_HINT_REEL_PILL))
 
                 // The patcher runs the guard first, as a dependency, then the patch.
                 val context = PatchContexts.of(classes)
@@ -233,6 +254,25 @@ class HoldReelFor2xFixtureTest {
                 fun patched(method: Method): List<Instruction> = context.mutableClassDefBy(method.definingClass).methods.single {
                     key(it) == key(method)
                 }.code()
+
+                // First in the pill's constructor, its state through LockHint and back into the same register.
+                val pillCode = patched(pill)
+                assertEquals("$name: the 2x pill's hook", LOCK_HINT_PILL, pillCode[0].call.toString())
+                assertEquals("$name: the 2x pill hands over its state", listOf(pill.parameterRegisterNumber(0)), pillCode[0].registers())
+                assertEquals("$name: the 2x pill takes its state back", pill.parameterRegisterNumber(0),
+                    (pillCode[1] as OneRegisterInstruction).registerA)
+                assertEquals("$name: the 2x pill casts its state back", Opcode.CHECK_CAST, pillCode[2].opcode)
+                assertEquals("$name: the 2x pill's code after its hook", pill.code().map { it.opcode }, pillCode.drop(3).map { it.opcode })
+
+                // First in the Reels pill's constructor, its state and hints flag through LockHint, the flag back.
+                val reelPillCode = patched(reelPill)
+                assertEquals("$name: the Reels 2x pill's hook", LOCK_HINT_REEL_PILL, reelPillCode[0].call.toString())
+                assertEquals("$name: the Reels 2x pill hands over its state and hints flag",
+                    listOf(reelPill.parameterRegisterNumber(1), reelPill.parameterRegisterNumber(3)), reelPillCode[0].registers())
+                assertEquals("$name: the Reels 2x pill takes its flag back", reelPill.parameterRegisterNumber(3),
+                    (reelPillCode[1] as OneRegisterInstruction).registerA)
+                assertEquals("$name: the Reels 2x pill's code after its hook", reelPill.code().map { it.opcode },
+                    reelPillCode.drop(2).map { it.opcode })
 
                 fun assertAnswers(method: Method, hook: String, flags: Set<String>) {
                     val before = method.code()

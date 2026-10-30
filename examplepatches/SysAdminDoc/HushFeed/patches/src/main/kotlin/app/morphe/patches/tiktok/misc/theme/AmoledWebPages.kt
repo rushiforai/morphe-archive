@@ -7,8 +7,8 @@ package app.morphe.patches.tiktok.misc.theme
 import app.morphe.patches.tiktok.interaction.systemfont.hookWebPageCallbacks
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.configurableBytecodePatch as bytecodePatch
-import app.morphe.util.addInstructions
 import app.morphe.util.cloneMutable
+import app.morphe.util.returnEarly
 
 internal const val AMOLED_WEB_PAGES_EXTENSION = "Lapp/morphe/extension/tiktok/theme/AmoledWebPages;"
 
@@ -30,13 +30,7 @@ internal fun amoledWebPagesPatch(color: () -> String?) = bytecodePatch {
         val filled = stub.cloneMutable(additionalRegisters = 1)
         extension.methods.remove(stub)
         extension.methods.add(filled)
-        filled.addInstructions(
-            0,
-            """
-                const v0, ${smaliInt(argb)}
-                return v0
-            """,
-        )
+        filled.returnEarly(argb)
         hookWebPageCallbacks(
             "AMOLED dark theme",
             "$AMOLED_WEB_PAGES_EXTENSION->onPage(Landroid/webkit/WebView;Ljava/lang/String;)V",

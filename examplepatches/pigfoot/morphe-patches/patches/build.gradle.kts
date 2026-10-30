@@ -3,7 +3,7 @@ group = "app.pigfoot"
 patches {
     // Public bundle metadata.
     about {
-        name = "Pigfoot Patches"
+        name = "pigfoot Patches"
         description = "App-scoped Morphe patches"
         source = "https://github.com/pigfoot/morphe-patches"
         author = "pigfoot"

@@ -382,7 +382,7 @@ public final class PostInfo {
     static void copy(Context context, String link) {
         try {
             copy(context, "copy media link", L10n.t(context, "Media link"), link,
-                    L10n.t(context, "Media link copied"), L10n.t(context, "Couldn't copy the media link"));
+                    L10n.t(context, "Media link copied. It stops working after a few days."), L10n.t(context, "Couldn't copy the media link"));
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "copy media link", failure);
         }

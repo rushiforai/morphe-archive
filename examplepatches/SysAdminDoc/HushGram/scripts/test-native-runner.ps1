@@ -28,7 +28,7 @@ function Assert-True {
 }
 
 $target = [pscustomobject]@{
-    Package = 'com.instagram.android'; VersionName = '453.0.0.55.79'; VersionCode = '385914283'
+    Package = 'com.instagram.android'; VersionName = '453.0.0.57.79'; VersionCode = '385914557'
     Sha256 = 'a' * 64; SignerSha256 = 'b' * 64; BuildIdentity = 'hg1:' + ('c' * 64)
     SelectionSha256 = 'd' * 64; AppliedPatches = 113
 }
@@ -529,7 +529,19 @@ try {
     Assert-True ($targetRefusals[0] -like '*no patch record*') "A target with no patch record was read: $($targetRefusals[0])"
     Assert-True ($targetRefusals[1] -like '*runner.apk is not the APK that patch run produced*') "A record of another APK vouched for the target: $($targetRefusals[1])"
     Assert-True ($targetRefusals[2] -like '*0 HushGram build identities*') "A matching record did not get past the record check: $($targetRefusals[2])"
-    Write-Host '[native] patch record: 12 checks passed'
+    # A record or result that repeats a field reads two ways, so it vouches for nothing, fresh hashes or not.
+    $twiceRecord = Join-Path $work 'record-twice.json'
+    [IO.File]::WriteAllText($twiceRecord, ((Get-Content -LiteralPath $recordFile -Raw) -replace '\A\s*\{', '{"schemaVersion":1,'))
+    $twiceRefusal = Test-PatchRecord -Apk $signedAgain -Result $recordResult -Record $twiceRecord
+    Assert-True ($twiceRefusal -like "*doesn't parse*repeats an object field*") "A record that repeats a field vouched for the APK: $twiceRefusal"
+    [IO.File]::WriteAllText($runnerResult, '{"packageName":"app.hushgram.nativerunner","packageVersion":"1","appliedPatches":[{"name":"Hide ads"}],"appliedPatches":[]}')
+    Write-PatchRecord -Apk $built -Result $runnerResult -Path $runnerRecord
+    $twiceTarget = $null
+    try { [void](Get-NativeRunnerTarget -Tools $tools -Apk $built) } catch { $twiceTarget = $_.Exception.Message }
+    Assert-True ($twiceTarget -like "*doesn't parse*repeats an object field*") "A patch result that repeats a field named the target's selection: $twiceTarget"
+    [IO.File]::WriteAllText($runnerResult, '{"packageName":"app.hushgram.nativerunner","packageVersion":"1","appliedPatches":[{"name":"Hide ads"}]}')
+    Write-PatchRecord -Apk $built -Result $runnerResult -Path $runnerRecord
+    Write-Host '[native] patch record: 14 checks passed'
 
     # A whole run: an old verdict goes first, the signer and the register gate come before the
     # lease, and the verdict file records the run.

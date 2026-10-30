@@ -357,10 +357,12 @@ class DownloadStoryHookTest {
                                 target !in returns && target !in returns.map { it - 1 })
                         }
                 }
-                // #339: your own highlights' menus are lists, the highlight sheet's among them.
+                // #339: your own highlights' menus are lists, the highlight sheet's among them. 453.0.0.57.79's
+                // 385914557 loads the name with const-string/jumbo, its dex having more strings than a short index reaches.
                 val lists = statics.filter { it.returnType == "Ljava/util/ArrayList;" && menu.type in it.parameterTypes.map(Any::toString) }
+                val stringLoads = setOf(Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO)
                 assertTrue("${bundle.name}: no list builder holds the highlight sheet's name", lists.any { list ->
-                    list.code().any { it.opcode == Opcode.CONST_STRING && it.referenceText() == "story_highlight_action_sheet" }
+                    list.code().any { it.opcode in stringLoads && it.referenceText() == "story_highlight_action_sheet" }
                 })
                 val notJumps = setOf(Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH, Opcode.FILL_ARRAY_DATA)
                 lists.forEach { list ->
@@ -447,14 +449,15 @@ class DownloadStoryHookTest {
     /**
      * The media type constants [this] code compares a story's posted type with: where it reads the
      * story's Media from [story], calls [getter] on it, turns the answer into Instagram's media type
-     * through a static method taking the number, and loads one of that type's constants.
+     * through a static method taking the number, and loads one of that type's constants. The Media
+     * the getter is called on is the one last put in its register before the call, which 453.0.0.57.79's
+     * 385914546 reads five instructions earlier, checking a cached copy of the type first.
      */
     private fun List<Instruction>.postedTypeChecks(story: String, getter: String): List<String> =
         indices.filter { this[it].opcode == Opcode.INVOKE_VIRTUAL && this[it].referenceText() == getter }.mapNotNull { call ->
             val media = (this[call] as Instruction35c).registerC
-            val read = (maxOf(0, call - 4) until call).any { at ->
-                this[at].opcode == Opcode.IGET_OBJECT && this[at].referenceText() == story && (this[at] as TwoRegisterInstruction).registerA == media
-            }
+            val set = (call - 1 downTo 0).firstOrNull { at -> this[at].opcode.setsRegister() && (this[at] as? OneRegisterInstruction)?.registerA == media }
+            val read = set != null && this[set].opcode == Opcode.IGET_OBJECT && this[set].referenceText() == story
             if (!read) return@mapNotNull null
             val after = subList(call + 1, minOf(size, call + 8))
             val type = after.firstNotNullOfOrNull { instruction ->

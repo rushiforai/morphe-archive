@@ -11,6 +11,11 @@ Nieuwsapps kunnen bijhouden welke artikelen je leest, hoeveel tijd je daaraan be
 | [AD](../ad.md) | 9.22.0 | 9220000 |
 | [NRC](../nrc.md) | 5.12.24 | 626 |
 | [Parool](../parool.md) | 7.53.1 | 23136515 |
+| [De Morgen](../demorgen.md) | 7.53.1 · Pre-release | 23136515 |
+| [Humo](../humo.md) | 7.53.1 · Pre-release | 23136515 |
+| [HLN](../hln.md) | 9.22.0 · Pre-release | 2009220000 |
+| [Nieuwsblad](../nieuwsblad.md) | 22.0.0 · Pre-release | 2012316104 |
+| [DS Nieuws](../dsnieuws.md) | 22.0.0 · Pre-release | 2012316104 |
 | [RTL Nieuws](../rtl-nieuws.md) | 12.7.1 | 1558 |
 | [Omroep Brabant](../omroep-brabant.md) | 11.1.0 | 7331764 |
 | [Voetbal International](../voetbal-international.md) | 5.13.52 | 910 |

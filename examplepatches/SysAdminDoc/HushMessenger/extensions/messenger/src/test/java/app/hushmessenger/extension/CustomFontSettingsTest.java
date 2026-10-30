@@ -65,7 +65,7 @@ public class CustomFontSettingsTest {
 
     @After public void restore() throws Exception {
         settle();
-        SettingsActivity.fontTimeoutMillis = 60_000;
+        FontFileRow.fontTimeoutMillis = 60_000;
         Settings.preferences.edit().clear().commit();
         Settings.customFont = null;
         OwnFont.forget();
@@ -240,7 +240,7 @@ public class CustomFontSettingsTest {
             assertEquals(Intent.ACTION_OPEN_DOCUMENT, request.intent.getAction());
             assertTrue(request.intent.hasCategory(Intent.CATEGORY_OPENABLE));
             assertEquals("*/*", request.intent.getType());
-            assertArrayEquals(SettingsActivity.FONT_TYPES, request.intent.getStringArrayExtra(Intent.EXTRA_MIME_TYPES));
+            assertArrayEquals(FontFileRow.FONT_TYPES, request.intent.getStringArrayExtra(Intent.EXTRA_MIME_TYPES));
 
             activity.onActivityResult(SettingsActivity.PICK_FONT, Activity.RESULT_CANCELED, null);
             assertEquals("", Settings.preferences.getString(OwnFont.NAME_KEY, ""));
@@ -489,20 +489,20 @@ public class CustomFontSettingsTest {
     }
 
     @Test public void aPickedNameIsOneShortLineWithNothingHidden() {
-        assertEquals("your font file", SettingsActivity.cleanFontName(null));
-        assertEquals("your font file", SettingsActivity.cleanFontName(" ‎\u0007 "));
-        assertEquals("My Font.ttf", SettingsActivity.cleanFontName("My‮  Font\u0000.ttf"));
-        assertEquals("a line break goes, it doesn't split the row", "MyFont.ttf", SettingsActivity.cleanFontName("My\nFont.ttf"));
-        assertEquals(SettingsActivity.MAX_FONT_NAME, SettingsActivity.cleanFontName("x".repeat(500)).length());
+        assertEquals("your font file", FontFileRow.cleanFontName(null));
+        assertEquals("your font file", FontFileRow.cleanFontName(" ‎\u0007 "));
+        assertEquals("My Font.ttf", FontFileRow.cleanFontName("My‮  Font\u0000.ttf"));
+        assertEquals("a line break goes, it doesn't split the row", "MyFont.ttf", FontFileRow.cleanFontName("My\nFont.ttf"));
+        assertEquals(FontFileRow.MAX_FONT_NAME, FontFileRow.cleanFontName("x".repeat(500)).length());
         Uri uri = Uri.parse("content://fonts/document/Inter-Regular.otf");
-        assertEquals("Inter-Regular.otf", SettingsActivity.fontName(RuntimeEnvironment.getApplication(), uri));
+        assertEquals("Inter-Regular.otf", FontFileRow.fontName(RuntimeEnvironment.getApplication(), uri));
         // A storage document ID carries its folders, which never show.
         Uri document = Uri.parse("content://com.android.externalstorage.documents/document/primary%3ADownload%2FFonts%2FInter-Regular.otf");
         assertEquals("primary:Download/Fonts/Inter-Regular.otf", document.getLastPathSegment());
-        assertEquals("Inter-Regular.otf", SettingsActivity.fontName(RuntimeEnvironment.getApplication(), document));
-        assertEquals("Inter-Regular.otf", SettingsActivity.lastPart("primary:Inter-Regular.otf"));
-        assertEquals("your font file", SettingsActivity.cleanFontName(SettingsActivity.lastPart("primary:Download/")));
-        assertNull(SettingsActivity.lastPart(null));
+        assertEquals("Inter-Regular.otf", FontFileRow.fontName(RuntimeEnvironment.getApplication(), document));
+        assertEquals("Inter-Regular.otf", FontFileRow.lastPart("primary:Inter-Regular.otf"));
+        assertEquals("your font file", FontFileRow.cleanFontName(FontFileRow.lastPart("primary:Download/")));
+        assertNull(FontFileRow.lastPart(null));
     }
 
     /** A slow save never holds up a tap. Quick taps add up, run on the font save thread and say only the last result. */
@@ -566,7 +566,7 @@ public class CustomFontSettingsTest {
      * replaces it or says anything.
      */
     @Test public void aStalledCopyCanBeStoppedAndNeverReplacesALaterPick() throws Exception {
-        SettingsActivity.fontTimeoutMillis = 5_000;
+        FontFileRow.fontTimeoutMillis = 5_000;
         byte[] rubik = FontFileTest.font(FontFileTest.STATIC_FONT), other = FontFileTest.font(FontFileTest.VARIABLE_FONT);
         String[] stalls = {"query", "open", "read", "close"};
         for (int index = 0; index < stalls.length; index++) {
@@ -626,7 +626,7 @@ public class CustomFontSettingsTest {
                 assertFalse(choose.isEnabled());
 
                 if (byDeadline) {
-                    Shadows.shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(SettingsActivity.fontTimeoutMillis));
+                    Shadows.shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(FontFileRow.fontTimeoutMillis));
                     assertEquals(stall, "Copying took too long. Your font didn't change.",
                         ShadowToast.getTextOfLatestToast());
                 } else {
@@ -754,7 +754,7 @@ public class CustomFontSettingsTest {
             Settings.preferences = slow(prefs, disk, savedOn);
             SettingsActivity activity = screen.get();
             activity.onActivityResult(SettingsActivity.PICK_FONT, Activity.RESULT_OK, new Intent().setData(uri));
-            java.lang.reflect.Field current = SettingsActivity.class.getDeclaredField("fontJob");
+            java.lang.reflect.Field current = FontFileRow.class.getDeclaredField("fontJob");
             current.setAccessible(true);
             Object job = current.get(null);
             assertNotNull(job);
@@ -786,7 +786,7 @@ public class CustomFontSettingsTest {
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
             SettingsActivity activity = screen.get();
             activity.onActivityResult(SettingsActivity.PICK_FONT, Activity.RESULT_OK, new Intent().setData(uri));
-            java.lang.reflect.Field current = SettingsActivity.class.getDeclaredField("fontJob");
+            java.lang.reflect.Field current = FontFileRow.class.getDeclaredField("fontJob");
             current.setAccessible(true);
             Object job = current.get(null);
             assertNotNull(job);
@@ -866,7 +866,7 @@ public class CustomFontSettingsTest {
 
     /** Waits for the queued font saves, then runs what they posted back to the main thread. */
     static void settle() throws Exception {
-        SettingsActivity.FONT_WRITES.submit(() -> { }).get(10, TimeUnit.SECONDS);
+        FontFileRow.FONT_WRITES.submit(() -> { }).get(10, TimeUnit.SECONDS);
         Shadows.shadowOf(Looper.getMainLooper()).idle();
     }
 

@@ -116,6 +116,9 @@ final class MessagesCategory {
                 messages.addPreference(toggle(context, Settings.SWIPE_CHAT_REELS, L10n.t("Swipe through a chat's reels"),
                         L10n.t("Swiping up on a reel you opened from a chat goes through the other reels shared in that "
                                 + "chat before any suggested reels. Back takes you to the chat.")));
+                messages.addPreference(toggle(context, Settings.STOP_AFTER_CHAT_REELS, L10n.t("Stop after the chat's reels"),
+                        L10n.t("Reels you opened from a chat end after the last one shared in that chat, with no "
+                                + "suggested reels after it. Works with Swipe through a chat's reels on.")));
             }
             if (build.contains(PatchFamily.ASK_BEFORE_CALL)) {
                 messages.addPreference(toggle(context, Settings.ASK_BEFORE_CALL, L10n.t("Ask before a call"),

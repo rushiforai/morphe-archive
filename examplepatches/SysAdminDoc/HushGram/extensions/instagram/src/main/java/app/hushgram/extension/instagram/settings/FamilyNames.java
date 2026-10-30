@@ -38,6 +38,7 @@ public final class FamilyNames {
     public static final String STORY_UPLOAD_QUALITY = "Upload stories at full quality";
     public static final String FEED_SOUND = "Start feed videos with sound";
     public static final String FEED_TAP_PAUSE = "Tap a feed video to pause it";
+    public static final String FEED_SEEK_BAR = "Seek bar on feed videos";
     public static final String LONG_PRESS_ZOOM = "Long press to zoom";
     public static final String ROUNDED_POST_CORNERS = "Rounded post corners";
     public static final String STORY_SEEN = "View stories anonymously";
@@ -115,6 +116,7 @@ public final class FamilyNames {
     public static final String REEL_BLUR_BARS = "Blur the bars around Reels";
     public static final String REEL_TAP_AND_VOLUME = "Control taps and volume on Reels";
     public static final String REEL_SOUND = "Start reels with sound";
+    public static final String REEL_ZOOM = "Pinch to zoom on Reels";
     public static final String REEL_AUTO_SCROLL = "Keep Reels auto scroll on";
     public static final String REEL_SCROLLING = "Stop Reels scrolling";
     public static final String SWIPE_TO_PROFILE = "Swipe left to open the profile";

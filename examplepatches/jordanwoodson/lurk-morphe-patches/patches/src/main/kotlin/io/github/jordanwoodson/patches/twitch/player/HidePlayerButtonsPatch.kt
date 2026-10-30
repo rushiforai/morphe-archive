@@ -97,9 +97,10 @@ internal fun HermesBundle.hidePlayerButtons() {
     returnNull("ChromecastButton", CAST, defaultEnabled = false)
     // PlayerControlsOverlay always renders the share IconButton (disabled without onShare), so its JSX
     // call becomes null in the same register: `onShare !== undefined`, the two props, then Call3.
-    // The registers are the compiler's for the supported version (props object r87, IconButton r88, jsx r89).
-    replace("PlayerControlsOverlay", SHARE, hex("17 04 1f 02 52 57 04 04 52 57 1f 05 6f 57 59 02 58 57"),
-        hex("17 04 1f 02 52 57 04 04 52 57 1f 05 94 57 94 57 94 57"))
+    // The registers are the compiler's for the supported version (onShare r32, props object r88, IconButton r89,
+    // jsx r90).
+    replace("PlayerControlsOverlay", SHARE, hex("17 04 20 02 52 58 04 04 52 58 20 05 6f 58 5a 02 59 58"),
+        hex("17 04 20 02 52 58 04 04 52 58 20 05 94 58 94 58 94 58"))
     // SkylineControlsOverlay only renders it when onShare is set.
     falseProperty("SkylineControlsOverlay", "onShare", SHARE)
 }

@@ -201,9 +201,20 @@ public class CaptionLayerOverlayTest {
     }
 
     private Object field(String name, boolean weak) throws Exception {
-        Field f = CaptionOverlay.class.getDeclaredField(name);
+        boolean decisionField = name.equals("presentationClass") || name.equals("classBaseWidth")
+                || name.equals("classFrameWidth") || name.equals("reducedVideoWidth")
+                || name.equals("previousGeometryWidth") || name.equals("stableGeometrySamples");
+        Object owner = null;
+        Class<?> declaring = CaptionOverlay.class;
+        if (decisionField) {
+            Field decision = CaptionOverlay.class.getDeclaredField("presentationDecision");
+            decision.setAccessible(true);
+            owner = decision.get(null);
+            declaring = CaptionPresentationDecision.class;
+        }
+        Field f = declaring.getDeclaredField(name);
         f.setAccessible(true);
-        Object value = f.get(null);
+        Object value = f.get(owner);
         return weak && value instanceof java.lang.ref.WeakReference
                 ? ((java.lang.ref.WeakReference<?>) value).get()
                 : value;
@@ -232,6 +243,33 @@ public class CaptionLayerOverlayTest {
             Thread.sleep(2);
         }
         fail("caption never became visible");
+    }
+
+    @Test
+    public void openingCaptionCommitsItsOwnBoundsWhileThePlayerDefersLayout() throws Exception {
+        CaptionOverlay.showStatus("翻译中…", () -> true);
+        layout();
+        int waitingWidth = text().getWidth();
+        plane.suppressLayout(true);
+        try {
+            CaptionOverlay.showEvent("开头这一页应当完整显示，边缘文字不能被旧的等待框裁剪。", () -> true,
+                    "opening:deferred", 1000, 61000, 2000,
+                    CaptionLanguageContext.explicit("en", "zh-Hans").renderSpec);
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+            while (!text().getText().toString().contains("开头") && System.nanoTime() < deadline) {
+                idle();
+                Thread.sleep(2);
+            }
+            assertTrue("new caption reached the real TextView", text().getText().toString().contains("开头"));
+            assertTrue("the caption needs a wider box than the waiting label", text().getMeasuredWidth() > waitingWidth);
+            assertEquals("a visible layout must not retain the previous page's clipping width",
+                    text().getMeasuredWidth(), text().getWidth());
+            assertEquals(text().getMeasuredHeight(), text().getHeight());
+            assertEquals("the parent frame and the text commit together", anchor().getLayoutParams().width,
+                    anchor().getWidth());
+        } finally {
+            plane.suppressLayout(false);
+        }
     }
 
     private void awaitPlan(int innerWidth) throws Exception {
@@ -811,5 +849,205 @@ public class CaptionLayerOverlayTest {
 
     private static CaptionPresentationBudget slowBudget() {
         return new CaptionPresentationBudget(944, 40f, 48.68f, renderSpec());
+    }
+
+    // D5 contract probes use the actual Overlay methods and View fixture, not a duplicate model.
+    private void d5Set(String name, Object value) throws Exception {
+        boolean decisionField = name.equals("presentationClass") || name.equals("classBaseWidth")
+                || name.equals("classFrameWidth") || name.equals("reducedVideoWidth")
+                || name.equals("previousGeometryWidth") || name.equals("stableGeometrySamples");
+        Object owner = null;
+        Class<?> declaring = CaptionOverlay.class;
+        if (decisionField) {
+            Field decision = CaptionOverlay.class.getDeclaredField("presentationDecision");
+            decision.setAccessible(true);
+            owner = decision.get(null);
+            declaring = CaptionPresentationDecision.class;
+        }
+        Field f = declaring.getDeclaredField(name);
+        f.setAccessible(true);
+        f.set(owner, value);
+    }
+
+    private Object d5Call(String name, Class<?>[] types, Object... values) throws Exception {
+        Method m = CaptionOverlay.class.getDeclaredMethod(name, types);
+        m.setAccessible(true);
+        return m.invoke(null, values);
+    }
+
+    private boolean d5Classify(Rect video) throws Exception {
+        return (Boolean) d5Call("updatePresentationClass", new Class<?>[] {Rect.class}, video);
+    }
+
+    private boolean d5Sample(int width, TextView view) throws Exception {
+        return (Boolean) d5Call("replanForStableVideo",
+                new Class<?>[] {Activity.class, TextView.class, Rect.class},
+                a, view, new Rect(0, 0, width, 800));
+    }
+
+    private int d5PreviousSampleWidth() throws Exception {
+        return (Integer) field("previousGeometryWidth", false);
+    }
+
+    @Test
+    public void d5GeometryResetClassCommitAndSameOwnerReparentAreDistinct() throws Exception {
+        show("边界测试字幕", "d5:reset:parent");
+        awaitCaption();
+        CaptionPlayerAuthority.onNotification("WATCH_WHILE_MAXIMIZED");
+        Rect reduced = new Rect(0, 0, 1478, 831);
+        d5Classify(reduced);
+        d5Classify(reduced);
+        assertEquals(CaptionPresentationClass.Kind.REDUCED, field("presentationClass", false));
+        assertEquals(1478, field("reducedVideoWidth", false));
+        Object base = field("classBaseWidth", false), frame = field("classFrameWidth", false);
+        d5Sample(1901, text());
+        d5Sample(1901, text());
+        assertEquals(2, field("stableGeometrySamples", false));
+        d5Call("resetGeometry", new Class<?>[] {});
+        assertEquals(0, d5PreviousSampleWidth());
+        assertEquals(0, field("stableGeometrySamples", false));
+        assertEquals(CaptionPresentationClass.Kind.REDUCED, field("presentationClass", false));
+        assertEquals(base, field("classBaseWidth", false));
+        assertEquals(frame, field("classFrameWidth", false));
+        assertEquals(1478, field("reducedVideoWidth", false));
+        assertEquals(0, field("boxWidth", false));
+
+        d5Sample(1901, text());
+        CaptionPlayerAuthority.onNotification("WATCH_WHILE_FULLSCREEN");
+        assertTrue(d5Classify(reduced));
+        assertEquals(0, field("stableGeometrySamples", false));
+        assertEquals(0, d5PreviousSampleWidth());
+        assertEquals(0, field("reducedVideoWidth", false));
+        assertEquals(2067, field("classFrameWidth", false));
+
+        CaptionPlayerAuthority.onNotification("WATCH_WHILE_MAXIMIZED");
+        d5Classify(reduced);
+        d5Classify(reduced);
+        assertEquals(1478, field("reducedVideoWidth", false));
+        base = field("classBaseWidth", false);
+        frame = field("classFrameWidth", false);
+        d5Set("boxWidth", 1000);
+        d5Sample(1901, text());
+        d5Sample(1901, text());
+        assertEquals(2, field("stableGeometrySamples", false));
+        FrameLayout oldAnchor = anchor();
+        assertTrue((Boolean) d5Call("attach", new Class<?>[] {Activity.class}, a));
+        assertEquals("same host must not reset samples", 2, field("stableGeometrySamples", false));
+        FrameLayout replacement = new FrameLayout(a);
+        player.addView(replacement, new FrameLayout.LayoutParams(2247, 1264));
+        Layer.host = replacement;
+        layout();
+        assertTrue((Boolean) d5Call("attach", new Class<?>[] {Activity.class}, a));
+        assertSame(oldAnchor, anchor());
+        assertSame(replacement, oldAnchor.getParent());
+        assertEquals(0, d5PreviousSampleWidth());
+        assertEquals(0, field("stableGeometrySamples", false));
+        assertEquals(CaptionPresentationClass.Kind.REDUCED, field("presentationClass", false));
+        assertEquals(base, field("classBaseWidth", false));
+        assertEquals(frame, field("classFrameWidth", false));
+        assertEquals(1478, field("reducedVideoWidth", false));
+        assertEquals(1000, field("boxWidth", false));
+        CaptionOverlay.setActivity(null);
+        assertNull(field("presentationClass", false));
+        assertEquals(0, field("classBaseWidth", false));
+        assertEquals(0, field("classFrameWidth", false));
+        assertEquals(0, field("reducedVideoWidth", false));
+        assertEquals(0, field("stableGeometrySamples", false));
+        System.out.println("D5_ORIGINAL_RESETS geometry=preserves_class_width_memory;commit=clears_samples_and_full_memory;same_parent=preserves_samples;reparent=only_samples;detach=all");
+    }
+
+    @Test
+    public void d5StableGateAndShortsKeepTheirOriginalRoundingOrder() throws Exception {
+        show("严格宽度门与短视频", "d5:stable:gate");
+        awaitCaption();
+        TextView view = text();
+        d5Call("resetGeometry", new Class<?>[] {});
+        d5Set("boxWidth", 1000);
+        assertFalse(d5Sample(980, view));
+        assertFalse(d5Sample(980, view));
+        assertFalse("exactly two percent does not replan", d5Sample(980, view));
+        assertFalse(d5Sample(979, view));
+        assertFalse(d5Sample(979, view));
+        assertTrue("strictly beyond two percent replans on sample three", d5Sample(979, view));
+        int padding = view.getPaddingLeft() + view.getPaddingRight();
+        int expected = Math.max(8, ((Math.round(979 * .92f) - padding) / 8) * 8) + padding;
+        assertEquals(expected, field("classFrameWidth", false));
+        assertEquals(0, field("stableGeometrySamples", false));
+
+        d5Call("resetGeometry", new Class<?>[] {});
+        d5Set("boxWidth", 1000);
+        assertFalse(d5Sample(800, null));
+        assertFalse(d5Sample(800, null));
+        assertTrue("samples are recorded before the null TextView guard", d5Sample(800, view));
+
+        Rect video = new Rect(0, 0, 1264, 711);
+        assertTrue((Boolean) d5Call("commitPresentationClass",
+                new Class<?>[] {Activity.class, CaptionPresentationClass.Kind.class, Rect.class,
+                    int.class, int.class, boolean.class},
+                a, CaptionPresentationClass.Kind.SHORTS_FULL, video, 1264, 2736, true));
+        assertEquals(Math.round(1264 * .78f), field("classBaseWidth", false));
+        d5Set("boxWidth", 1000);
+        assertFalse(d5Sample(850, view));
+        assertFalse(d5Sample(850, view));
+        assertTrue(d5Sample(850, view));
+        int shortsStable = Math.max(8, ((Math.round(850 * .92f) - padding) / 8) * 8) + padding;
+        assertEquals("Shorts stable replan remains 92%, not its 78% class margin",
+                shortsStable, field("classFrameWidth", false));
+        System.out.println("D5_ORIGINAL_STABLE gate=2pct_strict;samples_before_null_guard;shorts_commit=.78;shorts_stable=.92;quantize=8_after_padding");
+    }
+
+    @Test
+    public void d5SlidingPrefetchIsReadOnlyAndMatchesTheActualCommitWidth() throws Exception {
+        show("不同模式的真实预取", "d5:prefetch:" + System.nanoTime());
+        awaitCaption();
+        CaptionPlayerAuthority.onNotification("WATCH_WHILE_FULLSCREEN");
+        Rect full = new Rect(0, 0, 2247, 1264);
+        d5Classify(full);
+        assertEquals(CaptionPresentationClass.Kind.FULL, field("presentationClass", false));
+        d5Sample(1901, text());
+        d5Sample(1901, text());
+        Object frame = field("classFrameWidth", false), base = field("classBaseWidth", false);
+        Object memory = field("reducedVideoWidth", false), samples = field("stableGeometrySamples", false);
+        int sampleWidth = d5PreviousSampleWidth();
+        java.util.concurrent.CountDownLatch prefetched = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.atomic.AtomicReference<CaptionPresentationBudget> seen = new java.util.concurrent.atomic.AtomicReference<>();
+        CaptionActions.install(
+                new app.yydarlinker.caption.contracts.CaptionContracts.CaptionPort() {
+                    public void command(app.yydarlinker.caption.contracts.CaptionContracts.Action action, String value) {}
+                    public boolean active() { return false; }
+                    public boolean ownsNativeTrack() { return false; }
+                    public String restoreTarget(String u) { return u; }
+                    public String videoId() { return "fixture"; }
+                    public void playback(long t) {}
+                },
+                new CaptionActions.SettingsServices() {
+                    public String testApi() { return "fixture"; }
+                    public List<String> models(String endpoint) { return Collections.emptyList(); }
+                    public List<CaptionDisplayPage> displayPages(String body, long start, long end,
+                            CaptionPresentationBudget budget, CaptionRenderSpec spec) {
+                        if (Thread.currentThread().getName().equals("CaptionPrefetch")) {
+                            seen.set(budget);
+                            prefetched.countDown();
+                        }
+                        return TranslationPresentation.pages(body, start, end, budget, spec);
+                    }
+                });
+        CaptionOverlay.setPlayerType("WATCH_WHILE_SLIDING_MINIMIZED_MAXIMIZED");
+        assertTrue("real prefetch was dispatched", prefetched.await(5, TimeUnit.SECONDS));
+        assertNotNull(seen.get());
+        assertFalse("sliding keeps the currently committed class", d5Classify(new Rect(0, 0, 1478, 831)));
+        assertEquals(CaptionPresentationClass.Kind.FULL, field("presentationClass", false));
+        assertEquals(frame, field("classFrameWidth", false));
+        assertEquals(base, field("classBaseWidth", false));
+        assertEquals(memory, field("reducedVideoWidth", false));
+        assertEquals(samples, field("stableGeometrySamples", false));
+        assertEquals(sampleWidth, d5PreviousSampleWidth());
+        CaptionPlayerAuthority.onNotification("WATCH_WHILE_MAXIMIZED");
+        assertTrue(d5Classify(full));
+        int padding = text().getPaddingLeft() + text().getPaddingRight();
+        assertEquals("prefetch and commit use the same full box width", seen.get().width + padding,
+                field("classFrameWidth", false));
+        assertEquals(1364, field("classFrameWidth", false));
+        System.out.println("D5_ORIGINAL_PREFETCH sliding_current=FULL;target=REDUCED;prefetch_read_only=true;box=1364");
     }
 }

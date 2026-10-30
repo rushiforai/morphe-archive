@@ -30,13 +30,22 @@ private const val GMS_CORE_VENDOR = "app.revanced"
  * Points the app at GmsCore and declares the package [packageName] and the signing certificate SHA-1 [signature]
  * that GmsCore presents to Google in place of the patched app's.
  */
-fun gmsCoreSupportResourcePatch(packageName: String, signature: String) = resourcePatch {
+fun gmsCoreSupportResourcePatch(packageName: String, signature: String) =
+    gmsCoreSupportResourcePatch(mapOf(packageName to signature))
+
+/**
+ * Same as above for a patch that targets several apps: the package and certificate are picked by the package the
+ * manifest declares.
+ */
+fun gmsCoreSupportResourcePatch(signatures: Map<String, String>) = resourcePatch {
     execute {
         val manifest = get("AndroidManifest.xml")
         manifest.writeText(manifest.readText().replace("com.google.android.c2dm", "$GMS_CORE_VENDOR.android.c2dm"))
 
         document("AndroidManifest.xml").use { document ->
             val root = document.documentElement
+            val packageName = root.getAttribute("package")
+            val signature = signatures[packageName] ?: throw PatchException("No certificate known for $packageName")
             val application = document.getElementsByTagName("application").item(0) as Element
             fun Element.add(tag: String, vararg attributes: Pair<String, String>) {
                 appendChild(document.createElement(tag).also { child ->
@@ -307,6 +316,7 @@ private object GmsCoreStrings {
         "com.google.android.gms.location.settings.LOCATION_HISTORY",
         "com.google.android.gms.location.settings.LOCATION_REPORTING_SETTINGS",
         "com.google.android.location.internal.GoogleLocationManagerService",
+        "com.google.android.location.internal.GoogleLocationManagerService.START",
         "com.google.android.gms.locationsharing.api.START",
         "com.google.android.gms.locationsharingreporter.service.START",
         "com.google.android.gms.lockbox.service.START",

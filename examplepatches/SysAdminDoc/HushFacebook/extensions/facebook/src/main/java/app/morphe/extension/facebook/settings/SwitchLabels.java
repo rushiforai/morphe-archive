@@ -93,6 +93,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_META_AI_SUMMARIES) return L10n.t("Hide Meta AI comment summaries");
         if (setting == Settings.LIKE_ONLY) return L10n.t("Like only");
         if (setting == Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS) return L10n.t("Hide GIF and sticker buttons");
+        if (setting == Settings.HIDE_COMMENT_EMOJI_ROW) return L10n.t("Hide the emoji row on comments");
         if (setting == Settings.HIDE_VIDEO_COMMENT_COMPOSER) return L10n.t("Hide the video comment box");
         if (setting == Settings.OPEN_REPLY_THREADS) return L10n.t("Open every reply thread");
         if (setting == Settings.LOAD_WHOLE_REPLY_THREADS) return L10n.t("Load whole reply threads");
@@ -147,6 +148,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_REEL_LIKE_BUTTON) return L10n.t("Hide Like on reels");
         if (setting == Settings.HIDE_REEL_COMMENT_BUTTON) return L10n.t("Hide Comment on reels");
         if (setting == Settings.HIDE_REEL_SHARE_BUTTON) return L10n.t("Hide Share on reels");
+        if (setting == Settings.SHOW_REEL_COMMENT_BUTTON) return L10n.t("Show Comment when comments are off");
         if (setting == Settings.HIDE_REEL_SOUND_BUTTON) return L10n.t("Hide the speaker button on reels");
         if (setting == Settings.HIDE_REEL_AUDIO_LINE) return L10n.t("Hide the audio line on reels");
         if (setting == Settings.HIDE_SLOW_CONNECTION_MESSAGE) return L10n.t("Hide the slow connection message");
@@ -173,12 +175,14 @@ final class SwitchLabels {
         if (setting == Settings.TAP_SHOWS_CONTROLS) return L10n.t("Tap shows the controls");
         if (setting == Settings.DOUBLE_TAP_OPENS_COMMENTS) return L10n.t("Double tap opens comments");
         if (setting == Settings.LONG_PRESS_OPENS_COMMENTS) return L10n.t("Long press opens comments");
+        if (setting == Settings.SELECT_POST_TEXT) return L10n.t("Select part of a post's text");
         if (setting == Settings.KEEP_REEL_SPEED) return L10n.t("Keep the reel speed");
         if (setting == Settings.KEEP_VIDEO_SPEED) return L10n.t("Keep the video speed");
         if (setting == Settings.SLOWER_REEL_SPEEDS) return L10n.t("Slower speeds");
         if (setting == Settings.HOLD_REEL_FOR_2X) return L10n.t("Hold a reel for 2x");
         if (setting == Settings.HOLD_REEL_RIGHT_EDGE) return L10n.t("Only on the right edge");
         if (setting == Settings.HOLD_FEED_VIDEO_FOR_2X) return L10n.t("Hold a feed video for 2x");
+        if (setting == Settings.HIDE_2X_LOCK_HINT) return L10n.t("Hide the pull down to lock hint");
         if (setting == Settings.DOWNLOAD_REELS) return L10n.t("Download");
         if (setting == Settings.SHOW_REEL_DOWNLOAD_BUTTON) return L10n.t("Download button on reels");
         if (setting == Settings.COPY_REEL_CAPTION) return L10n.t("Copy reel captions");

@@ -23,7 +23,7 @@ final class ReleaseCheck {
 
     private ReleaseCheck(String endpoint, String tag, String page, String etag, long checkedAt) throws IOException {
         if (endpoint == null || endpoint.length() > 256 || endpoint.indexOf('\n') >= 0 || endpoint.indexOf('\r') >= 0
-            || !validTag(tag) || page == null || page.isEmpty() || !page.equals(SettingsActivity.releasePage(page, tag)) || checkedAt <= 0)
+            || !validTag(tag) || page == null || page.isEmpty() || !page.equals(UpdateCheck.releasePage(page, tag)) || checkedAt <= 0)
             throw new IOException("Invalid cached release");
         this.endpoint = endpoint;
         this.tag = tag;

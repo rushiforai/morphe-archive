@@ -144,10 +144,14 @@ internal object ClipButtonStateFingerprint : Fingerprint(
     strings = listOf("ClipButtonUiState(isClipButtonVisible=", ", isClippingEnabled="),
 )
 
-// The live player overlay's options: share and clip.
+// The live player overlay's options: share and clip. R8 folds the constant info fields into the first
+// label, and Morphe Patcher 2.0 compares fingerprint strings exactly, so the label is given whole.
 internal object PlayerOverlayOptionsFingerprint : Fingerprint(
     name = "toString", returnType = "Ljava/lang/String;", parameters = emptyList(),
-    strings = listOf("PlayerOverlayOptions(isInfoOptionVisible=", ", isClipOptionVisible="),
+    strings = listOf(
+        "PlayerOverlayOptions(isInfoOptionVisible=false, infoOptionContentDescription=null, isShareOptionVisible=",
+        ", isClipOptionVisible=",
+    ),
 )
 
 // AndroidX MediaRouter's cast button (library class, not renamed).

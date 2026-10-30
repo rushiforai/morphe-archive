@@ -10,8 +10,11 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
+import android.content.pm.SigningInfo;
 
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.shadow.api.Shadow;
+import org.robolectric.shadows.ShadowSigningInfo;
 
 /** Puts Messenger on the test phone or takes it off, and asks the hook as Chats would. */
 public final class MessengerCardForTests {
@@ -27,9 +30,22 @@ public final class MessengerCardForTests {
      * Messenger beside a re-signed Facebook.
      */
     public static void install(boolean enabled) {
+        install(enabled, null);
+    }
+
+    /**
+     * Installs Messenger [enabled] or disabled, and with [signer], when there is one, as the current
+     * signer GET_SIGNING_CERTIFICATES reads on API 28 and up. Without one that read finds none.
+     */
+    static void install(boolean enabled, Signature signer) {
         PackageInfo messenger = new PackageInfo();
         messenger.packageName = MessengerCard.MESSENGER;
         messenger.signatures = new Signature[]{new Signature("0a0b0c0d")};
+        if (signer != null) {
+            SigningInfo signing = new SigningInfo();
+            ((ShadowSigningInfo) Shadow.extract(signing)).setSignatures(new Signature[]{signer});
+            messenger.signingInfo = signing;
+        }
         messenger.applicationInfo = new ApplicationInfo();
         messenger.applicationInfo.packageName = MessengerCard.MESSENGER;
         messenger.applicationInfo.enabled = enabled;

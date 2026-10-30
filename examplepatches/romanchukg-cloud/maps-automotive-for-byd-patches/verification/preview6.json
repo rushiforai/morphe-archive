@@ -1,0 +1,39 @@
+{
+  "agent": "ChatGPT",
+  "status": "published_test_preview",
+  "version": "0.1.0-preview.6",
+  "mpp_sha256": "44371318bacd9b376a4d5a1fbe4069c953e93a122725f22c7a37afd1c0c074bb",
+  "bytes": 678355,
+  "maps_functional_revision": "54N",
+  "google_functional_revision": "08",
+  "same_tested_runtime_extensions": true,
+  "public_executable_entries_match_qa_bundle": 21,
+  "maps_zip_payload_identical_entries": 3264,
+  "google_base_zip_payload_identical_entries": 10536,
+  "host_checks": {
+    "recovery": 71,
+    "google_provider_routes": 301
+  },
+  "google_10_split_helper_signed_verified_payload_equal_to_car08": true,
+  "original_apkm_merge_and_patch": "PASS Desktop1.18.1",
+  "merged_runtime_on_car_tested": false,
+  "combined_bundle_in_android_manager_tested": true,
+  "public_candidate_no_apks_keys_private_paths": true,
+  "source_feed_live": "morphe-preview.6",
+  "android_manager": {
+    "version": "2.0.0",
+    "api": 32,
+    "fresh_avd": true,
+    "maps_and_google_whole_apkm_patch_export": "PASS",
+    "same_signer_key_export": "PASS",
+    "install_via_manager_and_android_installer": "PASS",
+    "art_verify": "PASS",
+    "google_startup": "PASS; setup completed and authenticated chat response received",
+    "authenticated_gemini_compact_route": "chat PASS; compact/route deferred by owner to car",
+    "all_files_access": false,
+    "authenticated_gemini_request": "PASS: 2 plus 2 is 4",
+    "compact_and_route_on_merged_output_tested": false,
+    "remote_source_ui_retested": false
+  },
+  "device_changes_during_publication": false
+}

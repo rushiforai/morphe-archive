@@ -469,6 +469,74 @@ public class SettingsSearchTest {
         capture(root, "empty");
     }
 
+    /**
+     * Legacy ListView took the focus itself while it laid out the filtered rows, then gave it back.
+     * Each hop restarted the keyboard's input, and keys typed meanwhile were lost or typed twice
+     * ("Fo" or "FFont" for "Font", 453 emulator, 2026-10-29).
+     */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void typingDeletingAndReplacingNeverMoveTheFocusOffTheField() throws Exception {
+        boolean saved = Settings.CATEGORY_PAGES.savedValue();
+        try {
+            typeWithoutFocusMoves();
+        } finally {
+            Settings.CATEGORY_PAGES.save(saved);
+        }
+    }
+
+    private void typeWithoutFocusMoves() throws Exception {
+        for (boolean pages : new boolean[]{false, true}) {
+            for (boolean touch : new boolean[]{true, false}) {
+                Settings.CATEGORY_PAGES.save(pages);
+                if (controller != null) controller.close();
+                open(PatchFamily.SPOOF_LOCATION, PatchFamily.FOLLOWING_FEED);
+                String mode = (pages ? "category pages" : "one list") + (touch ? ", touch" : ", keys");
+                View root = page.getView();
+                float density = root.getResources().getDisplayMetrics().density;
+                int width = Math.round(320 * density);
+                int height = Math.round(640 * density);
+                // The window would take the change at a later relayout, so it switches now. Entering
+                // touch mode lays the list out directly (AbsListView.onTouchModeChanged), which on a
+                // phone takes a tap, not typing.
+                new android.app.Instrumentation().setInTouchMode(touch);
+                org.robolectric.util.ReflectionHelpers.callInstanceMethod(
+                        org.robolectric.util.ReflectionHelpers.callInstanceMethod(root, "getViewRootImpl"),
+                        "ensureTouchMode", org.robolectric.util.ReflectionHelpers.ClassParameter.from(boolean.class, touch));
+                assertEquals(mode, touch, root.isInTouchMode());
+                root.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
+                root.layout(0, 0, width, height);
+                EditText input = root.findViewWithTag("hushgram-settings-search");
+                assertNotNull(mode, input);
+                assertTrue(mode, input.requestFocus());
+                ShadowLooper.idleMainLooper();
+                List<String> moves = new ArrayList<>();
+                android.view.ViewTreeObserver.OnGlobalFocusChangeListener watch = (from, to) ->
+                        moves.add((from == null ? "nothing" : from.getClass().getSimpleName()) + " -> "
+                                + (to == null ? "nothing" : to.getClass().getSimpleName()));
+                root.getViewTreeObserver().addOnGlobalFocusChangeListener(watch);
+                for (String typed : new String[]{"s", "sp", "spo", "spoof", "spo", "", "loc", "spoof"}) {
+                    input.setText(typed);
+                    input.setSelection(typed.length());
+                    ShadowLooper.idleMainLooper();
+                    root.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                            View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
+                    root.layout(0, 0, width, height);
+                    ShadowLooper.idleMainLooper();
+                    assertSame(mode + ": filtering replaced the field at \"" + typed + "\"", input,
+                            root.findViewWithTag("hushgram-settings-search"));
+                    assertTrue(mode + ": the field lost the focus at \"" + typed + "\"", input.isFocused());
+                    assertEquals(mode, typed, input.getText().toString());
+                    assertEquals(mode + ": the caret moved at \"" + typed + "\"", typed.length(), input.getSelectionEnd());
+                }
+                root.getViewTreeObserver().removeOnGlobalFocusChangeListener(watch);
+                assertEquals(mode + ": the focus moved while typing", "[]", moves.toString());
+                assertNotNull(mode, visible(Settings.SPOOF_LOCATION.key));
+                assertNull(mode, visible(Settings.START_ON_FOLLOWING.key));
+            }
+        }
+    }
+
     private void capture(View root, String state) throws Exception {
         Bitmap pixels = Bitmap.createBitmap(root.getWidth(), root.getHeight(), Bitmap.Config.ARGB_8888);
         root.draw(new Canvas(pixels));

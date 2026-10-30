@@ -13,7 +13,8 @@ import org.robolectric.annotation.Config;
 
 /**
  * Source reading, request blocks and request hints must stay byte-identical when only their
- * execution cost changes. Digests were recorded from the pinned upstream implementation.
+ * execution cost changes. Source/time digests retain upstream values; request hints reflect
+ * the intentional removal of the topic-specific pair catalog (2026-10-29).
  */
 @RunWith(RobolectricTestRunner.class) @Config(sdk=28,manifest=Config.NONE)
 public class PlannerGoldenTest {
@@ -173,33 +174,19 @@ public class PlannerGoldenTest {
     assertArrayEquals(FEATURES,actual);
   }
 
-  /** Startup cost evidence only: the phone pays this before the first translation request. */
-  @Test public void startupSourceCostIsReported() throws Exception {
-    byte[] body=resource("/r2/mH5TlcMo_m4.en.srt");
-    CaptionDocument.Parsed parsed=CaptionDocument.parse(body,"application/x-subrip");
-    RebuildSource captured=RebuildR28CapturedTest.source();
-    CaptionLanguageContext context=CaptionLanguageContext.explicit("en","zh-Hans");
-    long read=Long.MAX_VALUE,plan=Long.MAX_VALUE;
-    for(int i=0;i<5;i++) {
-      long begin=System.nanoTime();RebuildSource.read(body,parsed);read=Math.min(read,System.nanoTime()-begin);
-      begin=System.nanoTime();RebuildPlanner.plan(captured,context);plan=Math.min(plan,System.nanoTime()-begin);
-    }
-    System.out.println("STARTUP_SOURCE_READ_BEST_US="+read/1000+";PLANNER_BEST_US="+plan/1000);
-  }
-
   static final String SYNTHETIC=
-      "en>zh-Hans=b6f589574d42fb9f;en>ja=6074cfe211a1aa55;ja>zh-Hans=9cb92808b0326243;es>en=9cb92808b0326243;words=6000:b75a294e1333eaa8;en>zh-Hans=265:93e4e31b886667c7:d1d2950a524402c0;en>ja=265:93e4e31b886667c7:849860df17a1b05d;ja>zh-Hans=265:17cc4d352098cca8:3482536821903eaa;es>en=265:17cc4d352098cca8:24ab7b5ccf161c00";
+      "en>zh-Hans=264b0dfbe8cec798;en>ja=2e2c1ce9e16904a9;ja>zh-Hans=9cb92808b0326243;es>en=9cb92808b0326243;words=6000:b75a294e1333eaa8;en>zh-Hans=265:93e4e31b886667c7:740b3b3ff539190d;en>ja=265:93e4e31b886667c7:66a7f69c9d92ad9c;ja>zh-Hans=265:17cc4d352098cca8:3482536821903eaa;es>en=265:17cc4d352098cca8:24ab7b5ccf161c00";
   static final String[] FEATURES={
-      "en>zh-Hans=9353d9d253c6d7c0;en>ja=f23a12cf8ec48cd9;ja>zh-Hans=84ef4b28e3d6e460;es>en=84ef4b28e3d6e460;",
-      "en>zh-Hans=0856449e1c00fde0;en>ja=05b3a49635f0972b;ja>zh-Hans=1b7bee45d64497ea;es>en=1b7bee45d64497ea;",
-      "en>zh-Hans=9353d9d253c6d7c0;en>ja=f23a12cf8ec48cd9;ja>zh-Hans=84ef4b28e3d6e460;es>en=84ef4b28e3d6e460;",
-      "en>zh-Hans=9353d9d253c6d7c0;en>ja=f23a12cf8ec48cd9;ja>zh-Hans=84ef4b28e3d6e460;es>en=84ef4b28e3d6e460;"};
+      "en>zh-Hans=6dd6bd2ef9d75dff;en>ja=2bd040e9e27b1145;ja>zh-Hans=84ef4b28e3d6e460;es>en=84ef4b28e3d6e460;",
+      "en>zh-Hans=0fc2146b546eee97;en>ja=88cd60855c884c32;ja>zh-Hans=1b7bee45d64497ea;es>en=1b7bee45d64497ea;",
+      "en>zh-Hans=6dd6bd2ef9d75dff;en>ja=2bd040e9e27b1145;ja>zh-Hans=84ef4b28e3d6e460;es>en=84ef4b28e3d6e460;",
+      "en>zh-Hans=6dd6bd2ef9d75dff;en>ja=2bd040e9e27b1145;ja>zh-Hans=84ef4b28e3d6e460;es>en=84ef4b28e3d6e460;"};
   static final String SRT=
-      "words=9684:d8d4491d6bc9ac95;en>zh-Hans=124:49197b61ae09e73d:cdff42b49a8f3b82;en>ja=124:49197b61ae09e73d:52056a1d3d6a410d;ja>zh-Hans=109:19487d24541c47a0:0aff238e5fdc85ac;es>en=109:19487d24541c47a0:f239668c38da0f18";
+      "words=9684:d8d4491d6bc9ac95;en>zh-Hans=124:49197b61ae09e73d:620d594b97e1d9a1;en>ja=124:49197b61ae09e73d:c950d3531944c5f2;ja>zh-Hans=109:19487d24541c47a0:0aff238e5fdc85ac;es>en=109:19487d24541c47a0:f239668c38da0f18";
   static final String CAPTURED=
-      "words=9684:9520ef16ad23f6d7;en>zh-Hans=124:d8934f09eaf57173:9277fd9f7fc7f612;en>ja=124:d8934f09eaf57173:c2e36e6876af1f30;ja>zh-Hans=109:d1c477feec501e92:dd60ff57f0cbdbbc;es>en=109:d1c477feec501e92:e9ce0a032116361f";
+      "words=9684:9520ef16ad23f6d7;en>zh-Hans=124:d8934f09eaf57173:d2691949e1ce89fc;en>ja=124:d8934f09eaf57173:695f91b65bb67211;ja>zh-Hans=109:d1c477feec501e92:dd60ff57f0cbdbbc;es>en=109:d1c477feec501e92:e9ce0a032116361f";
   static final String JSON3=
-      "words=9684:1706877ada648be2;en>zh-Hans=125:e2faf2da8b46c115:351414493b5b154c;en>ja=125:e2faf2da8b46c115:b38b33c3b9f5fd71;ja>zh-Hans=109:19487d24541c47a0:349b1eae259af131;es>en=109:19487d24541c47a0:d347ca4104e707f7";
+      "words=9684:1706877ada648be2;en>zh-Hans=125:e2faf2da8b46c115:dcf4efdc2bd579ff;en>ja=125:e2faf2da8b46c115:ae2806f95ecc8de0;ja>zh-Hans=109:19487d24541c47a0:349b1eae259af131;es>en=109:19487d24541c47a0:d347ca4104e707f7";
   static final String VTT=
-      "words=9684:a09bb8734e7e39ba;en>zh-Hans=125:061212f2914c3a47:0ed506e9b369f0fe;en>ja=125:061212f2914c3a47:9cd6a32df189a7a5;ja>zh-Hans=109:6d10729186eea8cf:adbdd15f3f246ad2;es>en=109:6d10729186eea8cf:9d30db0d8a11d942";
+      "words=9684:a09bb8734e7e39ba;en>zh-Hans=125:061212f2914c3a47:fb536bf0c9078537;en>ja=125:061212f2914c3a47:5941c45bb9bcdf0f;ja>zh-Hans=109:6d10729186eea8cf:adbdd15f3f246ad2;es>en=109:6d10729186eea8cf:9d30db0d8a11d942";
 }

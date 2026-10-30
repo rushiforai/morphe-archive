@@ -27,7 +27,7 @@ Diagnostic data put back.	진단 데이터가 복원되었습니다
 Diagnostic report copied to the clipboard.	진단 데이터가 클립보드에 복사되었습니다
 Download failed	다운로드 실패
 Downloading	다운로드하는 중
-Empties the activity log that a diagnostic report would include.	진단 보고서에 포함될 활동 기록을 비웁니다.
+Empties the activity log and any kept crash that a diagnostic report would include.	진단 보고서에 포함될 활동 기록과 저장된 충돌 기록을 비웁니다.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	모든 스위치는 디버그 로깅을 제외하고 활성화된 것처럼 작동하며, 패치할 때 설정되어 있던 상태가 그대로 유지됩니다. 현재 설정은 변경되지 않습니다
 Export diagnostic report	진단 보고서 내보내기
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	다음 시작부터 디버그 로깅을 제외한 모든 스위치가 비활성화된 것처럼 작동합니다. 패치할 때 적용된 변경 사항은 그대로 유지되며, 사용자가 선택한 설정도 저장된 상태로 유지됩니다
@@ -152,6 +152,8 @@ Downloads	다운로드
 Save videos other apps can open	다른 앱에서 열 수 있도록 동영상 저장
 For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	WhatsApp, CapCut이나 InShot 같은 동영상 편집 앱, 또는 소리없이 저장된 동영상을 재생할 수 있는 갤러리나 플레이어 앱에서 열 수 있도록 동영상을 저장합니다. 화질이 낮아질 수 있습니다
 Convert to keep the full size	원본 크기를 유지하도록 변환
+For phones that play AV1 badly. A video Instagram has at full size only as AV1 is saved as VP9 when it has one, or at its largest H.264 size. Convert to keep the full size then converts only VP9.	AV1 재생이 원활하지 않은 휴대폰용입니다. Instagram에 원본 크기가 AV1로만 있는 동영상은 VP9가 있으면 VP9로, 없으면 가장 큰 H.264 크기로 저장됩니다. 그러면 원본 크기를 유지하도록 변환은 VP9만 변환합니다.
+Never save AV1 video	AV1 동영상 저장 안 함
 Saves videos other apps can open, at full size. A video Instagram only has as VP9 or AV1 is converted to H.264 on your phone instead of saved smaller. Slower, and videos over 3 minutes stay smaller.	다른 앱에서 열 수 있는 동영상을 원본 크기로 저장합니다. Instagram에 VP9 또는 AV1로만 있는 동영상은 작게 저장하는 대신 휴대폰에서 H.264로 변환합니다. 더 느리며, 3분이 넘는 동영상은 작게 저장됩니다.
 Converting to H.264	H.264로 변환하는 중
 Download quality	다운로드 화질
@@ -533,6 +535,8 @@ View live anonymously	라이브 몰래보기
 Photos and videos sent as view once or replayable stay in the chat so you can open them again. Open the chat again to update ones already loaded.	한 번 보기나 다시 보기로 보낸 사진과 동영상이 채팅에 남아 다시 열 수 있습니다. 이미 불러온 항목을 갱신하려면 채팅을 다시 여세요.
 Swipe through a chat's reels	채팅의 릴스 넘겨보기
 Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Back takes you to the chat.	채팅에서 연 릴스에서 위로 넘기면 추천 릴스보다 먼저 그 채팅에 공유된 다른 릴스를 차례로 봅니다. 뒤로 가기를 누르면 채팅으로 돌아갑니다.
+Stop after the chat's reels	채팅의 릴스까지만 보기
+Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	채팅에서 연 릴스는 그 채팅에 공유된 마지막 릴스에서 끝나고, 그 뒤에 추천 릴스가 나오지 않습니다. 채팅의 릴스 넘겨보기가 켜져 있을 때 작동합니다.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	다운로드 아래에 커버 다운로드를 추가합니다. 릴스가 재생되기 전에 보여 주는 정지 이미지를 가장 큰 크기로 저장합니다.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	다운로드 아래에 오디오 다운로드를 추가합니다. 릴스의 소리를 오디오 파일로 저장합니다.
 After 20 reels, swiping in Reels stops until Instagram has been in the background for 15 minutes. A reel you open from a message or a post still plays.	릴스 20개를 보면 Instagram이 15분 동안 백그라운드에 있을 때까지 릴스 스와이프가 멈춥니다. 메시지나 게시물에서 연 릴스는 계속 재생됩니다.
@@ -589,6 +593,8 @@ Hide story rewinds	스토리 리와인드 숨기기
 Nothing in the row of stories at the top of Home loads, your own story included, and highlights on profiles stay empty too. Saves data. A story ring on a profile or in a chat still opens its stories.	홈 상단의 스토리 줄에서는 내 스토리를 포함해 아무것도 불러오지 않으며, 프로필의 하이라이트도 비어 있습니다. 데이터를 아낍니다. 프로필이나 채팅의 스토리 링은 여전히 스토리를 엽니다.
 Expandable categories	펼칠 수 있는 카테고리
 Tap a category to show or hide its settings on this page.	카테고리를 탭하면 이 페이지에서 해당 설정을 펼치거나 접을 수 있습니다.
+Descriptions behind an info button	정보 버튼 뒤에 설명 숨기기
+Shows each switch by its name alone. Tap the i next to a name to read what it does.	각 스위치를 이름만으로 표시합니다. 이름 옆의 i를 탭하면 기능 설명을 볼 수 있습니다.
 Expanded	펼쳐짐
 Collapsed	접힘
 Hide the HushGram row in Instagram's menu	Instagram 메뉴에서 HushGram 항목 숨기기
@@ -672,7 +678,7 @@ Details	세부 정보
 Details in a post's menu	게시물 메뉴의 세부 정보
 Media ID %1$s	미디어 ID %1$s
 Media link	미디어 링크
-Media link copied	미디어 링크를 복사했습니다
+Media link copied. It stops working after a few days.	미디어 링크를 복사했습니다. 며칠 후에는 작동하지 않습니다.
 No direct link for this one	이 항목에는 직접 링크가 없습니다
 Posted %1$s	게시 시간 %1$s
 Size %1$d × %2$d	크기 %1$d × %2$d
@@ -903,14 +909,14 @@ Show all settings as a list	모든 설정을 목록으로 보기
 Show settings by category	카테고리별로 설정 보기
 Tab bar opacity	탭 바 불투명도
 Tab bar height	탭 바 높이
-Clearest	가장 투명하게
-Clear	투명하게
-Frosted	젖빛 유리
 Standard	기본
 Blur strength	흐림 강도
-# context: a blur strength step of the tab bar
-Light	약하게
-Strong	강하게
+# context: the blur slider's value under its title; dp is Android's screen unit, keep it
+%1$d dp	%1$d dp
+# context: the tab bar opacity slider's value under its title
+%1$d%%	%1$d%%
+# context: a slider's value when it sits at the starting setting, %1$s is the value
+%1$s (standard)	%1$s (기본)
 Compact	컴팩트
 Tall	높게
 Tab bar corners	탭 바 모서리
@@ -1030,6 +1036,8 @@ Rounded corners on Reels	Reels 둥근 모서리
 Rounded corners on stories	스토리 둥근 모서리
 Seek bar on stories	스토리 탐색 막대
 Shows a bar near the bottom of a video story. Drag it to jump to any point in the video. Photos don't get one.	동영상 스토리 아래쪽 근처에 막대를 표시합니다. 막대를 끌어 동영상의 원하는 지점으로 이동하세요. 사진에는 표시되지 않습니다.
+Seek bar on feed videos	피드 동영상 탐색 막대
+Shows a bar along the bottom of the video playing in a feed. Drag it and let go to jump to that point in the video.	피드에서 재생 중인 동영상 아래쪽에 막대를 표시합니다. 막대를 끌었다가 놓으면 동영상의 해당 지점으로 이동합니다.
 Thicker story progress bar	더 두꺼운 스토리 진행 막대
 Draws the bar along the top of a story as thick as the choice below. Its segments and timing stay as they were.	스토리 위쪽의 막대를 아래에서 고른 두께로 그립니다. 구간과 타이밍은 그대로입니다.
 Thickness	두께
@@ -1291,3 +1299,5 @@ The row of stories at the top of Home keeps only the accounts the choice below n
 Stories to keep	남길 스토리
 Only verified accounts	인증된 계정만
 Only accounts that aren't verified	인증되지 않은 계정만
+Pinch to zoom	두 손가락으로 확대
+Two fingers zoom into a playing reel, the way a photo zooms. Lift them and it goes back. Restart Instagram to see the change.	재생 중인 릴스를 사진처럼 두 손가락으로 확대합니다. 손가락을 떼면 원래대로 돌아갑니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.

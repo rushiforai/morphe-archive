@@ -18,6 +18,7 @@
 * **TikTok:** Die Einstellungssuche kennt alltägliche Namen wie Autoplay, PiP und AI und findet eine Auswahlzeile über jede ihrer Optionen.
 * **TikTok:** Feed zu festen Zeiten sperren sperrt den Feed von selbst in den Stunden, die du wählst, und das Sperrfenster zeigt, wann er wieder öffnet.
 * **TikTok:** Nur über Wi-Fi speichern hält Speichern aus dem mobilen Netz heraus. Ein Speichervorgang wartet bis zu 30 Minuten auf Wi-Fi, und du kannst ihn unter Downloads abbrechen.
+* **TikTok:** Ein neuer Schalter schaltet das Fenster Medien speichern von Hushfeed für Chat-Sticker aus (#274).
 * **TikTok:** Bei PineDrama funktionieren die Schalter im Posteingang jetzt, auch Unterhaltungen ausblenden (#156).
 * **TikTok:** Bei PineDrama nennt die Versionszeile in den Einstellungen jetzt PineDrama und seinen Build statt TikTok (#156).
 * **TikTok:** Ein Suchergebnis weit unten auf einer Einstellungsseite öffnet jetzt direkt an seiner Zeile.
@@ -61,6 +62,7 @@
 * **TikTok:** Die Bildschirmaufnahme bittet Android, nur den Ton der gepatchten App aufzunehmen.
 * **TikTok:** Die Service+-Bereinigung prüft denselben ersten LIVE-Vorschau-Eintrag, den TikTok anzeigt (#94).
 * **TikTok:** Die Kommentarpause erkennt, dass das erste Bild läuft, noch vor TikToks erster Fortschrittsmeldung (#151).
+* **TikTok:** TikToks Auto-Scroll-Schaltfläche ausblenden blendet auch die runde Auto-Scroll-Taste oben rechts im Video aus (#234).
 
 ## 0.79.0 (2026-10-24)
 

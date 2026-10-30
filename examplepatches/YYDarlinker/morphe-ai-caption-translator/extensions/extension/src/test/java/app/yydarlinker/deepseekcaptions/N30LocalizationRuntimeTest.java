@@ -1,40 +1,64 @@
 package app.yydarlinker.deepseekcaptions;
+
 import static org.junit.Assert.*;
-import android.app.*;import android.content.*;import android.content.res.Configuration;import android.os.LocaleList;
-import android.graphics.*;import android.view.*;import android.widget.*;import android.preference.*;
-import java.util.*;import java.io.*;
-import org.json.*;import org.junit.*;import org.junit.runner.RunWith;import org.robolectric.*;import org.robolectric.annotation.*;
-@RunWith(RobolectricTestRunner.class) @Config(sdk=28) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+import android.content.Context;
+import android.content.res.Configuration;
+import android.os.LocaleList;
+import app.morphe.extension.shared.ResourceUtils;
+import app.morphe.extension.shared.settings.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.util.Locale;
+import org.json.JSONObject;
+import org.junit.*;
+import org.junit.runner.RunWith;
+import org.robolectric.*;
+import org.robolectric.annotation.Config;
+
+/** Catalog input is the specification; compiled resources and runtime lookup are outputs. */
+@RunWith(RobolectricTestRunner.class) @Config(sdk=28,manifest=Config.NONE)
 public class N30LocalizationRuntimeTest {
- public static class HostedPreferences extends PreferenceActivity {}
- static final String[] TAGS={"en","zh-CN","zh-TW","es","fr","de","pt","ru","ja","ko","ar","hi","id","vi"};
- static final String[] KEYS={"ai_quick_toggle_on","ai_quick_toggle_off","ai_summary","default_prompt","size_tier_xs","size_tier_s","size_tier_standard","size_tier_l","size_tier_xl","size_tier_hint","preview","preview_sample","preview_hint","cancel","save_diagnostics","audit_current_model","audit_title"};
- @Test public void everyRuntimeKeyAnd320DpLargeFontRowResolvesWithoutEllipsisOrChineseFallback()throws Exception {
-  RuntimeEnvironment.getApplication().getApplicationInfo().flags |= android.content.pm.ApplicationInfo.FLAG_SUPPORTS_RTL;
-  Activity a=Robolectric.buildActivity(HostedPreferences.class).setup().get();JSONArray rows=new JSONArray();
-  for(String tag:TAGS){Configuration cfg=new Configuration(a.getResources().getConfiguration());cfg.setLocales(new LocaleList(Locale.forLanguageTag(tag)));cfg.fontScale=1.3f;Context c=a.createConfigurationContext(cfg);
-   for(String key:KEYS){int id=c.getResources().getIdentifier("cap_"+key,"string",c.getPackageName());assertNotEquals(tag+":"+key,0,id);String s=CaptionStrings.get(c,key);assertEquals(c.getString(id),s);assertFalse(s.contains("cap_"));assertNotEquals(key,s);
-    if(!tag.startsWith("zh")&&!tag.equals("ja"))assertFalse(tag+":"+key,s.matches("(?s).*[\\p{IsHan}].*"));}
-   assertNotEquals(CaptionStrings.get(c,"autosave"),CaptionStrings.get(c,"ai_summary"));assertEquals(CaptionStrings.get(c,"default_prompt"),DeepSeekConfig.defaultPrompt(c));
-   LinearLayout page=new LinearLayout(c);page.setOrientation(LinearLayout.VERTICAL);page.setPadding(16,8,16,8);page.setBackgroundColor(Color.WHITE);page.setLayoutDirection(tag.equals("ar")?View.LAYOUT_DIRECTION_RTL:View.LAYOUT_DIRECTION_LTR);
-   for(String key:new String[]{"ai_quick_toggle_on","ai_quick_toggle_off","ai_summary","preview"}){TextView v=new TextView(c);v.setText(CaptionStrings.get(c,key));v.setTextSize(18);v.setTextColor(Color.BLACK);v.setEllipsize(null);v.setMaxLines(Integer.MAX_VALUE);page.addView(v,new LinearLayout.LayoutParams(-1,-2));}
-   PreferenceManager pm=((PreferenceActivity)a).getPreferenceManager();PreferenceScreen screen=pm.createPreferenceScreen(c);screen.setTitle(CaptionStrings.get(c,"ai_title"));screen.setSummary(CaptionStrings.get(c,"ai_summary"));screen.setSingleLineTitle(false);screen.setIconSpaceReserved(false);
-   View entry=screen.getView(null,new FrameLayout(c));page.addView(entry,new LinearLayout.LayoutParams(-1,-2));
-   int width=Math.round(320*c.getResources().getDisplayMetrics().density);page.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));page.layout(0,0,width,page.getMeasuredHeight());
-   assertEquals(tag.equals("ar")?View.LAYOUT_DIRECTION_RTL:View.LAYOUT_DIRECTION_LTR,page.getLayoutDirection());
-   for(int i=0;i<page.getChildCount()-1;i++)check((TextView)page.getChildAt(i));check(entry.findViewById(android.R.id.title));check(entry.findViewById(android.R.id.summary));
-   rows.put(new JSONObject().put("locale",tag).put("resource_keys",KEYS.length).put("width_dp",320).put("font_scale",1.3).put("height_px",page.getHeight()).put("ellipsis",0).put("rtl",tag.equals("ar")));
-   if(Arrays.asList("en","zh-CN","fr","ar").contains(tag)){String dir=System.getenv("N30_EVIDENCE_DIR");if(dir!=null){Bitmap b=Bitmap.createBitmap(width,page.getHeight(),Bitmap.Config.ARGB_8888);page.draw(new Canvas(b));try(FileOutputStream out=new FileOutputStream(new File(dir,"n30-ui-"+tag+".png"))){b.compress(Bitmap.CompressFormat.PNG,100,out);}}}
-  }a.finish();N39TestEvidence.export("n30-localization-runtime.json",new JSONObject().put("rows",rows));
- }
- static void check(TextView text){assertNotNull(text);assertNotNull(text.getLayout());assertEquals(text.length(),text.getLayout().getLineEnd(text.getLayout().getLineCount()-1));for(int i=0;i<text.getLayout().getLineCount();i++)assertEquals(0,text.getLayout().getEllipsisCount(i));}
- @Test public void allAuthoredKeysResolveInTheirActualLocaleNotAnEnglishOrChineseFallback()throws Exception {
-  JSONObject expected=new JSONObject(new String(getClass().getResourceAsStream("/n30/localization-expected.json").readAllBytes(),"UTF-8"));Activity a=Robolectric.buildActivity(Activity.class).setup().get();
-  for(String tag:TAGS){String folder=tag.equals("zh-CN")?"zh-rCN":tag.equals("zh-TW")?"zh-rTW":tag;JSONObject values=expected.getJSONObject(folder);assertEquals(223,values.length());
-   Configuration config=new Configuration(a.getResources().getConfiguration());config.setLocales(new LocaleList(Locale.forLanguageTag(tag)));Context c=a.createConfigurationContext(config);
-   java.util.Iterator<String> keys=values.keys();while(keys.hasNext()){String key=keys.next();assertEquals(tag+":"+key,values.getString(key),CaptionStrings.get(c,key));}
-  }a.finish();
- }
- @Test public void rawTechnicalExportRemainsEnglishWhileEvidenceIsVerbatim(){Activity a=Robolectric.buildActivity(Activity.class).setup().get();CaptionDiagnostics.clear(a);String evidence="source=原始证据;response=texte brut;prompt=自定义";CaptionDiagnostics.mark(a,"N30_RAW_EVIDENCE",evidence);
-  String raw=CaptionDiagnostics.fullText(a);assertTrue(raw.contains("Engine: "));assertTrue(raw.contains("Latest stage: "));assertTrue(raw.contains("N30_RAW_EVIDENCE"));assertTrue(raw.contains(evidence));a.finish();}
+    private static final String[] TAGS={"en","zh-CN","zh-TW","es","fr","de","pt","ru","ja","ko","ar","hi","id","vi"};
+    @Before public void setup() {
+        ResourceUtils.activity=null;Setting.preferences.preferences=null;
+        BaseSettings.MORPHE_LANGUAGE.save(AppLanguage.DEFAULT);
+    }
+    @After public void cleanup() { setup(); }
+
+    private Context locale(String tag) {
+        Context app=RuntimeEnvironment.getApplication();
+        Configuration config=new Configuration(app.getResources().getConfiguration());
+        config.setLocales(new LocaleList(Locale.forLanguageTag(tag)));
+        return app.createConfigurationContext(config);
+    }
+
+    @Test public void everyCurrentCatalogKeyReachesCompiledResourcesAndRuntimeLookup() throws Exception {
+        Path catalog=Paths.get(System.getProperty("n39.root"),"localization/catalog.json");
+        JSONObject languages=new JSONObject(new String(Files.readAllBytes(catalog),StandardCharsets.UTF_8)).getJSONObject("languages");
+        assertEquals("new locales need an explicit runtime configuration case",TAGS.length,languages.length());
+        for(String tag:TAGS) {
+            String folder=tag.equals("zh-CN")?"zh-rCN":tag.equals("zh-TW")?"zh-rTW":tag;
+            JSONObject expected=languages.getJSONObject(folder);assertTrue(expected.length()>0);
+            Context context=locale(tag);
+            for(java.util.Iterator<String> keys=expected.keys();keys.hasNext();) {
+                String key=keys.next();int id=context.getResources().getIdentifier("cap_"+key,"string",context.getPackageName());
+                assertNotEquals(tag+":"+key+" missing compiled resource",0,id);
+                assertEquals(tag+":"+key+" generated XML differs from catalog",expected.getString(key),context.getString(id));
+                assertEquals(tag+":"+key+" runtime used another locale/key",expected.getString(key),CaptionStrings.get(context,key));
+            }
+            assertNotEquals(CaptionStrings.get(context,"autosave"),CaptionStrings.get(context,"ai_summary"));
+            assertEquals(expected.getString("default_prompt"),DeepSeekConfig.defaultPrompt(context));
+        }
+    }
+
+    @Test public void rawExportRemainsEnglishAndEvidenceVerbatimInArabicContext() {
+        Context context=locale("ar");CaptionDiagnostics.clear(context);
+        String evidence="source=原始证据;response=texte brut;prompt=自定义";
+        try {
+            CaptionDiagnostics.mark(context,"N30_RAW_EVIDENCE",evidence);
+            String raw=CaptionDiagnostics.fullText(context);
+            assertTrue(raw.contains("Engine: "));assertTrue(raw.contains("Latest stage: "));
+            assertTrue("keep source/model/user text verbatim",raw.contains(evidence));
+        } finally { CaptionDiagnostics.clear(context); }
+    }
 }

@@ -14,8 +14,9 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
- * The bundle's settings. They open with a press and hold of two fingers anywhere in the app,
- * which no screen of TikTok's uses, so nothing of the original app or of another bundle is touched.
+ * The bundle's settings. Besides the row in TikTok's settings, they open with a press and hold of
+ * two fingers anywhere in the app, which no screen of TikTok's uses, so nothing of the original app
+ * or of another bundle is touched. The gesture is off until it is turned on on the settings page.
  */
 public final class SettingsScreen {
     private static final long HOLD_MS = 700;
@@ -66,6 +67,7 @@ public final class SettingsScreen {
             int action = event.getActionMasked();
             if ((action == MotionEvent.ACTION_POINTER_DOWN || action == MotionEvent.ACTION_DOWN)
                     && event.getPointerCount() == 2) {
+                if (!Settings.SETTINGS_GESTURE.get()) return;
                 handler.removeCallbacks(open);
                 handler.postDelayed(open, HOLD_MS);
             } else if (action == MotionEvent.ACTION_POINTER_UP || action == MotionEvent.ACTION_UP

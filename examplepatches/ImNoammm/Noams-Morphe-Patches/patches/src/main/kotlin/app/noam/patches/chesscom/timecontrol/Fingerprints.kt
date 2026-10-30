@@ -1,15 +1,21 @@
 package app.noam.patches.chesscom.timecontrol
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
-/** The custom time section's composable (Compose trace string names it). */
+/**
+ * The custom time section's composable, named inside its Compose trace string
+ * "com.chess.features.gamesetup.compose.CustomTimeSelector (GameTimeScreen.kt:361)". Morphe
+ * Patcher 2 compares raw strings whole, so this one is an explicit "contains" filter.
+ */
 internal object CustomTimeSelectorFingerprint : Fingerprint(
     returnType = "V",
-    strings = listOf("CustomTimeSelector ("),
+    filters = listOf(string("CustomTimeSelector (", StringComparisonType.CONTAINS)),
 )
 
 /** Minutes slider setter: copy(minPerGameFloat = max(position, 1).toFloat()). */

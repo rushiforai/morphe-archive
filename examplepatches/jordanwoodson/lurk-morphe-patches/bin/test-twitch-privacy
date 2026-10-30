@@ -9,19 +9,21 @@ out="$WORK/twitch-privacy/art-probe"
 remote=/data/local/tmp/lurk-twitch-privacy
 mkdir -p "$out/stub-src" "$out/stub-classes" "$out/classes" "$out/dex" "$WORK/tmp"
 export TMPDIR="$WORK/tmp"
-# Twitch 31.7.0's R8 names for the Spade callback and its error type.
-cat > "$out/stub-src/kx50.java" <<'JAVA'
-public abstract class kx50 {
-    public abstract void K(Object response);
-    public abstract void J(akg error);
+# Twitch 31.8.0's R8 names for the Spade callback and its error type.
+rm -f "$out/stub-src/"*.java
+rm -rf "$out/stub-classes" && mkdir -p "$out/stub-classes"
+cat > "$out/stub-src/bx50.java" <<'JAVA'
+public abstract class bx50 {
+    public abstract void M(Object response);
+    public abstract void L(nig error);
 }
 JAVA
-cat > "$out/stub-src/akg.java" <<'JAVA'
-public class akg { }
+cat > "$out/stub-src/nig.java" <<'JAVA'
+public class nig { }
 JAVA
 android="$ANDROID_HOME/platforms/android-36/android.jar"
-javac --release 17 -d "$out/stub-classes" "$out/stub-src/kx50.java" "$out/stub-src/akg.java"
-(cd "$out/stub-classes" && jar cf "$out/stubs.jar" kx50.class akg.class)
+javac --release 17 -d "$out/stub-classes" "$out/stub-src/bx50.java" "$out/stub-src/nig.java"
+(cd "$out/stub-classes" && jar cf "$out/stubs.jar" bx50.class nig.class)
 javac --release 17 -classpath "$android:$out/stubs.jar" \
     -d "$out/classes" "$ROOT/tests/twitch/PrivacyAdsProbe.java" "$ROOT/tests/twitch/ProbeLocators.java"
 # Compile-only stubs are classpath inputs. Only the actual probe classes enter DEX; at runtime

@@ -1,6 +1,6 @@
-# Pigfoot Patches
+# pigfoot Patches
 
-App-scoped Android patches for **RailsGo (台灣鐵道通), CamScanner and Fing**, built
+App-scoped Android patches for **RailsGo (台灣鐵道通), CamScanner, Fing and PiTT**, built
 with the official Morphe Gradle template. Each app has independent patch policies
 and strict clean-input compatibility guards.
 
@@ -11,6 +11,7 @@ and strict clean-input compatibility guards.
 | [RailsGo / 台灣鐵道通](#railsgo--台灣鐵道通) | **1.25.2 (156)**, arm64-v8a APKS | Sideload startup compatibility, bus refresh without video, optional package rename |
 | [CamScanner](#camscanner) | **7.26.5.2609160000 (72651)** or **7.27.0.2609220000 (72701)**, full APKM | Re-signing compatibility, local premium, privacy; optional ads/offline policies |
 | [Fing](#fing) | **12.13.5 (121305003)**, full APKM, ARM64/ARMv7, Android 9+ | Local premium features and reduced telemetry, independently selectable |
+| [PiTT](#pitt) | **12.0.0 (40892)**, ARM64 APKS, Android 8+ | Local sponsored features; default-selected, optional Google-account sign-in with on-demand MicroG setup guidance |
 
 Only these qualified versions/builds are supported. Use pristine originals, not
 previously patched APKs or third-party mods. Standard and Shizuku installation
@@ -26,8 +27,8 @@ are supported as described below; **root mount is not qualified for any of these
 
 An ordinary re-signed build cannot update a differently signed Play installation
 under the same package name. Uninstalling that app removes its local data.
-Only RailsGo offers optional package renaming for parallel installation; CamScanner
-and Fing preserve their original package and display identity.
+Only RailsGo offers optional package renaming for parallel installation; CamScanner,
+Fing and PiTT preserve their original package and display identity.
 
 Local premium policies do not create a purchase, subscription, server entitlement,
 cloud quota or credit grant. Reduced telemetry is scoped suppression, not a
@@ -135,12 +136,63 @@ dependency is the hidden clean-input guard. The Crash reporting switch being off
 is an effect of **Fing reduce telemetry**, not a separate Manager option. This
 policy preserves the stored app preference rather than erasing it.
 
+## PiTT
+
+Use clean **12.0.0 (40892), ARM64 APKS**, minimum SDK **26 (Android 8)**,
+including the original density/language splits. Preserve `com.ihad.ptt` and the
+original display name. Version 11 and previously patched inputs are unsupported.
+
+| Patch | Default and scope |
+| --- | --- |
+| PiTT local sponsored features | Selected; keeps the local sponsored state enabled across all six qualified writes for the app's original ad suppression and IP-detail quota gates. Mutes only the misleading no-purchased-subscription expiry notice; other warnings, receipt verification and reset callbacks remain. |
+| PiTT Google account sign-in | Selected; redirects only the qualified legacy Google sign-in client to `app.revanced.android.gms` and restores original certificate metadata in the separate Firebase Auth HTTP header. Requires MicroG-RE installed separately; real token and backend validation remain. |
+
+### PiTT installation and options
+
+- Both patches are independent and have **no additional parameters**. For Google
+  login, keep **PiTT Google account sign-in** selected. Select local sponsored
+  features separately; it is not a prerequisite for login. Deselecting both leaves
+  PiTT unchanged.
+- Install [MicroG-RE 7.2.2](https://github.com/MorpheApp/MicroG-RE/releases/tag/7.2.2)
+  separately for the Google sign-in adapter. This is the qualified reference;
+  its package must be `app.revanced.android.gms`. Installing MicroG alone does not
+  redirect an unpatched PiTT. Unrelated GMS clients are not globally redirected.
+- Start every patch operation from the original v12 APKS. For updates keep the
+  same package and local Morphe signing key; do not clear data merely to update.
+- Local sponsored state can affect subscription UI; it does not create purchases,
+  valid receipts or server entitlements. Billing queries, backend verification and
+  cache cleanup continue. IP-detail server limits are not overridden, and SDK
+  initialization/telemetry is not disabled by this policy.
+
+The Google-account policy signs in to a **PiTT account**, not a PTT BBS account.
+It defaults to selected, not required: opting out does not select or disable local
+sponsored features. It never automatically signs in or picks a Google account.
+A compatible MicroG-RE installation already used by YouTube can be shared in the
+same Android profile; PiTT still requests its own Google authorization. No second
+MicroG APK is bundled or silently installed.
+
+Only when the signed-out user presses **Sign in to PiTT**, check the provider:
+if missing, show a short notice and open the official MicroG-RE release page; if
+disabled, show a notice and open that package's app settings. Missing handlers or
+package-check failures leave PiTT running without starting Google login. No prompt
+runs on startup, ordinary navigation or the existing sign-out branch.
+
+The qualified v12 Google-login flow has been user-tested, and the current
+Google-account sign-in/default/guidance candidate has been accepted for closeout.
+This does not establish every device/account, cancellation, expired-token or
+missing/disabled-provider scenario on a phone. Temporary Google/Firebase diagnostic
+patches and their extra failure messages are **not shipped**. See the
+[implementation contract](docs/pitt-implementation.md),
+[GmsCore adapter](docs/pitt-gmscore-study.md),
+[Firebase Auth identity rationale](docs/pitt-firebase-client-identity.md), and
+[archived sign-in survey](docs/pitt-google-signin-study.md).
+
 ## Patch catalog
 
 The following catalog is generated by release automation; do not edit it manually.
 
 <!-- PATCHES_START -->
-> **[v0.3.0](https://github.com/pigfoot/morphe-patches/releases/tag/v0.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v0.4.1](https://github.com/pigfoot/morphe-patches/releases/tag/v0.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
 <details open>
 <summary>📦 CamScanner&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -193,13 +245,29 @@ The following catalog is generated by release automation; do not edit it manuall
 
 </details>
 
+<details open>
+<summary>📦 PiTT&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 12.0.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [PiTT Google account sign-in](#pitt-google-account-sign-in) | Enable Google-account sign-in to PiTT, not PTT BBS login. Reuse compatible app.revanced.android.gms (MicroG-RE 7.2.2 reference); guide missing/disabled MicroG only when starting Google login. No automatic sign-in or installation. Keeps PiTT package and original Google client; restores the original certificate metadata only in the qualified Firebase Auth HTTP header, preserving real Firebase verification; does not fabricate tokens, accounts or purchases. |  |
+| [PiTT local sponsored features](#pitt-local-sponsored-features) | Keep the qualified local sponsored state enabled for original ad suppression and IP-detail quota gates, and suppress only the false no-purchased-subscription expiry notice. Subscription UI may reflect this local override. Preserves receipt verification and network code; does not create purchases, valid receipts, backend subscription rights or a zero-telemetry guarantee. |  |
+
+</details>
+
 <!-- PATCHES_END -->
 
 ## Development
 
 ### Repository layout
 
-- `patches/src/main/kotlin/app/pigfoot/patches/{railsgo,camscanner,fing}/`: app-scoped patches and compatibility policies.
+- `patches/src/main/kotlin/app/pigfoot/patches/{railsgo,camscanner,fing,pitt}/`: app-scoped patches and compatibility policies.
 - `extensions/railsgo/`: bus-update helper and compile-only app/SDK stubs.
 - `extensions/camscanner/`: scoped API Center cache compatibility helper.
 - `patches/src/test/`: app policy, rejection, helper and bundle-contract tests.
@@ -233,6 +301,13 @@ After the initial v0.0.1 bootstrap, semantic-release owns versions:
 - `chore:` / `docs:` alone does not publish a release.
 - `main` publishes stable releases; `dev` publishes prereleases.
 - Automation updates version properties, changelog, Manager metadata and catalog together.
+
+The PiTT Google-account sign-in follow-up is a compatibility/usability correction
+to the existing v0.4.0 adapter, not a new app policy or breaking change. It uses a
+`fix(pitt):` landing commit and is intended as **v0.4.1** when released from v0.4.0.
+The generated catalog above continues to describe the published stable bundle
+until release automation updates it; the manual PiTT section describes this
+follow-up. A candidate MPP or PR update alone does not publish a stable version.
 
 Do not manually bump generated metadata, edit the catalog above or rewrite release tags.
 

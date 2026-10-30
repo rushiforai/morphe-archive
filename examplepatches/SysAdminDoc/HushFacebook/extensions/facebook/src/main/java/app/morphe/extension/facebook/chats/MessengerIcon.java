@@ -19,6 +19,7 @@ import androidx.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
+import app.morphe.extension.facebook.coexist.FamilySignatureTrust;
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.Logger;
@@ -38,7 +39,12 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * install beside Meta's apps makes, opens instead (see {@link #messengerLaunch}). Any app may start
  * a launcher entry, so nothing about the key Messenger is signed with matters.
  *
- * <p>It fails open: with the switch off, a pause, settings that aren't ready, a long press (Facebook
+ * <p>With the switch off, a Messenger under Meta's own package name that carries none of Meta's
+ * certificates, as HushMessenger installed in place of Meta's does, is opened the same way (#292).
+ * Facebook hands the tap only to a Meta-signed Messenger, so it turned that one down and the icon did
+ * nothing.
+ *
+ * <p>It fails open: with the switch off and Meta's Messenger or none, a pause, settings that aren't ready, a long press (Facebook
  * has its own use for that), no Messenger with a launcher entry, a start Messenger turns down, or
  * any failure in here, Facebook handles the tap as it always did.
  *
@@ -52,6 +58,9 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
 public final class MessengerIcon {
     /** Counted under the patch's name when a tap opened Messenger. */
     static final String OPENED = "opened Messenger";
+
+    /** Counted when, with the switch off, a tap opened a re-signed Messenger Facebook would turn down. */
+    static final String OPENED_RESIGNED = "opened a re-signed Messenger";
 
     /** Counted when the switch was on but no enabled Messenger had a launcher entry to start. */
     static final String NO_MESSENGER = "no Messenger to open";
@@ -169,7 +178,13 @@ public final class MessengerIcon {
         try {
             HookStatus.invoked(FamilyNames.MESSENGER_ICON);
             if (context == null) return false;
-            if (!Utils.settingsReady() || !Settings.OPEN_MESSENGER_APP.get()) return false;
+            if (!Utils.settingsReady()) return false;
+            // With the switch off the tap is Facebook's, unless the Messenger it hands the tap to is
+            // re-signed: Facebook turns that one down and the icon does nothing (#292).
+            boolean resigned = !Settings.OPEN_MESSENGER_APP.get();
+            if (resigned && !FamilySignatureTrust.isResigned(context.getPackageManager(), MessengerCard.MESSENGER)) {
+                return false;
+            }
             if (longPress || heldPressJustLifted(SystemClock.uptimeMillis())) {
                 countDecline(LONG_PRESS);
                 return false;
@@ -190,7 +205,7 @@ public final class MessengerIcon {
                         () -> "Messenger didn't start (" + kind + "). Facebook's Chats opens instead.", null);
                 return false;
             }
-            HookStatus.counted(FamilyNames.MESSENGER_ICON, OPENED);
+            HookStatus.counted(FamilyNames.MESSENGER_ICON, resigned ? OPENED_RESIGNED : OPENED);
             return true;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.MESSENGER_ICON, "Messenger icon", failure);

@@ -396,8 +396,10 @@ public class CategoryPagesSettingsTest {
         assertTrue(input.hasFocus());
         assertNotNull(page.getPreferenceScreen().findPreference(Settings.HIDE_ADS.key));
         assertFalse(shown(PreferenceCategory.class).contains("Feed"));
+        assertTrue("a search shows the descriptions it matched (#130)", DescriptionInfo.searching);
         input.setText("");
         layoutPage();
+        assertFalse(DescriptionInfo.searching);
         assertEquals(List.of("Feed"), shown(PreferenceCategory.class));
         assertSame(input, page.getView().findViewWithTag("hushgram-settings-search"));
         assertTrue(input.hasFocus());

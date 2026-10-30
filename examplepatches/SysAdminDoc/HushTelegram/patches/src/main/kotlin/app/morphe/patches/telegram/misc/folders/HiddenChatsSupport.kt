@@ -5,17 +5,22 @@
 package app.morphe.patches.telegram.misc.folders
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.telegram.misc.chattypefolders.CLIENT_USER_ID
 import app.morphe.patches.telegram.misc.chattypefolders.CONTROLLER_INSTANCE
 import app.morphe.patches.telegram.misc.chattypefolders.LOCAL_FILTER
 import app.morphe.patches.telegram.misc.chattypefolders.MESSAGES_CONTROLLER
 import app.morphe.patches.telegram.misc.chattypefolders.SELECTED_ACCOUNT
+import app.morphe.patches.telegram.misc.chattypefolders.STORAGE
 import app.morphe.patches.telegram.misc.chattypefolders.USER_CONFIG
 import app.morphe.patches.telegram.misc.chattypefolders.USER_CONFIG_INSTANCE
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.telegram.misc.extension.freeLocalsAt
 import app.morphe.patches.telegram.misc.extension.localRegisterCount
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.writeStub
@@ -24,10 +29,13 @@ import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlField
 import app.morphe.patches.telegram.misc.localcontrols.controlHook
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
+import app.morphe.patches.telegram.misc.localcontrols.controlString
 import app.morphe.patches.telegram.misc.localcontrols.forEachClassMentioning
 import app.morphe.patches.telegram.misc.localcontrols.requireReachable
 import app.morphe.util.ControlFlow
+import app.morphe.util.RegisterLiveness
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.definitionReaches
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -47,6 +55,8 @@ internal const val DIALOG_ID = "Lorg/telegram/tgnet/TLRPC\$Dialog;->id:J"
 internal const val GET_DIALOGS = "$MESSAGES_CONTROLLER->getDialogs(I)$HIDDEN_LIST"
 internal const val PEER_NAME = "$MESSAGES_CONTROLLER->getPeerName(J)Ljava/lang/String;"
 internal const val GET_USER_CONFIG = "Lorg/telegram/messenger/BaseController;->getUserConfig()$USER_CONFIG"
+/** Read by reflection when the switch recounts every signed-in account's folder tabs. */
+internal const val ACCOUNT_SLOTS = "$USER_CONFIG->MAX_ACCOUNT_COUNT:I"
 private const val NOTIFICATIONS = "Lorg/telegram/messenger/NotificationCenter;"
 internal const val NOTIFICATIONS_INSTANCE = "$NOTIFICATIONS->getInstance(I)$NOTIFICATIONS"
 internal const val DIALOGS_NEED_RELOAD = "$NOTIFICATIONS->dialogsNeedReload:I"
@@ -129,6 +139,10 @@ internal fun BytecodePatchContext.requireHiddenChatsRuntime() {
     controlHook(HIDDEN_CHATS, "menuChoice", listOf(HIDDEN_OBJECT, "I"), "I")
     controlHook(HIDDEN_CHATS, "addMenuItem", listOf(HIDDEN_OBJECT, "I", "I", "Ljava/lang/String;"), HIDDEN_OBJECT)
     controlHook(HIDDEN_CHATS, "selectedChats", listOf(HIDDEN_OBJECT), HIDDEN_LIST)
+    requireStatusMethod("hiddenUnread")
+    controlHook(HIDDEN_CHATS, "uncounted", listOf(HIDDEN_OBJECT, "J"), "Z")
+    controlHook(HIDDEN_CHATS, "recount", listOf("I"), "V")
+    controlHook(HIDDEN_CHATS, "onStorageThread", listOf("I", "Ljava/lang/Runnable;"), "V")
 }
 
 /** Why this build's chat list can't hide chats. */
@@ -201,8 +215,8 @@ private fun BytecodePatchContext.emptyFolderWalk(): HiddenChatsPlan {
     for ((reference, static) in listOf(BY_FOLDER to false, SELECTED_FILTERS to false, FILTER_DIALOGS to false, DIALOG_ID to false,
         DIALOG_PINNED to false, DIALOG_PIN_NUM to false,
         GET_DIALOGS to false, PEER_NAME to false, GET_USER_CONFIG to false, CLIENT_USER_ID to false, SELECTED_ACCOUNT to true,
-        USER_CONFIG_INSTANCE to true, CONTROLLER_INSTANCE to true, NOTIFICATIONS_INSTANCE to true, DIALOGS_NEED_RELOAD to true,
-        POST_NOTIFICATION to false, method.toString() to false)) {
+        USER_CONFIG_INSTANCE to true, ACCOUNT_SLOTS to true, CONTROLLER_INSTANCE to true, NOTIFICATIONS_INSTANCE to true,
+        DIALOGS_NEED_RELOAD to true, POST_NOTIFICATION to false, method.toString() to false)) {
         try {
             requireReachable(reference, static)
         } catch (failed: PatchException) {
@@ -243,6 +257,211 @@ private fun BytecodePatchContext.pinOrderRead(): PinOrderPlan {
     hiddenFits(at < body.size && flow.normal.withIndex().none { (index, next) -> at in next && index != read + 1 } &&
         flow.exceptional.none { at in it }, "something jumps into the pinned order's chat read")
     return PinOrderPlan(method, at, handed[0], handed[1], list)
+}
+
+internal const val UNCOUNTED = "$HIDDEN_CHATS->uncounted(${HIDDEN_OBJECT}J)Z"
+internal const val STORAGE_INSTANCE = "$STORAGE->getInstance(I)$STORAGE"
+internal const val RECOUNT = "$STORAGE->resetAllUnreadCounters(Z)V"
+internal const val STORAGE_QUEUE = "$STORAGE->getStorageQueue()Lorg/telegram/messenger/DispatchQueue;"
+internal const val POST_RUNNABLE = "Lorg/telegram/messenger/DispatchQueue;->postRunnable(Ljava/lang/Runnable;)Z"
+private const val BASE_CONTROLLER = "Lorg/telegram/messenger/BaseController;"
+private const val CURSOR = "Lorg/telegram/SQLite/SQLiteCursor;"
+private const val QUERY = "Lorg/telegram/SQLite/SQLiteDatabase;->queryFinalized(Ljava/lang/String;[Ljava/lang/Object;)$CURSOR"
+private const val CURSOR_NEXT = "$CURSOR->next()Z"
+private const val CURSOR_LONG = "$CURSOR->longValue(I)J"
+private const val UNREAD_ROWS = "SELECT did, folder_id, unread_count, unread_count_i FROM dialogs"
+private const val SPARSE_COUNTS = "Lorg/telegram/messenger/support/LongSparseIntArray;"
+private const val KEY_AT = "$SPARSE_COUNTS->keyAt(I)J"
+private const val VALUE_AT = "$SPARSE_COUNTS->valueAt(I)I"
+private const val WITH_UNREAD = "$STORAGE->dialogsWithUnread:"
+private val MOVE_OBJECTS = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
+private val COPIES = MOVE_OBJECTS + setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
+private val COUNT_TESTS = setOf(Opcode.IF_EQ, Opcode.IF_NE, Opcode.IF_LT, Opcode.IF_GE, Opcode.IF_GT, Opcode.IF_LE,
+    Opcode.IF_EQZ, Opcode.IF_NEZ, Opcode.IF_LTZ, Opcode.IF_GEZ, Opcode.IF_GTZ, Opcode.IF_LEZ)
+
+/** A chat's skip: the hook, its answer and the jump past the count. */
+internal const val UNCOUNTED_SIZE = 3
+
+/**
+ * Where one of MessagesStorage's unread counts has just read a chat's id into [chat] and [chat]+1:
+ * a hidden chat goes on at [to] instead of [at]. [storage] holds the MessagesStorage there and
+ * [scratch] is free to take the hook's answer.
+ */
+internal class CountSkip(val method: MutableMethod, val at: Int, val to: Int, val storage: Int, val chat: Int, val scratch: Int)
+
+/**
+ * The skips in calcUnreadCounters and updateFiltersReadCounter, found and checked before anything
+ * is edited, or [missing], why this build's unread counts can't leave the hidden chats out.
+ */
+internal class UnreadCountsPlan(val skips: List<CountSkip>, val missing: String?) {
+    fun apply(into: (MutableMethod) -> MutableMethod = { it }) {
+        for (skip in skips) {
+            val method = into(skip.method)
+            val stock = method.implementation!!.instructions.count { it.opcode != Opcode.NOP }
+            // Nothing but the read jumps onto [at], so every chat the count reads is asked about.
+            method.addInstructionsWithLabels(skip.at, """
+                invoke-static {v${skip.storage}, v${skip.chat}, v${skip.chat + 1}}, $UNCOUNTED
+                move-result v${skip.scratch}
+                if-nez v${skip.scratch}, :hush_uncounted
+            """, ExternalLabel("hush_uncounted", method.getInstruction(skip.to)))
+            // smali drops an instruction it can't build and only logs it.
+            hiddenFits(method.implementation!!.instructions.count { it.opcode != Opcode.NOP } - stock == UNCOUNTED_SIZE,
+                "the unread count's skip didn't compile whole")
+        }
+    }
+
+    /** The same edits on copies, so a smali problem shows before the app is touched. */
+    fun rehearse() = try {
+        apply { MutableMethod(ImmutableMethod.of(it)) }
+    } catch (failed: RuntimeException) {
+        throw Unhidden("the unread count's skip doesn't compile (${failed.javaClass.simpleName}: ${failed.message})")
+    }
+}
+
+/**
+ * MessagesStorage keeps the unread counts of the folder tabs, All Chats and the archive in two
+ * places. calcUnreadCounters rebuilds them from a walk over the unread chats in the database, and a
+ * hidden chat goes on to the walk's next row. updateFiltersReadCounter adds or drops the chats whose
+ * unread state changed, and a hidden chat takes the way of one whose count didn't change. Both skips
+ * or neither, and anything else leaves the hidden chats in the counts.
+ */
+internal fun BytecodePatchContext.resolveUnreadCounts(): UnreadCountsPlan = try {
+    UnreadCountsPlan(listOf(unreadRowSkip(), readChangeSkip()), null).also {
+        // The hook hands controllerUser this MessagesStorage, and the settings page's recount reaches it by account.
+        hiddenFits(mutableClassDefBy(STORAGE).superclass == BASE_CONTROLLER, "MessagesStorage no longer reads its account the same way")
+        for ((reference, static) in listOf(STORAGE_INSTANCE to true, RECOUNT to false, STORAGE_QUEUE to false, POST_RUNNABLE to false)) {
+            try {
+                requireReachable(reference, static)
+            } catch (failed: PatchException) {
+                throw Unhidden("$reference isn't reachable from the extension")
+            }
+        }
+        it.rehearse()
+    }
+} catch (unhidden: Unhidden) {
+    UnreadCountsPlan(emptyList(), unhidden.message)
+} catch (failed: RuntimeException) {
+    UnreadCountsPlan(emptyList(), "the unread counts can't be read (${failed.javaClass.simpleName}: ${failed.message})")
+}
+
+private fun BytecodePatchContext.storageMethod(name: String, parameters: List<String>): MutableMethod {
+    val found = mutableClassDefByOrNull(STORAGE)?.methods?.filter {
+        it.name == name && it.returnType == "V" && !AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.parameterTypes.map(CharSequence::toString) == parameters
+    }.orEmpty()
+    hiddenFits(found.size == 1, "MessagesStorage.$name is missing or ambiguous")
+    return found.single()
+}
+
+private fun flowOf(method: MutableMethod) = try {
+    ControlFlow.of(method)
+} catch (failed: IllegalArgumentException) {
+    throw Unhidden("the unread counts can't be read (${failed.message})")
+}
+
+/** calcUnreadCounters' walk: the unread chats' query, its cursor's next row, and the chat's id from that row. */
+private fun BytecodePatchContext.unreadRowSkip(): CountSkip {
+    val method = storageMethod("calcUnreadCounters", listOf("Z"))
+    val body = method.controlBody()
+    val queries = body.indices.filter { body[it].opcode == Opcode.CONST_STRING && body[it].controlString()?.startsWith(UNREAD_ROWS) == true }
+    hiddenFits(queries.size == 1, "the unread count's query is missing or ambiguous")
+    val query = queries.single()
+    val run = (query + 1 until body.size).firstOrNull { body[it].opcode == Opcode.INVOKE_VIRTUAL }
+    hiddenFits(run != null && body[run].controlRef() == QUERY && body[run].namedRegisters().getOrNull(1) == (body[query] as OneRegisterInstruction).registerA &&
+        body.getOrNull(run + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT, "the unread count's query changed")
+    val cursor = (body[run!! + 1] as OneRegisterInstruction).registerA
+    val head = run + 2
+    hiddenFits(body.getOrNull(head)?.opcode == Opcode.INVOKE_VIRTUAL && body[head].controlRef() == CURSOR_NEXT &&
+        body[head].namedRegisters() == listOf(cursor), "the unread count's row walk changed")
+    // The row's chat id, the walk's one long column, read before anything else of the row's is counted.
+    val read = (head + 1 until body.size).firstOrNull { body[it].controlRef() == CURSOR_LONG }
+    hiddenFits(read != null && body[read].opcode == Opcode.INVOKE_VIRTUAL && body[read].namedRegisters().firstOrNull() == cursor &&
+        body.getOrNull(read + 1)?.opcode == Opcode.MOVE_RESULT_WIDE, "the unread count's chat read changed")
+    val chat = (body[read!! + 1] as OneRegisterInstruction).registerA
+    val at = read + 2
+    val flow = flowOf(method)
+    // The head is the walk's: later code comes back to it for the next row.
+    hiddenFits(flow.normal.withIndex().any { (index, next) -> index > at && head in next }, "the unread count's row walk changed")
+    // Back at the head, the walk reads nothing the row's start wrote, so the next row starts as it would have.
+    val live = RegisterLiveness.of(method).liveInto(head)
+    hiddenFits((head until at).none { index -> live.any { body[index].writesRegister(it) } },
+        "the unread count's row walk keeps a register its start writes")
+    return countSkip(method, flow, at, head, chat)
+}
+
+/**
+ * updateFiltersReadCounter: the changed chat's id, read right before the split between a chat just
+ * read and one with new messages. A hidden chat goes on the way a chat whose count didn't change
+ * does, past everything the method adds to or takes from the counts.
+ */
+private fun BytecodePatchContext.readChangeSkip(): CountSkip {
+    val method = storageMethod("updateFiltersReadCounter", listOf(SPARSE_COUNTS, SPARSE_COUNTS, "Z"))
+    val body = method.controlBody()
+    val read = method.localRegisterCount() + 3
+    val splits = body.indices.filter { index ->
+        index >= 2 && body[index - 2].opcode == Opcode.INVOKE_VIRTUAL && body[index - 2].controlRef() == KEY_AT &&
+            body[index - 1].opcode == Opcode.MOVE_RESULT_WIDE && body[index].opcode == Opcode.IF_EQZ && body[index].namedRegisters() == listOf(read)
+    }
+    hiddenFits(splits.size == 1, "the read counter's split is missing or ambiguous")
+    val at = splits.single()
+    val chat = (body[at - 1] as OneRegisterInstruction).registerA
+    // The read side's first step takes the chat out of dialogsWithUnread (or dialogsWithMentions).
+    val side = at + 1
+    val take = body.getOrNull(side + 1)
+    val drop = body.getOrNull(side + 2)
+    val unread = take?.controlField()
+    hiddenFits(body.getOrNull(side)?.opcode == Opcode.IF_NEZ && take?.opcode == Opcode.IGET_OBJECT && unread != null &&
+        take.controlRef()!!.startsWith(WITH_UNREAD) && drop?.opcode == Opcode.INVOKE_VIRTUAL &&
+        drop.namedRegisters() == listOf((take as TwoRegisterInstruction).registerA, chat, chat + 1) &&
+        drop.controlRef()!!.let { it.startsWith("${unread.type}->") && it.endsWith("(J)V") },
+        "the read counter's read side changed")
+    // A changed chat's way starts by keeping a register the id is about to overwrite.
+    val copy = at - 3
+    val kept = body.getOrNull(copy)?.namedRegisters().orEmpty()
+    hiddenFits(copy >= 0 && body[copy].opcode in COPIES && kept.size == 2 && kept[1] in listOf(chat, chat + 1) && kept[0] !in listOf(chat, chat + 1),
+        "the read counter's changed chat no longer starts the same way")
+    val value = (copy - 1 downTo 0).firstOrNull { body[it].controlRef() == VALUE_AT }
+    hiddenFits(value != null && body[value].opcode == Opcode.INVOKE_VIRTUAL && body.getOrNull(value + 1)?.opcode == Opcode.MOVE_RESULT,
+        "the read counter's count read changed")
+    val counted = value!! + 1
+    val count = (body[counted] as OneRegisterInstruction).registerA
+    val flow = flowOf(method)
+    // The unchanged chat's way, where a test of the count goes: the same copy, then on to the next chat.
+    val unchanged = body.indices.filter { index ->
+        index != copy && body[index].opcode == body[copy].opcode && body[index].namedRegisters() == kept &&
+            (counted until copy).any { body[it].opcode in COUNT_TESTS && count in body[it].namedRegisters() && index in flow.normal[it] }
+    }
+    hiddenFits(unchanged.size == 1, "the read counter's unchanged chat is missing or ambiguous")
+    val to = unchanged.single() + 1
+    // Past the copy, that way reads nothing a changed chat's start leaves different.
+    val live = RegisterLiveness.of(method).liveInto(to)
+    hiddenFits(chat !in live && chat + 1 !in live && flow.definitionReaches(counted, copy, kept[1]) &&
+        flow.definitionReaches(counted, unchanged.single(), kept[1]) &&
+        (live - kept[0]).all { flow.definitionReaches(counted, to, it) && flow.definitionReaches(counted, at, it) },
+        "the read counter's next chat keeps a register a changed chat writes")
+    return countSkip(method, flow, at, to, chat).also {
+        hiddenFits((take as TwoRegisterInstruction).registerB == it.storage, "the read counter's storage register changed")
+    }
+}
+
+private fun countSkip(method: MutableMethod, flow: ControlFlow, at: Int, to: Int, chat: Int): CountSkip {
+    hiddenFits(flow.normal.withIndex().none { (index, next) -> at in next && index != at - 1 } && flow.exceptional.none { at in it },
+        "something jumps into the unread count's chat read")
+    // `this`, as the method's first instruction copies it or as it came, still the same at the skip.
+    val self = method.localRegisterCount()
+    val first = method.controlBody().first()
+    val copy = first.namedRegisters()
+    val storage = if (first.opcode in MOVE_OBJECTS && copy.size == 2 && copy[1] == self) copy[0] else self
+    hiddenFits(flow.definitionReaches(0, at, storage), "the unread count's storage register changed")
+    // The hook's 4-bit form.
+    hiddenFits(storage in 0..15 && chat in 0..14 && storage != chat && storage != chat + 1, "the unread count's registers don't fit the skip")
+    val scratch = try {
+        method.freeLocalsAt("the unread count's skip", at, 1, listOf(to), highest = 255).single()
+    } catch (failed: PatchException) {
+        throw Unhidden(failed.message ?: "the unread count's skip has no free register")
+    }
+    hiddenFits(scratch != storage && scratch != chat && scratch != chat + 1, "the unread count's skip has no free register")
+    return CountSkip(method, at, to, storage, chat, scratch)
 }
 
 internal const val MENU_ITEM = "$HIDDEN_CHATS->menuItem($HIDDEN_OBJECT$HIDDEN_OBJECT)V"
@@ -460,8 +679,9 @@ internal fun BytecodePatchContext.writeHideMenuStubs(refs: HideMenuRefs) {
 
 /** Gives HiddenChats' stubs this build's chat lists, account and refresh. [sort] is sortDialogs itself. */
 internal fun BytecodePatchContext.writeHiddenChatsStubs(sort: String) {
+    // Handed MessagesController by the sort and MessagesStorage by the unread counts, both BaseControllers.
     writeStub(HIDDEN_CHATS, "controllerUser", 3, """
-        check-cast p0, $MESSAGES_CONTROLLER
+        check-cast p0, $BASE_CONTROLLER
         invoke-virtual {p0}, $GET_USER_CONFIG
         move-result-object v0
         invoke-virtual {v0}, $CLIENT_USER_ID
@@ -534,6 +754,29 @@ internal fun BytecodePatchContext.writeHiddenChatsStubs(sort: String) {
         const/4 v2, 0x0
         new-array v2, v2, [Ljava/lang/Object;
         invoke-virtual {v0, v1, v2}, $POST_NOTIFICATION
+        return-void
+    """)
+}
+
+/**
+ * Gives HiddenChats.recount this build's rebuild of every folder tab's unread count, false being
+ * every folder and not only the ones that leave muted chats out, and onStorageThread the queue it
+ * runs on.
+ */
+internal fun BytecodePatchContext.writeRecountStub() {
+    writeStub(HIDDEN_CHATS, "recount", 3, """
+        invoke-static {p0}, $STORAGE_INSTANCE
+        move-result-object v0
+        const/4 v1, 0x0
+        invoke-virtual {v0, v1}, $RECOUNT
+        return-void
+    """)
+    writeStub(HIDDEN_CHATS, "onStorageThread", 3, """
+        invoke-static {p0}, $STORAGE_INSTANCE
+        move-result-object v0
+        invoke-virtual {v0}, $STORAGE_QUEUE
+        move-result-object v0
+        invoke-virtual {v0, p1}, $POST_RUNNABLE
         return-void
     """)
 }

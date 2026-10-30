@@ -50,6 +50,17 @@ public class MarkColorsTest {
         assertEquals(0x802ECC71, MarkColors.fds(0x80E41E3F, "NOTIFICATION_BADGE", "#2ECC71", ""));
     }
 
+    /** #297: the selected tab takes the picked code, keeps Facebook's alpha, and a hidden one stays hidden. */
+    @Test
+    public void aPickedTabColorTakesTheSelectedTab() {
+        assertEquals(0xFF2ECC71, MarkColors.tabBarSelected(0xFFF2F4F7, "#2ECC71"));
+        assertEquals(0x802ECC71, MarkColors.tabBarSelected(0x80F2F4F7, "#2ECC71"));
+        assertEquals(0, MarkColors.tabBarSelected(0, "#2ECC71"));
+        assertEquals(0xFFF2F4F7, MarkColors.tabBarSelected(0xFFF2F4F7, ""));
+        assertEquals(0xFFF2F4F7, MarkColors.tabBarSelected(0xFFF2F4F7, null));
+        assertEquals(0xFFF2F4F7, MarkColors.tabBarSelected(0xFFF2F4F7, "green"));
+    }
+
     @Test
     public void theRowsKeepCodesInCapitals() {
         assertEquals("", MarkColors.stored("  "));

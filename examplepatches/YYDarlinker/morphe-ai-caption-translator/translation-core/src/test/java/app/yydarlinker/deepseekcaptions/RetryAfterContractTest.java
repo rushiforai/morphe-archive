@@ -118,16 +118,14 @@ public class RetryAfterContractTest {
     RebuildController.Session session() throws Exception {
         RebuildController.Session s=new RebuildController.Session(RuntimeEnvironment.getApplication(),"fixture",owner(),"scope","zh-Hans",config("fixture-key"),false,true,language);
         s.source=source;s.blocks=Collections.singletonList(block);s.cacheKey=RebuildCache.identity(source,s.config,"zh-Hans",language);
-        s.states=new int[]{RebuildController.WAITING};s.attempts=new int[1];s.retryAt=new long[1];s.reasons=new String[1];
-        s.plans=new RebuildProtocol.Plan[1];s.pendingPlans=new RebuildProtocol.Plan[1];s.provisional=new RebuildProtocol.Plan[1];
-        s.jobs=new RebuildController.Job[1];s.cacheChecked=new boolean[]{true};s.slowRetries=new int[1];s.pageRepairCount=new int[1];s.uncoveredSince=new long[1];
+        s.work.initialize(1);s.work.slots[0].cacheChecked=true;
         Field active=RebuildController.class.getDeclaredField("active");active.setAccessible(true);active.set(null,s);return s;
     }
     void invoke(String name,RebuildController.Session s) throws Exception {
         Method m=RebuildController.class.getDeclaredMethod(name,RebuildController.Session.class);m.setAccessible(true);m.invoke(null,s);
     }
     void reject(RebuildController.Session s,Exception failure) throws Exception {
-        RebuildController.Job job=new RebuildController.Job(s,0,true);s.jobs[0]=job;s.states[0]=RebuildController.RUNNING;s.attempts[0]=Math.max(1,s.attempts[0]);
+        RebuildController.Job job=new RebuildController.Job(s,0,true);s.work.slots[0].attempt=job.attempt;s.work.slots[0].state=RebuildController.RUNNING;s.work.slots[0].attempts=Math.max(1,s.work.slots[0].attempts);
         Method m=RebuildController.class.getDeclaredMethod("rejected",RebuildController.Session.class,RebuildController.Job.class,RebuildPlanner.Block.class,Exception.class);
         m.setAccessible(true);m.invoke(null,s,job,block,failure);
     }
@@ -135,14 +133,14 @@ public class RetryAfterContractTest {
     void ordinaryGate(String header,int status) throws Exception {
         server.enqueue(error(status,"fixture wait").setHeader("Retry-After",header));
         RebuildApi.Failure f=failed(config("fixture-key"));RebuildController.Session s=session();
-        long start=SystemClock.elapsedRealtime();reject(s,f);long gate=s.providerRetry;
-        assertEquals(start+Math.max(1200,f.delay),s.retryAt[0]);assertEquals(start+Math.max(5000,f.delay),gate);
-        server.enqueue(ok());invoke("schedule",s);assertEquals(1,server.getRequestCount());assertNull(s.jobs[0]);
-        advance(gate-start-1);invoke("schedule",s);assertEquals(1,server.getRequestCount());assertNull(s.jobs[0]);
-        System.out.println("M5B_GATE before elapsed="+SystemClock.elapsedRealtime()+" retryAt="+s.retryAt[0]+" providerRetry="+gate+" http="+server.getRequestCount());
+        long start=SystemClock.elapsedRealtime();reject(s,f);long gate=s.work.providerRetry;
+        assertEquals(start+Math.max(1200,f.delay),s.work.slots[0].retryAt);assertEquals(start+Math.max(5000,f.delay),gate);
+        server.enqueue(ok());invoke("schedule",s);assertEquals(1,server.getRequestCount());assertNull(s.work.slots[0].attempt);
+        advance(gate-start-1);invoke("schedule",s);assertEquals(1,server.getRequestCount());assertNull(s.work.slots[0].attempt);
+        System.out.println("M5B_GATE before elapsed="+SystemClock.elapsedRealtime()+" retryAt="+s.work.slots[0].retryAt+" providerRetry="+gate+" http="+server.getRequestCount());
         advance(1);invoke("schedule",s);
         assertTrue("deadline admits and accepts a real POST",accepted.await(3,TimeUnit.SECONDS));
-        synchronized(s){assertNotNull(s.plans[0]);assertEquals(RebuildController.READY,s.states[0]);assertEquals(2,s.attempts[0]);}
+        synchronized(s){assertNotNull(s.work.slots[0].accepted);assertEquals(RebuildController.READY,s.work.slots[0].state);assertEquals(2,s.work.slots[0].attempts);}
         assertEquals(2,server.getRequestCount());assertEquals(2,attempts);
         System.out.println("M5B_GATE recovered elapsed="+SystemClock.elapsedRealtime()+" http="+server.getRequestCount()+" accepted=true delay="+f.delay);
     }
@@ -153,28 +151,28 @@ public class RetryAfterContractTest {
     }
     @Test public void shorterServerDelayCannotShortenLocalBackoffOrExistingProviderGate() throws Exception {
         server.enqueue(error(503,"fixture wait").setHeader("Retry-After","300"));
-        RebuildApi.Failure f=failed(config("fixture-key"));RebuildController.Session s=session();reject(s,f);long gate=s.providerRetry;
+        RebuildApi.Failure f=failed(config("fixture-key"));RebuildController.Session s=session();reject(s,f);long gate=s.work.providerRetry;
         server.enqueue(error(429,"fixture short wait").setHeader("Retry-After","1"));
-        f=failed(config("fixture-key"));s.attempts[0]=3;reject(s,f);
-        assertEquals(gate,s.retryAt[0]);assertEquals(gate,s.providerRetry);
-        advance(15000);invoke("schedule",s);assertEquals(2,server.getRequestCount());assertNull(s.jobs[0]);
-        RebuildController.Session fresh=session();fresh.attempts[0]=3;reject(fresh,f);
-        assertEquals("1s server delay cannot shorten exact 15s backoff in a fresh Session",SystemClock.elapsedRealtime()+15000,fresh.retryAt[0]);
-        assertEquals(SystemClock.elapsedRealtime()+5000,fresh.providerRetry);
-        assertEquals(gate,s.retryAt[0]);assertEquals(gate,s.providerRetry);
+        f=failed(config("fixture-key"));s.work.slots[0].attempts=3;reject(s,f);
+        assertEquals(gate,s.work.slots[0].retryAt);assertEquals(gate,s.work.providerRetry);
+        advance(15000);invoke("schedule",s);assertEquals(2,server.getRequestCount());assertNull(s.work.slots[0].attempt);
+        RebuildController.Session fresh=session();fresh.work.slots[0].attempts=3;reject(fresh,f);
+        assertEquals("1s server delay cannot shorten exact 15s backoff in a fresh Session",SystemClock.elapsedRealtime()+15000,fresh.work.slots[0].retryAt);
+        assertEquals(SystemClock.elapsedRealtime()+5000,fresh.work.providerRetry);
+        assertEquals(gate,s.work.slots[0].retryAt);assertEquals(gate,s.work.providerRetry);
         System.out.println("M5B_GATE retained="+gate+" independentLocalBackoff=15000 http="+server.getRequestCount());
     }
     @Test public void hugeWireDelaySaturatesActualProviderAndBlockGates() throws Exception {
         for(String header:new String[]{"9223372036854776","9223372036854775807","99999999999999999999999999999999"}){
             server.enqueue(error(429,"fixture huge wait").setHeader("Retry-After",header));
             RebuildApi.Failure f=failed(config("fixture-key"));assertEquals(Long.MAX_VALUE,f.delay);
-            RebuildController.Session s=session();reject(s,f);assertEquals(Long.MAX_VALUE,s.retryAt[0]);assertEquals(Long.MAX_VALUE,s.providerRetry);
-            int count=server.getRequestCount();advance(300000);invoke("schedule",s);assertEquals(count,server.getRequestCount());assertNull(s.jobs[0]);
+            RebuildController.Session s=session();reject(s,f);assertEquals(Long.MAX_VALUE,s.work.slots[0].retryAt);assertEquals(Long.MAX_VALUE,s.work.providerRetry);
+            int count=server.getRequestCount();advance(300000);invoke("schedule",s);assertEquals(count,server.getRequestCount());assertNull(s.work.slots[0].attempt);
             // Isolate the per-block gate as well as the combined/provider gate.
-            s.providerRetry=0;invoke("schedule",s);assertEquals(count,server.getRequestCount());assertNull(s.jobs[0]);
-            s.providerRetry=Long.MAX_VALUE;reject(s,new RebuildApi.Failure("http_503",false,17000));
-            assertEquals(Long.MAX_VALUE,s.providerRetry);invoke("schedule",s);assertEquals(count,server.getRequestCount());assertNull(s.jobs[0]);
-            System.out.println("M5B_OVERFLOW header="+header+" providerRetry="+s.providerRetry+" http="+count);
+            s.work.providerRetry=0;invoke("schedule",s);assertEquals(count,server.getRequestCount());assertNull(s.work.slots[0].attempt);
+            s.work.providerRetry=Long.MAX_VALUE;reject(s,new RebuildApi.Failure("http_503",false,17000));
+            assertEquals(Long.MAX_VALUE,s.work.providerRetry);invoke("schedule",s);assertEquals(count,server.getRequestCount());assertNull(s.work.slots[0].attempt);
+            System.out.println("M5B_OVERFLOW header="+header+" providerRetry="+s.work.providerRetry+" http="+count);
             RebuildController.stop();
         }
     }
@@ -191,8 +189,8 @@ public class RetryAfterContractTest {
             MockResponse response=error(status,"fixture failure");if(!header.isEmpty())response.setHeader("Retry-After",header);server.enqueue(response);
             int prior=server.getRequestCount();RebuildApi.Failure f=failed(config("fixture-key"));assertEquals(header.equals("17")?17000:0,f.delay);
             assertFalse(f.configuration);assertEquals(prior+1,server.getRequestCount());
-            RebuildController.Session s=session();reject(s,f);assertEquals(SystemClock.elapsedRealtime()+Math.max(1200,f.delay),s.retryAt[0]);
-            assertEquals(SystemClock.elapsedRealtime()+Math.max(5000,f.delay),s.providerRetry);RebuildController.stop();
+            RebuildController.Session s=session();reject(s,f);assertEquals(SystemClock.elapsedRealtime()+Math.max(1200,f.delay),s.work.slots[0].retryAt);
+            assertEquals(SystemClock.elapsedRealtime()+Math.max(5000,f.delay),s.work.providerRetry);RebuildController.stop();
         }
         assertEquals(12,attempts);
     }

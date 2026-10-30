@@ -1,0 +1,120 @@
+name: 🐞 Bug report
+description: Something in HushMessenger doesn't work the way it should.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # HushMessenger bug report
+
+        Before you start:
+
+        - **Quickest way in:** open HushMessenger's settings and tap **App > Report a problem**. It opens a new issue with your versions, phone and the switches you have on already filled in.
+        - **Check whether it's already reported.** Search the [open and closed bug reports](https://github.com/SysAdminDoc/HushMessenger/issues?q=is%3Aissue%20label%3Abug). If yours was closed and it still happens, comment on it and I'll reopen it. GitHub doesn't let the person who reported something reopen it.
+        - **Patching stopped with an error?** Check that your Messenger build is in the [supported builds](https://github.com/SysAdminDoc/HushMessenger#supported-messenger-builds) list, then paste the error below.
+  - type: input
+    id: versions
+    attributes:
+      label: HushMessenger and Messenger versions
+      description: HushMessenger's version is under **App > About** in its settings (long-press Messenger's icon and tap **Patch controls**). Messenger's is on its App info page in Android's settings.
+      placeholder: HushMessenger 0.27.0 on Messenger 585.0.0.53.94
+    validations:
+      required: true
+  - type: dropdown
+    id: install_route
+    attributes:
+      label: How did you get your patched Messenger?
+      options:
+        - Patched it with Morphe Manager (the Android app)
+        - Patched it with Morphe Desktop (on a computer)
+        - Patched it with morphe-cli
+        - A prebuilt APK someone else made
+        - I don't know
+    validations:
+      required: true
+  - type: input
+    id: route_version
+    attributes:
+      label: Which version of it, or where did the APK come from?
+      description: Manager and Desktop show their version in their own settings. For a prebuilt APK, link the page you downloaded it from.
+      placeholder: Morphe Manager 2.2.0
+  - type: input
+    id: patches_source
+    attributes:
+      label: Which patches source did you add?
+      description: In Morphe Manager, open **Sources** and copy the address on the HushMessenger card. Other sources carry HushMessenger's patches too, built from other code, so this tells them apart. Skip it if you used a prebuilt APK.
+      placeholder: github.com/SysAdminDoc/HushMessenger
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: How was it installed?
+      options:
+        - Standard install (re-signed)
+        - Root Mount
+        - I don't know
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Phone and Android version
+      description: Both are in your phone's Settings, under About phone. If this Messenger is a clone, say which kind too, such as **Clone install under another package name**, Dual Apps, Secure Folder or a work profile.
+      placeholder: Samsung Galaxy S22, Android 16
+    validations:
+      required: true
+  - type: dropdown
+    id: affected_surface
+    attributes:
+      label: Where did it happen?
+      options:
+        - The chat list
+        - Inside a chat
+        - Calls
+        - Stories or notes
+        - Notifications
+        - The Menu tab
+        - Sending photos or videos
+        - Meta AI
+        - HushMessenger settings
+        - Patching or installing
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: What went wrong?
+      description: What happened, and what did you expect instead? A screenshot or a screen recording helps a lot. Cover names, faces and messages first.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: What did you tap, in order?
+      description: Start from opening Messenger. Include every HushMessenger switch you changed before it went wrong, and say whether it still happens after **Restart Messenger**.
+      placeholder: |
+        1. Opened Messenger
+        2. Opened a group chat
+        3. Long-pressed a message and the menu was empty
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: Your setup
+      description: In HushMessenger's settings, open **App** and tap **Copy setup**, then paste it here. It lists your versions and which switches are on, with no chats or account details in it. Look it over before you post it.
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Anything else?
+      description: A workaround you found, an older version where it still worked, or anything else that might help.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Before you send it
+      options:
+        - label: I searched the open and closed bug reports and this isn't one of them.
+          required: true
+        - label: I answered every question above as well as I could.
+          required: true

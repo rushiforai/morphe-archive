@@ -18,6 +18,7 @@
 * **TikTok:** Ayar axtarışı autoplay, PiP və AI kimi gündəlik adları tanıyır və seçim sətrini onun istənilən variantı ilə tapır.
 * **TikTok:** Lenti müəyyən saatlarda kilidlə seçdiyiniz saatlarda lenti özü kilidləyir və kilid paneli onun nə vaxt yenidən açılacağını göstərir.
 * **TikTok:** Yalnız Wi-Fi ilə yadda saxla yadda saxlamaları mobil məlumatdan kənarda saxlayır. Yadda saxlama Wi-Fi üçün 30 dəqiqəyə qədər gözləyir və onu Yükləmələrdən ləğv edə bilərsiniz.
+* **TikTok:** Yeni açar söhbət stikerləri üçün Hushfeed-in Medianı saxlayın qutusunu söndürür (#274).
 * **TikTok:** PineDrama-da Gələnlər qutusu açarları indi işləyir, Söhbətləri gizlət də daxil olmaqla (#156).
 * **TikTok:** PineDrama-da ayarlardakı versiya sətri TikTok əvəzinə PineDrama-nı və onun quruluşunu göstərir (#156).
 * **TikTok:** Səhifənin aşağısında olan ayar axtarışı nəticəsi indi birbaşa öz sətrində açılır.
@@ -61,6 +62,7 @@
 * **TikTok:** Ekran yazısı Android-dən yalnız yamaqlanmış tətbiqin səsini tutmağı istəyir.
 * **TikTok:** Service+ təmizlənməsi TikTok-un göstərdiyi eyni ilk LIVE önizləmə elementini yoxlayır (#94).
 * **TikTok:** Şərh fasiləsi TikTok-un ilk irəliləyiş yenilənməsindən əvvəl ilk kadrın oynadığını bilə bilir (#151).
+* **TikTok:** TikTok-un Auto scroll düyməsini gizlədin videonun sağ yuxarısındakı yumru Auto scroll düyməsini də gizlədir (#234).
 
 ## 0.79.0 (2026-10-24)
 

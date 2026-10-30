@@ -7,7 +7,7 @@ Spoilers are expanded (open by default) if:
   1. Total patch count <= AUTO_EXPAND_THRESHOLD.
   2. The README marker explicitly says: <!-- PATCHES_START EXPANDED -->
 
-python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [README.md]
+python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [README.md] [counterpart.json]
 """
 
 import json
@@ -18,13 +18,14 @@ from pathlib import Path
 
 
 if len(sys.argv) < 3:
-    print("Usage: generate_patches_readme.py <owner/repo> <branch> [json] [readme]")
+    print("Usage: generate_patches_readme.py <owner/repo> <branch> [json] [readme] [counterpart.json]")
     sys.exit(1)
 
 repo_full   = sys.argv[1]
 branch      = sys.argv[2]
 json_path   = Path(sys.argv[3]) if len(sys.argv) > 3 else Path("patches-list.json")
 readme_path = Path(sys.argv[4]) if len(sys.argv) > 4 else Path("README.md")
+counterpart_path = Path(sys.argv[5]) if len(sys.argv) > 5 else None
 
 
 if "/" not in repo_full:
@@ -35,6 +36,21 @@ owner, repo = repo_full.split("/", 1)
 
 with open(json_path, encoding="utf-8") as f:
     data = json.load(f)
+source_version = data['version'].lstrip('v')
+prerelease_data = None
+if counterpart_path:
+    counterpart = json.loads(counterpart_path.read_text())
+    if counterpart:
+        if '<!-- PATCHES_START SUMMARY -->' not in readme_path.read_text():
+            raise ValueError('Counterpart metadata requires the summary table format')
+        current_is_preview = bool(re.match(r'^v?\d+\.\d+\.\d+-', data['version']))
+        other_is_preview = bool(re.match(r'^v?\d+\.\d+\.\d+-', counterpart['version']))
+        if current_is_preview == other_is_preview:
+            raise ValueError('Expected one stable and one prerelease catalogue')
+        if current_is_preview:
+            data, prerelease_data = counterpart, data
+        else:
+            prerelease_data = counterpart
 
 
 # Emoji and label suffix for each form factor. Mobile and unspecified use no suffix.
@@ -53,7 +69,14 @@ def pkg_emoji(form_factor):
 def pkg_label(name, form_factor):
     """Return the app name, with the form factor appended if it is not mobile."""
     suffix = FORM_FACTORS.get(form_factor, (None, None))[1]
-    return f"{name} ({suffix})" if suffix else name
+    return f"{name} ({suffix})" if suffix and not name.endswith(suffix) else name
+
+
+def entry_versions(entry):
+    return sorted({str(target['version']) for patch in entry['patches'].values()
+                   for package in patch.get('compatiblePackages') or []
+                   if package['packageName'] == entry['package'] and package.get('formFactor') == entry['form_factor']
+                   for target in package.get('targets', [])})
 
 
 # Group patches by package and form factor; patches with no compatiblePackages are universal.
@@ -79,6 +102,7 @@ for patch in data["patches"]:
             by_pkg[key] = {
                 "name":    pkg_label(name, form_factor),
                 "package": pkg,
+                "form_factor": form_factor,
                 "emoji":   pkg_emoji(form_factor),
                 "patches": {},
                 "targets": pkg_entry.get("targets", []),
@@ -234,7 +258,39 @@ expanded = (
 if 'SUMMARY' in actual_start:
     # The full per-patch descriptions live on the bilingual documentation site.
     # Keep the original full-catalogue behaviour for existing normal markers.
+    # Use the same channel comparison as the homepage; only table presentation
+    # combines channels. Neither source metadata file is changed.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts'))
+    from generate_docs_catalog import _app_groups, _app_profile
+    if prerelease_data:
+        stable_groups = _app_groups(data)
+        for key, group in _app_groups(prerelease_data).items():
+            package = group['package']
+            preview = {
+                'name': pkg_label(package['name'], package.get('formFactor')),
+                'package': package['packageName'], 'form_factor': package.get('formFactor'),
+                'patches': {patch['name']: patch for patch, _ in group['patches']},
+                'targets': package.get('targets', []),
+            }
+            if key not in by_pkg:
+                by_pkg[key] = dict(preview, prerelease_only=True)
+            elif _app_profile(stable_groups[key]) != _app_profile(group):
+                by_pkg[key]['prerelease'] = preview
+    elif re.match(r'^v?\d+\.\d+\.\d+-', data['version']):
+        for entry in by_pkg.values():
+            entry['prerelease_only'] = True
     slugs = {
+        'be.persgroep.android.news.mobiledm': 'demorgen',
+        'be.humo.tvgids': 'humo',
+        'be.persgroep.android.news.mobilehln': 'hln',
+        'com.twipemobile.nbmobile': 'nieuwsblad',
+        'com.twipemobile.dsmobile': 'dsnieuws',
+        'com.talpa.kijk': 'kijk-android-tv',
+        'nl.uitzendinggemist': 'npo-start-android-tv',
+        'nl.tvgids': 'tvgids-nl',
+        'nl.rtl.videoland.v2': 'videoland-android-tv',
+        'nl.marktplaats.android': 'marktplaats',
+        'nl.negentwee': '9292',
         'com.supportware.Buienradar': 'buienradar', 'nl.flitsmeister': 'flitsmeister', 'nl.dumpert': 'dumpert',
         'nl.rtl.rtlnieuws': 'rtl-nieuws', 'nl.omroepbrabant.android': 'omroep-brabant',
         'nl.vi': 'voetbal-international',
@@ -246,13 +302,18 @@ if 'SUMMARY' in actual_start:
         'com.xs2theworld.weeronline': 'weeronline', 'nl.weerplaza.app': 'weerplaza',
     }
     site = 'https://morphe-patches.neerdael.nl'
-    lines = [f'**Patch bundle [v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})** · `{branch}` · {len(by_pkg)} apps · {total} patches']
+    if prerelease_data:
+        preview_version = prerelease_data['version'].lstrip('v')
+        lines = [f'**Patch bundles:** [Stable v{ver}](https://github.com/{repo_full}/releases/tag/v{ver}) · '
+                 f'[Pre-release v{preview_version}](https://github.com/{repo_full}/releases/tag/v{preview_version}) · {len(by_pkg)} apps']
+    else:
+        lines = [f'**Patch bundle [v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})** · `{branch}` · {len(by_pkg)} apps · {total} patches']
     categories = [
         ('Weather', {'buienalarm', 'buienradar', 'weeronline', 'weerplaza'}),
-        ('News and reading', {'ad', 'ftm', 'nrc', 'nunl', 'parool', 'trouw', 'volkskrant', 'rtl-nieuws', 'omroep-brabant', 'voetbal-international', 'nos-teletekst'}),
-        ('Traffic and navigation', {'flitsmeister'}),
-        ('Entertainment', {'dumpert'}),
-        ('Other apps', set()),
+        ('News and reading', {'demorgen', 'humo', 'hln', 'nieuwsblad', 'dsnieuws', 'ad', 'ftm', 'nrc', 'nunl', 'parool', 'trouw', 'volkskrant', 'rtl-nieuws', 'omroep-brabant', 'voetbal-international', 'nos-teletekst'}),
+        ('Traffic and navigation', {'9292', 'flitsmeister'}),
+        ('Entertainment', {'dumpert', 'tvgids-nl', 'kijk-android-tv', 'npo-start-android-tv', 'videoland-android-tv'}),
+        ('Other apps', {'marktplaats'}),
     ]
     for category, members in categories:
         entries = [entry for entry in by_pkg.values()
@@ -267,11 +328,16 @@ if 'SUMMARY' in actual_start:
             link = f'{site}/apps/{slug}/' if slug else f'{site}/apps/'
             if branch == 'dev' and slug:
                 link = f'https://github.com/{repo_full}/blob/dev/docs/site/en/apps/{slug}.md'
-            packages = [cp for p in entry['patches'].values() for cp in (p.get('compatiblePackages') or [])
-                        if cp['packageName'] == entry['package']]
+            preview = entry.get('prerelease')
+            patches = [*entry['patches'].values(), *(preview['patches'].values() if preview else [])]
+            packages = [cp for p in patches for cp in (p.get('compatiblePackages') or [])
+                        if cp['packageName'] == entry['package'] and cp.get('formFactor') == entry['form_factor']]
             versions = sorted({str(t['version']) for cp in packages for t in cp.get('targets', [])})
+            version_text = ', '.join(versions)
+            if preview and entry_versions(entry) != entry_versions(preview):
+                version_text = ', '.join(entry_versions(entry)) + ' (stable)<br>' + ', '.join(entry_versions(preview)) + ' (pre-release)'
             formats = ', '.join(sorted({cp.get('apkFileType', '—') for cp in packages}))
-            names = entry['patches'].keys()
+            names = {patch['name'] for patch in patches}
             changes = [label for label, present in [
                 ('Ads', 'Hide ads' in names), ('Tracking', 'Disable tracking' in names),
                 ('Prompts', any(n in names for n in ('Skip consent screens', 'Hide Premium banner', 'Hide Pro notices'))),
@@ -281,7 +347,9 @@ if 'SUMMARY' in actual_start:
                 ('Partner services', 'Disable partner services' in names),
                 ('Newspaper tab', 'Hide newspaper tab' in names),
             ] if present]
-            lines.append(f"| [{entry['name']}]({link}) | {' · '.join(changes) or 'See guide'} | {', '.join(versions)} | {formats} | {len(entry['patches'])} |")
+            badge = ' **Pre-release**' if preview or entry.get('prerelease_only') else ''
+            count = f"{len(entry['patches'])} stable / {len(preview['patches'])} pre-release" if preview else str(len(entry['patches']))
+            lines.append(f"| [{entry['name']}]({link}){badge} | {' · '.join(changes) or 'See guide'} | {version_text} | {formats} | {count} |")
     if universal:
         lines += ['', f'**Universal patches:** {len(universal)}. See individual compatibility in the full catalogue.']
     catalogue = f'{site}/reference/catalogue/'
@@ -307,4 +375,4 @@ new_readme = re.sub(
     flags=re.DOTALL,
 )
 readme_path.write_text(new_readme, encoding="utf-8")
-print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")
+print(f"✅ Injected patches section into {readme_path} (v{source_version}, branch={branch}, expanded={expanded})")

@@ -72,7 +72,10 @@ public final class InboxRefresh {
         }
     }
 
-    /** The patch's proof, "Lowner;->subscribe(Lowner;)V|Lowner;->count:I", bound to the supplier's own class. */
+    /**
+     * The patch's proof, "Lowner;->subscribe(Lowner;Z)V|Lowner;->count:I", bound to the supplier's own class. The flag is
+     * true, as in stock's own retries of the same subscribe call.
+     */
     static final class Route {
         private final Method subscribe;
         private final Field listed;
@@ -85,14 +88,14 @@ public final class InboxRefresh {
         static Route of(String route, Class<?> owner) throws ReflectiveOperationException {
             String type = "L" + owner.getName().replace('.', '/') + ";";
             String[] parts = route.split("\\|", -1);
-            String call = "(" + type + ")V";
+            String call = "(" + type + "Z)V";
             if (parts.length != 2 || !parts[0].startsWith(type + "->") || !parts[0].endsWith(call)
                     || !parts[1].startsWith(type + "->") || !parts[1].endsWith(":I")) {
                 throw new IllegalStateException("The chat list route doesn't name this supplier");
             }
             String name = parts[0].substring(type.length() + 2, parts[0].length() - call.length());
             String count = parts[1].substring(type.length() + 2, parts[1].length() - 2);
-            Method subscribe = owner.getDeclaredMethod(name, owner);
+            Method subscribe = owner.getDeclaredMethod(name, owner, boolean.class);
             Field listed = owner.getDeclaredField(count);
             if (!Modifier.isStatic(subscribe.getModifiers()) || subscribe.getReturnType() != void.class
                     || Modifier.isStatic(listed.getModifiers()) || listed.getType() != int.class) {
@@ -109,7 +112,7 @@ public final class InboxRefresh {
 
         void subscribe(Object supplier) throws Throwable {
             try {
-                subscribe.invoke(null, supplier);
+                subscribe.invoke(null, supplier, true);
             } catch (InvocationTargetException error) {
                 throw error.getCause() != null ? error.getCause() : error;
             }

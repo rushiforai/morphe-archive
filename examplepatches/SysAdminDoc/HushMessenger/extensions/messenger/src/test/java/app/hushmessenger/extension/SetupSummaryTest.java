@@ -86,7 +86,7 @@ public class SetupSummaryTest {
     @Test public void analyticsStoresListNamesAndSizesOnly() throws Exception {
         java.io.File data = java.nio.file.Files.createTempDirectory("hush-data").toFile();
         try {
-            assertEquals("none", SettingsActivity.analyticsStores(data));
+            assertEquals("none", SetupSummary.analyticsStores(data));
             java.io.File batches = new java.io.File(data, "files/xanalytics/batches");
             assertTrue(batches.mkdirs());
             java.nio.file.Files.write(new java.io.File(batches, "1.batch").toPath(), new byte[] {1, 2, 3});
@@ -95,10 +95,10 @@ public class SetupSummaryTest {
             // A file named like a store isn't one, and a store's own subfolders aren't listed again.
             java.nio.file.Files.write(new java.io.File(data, "analytics.txt").toPath(), new byte[] {4});
             assertTrue(new java.io.File(data, "app_analytics/analytics_old").mkdirs());
-            assertEquals("app_analytics 0 files 0 bytes, files/xanalytics 1 files 3 bytes", SettingsActivity.analyticsStores(data));
-            assertEquals("unreadable", SettingsActivity.analyticsStores(new java.io.File(data, "missing")));
+            assertEquals("app_analytics 0 files 0 bytes, files/xanalytics 1 files 3 bytes", SetupSummary.analyticsStores(data));
+            assertEquals("unreadable", SetupSummary.analyticsStores(new java.io.File(data, "missing")));
             // Finding the stores opens three folders (the data dir, files and app_light_prefs), so none are left to count with.
-            assertEquals("app_analytics 0+ files 0+ bytes, files/xanalytics 0+ files 0+ bytes", SettingsActivity.analyticsStores(data, 100, 3));
+            assertEquals("app_analytics 0+ files 0+ bytes, files/xanalytics 0+ files 0+ bytes", SetupSummary.analyticsStores(data, 100, 3));
         } finally {
             try (var walk = java.nio.file.Files.walk(data.toPath())) {
                 walk.sorted(java.util.Comparator.reverseOrder()).forEach(path -> path.toFile().delete());

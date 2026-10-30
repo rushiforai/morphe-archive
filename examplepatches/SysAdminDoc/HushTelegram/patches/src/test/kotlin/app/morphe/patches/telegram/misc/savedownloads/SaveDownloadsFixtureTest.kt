@@ -11,6 +11,7 @@ import app.morphe.PatchContexts
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.telegram.misc.downloadspeed.LOAD_OPERATION
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -34,7 +35,7 @@ import org.junit.Test
 /** ImageLoader's finished-download callback on both declared builds, and the checks the stubs borrow. */
 class SaveDownloadsFixtureTest {
     private val hosts = setOf(IMAGE_LOADER, FILE_LOADER, MESSAGE_OBJECT, TL_MESSAGE, DOCUMENT, DIALOG_OBJECT, MESSAGES_CONTROLLER,
-        MESSAGES_STORAGE, GALLERY_MEDIA_CONTROLLER, ANDROID_UTILITIES)
+        MESSAGES_STORAGE, GALLERY_MEDIA_CONTROLLER, ANDROID_UTILITIES, LOAD_OPERATION)
 
     private fun context(build: File): BytecodePatchContext {
         // The callback is an anonymous class; ImageLoader names it where it hands FileLoader its delegate.

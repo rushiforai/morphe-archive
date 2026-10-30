@@ -38,7 +38,7 @@ Leave **Use pre-release patches** off for stable releases. Enable it for testing
 ## Start here
 
 - **Use the patches:** [install](https://morphe-patches.neerdael.nl/en/guides/install/) and [choose controls](https://morphe-patches.neerdael.nl/en/guides/choose-patches/).
-- **Understand your app:** browse [weather](https://morphe-patches.neerdael.nl/en/apps/weather/), [news](https://morphe-patches.neerdael.nl/en/apps/news/) or [traffic and navigation](https://morphe-patches.neerdael.nl/en/apps/mobility/) or [entertainment](https://morphe-patches.neerdael.nl/en/apps/entertainment/).
+- **Understand your app:** browse [weather](https://morphe-patches.neerdael.nl/en/apps/weather/), [news](https://morphe-patches.neerdael.nl/en/apps/news/) or [traffic and navigation](https://morphe-patches.neerdael.nl/en/apps/mobility/) [entertainment](https://morphe-patches.neerdael.nl/en/apps/entertainment/) or [other apps](https://morphe-patches.neerdael.nl/en/apps/other/).
 - **Understand tracking:** follow [an event from a tap to a server](https://morphe-patches.neerdael.nl/en/learn/how-tracking-works/), learn [how identifiers connect activity](https://morphe-patches.neerdael.nl/en/learn/identifiers/), and read [tracker profiles](https://morphe-patches.neerdael.nl/en/trackers/).
 - **Check the claims:** read [our evidence method](https://morphe-patches.neerdael.nl/en/reference/methodology/), [external research](https://morphe-patches.neerdael.nl/en/reference/sources/) and the [technical destination register](docs/TRACKING_DESTINATIONS.md).
 
@@ -47,7 +47,7 @@ The bilingual Markdown source is in [docs/site](docs/site). App pages distinguis
 ## Supported apps
 
 <!-- PATCHES_START SUMMARY -->
-**Patch bundle [v1.13.0](https://github.com/johnneerdael/dutch-applications-patches/releases/tag/v1.13.0)** · `main` · 17 apps · 77 patches
+**Patch bundles:** [Stable v1.19.2](https://github.com/johnneerdael/dutch-applications-patches/releases/tag/v1.19.2) · [Pre-release v1.20.0-dev.4](https://github.com/johnneerdael/dutch-applications-patches/releases/tag/v1.20.0-dev.4) · 28 apps
 
 ### Weather
 
@@ -63,7 +63,12 @@ The bilingual Markdown source is in [docs/site](docs/site). App pages distinguis
 | App | Changes | Target app versions | Input | Patches |
 | --- | --- | --- | --- | --- |
 | [AD](https://morphe-patches.neerdael.nl/apps/ad/) | Ads · Tracking · Prompts · Articles | 9.22.0 | APKS | 5 |
+| [De Morgen](https://morphe-patches.neerdael.nl/apps/demorgen/) **Pre-release** | Ads · Tracking · Prompts · Articles | 7.53.1 | APKS | 5 |
+| [DS Nieuws](https://morphe-patches.neerdael.nl/apps/dsnieuws/) **Pre-release** | Ads · Tracking · Prompts | 22.0.0 | APKS | 4 |
 | [FTM](https://morphe-patches.neerdael.nl/apps/ftm/) | Ads · Tracking · Prompts · Articles | 2.6.8 | APKS | 5 |
+| [HLN](https://morphe-patches.neerdael.nl/apps/hln/) **Pre-release** | Ads · Tracking · Prompts · Articles | 9.22.0 | APKS | 5 |
+| [Humo](https://morphe-patches.neerdael.nl/apps/humo/) **Pre-release** | Ads · Tracking · Prompts · Articles | 7.53.1 | APKS | 5 |
+| [Nieuwsblad](https://morphe-patches.neerdael.nl/apps/nieuwsblad/) **Pre-release** | Ads · Tracking · Prompts | 22.0.0 | APKS | 4 |
 | [NOS Teletekst](https://morphe-patches.neerdael.nl/apps/nos-teletekst/) | Tracking | 2.8.10 | APKS | 2 |
 | [NRC](https://morphe-patches.neerdael.nl/apps/nrc/) | Ads · Tracking · Prompts · Articles · Newspaper tab | 5.12.24 | APK | 6 |
 | [NU.nl](https://morphe-patches.neerdael.nl/apps/nunl/) | Ads · Tracking · Prompts | 26.9.0 | APKS | 4 |
@@ -78,6 +83,7 @@ The bilingual Markdown source is in [docs/site](docs/site). App pages distinguis
 
 | App | Changes | Target app versions | Input | Patches |
 | --- | --- | --- | --- | --- |
+| [9292](https://morphe-patches.neerdael.nl/apps/9292/) | Ads · Tracking · Prompts · Compatibility | 2.48.1 | APKS | 4 |
 | [Flitsmeister](https://morphe-patches.neerdael.nl/apps/flitsmeister/) | Ads · Tracking · Prompts · Plus/Pro · Compatibility · Partner services | 14.17 | APKS | 6 |
 
 ### Entertainment
@@ -85,6 +91,16 @@ The bilingual Markdown source is in [docs/site](docs/site). App pages distinguis
 | App | Changes | Target app versions | Input | Patches |
 | --- | --- | --- | --- | --- |
 | [Dumpert](https://morphe-patches.neerdael.nl/apps/dumpert/) | Ads · Tracking · Prompts | 5.8.0 | APKS | 3 |
+| [KIJK Android TV](https://morphe-patches.neerdael.nl/apps/kijk-android-tv/) | Ads · Tracking | 7.2.7 | APKS | 3 |
+| [NPO Start Android TV](https://morphe-patches.neerdael.nl/apps/npo-start-android-tv/) | Ads · Tracking · Compatibility | 1.48.2-2405 | APKS | 3 |
+| [TVgids.nl](https://morphe-patches.neerdael.nl/apps/tvgids-nl/) | Ads · Tracking · Prompts | 7.0.16 | APK | 3 |
+| [Videoland Android TV](https://morphe-patches.neerdael.nl/apps/videoland-android-tv/) **Pre-release** | Ads · Tracking | 1.117.0 | APKS | 2 |
+
+### Other apps
+
+| App | Changes | Target app versions | Input | Patches |
+| --- | --- | --- | --- | --- |
+| [Marktplaats](https://morphe-patches.neerdael.nl/apps/marktplaats/) | Ads · Tracking · Prompts | 16.17.0 | APKS | 5 |
 
 [Full descriptions, defaults and build targets](https://morphe-patches.neerdael.nl/reference/catalogue/) · [English](https://morphe-patches.neerdael.nl/en/reference/catalogue/)
 
@@ -92,6 +108,8 @@ Targets and defaults vary by patch; the bundle version is separate from each app
 <!-- PATCHES_END -->
 
 Stable support is version-specific. The app guides distinguish user-reported device checks from source and bytecode verification. Research findings for other apps are [listed separately](https://morphe-patches.neerdael.nl/en/apps/research/) and do not imply published controls.
+
+KIJK 7.2.7 and NPO Start 1.48.2-2405 have separate **Android TV** targets in the stable bundle. Use the complete original TV APKS and follow the [KIJK TV](https://morphe-patches.neerdael.nl/en/apps/kijk-android-tv/) or [NPO Start TV](https://morphe-patches.neerdael.nl/en/apps/npo-start-android-tv/) guide. The dev channel also contains ongoing phone-app work.
 
 ## Important choices
 

@@ -1,4 +1,274 @@
 <!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/76db96e737272b863d2f49b3fc995aa624daf835/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.19.2.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [76db96e73727](https://github.com/johnneerdael/dutch-applications-patches/commit/76db96e737272b863d2f49b3fc995aa624daf835). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.19.2](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.19.1...v1.19.2) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **flitsmeister:** restore Android Auto and runtime callbacks ([447a04c](https://github.com/johnneerdael/dutch-applications-patches/commit/447a04cfca16f9af304fca9ab35001b0445c5a15))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/5eedbaaa45a57f88920fb64bb528f88836227209/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.19.1.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [5eedbaaa45a5](https://github.com/johnneerdael/dutch-applications-patches/commit/5eedbaaa45a57f88920fb64bb528f88836227209). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.19.1](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.19.0...v1.19.1) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **npo-start:** enable all three TV controls by default ([6d3310b](https://github.com/johnneerdael/dutch-applications-patches/commit/6d3310b43be40112a043e5c5b5d3fe3fe75d95c9))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/1817cc2b52fd2e4852a54f0224d468b25471981f/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.19.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [1817cc2b52fd](https://github.com/johnneerdael/dutch-applications-patches/commit/1817cc2b52fd2e4852a54f0224d468b25471981f). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.19.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.18.0...v1.19.0) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **release:** preserve channel metadata during stable backmerge ([bad0aa0](https://github.com/johnneerdael/dutch-applications-patches/commit/bad0aa0302630f6f773f3c388608140bf3d7b744))
+
+### ✨ New Features
+
+* **tvgids:** publish approved ad tracking and consent controls ([1817cc2](https://github.com/johnneerdael/dutch-applications-patches/commit/1817cc2b52fd2e4852a54f0224d468b25471981f))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/c3a4c88f810f487194f3f53b6385a8949d5629fa/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.18.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [c3a4c88f810f](https://github.com/johnneerdael/dutch-applications-patches/commit/c3a4c88f810f487194f3f53b6385a8949d5629fa). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.18.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.17.0...v1.18.0) (2026-10-29)
+
+### ✨ New Features
+
+* **marktplaats:** publish approved five-control set and Google sign-in fix ([c3a4c88](https://github.com/johnneerdael/dutch-applications-patches/commit/c3a4c88f810f487194f3f53b6385a8949d5629fa))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/68e079ac43b16fc4a2040992f362127dc943b694/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.17.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [68e079ac43b1](https://github.com/johnneerdael/dutch-applications-patches/commit/68e079ac43b16fc4a2040992f362127dc943b694). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.17.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.16.0...v1.17.0) (2026-10-29)
+
+### ✨ New Features
+
+* **9292:** publish approved travel privacy controls ([68e079a](https://github.com/johnneerdael/dutch-applications-patches/commit/68e079ac43b16fc4a2040992f362127dc943b694))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/25380ddf11030a71b91028576bd7ca4b93c29fde/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.16.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [25380ddf1103](https://github.com/johnneerdael/dutch-applications-patches/commit/25380ddf11030a71b91028576bd7ca4b93c29fde). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.16.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.15.0...v1.16.0) (2026-10-29)
+
+### ✨ New Features
+
+* **release:** separate stable TV and Marktplaats support from dev-only 9292 ([25380dd](https://github.com/johnneerdael/dutch-applications-patches/commit/25380ddf11030a71b91028576bd7ca4b93c29fde))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/d72ff632ae7ec10e15f9b231a9c3257c377357fa/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.15.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [d72ff632ae7e](https://github.com/johnneerdael/dutch-applications-patches/commit/d72ff632ae7ec10e15f9b231a9c3257c377357fa). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.15.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.14.0...v1.15.0) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **android-tv:** restore NPO token requests after PairIP crash ([bc289c1](https://github.com/johnneerdael/dutch-applications-patches/commit/bc289c17ab0d90acbc5437e10f42a6fe5c0c6bba))
+* **marktplaats:** discard Braze push before receiver dispatch ([404741c](https://github.com/johnneerdael/dutch-applications-patches/commit/404741cad1fd6fa240bb6fbbcc1c3bec0f0ec605))
+
+### ✨ New Features
+
+* **9292:** disable optional measurements and queued uploads ([8cbadbf](https://github.com/johnneerdael/dutch-applications-patches/commit/8cbadbfc9dcff91734bc9160004d8455e51f3bc3))
+* **9292:** suppress advertising and voucher promotion ([597993f](https://github.com/johnneerdael/dutch-applications-patches/commit/597993f716897bc0366eac5041894fdfec8e2e50))
+* **android-tv:** add KIJK and NPO Start Android TV dev builds ([5d979c7](https://github.com/johnneerdael/dutch-applications-patches/commit/5d979c79932b6bdbe75f5702b31f04eb600ccf9b))
+* **marktplaats:** add expert security profiling opt-out ([815eecc](https://github.com/johnneerdael/dutch-applications-patches/commit/815eecc6f6351c59c44ba6e6df085dc18a23fdad))
+* **marktplaats:** close remaining optional SDK measurement entries ([e195b26](https://github.com/johnneerdael/dutch-applications-patches/commit/e195b265b22a8bd04ae3bae1be0c9e1426ff9e7f))
+* **marktplaats:** disable Firebase measurement and startup providers ([b30c710](https://github.com/johnneerdael/dutch-applications-patches/commit/b30c710caed1f6bf8114d0c5a65af1c502ac77b8))
+* **marktplaats:** discard queued diagnostic transports ([358541e](https://github.com/johnneerdael/dutch-applications-patches/commit/358541e194ddefb0ba6edb6ce6c6e2f3f70f3563))
+* **marktplaats:** filter typed ad slots and stop ad initialization ([c128b84](https://github.com/johnneerdael/dutch-applications-patches/commit/c128b84136bc26c2af7d3dc4d5fb486a9e514567))
+* **marktplaats:** stop banner loads and native ad observers ([72efa19](https://github.com/johnneerdael/dutch-applications-patches/commit/72efa1986e4b801f6deb13b6466c7b7d1b9f2ab7))
+* **marktplaats:** stop core analytics and attribution setup ([56525c5](https://github.com/johnneerdael/dutch-applications-patches/commit/56525c58331b1f086a95fee2006269af6f03d9e8))
+* **marktplaats:** stop Facebook and Braze measurement ([f41667b](https://github.com/johnneerdael/dutch-applications-patches/commit/f41667b3bff08459808b4698ef91301f67710714))
+* **marktplaats:** suppress independent ad loads and measurements ([e77102c](https://github.com/johnneerdael/dutch-applications-patches/commit/e77102c818289990d72269163f86b650c2a0da12))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/cc4bddf485d9ad80a7c4a9143bc95e3f972316be/docs/site/assets/brand/release-banner.png)
+
+**Development prerelease · patch bundle v1.15.0-dev.1.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [cc4bddf485d9](https://github.com/johnneerdael/dutch-applications-patches/commit/cc4bddf485d9ad80a7c4a9143bc95e3f972316be). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.15.0-dev.1](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.14.0...v1.15.0-dev.1) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **android-tv:** restore NPO token requests after PairIP crash ([bc289c1](https://github.com/johnneerdael/dutch-applications-patches/commit/bc289c17ab0d90acbc5437e10f42a6fe5c0c6bba))
+* **marktplaats:** discard Braze push before receiver dispatch ([404741c](https://github.com/johnneerdael/dutch-applications-patches/commit/404741cad1fd6fa240bb6fbbcc1c3bec0f0ec605))
+
+### ✨ New Features
+
+* **9292:** disable optional measurements and queued uploads ([8cbadbf](https://github.com/johnneerdael/dutch-applications-patches/commit/8cbadbfc9dcff91734bc9160004d8455e51f3bc3))
+* **9292:** suppress advertising and voucher promotion ([597993f](https://github.com/johnneerdael/dutch-applications-patches/commit/597993f716897bc0366eac5041894fdfec8e2e50))
+* **android-tv:** add KIJK and NPO Start Android TV dev builds ([5d979c7](https://github.com/johnneerdael/dutch-applications-patches/commit/5d979c79932b6bdbe75f5702b31f04eb600ccf9b))
+* **marktplaats:** add expert security profiling opt-out ([815eecc](https://github.com/johnneerdael/dutch-applications-patches/commit/815eecc6f6351c59c44ba6e6df085dc18a23fdad))
+* **marktplaats:** close remaining optional SDK measurement entries ([e195b26](https://github.com/johnneerdael/dutch-applications-patches/commit/e195b265b22a8bd04ae3bae1be0c9e1426ff9e7f))
+* **marktplaats:** disable Firebase measurement and startup providers ([b30c710](https://github.com/johnneerdael/dutch-applications-patches/commit/b30c710caed1f6bf8114d0c5a65af1c502ac77b8))
+* **marktplaats:** discard queued diagnostic transports ([358541e](https://github.com/johnneerdael/dutch-applications-patches/commit/358541e194ddefb0ba6edb6ce6c6e2f3f70f3563))
+* **marktplaats:** filter typed ad slots and stop ad initialization ([c128b84](https://github.com/johnneerdael/dutch-applications-patches/commit/c128b84136bc26c2af7d3dc4d5fb486a9e514567))
+* **marktplaats:** stop banner loads and native ad observers ([72efa19](https://github.com/johnneerdael/dutch-applications-patches/commit/72efa1986e4b801f6deb13b6466c7b7d1b9f2ab7))
+* **marktplaats:** stop core analytics and attribution setup ([56525c5](https://github.com/johnneerdael/dutch-applications-patches/commit/56525c58331b1f086a95fee2006269af6f03d9e8))
+* **marktplaats:** stop Facebook and Braze measurement ([f41667b](https://github.com/johnneerdael/dutch-applications-patches/commit/f41667b3bff08459808b4698ef91301f67710714))
+* **marktplaats:** suppress independent ad loads and measurements ([e77102c](https://github.com/johnneerdael/dutch-applications-patches/commit/e77102c818289990d72269163f86b650c2a0da12))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/2190e42b1877badaca7a8e1e520e83aa7e95d90a/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.14.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [2190e42b1877](https://github.com/johnneerdael/dutch-applications-patches/commit/2190e42b1877badaca7a8e1e520e83aa7e95d90a). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.14.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.13.0...v1.14.0) (2026-10-29)
+
+### ✨ New Features
+
+* **android-tv:** publish KIJK and NPO Start TV patches ([2190e42](https://github.com/johnneerdael/dutch-applications-patches/commit/2190e42b1877badaca7a8e1e520e83aa7e95d90a))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/bc289c17ab0d90acbc5437e10f42a6fe5c0c6bba/docs/site/assets/brand/release-banner.png)
+
+**Development prerelease · patch bundle v1.14.0-dev.4.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [bc289c17ab0d](https://github.com/johnneerdael/dutch-applications-patches/commit/bc289c17ab0d90acbc5437e10f42a6fe5c0c6bba). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.14.0-dev.4](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.14.0-dev.3...v1.14.0-dev.4) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **android-tv:** restore NPO token requests after PairIP crash ([bc289c1](https://github.com/johnneerdael/dutch-applications-patches/commit/bc289c17ab0d90acbc5437e10f42a6fe5c0c6bba))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/5d979c79932b6bdbe75f5702b31f04eb600ccf9b/docs/site/assets/brand/release-banner.png)
+
+**Development prerelease · patch bundle v1.14.0-dev.3.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [5d979c79932b](https://github.com/johnneerdael/dutch-applications-patches/commit/5d979c79932b6bdbe75f5702b31f04eb600ccf9b). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.14.0-dev.3](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.14.0-dev.2...v1.14.0-dev.3) (2026-10-29)
+
+### ✨ New Features
+
+* **android-tv:** add KIJK and NPO Start Android TV dev builds ([5d979c7](https://github.com/johnneerdael/dutch-applications-patches/commit/5d979c79932b6bdbe75f5702b31f04eb600ccf9b))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/b2469bf9f93c1b9f9af9a720a79d696fa579cd84/docs/site/assets/brand/release-banner.png)
+
+**Development prerelease · patch bundle v1.14.0-dev.2.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [b2469bf9f93c](https://github.com/johnneerdael/dutch-applications-patches/commit/b2469bf9f93c1b9f9af9a720a79d696fa579cd84). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.14.0-dev.2](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.14.0-dev.1...v1.14.0-dev.2) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **marktplaats:** discard Braze push before receiver dispatch ([404741c](https://github.com/johnneerdael/dutch-applications-patches/commit/404741cad1fd6fa240bb6fbbcc1c3bec0f0ec605))
+
+### ✨ New Features
+
+* **marktplaats:** add expert security profiling opt-out ([815eecc](https://github.com/johnneerdael/dutch-applications-patches/commit/815eecc6f6351c59c44ba6e6df085dc18a23fdad))
+* **marktplaats:** close remaining optional SDK measurement entries ([e195b26](https://github.com/johnneerdael/dutch-applications-patches/commit/e195b265b22a8bd04ae3bae1be0c9e1426ff9e7f))
+* **marktplaats:** disable Firebase measurement and startup providers ([b30c710](https://github.com/johnneerdael/dutch-applications-patches/commit/b30c710caed1f6bf8114d0c5a65af1c502ac77b8))
+* **marktplaats:** discard queued diagnostic transports ([358541e](https://github.com/johnneerdael/dutch-applications-patches/commit/358541e194ddefb0ba6edb6ce6c6e2f3f70f3563))
+* **marktplaats:** filter typed ad slots and stop ad initialization ([c128b84](https://github.com/johnneerdael/dutch-applications-patches/commit/c128b84136bc26c2af7d3dc4d5fb486a9e514567))
+* **marktplaats:** stop banner loads and native ad observers ([72efa19](https://github.com/johnneerdael/dutch-applications-patches/commit/72efa1986e4b801f6deb13b6466c7b7d1b9f2ab7))
+* **marktplaats:** stop core analytics and attribution setup ([56525c5](https://github.com/johnneerdael/dutch-applications-patches/commit/56525c58331b1f086a95fee2006269af6f03d9e8))
+* **marktplaats:** stop Facebook and Braze measurement ([f41667b](https://github.com/johnneerdael/dutch-applications-patches/commit/f41667b3bff08459808b4698ef91301f67710714))
+* **marktplaats:** suppress independent ad loads and measurements ([e77102c](https://github.com/johnneerdael/dutch-applications-patches/commit/e77102c818289990d72269163f86b650c2a0da12))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/b4175de31958c6c9e42fea87a51cad43b712d7f5/docs/site/assets/brand/release-banner.png)
+
+**Development prerelease · patch bundle v1.14.0-dev.1.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [b4175de31958](https://github.com/johnneerdael/dutch-applications-patches/commit/b4175de31958c6c9e42fea87a51cad43b712d7f5). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.14.0-dev.1](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.13.0...v1.14.0-dev.1) (2026-10-29)
+
+### ✨ New Features
+
+* **9292:** disable optional measurements and queued uploads ([8cbadbf](https://github.com/johnneerdael/dutch-applications-patches/commit/8cbadbfc9dcff91734bc9160004d8455e51f3bc3))
+* **9292:** suppress advertising and voucher promotion ([597993f](https://github.com/johnneerdael/dutch-applications-patches/commit/597993f716897bc0366eac5041894fdfec8e2e50))
+
+<!-- dap-release-branding:v1 -->
 ![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/5a70b554655418354fe6010117cc53055a84a92f/docs/site/assets/brand/release-banner.png)
 
 **Stable release · patch bundle v1.13.0.**

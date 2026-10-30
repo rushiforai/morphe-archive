@@ -31,7 +31,7 @@ Diagnostic data put back.	已還原診斷資料。
 Diagnostic report copied to the clipboard.	已將診斷報告複製到剪貼簿。
 Download failed	下載失敗
 Downloading	下載中
-Empties the activity log that a diagnostic report would include.	清空診斷報告會包含的活動記錄。
+Empties the activity log and any kept crash that a diagnostic report would include.	清空診斷報告會包含的活動記錄與已保存的當機記錄。
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	除了「偵錯記錄」以外，所有開關都會視為關閉；套用修補程式時的變更仍會保留。您儲存的設定不會改變。
 Export diagnostic report	匯出診斷報告
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	下次啟動起，除了「偵錯記錄」以外，所有開關都會視為關閉。套用修補程式時的變更仍會保留，您選擇的設定也會繼續儲存。
@@ -156,6 +156,8 @@ Downloads	下載
 Save videos other apps can open	儲存其他應用程式可開啟的影片
 For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	適用於 WhatsApp、CapCut 和 InShot 等影片編輯器，以及播放儲存影片時沒有聲音的相簿或播放器。可能會降低畫質。
 Convert to keep the full size	轉換格式以保留完整尺寸
+For phones that play AV1 badly. A video Instagram has at full size only as AV1 is saved as VP9 when it has one, or at its largest H.264 size. Convert to keep the full size then converts only VP9.	適用於 AV1 播放不順的手機。Instagram 只有 AV1 完整尺寸的影片，有 VP9 時以 VP9 儲存，否則以最大的 H.264 尺寸儲存。轉換格式以保留完整尺寸此時只會轉換 VP9。
+Never save AV1 video	永不儲存 AV1 影片
 Saves videos other apps can open, at full size. A video Instagram only has as VP9 or AV1 is converted to H.264 on your phone instead of saved smaller. Slower, and videos over 3 minutes stay smaller.	以完整尺寸儲存其他應用程式可開啟的影片。若 Instagram 僅提供 VP9 或 AV1，會在手機上轉換為 H.264，而非儲存較小的版本。處理較慢，超過 3 分鐘的影片仍會儲存較小的版本。
 Converting to H.264	正在轉換為 H.264
 Download quality	下載畫質
@@ -539,6 +541,8 @@ View live anonymously	匿名觀看直播
 Photos and videos sent as view once or replayable stay in the chat so you can open them again. Open the chat again to update ones already loaded.	以只能看一次或可重播方式傳送的照片與影片會保留在聊天室，讓您再次開啟。已載入的內容請重新開啟聊天以更新。
 Swipe through a chat's reels	在聊天室的 Reels 之間滑動
 Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Back takes you to the chat.	在從聊天室開啟的 Reels 上往上滑，會先看完該聊天室分享的其他 Reels，再看到推薦的 Reels。返回會回到聊天室。
+Stop after the chat's reels	看完聊天室的 Reels 就停止
+Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	從聊天室開啟的 Reels 會在該聊天室分享的最後一則結束，之後不會出現推薦的 Reels。需開啟「在聊天室的 Reels 之間滑動」。
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	在「下載」下方新增「下載封面」，以最大尺寸儲存 Reel 播放前顯示的靜態圖片。
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	在「下載」下方新增「下載音訊」，將 Reel 的聲音儲存為音訊檔案。
 After 20 reels, swiping in Reels stops until Instagram has been in the background for 15 minutes. A reel you open from a message or a post still plays.	觀看 20 則 Reels 後會停用 Reels 滑動，直到 Instagram 在背景停留 15 分鐘。從訊息或貼文開啟的 Reel 仍會播放。
@@ -594,6 +598,8 @@ Hide story rewinds	隱藏限時動態往事回顧
 Nothing in the row of stories at the top of Home loads, your own story included, and highlights on profiles stay empty too. Saves data. A story ring on a profile or in a chat still opens its stories.	首頁頂端的限時動態橫列將不載入任何內容，包括您自己的限時動態；個人檔案的精選也會保持空白，以節省數據。仍可點擊個人檔案或聊天中的光圈開啟限時動態。
 Expandable categories	可展開的分類
 Tap a category to show or hide its settings on this page.	點選分類即可在此頁面顯示或隱藏該分類的設定。
+Descriptions behind an info button	說明收在資訊按鈕後
+Shows each switch by its name alone. Tap the i next to a name to read what it does.	每個開關只顯示名稱。點一下名稱旁的 i 即可查看它的作用。
 Expanded	已展開
 Collapsed	已收合
 Hide the HushGram row in Instagram's menu	隱藏 Instagram 選單中的 HushGram 項目
@@ -677,7 +683,7 @@ Details	詳細資料
 Details in a post's menu	貼文選單中的詳細資料
 Media ID %1$s	媒體 ID %1$s
 Media link	媒體連結
-Media link copied	已複製媒體連結
+Media link copied. It stops working after a few days.	已複製媒體連結。連結會在幾天後失效。
 No direct link for this one	此項目沒有直接連結
 Posted %1$s	發佈於 %1$s
 Size %1$d × %2$d	尺寸 %1$d × %2$d
@@ -904,14 +910,14 @@ Show all settings as a list	以清單顯示所有設定
 Show settings by category	依分類顯示設定
 Tab bar opacity	分頁列不透明度
 Tab bar height	分頁列高度
-Clearest	最透明
-Clear	透明
-Frosted	霧面
 Standard	標準
 Blur strength	模糊強度
-# context: a blur strength step of the tab bar
-Light	輕微
-Strong	強烈
+# context: the blur slider's value under its title; dp is Android's screen unit, keep it
+%1$d dp	%1$d dp
+# context: the tab bar opacity slider's value under its title
+%1$d%%	%1$d%%
+# context: a slider's value when it sits at the starting setting, %1$s is the value
+%1$s (standard)	%1$s (標準)
 Compact	緊湊
 Tall	加高
 Tab bar corners	分頁列圓角
@@ -1029,6 +1035,8 @@ Rounded corners on Reels	Reels 圓角
 Rounded corners on stories	限時動態圓角
 Seek bar on stories	限時動態拖曳列
 Shows a bar near the bottom of a video story. Drag it to jump to any point in the video. Photos don't get one.	在影片限時動態底部附近顯示一條拖曳列。拖曳它即可跳到影片中的任何位置。相片不會顯示。
+Seek bar on feed videos	動態影片拖曳列
+Shows a bar along the bottom of the video playing in a feed. Drag it and let go to jump to that point in the video.	在動態中播放的影片底部顯示一條拖曳列。拖曳後放開，即可跳到影片中的那個位置。
 Thicker story progress bar	較粗的限時動態進度列
 Draws the bar along the top of a story as thick as the choice below. Its segments and timing stay as they were.	依下方選擇的粗細繪製限時動態頂端的進度列。各段與時間長度不變。
 Thickness	粗細
@@ -1295,3 +1303,5 @@ The row of stories at the top of Home keeps only the accounts the choice below n
 Stories to keep	要保留的限時動態
 Only verified accounts	僅限已驗證帳號
 Only accounts that aren't verified	僅限未驗證帳號
+Pinch to zoom	雙指縮放
+Two fingers zoom into a playing reel, the way a photo zooms. Lift them and it goes back. Restart Instagram to see the change.	用兩指放大正在播放的 Reels，就像放大相片一樣。放開手指就會恢復原狀。請重新啟動 Instagram 以套用變更。

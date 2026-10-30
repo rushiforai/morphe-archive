@@ -23,6 +23,7 @@ import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.extension.localRegisterCount
 import app.morphe.util.ControlFlow
 import app.morphe.util.namedRegisters
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -73,6 +74,11 @@ class LaunchFolderFixtureTest {
             assertEquals("[" + refs.selectedType.substringBefore("->"), refs.pages.substringAfter(":"))
             assertTrue(refs.arguments, refs.arguments.endsWith("->getArguments()Landroid/os/Bundle;"))
             assertTrue(refs.account, refs.account.endsWith("->getCurrentAccount()I"))
+            // The strip's own list of tabs (declared beside the tabs, on the class the chat list's field may
+            // subclass), and RecyclerView's scrollToPosition under whatever name it has.
+            assertTrue("$name: ${refs.tabList}", refs.tabList?.startsWith(refs.tabs.substringBefore("->") + "->") == true)
+            assertTrue("$name: ${refs.scrollTo}", refs.scrollTo?.startsWith("$TAB_LIST_BASE->") == true)
+            assertTrue("$name: ${refs.scrollTo}", refs.scrollTo?.endsWith("(I)V") == true)
         }
     }
 
@@ -108,6 +114,7 @@ class LaunchFolderFixtureTest {
                 "presentArchive" to (11 to listOf("${refs.list}-><init>(Landroid/os/Bundle;)V", all.present)),
                 "telegramArchiveTitle" to (4 to listOf("Lorg/telegram/messenger/R\$string;->ArchivedChats:I",
                     "Lorg/telegram/messenger/LocaleController;->getString(I)Ljava/lang/String;")),
+                "scrollStrip" to (9 to listOf(refs.strip, refs.tabList!!, refs.scrollTo!!)),
             )
             for ((stub, want) in expected) {
                 val body = stubs.getValue(stub).body()
@@ -317,6 +324,7 @@ class LaunchFolderFixtureTest {
 
 private const val ALL_CHATS_TAB_HOOK = "$LAUNCH_FOLDER->allChatsTab(Ljava/lang/Object;IILjava/lang/String;Ljava/util/ArrayList;III)V"
 private const val TABS_ADDED_HOOK = "$LAUNCH_FOLDER->tabsAdded(Ljava/lang/Object;I)Z"
+private const val TAB_LIST_BASE = "Landroidx/recyclerview/widget/RecyclerView;"
 
 private val LAUNCH_FOLDER_HOSTS = ConcurrentHashMap<String, List<ClassDef>>()
 private val LAUNCH_FOLDER_LISTS = ConcurrentHashMap<String, String>()
@@ -338,10 +346,12 @@ internal fun launchFolderHosts(build: File): List<ClassDef> = LAUNCH_FOLDER_HOST
     val list = launchFolderList(build)
     val first = FixtureDex.classes(build, setOf(list)).getValue(list)
     val tabs = first.methods.single { it.isTabBuildLike() }
-    // The dialog and notification classes are for the hidden chats' stubs, which go in with the same patch, and
-    // the strings and locale for Hide All Chats' archive title.
+    // The dialog and notification classes are for the hidden chats' stubs, which go in with the same patch, the
+    // storage and its queue for their unread counts, and the strings and locale for Hide All Chats' archive title.
     val wanted = mutableSetOf(list, MESSAGES_CONTROLLER, LOCAL_FILTER, USER_CONFIG, "Lorg/telegram/tgnet/TLRPC\$Dialog;",
-        "Lorg/telegram/messenger/NotificationCenter;", "Lorg/telegram/messenger/R\$string;", "Lorg/telegram/messenger/LocaleController;")
+        "Lorg/telegram/messenger/NotificationCenter;", "Lorg/telegram/messenger/MessagesStorage;",
+        "Lorg/telegram/messenger/DispatchQueue;",
+        "Lorg/telegram/messenger/R\$string;", "Lorg/telegram/messenger/LocaleController;")
     for (instruction in tabs.body()) {
         val field = (instruction as? ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.FieldReference ?: continue
         if (field.definingClass == list || field.definingClass.startsWith("Lorg/telegram/ui/")) {
@@ -349,6 +359,21 @@ internal fun launchFolderHosts(build: File): List<ClassDef> = LAUNCH_FOLDER_HOST
             field.type.trimStart('[').takeIf { it.startsWith("Lorg/telegram/ui/") }?.let { wanted += it }
         }
     }
+    // The strip's list of tabs, a RecyclerView, with each parent up to it, for the scroll to a picked tab.
+    val strip = tabs.body().first { it.opcode == Opcode.IGET_OBJECT && it.ref()?.endsWith(":Ljava/util/ArrayList;") == true &&
+        it.ref()!!.substringBefore("->") != list }.ref()!!.substringBefore("->")
+    var chains = FixtureDex.classes(build, setOf(strip)).getValue(strip).fields
+        .filter { !AccessFlags.STATIC.isSet(it.accessFlags) }.map { it.type }
+        .filter { it.startsWith("L") && !it.startsWith("Ljava/") && !it.startsWith("Landroid/") }.map { listOf(it) }
+    repeat(8) {
+        val open = chains.map { it.last() }.filter { it != TAB_LIST_BASE }.toSet()
+        if (open.isEmpty()) return@repeat
+        val parents = FixtureDex.classes(build, open)
+        chains = chains.mapNotNull { chain ->
+            if (chain.last() == TAB_LIST_BASE) chain else parents[chain.last()]?.superclass?.let { chain + it }
+        }
+    }
+    chains.filter { it.last() == TAB_LIST_BASE }.forEach { wanted += it }
     // Parents up to Telegram's BaseFragment and FilterTabsView, so inherited members resolve.
     var loaded = FixtureDex.classes(build, wanted)
     repeat(6) {

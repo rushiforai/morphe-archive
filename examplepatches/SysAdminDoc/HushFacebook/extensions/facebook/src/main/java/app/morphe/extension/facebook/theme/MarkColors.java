@@ -27,8 +27,15 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * from the {@link #LOGO_TOKENS}, so a colour asked for with one of those becomes the picked one at
  * the alpha Facebook gave it. Home header text's words take the wordmark's colour, so they follow
  * the logo's pick too. Blank keeps Facebook's own, and so does a paused Facebook.
+ *
+ * <p>The selected tab's icon and the line over it (#297) come from no single token, so they arrive
+ * through {@link SelectedTab}, the hook Material You's selected tab uses, and take the picked
+ * color last.
  */
 public final class MarkColors {
+    /** The three rows: the count badges, the logo, the selected tab. */
+    public enum Mark { BADGE, LOGO, TAB }
+
     /** The FDS token of the red count badge on the tabs, the Menu and the notification bell. */
     static final String BADGE_TOKEN = "NOTIFICATION_BADGE";
 
@@ -41,6 +48,9 @@ public final class MarkColors {
 
     /** Counted under the patch's name each time the logo is drawn in the picked color. */
     static final String LOGO_COLORED = "logo drawn in the picked color";
+
+    /** Counted under the patch's name each time the selected tab is drawn in the picked color. */
+    static final String TAB_COLORED = "selected tab drawn in the picked color";
 
     private static final String FAMILY = FamilyNames.MARK_COLORS;
 
@@ -73,6 +83,34 @@ public final class MarkColors {
         String code = BADGE_TOKEN.equals(token) ? badge : LOGO_TOKENS.contains(token) ? logo : null;
         Integer picked = colour(code);
         if (picked == null) return color;
+        return (color & 0xFF000000) | (picked & 0xFFFFFF);
+    }
+
+    /**
+     * The selected tab's colour, handed over by {@link SelectedTab}. Never throws.
+     *
+     * @return the picked Selected tab color at the alpha Facebook gave the tab, otherwise {@code color}
+     */
+    static int tabBarSelected(int color) {
+        try {
+            HookStatus.invoked(FAMILY);
+            if (!Utils.settingsReady()) return color;
+            int themed = tabBarSelected(color, Settings.TAB_COLOR.get());
+            if (themed != color) {
+                HookStatus.bound(FAMILY, "selected tab");
+                HookStatus.counted(FAMILY, TAB_COLORED);
+            }
+            return themed;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "selected tab", failure);
+            return color;
+        }
+    }
+
+    /** What the selected tab's [color] becomes with [tab] picked, blank or a code. A clear colour stays clear. */
+    static int tabBarSelected(int color, @Nullable String tab) {
+        Integer picked = colour(tab);
+        if (picked == null || (color >>> 24) == 0) return color;
         return (color & 0xFF000000) | (picked & 0xFFFFFF);
     }
 

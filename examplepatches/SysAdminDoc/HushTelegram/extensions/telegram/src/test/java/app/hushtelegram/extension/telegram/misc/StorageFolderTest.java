@@ -46,11 +46,13 @@ public class StorageFolderTest {
         PauseForTests.resume();
         Settings.STORAGE_FOLDER.resetToDefault();
         savedWait = StorageFolder.startupWaitMillis;
+        StorageFolder.moved = null;
         allFilesAccess(false);
     }
 
     @After public void restore() {
         StorageFolder.startupWaitMillis = savedWait;
+        StorageFolder.moved = null;
         allFilesAccess(false);
         Settings.STORAGE_FOLDER.resetToDefault();
         PauseForTests.resume();
@@ -140,5 +142,52 @@ public class StorageFolderTest {
         }
         assertTrue(Settings.STORAGE_FOLDER.savedValue());
         assertFalse(HookStatus.report().get(0).contains("storage folder"));
+    }
+
+    @Test public void aFileFromBeforeTheMoveOpensWhereItWas() throws IOException {
+        File from = temporary.newFolder("Android", "data", "files", "Telegram");
+        File to = temporary.newFolder("storage", "Telegram");
+        File older = new File(new File(from, "Telegram Audio"), "voice.ogg");
+        assertTrue(older.getParentFile().mkdirs() && older.createNewFile());
+        File asked = new File(new File(to, "Telegram Audio"), "voice.ogg");
+        assertEquals(older, StorageFolder.olderFor(asked, from, to));
+
+        // A copy in the moved folder wins, and a file that's nowhere yet downloads to the moved folder.
+        assertTrue(asked.getParentFile().mkdirs() && asked.createNewFile());
+        assertSame(asked, StorageFolder.olderFor(asked, from, to));
+        File fresh = new File(new File(to, "Telegram Audio"), "new.ogg");
+        assertSame(fresh, StorageFolder.olderFor(fresh, from, to));
+
+        // Telegram's cache, a folder that only starts with the same name, and a folder in the old place stay as asked.
+        File cache = new File(temporary.getRoot(), "cache/voice.ogg");
+        assertSame(cache, StorageFolder.olderFor(cache, from, to));
+        File sibling = new File(to.getPath() + "2", "Telegram Audio/voice.ogg");
+        // Where a match without the separator would look for it.
+        File unrelated = new File(from, "2/Telegram Audio/voice.ogg");
+        assertTrue(unrelated.getParentFile().mkdirs() && unrelated.createNewFile());
+        assertSame(sibling, StorageFolder.olderFor(sibling, from, to));
+        assertTrue(new File(from, "Telegram Video/clip.mp4").mkdirs());
+        File clip = new File(to, "Telegram Video/clip.mp4");
+        assertSame(clip, StorageFolder.olderFor(clip, from, to));
+    }
+
+    @Test public void olderFilesFollowTheMove() throws IOException {
+        File folder = temporary.newFolder("data");
+        File older = new File(folder, "Telegram Documents/report.pdf");
+        assertTrue(older.getParentFile().mkdirs() && older.createNewFile());
+        File asked = new File(new File(Environment.getExternalStorageDirectory(), "Telegram"), "Telegram Documents/report.pdf");
+        assertSame(asked, StorageFolder.olderFile(asked));
+        assertEquals(null, StorageFolder.olderFile(null));
+
+        Settings.STORAGE_FOLDER.save(true);
+        allFilesAccess(true);
+        assertEquals(asked.getParentFile().getParentFile(), StorageFolder.telegramFolder(folder));
+        assertEquals(older, StorageFolder.olderFile(asked));
+        assertTrue(HookStatus.report().get(0), HookStatus.report().get(0).contains("older file 1"));
+
+        // Back in Android/data, the moved folder's paths are Telegram's own again.
+        Settings.STORAGE_FOLDER.save(false);
+        assertSame(folder, StorageFolder.telegramFolder(folder));
+        assertSame(asked, StorageFolder.olderFile(asked));
     }
 }

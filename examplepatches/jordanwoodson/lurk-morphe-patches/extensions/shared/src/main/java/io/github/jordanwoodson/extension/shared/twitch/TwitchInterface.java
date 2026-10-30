@@ -37,6 +37,35 @@ public final class TwitchInterface {
         return stock && !Settings.isEnabled("hide_tipping");
     }
 
+    /** A subscription upsell flag (the chat header's Upgrade button), off while Hide subscription upsells is on. */
+    public static boolean subscriptionUpsellVisible(boolean stock) {
+        return stock && !Settings.isEnabled("hide_subscription_upsells");
+    }
+
+    /**
+     * The subscription state the chat header picks its Subscribe and Gift A Sub buttons from. With Hide
+     * subscription upsells on it becomes the state that offers neither: {@code SUBSCRIBED} for a subscriber
+     * (gifting or not), {@code DISABLED} otherwise. Any other value, or an enum without those names, is kept.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static Enum<?> subscriptionButtons(Enum<?> state) {
+        if (state == null || !Settings.isEnabled("hide_subscription_upsells")) return state;
+        String without;
+        switch (state.name()) {
+            case "SUBSCRIBED":
+            case "GIFTING_ENABLED": without = "SUBSCRIBED"; break;
+            case "DISABLED":
+            case "NOT_SUBSCRIBED":
+            case "NOT_SUBSCRIBED_GIFTING_DISABLED": without = "DISABLED"; break;
+            default: return state;
+        }
+        try {
+            return Enum.valueOf((Class) state.getDeclaringClass(), without);
+        } catch (IllegalArgumentException missing) {
+            return state;
+        }
+    }
+
     /**
      * The native Home's top tabs without Clips. {@code context} is what Home was opened on: the page
      * itself, the Home fragment (its "DiscoveryFeedPage" argument), or the tab list being replaced.

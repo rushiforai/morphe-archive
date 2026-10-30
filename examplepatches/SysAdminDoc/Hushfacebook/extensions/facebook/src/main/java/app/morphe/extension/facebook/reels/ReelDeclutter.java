@@ -65,6 +65,10 @@ import app.morphe.extension.shared.settings.BooleanSetting;
  *       false takes Facebook's own path for a tile with no clip. {@link #previewClipEnd} is handed
  *       the position the tile's player stops and loops at, and answers -1, the player's own
  *       default, so the reel plays to its end.
+ *   <li>A reel whose comments are turned off gets no Comment button down its right side, though
+ *       its feed post still shows one that opens them to read. {@link #showsCommentButton} is
+ *       handed Facebook's can-comment answer in each sidebar builder, and true draws the button
+ *       (#299).
  * </ul>
  *
  * <p>Every hook fails open: until the settings are ready, while Hushfacebook is paused, with a
@@ -125,6 +129,10 @@ public final class ReelDeclutter {
     static final String PREVIEW_CLIP = "preview clip";
     static final String PREVIEW_END = "clip end";
     static final String PREVIEW_NO_END = "no end";
+
+    /** Counted under its own name each time a reel with comments turned off gets its Comment button anyway. */
+    static final String COMMENT_ROUTE = "Reel Comment button";
+    static final String COMMENTS_OFF = "comments off";
 
     /** What the tile's player reads as no stop position: the default its settings builder starts with. */
     static final int NO_END = -1;
@@ -390,6 +398,25 @@ public final class ReelDeclutter {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.REEL_DECLUTTER, PREVIEW_CLIP, failure);
             return endMs;
+        }
+    }
+
+    /**
+     * Injection point, in each builder of a reel's sidebar, handed Facebook's answer to whether you
+     * can comment on the reel, right before the builder leaves the Comment button out for a no
+     * (#299). True while the switch is on, so the button is drawn and opens the comments to read.
+     * Never throws: anything going wrong answers what it was handed.
+     */
+    public static boolean showsCommentButton(boolean canComment) {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
+            if (canComment || !Utils.settingsReady() || !Settings.SHOW_REEL_COMMENT_BUTTON.get()) return canComment;
+            FeedFilterCounters.removed(COMMENT_ROUTE, 1, COMMENTS_OFF);
+            logOnce(COMMENTS_OFF, () -> "Reel Comment button: drawn on a reel with comments turned off");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, COMMENTS_OFF, failure);
+            return canComment;
         }
     }
 

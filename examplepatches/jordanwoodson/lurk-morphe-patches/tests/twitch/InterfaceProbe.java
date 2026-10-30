@@ -12,6 +12,9 @@ public final class InterfaceProbe {
     enum Tab { HOME, CLIPS, VIDEOS, CHAT }
     enum Destination { Default, Browse, Following, NotificationCenter, Channel, Clip }
     enum MissingDestination { Default, Clip }
+    // Twitch's subscription state keeps its constant names; the chat header reads only which offers it makes.
+    enum SubscriptionState { DISABLED, NOT_SUBSCRIBED, NOT_SUBSCRIBED_GIFTING_DISABLED, SUBSCRIBED, GIFTING_ENABLED }
+    enum OtherState { NOT_SUBSCRIBED, GIFTING_ENABLED }
     public static final class Fragment {
         private final Bundle arguments = new Bundle();
         Fragment(DiscoveryFeedPage page) { arguments.putSerializable("DiscoveryFeedPage", page); }
@@ -75,6 +78,16 @@ public final class InterfaceProbe {
             home(enabled);
             check(!TwitchInterface.bitsVisible(false), "Stock hidden Bits stays hidden");
             check(TwitchInterface.bitsVisible(true) == !enabled, "Bits setting applies");
+            check(!TwitchInterface.subscriptionUpsellVisible(false), "Stock hidden upgrade stays hidden");
+            check(TwitchInterface.subscriptionUpsellVisible(true) == !enabled, "Upgrade follows the upsell setting");
+            for (SubscriptionState state : SubscriptionState.values()) {
+                boolean subscriber = state == SubscriptionState.SUBSCRIBED || state == SubscriptionState.GIFTING_ENABLED;
+                SubscriptionState expected = !enabled ? state : subscriber ? SubscriptionState.SUBSCRIBED : SubscriptionState.DISABLED;
+                check(TwitchInterface.subscriptionButtons(state) == expected, "Chat header subscription state " + state);
+            }
+            check(TwitchInterface.subscriptionButtons(null) == null, "Missing subscription state stays missing");
+            for (OtherState state : OtherState.values())
+                check(TwitchInterface.subscriptionButtons(state) == state, "An enum without the hidden states is kept");
             check(TwitchInterface.clipTabs(null) == null, "Missing UI data stays missing");
             java.util.List<String> unrelated = Arrays.asList("CLIPS", "normal chat");
             check(TwitchInterface.clipTabs(unrelated) == unrelated, "Unrelated strings are not discovery enum tabs");

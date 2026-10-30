@@ -26,6 +26,7 @@ Every Hushfeed release, newest first.
 * **TikTok:** Search knows the everyday names for a few features now. Try "autoplay", "PiP", "AI" or "save photos". It also finds a choice row by any of its options, whichever one it's set to. Search "save the frame" and `Double tap` comes up, and tapping it opens its list of choices. Titles that match what you typed still come first.
 * **TikTok:** `Lock the feed at set times` locks the feed by itself during hours you pick, like `Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00`. Leave the days out and it's every day, and a time that ends before it starts runs past midnight. It follows your phone's clock, daylight saving changes included. The lock panel says when it opens again, and the row shows when the next lock starts. Messages, profiles and search still work while it's on. A spent daily budget still wins, and Pause Hushfeed turns it off. Cutting hours waits a day, just like budget changes do, and you can't take hours off a day that's already locked.
 * **TikTok:** `Save only on Wi-Fi` keeps saves off mobile data. On a metered network, or when the phone can't tell, a save waits for Wi-Fi (or any network that isn't metered) for up to 30 minutes. A waiting save doesn't take one of the `Saves at once` spots, and you can cancel it from the Downloads page. Leave Wi-Fi in the middle of a save and it stops cleanly, with the finished files kept. Saving a frame still works anywhere. It's off by default.
+* **TikTok:** `Save box for chat stickers` in Downloads turns off the Save media box Hushfeed opens when you tap a sticker someone sent you in a chat. With it off, the tap only does what TikTok does (#274).
 
 ### Fixes
 
@@ -72,6 +73,7 @@ Every Hushfeed release, newest first.
 * **TikTok:** Screen recording now asks Android to capture only the patched app's sound.
 * **TikTok:** Service+ cleanup checks the first entry in a LIVE preview now, the same one TikTok decides to show (#94).
 * **TikTok:** The comment pause can tell the first frame is playing before TikTok sends its first progress update (#151).
+* **TikTok:** `Hide TikTok's Auto scroll button` also hides the round Auto scroll button TikTok shows at the top right of the video on some devices (#234).
 
 ## 0.79.0 (2026-10-24)
 

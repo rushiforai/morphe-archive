@@ -23,13 +23,18 @@ import java.util.List;
  * (each {@code _INTENT_V1}): the unfiltered row in All comments' place is
  * {@code CHRONOLOGICAL_UNFILTERED_INTENT_V1}, one of 582's MobileConfig defaults too. A menu that
  * offers {@link #token} still gets that one.
+ *
+ * <p>{@link #OLDEST} (#295) asks for that same chronological token up front, first comment first,
+ * on every post. Facebook's menus show it as All comments where they offer it at all, so a request
+ * naming it is the one way to get Oldest on a post whose menu doesn't.
  */
 public enum CommentOrder {
     FACEBOOK(null, "facebook"),
     MOST_RELEVANT("RANKED_FILTERED_INTENT_V1", "most_relevant"),
     NEWEST("RECENT_ACTIVITY_INTENT_V1", "newest"),
     ALL_COMMENTS("RANKED_UNFILTERED_CHRONOLOGICAL_REPLIES_INTENT_V1", "all_comments",
-            "CHRONOLOGICAL_UNFILTERED_INTENT_V1");
+            "CHRONOLOGICAL_UNFILTERED_INTENT_V1"),
+    OLDEST("CHRONOLOGICAL_UNFILTERED_INTENT_V1", "oldest");
 
     /** What the request asks for, or null to ask for nothing and take Facebook's choice. */
     @Nullable
@@ -78,7 +83,10 @@ public enum CommentOrder {
         return null;
     }
 
-    /** The order [token] names, as a request or a sort menu's row, or null when it's none of these. */
+    /**
+     * The order [token] names, as a request or a sort menu's row, or null when it's none of these.
+     * {@link #OLDEST}'s token is All comments' row in the menus that offer it, so it reads as that.
+     */
     @Nullable
     public static CommentOrder ofToken(@Nullable String token) {
         if (token == null) return null;

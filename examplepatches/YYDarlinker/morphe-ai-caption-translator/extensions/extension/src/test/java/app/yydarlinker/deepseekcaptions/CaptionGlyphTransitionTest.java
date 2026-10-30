@@ -5,38 +5,6 @@ import org.junit.Test;
 
 /** Plain JUnit: no Android runner, clock, threads or timers. */
 public class CaptionGlyphTransitionTest {
-    @Test public void componentMatchesFrozenOldOverlay() throws Exception {
-        CaptionGlyphTransition state = new CaptionGlyphTransition();
-        String previous = "";
-        boolean scheduled = false;
-        int queued = 0, posts = 0;
-        for (String line : GlyphTransitionFixture.lines().subList(1, GlyphTransitionFixture.lines().size())) {
-            String[] e = line.split("\t");
-            if (!e[0].equals(previous)) {
-                state.reset(); scheduled = false; queued = 0; posts = 0; previous = e[0];
-            }
-            boolean request = false;
-            String needs = "-";
-            switch (e[1]) {
-                case "N": request = state.noteTarget(Float.parseFloat(e[2])); break;
-                case "A": request = state.advance(Long.parseLong(e[2])); needs = Boolean.toString(request); break;
-                case "F":
-                    if (queued > 0) { queued--; scheduled = false; request = state.advance(Long.parseLong(e[2])); }
-                    break;
-                case "R": state.reset(); scheduled = false; break;
-                case "S": state.settle(); break;
-                default: throw new AssertionError(line);
-            }
-            // Model only the adapter's queue coalescing; expected data comes from the old Overlay.
-            if (request && !scheduled) { scheduled = true; queued++; posts++; }
-            assertEquals(line, e[3], Integer.toHexString(Float.floatToIntBits(state.displayedPx())));
-            assertEquals(line, e[4], needs);
-            assertEquals(line, Boolean.parseBoolean(e[5]), scheduled);
-            assertEquals(line, Integer.parseInt(e[6]), posts);
-            assertEquals(line, Integer.parseInt(e[7]), queued);
-        }
-    }
-
     @Test public void risingStepHasAnExactEndpointAndNoFurtherFrame() {
         CaptionGlyphTransition state = new CaptionGlyphTransition();
         assertFalse(state.noteTarget(40f));

@@ -25,6 +25,8 @@ import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
+import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
+import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.extension.requireStatusMethod
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -62,6 +64,17 @@ internal const val GIF_BUTTON =
 internal const val STICKER_BUTTON =
     "com.facebook.feedback.comments.plugins.commentcomposer.attachmentbutton.sticker.StickerAttachmentButtonPlugin"
 
+/** The name the socket over the comment box's text field gives itself, in its render (#290). */
+internal const val PRE_INPUT_SOCKET = "CommentComposerPreInputContentSocket"
+
+/** The row of emoji over the comment box, a kept class name the same render loads. */
+internal const val EMOJI_ROW =
+    "com.facebook.feedback.comments.plugins.commentcomposerpreinput.conversationguide.ConversationGuidePlugin"
+
+/** Meta AI's suggestion pills, the socket's other plugin, a kept class its applies check calls. */
+internal const val META_AI_PILLS =
+    "Lcom/facebook/feedback/comments/plugins/commentcomposerpreinput/metaaisuggestionpills/MetaAISuggestionPillsPlugin;"
+
 /** The name the comment bar under a video in the full-screen viewer gives its sticker button, where it builds it. */
 internal const val VIEWER_STICKER = "FbShortsComposerAttachmentComponentSpec_STICKER"
 
@@ -93,15 +106,9 @@ internal const val INLINE_COMMENTS_DWELL_TIME =
 internal const val INLINE_COMMENTS_CLIENT_RANKING =
     "com.facebook.feed.plugins.belowufifooter.impl.inlinecommentwithclientranking.InlineCommentWithClientRankingPlugin"
 
-/** The name the socket of the buttons under each comment gives itself, in the methods that go through its plugins. */
-internal const val COMMENT_UFI_SOCKET = "CommentUfiSocket"
-
-/** The thumbs-down under a comment, next to Like, a kept class name that socket's name table loads (#241). */
+/** The plugin that builds the thumbs-down under a comment, next to Like, a kept class (#241). */
 internal const val COMMENT_DOWNVOTE =
-    "com.facebook.feedback.comments.plugins.commentufi.commentsdownvote.CommentsUFIInlineDownvotePlugin"
-
-/** A comment's Like button, in the same name table. */
-internal const val COMMENT_LIKE = "com.facebook.feedback.comments.plugins.commentufi.like.LikePlugin"
+    "Lcom/facebook/feedback/comments/plugins/commentufi/commentsdownvote/CommentsUFIInlineDownvotePlugin;"
 
 /** The name the reaction picker's popup logs itself under, in the method that opens it. */
 internal const val DOCK_NAME = "reactions_dock"
@@ -142,11 +149,12 @@ private const val OBJECTS = "[Ljava/lang/Object;"
 
 internal const val COMMENT_SHEET_OPTIONS = "$EXTENSION_PACKAGE/comments/CommentSheetOptions;"
 internal const val HOLDS_BUTTON = "$COMMENT_SHEET_OPTIONS->holdsButton(Ljava/lang/String;)Z"
+internal const val HOLDS_EMOJI_ROW = "$COMMENT_SHEET_OPTIONS->holdsEmojiRow()Z"
 internal const val HOLDS_VIEWER_BUTTONS = "$COMMENT_SHEET_OPTIONS->holdsViewerButtons()Z"
 internal const val HIDES_VIDEO_COMMENT_COMPOSER = "$COMMENT_SHEET_OPTIONS->hidesVideoCommentComposer()Z"
 internal const val HOLDS_BOTTOM_CONTENT = "$COMMENT_SHEET_OPTIONS->holdsBottomContent(Ljava/lang/String;)Z"
 internal const val HOLDS_POST_COMMENTS = "$COMMENT_SHEET_OPTIONS->holdsPostComments(Ljava/lang/String;)Z"
-internal const val HOLDS_COMMENT_BUTTON = "$COMMENT_SHEET_OPTIONS->holdsCommentButton(Ljava/lang/String;)Z"
+internal const val HOLDS_COMMENT_DISLIKE = "$COMMENT_SHEET_OPTIONS->holdsCommentDislike()Z"
 internal const val SKIP_PICKER = "$COMMENT_SHEET_OPTIONS->skipReactionPicker()Z"
 internal const val OPEN_REPLY_THREADS = "$COMMENT_SHEET_OPTIONS->openReplyThreads(Z)Z"
 internal const val HIDES_COMMENT = "$COMMENT_SHEET_OPTIONS->hidesComment(Ljava/lang/Object;)Z"
@@ -193,15 +201,20 @@ internal const val GRAPHQL_COMMENT = "Lcom/facebook/graphql/model/GraphQLComment
  * about its inline summary. Its name table (584 `LX/228;->A0k`) names three variants of them,
  * [INLINE_COMMENTS], [INLINE_COMMENTS_DWELL_TIME] and [INLINE_COMMENTS_CLIENT_RANKING], and its
  * check sits in the table's class. It's found and hooked the same way as the other two sockets:
- * while the switch is on the three get a no, and the socket goes on to its next plugin, so the
- * comment box under a post, Meta AI's summary switch and the post's Comment button stay as they were.
+ * while the switch is on the three get a no, and the socket goes on to its next plugin, so Meta
+ * AI's summary switch and the post's Comment button stay as they were. The same table names three
+ * comment boxes (584 `InlineCommentComposerPlugin`, its hoisted and its anonymous variants), and
+ * in 584 they draw the post's pinned comment above the box (#305), so the extension gives them the
+ * same no; the list of what it holds lives there, not here.
  *
- * Hide dislike on comments (#241): the buttons under each comment, Like, Reply and the thumbs-down
- * among them, come through the socket that names itself [COMMENT_UFI_SOCKET] (584 `LX/4Fu;->A03`
- * and `LX/5yK;->render`). Its name table (584 `LX/228;->A0t`) names [COMMENT_DOWNVOTE] next to
- * [COMMENT_LIKE], and its check (584 `LX/228;->A2C`) sits in the table's class. It's found and hooked
- * the same way as the other sockets: while the switch is on the thumbs-down gets a no, so Like,
- * Reply and the comment's other buttons stay.
+ * Hide dislike on comments (#241): the thumbs-down under a comment is built by its own plugin,
+ * [COMMENT_DOWNVOTE], a kept class with one static builder that takes the comment's context and
+ * props and returns the button's component, or nothing when Facebook has none to show (584
+ * `A00(LX/6u7;LX/4Fk;)LX/97H;`). The extension goes first in it, and while the switch is on the
+ * builder returns nothing, so the socket of a comment's buttons (584 `LX/4Fu;->A03`) still counts
+ * the plugin as present and draws Like, Reply, the reaction icons and their count as it does next
+ * to a thumbs-down. 0.19.0 answered no for the plugin in that socket's check instead (584
+ * `LX/228;->A2C`), and the reaction icons and count went with the thumbs-down.
  *
  * Like only: a long press on Like opens the reaction picker through one method that builds
  * [UFI_DOCK] in a popup and logs [DOCK_NAME] (581 `LX/3FO;->A06`, each an instance (View, View)V
@@ -268,7 +281,7 @@ val commentSheetOptionsPatch = bytecodePatch(
     name = "Comment sheet options",
     description = "Small fixes for comments. Stop a long press on Like from opening reactions, hide the GIF and " +
         "sticker buttons, show every reply without tapping View replies, load a whole reply thread as you " +
-        "scroll, open more replies with a tap anywhere on their row, hide the comments under feed posts or the thumbs-down on comments, hide Related groups under group posts, hide comments with shop links or your words, hide who is typing and the new comments pop-up, and hide the comment box under full-screen videos. Starts off. Turn on the parts you want in " +
+        "scroll, open more replies with a tap anywhere on their row, hide the comments under feed posts or the thumbs-down on comments, hide Related groups under group posts, hide comments with shop links or your words, hide who is typing and the new comments pop-up, hide the emoji row over the comment box, and hide the comment box under full-screen videos. Starts off. Turn on the parts you want in " +
         "Hushfacebook settings > Comments and writing.",
 ) {
     category("Comments")
@@ -296,13 +309,7 @@ val commentSheetOptionsPatch = bytecodePatch(
         if (post.check.descriptor() == buttons.check.descriptor() || post.check.descriptor() == bottom.check.descriptor()) {
             refuse("the socket under a post's buttons leads to another socket's check, ${post.check.descriptor()}")
         }
-        val ufi = commentUfiSocket(
-            holders(COMMENT_DOWNVOTE),
-            holders(COMMENT_UFI_SOCKET).flatMap { methodsHolding(it, COMMENT_UFI_SOCKET) },
-        ) { types -> types.mapNotNull { classDefByOrNull(it) }.associateBy { it.type } }
-        if (ufi.check.descriptor() in listOf(buttons, bottom, post).map { it.check.descriptor() }) {
-            refuse("the socket of a comment's buttons leads to another socket's check, ${ufi.check.descriptor()}")
-        }
+        val dislike = dislikeBuilder(classDefByOrNull(COMMENT_DOWNVOTE))
         val dock = reactionPicker(holders(DOCK_NAME))
         val threads = replyThreads(
             holders(COMMENT_SECTION),
@@ -324,8 +331,8 @@ val commentSheetOptionsPatch = bytecodePatch(
             .holdButtons(bottom.table, HOLDS_BOTTOM_CONTENT)
         mutableClassDefBy(post.check.definingClass).methods.single { it.descriptor() == post.check.descriptor() }
             .holdButtons(post.table, HOLDS_POST_COMMENTS)
-        mutableClassDefBy(ufi.check.definingClass).methods.single { it.descriptor() == ufi.check.descriptor() }
-            .holdButtons(ufi.table, HOLDS_COMMENT_BUTTON)
+        mutableClassDefBy(dislike.definingClass).methods.single { it.descriptor() == dislike.descriptor() }
+            .holdDislike()
         mutableClassDefBy(dock.definingClass).methods.single { it.descriptor() == dock.descriptor() }
             .skipPicker()
         mutableClassDefBy(threads.initialState.definingClass).methods
@@ -347,8 +354,66 @@ val commentSheetOptionsPatch = bytecodePatch(
             .holdViewerButtons(viewer)
         mutableClassDefBy(videoBar.definingClass).methods.single { it.descriptor() == videoBar.descriptor() }
             .hideVideoCommentComposer()
+        emojiRowCheck(holders(EMOJI_ROW))?.let { check ->
+            mutableClassDefBy(check.definingClass).methods.single { it.descriptor() == check.descriptor() }.holdEmojiRow()
+        }
         enableStatus("commentSheetOptions")
     }
+}
+
+/**
+ * The pre-input socket's check of whether a plugin applies, from [holders], the classes loading
+ * [EMOJI_ROW]: the one static (object, int) boolean method of the class whose render names
+ * [PRE_INPUT_SOCKET] and [EMOJI_ROW] and calls it. The socket numbers its two plugins, 1 for Meta
+ * AI's pills and 0 for the emoji row, and the check opens on that number: not zero runs on to Meta
+ * AI's own check, zero jumps to the emoji row's (584: LX/9eB;->A03). A build where the socket moved
+ * keeps the rest of the patch, with Hide the emoji row on comments left doing nothing and a warning
+ * saying why.
+ */
+internal fun emojiRowCheck(holders: List<ClassDef>): Method? {
+    fun skip(why: String): Method? {
+        patchLog.warning("$PATCH: $why. Hide the emoji row on comments does nothing in this build")
+        return null
+    }
+    val renders = holders.flatMap { methodsHolding(it, EMOJI_ROW) }.filter { holdsString(it, PRE_INPUT_SOCKET) }
+    val render = renders.singleOrNull() ?: return skip("expected one render naming $PRE_INPUT_SOCKET and the emoji row, found ${renders.size}")
+    val owner = holders.single { it.type == render.definingClass }
+    val checks = calls(render).filter { call ->
+        call.definingClass == owner.type && call.returnType == "Z" &&
+            call.parameterTypes.size == 2 && call.parameterTypes.last().toString() == "I"
+    }.map { it.descriptor() }.distinct().mapNotNull { called -> owner.methods.singleOrNull { it.descriptor() == called } }
+        .filter { AccessFlags.STATIC.isSet(it.accessFlags) }
+    val check = checks.singleOrNull() ?: return skip("expected one applies check in ${render.descriptor()}, found ${checks.size}")
+    if (check.localRegisterCount() < 1) return skip("${check.descriptor()} has no local register for the hook")
+    val code = check.implementation!!.instructions.toList()
+    val opening = code.firstOrNull()
+    if (opening?.opcode != Opcode.IF_EQZ || (opening as OneRegisterInstruction).registerA != check.parameterRegisterNumber(1)) {
+        return skip("${check.descriptor()} doesn't open on the plugin's number")
+    }
+    // The opening branch sits at code unit 0, so its offset is where plugin 0's check starts.
+    val zero = (opening as OffsetInstruction).codeOffset
+    var unit = 0
+    val pills = code.takeWhile { instruction -> (unit < zero).also { unit += instruction.codeUnits } }.any {
+        ((it as? ReferenceInstruction)?.reference as? MethodReference)?.definingClass == META_AI_PILLS
+    }
+    if (!pills) return skip("${check.descriptor()}'s non-zero path doesn't ask $META_AI_PILLS")
+    return check
+}
+
+/** First thing in the pre-input socket's applies check: for plugin 0, the emoji row, answer no while the extension says so. */
+internal fun MutableMethod.holdEmojiRow() {
+    addInstructionsWithLabels(
+        0,
+        """
+            if-nez p1, :check
+            invoke-static {}, $HOLDS_EMOJI_ROW
+            move-result v0
+            if-eqz v0, :check
+            const/4 v0, 0x0
+            return v0
+        """,
+        ExternalLabel("check", getInstruction(0)),
+    )
 }
 
 private fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $detail")
@@ -397,15 +462,26 @@ internal fun postSocket(
 ): PluginSocket = pluginCheck(holders, sockets, classes, POST_SOCKET, INLINE_COMMENTS, INLINE_COMMENTS_CLIENT_RANKING)
 
 /**
- * The socket of the buttons under each comment, from [holders], the classes loading
- * [COMMENT_DOWNVOTE], and [sockets], the methods loading [COMMENT_UFI_SOCKET]. The table is the one
- * name table naming the thumbs-down and Like; see [pluginCheck] for the check.
+ * The builder of the thumbs-down under a comment: the one static method of [plugin], the class
+ * [COMMENT_DOWNVOTE], that takes two objects, the comment's context and props, and returns an
+ * object, the button's component, with a local register for the hook. Refuses without the class
+ * or with any other number of such methods.
  */
-internal fun commentUfiSocket(
-    holders: List<ClassDef>,
-    sockets: List<Method>,
-    classes: (Set<String>) -> Map<String, ClassDef>,
-): PluginSocket = pluginCheck(holders, sockets, classes, COMMENT_UFI_SOCKET, COMMENT_DOWNVOTE, COMMENT_LIKE)
+internal fun dislikeBuilder(plugin: ClassDef?): Method {
+    if (plugin == null) refuse("no class $COMMENT_DOWNVOTE")
+    val builders = plugin.methods.filter { method ->
+        AccessFlags.STATIC.isSet(method.accessFlags) &&
+            method.returnType.startsWith("L") &&
+            method.parameterTypes.size == 2 &&
+            method.parameterTypes.all { it.startsWith("L") }
+    }
+    val builder = builders.singleOrNull() ?: refuse(
+        "expected one static builder of two objects in $COMMENT_DOWNVOTE, found ${builders.size}: " +
+            builders.joinToString { it.descriptor() },
+    )
+    if (builder.localRegisterCount() < 1) refuse("${builder.descriptor()} has no local register for the hook")
+    return builder
+}
 
 /**
  * A socket named [socket] whose name table names [plugin], and [alsoNamed] when it's given. The
@@ -485,6 +561,21 @@ internal fun MutableMethod.holdButtons(table: Method, hook: String = HOLDS_BUTTO
             return v0
         """,
         ExternalLabel("check", getInstruction(0)),
+    )
+}
+
+/** First thing where the thumbs-down under a comment is built: while the extension says so, return nothing. */
+internal fun MutableMethod.holdDislike() {
+    addInstructionsWithLabels(
+        0,
+        """
+            invoke-static {}, $HOLDS_COMMENT_DISLIKE
+            move-result v0
+            if-eqz v0, :build
+            const/4 v0, 0x0
+            return-object v0
+        """,
+        ExternalLabel("build", getInstruction(0)),
     )
 }
 

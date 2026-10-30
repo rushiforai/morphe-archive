@@ -1,6 +1,7 @@
 package io.github.jordanwoodson.patches.twitch.upsells
 
 import io.github.jordanwoodson.patches.shared.Locators
+import io.github.jordanwoodson.patches.twitch.shared.addInstructions
 import io.github.jordanwoodson.patches.twitch.shared.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -15,6 +16,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resource.resourceId
 import io.github.jordanwoodson.patches.shared.settings.Section
@@ -34,6 +36,9 @@ import io.github.jordanwoodson.patches.twitch.shared.Constants.COMPATIBILITY_TWI
 import io.github.jordanwoodson.patches.twitch.shared.twitchHermes
 import io.github.jordanwoodson.patches.twitch.shared.twitchHermesPatch
 import io.github.jordanwoodson.patches.twitch.shared.twitchMatch
+import io.github.jordanwoodson.patches.twitch.tipping.ChatHeaderButtonsStateFingerprint
+import io.github.jordanwoodson.patches.twitch.tipping.INTERFACE_CLASS
+import io.github.jordanwoodson.patches.twitch.tipping.filterUiFlag
 
 private const val KEY = "hide_subscription_upsells"
 
@@ -49,6 +54,7 @@ val hideSubscriptionUpsellsPatch = bytecodePatch(
     execute {
         twitchHermes.hideSubscriptionInterface()
         hideNativeSubscribeButtons()
+        hideChatHeaderSubscriptionButtons()
         hideAccountTurboPromotion()
         TurboSignupFingerprint.twitchMatch("Turbo signup upsell").method.addInstructionsIfEnabled(KEY, "return-void")
         hideTurboStartDialog()
@@ -118,6 +124,47 @@ private fun BytecodePatchContext.hideNativeSubscribeButtons() {
         const/16 v${p[1]}, 0x8
         ${invoke("invoke-virtual", "Landroid/view/View;->setVisibility(I)V", 0, p[1])}
         return-void
+    """)
+}
+
+/**
+ * The chat header's Subscribe, Gift A Sub and Upgrade buttons (beside Get Bits, right of the extensions). Twitch
+ * offers Subscribe and Gift A Sub from its buttons state's subscription state, an enum, and Upgrade from its
+ * canShowUpgradeButton flag. The state's constructor passes both through TwitchInterface, which with the switch on
+ * gives the enum value that offers neither (SUBSCRIBED for a subscriber, DISABLED otherwise) and false. The
+ * remaining buttons (Follow, Get Bits) then take the free places, and with none left Twitch hides the strip.
+ */
+private fun BytecodePatchContext.hideChatHeaderSubscriptionButtons() {
+    filterUiFlag(ChatHeaderButtonsStateFingerprint, ", canShowUpgradeButton=", "$INTERFACE_CLASS->subscriptionUpsellVisible(Z)Z")
+    val printer = ChatHeaderButtonsStateFingerprint.twitchMatch("chat header buttons state").method
+    val instructions = printer.implementation!!.instructions.toList()
+    val label = instructions.indices.singleOrNull {
+        ((instructions[it] as? ReferenceInstruction)?.reference as? StringReference)?.string == ", subscriptionState="
+    } ?: throw PatchException("Twitch: chat header buttons state no longer prints its subscription state")
+    val field = instructions.drop(label + 1).firstOrNull { it.opcode == Opcode.IGET_OBJECT }
+        ?.let { (it as ReferenceInstruction).reference as FieldReference }
+        ?.takeIf { it.definingClass == printer.definingClass }
+        ?: throw PatchException("Twitch: chat header subscription state is not a field")
+    // The extension swaps the value by constant name (Enum.valueOf), so the names must be there.
+    val names = classDefBy(field.type).methods.singleOrNull { it.name == "<clinit>" }?.implementation?.instructions
+        ?.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }.orEmpty()
+    listOf("DISABLED", "SUBSCRIBED", "GIFTING_ENABLED").forEach {
+        if (it !in names) throw PatchException("Twitch: chat header subscription state has no $it")
+    }
+    Locators.record("twitch.hide_subscription_upsells.chat_header_subscription_state", field.toString())
+    val writes = mutableClassDefBy(field.definingClass).methods.filter { it.name == "<init>" }.flatMap { method ->
+        method.implementation!!.instructions.withIndex().filter {
+            it.value.opcode == Opcode.IPUT_OBJECT && (it.value as ReferenceInstruction).reference.toString() == field.toString()
+        }.map { method to it }
+    }
+    val (constructor, write) = writes.singleOrNull()
+        ?: throw PatchException("Twitch: expected one chat header subscription state write, found ${writes.size}")
+    val register = (write.value as TwoRegisterInstruction).registerA
+    if (register > 255) throw PatchException("Twitch: chat header subscription state register exceeds move-result range")
+    constructor.addInstructions(write.index, """
+        invoke-static/range { v$register .. v$register }, $INTERFACE_CLASS->subscriptionButtons(Ljava/lang/Enum;)Ljava/lang/Enum;
+        move-result-object v$register
+        check-cast v$register, ${field.type}
     """)
 }
 

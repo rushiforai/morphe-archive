@@ -15,7 +15,9 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.os.SystemClock;
 import android.view.InputDevice;
 import android.view.MotionEvent;
@@ -34,6 +36,7 @@ import org.robolectric.shadows.ShadowSystemClock;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import app.morphe.extension.facebook.misc.FacebookSignature;
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.SettingsContextRule;
@@ -128,6 +131,38 @@ public class MessengerIconTest {
         assertFalse(MessengerIcon.open(app, false));
         assertNull("something was started", MessengerIconForTests.nextStarted());
         assertEquals(FamilyNames.MESSENGER_ICON + ": invoked 1, 0 found, 0 missing", statusLine());
+    }
+
+    /**
+     * Off, a Messenger under Meta's package name that carries none of Meta's certificates, as
+     * HushMessenger installed in Meta's place does, opens from its launcher entry anyway: Facebook
+     * turns that one down and the icon did nothing (#292). Meta's own Messenger, one whose signers
+     * can't be read, and a long press stay Facebook's.
+     */
+    @Test
+    public void offAReSignedMessengerStillOpens() {
+        Signature resigned = new Signature("0a0b0c0d");
+        MessengerIconForTests.install(resigned);
+        assertTrue(MessengerIcon.open(app, false));
+        Intent started = MessengerIconForTests.nextStarted();
+        assertNotNull("nothing was started", started);
+        assertEquals(MessengerIconForTests.HOME, started.getComponent());
+        assertTrue("Messenger doesn't get a task of its own",
+                (started.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK) != 0);
+        assertEquals(FamilyNames.MESSENGER_ICON + ": invoked 1, 0 found, 0 missing. Counted: "
+                + MessengerIcon.OPENED_RESIGNED + " 1", statusLine());
+
+        PackageInfo katana = new PackageInfo();
+        katana.packageName = "com.facebook.katana";
+        MessengerIconForTests.install(FacebookSignature.fbnsSigners(katana, new Signature[0])[0]);
+        assertFalse("Meta's Messenger was taken from Facebook", MessengerIcon.open(app, false));
+        MessengerIconForTests.install();
+        assertFalse("unreadable signers were taken as re-signed", MessengerIcon.open(app, false));
+        assertNull("something was started", MessengerIconForTests.nextStarted());
+
+        MessengerIconForTests.install(resigned);
+        assertFalse("a long press opened Messenger", MessengerIcon.open(app, true));
+        assertNull(MessengerIconForTests.nextStarted());
     }
 
     /**

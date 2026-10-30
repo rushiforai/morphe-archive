@@ -40,9 +40,13 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_ADS =
             new BooleanSetting("hushtelegram_hide_ads", TRUE);
 
-    /** Chat-list stories only; explicit profile stories and archives keep Telegram's paths. */
+    /**
+     * Chat-list stories only; explicit profile stories and archives keep Telegram's paths. The chat
+     * list sets up its Post Story button and loads the story list when it's built, so a change shows
+     * after a restart.
+     */
     public static final BooleanSetting HIDE_STORIES =
-            new BooleanSetting("hushtelegram_hide_stories", TRUE);
+            new BooleanSetting("hushtelegram_hide_stories", TRUE, true);
 
     /** Similar channels/bots and their cached search sections. */
     public static final BooleanSetting HIDE_RECOMMENDATIONS =
@@ -597,6 +601,13 @@ public class Settings extends BaseSettings {
     /** Telegram signs up a UnifiedPush app's address for its wake-ups instead of Firebase's token. */
     public static final BooleanSetting UNIFIED_PUSH =
             new BooleanSetting("hushtelegram_unified_push", FALSE);
+
+    /**
+     * Someone's reaction to your message shows a notification even when no push arrives, from the
+     * connection Telegram already has open. On by default: a push for the same reaction shows once.
+     */
+    public static final BooleanSetting REACTION_ALERTS =
+            new BooleanSetting("hushtelegram_reaction_alerts", TRUE);
 
     /**
      * Once a day, when Telegram starts, ask api.github.com whether a newer HushTelegram release is

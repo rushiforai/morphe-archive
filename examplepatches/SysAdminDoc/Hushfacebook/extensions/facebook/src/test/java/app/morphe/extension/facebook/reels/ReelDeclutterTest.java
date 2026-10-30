@@ -73,6 +73,7 @@ public class ReelDeclutterTest {
         Settings.HIDE_REEL_LIKE_BUTTON.resetToDefault();
         Settings.HIDE_REEL_COMMENT_BUTTON.resetToDefault();
         Settings.HIDE_REEL_SHARE_BUTTON.resetToDefault();
+        Settings.SHOW_REEL_COMMENT_BUTTON.resetToDefault();
         Settings.HIDE_REEL_SOUND_BUTTON.resetToDefault();
         Settings.HIDE_REEL_AUDIO_LINE.resetToDefault();
         Settings.HIDE_SLOW_CONNECTION_MESSAGE.resetToDefault();
@@ -278,6 +279,37 @@ public class ReelDeclutterTest {
                 + ". Removed: " + ReelDeclutter.PREVIEW_END + " 2. Kinds: " + ReelDeclutter.PREVIEW_CLIP + " 7, "
                 + ReelDeclutter.PREVIEW_END + " 6, " + ReelDeclutter.PREVIEW_NO_END + " 1",
                 line(ReelDeclutter.PREVIEW_ROUTE));
+    }
+
+    /**
+     * A reel with comments turned off (#299) keeps Facebook's no until the switch is on, then gets
+     * the Comment button, and the no comes back paused, before the settings are ready, once the
+     * switch is off again and when it can't be read. A yes stays yes throughout.
+     */
+    @Test
+    public void theCommentButtonShowsWithCommentsOffOnlyWithTheSwitchOn() {
+        assertFalse(Settings.SHOW_REEL_COMMENT_BUTTON.defaultValue);
+        assertFalse("asked as each reel's sidebar is built, so no restart", Settings.SHOW_REEL_COMMENT_BUTTON.rebootApp);
+        assertTrue(ReelDeclutter.showsCommentButton(true));
+        assertFalse(ReelDeclutter.showsCommentButton(false));
+        Settings.SHOW_REEL_COMMENT_BUTTON.save(true);
+        assertTrue(ReelDeclutter.showsCommentButton(false));
+        assertTrue(ReelDeclutter.showsCommentButton(true));
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse("the button showed while paused", ReelDeclutter.showsCommentButton(false));
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() ->
+                assertFalse("the button showed before the settings were ready", ReelDeclutter.showsCommentButton(false)));
+        SettingReadsForTests.breakReads(Settings.SHOW_REEL_COMMENT_BUTTON);
+        try {
+            assertFalse("a switch that can't be read showed the button", ReelDeclutter.showsCommentButton(false));
+            assertTrue(ReelDeclutter.showsCommentButton(true));
+        } finally {
+            SettingReadsForTests.mend(Settings.SHOW_REEL_COMMENT_BUTTON);
+        }
+        Settings.SHOW_REEL_COMMENT_BUTTON.save(false);
+        assertFalse("turning the switch off didn't take the button away", ReelDeclutter.showsCommentButton(false));
+        assertTrue(ReelDeclutter.showsCommentButton(true));
     }
 
     /** A whole reel switch that can't be read keeps Facebook's clip and end, and the report names the hook. */

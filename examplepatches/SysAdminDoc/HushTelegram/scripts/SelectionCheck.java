@@ -335,6 +335,7 @@ public final class SelectionCheck {
         hook(calls, flags, "launchFolder", "misc/LaunchFolder", "firstTabs");
         hook(calls, flags, "hideAllChats", "misc/LaunchFolder", "allChatsTab", "tabsAdded", "editing", "skipsDone");
         hook(calls, flags, "hiddenChats", "misc/HiddenChats", "prune");
+        hook(calls, flags, "hiddenUnread", "misc/HiddenChats", "uncounted");
         hook(calls, flags, "forwardHideSender", "misc/ForwardSender", "starts");
         hook(calls, flags, "voiceMusicPlayer", "misc/VoicePlayer", "music");
         hook(calls, flags, "silenceNonContacts", "misc/NonContacts", "silenced");
@@ -361,7 +362,7 @@ public final class SelectionCheck {
         hook(calls, flags, "fasterDownloads", "misc/DownloadSpeed", "fast");
         hook(calls, flags, "dataSaverDownloads", "misc/DataSaverDownloads", "hold", "holdMask");
         hook(calls, flags, "saveDownloads", "misc/SaveDownloads", "fileLoaded");
-        hook(calls, flags, "storageFolder", "misc/StorageFolder", "telegramFolder");
+        hook(calls, flags, "storageFolder", "misc/StorageFolder", "telegramFolder", "olderFile");
         hook(calls, flags, "unifiedPush", "misc/UnifiedPush", "token", "type");
         hook(calls, flags, "hideByKeyword", "misc/MessageFilters", "type");
         hook(calls, flags, "galleryCameraOnTap", "misc/GalleryCamera", "keepCameraOff", "wakeOnTap", "openWhenReady");

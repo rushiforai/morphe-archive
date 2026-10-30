@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run the real Twitch profile enum and emitted chat UI state constructors on ART.
+# Run the real Twitch profile enum, emitted chat UI state constructors and chat header buttons on ART.
 source "$(dirname "$0")/lib/common.sh"
 compile_only=false
 stock=false
@@ -18,7 +18,7 @@ remote=/data/local/tmp/lurk-twitch-interface
 mkdir -p "$out/classes" "$out/dex" "$WORK/tmp"
 export TMPDIR="$WORK/tmp"
 android="$ANDROID_HOME/platforms/android-36/android.jar"
-javac --release 17 -classpath "$android" -d "$out/classes" "$ROOT/tests/twitch/InterfaceArtProbe.java"
+javac --release 17 -classpath "$android" -d "$out/classes" "$ROOT/tests/twitch/InterfaceArtProbe.java" "$ROOT/tests/twitch/ProbeLocators.java"
 "$(build_tool d8)" --min-api 29 --lib "$android" --output "$out/dex" "$out/classes/"*.class
 (cd "$out/dex" && jar cf "$out/probe.jar" classes.dex)
 if $compile_only; then
@@ -31,4 +31,4 @@ adb -s "$serial" push "$1" "$remote/app.apk" >/dev/null
 adb -s "$serial" push "$out/probe.jar" "$remote/probe.jar" >/dev/null
 mode=patched
 if $stock; then mode=stock; fi
-adb -s "$serial" shell "CLASSPATH=$remote/probe.jar:$remote/app.apk app_process /system/bin InterfaceArtProbe $mode"
+adb -s "$serial" shell "CLASSPATH=$remote/probe.jar:$remote/app.apk app_process /system/bin InterfaceArtProbe $mode $remote/app.apk"

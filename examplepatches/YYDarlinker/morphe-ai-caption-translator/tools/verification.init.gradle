@@ -4,6 +4,7 @@ def receiptPath = gradle.startParameter.projectProperties['verification.receipt'
 if (!receiptPath) throw new GradleException('verification.receipt is required')
 def receipt = [tasks: [:]]
 def requiredTests = [':translation-core:testDebugUnitTest', ':extensions:extension:testDebugUnitTest']
+def resetTestCompilers = [:]
 gradle.projectsEvaluated {
     def root = gradle.rootProject
     receipt.gradle_version = gradle.gradleVersion
@@ -18,6 +19,20 @@ gradle.projectsEvaluated {
     ]
     requiredTests.each { taskPath ->
         def t = root.tasks.getByPath(taskPath)
+        // Extension must retain its default build dir for R8. Recreate only the test
+        // compiler's destination so deleted/renamed source cannot survive as old bytecode.
+        def compiler = t.project.tasks.getByName('compileDebugUnitTestJavaWithJavac')
+        if (!t.testClassesDirs.files.contains(compiler.destinationDirectory.get().asFile)) {
+            throw new GradleException("Unbound test compiler output: ${taskPath}")
+        }
+        resetTestCompilers[compiler.path] = false
+        compiler.options.incremental = false
+        compiler.outputs.upToDateWhen { false }
+        compiler.outputs.cacheIf { false }
+        compiler.doFirst {
+            t.project.delete(compiler.destinationDirectory.get().asFile)
+            resetTestCompilers[compiler.path] = true
+        }
         if (root.providers.gradleProperty('verification.rerunTests').getOrElse('false') == 'true') {
             t.outputs.upToDateWhen { false }
         }
@@ -26,6 +41,9 @@ gradle.projectsEvaluated {
 gradle.taskGraph.afterTask { t, state ->
         def row = [executed: state.executed, skipped: state.skipped, skip_message: state.skipMessage,
                    up_to_date: state.upToDate, did_work: state.didWork, failure: state.failure != null]
+        if (resetTestCompilers.containsKey(t.path)) {
+            row.test_output_reset = resetTestCompilers[t.path]
+        }
         if (requiredTests.contains(t.path)) {
             row.xml = t.reports.junitXml.outputLocation.get().asFile.absolutePath
             row.html = t.reports.html.outputLocation.get().asFile.absolutePath

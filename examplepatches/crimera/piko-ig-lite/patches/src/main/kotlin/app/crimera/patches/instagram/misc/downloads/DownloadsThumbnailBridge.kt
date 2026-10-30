@@ -41,20 +41,20 @@ private const val THUMBNAIL_LOADER_DESCRIPTOR = "$DOWNLOAD_DESCRIPTOR/ThumbnailL
 /** Log message only the cached-bitmap helper carries. */
 private const val CACHED_BITMAP_ERROR_ANCHOR = "Error getting bitmap from cache"
 
-/** Analytics tag of the helper owning the lookup; narrows the error anchor to one method. */
-private const val SAVE_AS_STICKER_ANCHOR = "SaveAsStickerHelper"
-
 /**
  * Instagram's "URL string to cached bitmap" helper, the only cheap preview source in an app with
  * no Coil/Glide/Fresco. Obfuscated owners move between releases (`LX/0PoN` on 448, `LX/0jhc` on
- * 449), so the method is anchored by its log strings plus its public shape: static, one `String`,
- * returns `Bitmap`. A cache miss returns null and never starts a load.
+ * 449), so the method is anchored by its cache-error log and public shape: static, one `String`,
+ * returns `Bitmap`. 453 routes the `SaveAsStickerHelper` logger tag through Instagram's string
+ * indexer, so that tag is no longer a string in this method. The resolved cache chain below proves
+ * the helper's behavior after this unique semantic match. A cache miss returns null and never
+ * starts a load.
  */
 private val cachedBitmapLookupFingerprint =
     Fingerprint(
         returnType = BITMAP_DESCRIPTOR,
         parameters = listOf(STRING_DESCRIPTOR),
-        strings = listOf(CACHED_BITMAP_ERROR_ANCHOR, SAVE_AS_STICKER_ANCHOR),
+        strings = listOf(CACHED_BITMAP_ERROR_ANCHOR),
         custom = { method, _ -> AccessFlags.STATIC.isSet(method.accessFlags) },
     )
 

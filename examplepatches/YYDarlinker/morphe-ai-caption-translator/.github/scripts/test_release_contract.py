@@ -26,6 +26,17 @@ class ReleaseContractTest(unittest.TestCase):
             env=dict(os.environ,GITHUB_REPOSITORY="YYDarlinker/morphe-ai-caption-translator")
             return subprocess.run([sys.executable,str(SCRIPT),version,'--mode',mode],cwd=dst,env=env,capture_output=True).returncode
     def test_coherent_release_fixture(self): self.assertEqual(0,self.validate())
+    def test_prepare_persists_the_release_identity_for_later_gradle_publish(self):
+        with tempfile.TemporaryDirectory(dir=ROOT/'work/temp') as tmp:
+            dst=Path(tmp)
+            (dst/'patches-bundle.json').write_text(json.dumps({'version':'1.5.9','created_at':'2026-10-30T03:00:00Z'}),encoding='utf-8')
+            properties='version = 1.5.9\ncaptionBuildId = local-1.5.8-reading1\norg.gradle.caching = true\n'
+            (dst/'gradle.properties').write_text(properties,encoding='utf-8')
+            result=subprocess.run([sys.executable,str(ROOT/'.github/scripts/normalize_release_metadata.py'),'1.5.9'],cwd=dst,capture_output=True)
+            self.assertEqual(0,result.returncode,result.stderr.decode())
+            # The publisher launches a separate Gradle process without prepare's -P override.
+            self.assertEqual(properties.replace('local-1.5.8-reading1','release-1.5.9'),(dst/'gradle.properties').read_text(encoding='utf-8'))
+            self.assertEqual('2026-10-30T03:00:00',json.loads((dst/'patches-bundle.json').read_text())['created_at'])
     def test_published_allows_newer_local_source(self):
         self.assertEqual(0,self.validate(mutate_files=lambda p:(p/'gradle.properties').write_text('version=9.9.9\n'),mode='published'))
     def test_release_rejects_newer_local_source(self):

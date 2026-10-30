@@ -1,3 +1,41 @@
+## [1.15.1](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.15.0...v1.15.1) (2026-10-29)
+
+### Kick
+
+#### 🚀 Updated App Support
+
+* support Kick 40.33.0 ([55dbe01](https://github.com/jordanwoodson/lurk-morphe-patches/commit/55dbe01ec937e7bad3d48a2f989e5166e02d9731))
+
+### Twitch
+
+#### 🚀 Updated App Support
+
+* support Twitch 31.8.0 ([43762fd](https://github.com/jordanwoodson/lurk-morphe-patches/commit/43762fdda468c46819d99aa7a2b8279a68627530))
+
+#### 🐛 Bug Fixes
+
+* hide the chat header's Get Bits and Gift A Sub buttons ([b87b7f2](https://github.com/jordanwoodson/lurk-morphe-patches/commit/b87b7f2155c842998b8ff642db988ed9a949b77a))
+* match whole strings in two fingerprints for Morphe Patcher 2.0 ([37618ed](https://github.com/jordanwoodson/lurk-morphe-patches/commit/37618edaa89466391506c0d0788ea34a5d0a059c))
+
+## [1.15.1-dev.1](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.15.0...v1.15.1-dev.1) (2026-10-29)
+
+### Kick
+
+#### 🚀 Updated App Support
+
+* support Kick 40.33.0 ([55dbe01](https://github.com/jordanwoodson/lurk-morphe-patches/commit/55dbe01ec937e7bad3d48a2f989e5166e02d9731))
+
+### Twitch
+
+#### 🚀 Updated App Support
+
+* support Twitch 31.8.0 ([43762fd](https://github.com/jordanwoodson/lurk-morphe-patches/commit/43762fdda468c46819d99aa7a2b8279a68627530))
+
+#### 🐛 Bug Fixes
+
+* hide the chat header's Get Bits and Gift A Sub buttons ([b87b7f2](https://github.com/jordanwoodson/lurk-morphe-patches/commit/b87b7f2155c842998b8ff642db988ed9a949b77a))
+* match whole strings in two fingerprints for Morphe Patcher 2.0 ([37618ed](https://github.com/jordanwoodson/lurk-morphe-patches/commit/37618edaa89466391506c0d0788ea34a5d0a059c))
+
 ## [1.15.0](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.14.4...v1.15.0) (2026-10-27)
 
 ### Kick

@@ -64,6 +64,7 @@ import app.hushgram.extension.shared.SettingsContextRule;
 import app.hushgram.extension.shared.diagnostics.HookStatus;
 import app.hushgram.extension.shared.settings.BaseSettings;
 import app.hushgram.extension.shared.settings.HushgramPause;
+import app.hushgram.extension.shared.settings.IntegerSetting;
 import app.hushgram.extension.shared.settings.PauseForTests;
 
 /** The colour and size choices Glass tab bar makes from Instagram's bar colour and the screen's width. */
@@ -79,7 +80,7 @@ public class GlassTabBarTest {
         Settings.GLASS_TAB_BAR_HEIGHT.resetToDefault();
         Settings.GLASS_TAB_BAR_CORNERS.resetToDefault();
         Settings.GLASS_TAB_BAR_LIFT.resetToDefault();
-        Settings.GLASS_TAB_BAR_BLUR_STRENGTH.resetToDefault();
+        Settings.GLASS_TAB_BAR_BLUR_RADIUS.resetToDefault();
         Settings.GLASS_TAB_BAR_OPACITY.resetToDefault();
         Settings.GLASS_TAB_BAR_HAPTICS.resetToDefault();
         Settings.GLASS_TAB_BAR_HIDE_ON_SCROLL.resetToDefault();
@@ -1196,7 +1197,7 @@ public class GlassTabBarTest {
             Settings.GLASS_TAB_BAR.save(true);
             Settings.GLASS_TAB_BAR_FLOAT.save(floating);
             Settings.GLASS_TAB_BAR_HEIGHT.save(height);
-            Settings.GLASS_TAB_BAR_OPACITY.save(GlassOpacity.STANDARD);
+            Settings.GLASS_TAB_BAR_OPACITY.save(100);
             Settings.GLASS_TAB_BAR_BLUR.save(blur);
             Settings.GLASS_TAB_BAR_HAPTICS.save(false);
             Settings.GLASS_TAB_BAR_HIDE_ON_SCROLL.save(false);
@@ -1394,34 +1395,55 @@ public class GlassTabBarTest {
 
     @Test
     public void theStandardOpacityIsExactlyTodaysTint() {
+        assertEquals(100, (int) Settings.GLASS_TAB_BAR_OPACITY.defaultValue);
+        assertEquals(1f, GlassTabBar.opacityScale(), 0f);
         for (int base : new int[] {Color.BLACK, Color.WHITE}) {
             for (boolean blurred : new boolean[] {true, false}) {
-                assertEquals(GlassTabBar.tint(base, blurred), GlassTabBar.tint(base, blurred, GlassOpacity.STANDARD));
+                assertEquals(GlassTabBar.tint(base, blurred), GlassTabBar.tint(base, blurred, GlassTabBar.opacityScale()));
             }
         }
-        assertEquals(0x70, Color.alpha(GlassTabBar.tint(Color.BLACK, true, GlassOpacity.STANDARD)));
-        assertEquals(0xa6, Color.alpha(GlassTabBar.tint(Color.WHITE, true, GlassOpacity.STANDARD)));
-        assertEquals(0xe6, Color.alpha(GlassTabBar.tint(Color.WHITE, false, GlassOpacity.STANDARD)));
+        assertEquals(0x70, Color.alpha(GlassTabBar.tint(Color.BLACK, true, 1f)));
+        assertEquals(0xa6, Color.alpha(GlassTabBar.tint(Color.WHITE, true, 1f)));
+        assertEquals(0xe6, Color.alpha(GlassTabBar.tint(Color.WHITE, false, 1f)));
     }
 
+    /** #391: every notch of the opacity slider is at least as solid as the one before and stays a real alpha. */
     @Test
-    public void eachOpacityStepIsStrictlyMoreSolidAndStaysInRange() {
+    public void moreOpacityIsNeverLessSolidAndStaysInRange() {
         for (int base : new int[] {Color.BLACK, Color.WHITE}) {
             for (boolean blurred : new boolean[] {true, false}) {
                 int last = -1;
-                for (GlassOpacity step : GlassOpacity.values()) {
-                    int alpha = Color.alpha(GlassTabBar.tint(base, blurred, step));
+                for (int percent = Settings.GLASS_TAB_BAR_OPACITY.minimum(); percent <= Settings.GLASS_TAB_BAR_OPACITY.maximum(); percent += 5) {
+                    int alpha = Color.alpha(GlassTabBar.tint(base, blurred, percent / 100f));
                     assertTrue(alpha >= 0 && alpha <= 255);
-                    assertTrue(step + " " + blurred, alpha >= last);
+                    assertTrue(percent + " " + blurred, alpha >= last);
                     last = alpha;
                 }
-                assertTrue(Color.alpha(GlassTabBar.tint(base, blurred, GlassOpacity.CLEAR))
-                        < Color.alpha(GlassTabBar.tint(base, blurred, GlassOpacity.STANDARD)));
+                assertEquals("none at all is see-through", 0, Color.alpha(GlassTabBar.tint(base, blurred, 0f)));
+                assertTrue(Color.alpha(GlassTabBar.tint(base, blurred, 0.5f))
+                        < Color.alpha(GlassTabBar.tint(base, blurred, 1f)));
             }
         }
-        // Frosted never overflows the alpha byte, and a missing step reads as the standard one.
-        assertEquals(255, Color.alpha(GlassTabBar.tint(Color.WHITE, false, GlassOpacity.FROSTED)));
-        assertEquals(GlassTabBar.tint(Color.BLACK, true), GlassTabBar.tint(Color.BLACK, true, null));
+        // The far end never overflows the alpha byte, and the steps older builds saved still draw what they drew.
+        assertEquals(255, Color.alpha(GlassTabBar.tint(Color.WHITE, false, 1.5f)));
+        assertEquals(Integer.valueOf(50), GlassOpacity.percentOf("CLEAR"));
+        assertEquals(Integer.valueOf(75), GlassOpacity.percentOf("LIGHT"));
+        assertEquals(Integer.valueOf(100), GlassOpacity.percentOf("STANDARD"));
+        assertEquals(Integer.valueOf(135), GlassOpacity.percentOf("FROSTED"));
+        assertNull(GlassOpacity.percentOf("SOLID"));
+        assertNull(GlassOpacity.percentOf(null));
+    }
+
+    /** #391: the bar reads the slider on every draw, so a new spot shows without a restart, and the range holds. */
+    @Test
+    public void theOpacitySliderIsReadLiveAndKeptInRange() {
+        assertFalse(Settings.GLASS_TAB_BAR_OPACITY.rebootApp);
+        Settings.GLASS_TAB_BAR_OPACITY.save(40);
+        assertEquals(0.4f, GlassTabBar.opacityScale(), 0.0001f);
+        Settings.GLASS_TAB_BAR_OPACITY.save(500);
+        assertEquals(150, (int) Settings.GLASS_TAB_BAR_OPACITY.get());
+        Settings.GLASS_TAB_BAR_OPACITY.save(-20);
+        assertEquals(0, (int) Settings.GLASS_TAB_BAR_OPACITY.get());
     }
 
     @Test
@@ -1503,27 +1525,39 @@ public class GlassTabBarTest {
     }
 
     /**
-     * #289: the blur strength steps keep the 12 : 24 : 40 ratio the request asked for, and Standard is
-     * exactly the radius the glass has always used (18dp, worked out at a quarter size), at any density.
+     * #289, #391: the blur slider starts at exactly the radius the glass has always used (18dp, worked out
+     * at a quarter size) at any density, each notch reaches at least as far as the one before, and the
+     * steps older builds saved keep the radius they drew.
      */
     @Test
-    public void blurStrengthStandardIsTodaysRadiusAndTheOthersScaleFromIt() {
-        assertEquals(GlassBlur.STANDARD, Settings.GLASS_TAB_BAR_BLUR_STRENGTH.defaultValue);
+    public void blurRadiusStartsAtTodaysRadiusAndGrowsWithTheSlider() {
+        IntegerSetting slider = Settings.GLASS_TAB_BAR_BLUR_RADIUS;
+        assertEquals(18, GlassTabBar.BLUR_DP);
+        assertEquals(GlassTabBar.BLUR_DP, (int) slider.defaultValue);
+        assertFalse("the radius is read on every draw", slider.rebootApp);
+        assertEquals(2, slider.minimum());
+        assertEquals(48, slider.maximum());
         float quarter = 1f / GlassTabBar.DOWNSAMPLE;
         for (float density : new float[]{1f, 1.5f, 2.625f, 3f, 3.5f}) {
             float todays = Math.max(1f, Math.round(GlassTabBar.BLUR_DP * density) * quarter);
-            assertEquals("standard at " + density, todays, GlassBlur.effectRadius(GlassBlur.STANDARD, density, quarter), 0f);
-            assertEquals(Math.round(GlassTabBar.BLUR_DP * density), GlassBlur.radiusPx(GlassBlur.STANDARD, density));
-            assertEquals(Math.round(9f * density), GlassBlur.radiusPx(GlassBlur.LIGHT, density));
-            assertEquals(Math.round(30f * density), GlassBlur.radiusPx(GlassBlur.STRONG, density));
-            assertTrue(GlassBlur.radiusPx(GlassBlur.LIGHT, density) < GlassBlur.radiusPx(GlassBlur.STANDARD, density));
-            assertTrue(GlassBlur.radiusPx(GlassBlur.STANDARD, density) < GlassBlur.radiusPx(GlassBlur.STRONG, density));
+            assertEquals("standard at " + density, todays, GlassBlur.effectRadius(GlassTabBar.BLUR_DP, density, quarter), 0f);
+            assertEquals(Math.round(GlassTabBar.BLUR_DP * density), GlassBlur.radiusPx(GlassTabBar.BLUR_DP, density));
+            int last = -1;
+            for (int dp = slider.minimum(); dp <= slider.maximum(); dp++) {
+                int px = GlassBlur.radiusPx(dp, density);
+                assertTrue(dp + "dp at " + density, px >= last);
+                last = px;
+            }
+            assertTrue(GlassBlur.radiusPx(slider.minimum(), density) < GlassBlur.radiusPx(GlassTabBar.BLUR_DP, density));
+            assertTrue(GlassBlur.radiusPx(GlassTabBar.BLUR_DP, density) < GlassBlur.radiusPx(slider.maximum(), density));
         }
-        assertEquals(9f, GlassBlur.LIGHT.dp, 0f);
-        assertEquals(18f, GlassBlur.STANDARD.dp, 0f);
-        assertEquals(30f, GlassBlur.STRONG.dp, 0f);
-        assertEquals(GlassBlur.radiusPx(GlassBlur.STANDARD, 3f), GlassBlur.radiusPx(null, 3f));
-        assertEquals("never under one pixel", 1f, GlassBlur.effectRadius(GlassBlur.LIGHT, 0.1f, 0.25f), 0f);
+        assertEquals(Integer.valueOf(9), GlassBlur.dpOf("LIGHT"));
+        assertEquals(Integer.valueOf(18), GlassBlur.dpOf("STANDARD"));
+        assertEquals(Integer.valueOf(30), GlassBlur.dpOf("STRONG"));
+        assertNull(GlassBlur.dpOf("HEAVY"));
+        assertNull(GlassBlur.dpOf(null));
+        assertEquals(0, GlassBlur.radiusPx(-4, 3f));
+        assertEquals("never under one pixel", 1f, GlassBlur.effectRadius(slider.minimum(), 0.1f, 0.25f), 0f);
     }
 
     /** #289: the bubble swells to about 1.08 mid-slide, settles back to exactly 1, and a finger's size eases out. */

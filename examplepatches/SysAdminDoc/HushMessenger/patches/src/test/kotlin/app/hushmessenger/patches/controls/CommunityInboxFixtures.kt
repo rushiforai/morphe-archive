@@ -27,18 +27,19 @@ internal fun communityStub(id: String, body: String = "const/4 v0, 0x0\nreturn v
  * a session-gated block before the second read, that read into v1 at [secondRead], and a 13-argument sink that takes
  * the callback after the list. A supported build's profile gets the IDs its record in scripts/profiles holds, not the
  * compiled profile being checked. The synthetic mapping has no build behind it, so it uses its own profile's line. The
- * community check compares the key type with both channel types inline; [anyBody] replaces it, and [channelCheck]
- * builds the older form that asks a separate channel check first.
+ * community check asks the key's own channel test, then compares the key type with the announcement channel, as 585
+ * does; [anyBody] and [channelBody] replace the two, and [inlineCheck] builds 583 and 584's form that compares both
+ * types inline.
  */
-internal fun communityInboxFixture(anyBody: String? = null, channelCheck: Boolean = false, secondRead: Int = 63): List<MutableClass> {
+internal fun communityInboxFixture(anyBody: String? = null, channelBody: String? = null, inlineCheck: Boolean = false,
+    secondRead: Int = 63): List<MutableClass> {
     val code = controlProfiles.entries.firstOrNull { it.value === activeProfile }?.key
     val record = code?.let { Files.readAllLines(Path.of("../scripts/profiles/$it.txt")) }
     val ids = (record?.single { it.startsWith("nativeCommunityInbox ") }?.substringAfter(' ') ?: SYNTHETIC_PROFILE.nativeCommunityInbox).split('|')
     val (updateId, ctorId, scopeGetterId, switchId, summaryField) = ids
-    val joinedId = ids[5]; val nullableId = ids[6]; val anyId = ids[7]
-    check(ids.size == 17) { "nativeCommunityInbox has ${ids.size} parts" }
-    val channelId = "$TK->isCommunityChannel()Z"
-    val rest = ids.drop(8)
+    val joinedId = ids[5]; val nullableId = ids[6]; val anyId = ids[7]; val channelId = ids[8]
+    check(ids.size == 18) { "nativeCommunityInbox has ${ids.size} parts" }
+    val rest = ids.drop(9)
     val requests = rest[0]; val prefix = rest[1]; val path = rest.subList(2, 7); val folderGetter = rest[7]; val inbox = rest[8]
     val callbackType = path.first().substringBefore("->")
     val COORDINATOR = path[2].substringAfter(':'); val LIFE = path[3].substringAfter(':'); val CONFIG = path[4].substringAfter(':')
@@ -132,7 +133,7 @@ internal fun communityInboxFixture(anyBody: String? = null, channelCheck: Boolea
         const/4 p0, 0x0
         return p0
     """.trimIndent(), 1, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
-    val any = fixtureMethod(anyId, anyBody ?: if (!channelCheck) """
+    val any = fixtureMethod(anyId, anyBody ?: if (inlineCheck) """
         iget-object v1, p0, $TK->kind:$KEY_KIND
         sget-object v0, $KEY_KIND->channel:$KEY_KIND
         if-eq v1, v0, :yes
@@ -156,7 +157,7 @@ internal fun communityInboxFixture(anyBody: String? = null, channelCheck: Boolea
         const/4 v0, 0x1
         return v0
     """.trimIndent(), 3)
-    val channel = fixtureMethod(channelId, """
+    val channel = fixtureMethod(channelId, channelBody ?: """
         iget-object v1, p0, $TK->kind:$KEY_KIND
         sget-object v0, $KEY_KIND->channel:$KEY_KIND
         if-ne v1, v0, :no
@@ -215,7 +216,7 @@ internal fun communityInboxFixture(anyBody: String? = null, channelCheck: Boolea
         fixtureClass("Lcom/facebook/messaging/msys/threadlist/plugins/core/itemsupplier/ThreadListItemSupplierImplementation;",
             extraFields = listOf(fixtureField("Lcom/facebook/messaging/msys/threadlist/plugins/core/itemsupplier/ThreadListItemSupplierImplementation;", "config", CONFIG))),
         fixtureClass(row, extraFields = listOf(fixtureField(row, summaryField.substringAfter("->").substringBefore(':'), TS))),
-        fixtureClass(joined.definingClass, listOf(joined)), fixtureClass(TK, listOfNotNull(nullable, any, channel.takeIf { channelCheck }),
+        fixtureClass(joined.definingClass, listOf(joined)), fixtureClass(TK, listOfNotNull(nullable, any, channel.takeUnless { inlineCheck }),
             extraFields = listOf(fixtureField(TK, "kind", KEY_KIND))),
         fixtureClass("LX/SubscriptionLabel;", listOf(fixtureMethod("LX/SubscriptionLabel;->label()V",
             "const-string v0, \"thread.isSubscribed\"\niget-boolean v0, v1, $TS->A2N:Z\nreturn-void"))),

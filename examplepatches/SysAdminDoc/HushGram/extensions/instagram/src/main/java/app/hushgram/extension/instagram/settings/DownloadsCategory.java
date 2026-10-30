@@ -108,6 +108,10 @@ final class DownloadsCategory {
                     L10n.t("Saves videos other apps can open, at full size. A video Instagram only has as VP9 or AV1 "
                             + "is converted to H.264 on your phone instead of saved smaller. Slower, and videos over "
                             + "3 minutes stay smaller.")));
+            downloads.addPreference(toggle(context, Settings.DOWNLOAD_NO_AV1, L10n.t("Never save AV1 video"),
+                    L10n.t("For phones that play AV1 badly. A video Instagram has at full size only as AV1 is saved "
+                            + "as VP9 when it has one, or at its largest H.264 size. Convert to keep the full size "
+                            + "then converts only VP9.")));
             downloads.addPreference(qualityRow(context));
             downloads.addPreference(folderRow(context));
             downloads.addPreference(fileNameRow(context));

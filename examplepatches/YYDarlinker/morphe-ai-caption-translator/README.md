@@ -12,7 +12,7 @@
 - Follows YouTube’s native Auto-translate list and the official Captions patch. Language choices and sorting stay in the official patch, so there is no second language list to maintain.
 - Displays captions with adjustable size, background opacity and vertical position. Caption placement uses the video’s physical center, independently of the app’s LTR/RTL interface direction. Captions sit above the player controls, so the progress bar and time labels cannot cover them.
 - Uses one stable caption layer across the detail page, fullscreen, Shorts and the comments sheet. Size and pagination are derived from the real video viewport; the comments sheet scales the caption continuously with its animation instead of changing it after the animation ends.
-- Supports multiple API profiles, model selection, custom translation requirements, translation caching and exportable diagnostics. Its settings are localized into 14 languages.
+- Supports multiple API profiles, model selection, translation caching and exportable diagnostics. Its settings are localized into 14 languages.
 - When the video already has its own subtitles in the language you select, shows them directly in the AI caption style without a translation request. Uploaded subtitles keep their authored line breaks, including two-row subtitles; only auto-generated subtitles have sentence breaks and page turns optimized locally.
 - When a video has several subtitle tracks, translates the one in the spoken language first (human-made before automatic, then human-made English) rather than whichever track YouTube preselects.
 
@@ -43,17 +43,15 @@ Do not select the old AI-caption addon or another overlapping caption patch at t
 1. Open **YouTube → Settings → Morphe → Video → AI caption translation**.
 2. Set your API address, API key and model. Use **Test API** to check the configuration. You can save separate named profiles for different services.
 3. Enable AI captions. In a video’s subtitle menu, choose **Auto-translate → your target language**. If the video already has subtitles in that language, they are displayed directly; otherwise, your configured AI service translates the preferred source track.
-4. Adjust caption size and background using the live preview if needed. You can customize translation requirements; your custom text is preserved when the interface language changes.
+4. Adjust caption size and background using the live preview if needed.
 
 The AI switch is authoritative: while it is on, YouTube’s native subtitle view is not painted; the add-on shows its own overlay (or a short empty/loading gap while the native track and target are still arriving). Turning it off returns subtitle drawing to YouTube immediately.
 
 Turning AI off returns translation to YouTube’s native behavior. Selecting an original/manual/auto-generated source track displays its original text without translation API requests; uploaded subtitles keep their authored line breaks, while auto-generated subtitles are re-paged locally without a network call or model. Bracketed furigana readings are removed from text sent for translation to avoid repetition. The menu toggle visibility settings for regular videos and Shorts are independent of the engine switch.
 
-### Personal model recommendation
+### Choosing an API provider
 
-From the models I have tried, **Qwen3.7-Flash (`qwen3.7-flash`) seems to be the cheapest option** for this patch. In my experience, its subtitle translations even outperform some of the more expensive models I have tried.
-
-You can access it through [Alibaba Cloud Model Studio (international)](https://www.alibabacloud.com/product/modelstudio). As checked on **October 15, 2026**, the [official international pricing](https://www.alibabacloud.com/help/en/model-studio/model-pricing) for the **Singapore region, International deployment scope**, with **up to 32K input tokens per request**, is **US$0.03 per million input tokens** and **US$0.13 per million output tokens**. These are standard real-time API rates; longer requests use higher pricing tiers, and current prices are listed on the linked page.
+Use a chat-completion endpoint compatible with the request protocol, and compare translation quality, latency and the provider's current token prices on your own subtitles. The repository does not maintain a verified price ranking or guarantee a particular model's quality.
 
 ## Costs, privacy and limits
 
@@ -72,7 +70,7 @@ You can access it through [Alibaba Cloud Model Studio (international)](https://w
 ## Available patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.8](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.5.8)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
+> **[v1.5.9](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.5.9)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -92,10 +90,10 @@ You can access it through [Alibaba Cloud Model Studio (international)](https://w
 
 ## Development and license
 
-See [architecture](docs/ARCHITECTURE.md), [contributing](CONTRIBUTING.md), [development environment and commands](docs/DEVELOPMENT.md), [maintenance operations](docs/maintenance/OPERATIONS.md), and [the release process](docs/RELEASING.md). Release history belongs in [CHANGELOG.md](CHANGELOG.md).
+See [architecture](docs/ARCHITECTURE.md), [contributing](CONTRIBUTING.md), [development environment and commands](docs/DEVELOPMENT.md), [maintenance](docs/MAINTAINING.md), and [the release process](docs/RELEASING.md). Release history belongs in [CHANGELOG.md](CHANGELOG.md).
 
 Anchored AI Captions is independently maintained by YYDarlinker and is not an official Morphe project. Licensed under [GPLv3](LICENSE), with the retained [NOTICE](NOTICE). Morphe is referenced for compatibility only.
 
 ## Maintenance and workspace
 
-Use the [current documentation index](docs/README.md), [workspace map](docs/WORKSPACE.md) and [first-round acceptance](docs/maintenance/reviews/M7-FINAL-ACCEPTANCE.md). The [GitHub publication and cleanup record](docs/maintenance/GITHUB-UPDATE-PLAN.md) tracks the authorized 1.5.8 release separately from local organization. Historical documents/recovered output remain traceable, and private diagnostics, source APKs, toolchains, evidence and backups stay local.
+Use the [documentation index](docs/README.md), [current state](docs/PROJECT-STATE.md) and [workspace map](docs/WORKSPACE.md). Retired reports and generated disassembly are individually recoverable through [history](docs/history/README.md); private inputs and evidence stay local.

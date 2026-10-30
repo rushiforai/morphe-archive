@@ -15,22 +15,23 @@ For Android Auto visibility, install with Morphe Manager's **Install as Play Sto
 KingInstaller as a fallback).
 
 > GPLv3 · Not affiliated with Waze. Targets the Waze versions in the patch list below.
-> Nineteen rows are **off by default** - *Allow high refresh rate*, *Disable Play Store updates*,
-> *Skip sign-in*, *Theme*, *AMOLED Dark Mode For UI*, *Bigger speedometer & limit sign*, the four
-> **Android Auto** rows, the seven **Experimental** rows, and *Report speed limit* and *Speed-limit sign style*.
+> Twenty-one rows are **off by default** - *Allow high refresh rate*, *Disable Play Store updates*,
+> *Skip sign-in*, *Theme*, *AMOLED Dark Mode For UI*, *Bigger speedometer & limit sign*, *Change Waze icon*,
+> *Rename app*, the four **Android Auto** rows, the seven **Experimental** rows, and *Report speed limit*
+> and *Speed-limit sign style*.
 
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.30.42](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.42)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;29 patches total
+> **[v0.30.43](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.43)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;31 patches total
 <details open>
-<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;29 patches</summary>
+<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;31 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 5.24.90.901 | 5.25.0.1 | 5.25.4.900 | 5.25.90.900 | 5.26.0.0 |
-| :---: | :---: | :---: | :---: | :---: |
+| 5.24.90.901 | 5.25.0.1 | 5.25.4.900 | 5.25.90.900 | 5.26.0.0 | 5.26.5.0 |
+| :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -43,6 +44,7 @@ KingInstaller as a fallback).
 | [Car alerts as notifications](#car-alerts-as-notifications) | Shows car alerts as notifications. |  |
 | [Car map zoom](#car-map-zoom) | Zooms the map on the car screen. | • Car map zoom |
 | [Car trip screen text](#car-trip-screen-text) | Adds arrival time and time left to the car trip bar. |  |
+| [Change Waze icon](#change-waze-icon) | Reaper artwork, the stock ghost in any colour, or your own image (square PNG/JPG/WebP, 432x432 recommended, 192x192 minimum). | • Icon<br>• Ghost background<br>• Custom image |
 | [Disable Play Store updates](#disable-play-store-updates) | Stops the Play Store updating Waze. |  |
 | [Enable police & enforcement alerts](#enable-police-enforcement-alerts) | Turns police and enforcement alerts on. |  |
 | [Extra map info](#extra-map-info) | Compass always shown and toll price on routes. | • Always show compass<br>• Toll price on route |
@@ -55,6 +57,7 @@ KingInstaller as a fallback).
 | [No Android Auto telemetry](#no-android-auto-telemetry) | Stops Waze sending Android Auto screen-switch timings to its analytics. |  |
 | [Picture-in-picture](#picture-in-picture) | Floats Waze in a 9:16 window every time you leave it. Known issues: touch does not work on the floating window, and the UI does not scale down. |  |
 | [Remove ads](#remove-ads) | Removes ads. | • Block beacon popups |
+| [Rename app](#rename-app) | Stock name by default. Type your own to replace what the launcher shows. The package stays com.waze. | • App name |
 | [Show FPS counter](#show-fps-counter) | Shows the frame-rate counter. |  |
 | [Skip sign-in](#skip-sign-in) | Starts as a guest, straight to the map. |  |
 | [Smoother Android Auto map](#smoother-android-auto-map) | Smooths map movement on Android Auto. |  |

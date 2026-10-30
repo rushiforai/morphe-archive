@@ -2,6 +2,32 @@
 
 Changes in each Hushfacebook version, newest first.
 
+## Unreleased
+
+### Added
+
+* **Facebook:** New `Hide the pull down to lock hint` under Reels and Watch. Holding a reel or a video for 2x then shows the plain 2x pill without the "Pull down to lock 2x speed" line, and pulling down still locks the speed. It needs no restart (Refs #289).
+* **Facebook:** New `Hide the emoji row on comments` under Comments and writing takes away the row of emoji Facebook puts over the comment box. Typing and the box's buttons stay, and you can still type emoji from your keyboard (Refs #290).
+* **Facebook:** `Badge and logo colors` has a third box, `Selected tab color`, under Appearance. Type a color code like #2ECC71 and the selected tab in the tab bar takes it after a restart. It wins over Material You's accent when both are on, blank keeps Facebook's own color, and settings backups carry it (Refs #297).
+* **Facebook:** New `Show Comment when comments are off` under Reels and Watch, part of `Clean up Reels`. Facebook takes the Comment button off a reel's sidebar when you can't comment on it, so the comments already there can't be read either. With the switch on the button stays, and a change shows from the next reel. It's off by default (Refs #299).
+* **Facebook:** New `Select part of a post's text` under News feed. Holding a post's text still copies all of it, and with the switch on the text also opens in a box where you can select a word or a line and copy just that. It's off by default and needs no restart (Refs #294).
+* **Facebook:** `Comment order` has a new choice, Oldest, under Comments and writing. Comments then open first comment first on every post, even one whose sort menu has no such row. Facebook's own menu calls that order All comments, so that's the row it shows picked (Refs #295).
+
+### Changed
+
+* **Facebook:** The play/pause and cast buttons on feed videos are smaller now and look like Facebook's own speaker icon, a white symbol on a see-through round background instead of a big dark square. They sit closer to the video's corners and still take a tap as easily (Refs #301).
+* **Facebook:** With `Debug logging` on, a kept post that wasn't posted to a profile or group now says what it's made of (the kinds of things in its title, share and attachments, never names or text). That's what's needed to find group posts `Hide posts from groups you're not in` still lets through (Refs #195).
+
+### Fixed
+
+* **Facebook:** The Messenger icon in the top bar opens a repatched Messenger installed in place of Meta's, like HushMessenger over `com.facebook.orca`, even with `Open the Messenger app` off. Facebook only hands that tap to a Messenger Meta signed, so with a repatched one the icon did nothing and the screen flickered. Meta's own Messenger and a Messenger installed beside it are handled as before (Refs #292).
+* **Facebook:** `Hide comments under posts` now also hides a pinned comment shown under a post in the feed, along with the Write a comment box it comes with. Facebook draws that comment as part of the comment box, not with the other comment previews, so the switch missed it under friends' posts and group posts. The Comment button still opens the comments as before (Refs #305, #253).
+* **Facebook:** `See-through bars` works on a tab bar that's set to stay on screen now. Before, the bar stayed but the feed stopped above it, so the see-through showed black. Facebook builds that layout as it starts, so flipping `See-through bars` with the bar kept brings up the restart row, and the change shows after the restart (Refs #250).
+* **Facebook:** `Hide posts from groups you're not in` now also hides a group post that reaches your feed because a friend commented on it or shared it. Those come wrapped in the friend's activity, so the switch couldn't see the group before (Refs #195).
+* **Facebook:** A patched Facebook without `Material You theme` no longer shows a toast about the theme's colors at every start on Android 11. The theme only asks the phone for its palette when it's in the build, and the Accent color presets are set up before the theme reads them (Refs #300).
+* **Facebook:** Opening a link to a post from another app, a message or a notification shows that post at the top of Home again. Facebook sends it as the first post of the feed, flagged like a suggested post when you don't follow its author, so `Hide "Suggested for you" posts` hid the one post you asked for. The first post after a link lands now stays whatever switch would hide it, ads aside (Refs #306).
+* **Facebook:** `Hide dislike on comments` leaves a comment's reaction icons and their count alone now. 0.19.0 took the thumbs-down out by telling Facebook the button wasn't there, and the reactions next to it went too. The button is built empty instead, so the rest of the row is drawn the way it is next to a dislike (Refs #241).
+
 ## 0.19.0 (2026-10-27)
 
 * **Facebook:** This one needs Morphe Manager 2.2.0 or newer, so update Manager before you patch. Posts can get Save and Download buttons under them, and new switches take Like, Comment, Share or Send off posts and reels, hide posts from Pages or drop the dislike on comments. Feed videos can get a cast button, downloads can go to an SD card, and 32-bit phones work now. You can also pick your own badge and logo colors, sort reels by most liked and copy a reel's whole caption.

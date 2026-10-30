@@ -1400,7 +1400,16 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: Badge and logo colors. It hooks the themes' FDS colour resolvers (each resolver on FDSColors and the view code's theme resolver) with its own target, after theirs, and the extension swaps the colour of the NOTIFICATION_BADGE token for the Badge color row's code and of FB_WORDMARK and FB_LOGO for the Logo color row's, keeping Facebook's alpha. Every other token, a blank row and Pause leave Facebook's colour. The patch refuses to apply when the FDS token enum lacks any of the three names."
+      "changes": "Written for Hushfacebook: Badge and logo colors. It hooks the themes' FDS colour resolvers (each resolver on FDSColors and the view code's theme resolver) with its own target, after theirs, and the extension swaps the colour of the NOTIFICATION_BADGE token for the Badge color row's code and of FB_WORDMARK and FB_LOGO for the Logo color row's, keeping Facebook's alpha. Every other token, a blank row and Pause leave Facebook's colour. The patch refuses to apply when the FDS token enum lacks any of the three names. For #297 it also asks the selected tab's colour hook in TabBarColours.kt, and the Selected tab color row's code replaces that colour, keeping Facebook's alpha."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/SelectedTab.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #297: the one target of the selected tab's colour hook. It hands the colour to Material You's accent when that patch is in, then to the Selected tab color row's code when Badge and logo colors is in, so a picked colour is the last word."
     },
     {
       "paths": [

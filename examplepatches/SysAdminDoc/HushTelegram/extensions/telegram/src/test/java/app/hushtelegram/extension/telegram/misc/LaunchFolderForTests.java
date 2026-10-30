@@ -113,4 +113,20 @@ public final class LaunchFolderForTests {
         }
         return !added[0];
     }
+
+    /**
+     * Telegram signed in with [names] after All Chats, and a main chat list built once, where
+     * [archive] says whether anything else opens the archive. What it kept All Chats for, or null.
+     * {@link #restore} undoes it.
+     */
+    public static LaunchFolder.Kept built(boolean archive, String... names) {
+        if (saved == null) saved = LaunchFolder.telegram;
+        Object strip = new Object();
+        LaunchFolder.telegram = new Folders(1000, names) {
+            @Override public Object strip(Object list) { return strip; }
+            @Override public boolean archiveReachable() { return archive; }
+        };
+        LaunchFolder.firstTabs(new Object());
+        return LaunchFolder.kept();
+    }
 }

@@ -4,7 +4,7 @@
 
 .DESCRIPTION
     Dot-sourced by release/release.ps1, whose publish stage refuses to publish a bundle without a
-    receipt that backs it. Nothing goes public until an APK patched from the exact bundle being
+    receipt that backs it for each Telegram build it patches (Test-WalkReceipts). Nothing goes public until an APK patched from the exact bundle being
     released has been walked end to end on a release phone or an emulator and came back PASS:
     every scenario walk-scenarios.json asks of the patches in that APK, with no Telegram crash.
 
@@ -17,7 +17,8 @@
 
     A walk signed out of Telegram can only open what comes before sign-in and the Hush settings, so
     its receipt is a settings smoke. A signed-in walk also opens Telegram's own screens and is the
-    feature acceptance. Test-WalkReceipt answers which one a receipt is.
+    feature acceptance. Test-WalkReceipt answers which one a receipt is. The Play build's walk has
+    to be signed in, since no other walk opens its screens past sign-in.
 
     The receipt and the record are plain JSON on this machine, kept so a walk can be read back and
     a patched APK walked again with -SkipPatch. They're a check that the walk that was run matches
@@ -35,6 +36,9 @@ $WalkAccounts['signed in'] = 'feature acceptance'
 $WalkAccounts['signed out'] = 'settings smoke'
 # A device clock and this one can disagree a little; a walk later than this hasn't happened yet.
 $WalkClockSkew = [TimeSpan]::FromMinutes(5)
+# The builds a signed-out smoke can't stand in for. The web build runs signed in on the release
+# phone every day; nothing else opens the Play build's screens past sign-in.
+$WalkSignedInPackages = @('org.telegram.messenger')
 
 function Read-WalkScenarios {
     <#
@@ -262,4 +266,37 @@ function Test-WalkReceipt {
     $left = @($required | Where-Object { $walked -cnotcontains $_ })
     if ($left.Count -gt 0) { return Fail "the walk left out $($left -join ', ')" }
     return [pscustomobject]@{ Valid = $true; Reason = $null; Receipt = $receipt; Kind = $kind }
+}
+
+function Test-WalkReceipts {
+    <#
+    .SYNOPSIS
+        Whether the receipts at -Path back the bundle at -BundlePath for every Telegram build
+        -PatchListPath declares: one receipt Test-WalkReceipt takes for each package, signed in for
+        the packages in $WalkSignedInPackages. Answers @{ Valid; Reason; Walks }, Walks holding one
+        Test-WalkReceipt answer per package.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$Path,
+        [Parameter(Mandatory = $true)][string]$BundlePath,
+        [Parameter(Mandatory = $true)][string]$PatchListPath,
+        [string]$ScenarioPath = $WalkScenarioPath
+    )
+    function Fail([string]$Reason) { return [pscustomobject]@{ Valid = $false; Reason = $Reason; Walks = @() } }
+    $walks = [ordered]@{}
+    foreach ($one in @($Path | Where-Object { $_ })) {
+        $walked = Test-WalkReceipt -Path $one -BundlePath $BundlePath -PatchListPath $PatchListPath -ScenarioPath $ScenarioPath
+        if (-not $walked.Valid) { return Fail "the walk at $one doesn't count: $($walked.Reason)" }
+        $package = [string]$walked.Receipt.package
+        if ($walks.Contains($package)) { return Fail "two walk receipts are of $package, and each build takes one" }
+        if ($WalkSignedInPackages -ccontains $package -and $walked.Receipt.account -cne 'signed in') {
+            return Fail "the walk of $package was $($walked.Receipt.account), and that build's walk has to be signed in"
+        }
+        $walks[$package] = $walked
+    }
+    if (-not (Test-Path -LiteralPath $PatchListPath -PathType Leaf)) { return Fail "there's no patch list at $PatchListPath to hold the walks to" }
+    $declared = @(Get-PatchTargets -PatchList (Get-Content -LiteralPath $PatchListPath -Raw | ConvertFrom-Json) | ForEach-Object { $_.PackageName })
+    $unwalked = @($declared | Where-Object { -not $walks.Contains($_) })
+    if ($unwalked.Count -gt 0) { return Fail "no walk receipt is of $($unwalked -join ', '), and every build this bundle patches needs one" }
+    return [pscustomobject]@{ Valid = $true; Reason = $null; Walks = @($walks.Values) }
 }

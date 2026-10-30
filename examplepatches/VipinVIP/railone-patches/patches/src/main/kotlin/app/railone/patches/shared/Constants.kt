@@ -32,6 +32,9 @@ object Constants {
             "8a5f21a01ef7d1202500e143e34bdf4c3166cc43c5595b35f0f463b53f8f0d16"
         ),
         targets = listOf(
+            // Verified on the Play-signed 2.1.71 bundle (versionCode 245, minSdk 27): all seven
+            // patches apply and every edit was confirmed by re-disassembly, same as 2.1.66.
+            AppTarget(version = "2.1.71"),
             // Verified by hand on real devices (v2.1.66 and v2.1.62 smali patch sets and the
             // resulting builds were installed and tested).
             AppTarget(version = "2.1.66"),

@@ -842,6 +842,9 @@ With the switch above on, only a hold on the right third of a reel plays it at d
 Hold a feed video for 2x	Tahan video feed untuk 2x
 # context: summary of that switch; Watch is Facebook's video tab, keep its name; the switches above are Hold a reel for 2x and Only on the right edge
 Holding a video in the feed or in Watch plays it at double speed until you let go. It works without the switches above.	Menahan video di feed atau di Watch memutarnya dengan kecepatan dua kali lipat sampai kamu melepaskannya. Ini berfungsi tanpa sakelar di atas.
+Hide the pull down to lock hint	Sembunyikan petunjuk tarik ke bawah untuk mengunci
+# context: summary of that switch; the quoted hint is Facebook's own text on the pill over a video held for 2x, translate it the way Facebook would; the switches above are Hold a reel for 2x's
+Holding a video for 2x shows the plain 2x pill, without the "Pull down to lock 2x speed" hint. Pulling down still locks it. It works without the switches above.	Menahan video untuk 2x hanya menampilkan label 2x biasa, tanpa petunjuk "Tarik ke bawah untuk mengunci kecepatan 2x". Menarik ke bawah tetap menguncinya. Ini berfungsi tanpa sakelar di atas.
 Default playback quality	Kualitas pemutaran default
 Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.	Putar video, reel, dan cerita dengan kualitas di bawah. Kualitas yang dipilih di menu video itu sendiri tetap diutamakan.
 Playback quality	Kualitas pemutaran
@@ -1860,8 +1863,8 @@ Silent parts play in this video	Bagian yang hening diputar di video ini
 Skipping silent parts again	Bagian yang hening dilewati lagi
 # context: switch title under News feed; posts Facebook shows from groups the user hasn't joined, which come with a Join button next to the group's name
 Hide posts from groups you're not in	Sembunyikan postingan dari grup yang belum kamu ikuti
-# context: summary of that switch; a friend's share of a group post is a post on the friend's own profile that shares a group post, and it stays
-Hides posts from groups you haven't joined, like a friend's post in a public group. Posts from your groups and a friend's share of a group post stay.	Menyembunyikan postingan dari grup yang belum kamu ikuti, seperti postingan teman di grup publik. Postingan dari grup kamu dan postingan grup yang dibagikan teman tetap ada.
+# context: summary of that switch; a group post a friend commented on or shared reaches the feed wrapped in the friend's activity, and the switch hides it too
+Hides posts from groups you haven't joined, like a friend's post in a public group, and a group post a friend commented on or shared. Posts from your groups stay.	Menyembunyikan postingan dari grup yang belum kamu ikuti, seperti postingan teman di grup publik, dan postingan grup yang dikomentari atau dibagikan teman. Postingan dari grup kamu tetap ada.
 # context: switch title under Search; For you is the section of searches Facebook suggests on the search screen before anything is typed, under a header that reads For you
 Hide For you in search	Sembunyikan Untuk Anda di pencarian
 # context: summary of that switch; recent searches are the user's own past searches, and the suggestions as you type are the ones under the search box while typing
@@ -2086,3 +2089,26 @@ If your patched Facebook includes Badge and logo colors, the logo will be Facebo
 If your patched Facebook includes Badge and logo colors, badges will be %1$s.	Jika Facebook yang ditambal menyertakan Warna lencana dan logo, lencana akan berwarna %1$s.
 # context: import preview sentence: the file sets the Logo color row; %1$s is a color code like #2ECC71; "Badge and logo colors" is the patch's name, keep it as translated for that patch
 If your patched Facebook includes Badge and logo colors, the logo will be %1$s.	Jika Facebook yang ditambal menyertakan Warna lencana dan logo, logo akan berwarna %1$s.
+# context: title of the row that holds a color code for the selected tab's icon and the line over it in the tab bar
+Selected tab color	Warna tab yang dipilih
+# context: dialog message of the Selected tab color row; keep #RRGGBB and #2ECC71 as they are
+A color code (#RRGGBB) for the selected tab's icon and the line over it in the tab bar, like #2ECC71. Leave it blank for Facebook's own.	Kode warna (#RRGGBB) untuk ikon tab yang dipilih dan garis di atasnya di bilah tab, misalnya #2ECC71. Biarkan kosong untuk warna Facebook.
+# context: summary of the Selected tab color row while it's blank
+The selected tab keeps Facebook's color. Type a color code to change it.	Tab yang dipilih tetap memakai warna Facebook. Ketik kode warna untuk mengubahnya.
+# context: summary of the Selected tab color row; %1$s is a color code like #2ECC71
+The selected tab in the tab bar is %1$s. Restart Facebook to see the change.	Tab yang dipilih di bilah tab berwarna %1$s. Mulai ulang Facebook untuk melihat perubahannya.
+# context: import preview sentence: the file sets the Selected tab color row back to blank; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, the selected tab will be Facebook's color.	Jika Facebook yang ditambal menyertakan Warna lencana dan logo, tab yang dipilih akan memakai warna Facebook.
+# context: import preview sentence: the file sets the Selected tab color row; %1$s is a color code like #2ECC71; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, the selected tab will be %1$s.	Jika Facebook yang ditambal menyertakan Warna lencana dan logo, tab yang dipilih akan berwarna %1$s.
+Hide the emoji row on comments	Sembunyikan baris emoji di komentar
+The row of emoji over the comment box goes away. You can still type emoji from your keyboard.	Baris emoji di atas kotak komentar hilang. Kamu tetap bisa mengetik emoji dari keyboard.
+Show Comment when comments are off	Tampilkan Komentari saat komentar dimatikan
+Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	Tetap menampilkan tombol Komentari di reel yang komentarnya dimatikan, jadi kamu masih bisa membaca komentar yang sudah ada. Perubahan terlihat mulai reel berikutnya.
+Select part of a post's text	Pilih sebagian teks postingan
+Holding a post's text still copies all of it, and also opens the text in a box where you can select just the part you want and copy that.	Menekan lama teks postingan tetap menyalin semuanya, dan juga membuka teks itu di kotak tempat kamu bisa memilih bagian yang kamu mau saja lalu menyalinnya.
+Select text	Pilih teks
+Done	Selesai
+Oldest	Terlama
+Comments open oldest first, on every post. Facebook's sort menu then shows All comments.	Komentar terbuka dari yang terlama di setiap postingan. Menu urutan Facebook lalu menampilkan Semua komentar.
+Comments will open oldest first.	Komentar akan terbuka dari yang terlama.

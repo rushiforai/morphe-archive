@@ -24,8 +24,9 @@ checks=(
     tests/test_patch.py
 )
 
-# Source rules for the whole bundle.
-checks+=(tests/verify_version_literals.py)
+# Source rules for the whole bundle. The fingerprint-string rule reads the stored APK of each target
+# version and skips an app whose APK isn't in apks/ (as in CI).
+checks+=(tests/verify_version_literals.py tests/verify_fingerprint_strings.py)
 
 failed=0
 for check in "${checks[@]}"; do

@@ -6,6 +6,7 @@ import app.s.chzzk.common.utils.localRegisterCount
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.initializeField
 import app.s.chzzk.shared.Constants.COMPATIBILITY_CHZZK
+import app.s.chzzk.shared.nativeKeyboxPatch
 
 @Suppress("unused")
 val hideHomeBannerPatch = bytecodePatch(
@@ -13,6 +14,7 @@ val hideHomeBannerPatch = bytecodePatch(
     description = "Removes home carousels, campaign exposure and promotional topic rows while preserving content rows.",
 ) {
     compatibleWith(COMPATIBILITY_CHZZK)
+    dependsOn(nativeKeyboxPatch)
 
     execute {
         val entities = "Lcom/navercorp/game/android/community/data/"

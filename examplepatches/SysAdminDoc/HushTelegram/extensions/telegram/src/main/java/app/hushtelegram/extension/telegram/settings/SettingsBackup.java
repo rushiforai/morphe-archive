@@ -138,6 +138,7 @@ public final class SettingsBackup {
             Settings.FORWARD_HIDE_SENDER,
             Settings.VOICE_MUSIC_PLAYER,
             Settings.SILENCE_NON_CONTACTS,
+            Settings.REACTION_ALERTS,
             Settings.DISABLE_ARCHIVE_PULL,
             Settings.REAR_CAMERA_FIRST,
             Settings.HIDE_GALLERY_CAMERA_TILE,

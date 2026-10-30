@@ -43,6 +43,20 @@ public final class GifPatchHooks {
     private GifPatchHooks() {
     }
 
+    /**
+     * Version of the patch bundle. The body is replaced at patch time with the real version.
+     */
+    public static String getPatchVersion() {
+        return "dev";
+    }
+
+    /**
+     * Human readable list of GIF integrations that were hooked. Replaced at patch time.
+     */
+    public static String getEnabledIntegrations() {
+        return "";
+    }
+
     public static boolean isTwitterGifUrl(String url) {
         if (url == null) return false;
         return url.contains("/tweet_video/") || url.endsWith(".gif") || url.contains(".gif?");

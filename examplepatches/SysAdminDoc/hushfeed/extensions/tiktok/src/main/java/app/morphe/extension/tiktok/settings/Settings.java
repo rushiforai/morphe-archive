@@ -203,6 +203,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting YTDLNIS_BACKGROUND = new BooleanSetting(
             "ytdlnis_background", FALSE, false, YTDLNIS_ONLY);
     public static final StringSetting DOWNLOAD_STICKER_FORMAT = new StringSetting("download_sticker_format", "mp4");
+    /** Hushfeed's own Save media box after a received chat sticker's tap (#274). */
+    public static final BooleanSetting DM_STICKER_SAVE_BOX = new BooleanSetting("dm_sticker_save_box", TRUE);
     public static final BooleanSetting SAVE_PROFILE_PICTURE = new BooleanSetting("save_profile_picture", FALSE);
     public static final BooleanSetting SAVE_STORY = new BooleanSetting("save_story", FALSE);
     public static final BooleanSetting SAVE_STORY_FROM_SHARE = new BooleanSetting("save_story_from_share", FALSE);

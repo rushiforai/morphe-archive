@@ -271,4 +271,20 @@ public class AuthoredCueContractTest {
         assertTrue(s.formatEvidence, s.formatEvidence.contains("detected_fmt=json3"));
         assertEquals(0, s.nativeWordCount());
     }
+    @Test
+    public void d2HoleAndPageRepairsKeepTheirDifferentAuthoredCueIdentities() {
+        RebuildSource source = source("が", "しかし今日は楽しい");
+        RebuildPlanner.Block parent = block(source);
+        assertEquals(2, parent.cues.size());
+        List<RebuildPlanner.Block.CueRange> groups = RebuildCueContract.groups(source, parent);
+        assertEquals("fragment cues form one display group", 1, groups.size());
+        RebuildPlanner.Block.CueRange first = parent.cues.get(0), group = groups.get(0);
+        assertNotNull(RebuildReplyPreparation.holeBlock(parent, source, new int[]{first.from, first.to}));
+        assertNull(RebuildReplyPreparation.pageBlock(parent, source, first.from, first.to));
+        assertNull(RebuildReplyPreparation.holeBlock(parent, source, new int[]{group.from, group.to}));
+        assertNotNull(RebuildReplyPreparation.pageBlock(parent, source, group.from, group.to));
+        assertArrayEquals(new int[]{group.from, group.to},
+                RebuildReplyPreparation.pageRange(parent, source, first.start));
+    }
+
 }

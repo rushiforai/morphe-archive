@@ -28,4 +28,8 @@ public final class Defaults {
     public static int soundScrollSpeed() {
         return 40;
     }
+
+    public static int shareFavoritePosition() {
+        return 0;
+    }
 }

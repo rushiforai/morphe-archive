@@ -11,14 +11,14 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 internal const val ATTRIBUTION_UPLOADS = "attribution_uploads"
 
 /**
- * Messenger's ad attribution job. It keeps its name in 584, and its one static worker does the whole job:
- * it reads the saved attribution state, gets the Advertising ID through Google's library or, failing that, a direct
- * Binder call to Play services' IAdvertisingIdService, reads the Facebook app's attribution, then sends all of it as an
- * AttributionIdUpdate request and saves the answer. Startup's background job list and one Runnable call it and wait for
- * nothing, so an early return leaves no retry or completion state behind.
+ * Messenger's ad attribution job. In 585 LatStatusJob's static step only gathers the user id, a retry count and the
+ * context, then hands them to one worker on an obfuscated class and returns. That worker does the whole job: it reads
+ * the saved attribution state, gets the Advertising ID through Google's library or, failing that, a direct Binder call
+ * to Play services' IAdvertisingIdService, reads the Facebook app's attribution, then sends all of it as an
+ * AttributionIdUpdate request and saves the answer. Nothing waits on it, so an early return leaves no retry or
+ * completion state behind.
  */
 internal const val LAT_STATUS_JOB = "Lcom/facebook/attribution/LatStatusJob;"
-internal const val ATTRIBUTION_WORKER = "$LAT_STATUS_JOB->A00($LAT_STATUS_JOB$FB_USER_SESSION)V"
 
 /** The failure text the worker reports when the send fails. It names the request this control stops. */
 internal const val ATTRIBUTION_SEND_MARK = "Failure while creating and sending attribution state through AttributionIdUpdate."
@@ -29,16 +29,16 @@ internal const val AD_ID_SERVICE = "com.google.android.gms.ads.identifier.intern
 private fun Method.stringLiterals() =
     implementation?.instructions?.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }?.toSet()
 
-/** The static (LatStatusJob, FbUserSession)V worker that still holds both the send and the Binder fallback. */
+/** The void worker that takes the session and still holds both the send and the Binder fallback. */
 internal fun Method.isAttributionUpload(): Boolean {
-    if (definingClass != LAT_STATUS_JOB || !AccessFlags.STATIC.isSet(accessFlags) || returnType != "V" ||
-        parameterTypes.map { it.toString() } != listOf(LAT_STATUS_JOB, FB_USER_SESSION)) return false
+    if (AccessFlags.ABSTRACT.isSet(accessFlags) || returnType != "V" || parameterTypes.none { it.toString() == FB_USER_SESSION }) return false
     val literals = stringLiterals().orEmpty()
     return ATTRIBUTION_SEND_MARK in literals && AD_ID_SERVICE in literals
 }
 
+/** The worker, when exactly one method looks like it. */
 internal fun findAttributionUploads(classes: Iterable<ClassDef>): List<Method> =
-    classes.filter { it.type == LAT_STATUS_JOB }.flatMap { it.methods }.filter { it.isAttributionUpload() }
+    classes.flatMap { it.methods }.filter { it.isAttributionUpload() }.let { if (it.size == 1) it else emptyList() }
 
 internal fun MutableMethod.validateAttributionUpload() {
     if (!isAttributionUpload()) {

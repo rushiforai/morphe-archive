@@ -413,12 +413,14 @@ public class RebuildContractTest {
   }
 
   @Test
-  public void acceptedParagraphKeepsReviewRiskButRemainsDisplayable() throws Exception {
+  public void acceptedParagraphIsPaginatedLocallyWithoutPaidSemanticRepair() throws Exception {
     RebuildSource s = source(String.join(" ", Collections.nCopies(30, "word")), 400);
     String text = String.join("", Collections.nCopies(70, "字")) + "。第二句。";
     RebuildProtocol.Plan p=RebuildProtocol.parse(reply(block(s), new JSONArray().put(event(0,29,text))),s,block(s));
-    assertTrue(p.issues.stream().anyMatch(issue -> issue.code.equals("paragraph") && issue.repair));
-    assertFalse(RebuildReview.blocked(p,p.events.get(0)));
+    assertTrue(p.issues.stream().anyMatch(issue -> issue.code.equals("paragraph") && !issue.repair));
+    assertFalse(RebuildReview.shouldRepair(p,1,0,0,12000));
+    List<RebuildDisplayGroups.Unit> units=RebuildDisplayGroups.partition(0,p.events,s,CaptionLanguageContext.LEGACY,null,null);
+    assertEquals(1,units.size());assertFalse(units.get(0).blocked);assertEquals(text,units.get(0).text);
   }
 
   @Test
@@ -781,11 +783,13 @@ public class RebuildContractTest {
             + "deng xiaoping rose to power in the late 1970s the military shared",
         s.text(0, s.words.size() - 1));
   }
-  @Test public void semanticAnchorsRejectEquipmentMovedFromNeighboringRange() throws Exception {
+  @Test public void literalBoundaryDoesNotInferEquipmentButExactTransferStillFails() throws Exception {
     RebuildSource source=source("Russia drives T-14 tanks but China builds an aircraft carrier fleet",300);
     RebuildPlanner.Block b=block(source);
-    try { RebuildProtocol.parse(reply(b,new JSONArray().put(event(0,4,"俄罗斯" )).put(event(5,source.words.size()-1,"T-14坦克" ))),source,b); fail("semantic mismatch accepted"); }
-    catch(RebuildProtocol.Invalid e){ assertTrue(e.code.startsWith("semantic_anchor_")); }
+    RebuildProtocol.Plan p=RebuildProtocol.parse(reply(b,new JSONArray().put(event(0,4,"俄罗斯" )).put(event(5,source.words.size()-1,"T-14坦克" ))),source,b);
+    assertEquals(2,p.events.size());assertEquals("T-14坦克",p.events.get(1).text); // boundary, not a correctness claim
+    try { RebuildProtocol.parse(reply(b,new JSONArray().put(event(0,4,"俄罗斯" )).put(event(5,source.words.size()-1,"T-14 坦克" ))),source,b); fail("literal ID transfer accepted"); }
+    catch(RebuildProtocol.Invalid e){ assertEquals("semantic_anchor_leak",e.code); }
   }
   @Test public void semanticAnchorsAcceptEquipmentInItsOwnedRange() throws Exception {
     RebuildSource source=source("four t 14 armada tanks",300);RebuildPlanner.Block b=block(source);
@@ -797,8 +801,10 @@ public class RebuildContractTest {
     int ifIndex=-1;for(int n=0;n<source.words.size();n++)if("if".equalsIgnoreCase(source.words.get(n).text))ifIndex=n;
     reject("dependent_source_end",reply(b,new JSONArray().put(event(0,ifIndex,"毕竟谁在乎美国人有多少航母，如果")).put(event(ifIndex+1,source.words.size()-1,"伊万有坦克"))),source,b);
   }
-  @Test public void sourceNormalizationKeepsHighConfidenceIdentifiersReadable() {
-    assertEquals("four t 14 armada tanks and j 20 aircraft and r b",RebuildSemantics.normalized("four t 14 armada tanks and j 20 aircraft and r b"));
+  @Test public void sourcePayloadKeepsAmbiguousIdentifiersUnchanged() throws Exception {
+    String raw="four t 14 armada tanks and j 20 aircraft and r b";
+    RebuildSource s=source(raw,400);
+    assertEquals(raw,RebuildProtocol.payload(s,block(s),"zh-Hans","").getString("source_text"));
   }
 
 }

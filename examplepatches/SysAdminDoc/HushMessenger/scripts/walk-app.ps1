@@ -53,7 +53,8 @@ param(
     [string]$Package = 'com.facebook.orca',
     # The bundle to patch with, named in the receipt. Unset, the one Gradle built for this checkout's version.
     [string]$Bundle,
-    # Stock Messenger to patch. Unset, the newest messenger-*.apk in HUSH_NATIVE_FIXTURES.
+    # Stock Messenger to patch. Unset, the messenger-*-<code>.apk in HUSH_NATIVE_FIXTURES of the build the
+    # device has installed (Select-WalkFixtureApk), or the newest one when Messenger isn't installed.
     [string]$Apk,
     # The user id of a chat on the signed-in account. Without it the chat isn't walked and the walk is PARTIAL.
     [string]$Thread = $env:HUSHMESSENGER_WALK_THREAD,
@@ -145,17 +146,48 @@ function Get-WalkSkips {
     return [string[]]$skips
 }
 
+# An x86_64 emulator runs Messenger's arm64 code through its ARM translator, libndk_translation. A child process
+# Messenger forks can abort inside that translator while it sets the child up, before any Messenger code runs there
+# (fdsan in ResetCurrentGuestThreadAfterFork, from Meta's BloksDeviceGpuM probe in 585). A phone has no translator.
+$WalkTranslatorFork = 'libndk_translation\.so \(ndk_translation::ResetCurrentGuestThreadAfterFork\('
+
+function Select-WalkTranslatorAborts {
+    <#
+    .SYNOPSIS
+        The native ">>> name <<<" lines of -Package since -SinceEpoch whose own tombstone shows the emulator's ARM
+        translator aborting while it set up a forked child. A tombstone's lines share crash_dump's pid, the second column.
+    #>
+    param([string[]]$Lines = @(), [Parameter(Mandatory = $true)][string]$Package, [long]$SinceEpoch)
+    $name = [regex]::Escape($Package)
+    $open = @{}
+    $aborts = [Collections.Generic.List[string]]::new()
+    foreach ($line in $Lines) {
+        if ($line -notmatch '^\s*(\d+)\.\d+\s+(\d+)\s') { continue }
+        $at = [long]$Matches[1]
+        $dump = $Matches[2]
+        if ($line -match '>>>') {
+            $open[$dump] = if ($at -ge $SinceEpoch -and $line -match ">>>\s*$name(?![\w.])") { $line } else { $null }
+        } elseif ($open[$dump] -and $line -match $script:WalkTranslatorFork) {
+            $aborts.Add($open[$dump])
+            $open[$dump] = $null
+        }
+    }
+    return [string[]]$aborts
+}
+
 function Select-WalkCrashes {
     <#
     .SYNOPSIS
         The crash buffer lines (logcat -b crash -v epoch) that each mark one crash of -Package, or of
         one of its processes, since -SinceEpoch: the Java "Process:" line and the native ">>> name <<<" line.
+        An abort of the emulator's ARM translator in a forked child isn't one (Select-WalkTranslatorAborts).
     #>
     param([string[]]$Lines = @(), [Parameter(Mandatory = $true)][string]$Package, [long]$SinceEpoch)
     $name = [regex]::Escape($Package)
+    $translator = @(Select-WalkTranslatorAborts -Lines $Lines -Package $Package -SinceEpoch $SinceEpoch)
     return [string[]]@($Lines | Where-Object {
         $_ -match '^\s*(\d+)\.\d+\s' -and [long]$Matches[1] -ge $SinceEpoch -and
-            ($_ -match "Process:\s*$name(?![\w.])" -or $_ -match ">>>\s*$name(?![\w.])")
+            ($_ -match "Process:\s*$name(?![\w.])" -or $_ -match ">>>\s*$name(?![\w.])") -and $translator -cnotcontains $_
     })
 }
 
@@ -235,8 +267,69 @@ function Test-WalkRestorePrompt([AllowEmptyString()][string]$Xml) {
     return [string]$Xml -match $prompt.Pattern
 }
 
+function Test-WalkKeyboardShown([string[]]$Lines) {
+    # Whether dumpsys input_method shows the keyboard up. A chat with no messages focuses its composer, and
+    # uiautomator can't dump a screen whose cursor blinks over an open keyboard.
+    return ($Lines -join "`n") -cmatch 'mInputShown=true'
+}
+
+function Read-WalkSettledScreen([scriptblock]$CloseKeyboard, [scriptblock]$ReadScreen, [int]$Tries = 3) {
+    # A step's dump, tried again after closing the keyboard once more when it fails. An empty chat focuses its
+    # composer once the thread loads, so the keyboard can come up after the first check.
+    for ($try = 1; $try -le $Tries; $try++) {
+        & $CloseKeyboard
+        $dump = [string](& $ReadScreen)
+        if ($dump) { return $dump }
+    }
+    return ''
+}
+
 function Get-WalkExitCode([string]$Result) {
     switch -CaseSensitive ($Result) { 'PASS' { return 0 } 'PARTIAL' { return 2 } default { return 1 } }
+}
+
+function Read-WalkVersionCode([string[]]$Lines) {
+    # The first versionCode in dumpsys package output, or '' when the package isn't installed.
+    foreach ($line in $Lines) { if ($line -cmatch '\bversionCode=(\d+)') { return $Matches[1] } }
+    return ''
+}
+
+function Select-WalkFixtureApk {
+    <#
+    .SYNOPSIS
+        The stock APK in -Directory to patch for a device that has build -InstalledCode: the
+        messenger-<version>-<code>.apk of that same build, so the install neither downgrades it
+        (INSTALL_FAILED_VERSION_DOWNGRADE) nor swaps its ABI or density. With nothing installed, the
+        newest fixture by name. Throws when no fixture is that build.
+    #>
+    param([string]$Directory, [AllowEmptyString()][string]$InstalledCode)
+    $fixtures = @(Get-ChildItem -LiteralPath $Directory -File -Filter 'messenger-*.apk' | Sort-Object Name -Descending)
+    if ($fixtures.Count -eq 0) { throw "$Directory has no messenger-*.apk. Pass -Apk." }
+    if (-not $InstalledCode) { return $fixtures[0].FullName }
+    $same = @($fixtures | Where-Object { $_.Name -cmatch ('^messenger-[\d.]+-' + [regex]::Escape($InstalledCode) + '\.apk\z') })
+    if ($same.Count -eq 1) { return $same[0].FullName }
+    $codes = @($fixtures | ForEach-Object { if ($_.Name -cmatch '-(\d+)\.apk\z') { $Matches[1] } } | Sort-Object)
+    throw "The device has Messenger build $InstalledCode, and $Directory has no messenger-*-$InstalledCode.apk (it has $($codes -join ', ')). Pass -Apk with the stock APK to install."
+}
+
+function Get-WalkInstalledVersionCode {
+    <#
+    .SYNOPSIS
+        The versionCode of -Package on the device, '' when it isn't installed. Holds the lease only
+        for the read, after checking the device is the expected one.
+    #>
+    param([string]$AdbExe, [string]$Serial, [string]$ExpectedModel, [string]$Package, [string]$LeaseDirectory)
+    $lease = Enter-WalkLease -Directory $LeaseDirectory -Serial $Serial -ExpectedModel $ExpectedModel
+    try {
+        $reportedSerial = [string]@(& $AdbExe -s $Serial get-serialno 2>$null)[0]
+        $deviceModel = [string]@(& $AdbExe -s $Serial shell getprop ro.product.model 2>$null)[0]
+        if ($reportedSerial.Trim() -cne $Serial -or $deviceModel.Trim() -cne $ExpectedModel) {
+            throw "$Serial answers as $reportedSerial, model $deviceModel, not the expected $ExpectedModel. Nothing was changed on it."
+        }
+        return Read-WalkVersionCode @(& $AdbExe -s $Serial shell dumpsys package $Package 2>$null)
+    } finally {
+        Exit-WalkLease $lease
+    }
 }
 
 function Enter-WalkLease {
@@ -469,12 +562,18 @@ function Invoke-WalkApp {
             if ($pulled.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $local -PathType Leaf)) { return '' }
             return [IO.File]::ReadAllText($local)
         }
-        function Invoke-WalkTap([string]$Text) {
-            # Never under the keyboard: close it first, then read the screen again.
-            if (((Invoke-WalkAdb @('shell', 'dumpsys', 'input_method')).Stdout -join "`n") -match 'mInputShown=true') {
+        function Close-WalkKeyboard {
+            # Back only while the keyboard is up, where it closes the keyboard and leaves the screen alone.
+            # Checked again after each Back, since a composer that takes focus late opens it again.
+            for ($try = 0; $try -lt 3; $try++) {
+                if (-not (Test-WalkKeyboardShown @((Invoke-WalkAdb @('shell', 'dumpsys', 'input_method')).Stdout))) { return }
                 [void](Invoke-WalkAdb @('shell', 'input', 'keyevent', 'KEYCODE_BACK'))
                 Start-Sleep -Seconds 1
             }
+        }
+        function Invoke-WalkTap([string]$Text) {
+            # Never under the keyboard: close it first, then read the screen again.
+            Close-WalkKeyboard
             $center = Find-WalkNodeCenter -Xml (Read-WalkScreen '') -Text $Text
             if ($null -eq $center) { return $false }
             [void](Invoke-WalkAdb @('shell', 'input', 'tap', [string]$center[0], [string]$center[1]))
@@ -483,6 +582,19 @@ function Invoke-WalkApp {
         $size = @((Invoke-WalkAdb @('shell', 'wm', 'size')).Stdout | Where-Object { $_ -match '(\d+)x(\d+)' } |
             ForEach-Object { @([int]$Matches[1], [int]$Matches[2]) }) | Select-Object -Last 2
         $width, $height = if ($size.Count -eq 2) { $size } else { @(1080, 2340) }
+        if ($installApk) {
+            # The first start after an install upgrades Messenger's data. Until that's done a chat link stops on a blank
+            # IntentHandlerActivity and the inbox won't dump (585 over 584.1 did both), so wait for the inbox or the
+            # restore prompt that stands in front of it.
+            # The clock, not a count of sleeps, ends the wait: a dump of a screen that's still busy can take seconds itself.
+            $inboxMarker = (Get-WalkStepDefinition 'inbox').Marker
+            $upgrade = [Diagnostics.Stopwatch]::StartNew()
+            while ($upgrade.Elapsed.TotalSeconds -lt 90) {
+                [string]$front = Read-WalkScreen ''
+                if ($front -match $inboxMarker -or (Test-WalkRestorePrompt $front)) { break }
+                Start-Sleep -Seconds 5
+            }
+        }
         # Scrolls the Controls list to the top, then down until -Text shows, and taps it.
         function Invoke-WalkFindAndTap([string]$Text) {
             $before = ''
@@ -564,7 +676,7 @@ function Invoke-WalkApp {
             $name = $definition.Id -replace '[^\w.-]', '_'
             $xmlFile = Join-Path $evidenceDir "$name.xml"
             $pngFile = Join-Path $evidenceDir "$name.png"
-            $xml = Read-WalkScreen $xmlFile
+            $xml = Read-WalkSettledScreen -CloseKeyboard { Close-WalkKeyboard } -ReadScreen { Read-WalkScreen $xmlFile }
             [void](Invoke-WalkAdb @('shell', 'rm', '-f', $shotOnDevice))
             [void](Invoke-WalkAdb @('shell', 'screencap', '-p', $shotOnDevice))
             $shot = Invoke-WalkAdb @('pull', $shotOnDevice, $pngFile)
@@ -625,9 +737,13 @@ function Invoke-WalkApp {
             $crashLines = @()
         }
         $fatal = @(Select-WalkCrashes -Lines $crashLines -Package $Package -SinceEpoch $startedEpoch)
-        if ($fatal.Count -gt 0) {
+        $translatorAborts = @(Select-WalkTranslatorAborts -Lines $crashLines -Package $Package -SinceEpoch $startedEpoch)
+        if ($fatal.Count -gt 0 -or $translatorAborts.Count -gt 0) {
             [IO.File]::WriteAllLines((Join-Path $OutDir 'crash-buffer.txt'), [string[]]$crashLines)
-            $problems.Add("Messenger crashed during the walk: $($fatal[0].Trim())")
+        }
+        if ($fatal.Count -gt 0) { $problems.Add("Messenger crashed during the walk: $($fatal[0].Trim())") }
+        foreach ($abort in $translatorAborts) {
+            Write-Host "[walk] not counted, the emulator's ARM translator aborted in a forked child (crash-buffer.txt): $($abort.Trim())"
         }
 
         $appVersion = @((Invoke-WalkAdb @('shell', 'dumpsys', 'package', $Package)).Stdout |
@@ -669,10 +785,6 @@ if ($MyInvocation.InvocationName -ne '.') {
         $Bundle = Join-Path $Root "patches/build/libs/patches-$($versionLine.Matches[0].Groups[1].Value.Trim()).mpp"
     }
     $Bundle = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Bundle)
-    if (-not $Apk -and $env:HUSH_NATIVE_FIXTURES -and (Test-Path -LiteralPath $env:HUSH_NATIVE_FIXTURES -PathType Container)) {
-        $Apk = (Get-ChildItem -LiteralPath $env:HUSH_NATIVE_FIXTURES -File -Filter 'messenger-*.apk' |
-            Sort-Object Name -Descending | Select-Object -First 1).FullName
-    }
     if (-not $DesktopJar) { $DesktopJar = $env:HUSHMESSENGER_DESKTOP_JAR }
     if (-not $DesktopJar) { $DesktopJar = [Environment]::GetEnvironmentVariable('HUSHMESSENGER_DESKTOP_JAR', 'User') }
     if (-not $Java) { $Java = if ($env:JAVA_HOME) { Join-Path $env:JAVA_HOME 'bin/java.exe' } else { 'java' } }
@@ -680,6 +792,13 @@ if ($MyInvocation.InvocationName -ne '.') {
         $Adb = (Get-Command adb -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1).Source
         if (-not $Adb -and $env:ANDROID_HOME) { $Adb = Join-Path $env:ANDROID_HOME 'platform-tools/adb.exe' }
         if (-not $Adb -or -not (Test-Path -LiteralPath $Adb)) { throw 'No adb found. Pass -Adb or put it on the PATH.' }
+    }
+    if (-not $Apk -and -not $SkipPatch -and $env:HUSH_NATIVE_FIXTURES -and (Test-Path -LiteralPath $env:HUSH_NATIVE_FIXTURES -PathType Container)) {
+        $installedCode = if ($Serial -and $ExpectedModel) {
+            Get-WalkInstalledVersionCode -AdbExe $Adb -Serial $Serial -ExpectedModel $ExpectedModel -Package $Package -LeaseDirectory $LeaseDirectory
+        } else { '' }
+        $Apk = Select-WalkFixtureApk -Directory $env:HUSH_NATIVE_FIXTURES -InstalledCode $installedCode
+        Write-Host "[walk] the device has build $(if ($installedCode) { $installedCode } else { 'none' }), so patching $(Split-Path -Leaf $Apk)"
     }
     $receiptPath = Invoke-WalkApp -Serial $Serial -ExpectedModel $ExpectedModel -Package $Package -BundlePath $Bundle -StockApk $Apk `
         -Thread $Thread -Visit $Visit -SkipPatch:$SkipPatch -SkipSettings:$SkipSettings -SettleSeconds $SettleSeconds `

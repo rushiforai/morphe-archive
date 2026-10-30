@@ -1,3 +1,21 @@
+## [1.3.0-dev.1](https://github.com/Nezumi-2711/morphe-patches/compare/v1.2.1...v1.3.0-dev.1) (2026-10-30)
+
+### ✨ New Features
+
+* **zalo:** add configurable clone package patch ([065c7ae](https://github.com/Nezumi-2711/morphe-patches/commit/065c7aef8354768babf9ef0e2874f3282817c6d3)), closes [#12](https://github.com/Nezumi-2711/morphe-patches/issues/12)
+
+## [1.2.1](https://github.com/Nezumi-2711/morphe-patches/compare/v1.2.0...v1.2.1) (2026-10-30)
+
+### 🚀 Updated App Support
+
+* **zalo:** add support for Zalo 26.10.02 ([1ccc836](https://github.com/Nezumi-2711/morphe-patches/commit/1ccc836ee26f45e9c5bd9578ded7a7c9c973decf))
+
+## [1.2.1-dev.1](https://github.com/Nezumi-2711/morphe-patches/compare/v1.2.0...v1.2.1-dev.1) (2026-10-30)
+
+### 🚀 Updated App Support
+
+* **zalo:** add support for Zalo 26.10.02 ([1ccc836](https://github.com/Nezumi-2711/morphe-patches/commit/1ccc836ee26f45e9c5bd9578ded7a7c9c973decf))
+
 ## [1.2.0](https://github.com/Nezumi-2711/morphe-patches/compare/v1.1.0...v1.2.0) (2026-10-22)
 
 ### 🐛 Bug Fixes

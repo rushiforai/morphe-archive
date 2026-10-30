@@ -89,8 +89,9 @@ public class Settings extends BaseSettings {
 
     /**
      * Posts from groups you aren't in, such as a friend's post in a public group, found by the join
-     * state Facebook's own Join button reads off the group the story was posted to (#195). Posts from
-     * groups you're in and a friend's share of a group post stay. Off until picked.
+     * state Facebook's own Join button reads off the group the story was posted to (#195), or off
+     * the group of the post it wraps when a friend commented on or shared a group post. Posts from
+     * groups you're in stay. Off until picked.
      */
     public static final BooleanSetting HIDE_GROUP_POSTS_NOT_JOINED =
             new BooleanSetting("hushfacebook_hide_group_posts_not_joined", FALSE);
@@ -567,6 +568,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_reel_share_button", FALSE);
 
     /**
+     * A reel whose comments are turned off still gets the Comment button down its right side, so
+     * the comments already there can be read, as its feed post allows
+     * ({@link app.morphe.extension.facebook.reels.ReelDeclutter#showsCommentButton}, #299). Off by
+     * default. A change shows from the next reel.
+     */
+    public static final BooleanSetting SHOW_REEL_COMMENT_BUTTON =
+            new BooleanSetting("hushfacebook_show_reel_comment_button", FALSE);
+
+    /**
      * The speaker button at the bottom of a reel's right side isn't built
      * ({@link app.morphe.extension.facebook.reels.ReelDeclutter#showsSoundButton}, #190). Off by
      * default. A change shows from the next reel.
@@ -779,6 +789,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_long_press_opens_comments", FALSE);
 
     /**
+     * A long press on a feed post's text, which Facebook answers by copying all of it, also opens
+     * that text in a box where a part can be selected and copied
+     * ({@link app.morphe.extension.facebook.reels.PostTextSelect}, #294). Starts off.
+     */
+    public static final BooleanSetting SELECT_POST_TEXT =
+            new BooleanSetting("hushfacebook_select_post_text", FALSE);
+
+    /**
      * A speed picked in a reel's menu stays for the next reels where it was picked, ads and live
      * videos aside, until another is picked, and is saved so a restart keeps it
      * ({@link app.morphe.extension.facebook.media.ReelSpeed}). Normal speed forgets it.
@@ -833,6 +851,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hold_feed_video_for_2x", FALSE);
 
     /**
+     * The 2x pill a held video shows stays the plain 2x pill, without Facebook's "Pull down to lock
+     * 2x speed" hint and its unlock and first-time versions
+     * ({@link app.morphe.extension.facebook.reels.LockHint}). Pulling down still locks 2x. Works
+     * without {@link #HOLD_REEL_FOR_2X}. Starts off.
+     */
+    public static final BooleanSetting HIDE_2X_LOCK_HINT =
+            new BooleanSetting("hushfacebook_hide_2x_lock_hint", FALSE);
+
+    /**
      * Comment sheets ask for the order in {@link #COMMENT_ORDER} where Facebook's servers would
      * choose one, and an order picked in a post's comments stays for that post until Facebook
      * restarts ({@link app.morphe.extension.facebook.comments.DefaultCommentOrder}). A request that
@@ -866,6 +893,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_COMMENT_GIF_STICKER_BUTTONS =
             new BooleanSetting("hushfacebook_hide_comment_gif_sticker_buttons", FALSE);
+
+    /**
+     * The comment box comes without the row of emoji over it (#290,
+     * {@link app.morphe.extension.facebook.comments.CommentSheetOptions}). Typing and the box's
+     * buttons stay. Off by default. A change shows on the next comment box drawn.
+     */
+    public static final BooleanSetting HIDE_COMMENT_EMOJI_ROW =
+            new BooleanSetting("hushfacebook_hide_comment_emoji_row", FALSE);
 
     /**
      * The comment composer at the bottom of Facebook's full-screen video viewer is omitted from
@@ -1879,7 +1914,10 @@ public class Settings extends BaseSettings {
     /**
      * The top bar and the tab bar let the feed show through, with a blur of it behind them on
      * Android 12 and newer (#124, {@link app.morphe.extension.facebook.navigation.TranslucentBars}).
-     * Asked as each frame of the main screen draws, so a change shows right away.
+     * Asked as each frame of the main screen draws, so a change shows right away. A kept tab bar is
+     * the exception (#250): with it on, Facebook builds the layout that runs the pages under the bar
+     * as the main screen starts, so there the change waits for a restart, and the settings page
+     * shows its restart row ({@link app.morphe.extension.facebook.navigation.TabBarScrollAway#seeThroughRestartOwed}).
      */
     public static final BooleanSetting TRANSLUCENT_BARS =
             new BooleanSetting("hushfacebook_translucent_bars", FALSE);
@@ -2224,7 +2262,7 @@ public class Settings extends BaseSettings {
 
     /**
      * The order comment sheets ask for while {@link #DEFAULT_COMMENT_ORDER} is on: Facebook's own
-     * choice until someone picks Most relevant, Newest or All comments, so picking the patch changes
+     * choice until someone picks Most relevant, Newest, All comments or Oldest, so picking the patch changes
      * nothing on its own. It isn't a switch, and a paused Facebook takes the order its servers
      * choose.
      */
@@ -2307,6 +2345,9 @@ public class Settings extends BaseSettings {
 
     /** The colour the Facebook logo at the top of Home takes, the same way. Blank keeps Facebook's blue. */
     public static final StringSetting LOGO_COLOR = new StringSetting("hushfacebook_logo_color", "", true);
+
+    /** The colour of the selected tab's icon and the line over it, the same way (#297). Blank keeps Facebook's own. */
+    public static final StringSetting TAB_COLOR = new StringSetting("hushfacebook_tab_color", "", true);
 
     /**
      * Where {@link #USE_SYSTEM_FONT} takes its font from: empty for the phone's own, or the name of

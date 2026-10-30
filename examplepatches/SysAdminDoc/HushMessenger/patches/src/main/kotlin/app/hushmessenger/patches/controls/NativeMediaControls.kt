@@ -15,18 +15,20 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal const val EPHEMERAL_VIEWER = "Lcom/facebook/messaging/media/ephemeralmedia/viewer/EphemeralMediaViewerFragment;"
 internal const val QUICKSNAP_VIEWER = "Lcom/facebook/messaging/quicksnap/consumption/viewer/MsgrQuicksnapViewerFragment;"
-/** "Generate AI stickers" in Messenger 584's string pack (0x7f140560 in 583). */
-internal const val GENERATE_AI_LABEL = 0x7f140559
+/** "Generate AI stickers" in Messenger 585's string pack (0x7f140559 in 584). */
+internal const val GENERATE_AI_LABEL = 0x7f140560
 /**
- * "Generate" in 584's string pack: the same cell when an account gets more than one sticker maker. Its tap opens a menu of
- * custom, AI and music stickers, so it fronts the AI maker too.
+ * "Generate" in 585's arm64 string pack: the same cell when an account gets more than one sticker maker. Its tap opens a
+ * menu of custom, AI and music stickers, so it fronts the AI maker too.
  */
-internal const val GENERATE_MENU_LABEL = 0x7f141bd3
-/** "Generate" in 584.1's string pack, shifted one resource past 584.0's. */
-internal const val GENERATE_MENU_LABEL_5841 = 0x7f141bd5
-/** The viewer's onCreateDialog override: A1K in 584, A1O in 584.1 armv7, A1I or A1J in 584.1 arm64 (A1F in 583). */
-internal const val EPHEMERAL_DIALOG = "A1K"
-internal val EPHEMERAL_DIALOGS = setOf(EPHEMERAL_DIALOG, "A1O", "A1I", "A1J")
+internal const val GENERATE_MENU_LABEL = 0x7f141c2d
+/** "Generate" in 585's armv7 string pack, two resources past arm64's. */
+internal const val GENERATE_MENU_LABEL_ARMV7 = 0x7f141c2f
+/** The viewer's onCreateDialog override: A1J in 585 arm64 and the 347014974 armv7 family, A1H in the 347014990 one. */
+internal const val EPHEMERAL_DIALOG = "A1J"
+internal val EPHEMERAL_DIALOGS = setOf(EPHEMERAL_DIALOG, "A1H")
+/** The Quicksnap viewer's onCreateView frame: 40 registers on 585 arm64, 39 on armv7. */
+internal val QUICKSNAP_REGISTERS = setOf(39, 40)
 private const val WINDOW = "Landroid/view/Window;"
 private const val SET_FLAGS = "$WINDOW->setFlags(II)V"
 private const val ADD_FLAGS = "$WINDOW->addFlags(I)V"
@@ -50,10 +52,15 @@ private fun Instruction.writes(register: Int) = opcode.setsRegister() &&
 private fun Method.mediaCode() = implementation?.instructions?.toList().orEmpty()
 private fun mediaFailure(method: Method): Nothing = throw PatchException("Messenger controls: native media contract changed in ${method.hookId()}")
 
-/** Exact native window operations, with their actual constants and null-checked receivers. */
+/**
+ * Exact native window operations, with their actual constants and null-checked receivers. No try block may cover a
+ * guarded prefix: the Ephemeral viewer's bodies have none, and the Quicksnap viewer's all start past its site.
+ */
 internal fun Method.screenshotViewerSites(): List<Int> {
     val code = mediaCode()
-    if (AccessFlags.STATIC.isSet(accessFlags) || implementation == null || implementation!!.tryBlocks.isNotEmpty()) mediaFailure(this)
+    if (AccessFlags.STATIC.isSet(accessFlags) || implementation == null) mediaFailure(this)
+    val tries = implementation!!.tryBlocks
+    fun coveredThrough(last: Int) = code.take(last + 1).sumOf { it.codeUnits }.let { end -> tries.any { it.startCodeAddress < end } }
     fun op(at: Int, opcode: Opcode) = code.getOrNull(at)?.opcode == opcode
     fun reg(at: Int) = code.getOrNull(at)?.mediaRegister()
     fun call(at: Int, reference: String, args: List<Int>) = op(at, Opcode.INVOKE_VIRTUAL) &&
@@ -74,12 +81,12 @@ internal fun Method.screenshotViewerSites(): List<Int> {
         definingClass == EPHEMERAL_VIEWER && name in EPHEMERAL_DIALOGS &&
             parameterTypes.map { it.toString() } == listOf("Landroid/os/Bundle;") && returnType == "Landroid/app/Dialog;" -> {
             sites = listOf(9); allowedJumps = emptySet()
-            implementation!!.registerCount == 5 && code.size == 15 && result(4, "Landroid/app/Dialog;", 2) && window(5, "Landroid/app/Dialog;", 2, 1, 10) &&
+            tries.isEmpty() && implementation!!.registerCount == 5 && code.size == 15 && result(4, "Landroid/app/Dialog;", 2) && window(5, "Landroid/app/Dialog;", 2, 1, 10) &&
                 literal(8, 0) && call(9, SET_FLAGS, listOf(1, 0, 0))
         }
         definingClass == EPHEMERAL_VIEWER && name == "onResume" && parameterTypes.isEmpty() && returnType == "V" -> {
             sites = listOf(14, 21); allowedJumps = setOf(15); jumpSources = setOf(10, 13)
-            implementation!!.registerCount == 5 && code.size == 46 && result(8, "Landroid/app/Activity;", 0) && literal(9, 1) &&
+            tries.isEmpty() && implementation!!.registerCount == 5 && code.size == 46 && result(8, "Landroid/app/Activity;", 0) && literal(9, 1) &&
                 nullCheck(10, 0, 15) && window(11, "Landroid/app/Activity;", 0, 0, 15) && call(14, SET_FLAGS, listOf(0, 1, 1)) &&
                 op(15, Opcode.INVOKE_VIRTUAL) && code[15].mediaArgs() == listOf(4) &&
                 ((code[15] as? ReferenceInstruction)?.reference as? MethodReference)?.returnType == "Landroid/app/Dialog;" &&
@@ -93,7 +100,7 @@ internal fun Method.screenshotViewerSites(): List<Int> {
             // Builds move the flag between 29 and 32 with their setup code, so the one window flag call is the site.
             val site = code.indices.singleOrNull { code[it].mediaRef() == ADD_FLAGS } ?: mediaFailure(this)
             sites = listOf(site); allowedJumps = emptySet()
-            site >= 6 && implementation!!.registerCount == 23 &&
+            site >= 6 && !coveredThrough(site) && implementation!!.registerCount in QUICKSNAP_REGISTERS &&
                 result(site - 6, "Landroid/app/Dialog;", 0) && nullCheck(site - 5, 0, site + 1) &&
                 window(site - 4, "Landroid/app/Dialog;", 0, 1, site + 1) && literal(site - 1, 0) && call(site, ADD_FLAGS, listOf(1, 0))
         }
@@ -123,7 +130,7 @@ internal fun MutableMethod.injectScreenshotViewer() {
 }
 
 /**
- * The cell under 584's naming, the label it shows, how many renders offer that label, the same for its Generate menu label,
+ * The cell under 585's naming, the label it shows, how many renders offer that label, the same for its Generate menu label,
  * and how many instructions its own render has (24 registers). Four renders offer the AI label and one the menu label.
  */
 internal data class AiCell(
@@ -134,13 +141,13 @@ internal data class AiCell(
     val render = "$type->render($scope)$component"
 }
 internal val aiCells = listOf(
-    // 584.1 arm64 keeps 584.0's resource IDs, under three namings that vary by build.
-    AiCell("LX/CSp;", "LX/1Nj;", "LX/2DF;", "LX/1J7;"),
-    AiCell("LX/CVr;", "LX/1Nj;", "LX/2DF;", "LX/1J7;"),
-    AiCell("LX/CPH;", "LX/1O9;", "LX/2Df;", "LX/1JX;", menu = GENERATE_MENU_LABEL_5841, size = 109),
-    AiCell("LX/CUN;", "LX/1NU;", "LX/2Ce;", "LX/1Iz;", size = 109),
+    // 585 arm64 under two namings, then the two armv7 namings, whose menu label sits two resources later.
+    AiCell("LX/R3i;", "LX/1No;", "LX/2ED;", "LX/1IG;"),
+    AiCell("LX/R3h;", "LX/1No;", "LX/2ED;", "LX/1IG;"),
+    AiCell("LX/OXo;", "LX/1Og;", "LX/2Fc;", "LX/1J8;", menu = GENERATE_MENU_LABEL_ARMV7),
+    AiCell("LX/OGf;", "LX/1OE;", "LX/2Ed;", "LX/1Ig;", menu = GENERATE_MENU_LABEL_ARMV7, size = 113),
 )
-internal const val AI_CELL_SIZE = 107
+internal const val AI_CELL_SIZE = 109
 internal const val AI_CELL_REGISTERS = 24
 internal const val AI_CELL_SOURCES = 4
 internal const val AI_MENU_SOURCES = 1
@@ -218,9 +225,9 @@ private const val NEXT = "Ljava/util/Iterator;->next()Ljava/lang/Object;"
 
 /**
  * The Suggested sticker grid around [AiCell]. Its render loops over the grid items and sends each through an instance-of
- * chain; the Generate menu item's branch and the Generate AI item's branch both build the cell. [sites] are where those
- * two branch bodies start, [skip] is the loop's continue step (`move index, next` before the one goto back to the loop
- * head) and [flag] is the register the chain's instance-of results land in.
+ * chain; the Generate menu item's branch builds the cell, and so does the Generate AI item's where a build still lists it
+ * (585 dropped it from the grid). [sites] are where those branch bodies start, [skip] is the loop head every item goes
+ * back to and [flag] is the register the chain's instance-of results land in.
  */
 internal data class AiGrid(val sites: List<Int>, val skip: Int, val flag: Int)
 
@@ -254,20 +261,14 @@ internal fun Method.aiStickerGrid(cell: AiCell): AiGrid? {
         val iterator = code[head].mediaArgs().singleOrNull() ?: continue
         val more = reg(head + 1)
         val item = reg(head + 4)
-        val step = code.getOrNull(head + 5) as? TwoRegisterInstruction
         if (!op(head + 1, Opcode.MOVE_RESULT) || !op(head + 2, Opcode.IF_EQZ) || reg(head + 2) != more ||
             !op(head + 3, Opcode.INVOKE_INTERFACE, Opcode.INVOKE_INTERFACE_RANGE) || code[head + 3].mediaRef() != NEXT ||
             code[head + 3].mediaArgs() != listOf(iterator) || !op(head + 4, Opcode.MOVE_RESULT_OBJECT) ||
-            !op(head + 5, Opcode.ADD_INT_LIT8) || step == null || (step as NarrowLiteralInstruction).narrowLiteral != 1 ||
-            !op(head + 6, Opcode.IF_LTZ) || reg(head + 6) != step.registerB || !op(head + 7, Opcode.CHECK_CAST) || reg(head + 7) != item) continue
-        val index = step.registerB
-        val next = step.registerA
-        // Every item goes back to the head through one goto, right after the index takes its next value.
-        val back = code.indices.filter { code[it] is OffsetInstruction && code.branchTarget(it) == head }.singleOrNull() ?: continue
-        val move = code.getOrNull(back - 1) as? TwoRegisterInstruction
-        if (code[back].opcode !in GOTOS || !op(back - 1, Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16) ||
-            move?.registerA != index || move.registerB != next) continue
-        var link = head + 8
+            !op(head + 5, Opcode.CHECK_CAST) || reg(head + 5) != item) continue
+        // Every item goes back to the head through a plain goto.
+        val backs = code.indices.filter { code[it] is OffsetInstruction && code.branchTarget(it) == head }
+        if (backs.isEmpty() || backs.any { code[it].opcode !in GOTOS }) continue
+        var link = head + 6
         var flag: Int? = null
         val menus = mutableListOf<Int>()
         val ais = mutableListOf<Int>()
@@ -287,11 +288,11 @@ internal fun Method.aiStickerGrid(cell: AiCell): AiGrid? {
             link = end
         }
         val sites = (menus + ais).sorted()
-        // One branch per label, each entered only from its own instance-of test, and no label outside them.
-        if (flag == null || flag > 15 || menus.size != 1 || ais.size != 1 || menus == ais ||
-            flag in setOf(item, index, next, iterator) || sites.any { it in jumpTargets() } ||
+        // One menu branch and at most one AI branch, each entered only from its own instance-of test, and no label outside them.
+        if (flag == null || flag > 15 || menus.size != 1 || ais.size > 1 || menus == ais ||
+            flag in setOf(item, iterator) || sites.any { it in jumpTargets() } ||
             labels.any { at -> bodies.none { at in it } }) continue
-        found += AiGrid(sites, back - 1, flag)
+        found += AiGrid(sites, head, flag)
     }
     return found.singleOrNull()
 }

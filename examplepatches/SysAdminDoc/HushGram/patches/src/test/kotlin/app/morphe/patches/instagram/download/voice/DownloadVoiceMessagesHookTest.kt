@@ -186,7 +186,7 @@ class DownloadVoiceMessagesHookTest {
                 val saver = context.mutableClassDefBy(found.saver.method.definingClass).methods.single {
                     it.name == found.saver.method.name && it.parameterTypes == found.saver.method.parameterTypes
                 }
-                if (bundle.name == "instagram-453.0.0.55.79-385914283.apks") {
+                if (bundle.name == "instagram-453.0.0.57.79-385914557.apks") {
                     // Where it lands on 453's declared build, read off the dex by hand.
                     val at = builder.instructions().indexOfFirst { it.referenceText() == OFFER_VOICE }
                     assertEquals(
@@ -261,16 +261,16 @@ class DownloadVoiceMessagesHookTest {
 
     private companion object {
         /**
-         * On 453.0.0.55.79's 385914283: the builder and the ask before the offer, the saver's entry and its
-         * first two reads, then the audio bridge's reads and the view mode bridge's. The builder is the
-         * static 0Au5.A0H (452's 0899.A0K), the only caller of the ask 0Jrr.AZS, and the message is
-         * 01vF (452's 08Ai).
+         * On 453.0.0.57.79's 385914557: the builder and the ask before the offer, the saver's entry and its
+         * first two reads, then the audio bridge's reads and the view mode bridge's. The builder is now
+         * the lambda 0AoC's invoke (55.79's static 0Au5.A0H), still the only caller of the ask 0VaU.AZS,
+         * and the message is 01vE (55.79's 01vF).
          */
         val DECLARED_SITES = listOf(
-            "LX/0Au5;->A0H", "LX/0Jrr;->AZS(Lcom/instagram/common/session/UserSession;LX/01vF;)Z",
-            "LX/0QbE;->A03", "LX/0NV0;->A00:LX/01vF;", "LX/0QbE;->A00:Landroid/app/Activity;",
-            "LX/01vF;->A0L:LX/05B9;", "LX/05B9;->A00()LX/02yC;", "LX/02yC;->A08:LX/09o6;", "LX/09o6;->BWP()Ljava/lang/String;",
-            "LX/01vF;->A0L:LX/05B9;", "LX/05B9;->A0D:Ljava/lang/String;",
+            "LX/0AoC;->invoke", "LX/0VaU;->AZS(Lcom/instagram/common/session/UserSession;LX/01vE;)Z",
+            "LX/0PnT;->A02", "LX/0MJ7;->A00:LX/01vE;", "LX/0PnT;->A00:Landroid/app/Activity;",
+            "LX/01vE;->A0L:LX/05B6;", "LX/05B6;->A00()LX/02xm;", "LX/02xm;->A08:LX/09o4;", "LX/09o4;->BWP()Ljava/lang/String;",
+            "LX/01vE;->A0L:LX/05B6;", "LX/05B6;->A0D:Ljava/lang/String;",
         )
 
         const val MENU = "Lfixture/ThreadFragment;"

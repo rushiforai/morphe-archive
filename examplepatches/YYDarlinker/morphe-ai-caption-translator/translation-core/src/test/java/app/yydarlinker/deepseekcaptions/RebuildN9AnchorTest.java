@@ -5,7 +5,7 @@ import java.util.*;
 import org.json.JSONArray;
 import org.junit.Test;
 
-/** N9: the frozen block-1 comparison owns both the carrier and T-62s anchors. */
+/** N9 frozen samples remain source-owned; dictionary inference is retired. */
 public class RebuildN9AnchorTest {
   private static final String COMPARISON = "after all who cares how many nuclear aircraft carriers or stealth bombers the americans have if ivan's got 10 000 t-62s rusting in siberia somewhere";
 
@@ -13,8 +13,7 @@ public class RebuildN9AnchorTest {
     RebuildSource s=RebuildContractTest.source("a country's tank fleet " + COMPARISON,400);
     RebuildPlanner.Block b=RebuildContractTest.block(s);
     assertEquals("a country's tank fleet",s.text(0,3));
-    assertEquals(RebuildSemantics.Evidence.SUPPORTED,RebuildSemantics.evidence(2,s.text(4,s.words.size()-1),s.text(0,s.words.size()-1)));
-    assertTrue(RebuildSemantics.models(s.text(4,s.words.size()-1)).contains("t-62"));
+    assertTrue(RebuildSemantics.literalModels(s.text(4,s.words.size()-1)).isEmpty()); // plural is not inferred
     for(String translated:Arrays.asList(
         "毕竟，如果伊万在西伯利亚某处有10000辆生锈的T-62坦克，谁还管美国人有多少核动力航母或隐形轰炸机呢？",
         "毕竟若伊万在西伯利亚某处有1万辆T-62坦克在生锈，谁还在乎美国人有多少核航母或隐身轰炸机")) {
@@ -24,25 +23,23 @@ public class RebuildN9AnchorTest {
     }
   }
 
-  @Test public void explicitModelMovedIntoCarrierOnlyEventStillFails() throws Exception {
+  @Test public void pluralModelIsNotInferredAsAnExactLiteralTransfer() throws Exception {
     RebuildSource s=RebuildContractTest.source("tank fleet aircraft carriers t-62s",500);
     RebuildPlanner.Block b=RebuildContractTest.block(s);
     List<RebuildProtocol.Event> events=Arrays.asList(
         new RebuildProtocol.Event(0,1,0,1000,"坦克部队"),
         new RebuildProtocol.Event(2,3,1000,2000,"T-62坦克和航母"),
         new RebuildProtocol.Event(4,4,2000,2500,"T-62"));
-    try {RebuildSemantics.validatePlan(s,b,events);fail("cross-event T-62 transfer accepted");}
-    catch(RebuildProtocol.Invalid ex) {assertEquals("semantic_anchor_leak",ex.code);assertTrue(ex.detail.contains("model=t-62"));}
+    RebuildSemantics.validatePlan(s,b,events); // t-62s is not the literal T-62
   }
 
-  @Test public void genericTankMovedIntoCarrierOnlyEventStillFails() throws Exception {
+  @Test public void genericEquipmentWordsAreNotADictionaryBasedHardGate() throws Exception {
     RebuildSource s=RebuildContractTest.source("tank fleet aircraft carriers",500);
     RebuildPlanner.Block b=RebuildContractTest.block(s);
     List<RebuildProtocol.Event> events=Arrays.asList(
         new RebuildProtocol.Event(0,1,0,1000,"坦克部队"),
         new RebuildProtocol.Event(2,3,1000,2000,"航母和坦克"));
-    try {RebuildSemantics.validatePlan(s,b,events);fail("cross-event tank transfer accepted");}
-    catch(RebuildProtocol.Invalid ex) {assertEquals("semantic_anchor_leak",ex.code);assertTrue(ex.detail.contains("incompatible explicit equipment anchor"));}
+    RebuildSemantics.validatePlan(s,b,events); // no claim that this translation is accurate
   }
 
 

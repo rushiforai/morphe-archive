@@ -116,10 +116,8 @@ public class M5iRebuildCacheTest {
     RebuildController.Session session() throws Exception {
         String owner=(String)field(RebuildController.class,"video",null);
         RebuildController.Session s=new RebuildController.Session(context,"fixture",owner,"fixture-scope","zh-Hans",config("fixture-key"),false,true,language);
-        s.source=source;s.blocks=Collections.singletonList(block);s.cacheKey=key();s.states=new int[]{RebuildController.WAITING};s.attempts=new int[1];s.retryAt=new long[1];s.reasons=new String[1];
-        s.plans=new RebuildProtocol.Plan[1];s.pendingPlans=new RebuildProtocol.Plan[1];s.provisional=new RebuildProtocol.Plan[1];s.jobs=new RebuildController.Job[1];
-        s.cacheChecked=new boolean[1];s.cacheReading=new boolean[1];s.slowRetries=new int[1];s.pageRepairCount=new int[1];s.uncoveredSince=new long[1];
-        set(RebuildController.Session.class,"displayLayouts",s,java.lang.reflect.Array.newInstance(Class.forName(RebuildController.class.getName()+"$DisplayLayout"),1));
+        s.source=source;s.blocks=Collections.singletonList(block);s.cacheKey=key();s.work.initialize(1);
+        s.presentation.configure(s.source, s.blocks, s.languageContext);
         set(RebuildController.class,"active",null,s);return s;
     }
     void invoke(String name,RebuildController.Session s) throws Exception {
@@ -129,28 +127,88 @@ public class M5iRebuildCacheTest {
         server.enqueue(status==200?new MockResponse().setBody(new JSONObject().put("choices",new JSONArray().put(new JSONObject()
                 .put("finish_reason","stop").put("message",new JSONObject().put("content",plan.json)))).toString()):new MockResponse().setResponseCode(status).setBody("fixture refusal"));
     }
+    @Test public void d3PromptChangeMissesOldFixtureKeyWithoutDeletingOldBytes() throws Exception {
+        Path snapshot=Paths.get(System.getProperty("caption.workspace"),"translation-core","upstream","RebuildProtocol.java.txt");
+        String oldSource=new String(Files.readAllBytes(snapshot),StandardCharsets.UTF_8);
+        String section=oldSource.substring(oldSource.indexOf("static final String FIDELITY_PROMPT ="),oldSource.indexOf("static final class Event"));
+        java.util.regex.Matcher parts=java.util.regex.Pattern.compile("\"([^\"]*)\"").matcher(section);
+        StringBuilder oldFidelity=new StringBuilder();while(parts.find())oldFidelity.append(parts.group(1));
+        assertEquals("67bcd4e94c65d47c51abf1dcecf45f46e80bbd0bfce90e4d4893f5628b64fdaa",RebuildCache.hash(oldFidelity.toString()));
+        TranslationSettings cfg=config("fixture-key");String prompt=RebuildApi.prompt(cfg,"zh-Hans",language);
+        assertTrue(prompt.contains(RebuildProtocol.FIDELITY_PROMPT));
+        String priorPrompt=prompt.replace(RebuildProtocol.FIDELITY_PROMPT,oldFidelity.toString());
+        assertNotEquals(RebuildCache.hash(priorPrompt),RebuildCache.hash(prompt));
+        // Reconstruct the D2 identity from its fixed old prompt for this isolated fixture.
+        StringBuilder prior=new StringBuilder(RebuildProtocol.VERSION).append('|').append(language.fingerprint(cfg))
+                .append('|').append("zh-Hans").append('|').append(RebuildCache.hash(priorPrompt))
+                .append('|').append(language.renderSpec.presentationPolicy);
+        for(RebuildSource.Word w:source.words)prior.append('\n').append(w.start).append(':').append(w.end)
+                .append(':').append(w.precision).append(':').append(w.text);
+        String oldKey=RebuildCache.hash(prior.toString()),newKey=RebuildCache.identity(source,cfg,"zh-Hans",language);
+        assertNotEquals(oldKey,newKey);seed(oldKey,plan.json);byte[] oldBytes=Files.readAllBytes(entry(oldKey).toPath());
+        assertNull("current identity does not force-read the old entry",RebuildCache.read(context,newKey,source,block,language));
+        assertArrayEquals(oldBytes,Files.readAllBytes(entry(oldKey).toPath()));save(newKey,plan);
+        assertNotNull(RebuildCache.read(context,newKey,source,block,language));assertArrayEquals(oldBytes,Files.readAllBytes(entry(oldKey).toPath()));
+        CaptionLanguageContext french=CaptionLanguageContext.explicit("en","fr");
+        String neutral=RebuildApi.prompt(cfg,"fr",french);
+        assertFalse(neutral.contains(RebuildProtocol.FIDELITY_PROMPT));assertFalse(neutral.contains(oldFidelity.toString()));
+        System.out.println("D3_PROMPT_HASH old="+RebuildCache.hash(priorPrompt)+" new="+RebuildCache.hash(prompt)+";fixture_old_key="+oldKey+";fixture_new_key="+newKey);
+    }
+    @Test public void d3RetiredTankCaseFlowsThroughSchedulerReplyCacheAndDisplay() throws Exception {
+        source=RebuildContractTest.source("the size of a country's tank fleet",500);block=RebuildContractTest.block(source);
+        plan=parse("一个国家坦克舰队的规模"); // historical wording; acceptance does not certify translation accuracy
+        assertEquals(0,RebuildReview.score(plan.issues));
+        assertFalse(RebuildReview.shouldRepair(plan,1,0,0,block.end));
+        RebuildController.Session s=session();response(200);invoke("schedule",s);
+        assertTrue("actual scheduler and reply must finish",accepted.await(3,TimeUnit.SECONDS));
+        synchronized(s) {
+            assertNotNull(s.work.slots[0].accepted);assertEquals(RebuildController.READY,s.work.slots[0].state);
+            assertEquals(1,s.work.slots[0].attempts);assertEquals(0,s.work.repairCount);
+            assertFalse(s.work.slots[0].reason.contains("possible_equipment_term"));
+        }
+        assertTrue(entry(key()).isFile());assertEquals("一个国家坦克舰队的规模",RebuildCache.read(context,key(),source,block,language).events.get(0).text);
+        invoke("render",s);assertTrue(results.contains("一个国家坦克舰队的规模"));
+        invoke("schedule",s);invoke("schedule",s);
+        assertEquals(1,server.getRequestCount());assertEquals(1,attempts);
+        assertFalse(server.takeRequest(1,TimeUnit.SECONDS).getBody().readUtf8().contains("possible_equipment_term"));
+    }
+    @Test public void d3RetiredSamplesArePreparedAndOldBytesAreReparsedUnderCurrentRules() throws Exception {
+        String[][] cases={{"licensed or unlicensed vehicles","合法或非法的车辆"},
+                          {"about 50 20 aircraft","大约50至20架飞机"}};
+        for(String[] sample:cases) {
+            source=RebuildContractTest.source(sample[0],500);block=RebuildContractTest.block(source);plan=parse(sample[1]);
+            assertEquals(0,RebuildReview.score(plan.issues));assertFalse(RebuildReview.shouldRepair(plan,1,0,0,block.end));
+            RebuildReplyPreparation.Evaluation evaluation=RebuildReplyPreparation.evaluate(context,key(),source,block,language,null,plan,null);
+            assertSame(plan,evaluation.accepted);assertTrue(evaluation.cacheable);assertNotNull(evaluation.prepared);
+            try(RebuildCache.Prepared prepared=evaluation.prepared){assertTrue(prepared.commit());}
+            assertEquals(sample[1],RebuildCache.read(context,key(),source,block,language).events.get(0).text);
+            seed(key(),plan.json); // original JSON is re-parsed; no old Issue object is trusted
+            assertEquals(sample[1],RebuildCache.read(context,key(),source,block,language).events.get(0).text);
+        }
+        assertEquals(0,server.getRequestCount());
+    }
     @Test public void hitAvoidsProviderAndBadEntryRecoversViaActualSchedulerWithOnePost() throws Exception {
-        save(key(),plan);RebuildController.Session hit=session();invoke("schedule",hit);assertNotNull(hit.plans[0]);assertEquals(0,server.getRequestCount());
+        save(key(),plan);RebuildController.Session hit=session();invoke("schedule",hit);assertNotNull(hit.work.slots[0].accepted);assertEquals(0,server.getRequestCount());
         RebuildController.stop();seed(key(),"{broken");RebuildController.Session miss=session();response(200);invoke("schedule",miss);
-        assertTrue(accepted.await(3,TimeUnit.SECONDS));synchronized(miss){assertNotNull(miss.plans[0]);assertEquals(1,miss.attempts[0]);}
+        assertTrue(accepted.await(3,TimeUnit.SECONDS));synchronized(miss){assertNotNull(miss.work.slots[0].accepted);assertEquals(1,miss.work.slots[0].attempts);}
         invoke("render",miss);assertTrue(results.contains("你好，世界。"));assertEquals(1,server.getRequestCount());assertEquals(1,attempts);
-        RebuildController.stop();RebuildController.Session again=session();invoke("schedule",again);assertNotNull(again.plans[0]);assertEquals(1,server.getRequestCount());
+        RebuildController.stop();RebuildController.Session again=session();invoke("schedule",again);assertNotNull(again.work.slots[0].accepted);assertEquals(1,server.getRequestCount());
     }
     @Test public void cacheMissFailureKeepsOriginalTerminalBudgetAndNeverDisplaysSource() throws Exception {
         seed(key(),"{broken");RebuildController.Session s=session();response(401);invoke("schedule",s);
         // Await the actual worker, not a wall-clock retry loop.
         assertTrue(rejected.await(3,TimeUnit.SECONDS));
-        assertTrue(s.terminal);assertNull(s.plans[0]);invoke("render",s);invoke("schedule",s);
+        assertTrue(s.terminal);assertNull(s.work.slots[0].accepted);invoke("render",s);invoke("schedule",s);
         assertTrue(results.isEmpty());assertEquals(1,server.getRequestCount());assertEquals(1,attempts);
     }
     @Test public void cacheLookupReservedByAnOldSessionCannotPublishIntoReplacement() throws Exception {
         save(key(),plan);RebuildController.Session old=session();
         Class<?> lookup=Class.forName(RebuildController.class.getName()+"$CacheLookup");Constructor<?> ctor=lookup.getDeclaredConstructor(RebuildController.Session.class,RebuildPlanner.Block.class,boolean.class);ctor.setAccessible(true);
-        Object reserved=ctor.newInstance(old,block,false);old.cacheReading[0]=true;
+        Object reserved=ctor.newInstance(old,block,false);old.work.slots[0].cacheReading=true;
         RebuildController.stop();RebuildController.Session replacement=session();
         Method restore=RebuildController.class.getDeclaredMethod("restoreCandidate",RebuildController.Session.class,lookup);restore.setAccessible(true);restore.invoke(null,old,reserved);
-        assertNull(old.plans[0]);assertNull(replacement.plans[0]);assertTrue(results.isEmpty());assertFalse(old.publication.isOpen());
-        invoke("schedule",replacement);assertNotNull(replacement.plans[0]);assertEquals(0,server.getRequestCount());
+        assertNull(old.work.slots[0].accepted);assertNull(replacement.work.slots[0].accepted);assertTrue(results.isEmpty());assertFalse(old.publication.isOpen());
+        invoke("schedule",replacement);assertNotNull(replacement.work.slots[0].accepted);assertEquals(0,server.getRequestCount());
     }
     @Test public void clearWaitsForAdmittedCommitAndUnadmittedCandidateCannotResurrect() throws Exception {
         save(key(),plan);RebuildController.Session old=session();RebuildCache.Permit permit=old.publication.reserve();assertNotNull(permit);
@@ -172,4 +230,106 @@ public class M5iRebuildCacheTest {
             save(key(),plan);assertNotNull(RebuildCache.read(context,key(),source,block,language));trace.add("new-write-hit");
         } finally {permit.close();admitted.close();unadmitted.close();}
     }
+    Context gatedCache(CountDownLatch reached,CountDownLatch release,java.util.concurrent.atomic.AtomicInteger calls){
+        Context base=context;
+        return new ContextWrapper(base){
+            @Override public File getCacheDir(){
+                if(calls.incrementAndGet()==1){
+                    reached.countDown();
+                    try {if(!release.await(5,TimeUnit.SECONDS))throw new AssertionError("prepare gate timeout");}
+                    catch(InterruptedException e){throw new AssertionError(e);}
+                }
+                return base.getCacheDir();
+            }
+            @Override public Context getApplicationContext(){return this;}
+        };
+    }
+    Future<?> translateAsync(RebuildController.Session s,ExecutorService worker) throws Exception {
+        s.visible=false;RebuildController.Job job=new RebuildController.Job(s,0,true);
+        s.work.slots[0].attempt=job.attempt;s.work.slots[0].state=RebuildController.RUNNING;
+        s.work.slots[0].attempts=1;s.work.slots[0].cacheChecked=true;
+        Method translate=RebuildController.class.getDeclaredMethod("translate",RebuildController.Job.class);translate.setAccessible(true);
+        return worker.submit(()->{try{translate.invoke(null,job);}catch(ReflectiveOperationException e){throw new AssertionError(e);}});
+    }
+    @Test public void changedOldPlanAndGenerationDuringPrepareReevaluatesWithoutAnotherPost() throws Exception {
+        Context original=context;CountDownLatch reached=new CountDownLatch(1),release=new CountDownLatch(1);
+        java.util.concurrent.atomic.AtomicInteger calls=new java.util.concurrent.atomic.AtomicInteger();
+        context=gatedCache(reached,release,calls);RebuildController.Session s=session();context=original;
+        RebuildProtocol.Plan old=parse("世界，你好。");ExecutorService worker=Executors.newSingleThreadExecutor();
+        try {
+            response(200);Future<?> done=translateAsync(s,worker);assertTrue(reached.await(3,TimeUnit.SECONDS));
+            synchronized(s){s.generation++;s.work.slots[0].accepted=old;}
+            release.countDown();done.get(6,TimeUnit.SECONDS);
+            RebuildProtocol.Plan expected=RebuildReview.accept(old,plan,block);
+            assertEquals(expected.events.get(0).text,s.work.slots[0].accepted.events.get(0).text);
+            assertTrue("changed snapshot must prepare the same reply again",calls.get()>=4);
+            assertEquals(1,server.getRequestCount());assertEquals(1,attempts);
+        } finally {release.countDown();worker.shutdownNow();}
+    }
+    @Test public void cachePrepareFailureStillAcceptsTheRealReplyInMemory() throws Exception {
+        Context original=context;File obstruction=owned.newFile("prepare-failure");
+        context=new ContextWrapper(original){@Override public File getCacheDir(){return obstruction;}};
+        RebuildController.Session s=session();context=original;ExecutorService worker=Executors.newSingleThreadExecutor();
+        try {response(200);translateAsync(s,worker).get(6,TimeUnit.SECONDS);
+            assertNotNull(s.work.slots[0].accepted);assertEquals("你好，世界。",s.work.slots[0].accepted.events.get(0).text);
+            assertEquals(1,server.getRequestCount());assertEquals(1,attempts);
+        } finally {worker.shutdownNow();}
+    }
+    @Test public void revokedBeforeReserveRejectsPreparedReply() throws Exception {
+        Context original=context;CountDownLatch reached=new CountDownLatch(1),release=new CountDownLatch(1);
+        context=gatedCache(reached,release,new java.util.concurrent.atomic.AtomicInteger());
+        RebuildController.Session s=session();context=original;ExecutorService worker=Executors.newSingleThreadExecutor();
+        try {response(200);Future<?> done=translateAsync(s,worker);assertTrue(reached.await(3,TimeUnit.SECONDS));
+            s.publication.revoke(true);release.countDown();done.get(6,TimeUnit.SECONDS);
+            assertNull(s.work.slots[0].accepted);assertNull(s.publication.reserve());assertFalse(entry(key()).exists());
+            assertEquals(1,server.getRequestCount());assertTrue(results.isEmpty());
+        } finally {release.countDown();worker.shutdownNow();}
+    }
+    void admittedMoveDuringChange(boolean changePlan) throws Exception {
+        Context original=context;CountDownLatch reached=new CountDownLatch(1),release=new CountDownLatch(1);
+        CountDownLatch publicationHeld=new CountDownLatch(1),releasePublication=new CountDownLatch(1);
+        java.util.concurrent.atomic.AtomicInteger calls=new java.util.concurrent.atomic.AtomicInteger();
+        context=gatedCache(reached,release,calls);
+        RebuildController.Session s=session();context=original;ExecutorService worker=Executors.newSingleThreadExecutor();
+        RebuildProtocol.Plan competing=parse("世界，你好。");
+        Thread holder=new Thread(()->{synchronized(s.publication){publicationHeld.countDown();try{
+            if(!releasePublication.await(5,TimeUnit.SECONDS))throw new AssertionError("publication gate timeout");
+        }catch(InterruptedException e){throw new AssertionError(e);}}},"D2-publication-gate");
+        try {
+            response(200);Future<?> done=translateAsync(s,worker);assertTrue(reached.await(3,TimeUnit.SECONDS));
+            holder.start();assertTrue(publicationHeld.await(3,TimeUnit.SECONDS));release.countDown();
+            Field writes=RebuildCache.class.getDeclaredField("WRITES");writes.setAccessible(true);
+            Field outstanding=RebuildCache.Publication.class.getDeclaredField("outstanding");outstanding.setAccessible(true);
+            long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(4);boolean staged=false;
+            while(System.nanoTime()<deadline && !staged){
+                synchronized(RebuildCache.class){
+                    Map<?,?> entries=(Map<?,?>)writes.get(null);
+                    if(entries.containsKey(entry(key()).getAbsolutePath())){
+                        staged=true;releasePublication.countDown();
+                        boolean reserved=false;
+                        while(System.nanoTime()<deadline && !reserved){
+                            synchronized(s.publication){reserved=outstanding.getInt(s.publication)>0;}
+                            if(!reserved)java.util.concurrent.locks.LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(1));
+                        }
+                        assertTrue("the real worker must reserve before the move",reserved);
+                        synchronized(s){if(changePlan)s.work.slots[0].accepted=competing;else s.generation++;}
+                    }
+                }
+                if(!staged)java.util.concurrent.locks.LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(1));
+            }
+            assertTrue("candidate must be staged",staged);done.get(6,TimeUnit.SECONDS);holder.join(3000);
+            assertTrue("an admitted physical move may complete",entry(key()).isFile());
+            if(changePlan){
+                RebuildProtocol.Plan expected=RebuildReview.accept(competing,plan,block);
+                assertEquals(expected.events.get(0).text,s.work.slots[0].accepted.events.get(0).text);
+                assertTrue("a newer plan requires reevaluation after the admitted move",calls.get()>=4);
+                assertEquals(expected.events.get(0).text,RebuildCache.read(context,key(),source,block,language).events.get(0).text);
+            }else assertNull("a later generation must not accept the old output",s.work.slots[0].accepted);
+            assertEquals(1,server.getRequestCount());assertTrue(results.isEmpty());
+        } finally {release.countDown();releasePublication.countDown();worker.shutdownNow();holder.join(3000);}
+    }
+
+    @Test public void admittedMoveCanFinishButNewGenerationRejectsItsOutput() throws Exception {admittedMoveDuringChange(false);}
+    @Test public void changedPlanAfterReserveIsReevaluatedWithoutAnotherPost() throws Exception {admittedMoveDuringChange(true);}
+
 }

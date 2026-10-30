@@ -385,6 +385,11 @@ public class FeedVideoAloneTest {
         assertFalse(FeedVideoAlone.seedOnly(postSource));
 
         clock.addAndGet(FeedVideoAlone.WINDOW_MS + 1);
+        FeedVideoAlone.reelsViewerOpening(origin("group::fb_shorts_creation_feed_unit"));
+        assertTrue("a reel posted in the group itself shows alone, its first page carrying the next reel (#237)",
+                FeedVideoAlone.seedOnly(new Object()));
+
+        clock.addAndGet(FeedVideoAlone.WINDOW_MS + 1);
         FeedVideoAlone.reelsViewerOpening(origin("group::fb_shorts_reshare_feed_unit"));
         assertTrue("a feed reel's data source still shows its reel alone", FeedVideoAlone.seedOnly(new Object()));
 

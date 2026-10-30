@@ -1,0 +1,59 @@
+# HLN 9.22.0 patch audit
+
+Evidence labels: **Seen** means an inspected original or decoded output; **Inferred** means a consequence of that static evidence; **Unknown** means unverified. Original-input verification passes, each requested effect was shown RED before implementation, and all five individual selections plus their combination pass the actual patch-output matrix, including the final Catsure tracking/consent/combined rechecks. Device/runtime validation remains unverified.
+
+## Exact input and scope
+
+**Seen:** package `be.persgroep.android.news.mobilehln`, version `9.22.0`, versionCode **2009220000**, minimum SDK32. Base APK SHA-256 `44cf13c1b309fbeb5c67042c66cfe4c5118accbeac4f05b0999a424b1af4846f`. The supplied directory contains the original base plus arm64, English, Dutch and xxxhdpi splits. The research signer is `34a28a4862a6204d7c70ebacc7105fae14ac880486c5d2d56a2b9c17907b27c4`; the Google distribution stamp is not publisher identity. The HLN patch must have an independent exact original-input guard because AD's build number and obfuscated classes differ.
+
+The five controls are Hide ads, Disable tracking, Skip consent screens, Hide Premium banner and Read full articles. Only client behavior is in scope. No account, token, consent grant, entitlement, receipt, purchase or reward is fabricated. No server-withheld article or paid newspaper is supplied. Existing AD and other published patch namespaces stay unchanged.
+
+## Original evidence and retargeting
+
+**Seen:** the original APK was independently decoded with apktool3.0.2. REA/JADX0.7.1 package evidence `ev_679d814bf9d41084dbe79b9933995e2d5462aad2d628b0f2db776432103b2f56` corroborates the package/build/minSDK and original SHA-256; it does not verify signatures or run the app. Its parsed class count differs from raw apktool DEX membership and is not used as a coverage denominator.
+
+All46 core retargeted descriptor probes resolve exactly once. The AD list-filter constructors resolve unchanged except RegionPromotionTeaser's `Laee;` parameter becoming `Ldee;`; all48 inspected DTO fields resolve. Tracking's actual Unit is `Llbi.a`, empty map `Lmt5.a`, continuation interface `Lzs3`, and app continuation base `Lbt3`.
+
+Previously uncertain roles are now concrete: Piano queue runnable `Lfef.run`, scheduler `Ly64.a`, pageview coroutine `Lw64.invokeSuspend`, video POST coroutine `Lu0d.invokeSuspend`. The encrypted USER_CHANNELS factory is `new La45(0x1d)` -> lazy Lwlg -> Lkaf. Static router `Lr9j.b` has10 locals plus3 argument words; both automatic login invokes use p0=v10=registerCount-3.
+
+See [the original research](research/2026-10-30/hln.md) for caller paths, exact signatures and limitations. Method-hash files contain no publisher bodies, credentials or article text.
+
+## Implemented controls and completion contracts
+
+| Control | Audited boundaries and invariants |
+| --- | --- |
+| Hide ads | Filter commercial/advertorial components while preserving editorial siblings, nested content identity and order. Include DealsBannerTeaser, ShopListTeaser and GamesPromoTeaser. Disable banner feature flags, VideoProduction.k's two constructor writes and game preroll flags. Use the existing IMA error/reward-rejected continuation. |
+| Disable tracking | Suppress Snowplow, Comscore, Firebase analytics/Performance/Crashlytics/FCM telemetry, Facebook pending sends, Piano collectors/queue/scheduler, PIP diagnostics, automatic Usabilla events, identifier acquisition and FIAM. Null-guard all three optional FIAM consumers and preserve their surrounding startup state. Add Gemius init `Lqx2.a`, CimEventTransmitter.execute and all three VideoProduction.l writes. Remove advertising identifier permissions while preserving push registration/delivery. |
+| Skip consent screens | Complete collectConsent with actual Kotlin Unit and follow the original guest onboarding transitions. Seed only missing encrypted topic choices; preserve existing ones. Skip topic-fragment creation while retaining Hilt/super lifecycle and completed-user deep links. Initial city-notification/newsletter choices remain false; manual choices and Android permission outcomes retain original callbacks. |
+| Hide Premium banner | Stop three premium composables, filter marketing display components and complete marketing with supported empty results. Preserve editorial inline read-more, author/date and empty overlays. |
+| Read full articles | Force only the existing request's reduced flag off, retaining its coroutine/error mapping and other arguments; complete marketing with empty results. Anonymous server delivery and premium yield remain unknown. |
+
+**Additional typed boundaries:** stop independent Amalia audio `/track` at Lxz8.a with the real Lk10(actual Unit) success value, as required by the caller's Ll10 cast. Stop marketing requests at Lnq8.c with an ArrayList and at Lnq8.d with an actual Flow carrying an ArrayList. Its only inspected caller uses first(), so an empty Flow or a raw List would be invalid. Preserve the original retained caller, first() and StateFlow constructor bodies.
+
+## Catsure follow-up: avoidable uploads and retained local state
+
+The earlier AD-derived assumption that all Catsure traffic had to remain was replaced with an HLN-specific consumer trace. **Seen:** Lir.a -> Ler posts `/api/player/heartbeat`; Lir.b -> Lgr posts `/api/queue/sync`. Their only real direct callers are Lib1 coroutine cases0x12/0x13, which compare the suspended sentinel, discard the actual response and return Unit. No decoded response field feeds player/account/queue state in the bounded direct-reference search.
+
+The patch stops heartbeat at exact void `Lxr2.a(Lro;String)V`, before device ID/payload construction. R8 inlined queue sync into `Ldd1.a(Lb54)V`, so the full commit is retained. One guarded branch after its unique q3g.m local publication, current-item read and original persistence selector/mask constants resumes at the existing Lb54.e persistence entry, bypassing only payload/device-ID construction and the detached queue task. Original duplicate handling, manual-item conversion, serialization and local persistence remain. Guards check singleton instruction sites, task ordering, unused upload result the same published/persisted queue register and the original selector1/mask3 registers consumed by local persistence.
+
+Independent Catsure pins cover **35 methods**:33 unchanged methods and2 complete modified originals. The verifier removes only the heartbeat prefix/one queue branch to reconstruct original control flow and executes the actual emitted local commit with changed/unchanged, current/null and manual-podcast cases, checking the persistence instance, coroutine selector1 and launch mask3. Original retained contracts pass and both new effects were shown RED. The controlled scratch fixture first validated the strengthened harness. The final actual emitted tracking, consent and combined builds now pass that same local-queue VM, including selector1, mask3, persistence-instance identity and manual podcast fields. Shared device identity, radio/car queue, account/auth and player callers are retained; outbound remote queue/playback reporting is intentionally lost. Device/cross-device behavior is unverified.
+
+## Verification gates
+
+`tests/verify_hln.py` checks emitted effects against independent HLN originals, including47 prefixed-body pins,195 unchanged functional-method pins,24 DTO constructors,7 startup/helper special cases and4 flag constructors. The separate onboarding verifier pins173 retained graph methods plus4 owned modifications and exercises emitted guest routing, encrypted preference preservation, notification/newsletter choice behavior and permission results. The filter interpreter executes the actual emitted helper instructions on synthetic editorial/commercial object graphs. Nineteen targeted source-instruction regressions also pass.
+
+**Seen:** `python3 tests/verify_hln.py <original-decode>` passes. Running each of the five controls individually against that same original fails at a required missing patch effect. Those logs retain the original/RED baseline under `build/research-20261030/hln-red/`.
+
+**Seen, completed output validation:** the actual bundle built and Morphe loaded it successfully. `hln-fix1-validation.log` retains PASS for original, Hide ads and Disable tracking. After the isolated onboarding-matcher correction, `hln-fix2-validation.log` retains PASS for original, Skip consent screens, Hide Premium banner, Read full articles and all controls together. Each of the six selection reports records success with no failed patches; each passed FULL bytecode validation, output signature verification and independently decoded effects/retained behavior. `all.json` applies exactly the five public HLN controls. Earlier loader and matcher failures are retained in the fix-round directories. Source-instruction tests alone had not caught those JVM/loading and live-matcher defects.
+
+The final `hln-catsure-validation.log` then records terminal success for original, Disable tracking, Skip consent screens and all controls with the corrected Catsure branch. Earlier Hide ads, Hide Premium banner and Read full articles selections are unaffected and retain their passing evidence. This completes the static/output matrix for current HLN source. The full validation bundle SHA-256 was `dcb842d5951b6b21b1fecfb2ed1dd9c93a4a403ec6c96bbaa2884b710b6d8d4c`; that bundle contained a validation-only Maps placeholder and must never be published. Root also recorded the whole repository suite at218passing/3skipped; the19HLN tests and35Catsure method checks are the relevant focused evidence here.
+
+Device/runtime checks remain a separate, unverified gate. The output matrix does not establish premium server yield or network silence.
+
+## Retained functions and unknowns
+
+Functional login/token refresh, authentic PrivacyGate storage, push registration, RemoteConfig, manual feedback readiness, editorial media, live resources, local queue publication/persistence and shared radio/car/device state remain retained targets. Removing a metric never implies a paid account or consent acceptance.
+
+**Unknown:** anonymous full premium article delivery, remote ad/widget behavior, complete network silence, signatures/session-provider acceptance after re-signing, video/audio playback across every state, account sharing and user-specific configuration. Stopping the two detached Catsure uploads removes outbound playback-position and queue reporting. Cross-device and server consequences remain untested. No device installation, uninstall, clear-data operation or live publisher request was performed for this audit.
+
+Published candidate: [v1.20.0-dev.4](https://github.com/johnneerdael/dutch-applications-patches/releases/tag/v1.20.0-dev.4). The downloaded CI bundle has SHA-256 `3b8552f366231151645f219b4599eb31d060b3ed973d5bac49e433c5dc15c27a`; all 45 new-app/shared class payloads and the release catalogue match the validated source. Reapplying all controls with the downloaded published bundle also passed the patch report, output-signature and independent decoded-output checks for this app (`published-hln-validation.log`). Runtime and live-network acceptance remain unverified.

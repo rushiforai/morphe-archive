@@ -5,6 +5,9 @@
 package app.template.patches.zalo
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.methodCall
+import app.morphe.patcher.string
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
@@ -28,21 +31,23 @@ private val driveCompatibility = Compatibility(
     packageName = "com.zing.zalo",
     apkFileType = ApkFileType.APKM,
     appIconColor = 0x0068FF,
-    targets = listOf(AppTarget(version = "26.08.01")),
+    targets = listOf(AppTarget(version = "26.08.01"), AppTarget(version = "26.10.02")),
 )
 
 private object BackupConfiguration : Fingerprint(
-    definingClass = "Lnl/c;",
-    name = "h",
     returnType = "V",
     parameters = listOf("Lorg/json/JSONObject;", "Lorg/json/JSONObject;", "Lorg/json/JSONObject;", "Z"),
+    filters = listOf(string("ENABLE_BACKUP_MEDIA")),
 )
 
 private object BackupEligibility : Fingerprint(
-    definingClass = "Lmm/k;",
-    name = "m",
     returnType = "Z",
     parameters = listOf("Lcom/zing/zalo/data/backuprestore/model/TargetBackupInfo;"),
+    filters = listOf(
+        methodCall(definingClass = "Landroid/text/TextUtils;", name = "isEmpty"),
+        fieldAccess(definingClass = "Landroid/util/Patterns;", name = "EMAIL_ADDRESS"),
+        methodCall(definingClass = "Ljava/util/regex/Matcher;", name = "matches"),
+    ),
 )
 
 private const val MICROG_EXTENSION = "Lapp/template/extension/extension/ZaloMicroGSupport;"
@@ -81,8 +86,7 @@ private fun replaceAccountPicker(method: MutableMethod) = replaceBody(method, 10
     const/4 v7, 0x0
     invoke-static/range {v1 .. v7}, Landroid/accounts/AccountManager;->newChooseAccountIntent(Landroid/accounts/Account;Ljava/util/List;[Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;Landroid/os/Bundle;)Landroid/content/Intent;
     move-result-object v0
-    iget-object v2, p0, Lcom/zing/zalo/ui/zviews/BaseZaloView;->U0:Lcom/zing/zalo/ui/zviews/BaseZaloView;
-    invoke-virtual {v2}, Lcom/zing/zalo/zview/a0;->u4()Landroid/content/Context;
+    invoke-virtual {p0}, Lcom/zing/zalo/zview/a0;->getContext()Landroid/content/Context;
     move-result-object v2
     check-cast v2, Landroid/app/Activity;
     invoke-static {v2}, $MICROG_EXTENSION->checkGmsCore(Landroid/app/Activity;)Z
@@ -158,7 +162,7 @@ private fun enableDriveMediaBackup(method: MutableMethod) {
     val reference = (invoke as? ReferenceInstruction)?.reference as? MethodReference
     check(invoke.opcode == Opcode.INVOKE_STATIC && invoke.registerCount == 3 &&
         invoke.registerC == keyRegister && invoke.registerD != invoke.registerE &&
-        reference?.toString() == "Lu40/p0;->i0(Ljava/lang/String;ZZ)V") {
+        reference?.parameterTypes == listOf("Ljava/lang/String;", "Z", "Z") && reference.returnType == "V") {
         "Unexpected backup flag setter"
     }
     method.addInstructions(index + 1, "const/4 v${invoke.registerD}, 0x1")
@@ -180,13 +184,16 @@ val driveBackupMicroGPatch = bytecodePatch(
         check(BackupEligibility.matchAll(1..1).size == 1)
         enableDriveMediaBackup(BackupConfiguration.method)
         val eligibility = BackupEligibility.method
+        val current = packageMetadata.versionName == "26.10.02"
         check(eligibility.implementation?.registerCount ?: 0 >= 1)
         check(eligibility.implementation!!.tryBlocks.isEmpty())
         repeat(eligibility.implementation!!.instructions.size) {
             eligibility.implementation!!.removeInstruction(0)
         }
         eligibility.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
-        val owners = accountOwners + "Lo9/a;" + "Lcom/zing/zalo/ui/ZaloLauncherActivity;"
+        val authOwner = if (current) "Lza/a;" else "Lo9/a;"
+        val scopedAccounts = if (current) accountOwners - setOf("Lul/g;", "Ln71/d0;") + setOf("Lfn/d;", "Lfn/h;", "Lxa1/c0;") else accountOwners
+        val owners = scopedAccounts + authOwner + "Lcom/zing/zalo/ui/ZaloLauncherActivity;"
         val counts = mutableMapOf("binding" to 0, "type" to 0, "picker" to 0, "refresh" to 0, "result" to 0, "launch" to 0)
         classDefForEach { classDef ->
             if (classDef.type !in owners) return@classDefForEach
@@ -194,8 +201,8 @@ val driveBackupMicroGPatch = bytecodePatch(
             classDef.methods.filter { it.implementation != null }.forEach { original ->
                 val method = mutableClass.methods.single { it.name == original.name &&
                     it.parameterTypes == original.parameterTypes && it.returnType == original.returnType }
-                val picker = (classDef.type == SYNC_VIEW && original.name == "x6" ||
-                    classDef.type == MANAGE_VIEW && original.name == "I6") &&
+                val picker = (classDef.type == SYNC_VIEW && original.name == (if (current) "M6" else "x6") ||
+                    classDef.type == MANAGE_VIEW && original.name == (if (current) "X6" else "I6")) &&
                     original.parameterTypes == listOf("Ljava/lang/String;") && original.returnType == "V"
                 if (picker) {
                     replaceAccountPicker(method)
@@ -209,16 +216,16 @@ val driveBackupMicroGPatch = bytecodePatch(
                     if (literal == "authAccount" && classDef.type == SYNC_VIEW && original.name == "onActivityResult") {
                         method.replaceInstruction(index, "sget-object v$register, Landroid/accounts/AccountManager;->KEY_ACCOUNT_NAME:Ljava/lang/String;")
                         counts["result"] = counts.getValue("result") + 1
-                    } else if (literal == "com.google.android.gms" && classDef.type == "Lo9/a;") {
+                    } else if (literal == "com.google.android.gms" && classDef.type == authOwner) {
                         method.replaceInstruction(index, "const-string v$register, \"app.revanced.android.gms\"")
                         counts["binding"] = counts.getValue("binding") + 1
-                    } else if (literal == "com.google" && classDef.type in accountOwners + "Lo9/a;") {
+                    } else if (literal == "com.google" && classDef.type in scopedAccounts + authOwner) {
                         method.replaceInstruction(index, "const-string v$register, \"app.revanced\"")
                         counts["type"] = counts.getValue("type") + 1
                     }
                     val call = reference as? MethodReference
                     if (classDef.type == SYNC_VIEW && original.name == "onActivityResult" &&
-                        call?.toString() == "$SYNC_VIEW->A6(Ljava/lang/String;)V") {
+                        call?.toString() == "$SYNC_VIEW->${if (current) "P6" else "A6"}(Ljava/lang/String;)V") {
                         val invoke = instruction as? FiveRegisterInstruction ?: error("Unexpected account refresh invoke")
                         check(invoke.registerCount == 2)
                         method.replaceInstruction(index, "invoke-static {v${invoke.registerC}, v${invoke.registerD}}, $MICROG_EXTENSION->scheduleAccountRefresh(Ljava/lang/Object;Ljava/lang/String;)V")
@@ -233,7 +240,7 @@ val driveBackupMicroGPatch = bytecodePatch(
                 }
             }
         }
-        check(counts == mapOf("binding" to 1, "type" to 6, "picker" to 2, "refresh" to 1, "result" to 1, "launch" to 1)) {
+        check(counts == mapOf("binding" to 1, "type" to (if (current) 7 else 6), "picker" to 2, "refresh" to 1, "result" to 1, "launch" to 1)) {
             "Unexpected Zalo Drive microG targets: $counts"
         }
     }

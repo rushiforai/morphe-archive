@@ -1,0 +1,59 @@
+{
+  "agent": "ChatGPT",
+  "status": "test_preview_with_known_spotify_attenuation_failure",
+  "version": "0.1.0-preview.8",
+  "mpp_sha256": "c13c8991dda8ffdfcf2a91d39648f085c04657ecca0d570ed2cb257345c3b8db",
+  "bytes": 726148,
+  "maps_functional_revision": "54T",
+  "google_functional_revision": "20",
+  "runtime_byte_identical_to_owner_components": true,
+  "extension_sha256": {
+    "aaos": "6d9b07965ac3758d6fac512f2e804e0dbc98cb4e9cd207bd990d0daee71707e9",
+    "gsa": "6fe5d76f19c13cce9d0c7b8270aeee79bbe48b2bd62f4dac5235f6cedb7a5e8a"
+  },
+  "host_tests": {
+    "recovery_protocol": 71,
+    "stalled_recovery": 25,
+    "google_provider_routes": 301,
+    "live_state": 17,
+    "voice_state": 21,
+    "focus_lifecycle": 86,
+    "total": 521,
+    "result": "PASS"
+  },
+  "car": {
+    "model": "BYD Tang",
+    "dilink": "5.0",
+    "android_api": 32,
+    "installed_by_owner_via_morphe": true,
+    "maps54t_google19_owner_set_works": true,
+    "google20_actual_revision_verified": true,
+    "google20_live_native_listening_and_close_observed": true,
+    "spotify_attenuation": "FAIL: unchanged volume in two owner-operated tests",
+    "volume_restore_after_attenuation": "not exercised because attenuation did not occur",
+    "other_players_and_firmware_tested": false,
+    "new_live_routes_reboot_or_phone_call_tested": false
+  },
+  "no_google_apks_keys_private_logs_or_account_material": true,
+  "pages": "not configured; existing disabled download pages were not re-enabled",
+  "control_builds": {
+    "desktop": "1.18.1",
+    "exact_selection": true,
+    "apk_payload_identity": [
+      {
+        "app": "maps",
+        "selected_patch": "Maps Automotive for BYD (MicroG-RE TEST)",
+        "entry_count": 3265,
+        "content_differences": 0
+      },
+      {
+        "app": "google",
+        "selected_patch": "Google app for BYD (MicroG-RE TEST)",
+        "entry_count": 10537,
+        "content_differences": 0
+      }
+    ],
+    "no_force_or_continue_on_error": true
+  },
+  "original_preservation": "Maps inherited54T native delta0 against54S; Google152102classes/612650methods/3constructor observer/0unexpected; released outputs fully byte-identical to those verified components"
+}

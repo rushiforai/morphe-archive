@@ -58,7 +58,7 @@ final class CaptionActions {
                 long end,
                 CaptionPresentationBudget geometry,
                 CaptionRenderSpec spec,
-                long[] sourceAnchors) {
+                CaptionEventTimeline sourceTimeline) {
             return displayPages(text, start, end, geometry, spec);
         }
     }
@@ -179,8 +179,8 @@ final class CaptionActions {
             long end,
             CaptionPresentationBudget geometry,
             CaptionRenderSpec spec,
-            long[] sourceAnchors) {
-        return services.displayPages(text, start, end, geometry, spec, sourceAnchors);
+            CaptionEventTimeline sourceTimeline) {
+        return services.displayPages(text, start, end, geometry, spec, sourceTimeline);
     }
 
     static String testApi() throws Exception {

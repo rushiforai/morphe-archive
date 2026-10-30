@@ -270,6 +270,9 @@ if (window.jsb) {
     }
 
     cc.macro.CLEANUP_IMAGE_CACHE = true;
-    try { require('src/bbmod.js'); } catch (e) {}
+    // The game still boots if the mod script fails, but record why so a "no mods" report is diagnosable.
+    try { require('src/bbmod.js'); } catch (e) {
+        try { jsb.fileUtils.writeStringToFile('bbmod load failed: ' + ((e && e.stack) || e) + '\n', jsb.fileUtils.getWritablePath() + 'bbmod.log'); } catch (_) {}
+    }
     window.boot();
 }

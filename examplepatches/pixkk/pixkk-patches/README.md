@@ -7,6 +7,7 @@ A Morphe patch bundle for TikTok 47.5.3. Add `https://github.com/pixkk/pixkk-pat
 - Expand description in place
 - Sound name under description
 - Scroll sound name
+- Favorites button in share menu
 - Right column spacing
 - Don't open comments on icon swipe
 - Comment menu rows

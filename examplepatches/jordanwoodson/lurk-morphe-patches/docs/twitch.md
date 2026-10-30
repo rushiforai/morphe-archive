@@ -6,34 +6,45 @@ Apply the same workflow used for Rumble and Kick: inspect the original app, impl
 the viable equivalents of the existing patches, verify the resulting APK and runtime
 settings, and publish a tested stable Lurk release through the repository workflow.
 
-The supported target is `tv.twitch.android.app` **31.7.0**, version code **3107006**.
-The patches were written against 31.6.0 (3106006) and moved to 31.7.0 on 2026-10-21. Two APKMirror
-bundles of 31.7.0 were added that day with `bin/apk-add`, which verified their signature and stored
-them in `apks/twitch/31.7.0/`: the arm64-v8a 480-640 dpi bundle for phones (Android 10+, the default
-input) and the arm64-v8a, x86 and x86_64 480 dpi bundle (Android 8.0+) that emulator installs pick.
-The phone bundle's base APK SHA-256 is
-`4c1e1bb8e75b52d964310cb74ec7c10587ae8eb7fed1efa4959a5e88098c9c56`.
+The supported target is `tv.twitch.android.app` **31.8.0**, version code **3108006**.
+The patches were written against 31.6.0 (3106006), moved to 31.7.0 (3107006) on 2026-10-21 and to
+31.8.0 on 2026-10-29. Two APKMirror bundles of 31.8.0 are stored with `bin/apk-add`, which verified
+their signature, in `apks/twitch/31.8.0/`: the arm64-v8a 480-640 dpi bundle for phones (Android 10+,
+the default input) and the arm64-v8a, x86 and x86_64 480 dpi bundle (Android 8.0+) that emulator
+installs pick. The phone bundle's base APK SHA-256 is
+`09fad5136771353a7cd7748f894d406f03b6c129e3e637287f98baf5c48666a4`.
 
 Allowed sources are APKMirror, Google Play and Uptodown (see [CONTRIBUTING.md](../CONTRIBUTING.md)).
 The variants used are listed here:
 
-- [APKMirror release and variants](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-7-0-release/)
-- [APKMirror arm64-v8a bundle](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-7-0-release/twitch-live-streaming-31-7-0-4-android-apk-download/)
-- [APKMirror arm64-v8a + x86 + x86_64 bundle](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-7-0-release/twitch-live-streaming-31-7-0-2-android-apk-download/)
+- [APKMirror release and variants](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-8-0-release/)
+- [APKMirror arm64-v8a bundle](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-8-0-release/twitch-live-streaming-31-8-0-android-apk-download/)
+- [APKMirror arm64-v8a + x86 + x86_64 bundle](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-8-0-release/twitch-live-streaming-31-8-0-4-android-apk-download/)
 
-What changed from 31.6.0 for the patches: the React Native bundle (still Hermes v98) renumbered its
-strings, functions, literals and registers, and the React Native player moved its player, metadata,
-stream URL and release handling from `TwitchIVSPlayerView` into a new `PlaybackSession`. Patterns
-that carry string IDs now resolve them from the bundle (`HermesBundle.id8`/`id16`). The edits whose
+What changed from 31.6.0 to 31.7.0 for the patches: the React Native bundle (still Hermes v98)
+renumbered its strings, functions, literals and registers, and the React Native player moved its
+player, metadata, stream URL and release handling from `TwitchIVSPlayerView` into a new
+`PlaybackSession`. Patterns that carry string IDs now resolve them from the bundle
+(`HermesBundle.id8`/`id16`).
+
+What changed from 31.7.0 to 31.8.0: the bundle (still Hermes v98) has a new SHA-256 and renumbered
+again. `PlaybackSession` became `PlaybackSlot`, which a registry keeps per playback key and attaches
+to a `PlaybackEdge` (the player view, a `PlaybackDisplay`) instead of owning a final display; Mute
+stitched ads now finds the session by the two player interfaces it implements rather than by name.
+`PreloadHolder.preload` gained an owner parameter after the URL (Playlist proxy). The edits whose
 registers, offsets or memo-cache slots are the compiler's (Hide Clips in `DiscoveryFeedContent`,
-the player's Share button) were re-derived from 31.7.0's disassembly, and the version-pinned tests
-that name R8-renamed classes were moved to 31.7.0's names.
+the player's Share button) were re-derived from 31.8.0's disassembly. Of the other 61 functions with
+Hermes edits, 48 are the same as in 31.7.0 apart from string, literal and jump encodings, 6 changed but
+are edited by name (a component returning null, a prop read as false), and 7 anonymous ones are found
+by byte anchors and size checks (Hide Clips' three clip callbacks, compared by hand, are unchanged).
+The version-pinned tests that name R8-renamed classes, string or resource IDs or Metro module numbers
+were moved to 31.8.0's, and the stock bundle's SHA-256 they pin with it.
 
 APKMirror reports the signing certificate SHA-256 as
 `1338f9b049893cc70b78432a177582f90bd4bc6296ea4ed35bcc7df59687ac53`.
 The supplied APK's verified signature matches this certificate, which is now pinned
 in `twitch/shared/Constants.kt`. Decompiled Java, smali and resources are under
-`$MORPHE_WORK/twitch/31.7.0/` (`bin/decompile twitch`). Twitch also embeds a Hermes v98 React Native bundle
+`$MORPHE_WORK/twitch/31.8.0/` (`bin/decompile twitch`). Twitch also embeds a Hermes v98 React Native bundle
 and web-view JavaScript; native screens alone do not cover every feature.
 
 ## Coverage
@@ -47,14 +58,14 @@ based on this APK; the Rumble and Kick fingerprints do not apply directly.
 | Change app name | Opt-in launcher label, default `Twitch Lurk`. |
 | Lurk icon | Purple Lurk artwork, adaptive/round/monochrome launcher resources. |
 | Remove tracking permissions | Removes the two present advertising-ID and Play install-referrer permissions. This alone does not stop other identifiers or telemetry. |
-| Clone app | Opt-in package `tv.twitch.android.app.lurk`; renames all nine provider authorities, including Amazon's suffix, and the app's signature permission. Amazon sign-in and verified app links are unverified after re-signing. |
+| Clone app | Opt-in package `tv.twitch.android.app.lurk`; renames all provider authorities (ten in 31.8.0), including Amazon's suffix, and the app's signature permission. Amazon sign-in and verified app links are unverified after re-signing. |
 | Disable analytics | Native/RN Spade, local vendor consent decisions, ComScore permission, Branch events/tracking mode, Sentry and Crashlytics collection controls. Details below. |
 | Clean share links | Native/RN share intents and clipboard paths; removes known tracking parameters only on Twitch-owned hosts. Keeps timestamps, unknown parameters, fragments and unrelated URLs. |
 | Disable autoplay | Separate switches for fresh feed-preview defaults and automatic next-video/clip advancement. Manual playback stays available. |
 | Default video quality | Opt-in default rendition, Source initially. Saved choices including Auto win; unavailable renditions use Twitch's fallback. |
 | Hide Shorts | `Hide Clips`: Home discovery and native channel-profile Clips tabs. Clip routes remain present. |
-| Hide tipping and Rants | `Hide Bits tipping`: purchase/cheering controls, including native and RN chat buttons. Received chat messages stay untouched. |
-| Hide Premium upsells | `Hide subscription upsells`: Subscribe/Gift prompts and Turbo promotions. Existing subscriber status and native member-management rows remain. |
+| Hide tipping and Rants | `Hide Bits tipping`: purchase/cheering controls, including native and RN chat buttons and the chat header's Get Bits. Received chat messages stay untouched. |
+| Hide Premium upsells | `Hide subscription upsells`: Subscribe/Gift prompts (the chat header's too) and Turbo promotions. Existing subscriber status and native member-management rows remain. |
 | Block cookie notice | Hides the automatic notice only. Does not accept consent, change saved consent or disable manual privacy settings. |
 | Block ads | `Block client ads`: takes the existing native client ad-decline path and completes its result. Does not remove ads stitched into streams or cover every RN ad path. |
 | Unlock Premium | No patch. Local Turbo state exists, but no useful equivalent entitlement change was established. Signed playback/account benefits are server controlled. |
@@ -62,7 +73,7 @@ based on this APK; the Rumble and Kick fingerprints do not apply directly.
 ## Patches beyond the Rumble set
 
 These were added on 2026-10-15 after comparing Lurk with other Twitch patch bundles and mods at the
-feature level. Each was written from 31.6.0's own code and moved to 31.7.0 with the rest.
+feature level. Each was written from 31.6.0's own code and moved to 31.7.0 and 31.8.0 with the rest.
 
 ### Feature checklist
 
@@ -76,7 +87,7 @@ ReVive, bttv-android, TwitchMod, Xtra, Twire and Frosty.
 | Proxy ad blocking | Playlist proxy (opt-in, own URL) |
 | Hide display ads, audio ads | Block display ads |
 | Fix login / notifications in re-signed builds | Fix notifications. Sign-in sends nothing signature-derived; the traced cause is in [Sign-in after re-signing](#sign-in-after-re-signing). |
-| Disable Bugsnag | Not in 31.6.0 or 31.7.0. Nielsen and Sprig, the remaining reporters, are now in Disable analytics. |
+| Disable Bugsnag | Not in 31.6.0 through 31.8.0. Nielsen and Sprig, the remaining reporters, are now in Disable analytics. |
 | Disable Google Play services | Declined |
 | Anonymous chat | Anonymous chat |
 | Show deleted messages, ignore chat clears | Show deleted messages, with Ignore chat clears |
@@ -115,7 +126,7 @@ are under [Declined](#declined).
 
 ### Watch without signing in
 
-Twitch (31.6.0 and 31.7.0) still ships its signed-out browsing mode. It sits behind the Eppo `loggedOutExperiment`,
+Twitch (31.6.0 through 31.8.0) still ships its signed-out browsing mode. It sits behind the Eppo `loggedOutExperiment`,
 which is unassigned by default. Three places decide between the main UI and `LoginActivity`: the
 intent router, `ViewerLandingActivity.onCreate` and the settings screen. All three call the
 experiment's one boolean getter: false while signed in, otherwise whether the device was given a
@@ -219,7 +230,7 @@ Browse opens at launch.
 
 ### Trackers in Disable analytics
 
-31.7.0, like 31.6.0, has no Bugsnag, Facebook SDK, SafetyNet or Amazon APS. Disable analytics now also:
+31.8.0, like 31.6.0 and 31.7.0, has no Bugsnag, Facebook SDK, SafetyNet or Amazon APS. Disable analytics now also:
 - turns Nielsen's server-to-server ping into a no-op. That is the method calling
   `NielsenS2SService.firePing`, a GET to `imrworldwide.com` with the advertising ID;
 - skips `UserLeap.configure(Context, String)`, so Sprig surveys and tracking never get an
@@ -262,12 +273,20 @@ seconds after the overlay's own counter read 4:23:32.
 
 Live channels open in the React Native "Ultralight" theatre only when
 `RNTheatreRouteDecisionKt.rnTheatreRouteDecision` returns `Route`. That needs the Eppo flag
-`android-ultralight`, which is off by default and server-controlled. Most Lurk playback, chat and
+`android-ultralight`. Twitch evaluates it, like its other per-account experiments, only for a signed-in
+account; signed out it reads its default, off. Twitch's flag configuration (October 2026) gives it to
+nearly every signed-in account on 31.5.2 or newer, so for them Home is React Native. A channel opened
+there still goes through the route decision (`openChannel` → `routeChannelOpen`). Most Lurk playback, chat and
 ad patches hook the native theatre. The method has no spare registers, so while the switch is on its
 `isLiveChannel` parameter goes through `TwitchPlayback.routeLiveToReactNative` and reads false.
 Twitch answers `RefuseNotLiveChannel`. Its two callers (`TwitchRNTheatreLauncher`,
 `TwitchRNHostNavigationModule.routeChannelOpen`) treat every refusal the same way and open the native
 theatre. VODs and clips are always native.
+
+Signed out, Ultralight can be switched on for a test with Twitch's staff override: `user_type` set to
+`staff` and `ultralight_enabled_override` to true in `twitch_user_prefs.xml`. Home is then React Native
+but its feed asks you to log in; channels still open in the native theatre while the switch is on, though
+Twitch's Ultralight splash can stay drawn over it.
 
 ### Fix stuck start screen
 
@@ -442,11 +461,21 @@ signed out with *Watch without signing in*, with Android's "tall" display cutout
   as without the patch, and returning from picture-in-picture fills the screen again;
 - the switch off: the same view bounds as an APK without the patch.
 
+A punch hole was checked the same way (#44, a Pixel 5): Android's "hole" emulation, a corner punch hole whose
+safe inset is 199 px, on a 1080x2340 display at 440 dpi (`wm size`, `wm density`). In landscape, live, with the
+chat hidden or over the video, and the hole on the left (rotation 90) or the right (rotation 270):
+
+- the switch off: the theatre leaves the hole's 199 px strip out, and the fitted 1920x1080 video sits off center,
+  309 to 311 px of black on the hole's side and 110 to 112 px on the other;
+- the switch on: the theatre spans 0 to 2340, the fitted container is centered (about 210 to 2130) and its surface is
+  scaled by 1.22, so the picture covers the whole screen; the chat over the video, the Follow, Bits and channel
+  points buttons and "Send chat" stay where they were, clear of the hole.
+
 The React Native theatre was reached only with a test build that forced Twitch's route decision (not part of
 the bundle). On the emulator's 914 dp wide landscape window it showed the chat or extensions beside the player,
 which Fill screen left alone; after React Native's own wide-player toggle the player covered the window, and
 Fill screen used the strip with `ZOOM` while React Native's controls stayed clear of the cutout. Not verified:
-a phone's real cutout (punch holes and notches only on the emulator's overlay), Android 10, protected
+a phone's real cutout (punch holes and notches only on the emulator's overlays), Android 10, protected
 (`SurfaceView`) streams, and signed-in playback.
 
 ### Display ads, stitched ads and the playlist proxy
@@ -465,9 +494,13 @@ Brand surveys, which replace unfilled feed ads, are dropped. Sponsorship and pai
 are untouched.
 
 *Mute stitched ads* watches each player's EXT-X-DATERANGE cues: the native player's `h(JSONObject)`
-handler and the RN player's `PlaybackSession.handleMetadata`. Each RN player view owns one session and
-is its display; the patch adds two public static helpers to the session, because its display and
-player getter are private and `handleMetadata` has one free register. From `twitch-stitched-ad` until `twitch-stream-source`
+handler and the RN playback session's `handleMetadata`. The session is the one class that implements
+both `PlaybackCommands` and `PlayerListenerTarget` (`PlaybackSlot` in 31.8.0, `PlaybackSession` in
+31.7.0); its display is the RN player view, which in 31.8.0 is the `PlaybackEdge` the slot is
+attached to, until it is detached or released. The patch adds two public static helpers to the
+session, because its display and player getter are private and `handleMetadata` has one free
+register; with no view attached the hooks do nothing. A break is keyed by the IVS player, so a cue
+after the slot moves to another view covers that view instead. From `twitch-stitched-ad` until `twitch-stream-source`
 = `live`, it mutes the IVS player through `setMuted` and covers the video in black. Twitch itself mutes
 with the volume, so the user's own mute is untouched. A break also ends on a new stream, a release, or
 a timer set from the ad's duration (capped at 240 s). The ad still plays for its full length.
@@ -589,6 +622,32 @@ region, guardian and account gates still apply.
 
 *Hide Bits tipping* now also filters `ConfigureMessageInput(isBitsPickerVisible=)`. The classic chat
 input reads its Bits button and tray from that state, not from the toolbar states.
+
+The chat header, the row between the player and the chat (`ChatHeaderPresenter`: the channel's extensions on
+the left, buttons on the right), offers Follow, Subscribe, Gift A Sub, Get Bits or Upgrade. Twitch picks
+them from `ButtonsEligibilityState`, keeps the first two (three with Upgrade), and adds a Bits icon when Bits are
+for sale but Get Bits didn't fit. A signed-in viewer who follows and subscribes sees "Get Bits" and "Gift A
+Sub" there (#45); signed out it offers only Follow, since Bits and subscriptions need an account. The
+state's constructor now filters:
+
+- `isBitsButtonEnabled` through `bitsVisible` (*Hide Bits tipping*): no Get Bits and no Bits icon;
+- `canShowUpgradeButton` through `subscriptionUpsellVisible` and `subscriptionState` through
+  `subscriptionButtons` (*Hide subscription upsells*). The state is an enum whose constants keep their names
+  (the patch checks for them); with the switch on it becomes `SUBSCRIBED` for a subscriber and `DISABLED`
+  otherwise, the two values that offer neither Subscribe nor Gift A Sub.
+
+The remaining buttons move into the free places. With none left, Twitch hides the row and moves the extensions
+into the leaderboard row. Follow stays: it isn't a purchase. The patches record
+`twitch.match.chat_header_buttons_state`, its two `twitch.ui_flag.chat_header_buttons_state.*` fields and
+`twitch.hide_subscription_upsells.chat_header_subscription_state`.
+
+`bin/test-twitch-interface` builds the real state and runs Twitch's own mapper from it to the buttons on ART,
+for every combination of the two switches: a follower who subscribes (the issue's row), a viewer who neither
+follows nor subscribes, a subscriber who can upgrade, and a signed-out viewer; `--stock` checks that the original
+APK gives Twitch's buttons for all of them. On the emulator, signed out, a throwaway build (not part of the
+bundle) forced the state to a following subscriber with Bits for sale: with both switches off the row showed
+"Get Bits" and "Gift A Sub" as in the issue, with *Hide Bits tipping* only "Gift A Sub", and with both
+switches on the row was gone. Not verified: a real signed-in account.
 
 `bin/test-twitch-highlights` runs the real classes on ART with each switch on and off. Following
 sections, Hype Train and the RN paths are verified only statically.
@@ -770,7 +829,11 @@ animated-emotes setting is off, use PNG.
 
 Native live chat builds every message's line model in one place (the mapper that turns chat events into
 `LiveChatMessage`s calls the matcher for chat, notices, replies and shared chat), whether an account is signed
-in or not; signing in changes the IRC login, not that path (checked in the bytecode; not run signed in). A
+in or not; signing in changes the IRC login, not that path (checked in the bytecode; not run signed in).
+Signed in, the set the matcher reads starts with the account's own emotes (Twitch's `UserEmotesQuery`) and
+Lurk's follow, so Twitch's emote wins a code both have. Twitch's per-account experiments make Home React Native
+for signed-in accounts (see [Use native player](#use-native-player)); the only one the matcher itself consults
+(`mcl-gifs-parsing-killswitch`) switches how GIF tokens render. A channel's chat delay holds the same message back without changing its path. A
 service turned on while a channel is open loads its lists with the next message, without rejoining (checked on
 the emulator: xQc's 7TV list arrived about a second after the switch, and the next lines had 7TV emotes). A
 channel with no set on a service still gets the service's global emotes; a 404 for the channel is an empty list,
@@ -1102,7 +1165,7 @@ fragment (not part of the bundle): the row draws with the ghost icon after Priva
 opens Lurk settings. Reaching it the normal way, signed in, needs an account and wasn't checked.
 
 The original Hermes v98 bundle SHA-256 is
-`928f89c5766562e9cb266485282e90c058dd7947f73c9bcafa1d0fc626debf5e` (31.7.0).
+`059f4713e0cea80b58e68b675fb05d63053056869e2ac60c79f5d57567a3e583` (31.8.0).
 Patch-time parsing pins that hash/version, verifies function boundaries and unique
 instruction patterns, and permits only equal-length non-overlapping edits. Every edit also passes
 `HermesBundle.requireSafeEdit`, which decodes the function with the v98 instruction lengths
@@ -1138,7 +1201,7 @@ update bypass is added.
 
 The test device is the disposable Android 16 x86_64 `emulator-5580`. Original
 Twitch and the patched clone install together. Resource checks cover the label,
-all icon layers, exact permission delta, nine provider authorities and their
+all icon layers, exact permission delta, every provider authority (ten in 31.8.0) and their
 protection attributes, component class identities, the non-exported settings activity and its one
 exported alias, which answers only APPLICATION_PREFERENCES (`tests/twitch/verify_resources.py
 --settings`).
@@ -1153,6 +1216,14 @@ captured startup logs. The native-only ad/consent selection has exactly two cont
 leaves the RN loader untouched and retains the original Hermes asset without a
 manifest. The independent interface/playback selection also patches successfully.
 
+Moving to 31.8.0 was checked on 2026-10-29: with every patch selected and without `-f`, all 54
+patches apply to both stored bundles (the phone bundle with a Playlist proxy URL set, so that its
+hooks are emitted too), and `bin/verify-hooks` finds all 140 expected hooks; the default selection
+applies its 42. `bin/test-host`, every `bin/test-twitch*` probe and the Python output checks listed
+below pass on the patched emulator bundle, and their stock negative controls see Twitch's own behavior. The
+default build, signed out, starts on Home, plays a live channel in the native theatre with chat, and
+opens Lurk settings from the Lurk row in Twitch's Settings.
+
 Android probes execute the injected loader and actual app classes, not stand-ins
 for the target methods:
 
@@ -1164,8 +1235,8 @@ for the target methods:
   dispatch guards. Disabled controls reach the deliberately empty original
   dependencies, proving they resume original execution.
 - `bash bin/test-twitch-interface <patched.apk>`: real enum ABI, ordering,
-  immutability and original-list identity, plus native Bits state constructors.
-  `--stock <base.apk>` runs the original enum/chat negative controls.
+  immutability and original-list identity, plus native Bits state constructors and the chat header's buttons
+  through Twitch's own mapper. `--stock <base.apk>` runs the original enum/chat/chat header negative controls.
 - `bash bin/test-twitch-playback <patched.apk>`: real recommendation binding with
   next-video suppression off must reach the original progress-bar operation.
   `--stock <base.apk>` runs the original control path.
@@ -1202,10 +1273,11 @@ patched APK as `assets/lurk/locators.json`:
 - every native UI flag a patch filters records its field as `twitch.ui_flag.<state>.<flag>`;
 - members found without a fingerprint are recorded by their patch: `twitch.auto_claim.action`,
   `twitch.chat_timestamps.line_config`/`message_source`, `twitch.ignore_chat_clears.ignored_result`,
-  `twitch.show_deleted.name_span`, `twitch.mute_stitched_ads.native_player`/`root_view`,
+  `twitch.show_deleted.name_span`, `twitch.mute_stitched_ads.native_player`/`root_view`/`rn_session`/`rn_display`,
   `twitch.block_client_ads.request`, `twitch.disable_analytics.crashlytics_permission`,
   `twitch.block_cookie_notice.options_constructor`, `twitch.hide_chat_highlights.dispatch`/`highlight_*`,
-  `twitch.hide_clips.home_tabs`, `twitch.hide_subscription_upsells.subscribe_renderer`/`turbo_dialog_route` and
+  `twitch.hide_clips.home_tabs`,
+  `twitch.hide_subscription_upsells.subscribe_renderer`/`turbo_dialog_route`/`chat_header_subscription_state` and
   `twitch.emote_picker.section`/`autocomplete_map`/`autocomplete_order`/`autocomplete_order_type` and
   `twitch.latency_badge.latency` and `twitch.auto_claim_drops.handler`/`handler_case` and
   `twitch.emote_badge_info.placeholder`.
@@ -1214,10 +1286,16 @@ patched APK as `assets/lurk/locators.json`:
 `ProbeLocators.java`, and `verify_privacy.py` and `verify_interface_emitted.py` through `locators.py`;
 other classes come from the located ones by reflection (constructor and parameter types, the one
 method of a signature). Each lookup carries the 31.7.0 name as a fallback, used while an APK has no
-locators. Still pinned: what no patch matches (in `HighlightsArtProbe` the state flag fields, the raid
-highlight, notice kinds and callout lambda; the deleted-message string ID in `ChatArtProbe`; the
-compile-time `kx50`/`akg` stubs of `PrivacyAdsProbe`; `verify_interface_emitted.py`'s preservation
-controls), and the probes not converted yet (`InterfaceArtProbe`, `PlaybackArtProbe`, `RNBridgeProbe`, and
+locators. Still pinned, to 31.8.0's names: what no patch matches (in `HighlightsArtProbe` the state flag
+fields, the raid highlight, notice kinds, callout lambda, Home tab source and Following sections; the
+overlay's hidden state in `AdsProbe`; the deleted-message string ID in `ChatArtProbe`; the compile-time
+`bx50`/`nig` stubs of `PrivacyAdsProbe`; `verify_interface_emitted.py`'s preservation controls and Turbo
+string IDs; `verify_playback_js.py`'s `enabled` string ID; the stock bundle SHA-256 in `BundleProbe`,
+`test_privacy_hermes.py` and `verify_delayed_hermes.py`; `DelayedHermesProbe`'s Metro module numbers;
+the DiscoveryFeedContent offsets in `InterfaceClipNavigationProbe`), and the probes not converted yet
+(`InterfaceArtProbe` apart from its chat header buttons state, which it reads from
+`twitch.match.chat_header_buttons_state` while pinning Twitch's mapper `ow5` and `NoDiscount` `rw5`,
+`PlaybackArtProbe`, `RNBridgeProbe`, and
 `ChatStyleArtProbe` apart from its chat image box, which it reads from `twitch.match.chat_image_box`).
 `verify_playback_bytecode.py` finds its methods by content and pins no names.
 

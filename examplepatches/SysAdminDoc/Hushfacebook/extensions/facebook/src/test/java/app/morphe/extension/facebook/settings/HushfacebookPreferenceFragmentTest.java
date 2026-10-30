@@ -1414,7 +1414,7 @@ public class HushfacebookPreferenceFragmentTest {
 
             List<String> entries = new ArrayList<>();
             for (CharSequence entry : order.getEntries()) entries.add(String.valueOf(entry));
-            assertEquals(Arrays.asList("Facebook's choice", "Most relevant", "Newest", "All comments"), entries);
+            assertEquals(Arrays.asList("Facebook's choice", "Most relevant", "Newest", "All comments", "Oldest"), entries);
             List<String> values = new ArrayList<>();
             for (CharSequence value : order.getEntryValues()) values.add(String.valueOf(value));
             List<String> names = new ArrayList<>();

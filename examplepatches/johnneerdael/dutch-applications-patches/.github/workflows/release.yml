@@ -14,10 +14,16 @@ jobs:
       attestations: write
     runs-on: ubuntu-latest
     steps:
+      # Push release commits and the dev backmerge with the deploy key: the main
+      # ruleset lets deploy keys bypass its required docs check, while the
+      # built-in token cannot bypass rulesets on a personal repository.
+      # semantic-release keeps the SSH remote because its push test succeeds.
+      # Without the secret, checkout falls back to the built-in token.
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
 
       - name: Setup Java
         uses: actions/setup-java@v6
@@ -34,8 +40,31 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Read published counterpart catalogue for README tables
+        if: github.ref_name == 'main' || github.ref_name == 'dev'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          mkdir -p build
+          FILTER='map(select((.draft | not) and (.prerelease | not)))[0].tag_name // empty'
+          if [ "$REF_NAME" = main ]; then
+            FILTER='map(select((.draft | not) and .prerelease))[0].tag_name // empty'
+          fi
+          TAG=$(gh api "repos/${REPOSITORY}/releases?per_page=100" --jq "$FILTER")
+          if [ -n "$TAG" ]; then
+            gh api --method GET "repos/${REPOSITORY}/contents/patches-list.json" -f "ref=${TAG}" --jq .content | base64 --decode > build/counterpart-patches-list.json
+          else
+            echo null > build/counterpart-patches-list.json
+          fi
+
       - name: Verify Python regression tests
         run: python3 -m unittest discover -s tests
+
+      - name: Verify release integration tests
+        run: node --test tests/test_release_branding.cjs tests/test_release_backmerge.cjs
 
       # Semantic release runs its own Gradle build command.
       # Only dev and main branch will generate a release as specified by .releaserc

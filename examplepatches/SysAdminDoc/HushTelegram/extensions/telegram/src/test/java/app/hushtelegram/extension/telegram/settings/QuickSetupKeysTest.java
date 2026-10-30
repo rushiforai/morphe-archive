@@ -80,13 +80,18 @@ public class QuickSetupKeysTest {
     }
 
     /**
-     * Neither choice that turns switches on asks for a restart: Quick setups changes them at once,
-     * and a restart-gated switch in Quiet or Privacy would make every use of it a restart.
+     * Neither choice that turns switches on asks for a restart on a fresh install: Quick setups changes
+     * them at once, and a restart-gated switch that starts off would make every use of it a restart.
+     * One that starts on, like Hide Stories, asks only where someone turned it off themselves.
      */
     @Test
-    public void quietAndPrivacyNeedNoRestart() {
+    public void quietAndPrivacyNeedNoRestartFromTheDefaults() {
         for (List<BooleanSetting> list : Arrays.asList(QuickSetupKeys.QUIET, QuickSetupKeys.PRIVACY)) {
-            for (BooleanSetting setting : list) assertFalse(setting.key + " needs a restart", setting.rebootApp);
+            for (BooleanSetting setting : list) {
+                if (setting.rebootApp) assertTrue(setting.key + " needs a restart from its default", setting.defaultValue);
+            }
         }
+        assertTrue(QuickSetupKeys.QUIET.contains(Settings.HIDE_STORIES));
+        assertTrue(Settings.HIDE_STORIES.rebootApp);
     }
 }

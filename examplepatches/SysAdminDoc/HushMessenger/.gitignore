@@ -11,6 +11,7 @@
 *.mpp
 *.keystore
 *.jks
+morphe-signing.key
 __pycache__/
 *.pyc
 *.class

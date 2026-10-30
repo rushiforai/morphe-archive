@@ -86,7 +86,9 @@ public final class MaterialYouTheme {
     private static volatile boolean bound;
     // SharedPreferences keeps weak listener references, so retain this for the lifetime of the process.
     private static final SharedPreferences.OnSharedPreferenceChangeListener CHOICES = (preferences, key) -> {
-        if (key == null || KEY.equals(key) || BLACK_KEY.equals(key) || "paused".equals(key) || "safe_mode".equals(key)) publish();
+        // A null key is a clear, which can take a saved theme with it.
+        if (key == null || ThemeFile.KEY.equals(key)) reload(Settings.appContext);
+        else if (KEY.equals(key) || BLACK_KEY.equals(key) || "paused".equals(key) || "safe_mode".equals(key)) publish();
     };
 
     static {
@@ -209,8 +211,8 @@ public final class MaterialYouTheme {
     }
 
     /**
-     * Runs from palette() the first time a hook needs a colour. Reads the phone's wallpaper
-     * palette and listens for configuration changes (new wallpaper).
+     * Runs from palette() the first time a hook needs a colour. Reads the saved theme or the
+     * phone's wallpaper palette and listens for configuration changes (new wallpaper).
      */
     public static void bind() {
         if (bound) { publish(); return; }
@@ -237,8 +239,10 @@ public final class MaterialYouTheme {
         }
     }
 
+    /** A pasted theme's palette when one is saved (#115), the wallpaper's otherwise. */
     static void reload(Context context) {
-        palette = TonePalette.of(context);
+        ThemeFile theme = ThemeFile.saved();
+        palette = theme != null ? theme.palette() : context != null ? TonePalette.of(context) : TonePalette.fallback();
         publish();
     }
 

@@ -842,6 +842,9 @@ With the switch above on, only a hold on the right third of a reel plays it at d
 Hold a feed video for 2x	Nhấn giữ video trên bảng tin để phát 2x
 # context: summary of that switch; Watch is Facebook's video tab, keep its name; the switches above are Hold a reel for 2x and Only on the right edge
 Holding a video in the feed or in Watch plays it at double speed until you let go. It works without the switches above.	Nhấn giữ video trên bảng tin hoặc trong Watch sẽ phát với tốc độ gấp đôi cho đến khi bạn thả tay. Không cần bật các công tắc phía trên.
+Hide the pull down to lock hint	Ẩn gợi ý kéo xuống để khóa
+# context: summary of that switch; the quoted hint is Facebook's own text on the pill over a video held for 2x, translate it the way Facebook would; the switches above are Hold a reel for 2x's
+Holding a video for 2x shows the plain 2x pill, without the "Pull down to lock 2x speed" hint. Pulling down still locks it. It works without the switches above.	Nhấn giữ video để phát 2x chỉ hiện nhãn 2x thông thường, không có gợi ý "Kéo xuống để khóa tốc độ 2x". Kéo xuống vẫn khóa được. Không cần bật các công tắc phía trên.
 Default playback quality	Chất lượng phát mặc định
 Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.	Phát video, reel và tin ở chất lượng bên dưới. Chất lượng chọn trong menu của từng video vẫn được ưu tiên.
 Playback quality	Chất lượng phát
@@ -1860,8 +1863,8 @@ Silent parts play in this video	Đoạn im lặng được phát trong video nà
 Skipping silent parts again	Lại bỏ qua đoạn im lặng
 # context: switch title under News feed; posts Facebook shows from groups the user hasn't joined, which come with a Join button next to the group's name
 Hide posts from groups you're not in	Ẩn bài viết từ nhóm bạn chưa tham gia
-# context: summary of that switch; a friend's share of a group post is a post on the friend's own profile that shares a group post, and it stays
-Hides posts from groups you haven't joined, like a friend's post in a public group. Posts from your groups and a friend's share of a group post stay.	Ẩn bài viết từ các nhóm bạn chưa tham gia, như bài viết của bạn bè trong một nhóm công khai. Bài viết từ nhóm của bạn và bài viết nhóm do bạn bè chia sẻ vẫn giữ nguyên.
+# context: summary of that switch; a group post a friend commented on or shared reaches the feed wrapped in the friend's activity, and the switch hides it too
+Hides posts from groups you haven't joined, like a friend's post in a public group, and a group post a friend commented on or shared. Posts from your groups stay.	Ẩn bài viết từ các nhóm bạn chưa tham gia, như bài viết của bạn bè trong một nhóm công khai, và bài viết nhóm mà bạn bè đã bình luận hoặc chia sẻ. Bài viết từ nhóm của bạn vẫn giữ nguyên.
 # context: switch title under Search; For you is the section of searches Facebook suggests on the search screen before anything is typed, under a header that reads For you
 Hide For you in search	Ẩn Dành cho bạn trong tìm kiếm
 # context: summary of that switch; recent searches are the user's own past searches, and the suggestions as you type are the ones under the search box while typing
@@ -2086,3 +2089,26 @@ If your patched Facebook includes Badge and logo colors, the logo will be Facebo
 If your patched Facebook includes Badge and logo colors, badges will be %1$s.	Nếu Facebook đã vá có Màu huy hiệu và logo, huy hiệu sẽ có màu %1$s.
 # context: import preview sentence: the file sets the Logo color row; %1$s is a color code like #2ECC71; "Badge and logo colors" is the patch's name, keep it as translated for that patch
 If your patched Facebook includes Badge and logo colors, the logo will be %1$s.	Nếu Facebook đã vá có Màu huy hiệu và logo, logo sẽ có màu %1$s.
+# context: title of the row that holds a color code for the selected tab's icon and the line over it in the tab bar
+Selected tab color	Màu tab đang chọn
+# context: dialog message of the Selected tab color row; keep #RRGGBB and #2ECC71 as they are
+A color code (#RRGGBB) for the selected tab's icon and the line over it in the tab bar, like #2ECC71. Leave it blank for Facebook's own.	Mã màu (#RRGGBB) cho biểu tượng của tab đang chọn và đường kẻ phía trên nó trên thanh tab, ví dụ #2ECC71. Để trống để dùng màu của Facebook.
+# context: summary of the Selected tab color row while it's blank
+The selected tab keeps Facebook's color. Type a color code to change it.	Tab đang chọn giữ màu của Facebook. Nhập mã màu để thay đổi.
+# context: summary of the Selected tab color row; %1$s is a color code like #2ECC71
+The selected tab in the tab bar is %1$s. Restart Facebook to see the change.	Tab đang chọn trên thanh tab có màu %1$s. Khởi động lại Facebook để thấy thay đổi.
+# context: import preview sentence: the file sets the Selected tab color row back to blank; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, the selected tab will be Facebook's color.	Nếu Facebook đã vá có Màu huy hiệu và logo, tab đang chọn sẽ có màu của Facebook.
+# context: import preview sentence: the file sets the Selected tab color row; %1$s is a color code like #2ECC71; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, the selected tab will be %1$s.	Nếu Facebook đã vá có Màu huy hiệu và logo, tab đang chọn sẽ có màu %1$s.
+Hide the emoji row on comments	Ẩn hàng emoji ở bình luận
+The row of emoji over the comment box goes away. You can still type emoji from your keyboard.	Hàng emoji phía trên ô bình luận biến mất. Bạn vẫn có thể nhập emoji từ bàn phím.
+Show Comment when comments are off	Hiện nút Bình luận khi bình luận bị tắt
+Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	Giữ nút Bình luận trên các reel đã tắt bình luận, để bạn vẫn đọc được các bình luận đã có. Thay đổi có hiệu lực từ reel tiếp theo.
+Select part of a post's text	Chọn một phần văn bản của bài viết
+Holding a post's text still copies all of it, and also opens the text in a box where you can select just the part you want and copy that.	Nhấn giữ văn bản của bài viết vẫn sao chép toàn bộ, đồng thời mở văn bản trong một hộp để bạn chỉ chọn và sao chép phần mình muốn.
+Select text	Chọn văn bản
+Done	Xong
+Oldest	Cũ nhất
+Comments open oldest first, on every post. Facebook's sort menu then shows All comments.	Bình luận mở theo thứ tự cũ nhất trước, trên mọi bài viết. Menu sắp xếp của Facebook khi đó hiện Tất cả bình luận.
+Comments will open oldest first.	Bình luận sẽ mở theo thứ tự cũ nhất trước.

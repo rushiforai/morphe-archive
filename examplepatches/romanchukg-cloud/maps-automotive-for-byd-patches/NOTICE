@@ -1,0 +1,8 @@
+Maps Automotive for BYD + Gemini — Morphe TEST preview.10
+Copyright romanchukg-cloud. Licensed under GPL-3.0-only.
+Protocol routing approach informed by fangkampanat/gmaps-patches (GPL-3.0); its upstream NOTICE is retained in UPSTREAM-NOTICE.
+BYD DiLink 3 projection protocol and DiLink 5.1 cluster-theme research informed by shihabal3amri/DiPlay (GPL-3.0); fixed shell commands, firmware profiles and recovery remain firmware-specific and experimental.
+This bundle contains only owned Maps/Google-app patches and runtime code plus corresponding source and notices. No Google application implementation classes, APKs, signing keys, tokens or account data are bundled. Original applications and Gemini are obtained separately by the user.
+This is an experimental TEST preview, not a stable application release. EV route integration remains BEV-only; PHEV/HEV profiles describe the powertrain but this bridge supplies no fuel or combined energy model.
+The car icon on the map (assets/vehicle-icon/) is an own top-down rendering of "suv-luxury" from Kenney Car Kit 3.1 (www.kenney.nl), CC0 1.0; it replaces only the image of Google's location arrow at patch time, and no Google bytes are bundled.
+The 3D car in navigation (assets/navatars/tang2024.fbx and tang2024.png) is adapted from "2024 BYD Tang" by Ddiaz Design (https://sketchfab.com/3d-models/2024-byd-tang-0af7ffe7b3b64d7fb9e31d4f1bac10c1), licensed CC BY-NC-SA 4.0; the adapted model is shared under the same licence, for non-commercial use only, and is separate from the GPL-3.0 code (assets/navatars/tang2024-LICENSE.txt). Its rig and animations are our own; no Google model files are used or bundled. BYD and Tang are names of BYD Company Limited; this project is not affiliated with BYD.

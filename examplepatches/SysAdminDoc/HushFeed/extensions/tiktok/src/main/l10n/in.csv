@@ -210,6 +210,8 @@ Always show the publish date in video author information. Restart TikTok to appl
 "An operator code is five or six digits, like 310260","Kode operator itu lima atau enam angka, misalnya 310260"
 An override changes the value TikTok reads from this gate. It doesn't change TikTok's saved copy or prove the named feature changed.,Penimpaan mengubah nilai yang dibaca TikTok dari gate ini. Penimpaan tidak mengubah salinan tersimpan TikTok dan tidak membuktikan fitur yang disebut berubah.
 Animated sticker format,Format stiker animasi
+Save box for chat stickers,Kotak simpan untuk stiker obrolan
+Tapping a sticker someone sent you in a chat opens a box with Save media. Turn this off to skip it.,Mengetuk stiker yang dikirim seseorang di obrolan membuka kotak dengan Simpan media. Matikan ini untuk melewatinya.
 TikTok gets no location from your phone. The Region settings change your country and time zone. This switch stops the exact position.,TikTok tidak mendapat lokasi dari ponselmu. Pengaturan Wilayah mengubah negara dan zona waktumu. Sakelar ini menghentikan posisi yang tepat.
 TikTok sees an empty contact list instead of yours. Find Friends and People you may know can no longer use your contacts.,"TikTok melihat daftar kontak kosong, bukan daftar kontakmu. Find Friends dan People you may know tidak bisa lagi memakai kontakmu."
 "TikTok sees an empty list of apps instead of the apps on your phone. Checks for one specific app, such as when TikTok opens an app you tap, still work.","TikTok melihat daftar aplikasi kosong, bukan aplikasi di ponselmu. Pengecekan satu aplikasi tertentu, misalnya saat TikTok membuka aplikasi yang kamu ketuk, tetap berfungsi."

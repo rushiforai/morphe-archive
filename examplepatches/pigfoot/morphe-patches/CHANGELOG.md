@@ -1,3 +1,21 @@
+## [0.4.1](https://github.com/pigfoot/morphe-patches/compare/v0.4.0...v0.4.1) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **pitt:** improve Google account sign-in defaults and MicroG guidance ([#7](https://github.com/pigfoot/morphe-patches/issues/7)) ([5a1c210](https://github.com/pigfoot/morphe-patches/commit/5a1c210570f5a8fd7fb3d5d49ccf0cc5ce964a1d))
+
+## [0.4.1](https://github.com/pigfoot/morphe-patches/compare/v0.4.0...v0.4.1) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **pitt:** improve Google account sign-in defaults and MicroG guidance ([#7](https://github.com/pigfoot/morphe-patches/issues/7)) ([5a1c210](https://github.com/pigfoot/morphe-patches/commit/5a1c210570f5a8fd7fb3d5d49ccf0cc5ce964a1d))
+
+## [0.4.0](https://github.com/pigfoot/morphe-patches/compare/v0.3.0...v0.4.0) (2026-10-29)
+
+### ✨ New Features
+
+* **pitt:** add local sponsored features and GmsCore sign-in ([#6](https://github.com/pigfoot/morphe-patches/issues/6)) ([ab02ec1](https://github.com/pigfoot/morphe-patches/commit/ab02ec1adbf33bb06edf7c583da1c4696f388342))
+
 ## [0.3.0](https://github.com/pigfoot/morphe-patches/compare/v0.2.1...v0.3.0) (2026-10-27)
 
 ### ✨ New Features

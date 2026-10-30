@@ -1467,6 +1467,26 @@ public class SettingsNavigationTest {
     }
 
     /**
+     * Turning Hide Stories off owes a restart, since the chat list only reads it when it's built, and
+     * Quiet turning it back on pays the debt off without one.
+     */
+    @Test public void hideStoriesOwesARestartUntilQuietPutsItBack() {
+        try {
+            assertEquals(1, page.applyQuickSetup(Collections.singletonMap(Settings.HIDE_STORIES, false)));
+            assertTrue("Hide Stories went off without a restart row", contains(SettingsNavigation.RESTART));
+            page.applyQuickSetup(QuickSetupKeys.quiet());
+            assertTrue(Settings.HIDE_STORIES.savedValue());
+            assertFalse("Hide Stories owes a restart after it went back", contains(SettingsNavigation.RESTART));
+        } finally {
+            for (app.hushtelegram.extension.shared.settings.BooleanSetting setting : QuickSetupKeys.QUIET) {
+                setting.resetToDefault();
+            }
+            app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.remove(
+                    Settings.HIDE_STORIES.key);
+        }
+    }
+
+    /**
      * An undo that couldn't put every switch back leaves the rest to undo, without the choice's own
      * counts of what was already set, couldn't change or was written since, which no longer describe
      * what's left.
@@ -1713,9 +1733,11 @@ public class SettingsNavigationTest {
             assertEquals(android.content.Intent.ACTION_CREATE_DOCUMENT, export.intent.getAction());
             while (page.navigation.back()) { }
 
-            // Every chooser: sticker size, both filter lists, the translation service and language, and the push app.
+            // Every chooser: sticker size, both filter lists, the title emoji, the translation service and language,
+            // and the push app.
             for (String key : Arrays.asList(HushTelegramPreferenceFragment.STICKER_SIZE_ROW, FilterEditor.GROUPS,
-                    FilterEditor.CHANNELS, TranslateServiceEditor.KEY, TranslateTargetPicker.KEY, UnifiedPushPicker.KEY)) {
+                    FilterEditor.CHANNELS, TitleEmojiEditor.KEY, TranslateServiceEditor.KEY, TranslateTargetPicker.KEY,
+                    UnifiedPushPicker.KEY)) {
                 Preference row = page.findPreference(key);
                 assertNotNull(key, row);
                 shown = org.robolectric.shadows.ShadowDialog.getLatestDialog();

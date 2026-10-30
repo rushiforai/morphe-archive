@@ -88,6 +88,13 @@ def xml_digest(element, path=None):
         # All permissions, services, host requirements and other metadata stay
         # in this whole-tree contract.
         element = copy.deepcopy(element)
+        # APKTool 3 shortens these hex spellings; keep the same numeric feature
+        # contract and historical digest without dropping any feature nodes.
+        for feature in element.findall('uses-feature'):
+            for attribute in (A + 'glEsVersion', A + 'version'):
+                literal = feature.get(attribute, '')
+                if re.fullmatch(r'0x[0-9a-fA-F]{1,8}', literal):
+                    feature.set(attribute, f'0x{int(literal, 16):08x}')
         for name in ('requiredSplitTypes', 'splitTypes'): element.attrib.pop(A + name, None)
         packaging = {'com.android.vending.splits.required', 'com.android.vending.splits', 'com.android.vending.derived.apk.id', 'com.android.stamp.source', 'com.android.stamp.type'}
         for app in element.findall('application'):
@@ -105,10 +112,12 @@ def xml_digest(element, path=None):
             assert node.tag == 'nl.flitsmeister.views.ColorFilterImageView'
             assert node.get(A + 'src') in ('@null', '@drawable/' + name)
             node.set(A + 'src', '@original-resource/' + resource_id)
-    def value(v):
+    def value(k, v):
+        if k in (A + 'layout_width', A + 'layout_height') and v == 'match_parent':
+            return 'fill_parent'  # Both encode Android's parent dimension (-1).
         return re.sub(r'^(-?\d+)(?:\.0+)?(?:dip|dp)$', r'\1dp', v)
     def normalized(e):
-        return [e.tag, sorted((k, value(v)) for k, v in e.attrib.items()), (e.text or '').strip(), [normalized(c) for c in e]]
+        return [e.tag, sorted((k, value(k, v)) for k, v in e.attrib.items()), (e.text or '').strip(), [normalized(c) for c in e]]
     return hashlib.sha256(json.dumps(normalized(element), separators=(',', ':')).encode()).hexdigest()
 
 
@@ -442,8 +451,11 @@ def pairip_class_digest(text, overrides=None):
 
 def verify_pairip(root, enabled):
     from flitsmeister_contracts import PAIRIP_CLASS_HASHES, PAIRIP_VM_CLASSES, PAIRIP_ASSET_HASHES, PAIRIP_NATIVE_HASHES
-    mismatches = [cls for cls, hashes in PAIRIP_CLASS_HASHES.items() if pairip_class_digest(source(root, cls)) != hashes[int(enabled)]]
-    assert not mismatches, 'PairIP restoration: only guarded startup/signature/licensing bodies, holders and merged helpers may differ; retained VM/caller/class contracts: ' + ', '.join(mismatches)
+    from flitsmeister_runtime_contracts import class_overrides
+    overrides = class_overrides(root, enabled, source, method, canonical)
+    mismatches = [cls for cls, hashes in PAIRIP_CLASS_HASHES.items()
+                  if pairip_class_digest(source(root, cls), overrides.get(cls)) != hashes[int(enabled)]]
+    assert not mismatches, 'PairIP restoration: only guarded startup/signature/licensing and verified functional callback bodies, holders and merged helpers may differ; retained VM/caller/class contracts: ' + ', '.join(mismatches)
     for name, expected in PAIRIP_ASSET_HASHES.items():
         assert hashlib.sha256((root / name).read_bytes()).hexdigest() == expected, 'Preserve original asset bytes: ' + name
     actual_native = {str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest() for path in (root / 'lib').rglob('*.so')} if (root / 'lib').exists() else {}
@@ -485,7 +497,7 @@ def verify_pairip(root, enabled):
         assert all(source(root, helper).strip() for helper in helpers), 'Merge all 17 original embedded lifecycle classes'
     else:
         assert len(check) == 16 and any('LicenseClient$ImmediateTaskExecutor;->run(' in line for line in check)
-    print(f'PASS: PairIP restoration={enabled}; {len(PAIRIP_CLASS_HASHES)} class contracts, 22 VM callers, 36 holders, 17 merged helpers, assets/native checked')
+    print(f'PASS: PairIP restoration={enabled}; {len(PAIRIP_CLASS_HASHES)} class contracts, {len(overrides)} verified functional callbacks, 22 original VM callers, 36 holders, 17 merged helpers, assets/native checked')
 
 
 def verify(root: Path, selected: set[str]) -> None:

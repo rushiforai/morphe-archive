@@ -18,11 +18,13 @@ Each application has a version-specific README with tracking destinations, their
 | NRC | Published; see recorded device scope | [Domains, data and patch effects](nrc/README.md) |
 | Parool | Published; see recorded device scope | [Domains, data and patch effects](parool/README.md) |
 | Flitsmeister | Published; see recorded device scope | [Domains, data and patch effects](flitsmeister/README.md) |
+| KIJK Android TV | Published; see recorded TV playback and request-policy scope | [Domains, data and patch effects](kijk-android-tv/README.md) |
+| NPO Start Android TV | Published; exact collector hosts unresolved in the recorded native-path audit | [Collection paths and remaining services](npo-start-android-tv/README.md) |
 | Dumpert | Published; see recorded device scope | [Domains, data and patch effects](dumpert/README.md) |
 | RTL Nieuws | Published; see recorded verification scope | [Domains, data and patch effects](rtl-nieuws/README.md) |
 | Omroep Brabant | Published; see recorded verification scope | [Domains, data and patch effects](omroep-brabant/README.md) |
 | Voetbal International | Published; see recorded verification scope | [Domains, data and patch effects](voetbal-international/README.md) |
 | NOS Teletekst | Published; user-approved phone testing, see recorded scope | [Domains, data and patch effects](nos-teletekst/README.md) |
-| 9292 (research only) | Research; no controls published | [Domains, data and patch effects](9292/README.md) |
-| Marktplaats (research only) | Research; no controls published | [Domains, data and patch effects](marktplaats/README.md) |
-| TVgids.nl (research only) | Research; no controls published | [Domains, data and patch effects](tvgids-nl/README.md) |
+| 9292 | Stable v1.17.0; user approved after USB testing | [Domains, data and patch effects](9292/README.md) |
+| Marktplaats | Stable v1.18.0; five default-on controls, user approved | [Domains, data and patch effects](marktplaats/README.md) |
+| TVgids.nl | Stable v1.19.0; user approved, including consent removal | [Domains, data and patch effects](tvgids-nl/README.md) |

@@ -92,7 +92,7 @@ if (-not (Test-Path -LiteralPath $Apk -PathType Leaf)) { throw "APK not found: $
 if (-not (Test-Path -LiteralPath $DesktopJar -PathType Leaf)) { throw "Desktop CLI jar not found: $DesktopJar" }
 
 try {
-    $catalog = Get-Content -LiteralPath $PatchList -Raw | ConvertFrom-Json
+    $catalog = ConvertFrom-PatchJson (Get-Content -LiteralPath $PatchList -Raw)
     $split = Split-SecondAppPatches -PatchList $catalog
     $names = @($split.SameApp)
     $secondAppNames = @($split.SecondApp)
@@ -186,7 +186,7 @@ try {
 
     $report = $null
     if (Test-Path -LiteralPath $result -PathType Leaf) {
-        try { $report = Get-Content -LiteralPath $result -Raw | ConvertFrom-Json }
+        try { $report = ConvertFrom-PatchJson (Get-Content -LiteralPath $result -Raw) }
         catch { Write-Warning "Could not parse result JSON: $($_.Exception.Message)" }
     }
     $validation = Test-PatchingReport -Report $report -ExpectedNames $names `
@@ -327,7 +327,7 @@ try {
         }
         $secondReport = $null
         if (Test-Path -LiteralPath $secondResult -PathType Leaf) {
-            try { $secondReport = Get-Content -LiteralPath $secondResult -Raw | ConvertFrom-Json }
+            try { $secondReport = ConvertFrom-PatchJson (Get-Content -LiteralPath $secondResult -Raw) }
             catch { Write-Warning "Could not parse the second app's result JSON: $($_.Exception.Message)" }
         }
         $secondValidation = Test-PatchingReport -Report $secondReport -ExpectedNames $secondAppNames `

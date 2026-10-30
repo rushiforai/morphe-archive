@@ -21,9 +21,12 @@ import app.morphe.patches.facebook.media.taptoplay.touchDispatches
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.facebook.misc.extension.parameterRegister
+import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
+import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -93,7 +96,8 @@ val holdReelFor2xPatch = bytecodePatch(
     name = "Hold a reel for 2x",
     description = "Hold a reel to play it at double speed, and let go to go back to normal. Handy for skimming. " +
         "The reel's more button still opens Facebook's long-press menu. A second switch does the same for videos " +
-        "playing in the feed and in Watch. Both start off. Turn them on in Hushfacebook settings > Reels and Watch.",
+        "playing in the feed and in Watch, and a third keeps the plain 2x pill without Facebook's \"Pull down to lock " +
+        "2x speed\" hint. All start off. Turn them on in Hushfacebook settings > Reels and Watch.",
 ) {
     category("Playback")
     dependsOn(settingsPatch, reelLiftGuardPatch)
@@ -106,6 +110,7 @@ val holdReelFor2xPatch = bytecodePatch(
         val feed = findFeedVideoAnchors(anchors)
         applyReelHoldAnchors(anchors)
         applyFeedVideoHold(anchors, feed)
+        applyLockHint()
         enableStatus("reelHold")
     }
 }
@@ -182,6 +187,65 @@ internal fun BytecodePatchContext.applyFeedVideoHold(anchors: ReelHoldAnchors, f
             check-cast p0, $player
             invoke-virtual/range { p0 .. p1 }, $player->${anchors.setter.name}(F)V
             return-void
+        """,
+    )
+}
+
+/**
+ * Hide the pull down to lock hint's two hooks: first in the 2x pill's constructor, its state goes
+ * through the extension's LockHint and back, and first in the Reels pill's, its hints flag does.
+ * A build where either pill moved keeps the rest of Hold a reel for 2x, with that pill's hint left
+ * as Facebook draws it and a warning saying why.
+ */
+internal fun BytecodePatchContext.applyLockHint() {
+    applyVideoLockHint()
+    applyReelLockHint()
+}
+
+private fun BytecodePatchContext.applyReelLockHint() {
+    val states = mutableListOf<String>()
+    classDefForEachReferencing(strings = REEL_PILL_STATES) { if (isReelPillStates(it)) states += it.type }
+    val state = states.singleOrNull() ?: return patchLog.warning(
+        "$PATCH: expected one Reels 2x pill state enum, found ${states.size}. Hide the pull down to lock hint leaves Reels alone in this build",
+    )
+    val pills = mutableListOf<Method>()
+    classDefForEachReferencing(types = listOf(state)) { classDef ->
+        if (!classDef.type.startsWith(EXTENSION_CLASSES)) pills += classDef.methods.filter { isReelPillConstructor(it, state) }
+    }
+    val pill = pills.singleOrNull() ?: return patchLog.warning(
+        "$PATCH: expected one Reels 2x pill constructor taking $state, found ${pills.size}. Hide the pull down to lock hint leaves Reels alone in this build",
+    )
+    if (pill.parameterRegisterNumber(3) > 15) return patchLog.warning(
+        "$PATCH: the Reels 2x pill's hints flag sits past register 15. Hide the pull down to lock hint leaves Reels alone in this build",
+    )
+    mutableClassDefBy(pill.definingClass).findMutableMethodOf(pill).addInstructions(
+        0,
+        """
+            invoke-static { p2, p4 }, $LOCK_HINT_REEL_PILL
+            move-result p4
+        """,
+    )
+}
+
+private fun BytecodePatchContext.applyVideoLockHint() {
+    val states = mutableListOf<String>()
+    classDefForEachReferencing(strings = PILL_STATES) { if (isPillStates(it)) states += it.type }
+    val state = states.singleOrNull() ?: return patchLog.warning(
+        "$PATCH: expected one 2x pill state enum, found ${states.size}. Hide the pull down to lock hint does nothing in this build",
+    )
+    val pills = mutableListOf<Method>()
+    classDefForEachReferencing(types = listOf(state)) { classDef ->
+        if (!classDef.type.startsWith(EXTENSION_CLASSES)) pills += classDef.methods.filter { isPillConstructor(it, state) }
+    }
+    val pill = pills.singleOrNull() ?: return patchLog.warning(
+        "$PATCH: expected one 2x pill constructor taking $state, found ${pills.size}. Hide the pull down to lock hint does nothing in this build",
+    )
+    mutableClassDefBy(pill.definingClass).findMutableMethodOf(pill).addInstructions(
+        0,
+        """
+            invoke-static/range { p1 .. p1 }, $LOCK_HINT_PILL
+            move-result-object p1
+            check-cast p1, $state
         """,
     )
 }

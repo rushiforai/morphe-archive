@@ -30,7 +30,6 @@ final class TranslationSourceAccess {
     static Source load(
             Context c,
             String url,
-            boolean publish,
             boolean translate,
             DeepSeekApiClient.RequestControl control)
             throws Exception {

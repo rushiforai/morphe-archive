@@ -86,7 +86,7 @@ private fun fixtureCall(target: Any, name: String, vararg arguments: Any): Any? 
 }.invoke(target, *arguments)
 
 /** The supported build number the lifecycle manifest claims. Its classes follow the synthetic mapping instead. */
-internal const val LIFECYCLE_VERSION_CODE = 346816935
+internal const val LIFECYCLE_VERSION_CODE = 347015062
 
 internal fun lifecycleApk(directory: Path, classes: List<ClassDef>, manifestExtra: String = "", applicationExtra: String = ""): File {
     // Patching reads the profile by the manifest's version code, and these classes carry the synthetic names.
@@ -113,7 +113,7 @@ internal fun lifecycleApk(directory: Path, classes: List<ClassDef>, manifestExtr
         fixtureCall(manifest, "setPackageBlock", pkg)
         fixtureCall(manifest, "parse", parser.invoke(null, StringReader("""
             <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.facebook.orca"
-                android:versionCode="$LIFECYCLE_VERSION_CODE" android:versionName="584.1.0.61.98">
+                android:versionCode="$LIFECYCLE_VERSION_CODE" android:versionName="585.0.0.53.94">
               <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="36"/>
               $manifestExtra
               <application android:appComponentFactory="$APP_COMPONENT_FACTORY">

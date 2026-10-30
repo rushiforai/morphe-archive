@@ -47,7 +47,7 @@ class HideFolderCountersFixtureTest {
                 assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), (before[i] as? ReferenceInstruction)?.reference?.toString()),
                     listOf(after[i + 5].opcode, after[i + 5].namedRegisters(), (after[i + 5] as? ReferenceInstruction)?.reference?.toString()))
             }
-            for (flag in listOf("hideFolderCounters", "launchFolder", "hideAllChats", "hiddenChats")) {
+            for (flag in listOf("hideFolderCounters", "launchFolder", "hideAllChats", "hiddenChats", "hiddenUnread")) {
                 val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
                 assertEquals("$name: $flag", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
             }

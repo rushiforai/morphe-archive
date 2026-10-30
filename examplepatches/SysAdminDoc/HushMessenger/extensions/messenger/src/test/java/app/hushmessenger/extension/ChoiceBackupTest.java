@@ -51,7 +51,7 @@ public class ChoiceBackupTest {
         MediaDocuments.alias = null;
         SeekableDescriptor.files.clear();
         SeekableOs.errno = 0;
-        SettingsActivity.documentTimeoutMillis = 30_000;
+        ChoicesBackup.documentTimeoutMillis = 30_000;
     }
 
     /** Keep the original stream fault fixtures while exercising cancellable descriptor opens. */
@@ -724,7 +724,7 @@ public class ChoiceBackupTest {
             }
             return null;
         };
-        SettingsActivity.documentTimeoutMillis = 50;
+        ChoicesBackup.documentTimeoutMillis = 50;
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
             SettingsActivity activity = screen.get();
             View root = activity.getWindow().getDecorView();
@@ -757,7 +757,7 @@ public class ChoiceBackupTest {
         } finally {
             release.countDown();
             finishWorkers();
-            SettingsActivity.documentTimeoutMillis = 30_000;
+            ChoicesBackup.documentTimeoutMillis = 30_000;
         }
     }
 
@@ -786,13 +786,12 @@ public class ChoiceBackupTest {
             Settings.installed = new HashSet<>(Set.of("stories"));
             startFile(activity, false, uri);
             assertTrue(started.await(5, TimeUnit.SECONDS));
-            var field = SettingsActivity.class.getDeclaredField("documentJob");
-            field.setAccessible(true);
-            Object job = field.get(activity);
+            Object backup = org.robolectric.util.ReflectionHelpers.getField(activity, "backup");
+            Object job = org.robolectric.util.ReflectionHelpers.getField(backup, "documentJob");
             var ownerField = job.getClass().getDeclaredField("owner");
             ownerField.setAccessible(true);
             var owner = (java.lang.ref.WeakReference<?>) ownerField.get(job);
-            assertSame(activity, owner.get());
+            assertSame(backup, owner.get());
             screen.pause().stop().destroy();
             assertNull(owner.get());
             assertTrue(canceled.await(5, TimeUnit.SECONDS));
@@ -826,7 +825,8 @@ public class ChoiceBackupTest {
                 DocumentResolver.onOpen = signal -> signal.setOnCancelListener(() -> canceled.set(true));
                 startFile(original, true, uri);
                 assertTrue(started.await(5, TimeUnit.SECONDS));
-                Object job = org.robolectric.util.ReflectionHelpers.getField(original, "documentJob");
+                Object job = org.robolectric.util.ReflectionHelpers.getField(
+                    org.robolectric.util.ReflectionHelpers.getField(original, "backup"), "documentJob");
                 java.lang.ref.WeakReference<?> owner = org.robolectric.util.ReflectionHelpers.getField(job, "owner");
                 if (rotate) screen.recreate();
                 else screen.pause().stop().destroy();
@@ -842,7 +842,7 @@ public class ChoiceBackupTest {
 
     @Test public void aDetachedSaveStillTimesOutAndReportsTheIncompleteFile() throws Exception {
         CountDownLatch started = new CountDownLatch(1), canceled = new CountDownLatch(1);
-        SettingsActivity.documentTimeoutMillis = 100;
+        ChoicesBackup.documentTimeoutMillis = 100;
         DocumentResolver.onOpen = signal -> {
             signal.setOnCancelListener(canceled::countDown);
             started.countDown();
@@ -859,7 +859,7 @@ public class ChoiceBackupTest {
             assertTrue(canceled.await(5, TimeUnit.SECONDS));
             finishWorkers();
             assertEquals("Took too long. A saved file may be cut off. Try again.", ShadowToast.getTextOfLatestToast());
-        } finally { canceled.countDown(); finishWorkers(); SettingsActivity.documentTimeoutMillis = 30_000; }
+        } finally { canceled.countDown(); finishWorkers(); ChoicesBackup.documentTimeoutMillis = 30_000; }
     }
 
     @Test public void realDescriptorSlicesPreserveInputAndOutputBoundaries() throws Exception {

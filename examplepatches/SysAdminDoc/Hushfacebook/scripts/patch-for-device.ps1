@@ -225,8 +225,16 @@ if ($Replace) {
 Write-Host "[device] installing on $Serial"
 # adb prints Failure [...] and exits non-zero on a refused install; without this the script
 # went on to print the version of whatever was already on the phone, as if it were this build.
-& $adb -s $Serial install -r -g $out | Out-Host
-if ($LASTEXITCODE -ne 0) { throw "adb install failed on $Serial. The output above says why." }
+$installOutput = & $adb -s $Serial install -r -g $out 2>&1 | ForEach-Object { [string]$_ }
+$installOutput | Out-Host
+if ($LASTEXITCODE -ne 0) {
+    # A signed-in device whose Facebook another key signed (Morphe Manager's, a release key) refuses
+    # this one. Re-sign with that key instead of uninstalling: an uninstall drops the sign-in and data.
+    if (($installOutput -join "`n") -match 'INSTALL_FAILED_UPDATE_INCOMPATIBLE') {
+        throw "adb install failed on $Serial`: the installed Facebook was signed with another key. Pass -Keystore and -KeyAlias for that key (apksigner verify --print-certs on its base.apk names it) rather than uninstalling it."
+    }
+    throw "adb install failed on $Serial. The output above says why."
+}
 & $adb -s $Serial shell dumpsys package $target.PackageName | Select-String 'versionName' | Out-Host
 } finally {
     $outputLock.Dispose()

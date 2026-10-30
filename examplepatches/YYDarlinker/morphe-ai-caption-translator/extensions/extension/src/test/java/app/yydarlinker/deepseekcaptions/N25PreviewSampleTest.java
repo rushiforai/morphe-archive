@@ -9,10 +9,7 @@ import android.graphics.*;
 import android.os.LocaleList;
 import android.view.View;
 import android.widget.TextView;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import org.json.*;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.robolectric.*;
@@ -88,7 +85,6 @@ public class N25PreviewSampleTest {
 
     @Test public void everyLocaleSampleShowsInFullAtEveryTier() throws Exception {
         Activity activity=Robolectric.buildActivity(Activity.class).setup().get();
-        JSONArray record=new JSONArray();
         try{
             float reference=SubtitleStylePreview.LANDSCAPE_REFERENCE_WIDTH_PX;
             for(String[] locale:LOCALES){
@@ -106,27 +102,9 @@ public class N25PreviewSampleTest {
                 for(int tier=0;tier<CaptionFontSize.COUNT;tier++){
                     assertSampleShowsInFull(c,tag,sample,tier,budget,box);
                 }
-                TextView widest=SubtitleStylePreview.sampleLabel(c,sample,CaptionFontSize.COUNT-1,70,reference,reference);
-                TextView standard=SubtitleStylePreview.sampleLabel(c,sample,CaptionFontSize.DEFAULT_TIER,70,reference,reference);
-                record.put(new JSONObject()
-                        .put("locale",tag)
-                        .put("sample",sample)
-                        .put("reference_width_px",reference)
-                        .put("text_budget_px",budget)
-                        .put("box_px",box)
-                        .put("widest_tier",CaptionFontSize.COUNT-1)
-                        .put("widest_glyph_px",Math.round(CaptionFontSize.fullScreenGlyphHeightPx(CaptionFontSize.COUNT-1)*100f)/100f)
-                        .put("widest_advance_px",Math.round(widest.getPaint().measureText(sample)*100f)/100f)
-                        .put("widest_lines",widest.getLayout().getLineCount())
-                        .put("widest_line_right_px",Math.round(widest.getLayout().getLineRight(0)*100f)/100f)
-                        .put("widest_headroom_px",Math.round((budget-widest.getPaint().measureText(sample))*100f)/100f)
-                        .put("standard_glyph_px",Math.round(CaptionFontSize.fullScreenGlyphHeightPx(CaptionFontSize.DEFAULT_TIER)*100f)/100f)
-                        .put("standard_advance_px",Math.round(standard.getPaint().measureText(sample)*100f)/100f)
-                        .put("standard_lines",standard.getLayout().getLineCount())
-                        .put("code_points",sample.codePointCount(0,sample.length())));
+
             }
         }finally{activity.finish();}
-        writeArtifact("n25-sample-measurements.json",record.toString(2));
     }
 
     /**
@@ -137,11 +115,11 @@ public class N25PreviewSampleTest {
     @Test public void renderedFrameKeepsTheCaptionInsideTheVideoAndDrawsTheWholeSample(){
         Activity activity=Robolectric.buildActivity(Activity.class).setup().get();
         try{
-            for(String[] locale:LOCALES){
-                String tag=locale[0];
+            for(String[] locale:LOCALES) for(int tier:new int[]{CaptionFontSize.DEFAULT_TIER,CaptionFontSize.COUNT-1}){
+                String tag=locale[0]+" tier="+tier;
                 Context c=locale(activity,locale[1]);
                 SubtitleStylePreview.Preview preview=new SubtitleStylePreview.Preview(c);
-                preview.sizeTier=CaptionFontSize.COUNT-1;preview.opacity=100;
+                preview.sizeTier=tier;preview.opacity=100;
                 Bitmap bitmap=render(preview,420);
                 RectF box=SubtitleStylePreview.LAST_CAPTION_BOX;
                 assertNotNull("the preview must record its caption box",box);
@@ -156,20 +134,26 @@ public class N25PreviewSampleTest {
                 assertTrue(tag+": caption bottom leaves the frame",box.bottom<=frameHeight+1f);
                 assertTrue(tag+": the caption box must have width",box.width()>0);
                 // Ink check: the opaque caption background is the only near-black band in the frame.
-                int left=Integer.MAX_VALUE,right=-1;
-                for(int y=0;y<bitmap.getHeight();y++)for(int x=0;x<bitmap.getWidth();x++){
-                    int pixel=bitmap.getPixel(x,y);
+                int left=Integer.MAX_VALUE,right=-1,brightGlyphPixels=0;
+                int width=bitmap.getWidth(),height=bitmap.getHeight();
+                int[] pixels=new int[width*height];bitmap.getPixels(pixels,0,width,0,0,width,height);
+                for(int y=0;y<height;y++)for(int x=0;x<width;x++){
+                    int pixel=pixels[y*width+x];
                     if(Color.alpha(pixel)<250)continue;
+                    if(x>box.left+2&&x<box.right-2&&y>box.top+2&&y<box.bottom-2
+                            &&Color.red(pixel)>180&&Color.green(pixel)>180&&Color.blue(pixel)>180)
+                        brightGlyphPixels++;
                     if(Color.red(pixel)>40||Color.green(pixel)>40)continue;
                     left=Math.min(left,x);right=Math.max(right,x);
                 }
+                assertTrue(tag+": caption background alone is insufficient; glyphs must be visible",brightGlyphPixels>0);
                 assertTrue(tag+": the caption background must be rendered",right>=left);
                 // The recorded box is already in frame pixels, so it is compared as-is; the width is
                 // measured from the reference-space box times the single scale factor the preview applies.
                 assertEquals(tag+": the rendered caption must start at the recorded left edge",
                         box.left,left,2f);
                 TextView drawn=SubtitleStylePreview.sampleLabel(c,SubtitleStylePreview.sample(c),
-                        CaptionFontSize.COUNT-1,100,SubtitleStylePreview.LANDSCAPE_REFERENCE_WIDTH_PX,
+                        tier,100,SubtitleStylePreview.LANDSCAPE_REFERENCE_WIDTH_PX,
                         SubtitleStylePreview.LANDSCAPE_REFERENCE_WIDTH_PX);
                 assertEquals(tag+": the rendered caption width must match its reference-space box",
                         drawn.getMeasuredWidth()*scale,right-left+1,2f);
@@ -177,9 +161,8 @@ public class N25PreviewSampleTest {
                         right<=frameWidth+1f&&left>=-1f);
                 // Rasterizing the same locale twice must be deterministic.
                 SubtitleStylePreview.Preview again=new SubtitleStylePreview.Preview(c);
-                again.sizeTier=CaptionFontSize.COUNT-1;again.opacity=100;
+                again.sizeTier=tier;again.opacity=100;
                 assertTrue(tag+": rendering must be stable",bitmap.sameAs(render(again,420)));
-                writeArtifact("frames/preview-sample-"+tag+"-xl.png",bitmap);
             }
             // Contact-sheet widths: the frame stays 16:9 and the caption never leaves it.
             for(int width:CONTACT_WIDTHS){
@@ -192,23 +175,4 @@ public class N25PreviewSampleTest {
         }finally{activity.finish();}
     }
 
-    private void writeArtifact(String name,Object content){
-        String output=System.getenv("N25_PREVIEW_OUTPUT");
-        if(output==null)return;
-        File file=new File(output,name);
-        file.getParentFile().mkdirs();
-        try{
-            if(content instanceof Bitmap){
-                try(FileOutputStream stream=new FileOutputStream(file)){
-                    assertTrue(((Bitmap)content).compress(Bitmap.CompressFormat.PNG,100,stream));
-                }
-            }else{
-                try(FileOutputStream stream=new FileOutputStream(file)){
-                    stream.write(String.valueOf(content).getBytes(StandardCharsets.UTF_8));
-                }
-            }
-        }catch(IOException failed){
-            throw new IllegalStateException(failed);
-        }
-    }
 }

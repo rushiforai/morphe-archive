@@ -58,7 +58,9 @@ import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -124,8 +126,6 @@ import app.hushgram.extension.instagram.misc.MaterialYou;
 import app.hushgram.extension.instagram.misc.AppIconChoice;
 import app.hushgram.extension.instagram.misc.FontChoice;
 import app.hushgram.extension.instagram.misc.Fonts;
-import app.hushgram.extension.instagram.misc.GlassBlur;
-import app.hushgram.extension.instagram.misc.GlassOpacity;
 import app.hushgram.extension.instagram.misc.HapticStyle;
 import app.hushgram.extension.instagram.reels.BurnInMode;
 import app.hushgram.extension.instagram.reels.BurnInWait;
@@ -154,6 +154,7 @@ import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.settings.BaseSettings;
 import app.hushgram.extension.shared.settings.BooleanSetting;
 import app.hushgram.extension.shared.settings.HushgramPause;
+import app.hushgram.extension.shared.settings.IntegerSetting;
 import app.hushgram.extension.shared.settings.Setting;
 import app.hushgram.extension.shared.settings.EnumSetting;
 import app.hushgram.extension.shared.settings.preference.AbstractPreferenceFragment;
@@ -368,6 +369,16 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     }
 
     @Override
+    public View onCreateView(android.view.LayoutInflater inflater, android.view.ViewGroup container,
+                             Bundle savedInstanceState) {
+        View root = super.onCreateView(inflater, container, savedInstanceState);
+        ListView list = root == null ? null : root.findViewById(android.R.id.list);
+        // The search field keeps the focus while its typing filters the rows (TypingFocusHold).
+        if (list != null) TypingFocusHold.around(list);
+        return root;
+    }
+
+    @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ListView list = view.findViewById(android.R.id.list);
@@ -465,6 +476,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             ExportStatus.CONFIGURATION.finish(configurationExportToken, L10n.t("Settings export canceled."));
         }
         NewRowDots.stop();
+        DescriptionInfo.searching = false;
         super.onDestroy();
     }
 
@@ -639,7 +651,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.FULL_SCREEN_BARS && Settings.FULL_SCREEN_HIDES.key.equals(key);
                     belongs |= family == PatchFamily.GLASS_TAB_BAR && Settings.GLASS_TAB_BAR_HAPTIC_STYLE.key.equals(key);
                     belongs |= family == PatchFamily.GLASS_TAB_BAR && (Settings.GLASS_TAB_BAR_OPACITY.key.equals(key)
-                            || Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key.equals(key)
+                            || Settings.GLASS_TAB_BAR_BLUR_RADIUS.key.equals(key)
                             || Settings.GLASS_TAB_BAR_HEIGHT.key.equals(key) || Settings.GLASS_TAB_BAR_LIFT.key.equals(key)
                             || Settings.GLASS_TAB_BAR_CORNERS.key.equals(key) || Settings.GLASS_TAB_BAR_REELS_HIDE.key.equals(key));
                     belongs |= family == PatchFamily.VIDEO_DOWNLOAD && (Settings.HOLD_TO_DOWNLOAD.key.equals(key)
@@ -788,6 +800,12 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Nullable private ListView listView() {
         View view = getView();
         return view == null ? null : view.findViewById(android.R.id.list);
+    }
+
+    /** Binds the rows on show again, for a choice about how every row looks. */
+    void rebindRows() {
+        ListView list = listView();
+        if (list != null) list.invalidateViews();
     }
 
     /** Page entry shouldn't focus the search field or move a restored viewport to show it. */
@@ -1205,6 +1223,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         String[] terms = normalized.isEmpty() ? new String[0] : normalized.split("\\s+");
         boolean pages = categoryPages();
         NewRowDots.searching(terms.length > 0);
+        if (DescriptionInfo.searching != terms.length > 0) {
+            DescriptionInfo.searching = terms.length > 0;
+            rebindRows();
+        }
         rankForSearch(terms);
         // Search reveals matching rows without changing the sections the person expanded.
         boolean listing = pages && terms.length == 0;
@@ -3860,43 +3882,19 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return row;
     }
 
-    /** How strongly the glass tab bar blurs what's behind it (#289). Its summary is the step chosen. */
-    static GlassBlurRow glassBlurRow(Context context) {
-        GlassBlurRow row = new GlassBlurRow(context);
-        row.setKey(Settings.GLASS_TAB_BAR_BLUR_STRENGTH.key);
+    /** How far the glass tab bar blurs what's behind it, from a slider in dp (#289, #391). */
+    static SliderRow glassBlurRow(Context context) {
+        SliderRow row = new SliderRow(context, Settings.GLASS_TAB_BAR_BLUR_RADIUS, 1, L10n.t("%1$d dp"));
         row.setTitle(L10n.t("Blur strength"));
-        row.setDialogTitle(L10n.t("Blur strength"));
-        row.setNegativeButtonText(L10n.t("Cancel"));
-        GlassBlur[] steps = GlassBlur.values();
-        CharSequence[] entries = new CharSequence[steps.length];
-        CharSequence[] values = new CharSequence[steps.length];
-        for (int i = 0; i < steps.length; i++) {
-            entries[i] = glassBlurLabel(steps[i]);
-            values[i] = steps[i].name();
-        }
-        row.setEntries(entries);
-        row.setEntryValues(values);
-        row.setValue(Settings.GLASS_TAB_BAR_BLUR_STRENGTH.savedValue().name());
+        row.setText(String.valueOf(Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue()));
         return row;
     }
 
-    /** How see-through the glass tab bar's pill is. Its summary is the step chosen. */
-    static GlassOpacityRow glassOpacityRow(Context context) {
-        GlassOpacityRow row = new GlassOpacityRow(context);
-        row.setKey(Settings.GLASS_TAB_BAR_OPACITY.key);
+    /** How strong the glass tab bar's tint is, from a slider in percent of the bar's own look (#391). */
+    static SliderRow glassOpacityRow(Context context) {
+        SliderRow row = new SliderRow(context, Settings.GLASS_TAB_BAR_OPACITY, 5, L10n.t("%1$d%%"));
         row.setTitle(L10n.t("Tab bar opacity"));
-        row.setDialogTitle(L10n.t("Tab bar opacity"));
-        row.setNegativeButtonText(L10n.t("Cancel"));
-        GlassOpacity[] steps = GlassOpacity.values();
-        CharSequence[] entries = new CharSequence[steps.length];
-        CharSequence[] values = new CharSequence[steps.length];
-        for (int i = 0; i < steps.length; i++) {
-            entries[i] = glassOpacityLabel(steps[i]);
-            values[i] = steps[i].name();
-        }
-        row.setEntries(entries);
-        row.setEntryValues(values);
-        row.setValue(Settings.GLASS_TAB_BAR_OPACITY.savedValue().name());
+        row.setText(String.valueOf(Settings.GLASS_TAB_BAR_OPACITY.savedValue()));
         return row;
     }
 
@@ -4581,32 +4579,6 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 return L10n.t("Material You");
             default:
                 return L10n.t("Instagram blue");
-        }
-    }
-
-    /** What the list calls [step]. */
-    static String glassBlurLabel(GlassBlur step) {
-        switch (step) {
-            case LIGHT:
-                return L10n.t("Light");
-            case STRONG:
-                return L10n.t("Strong");
-            default:
-                return L10n.t("Standard");
-        }
-    }
-
-    /** What the list calls [step]. */
-    static String glassOpacityLabel(GlassOpacity step) {
-        switch (step) {
-            case CLEAR:
-                return L10n.t("Clearest");
-            case LIGHT:
-                return L10n.t("Clear");
-            case FROSTED:
-                return L10n.t("Frosted");
-            default:
-                return L10n.t("Standard");
         }
     }
 
@@ -5366,6 +5338,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             super.onBindView(view);
             showAllText(view);
             ScreenColors.row(view, this);
+            // A greyed-out row's line says why, so it stays in sight.
+            DescriptionInfo.bind(view, isEnabled() ? getSummary() : null);
             view.setAccessibilityDelegate(new RowSemantics(this, Switch.class));
         }
     }
@@ -6397,20 +6371,68 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
     }
 
-    static final class GlassBlurRow extends ListPreference {
-        GlassBlurRow(Context context) {
+    /**
+     * A number setting's row with a slider under its summary (#391). The slider saves as it's let go, as the
+     * row's text, so the page syncs, restores and backs it up as it does a text row, and the summary follows
+     * the slider while it moves. The row itself opens nothing: the slider is the control.
+     */
+    static final class SliderRow extends EditTextPreference {
+        private static final String SLIDER = "hushgram_slider";
+        final IntegerSetting setting;
+        /** How far one notch of the slider moves the value. */
+        final int step;
+        private final String format;
+
+        SliderRow(Context context, IntegerSetting setting, int step, String format) {
             super(context);
+            this.setting = setting;
+            this.step = step;
+            this.format = format;
+            setKey(setting.key);
+            setSelectable(false);
         }
 
-        /** The summary is the step chosen. */
-        @Override
-        public void setValue(String value) {
-            super.setValue(value);
-            GlassBlur step = GlassBlur.STANDARD;
-            for (GlassBlur candidate : GlassBlur.values()) {
-                if (candidate.name().equals(value)) step = candidate;
+        /** [text] as a value inside the setting's range, or its default when it isn't a number. */
+        int valueOf(@Nullable String text) {
+            try {
+                int value = Integer.parseInt(text == null ? "" : text.trim());
+                return Math.max(setting.minimum(), Math.min(setting.maximum(), value));
+            } catch (NumberFormatException notANumber) {
+                return setting.defaultValue;
             }
-            setSummary(glassBlurLabel(step));
+        }
+
+        /** The value at the slider's [progress], a {@link #step} a notch from the start of the range. */
+        int valueAt(int progress) {
+            return Math.max(setting.minimum(), Math.min(setting.maximum(), setting.minimum() + progress * step));
+        }
+
+        int progressOf(int value) {
+            return Math.round((value - setting.minimum()) / (float) step);
+        }
+
+        /** What the summary says for [value], marking the one the bar has always had. */
+        String label(int value) {
+            String amount = String.format(format, value);
+            return value == setting.defaultValue ? String.format(L10n.t("%1$s (standard)"), amount) : amount;
+        }
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            setSummary(label(valueOf(text)));
+        }
+
+        /** Saves [value] as the row's text, through the page's listener as any other row's change goes. */
+        void choose(int value) {
+            String text = String.valueOf(value);
+            if (text.equals(getText())) return;
+            if (callChangeListener(text)) setText(text);
+        }
+
+        @Override
+        protected void onClick() {
+            // The slider is the control, so there's no dialog to open.
         }
 
         @Override
@@ -6418,39 +6440,67 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             super.onBindView(view);
             showAllText(view);
             ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-    }
+            SeekBar slider = slider(view);
+            if (slider == null) return;
+            TextView summary = view.findViewById(android.R.id.summary);
+            ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
+            slider.setProgressTintList(ScreenColors.dimmedWhenDisabled(colors.accent));
+            slider.setThumbTintList(ScreenColors.dimmedWhenDisabled(colors.accent));
+            slider.setOnSeekBarChangeListener(null);
+            slider.setMax(progressOf(setting.maximum()));
+            slider.setProgress(progressOf(valueOf(getText())));
+            slider.setEnabled(isEnabled());
+            slider.setContentDescription(getTitle());
+            describe(slider, label(valueOf(getText())));
+            slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                private boolean dragging;
 
-    static final class GlassOpacityRow extends ListPreference {
-        GlassOpacityRow(Context context) {
-            super(context);
+                @Override
+                public void onProgressChanged(SeekBar bar, int progress, boolean fromUser) {
+                    if (!fromUser) return;
+                    String shown = label(valueAt(progress));
+                    if (summary != null) summary.setText(shown);
+                    describe(bar, shown);
+                    // A key or a screen reader moves it a notch at a time without a drag, so each notch saves.
+                    if (!dragging) choose(valueAt(progress));
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar bar) {
+                    dragging = true;
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar bar) {
+                    dragging = false;
+                    choose(valueAt(bar.getProgress()));
+                }
+            });
         }
 
-        /** The summary is the step chosen. */
-        @Override
-        public void setValue(String value) {
-            super.setValue(value);
-            GlassOpacity step = GlassOpacity.STANDARD;
-            for (GlassOpacity candidate : GlassOpacity.values()) {
-                if (candidate.name().equals(value)) step = candidate;
+        /** A screen reader reads the value as the summary shows it, not as a share of the slider. */
+        private static void describe(SeekBar slider, String shown) {
+            if (Build.VERSION.SDK_INT >= 30) slider.setStateDescription(shown);
+        }
+
+        /** The row's slider, made under its summary the first time the row's view is bound. */
+        @Nullable
+        private SeekBar slider(View view) {
+            View made = view.findViewWithTag(SLIDER);
+            if (made instanceof SeekBar) return (SeekBar) made;
+            TextView summary = view.findViewById(android.R.id.summary);
+            if (summary == null || !(summary.getParent() instanceof android.view.ViewGroup)) return null;
+            android.view.ViewGroup parent = (android.view.ViewGroup) summary.getParent();
+            SeekBar slider = new SeekBar(getContext());
+            slider.setTag(SLIDER);
+            if (parent instanceof RelativeLayout) {
+                RelativeLayout.LayoutParams below = new RelativeLayout.LayoutParams(-1, -2);
+                below.addRule(RelativeLayout.BELOW, android.R.id.summary);
+                parent.addView(slider, below);
+            } else {
+                parent.addView(slider, parent.indexOfChild(summary) + 1, new android.view.ViewGroup.LayoutParams(-1, -2));
             }
-            setSummary(glassOpacityLabel(step));
-        }
-
-        @Override
-        protected void onBindView(View view) {
-            super.onBindView(view);
-            showAllText(view);
-            ScreenColors.row(view, this);
-            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
-        }
-
-        /** Its list takes the screen's colours, as the other rows' dialogs do. */
-        @Override
-        protected void showDialog(Bundle state) {
-            super.showDialog(state);
-            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+            return slider;
         }
     }
 

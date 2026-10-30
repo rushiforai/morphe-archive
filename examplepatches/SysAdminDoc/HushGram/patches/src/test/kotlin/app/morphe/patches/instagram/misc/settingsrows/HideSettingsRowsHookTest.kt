@@ -73,7 +73,12 @@ class HideSettingsRowsHookTest {
         val uiState = FixtureDex.classes(bundle, setOf(UI_STATE)).values
         assertTrue("$label: no $UI_STATE", uiState.isNotEmpty())
         val parameters = uiState.flatMap { holder -> holder.methods.flatMap { it.parameterTypes.map(Any::toString) } }
-        val firstTypes = (parameters + rows.flatMap { row -> row.fields.map { it.type } } + FBT_MODEL + FBT_TOKEN)
+        // The row's toString can ask a Redex string pool for its ", label=" (385914510 does), so those come too.
+        val pools = rows.flatMap { row -> row.methods.flatMap { it.implementation?.instructions?.toList().orEmpty() } }.mapNotNull { instruction ->
+            ((instruction as? ReferenceInstruction)?.reference as? MethodReference)
+                ?.takeIf { it.parameterTypes.map(Any::toString) == listOf("I") && it.returnType == "Ljava/lang/String;" }?.definingClass
+        }
+        val firstTypes = (parameters + rows.flatMap { row -> row.fields.map { it.type } } + pools + FBT_MODEL + FBT_TOKEN)
             .filter { it.startsWith("L") }.toSet()
         val first = FixtureDex.classes(bundle, firstTypes).values
         // The id is an interface, so the fields of the row models are read too.

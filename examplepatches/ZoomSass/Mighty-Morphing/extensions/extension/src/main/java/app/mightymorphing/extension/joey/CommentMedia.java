@@ -1362,6 +1362,26 @@ public final class CommentMedia {
                 drawGrip(canvas, x, dy);
                 return;
             }
+            if (youtube) {
+                drawYoutubeChrome(canvas, x, dy);
+                float density = Resources.getSystem().getDisplayMetrics().density;
+                float r = 6f * density;
+                android.graphics.Path clipPath = new android.graphics.Path();
+                clipPath.addRoundRect(new android.graphics.RectF(x, dy, x + width, dy + drawH),
+                        new float[]{r, r, r, r, 0, 0, 0, 0},
+                        android.graphics.Path.Direction.CW);
+                canvas.save();
+                canvas.clipPath(clipPath);
+                canvas.translate(x, dy);
+                drawable.setBounds(0, 0, width, drawH);
+                drawable.draw(canvas);
+                canvas.restore();
+                drawTypeBadge(canvas, x, dy, "video_outline");
+                drawPlay(canvas, x, dy);
+                drawYoutubeChromeOverlay(canvas, x, dy);
+                drawGrip(canvas, x, dy);
+                return;
+            }
             canvas.save();
             canvas.translate(x, dy + (height - drawH) / 2);
             drawable.setBounds(0, 0, width, drawH);
@@ -1419,33 +1439,38 @@ public final class CommentMedia {
 
         private void drawYoutubeChrome(Canvas canvas, float x, int dy) {
             float density = Resources.getSystem().getDisplayMetrics().density;
-            float inset = 1.5f * density;
-            RectF box = new RectF(x + inset, dy + inset, x + width - inset, dy + drawH - inset);
+            float r = 6f * density;
+            RectF cardBox = new RectF(x, dy, x + width, dy + height);
+            Paint bg = new Paint(Paint.ANTI_ALIAS_FLAG);
+            bg.setColor(0xEE1E1E1E);
+            canvas.drawRoundRect(cardBox, r, r, bg);
+        }
+
+        private void drawYoutubeChromeOverlay(Canvas canvas, float x, int dy) {
+            float density = Resources.getSystem().getDisplayMetrics().density;
+            float r = 6f * density;
+            RectF cardBox = new RectF(x, dy, x + width, dy + height);
             Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
             stroke.setStyle(Paint.Style.STROKE);
-            stroke.setStrokeWidth(2.5f * density);
-            stroke.setColor(0xF2000000);
-            canvas.drawRoundRect(box, 4f * density, 4f * density, stroke);
-            stroke.setStrokeWidth(1f * density);
-            stroke.setColor(0xFFE8E8E8);
-            float inner = 2.5f * density;
-            canvas.drawRoundRect(new RectF(box.left + inner, box.top + inner, box.right - inner, box.bottom - inner), 2f * density, 2f * density, stroke);
-            drawTypeBadge(canvas, x, dy, "video_outline");
+            stroke.setStrokeWidth(1.2f * density);
+            stroke.setColor(0x44FFFFFF);
+            canvas.drawRoundRect(cardBox, r, r, stroke);
+
             String label = youtubeTitle != null && !youtubeTitle.isEmpty()
                     ? youtubeTitle
                     : href.replaceFirst("^https?://", "");
-            float textSize = 12f * density;
+            float textSize = 11.5f * density;
             Paint labelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             labelPaint.setTextSize(textSize);
-            labelPaint.setColor(0xFF6CB6FF);
-            labelPaint.setUnderlineText(true);
-            float maxWidth = width - 2f * density;
-            String full = label;
-            while (labelPaint.measureText(label) > maxWidth && label.length() > 4) {
-                label = label.substring(0, label.length() - 2);
+            labelPaint.setColor(0xFFEEEEEE);
+            float maxLabelW = width - 16f * density;
+            String text = label;
+            while (labelPaint.measureText(text) > maxLabelW && text.length() > 4) {
+                text = text.substring(0, text.length() - 2);
             }
-            if (!full.equals(label)) label = label + "…";
-            canvas.drawText(label, x, dy + drawH + textSize + density, labelPaint);
+            if (!text.equals(label)) text = text + "...";
+            float textY = dy + drawH + (captionHeight() + textSize) / 2f - 2f * density;
+            canvas.drawText(text, x + 8f * density, textY, labelPaint);
         }
 
         private void drawTypeBadge(Canvas canvas, float x, int dy, String drawableName) {
@@ -1474,7 +1499,7 @@ public final class CommentMedia {
             if (!previewOnly) return;
             float density = Resources.getSystem().getDisplayMetrics().density;
             float cx = x + width / 2f;
-            float cy = dy + height / 2f;
+            float cy = dy + (youtube ? drawH : height) / 2f;
             float radius = 22f * density;
             Paint disc = new Paint(Paint.ANTI_ALIAS_FLAG);
             disc.setColor(0xCC000000);

@@ -73,7 +73,7 @@ final class TranslationOutput {
                 long end,
                 long at,
                 CaptionRenderSpec spec,
-                long[] sourceAnchors) {
+                CaptionEventTimeline sourceTimeline) {
             showEvent(text, guard, id, start, end, at, spec);
         }
     }
@@ -136,7 +136,7 @@ final class TranslationOutput {
             long end,
             long at,
             CaptionRenderSpec spec,
-            long[] sourceAnchors) {
-        sink.showEvent(text, g, id, start, end, at, spec, sourceAnchors);
+            CaptionEventTimeline sourceTimeline) {
+        sink.showEvent(text, g, id, start, end, at, spec, sourceTimeline);
     }
 }

@@ -162,10 +162,6 @@ final class CaptionPlayerAuthority {
                         && (!typeAuthoritative || playerType.isEmpty() || "NONE".equals(playerType))));
     }
 
-    static boolean hasAuthoritativeType() {
-        return typeAuthoritative && !playerType.isEmpty();
-    }
-
     /** Bounded, non-sensitive identity for diagnostics. */
     static String shortId() {
         Activity current = activity.get();

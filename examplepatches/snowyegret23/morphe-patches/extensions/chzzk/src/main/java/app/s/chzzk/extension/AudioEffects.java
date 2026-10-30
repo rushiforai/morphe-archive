@@ -9,18 +9,20 @@ import java.nio.ByteOrder;
 
 public final class AudioEffects implements InvocationHandler {
     private static final ByteBuffer EMPTY = ByteBuffer.allocateDirect(0).order(ByteOrder.LITTLE_ENDIAN);
-    private static volatile Settings settings = new Settings(0, 100);
+    private static volatile Settings settings = new Settings(0, 100, true);
 
     private static final class Settings {
         final int mode;
         final int volume;
+        final boolean preventDistortion;
         final double threshold;
         final double exponent;
         final double makeup;
 
-        Settings(int mode, int volume) {
+        Settings(int mode, int volume, boolean preventDistortion) {
             this.mode = mode;
             this.volume = volume;
+            this.preventDistortion = preventDistortion;
             double thresholdDb = mode == 1 ? -18 : mode == 2 ? -24 : -30;
             double ratio = mode == 1 ? 2 : mode == 2 ? 4 : 8;
             threshold = Math.pow(10, thresholdDb / 20);
@@ -49,8 +51,11 @@ public final class AudioEffects implements InvocationHandler {
     static void update(boolean compress, int strength, boolean boost, int volume) {
         int mode = compress ? Math.max(0, Math.min(2, strength)) + 1 : 0;
         int percent = boost ? Math.max(100, Math.min(300, volume)) : 100;
+        boolean preventDistortion = !boost;
         Settings current = settings;
-        if (current.mode != mode || current.volume != percent) settings = new Settings(mode, percent);
+        if (current.mode != mode || current.volume != percent || current.preventDistortion != preventDistortion) {
+            settings = new Settings(mode, percent, preventDistortion);
+        }
     }
 
     public static Object append(Object original) {
@@ -68,8 +73,19 @@ public final class AudioEffects implements InvocationHandler {
     public static int encoding(Object format) { return 0; }
     public static Object unsetFormat() { return null; }
 
+    public static boolean renamedProcessorMethods() { return false; }
+
     @Override public Object invoke(Object proxy, Method method, Object[] args) {
-        switch (method.getName()) {
+        String name = method.getName();
+        if (renamedProcessorMethods()) {
+            switch (name) {
+                case "a": name = "f"; break;
+                case "c": name = "a"; break;
+                case "e": name = "d"; break;
+                case "f": name = "e"; break;
+            }
+        }
+        switch (name) {
             case "d":
                 pendingRate = sampleRate(args[0]);
                 pendingChannels = channelCount(args[0]);
@@ -143,9 +159,13 @@ public final class AudioEffects implements InvocationHandler {
                     ? Math.pow(config.threshold / envelope, config.exponent) : 1;
                 double target = compression * config.makeup * config.volume / 100.0;
                 gain = smoothing * gain + (1 - smoothing) * target;
-                double ceiling = dry ? 1 : 0.98;
-                double limit = peak * gain > ceiling ? ceiling / (peak * gain) : 1;
-                limiter = limit < limiter ? limit : limiterRelease * limiter + (1 - limiterRelease) * limit;
+                if (config.preventDistortion) {
+                    double ceiling = dry ? 1 : 0.98;
+                    double limit = peak * gain > ceiling ? ceiling / (peak * gain) : 1;
+                    limiter = limit < limiter ? limit : limiterRelease * limiter + (1 - limiterRelease) * limit;
+                } else {
+                    limiter = 1;
+                }
                 double scale = gain * limiter;
                 for (int c = 0; c < channels; c++) {
                     int sample = (int) Math.round(input.getShort() * scale);

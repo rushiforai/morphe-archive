@@ -24,11 +24,13 @@ pluginManagement {
 // outside all six and publishes bcprov, bcpkix and bcutil. Signing runs on this classpath, and a
 // force inside a project can't reach it, so it's set here. Keep 1.86 in step with
 // gradle/libs.versions.toml, which the version catalog can't supply this early in the build.
-// Drop the Kotlin line once the plugin moves past 2.4.20 on its own.
+// 2.4.21 is the current bugfix release and what :patches already compiles against, so one force
+// keeps the plugin, compiler and stdlib on the same version instead of three.
+// Drop the Kotlin line once the plugin moves past 2.4.21 on its own.
 buildscript {
     configurations.all {
         resolutionStrategy.eachDependency {
-            if (requested.group == "org.jetbrains.kotlin") useVersion("2.4.20")
+            if (requested.group == "org.jetbrains.kotlin") useVersion("2.4.21")
             if (requested.group == "org.bouncycastle") useVersion("1.86")
             // 9.4.1 replaces the old UTP/Netty device-test transport with Android Test Engine.
             if (requested.group == "com.android.application" &&

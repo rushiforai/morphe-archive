@@ -32,8 +32,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -47,8 +49,9 @@ import java.io.File
  * the picker asking first and returning on a yes. A no lands on Facebook's first instruction, and
  * nothing of Facebook's code moves. The socket under a post's comments is found by its own name and
  * the Related groups plugin, its check is another one than the button check, and it's hooked the
- * same way with its own extension method (#101). So is the socket of the buttons under each comment,
- * found by its own name and the thumbs-down plugin (#241). The comment section is found by its name, its reply flag
+ * same way with its own extension method (#101). The thumbs-down under each comment has its own
+ * plugin, a kept class found by name, whose one static builder asks the extension first and builds
+ * nothing on a yes, so the row around it stays Facebook's (#241). The comment section is found by its name, its reply flag
  * through the expandReplySection update, and the flag goes through the extension, as a range
  * call, just before the initial state returns. The section's draw method asks about its comment
  * first, read off its props, and returns no children on a yes (#118). An open reply thread's section
@@ -207,42 +210,37 @@ class CommentSheetOptionsFixtureTest {
         assertEquals("$where: Facebook's code stays", original.map { it.opcode }, patched.drop(14).map { it.opcode })
     }
 
-    private fun commentButtons(bundle: File) {
+    private fun dislike(bundle: File) {
         val name = bundle.name
-        val sockets = holders(bundle, COMMENT_UFI_SOCKET).flatMap { methodsHolding(it, COMMENT_UFI_SOCKET) }
-        assertTrue("$name: nothing names \"$COMMENT_UFI_SOCKET\"", sockets.isNotEmpty())
-        val found = commentUfiSocket(holders(bundle, COMMENT_DOWNVOTE), sockets) { types -> FixtureDex.classes(bundle, types) }
-        val post = postSocket(
-            holders(bundle, INLINE_COMMENTS),
-            holders(bundle, POST_SOCKET).flatMap { methodsHolding(it, POST_SOCKET) },
-        ) { types -> FixtureDex.classes(bundle, types) }
-        val table = found.table
-        val check = found.check
-        val where = "$name: ${check.descriptor()}"
-        assertNotEquals("$where is the check under a post's buttons", post.check.descriptor(), check.descriptor())
-        assertNotEquals("$where: the name table is the post's", post.table.descriptor(), table.descriptor())
-        assertTrue("$where isn't static", AccessFlags.STATIC.isSet(check.accessFlags))
-        assertEquals("$where: the plugin's number isn't last", "I", check.parameterTypes.last().toString())
-        assertTrue("$where: the table has only the thumbs-down and Like", switchKeys(table).single().size > 2)
+        val plugin = FixtureDex.classes(bundle, setOf(COMMENT_DOWNVOTE)).values.singleOrNull()
+        assertNotNull("$name: nothing is $COMMENT_DOWNVOTE", plugin)
+        val builder = dislikeBuilder(plugin)
+        val where = "$name: ${builder.descriptor()}"
+        assertTrue("$where isn't static", AccessFlags.STATIC.isSet(builder.accessFlags))
+        assertEquals("$where: it takes the comment's context and props", 2, builder.parameterTypes.size)
+        assertTrue("$where: it builds nothing", builder.returnType.startsWith("L"))
+        assertTrue("$where: it doesn't make what it returns", builder.implementation!!.instructions.any { instruction ->
+            instruction.opcode == Opcode.NEW_INSTANCE &&
+                ((instruction as ReferenceInstruction).reference as TypeReference).type == builder.returnType
+        })
 
-        val owner = FixtureDex.classes(bundle, setOf(check.definingClass)).values.single()
-        val context = PatchContexts.of(listOf(owner))
-        val method = context.mutableClassDefBy(owner.type).methods.single { it.descriptor() == check.descriptor() }
+        val context = PatchContexts.of(listOf(plugin!!))
+        val method = context.mutableClassDefBy(plugin.type).methods.single { it.descriptor() == builder.descriptor() }
         val original = method.implementation!!.instructions.toList()
-        val number = method.implementation!!.registerCount - 1
-        method.holdButtons(table, HOLDS_COMMENT_BUTTON)
+        method.holdDislike()
         val patched = method.implementation!!.instructions.toList()
-        assertEquals("$where gains seven instructions", original.size + 7, patched.size)
-        assertEquals("$where: the plugin's name comes from the table", table.descriptor(), patched[0].reference())
-        val range = patched[0] as RegisterRangeInstruction
-        assertEquals("$where: with the check's own number, its last register", listOf(number, 1),
-            listOf(range.startRegister, range.registerCount))
+        assertEquals("$where gains five instructions", original.size + 5, patched.size)
+        assertEquals("$where: the extension is asked first", Opcode.INVOKE_STATIC, patched[0].opcode)
+        assertEquals("$where: the extension is asked first", HOLDS_COMMENT_DISLIKE, patched[0].reference())
+        assertEquals("$where: with nothing handed over", 0, (patched[0] as FiveRegisterInstruction).registerCount)
+        assertEquals("$where: its answer is kept", Opcode.MOVE_RESULT, patched[1].opcode)
         val register = (patched[1] as OneRegisterInstruction).registerA
         assertTrue("$where: the hook writes v$register, which isn't a local", register < method.localRegisterCount())
-        assertEquals("$where: its own extension method is asked", HOLDS_COMMENT_BUTTON, patched[2].reference())
-        assertEquals("$where: a yes answers no", listOf(Opcode.CONST_4, Opcode.RETURN), patched.subList(5, 7).map { it.opcode })
-        assertEquals("$where: Facebook's code stays", original.map { it.opcode }, patched.drop(7).map { it.opcode })
-        assertEquals("$where: a no lands on Facebook's first instruction", setOf(5, 7), ControlFlow.of(method).normal[4].toSet())
+        assertEquals("$where: a no goes on to Facebook", Opcode.IF_EQZ, patched[2].opcode)
+        assertEquals("$where: a yes builds nothing", listOf(Opcode.CONST_4, Opcode.RETURN_OBJECT),
+            patched.subList(3, 5).map { it.opcode })
+        assertEquals("$where: Facebook's code stays", original.map { it.opcode }, patched.drop(5).map { it.opcode })
+        assertEquals("$where: a no lands on Facebook's first instruction", setOf(3, 5), ControlFlow.of(method).normal[2].toSet())
     }
 
     private fun picker(bundle: File) {
@@ -499,9 +497,38 @@ class CommentSheetOptionsFixtureTest {
         assertEquals("$where: Facebook's code stays", original.map { it.opcode }, patched.drop(5).map { it.opcode })
     }
 
+    private fun emojiRow(bundle: File) {
+        val check = emojiRowCheck(holders(bundle, EMOJI_ROW))
+        assertNotNull("${bundle.name}: the pre-input socket's applies check wasn't found", check)
+        val where = "${bundle.name}: ${check!!.descriptor()}"
+        val owner = FixtureDex.classes(bundle, setOf(check.definingClass)).values.single()
+        val context = PatchContexts.of(listOf(owner))
+        val method = context.mutableClassDefBy(owner.type).methods.single { it.descriptor() == check.descriptor() }
+        val original = method.implementation!!.instructions.toList()
+        val number = method.implementation!!.registerCount - 1
+
+        method.holdEmojiRow()
+        val patched = method.implementation!!.instructions.toList()
+        assertEquals("$where gains six instructions", original.size + 6, patched.size)
+        assertEquals("$where: Meta AI's pills skip the hook", Opcode.IF_NEZ, patched[0].opcode)
+        assertEquals("$where: on the plugin's number", number, (patched[0] as OneRegisterInstruction).registerA)
+        assertEquals("$where: and land on Facebook's first instruction", 6,
+            (patched[0] as BuilderOffsetInstruction).target.location.index)
+        assertEquals("$where: the emoji row asks the extension", HOLDS_EMOJI_ROW, patched[1].reference())
+        assertEquals("$where: its answer", 0, (patched[2] as OneRegisterInstruction).registerA)
+        assertEquals("$where: a no goes on to Facebook", 6, (patched[3] as BuilderOffsetInstruction).target.location.index)
+        assertEquals("$where: a yes answers no", listOf(Opcode.CONST_4, Opcode.RETURN), patched.subList(4, 6).map { it.opcode })
+        assertEquals("$where: Facebook's code stays", original.map { it.opcode }, patched.drop(6).map { it.opcode })
+    }
+
+    @Test
+    fun `each declared build can keep the emoji row out from over the comment box`() = bundles { bundle ->
+        emojiRow(bundle)
+    }
+
     @Test
     fun `each declared build keeps the thumbs-down out from under a comment`() = bundles { bundle ->
-        commentButtons(bundle)
+        dislike(bundle)
     }
 
     @Test

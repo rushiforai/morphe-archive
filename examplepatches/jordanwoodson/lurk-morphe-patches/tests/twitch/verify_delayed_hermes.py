@@ -18,7 +18,7 @@ def header(data, position):
     return full, body, size, frame, data[full + 36]
 
 def verify(stock, patched, manifest):
-    assert hashlib.sha256(stock).hexdigest() == '928f89c5766562e9cb266485282e90c058dd7947f73c9bcafa1d0fc626debf5e'
+    assert hashlib.sha256(stock).hexdigest() == '059f4713e0cea80b58e68b675fb05d63053056869e2ac60c79f5d57567a3e583'
     assert hashlib.sha256(patched).hexdigest() == manifest['embeddedSha256']
     assert u32(patched, 8) == 98 and u32(patched, 32) == len(patched)
     assert hashlib.sha1(patched[:-20]).digest() == patched[-20:]

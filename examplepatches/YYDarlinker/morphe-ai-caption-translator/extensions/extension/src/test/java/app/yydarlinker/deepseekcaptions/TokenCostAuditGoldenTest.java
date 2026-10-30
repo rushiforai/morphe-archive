@@ -13,7 +13,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-import org.robolectric.annotation.GraphicsMode;
 
 import java.io.File;
 import java.io.InputStream;
@@ -23,12 +22,11 @@ import java.util.Locale;
 
 /**
  * The text of the token cost audit, for states that reach every line of it, in the raw (export) form and in three
- * interface languages. The expected text is a file of the test resources; run with {@code -Dgolden.write=true} to
- * write it again after a change that is meant to alter the text.
+ * interface languages. The raw export has one oracle per state and must be locale-independent.
+ * -Pgolden.write=<review-file> writes a proposed fixture and deliberately fails; review it before replacing expectations.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE, sdk = 28)
-@GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class TokenCostAuditGoldenTest {
     private static final String GOLDEN = "golden/token-cost-audit.txt";
 
@@ -84,7 +82,7 @@ public class TokenCostAuditGoldenTest {
         }
     }
 
-    private static String report(Activity activity, String tag, JSONObject state) {
+    private static Context installState(Activity activity, String tag, JSONObject state) {
         Configuration configuration = new Configuration(activity.getResources().getConfiguration());
         configuration.setLocales(new LocaleList(Locale.forLanguageTag(tag)));
         Context context = activity.createConfigurationContext(configuration);
@@ -92,8 +90,7 @@ public class TokenCostAuditGoldenTest {
                 .edit().putString("state_v1", state.toString()).commit();
         forgetMemory();
         TokenCostAudit.install(context);
-        return "[" + tag + "]\n" + TokenCostAudit.uiText(context, true) + "\n[" + tag + " raw]\n"
-                + TokenCostAudit.uiText(context, false) + "\n";
+        return context;
     }
 
     @Test
@@ -106,17 +103,28 @@ public class TokenCostAuditGoldenTest {
             state(i -> i % 7 == 0 ? 5_000 + i : 0, false),
             state(i -> 50_000 + i * 1_234, false),
         };
-        for (int variant = 0; variant < states.length; variant++) {
-            for (String tag : new String[] {"en", "zh-CN", "ar"}) {
-                all.append("## variant ").append(variant).append('\n').append(report(activity, tag, states[variant]));
+        try {
+            for (int variant = 0; variant < states.length; variant++) {
+                all.append("## variant ").append(variant).append('\n');
+                String raw = null;
+                for (String tag : new String[] {"en", "zh-CN", "ar"}) {
+                    Context context = installState(activity, tag, states[variant]);
+                    all.append('[').append(tag).append("]\n").append(TokenCostAudit.uiText(context, true)).append('\n');
+                    String current = TokenCostAudit.uiText(context, false);
+                    if (raw == null) raw = current;
+                    else assertEquals("raw export must not inherit " + tag, raw, current);
+                }
+                all.append("[raw]\n").append(raw).append('\n');
             }
+        } finally {
+            activity.finish();
         }
         String actual = all.toString();
         if (System.getProperty("golden.write") != null) {
             File out = new File(System.getProperty("golden.write"));
             out.getParentFile().mkdirs();
             Files.write(out.toPath(), actual.getBytes(StandardCharsets.UTF_8));
-            return;
+            org.junit.Assert.fail("Proposed golden written for review; regeneration is not a passing check");
         }
         try (InputStream in = getClass().getClassLoader().getResourceAsStream(GOLDEN)) {
             String expected = new String(in.readAllBytes(), StandardCharsets.UTF_8);

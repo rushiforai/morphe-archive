@@ -60,7 +60,13 @@ public final class ZaloMicroGSupport {
             Object target = reference.get();
             if (target == null) return;
             try {
-                target.getClass().getMethod("A6", String.class).invoke(target, accountName);
+                java.lang.reflect.Method refresh;
+                try {
+                    refresh = target.getClass().getMethod("P6", String.class);
+                } catch (NoSuchMethodException ignored) {
+                    refresh = target.getClass().getMethod("A6", String.class);
+                }
+                refresh.invoke(target, accountName);
             } catch (ReflectiveOperationException | RuntimeException ignored) {
             }
         }, 250);

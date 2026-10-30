@@ -7,23 +7,23 @@ Patches for the LinkedIn app (`com.linkedin.android`, version `4.1.1264`, APKM f
 These patches have no category, so Morphe Manager lists them in one group. Every patch is on by
 default except Material You, Remove gaps and dividers, and GmsCore support.
 
-| Patch | Default | What it does |
-|---|---|---|
-| Hide ads | On | Removes promoted (sponsored) posts from the feed. |
-| Hide promoted jobs | On | Removes promoted job listings from the Jobs tab and job search. |
-| Hide suggested posts | On | Removes "Suggested" posts from people outside your network. |
-| Hide Premium upsells | On | Removes Premium and AI upsell cards and banners, including on profiles and the profile menu. |
-| Feed filters | On | Adds filters you can turn on in Fakh Patches: focus mode, celebrations, job cards, network activity (likes, comments, reposts), video posts, "Recommended for you", puzzle games, the "New posts" pill and "Show translation". All start off. |
-| Disable double-tap like | On | Double tapping a post or photo no longer likes it. |
-| Download media | On | A download button on full screen photos and videos, profile photos and banners. |
-| Messaging | On | Hides sponsored messages, and adds an optional ghost mode that sends no typing indicator and no automatic read receipts. |
-| More tab | On | Hides items of the More tab (Puzzle games, Groups, Events, Newsletters), or moves them to the bottom of the profile menu and removes the tab. Adds a Puzzle games shortcut to the LinkedIn app icon, with its own switch. |
-| Open links directly | On | Opens outside links without LinkedIn's warning page, including `lnkd.in` short links. |
-| Sanitize share links | On | Strips tracking parameters from LinkedIn links you copy or share. |
-| Block tracking | On | Adds a switch, off by default, that stops most LinkedIn analytics events from being sent. |
-| Material You | Off | Wallpaper colors (Android 12+) instead of LinkedIn blue for accents, backgrounds, cards, bars and borders. Some screens drawn by LinkedIn's servers keep their own colors. |
-| Remove gaps and dividers | Off | Removes the gray gaps between posts and the dividers between list items, so the feed and lists are one flat surface. |
-| GmsCore support | Off | Makes "Continue with Google" work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services. Needs microG RE installed and signed in to a Google account. |
+| Category | Patch | Default | What it does |
+|---|---|---|---|
+| Ads | Hide ads | On | Removes promoted (sponsored) posts from the feed. |
+| Ads | Hide promoted jobs | On | Removes promoted job listings from the Jobs tab and job search. |
+| Ads | Hide Premium upsells | On | Removes Premium and AI upsell cards and banners, including on profiles and the profile menu. |
+| Feature | Download media | On | A download button on full screen photos and videos, profile photos and banners. |
+| Feature | More tab | On | Hides items of the More tab (Puzzle games, Groups, Events, Newsletters), or moves them to the bottom of the profile menu and removes the tab. Adds a Puzzle games shortcut to the LinkedIn app icon, with its own switch. |
+| Feature | GmsCore support | Off | Makes "Continue with Google" work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services. Needs microG RE installed and signed in to a Google account. |
+| Feed | Hide suggested posts | On | Removes "Suggested" posts from people outside your network. |
+| Feed | Feed filters | On | Adds filters you can turn on in Fakh Patches: focus mode, celebrations, job cards, network activity (likes, comments, reposts), video posts, "Recommended for you", puzzle games, the "New posts" pill and "Show translation". All start off. |
+| Feed | Disable double-tap like | On | Double tapping a post or photo no longer likes it. |
+| Privacy | Messaging | On | Hides sponsored messages, and adds an optional ghost mode that sends no typing indicator and no automatic read receipts. |
+| Privacy | Open links directly | On | Opens outside links without LinkedIn's warning page, including `lnkd.in` short links. |
+| Privacy | Sanitize share links | On | Strips tracking parameters from LinkedIn links you copy or share. |
+| Privacy | Block tracking | On | Adds a switch, off by default, that stops most LinkedIn analytics events from being sent. |
+| Theme | Material You | Off | Wallpaper colors (Android 12+) instead of LinkedIn blue for accents, backgrounds, cards, bars and borders. Some screens drawn by LinkedIn's servers keep their own colors. |
+| Theme | Remove gaps and dividers | Off | Removes the gray gaps between posts and the dividers between list items, so the feed and lists are one flat surface. |
 
 Settings are in **Fakh Patches** on LinkedIn's Settings screen (profile menu → Settings & Privacy), or long press
 the Home tab.

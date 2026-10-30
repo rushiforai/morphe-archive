@@ -3337,6 +3337,15 @@
           "values": null
         },
         {
+          "key": "dm_sticker_save_box",
+          "title": "Default: dm sticker save box",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
           "key": "download_video_path",
           "title": "Default: download video path",
           "description": null,

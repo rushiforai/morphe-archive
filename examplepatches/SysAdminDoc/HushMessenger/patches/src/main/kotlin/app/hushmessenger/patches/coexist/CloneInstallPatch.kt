@@ -7,9 +7,9 @@ package app.hushmessenger.patches.coexist
 
 import app.hushmessenger.patches.MessengerTarget
 import app.hushmessenger.patches.controls.BASE_PROFILE
-import app.hushmessenger.patches.controls.PROFILE_346816951
-import app.hushmessenger.patches.controls.PROFILE_346816966
-import app.hushmessenger.patches.controls.PROFILE_346816973
+import app.hushmessenger.patches.controls.PROFILE_347014974
+import app.hushmessenger.patches.controls.PROFILE_347014990
+import app.hushmessenger.patches.controls.PROFILE_347014996
 import app.hushmessenger.patches.controls.SHORTCUTS_DIRECTORIES
 import app.hushmessenger.patches.controls.controlProfileFor
 import app.hushmessenger.patches.controls.hookId
@@ -303,25 +303,24 @@ internal fun findCloneSites(classes: Iterable<ClassDef>, pools: Set<String> = ow
 private const val ATTACHMENT_CHECK = "->A00(Ljava/lang/String;)Z"
 private const val BROADCAST = "->A00(Landroid/content/Intent;Landroid/content/Context;)V"
 private const val NOTIFICATION = "->A04(Landroid/os/Bundle;)"
+private const val ARMV7_NOTIFICATION = "->A05(Landroid/os/Bundle;)"
 private const val CLICK = "->onClick(Landroid/view/View;)V"
 
 /**
  * Each build family's backup lookup and attachment check, then every setPackage call that sends Messenger to itself:
  * the in-app broadcast sender, the push notification's click and link intents, the bulk delete link in the inbox and
- * the story link button. The native test checks them on every supported build.
+ * the story link button. Every arm64 build of 585 has the same ones, and each armv7 build its own. The native test
+ * checks them on every supported build.
  */
 internal fun expectedCloneSitesFor(versionCode: String): Set<String> {
     validateVersionCode(versionCode)
     return when (controlProfileFor(versionCode)) {
-        BASE_PROFILE -> setOf("LX/FQg;-><init>()V", "LX/4Tx;$ATTACHMENT_CHECK", "LX/38k;$BROADCAST@1", "LX/8bJ;${NOTIFICATION}LX/B1g;@228",
-            "LX/8bJ;${NOTIFICATION}LX/B1g;@328", "LX/IDE;$CLICK@63", "LX/DFf;$CLICK@160")
-        PROFILE_346816951 -> setOf("LX/FCX;-><init>()V", "LX/4Qs;$ATTACHMENT_CHECK", "LX/39s;$BROADCAST@1", "LX/8Y0;${NOTIFICATION}LX/Az4;@229",
-            "LX/8Y0;${NOTIFICATION}LX/Az4;@329", "LX/I4D;$CLICK@83", "LX/NmZ;$CLICK@159")
-        PROFILE_346816973 -> setOf("LX/FQh;-><init>()V", "LX/4Su;$ATTACHMENT_CHECK", "LX/3A1;$BROADCAST@1", "LX/8Zt;${NOTIFICATION}LX/B10;@229",
-            "LX/8Zt;${NOTIFICATION}LX/B10;@329", "LX/BIM;$CLICK@81", "LX/NZV;$CLICK@168")
-        PROFILE_346816966 -> setOf("LX/NTU;-><init>()V", "LX/4RW;$ATTACHMENT_CHECK", "LX/G9e;$BROADCAST@1",
-            "LX/8XP;->A05(Landroid/os/Bundle;)LX/AyH;@188", "LX/8XP;->A05(Landroid/os/Bundle;)LX/AyH;@288",
-            "LX/Nia;$CLICK@81", "LX/Kwz;$CLICK@158")
+        BASE_PROFILE, PROFILE_347014996 -> setOf("LX/OnZ;-><init>()V", "LX/4ae;$ATTACHMENT_CHECK", "LX/KeQ;$BROADCAST@1",
+            "LX/8cK;${NOTIFICATION}LX/9be;@225", "LX/8cK;${NOTIFICATION}LX/9be;@318", "LX/CVD;$CLICK@81", "LX/Jig;$CLICK@174")
+        PROFILE_347014974 -> setOf("LX/Rwh;-><init>()V", "LX/4dC;$ATTACHMENT_CHECK", "LX/3A4;$BROADCAST@1",
+            "LX/8gl;${ARMV7_NOTIFICATION}LX/9fV;@185", "LX/8gl;${ARMV7_NOTIFICATION}LX/9fV;@282", "LX/Ekg;$CLICK@83", "LX/Joj;$CLICK@174")
+        PROFILE_347014990 -> setOf("LX/J6k;-><init>()V", "LX/4a2;$ATTACHMENT_CHECK", "LX/38w;$BROADCAST@1",
+            "LX/8aO;${ARMV7_NOTIFICATION}LX/9ZI;@184", "LX/8aO;${ARMV7_NOTIFICATION}LX/9ZI;@281", "LX/CTz;$CLICK@81", "LX/MEB;$CLICK@166")
         else -> fail("version code $versionCode has no checked clone sites")
     }
 }

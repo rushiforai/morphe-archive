@@ -206,6 +206,7 @@ public final class SettingsBackup {
             Settings.HIDE_REEL_LIKE_BUTTON,
             Settings.HIDE_REEL_COMMENT_BUTTON,
             Settings.HIDE_REEL_SHARE_BUTTON,
+            Settings.SHOW_REEL_COMMENT_BUTTON,
             Settings.HIDE_REEL_SOUND_BUTTON,
             Settings.HIDE_REEL_AUDIO_LINE,
             Settings.HIDE_SLOW_CONNECTION_MESSAGE,
@@ -232,16 +233,19 @@ public final class SettingsBackup {
             Settings.TAP_SHOWS_CONTROLS,
             Settings.DOUBLE_TAP_OPENS_COMMENTS,
             Settings.LONG_PRESS_OPENS_COMMENTS,
+            Settings.SELECT_POST_TEXT,
             Settings.KEEP_REEL_SPEED,
             Settings.KEEP_VIDEO_SPEED,
             Settings.SLOWER_REEL_SPEEDS,
             Settings.HOLD_REEL_FOR_2X,
             Settings.HOLD_REEL_RIGHT_EDGE,
             Settings.HOLD_FEED_VIDEO_FOR_2X,
+            Settings.HIDE_2X_LOCK_HINT,
             Settings.DEFAULT_COMMENT_ORDER,
             Settings.HIDE_META_AI_SUMMARIES,
             Settings.LIKE_ONLY,
             Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS,
+            Settings.HIDE_COMMENT_EMOJI_ROW,
             Settings.OPEN_REPLY_THREADS,
             Settings.LOAD_WHOLE_REPLY_THREADS,
             Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES,
@@ -493,6 +497,7 @@ public final class SettingsBackup {
      */
     static final StringSetting BADGE = Settings.BADGE_COLOR;
     static final StringSetting LOGO = Settings.LOGO_COLOR;
+    static final StringSetting TAB = Settings.TAB_COLOR;
 
     /**
      * Home header text, held in a file as its row keeps it: blank, or one line {@link HeaderText}
@@ -584,7 +589,7 @@ public final class SettingsBackup {
     static final List<Setting<?>> VALUES = Collections.unmodifiableList(
             Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, CEILING, REELS_ORDER, SHARE_ITEMS, MENU_TILES, HOME_FEED, BACKGROUND, LIGHT_BACKGROUND, HEADER_TEXT, SEEN_KEEP, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
                     FILE_NAME, PHOTO_NAME, ACTION, APP, START, SUBTAB, ORDER, PLAYBACK, REELS_QUALITY, STORIES_QUALITY,
-                    QUIET_FROM, QUIET_UNTIL, LOCK_AFTER, TEXT_SIZE, ACCENT, BADGE, LOGO));
+                    QUIET_FROM, QUIET_UNTIL, LOCK_AFTER, TEXT_SIZE, ACCENT, BADGE, LOGO, TAB));
 
     /** The longest name or value a file holds that isn't a word list, far past a package name. */
     private static final int MAX_OTHER_CHARS = 1024;
@@ -696,6 +701,7 @@ public final class SettingsBackup {
         private static final String LIGHT_BACKGROUND_NAME = "amoled_light_background";
         private static final String BADGE_NAME = "badge_color";
         private static final String LOGO_NAME = "logo_color";
+        private static final String TAB_NAME = "tab_color";
         private static final String HEADER_TEXT_NAME = "header_text";
         private static final String REELS_ORDER_NAME = "reels_order";
 
@@ -797,6 +803,9 @@ public final class SettingsBackup {
         /** The Logo color the file holds, the same way. */
         @Nullable
         String logo;
+        /** The Selected tab color the file holds, the same way. */
+        @Nullable
+        String tab;
         /** The Home header text the file holds, the same way. */
         @Nullable
         String headerText;
@@ -1027,6 +1036,8 @@ public final class SettingsBackup {
             if (badgeChange != null) changes.put(BADGE, badgeChange);
             String logoChange = logoChange();
             if (logoChange != null) changes.put(LOGO, logoChange);
+            String tabChange = tabChange();
+            if (tabChange != null) changes.put(TAB, tabChange);
             String headerTextChange = headerTextChange();
             if (headerTextChange != null) changes.put(HEADER_TEXT, headerTextChange);
             ReelsOrder reelsOrderChange = reelsOrderChange();
@@ -1259,6 +1270,13 @@ public final class SettingsBackup {
             return logo.equals(LOGO.savedValue()) ? null : logo;
         }
 
+        /** The Selected tab color this file sets, or null when it names none or the one already set. */
+        @Nullable
+        String tabChange() {
+            if (tab == null) return null;
+            return tab.equals(TAB.savedValue()) ? null : tab;
+        }
+
         /** The Home header text this file sets, or null when it names none or the one already set. */
         @Nullable
         String headerTextChange() {
@@ -1324,6 +1342,7 @@ public final class SettingsBackup {
             if (lightBackground != null) state.putString(LIGHT_BACKGROUND_NAME, lightBackground);
             if (badge != null) state.putString(BADGE_NAME, badge);
             if (logo != null) state.putString(LOGO_NAME, logo);
+            if (tab != null) state.putString(TAB_NAME, tab);
             if (headerText != null) state.putString(HEADER_TEXT_NAME, headerText);
             if (reelsOrder != null) state.putString(REELS_ORDER_NAME, reelsOrder.fileValue);
             state.putInt(UNKNOWN, unknown);
@@ -1395,6 +1414,8 @@ public final class SettingsBackup {
             read.badge = isMarkColor(badge) ? (String) badge : null;
             Object logo = state.get(LOGO_NAME);
             read.logo = isMarkColor(logo) ? (String) logo : null;
+            Object tab = state.get(TAB_NAME);
+            read.tab = isMarkColor(tab) ? (String) tab : null;
             Object headerText = state.get(HEADER_TEXT_NAME);
             read.headerText = HeaderText.isClean(headerText instanceof String ? (String) headerText : null)
                     ? (String) headerText : null;
@@ -1475,6 +1496,8 @@ public final class SettingsBackup {
             switches.put(BADGE.key, badge == null ? "" : badge);
             String logo = MarkColors.stored(of(LOGO));
             switches.put(LOGO.key, logo == null ? "" : logo);
+            String tab = MarkColors.stored(of(TAB));
+            switches.put(TAB.key, tab == null ? "" : tab);
             switches.put(HEADER_TEXT.key, HeaderText.clean(of(HEADER_TEXT)));
             return new JSONObject()
                     .put(FORMAT_NAME, FORMAT)
@@ -1604,6 +1627,7 @@ public final class SettingsBackup {
         String lightBackground = null;
         String badge = null;
         String logo = null;
+        String tab = null;
         String headerText = null;
         ReelsOrder reelsOrder = null;
         JSONObject values = (JSONObject) settings;
@@ -1687,11 +1711,12 @@ public final class SettingsBackup {
                 lightBackground = (String) value;
                 continue;
             }
-            if (BADGE.key.equals(name) || LOGO.key.equals(name)) {
+            if (BADGE.key.equals(name) || LOGO.key.equals(name) || TAB.key.equals(name)) {
                 Object value = values.opt(name);
                 if (!isMarkColor(value)) throw new Rejected(Reason.VALUE, "Not a color code: " + name);
                 if (BADGE.key.equals(name)) badge = (String) value;
-                else logo = (String) value;
+                else if (LOGO.key.equals(name)) logo = (String) value;
+                else tab = (String) value;
                 continue;
             }
             if (HEADER_TEXT.key.equals(name)) {
@@ -1851,6 +1876,7 @@ public final class SettingsBackup {
         read.lightBackground = lightBackground;
         read.badge = badge;
         read.logo = logo;
+        read.tab = tab;
         read.headerText = headerText;
         read.reelsOrder = reelsOrder;
         return read;
@@ -1866,7 +1892,7 @@ public final class SettingsBackup {
         return value instanceof String && value.equals(AmoledLightBackground.stored((String) value));
     }
 
-    /** A Badge or Logo color as its row keeps it, which {@link MarkColors} takes. */
+    /** A Badge, Logo or Selected tab color as its row keeps it, which {@link MarkColors} takes. */
     static boolean isMarkColor(@Nullable Object value) {
         return value instanceof String && value.equals(MarkColors.stored((String) value));
     }

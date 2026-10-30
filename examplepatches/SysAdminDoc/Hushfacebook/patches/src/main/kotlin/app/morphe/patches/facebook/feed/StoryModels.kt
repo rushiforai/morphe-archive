@@ -8,12 +8,14 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import java.security.MessageDigest
 
 /** Kept name. The feed's story model, whose flags the story rules read. */
@@ -53,13 +55,12 @@ private fun MethodReference.isTreeCall(name: String, parameters: List<String>): 
         parameterTypes.map { it.toString() } == parameters
 
 /**
- * Whether [method] is GraphQLStory's accessor of the model held under [field], of GraphQL type
- * [type]: public, no arguments, returning an object, and a body that asks `getCachedModel` for
- * that field key as that type tag. The two keys together pick it: the accessors beside it load
- * other ones.
+ * Whether [method] is [owner]'s accessor of the model held under [field], of GraphQL type [type]:
+ * public, no arguments, returning an object, and a body that asks `getCachedModel` for that field
+ * key as that type tag. The two keys together pick it: the accessors beside it load other ones.
  */
-internal fun isStoryModelAccessor(method: Method, field: String, type: String): Boolean {
-    if (method.definingClass != GRAPHQL_STORY || method.parameterTypes.isNotEmpty()) return false
+internal fun isModelAccessor(method: Method, owner: String, field: String, type: String): Boolean {
+    if (method.definingClass != owner || method.parameterTypes.isNotEmpty()) return false
     if (!AccessFlags.PUBLIC.isSet(method.accessFlags) || AccessFlags.STATIC.isSet(method.accessFlags)) return false
     if (method.returnType.length < 3 || !method.returnType.startsWith("L")) return false
     val body = method.body()
@@ -68,9 +69,25 @@ internal fun isStoryModelAccessor(method: Method, field: String, type: String): 
         body.any { it.methodReference()?.isTreeCall("getCachedModel", listOf("I", "Ljava/lang/Class;", "I")) == true }
 }
 
+/** Whether [method] is GraphQLStory's accessor of the model under [field] as [type] ([isModelAccessor]). */
+internal fun isStoryModelAccessor(method: Method, field: String, type: String): Boolean =
+    isModelAccessor(method, GRAPHQL_STORY, field, type)
+
+/** Every accessor [owner] declares of the model under [field] as [type]. A patch wants exactly one. */
+internal fun modelAccessors(owner: ClassDef, field: String, type: String): List<Method> =
+    owner.methods.filter { isModelAccessor(it, owner.type, field, type) }
+
 /** Every accessor [story] declares of the model under [field] as [type]. A patch wants exactly one. */
 internal fun storyModelAccessors(story: ClassDef, field: String, type: String): List<Method> =
     story.methods.filter { isStoryModelAccessor(it, field, type) }
+
+/**
+ * The one class [this] names with `const-class`, or null: for a model list accessor, the class it
+ * reads its elements as, which is the class their own accessors are declared on.
+ */
+internal fun Method.loadedClass(): String? = body().mapNotNull {
+    if (it.opcode == Opcode.CONST_CLASS) ((it as ReferenceInstruction).reference as? TypeReference)?.type else null
+}.singleOrNull()
 
 /**
  * Whether [method] is a model's accessor of the enum held under [field]: public, no arguments,

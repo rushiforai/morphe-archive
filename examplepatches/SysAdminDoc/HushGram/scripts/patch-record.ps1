@@ -95,8 +95,9 @@ function Test-PatchRecord {
     #>
     param([string]$Apk, [string]$Result, [string]$Record)
     if (-not (Test-Path -LiteralPath $Record -PathType Leaf)) { return "there is no patch record at $Record" }
-    try { $stamp = Get-Content -LiteralPath $Record -Raw | ConvertFrom-Json }
-    catch { return "the patch record at $Record doesn't parse" }
+    # ConvertFrom-PatchJson comes from patch-report.ps1, which every loader of this file loads first.
+    try { $stamp = ConvertFrom-PatchJson (Get-Content -LiteralPath $Record -Raw) }
+    catch { return "the patch record at $Record doesn't parse ($($_.Exception.Message))" }
     if ($stamp.schemaVersion -ne 1) { return "the patch record at $Record has schema $($stamp.schemaVersion), not 1" }
     if ([string]$stamp.resultSha256 -cne (Get-FileHash -LiteralPath $Result -Algorithm SHA256).Hash.ToLowerInvariant()) {
         return 'the patch result is not the one the record was written with'

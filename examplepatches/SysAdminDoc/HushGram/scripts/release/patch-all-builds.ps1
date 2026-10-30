@@ -113,7 +113,7 @@ if (-not $PatchList) { $PatchList = Join-Path $Root 'patches-list.json' }
 if ($Only) {
     $builds = @($builds | Where-Object { $_.Code -in $Only -or $_.Version -in $Only -or $_.Label -in $Only })
 } else {
-    $declaredVersions = @((Get-PatchTarget -PatchList (Get-Content -LiteralPath $PatchList -Raw | ConvertFrom-Json)).PackageVersions)
+    $declaredVersions = @((Get-PatchTarget -PatchList (ConvertFrom-PatchJson (Get-Content -LiteralPath $PatchList -Raw))).PackageVersions)
     foreach ($build in @($builds | Where-Object { $_.Version -notin $declaredVersions })) {
         Write-Host "[all-builds] skipped $($build.Label), not the declared version $($declaredVersions -join ' or ') (name it with -Only to patch it)"
     }
@@ -140,7 +140,7 @@ if ($FromGate) {
 if (-not (Test-Path -LiteralPath $Bundle -PathType Leaf)) { throw "No bundle at $Bundle. Run :patches:buildAndroid, or pass -Bundle." }
 $Bundle = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Bundle)
 $bundleHash = (Get-FileHash -LiteralPath $Bundle -Algorithm SHA256).Hash.ToUpperInvariant()
-$catalog = Get-Content -LiteralPath $PatchList -Raw | ConvertFrom-Json
+$catalog = ConvertFrom-PatchJson (Get-Content -LiteralPath $PatchList -Raw)
 $names = @(Get-SameAppPatchNames -PatchList $catalog)
 $target = Get-PatchTarget -PatchList $catalog
 if (-not $OutDir) { $OutDir = Join-Path ([IO.Path]::GetTempPath()) "hushgram-all-builds-$([guid]::NewGuid().ToString('N').Substring(0, 12))" }
@@ -197,7 +197,7 @@ foreach ($build in $builds) {
             $entry.warnings = @(Get-Content -LiteralPath $log | Where-Object { $_ -match '\b(WARNING|SEVERE)\b' } | ForEach-Object { $_.Trim() })
         }
         if (Test-Path -LiteralPath $result -PathType Leaf) {
-            $report = Get-Content -LiteralPath $result -Raw | ConvertFrom-Json
+            $report = ConvertFrom-PatchJson (Get-Content -LiteralPath $result -Raw)
             $appliedNames = @(Get-ReportPatchNames -Entries $report.appliedPatches)
             $entry.applied = @($names | Where-Object { $appliedNames -ccontains $_ }).Count
             $entry.failed = @(foreach ($failure in @($report.failedPatches)) {

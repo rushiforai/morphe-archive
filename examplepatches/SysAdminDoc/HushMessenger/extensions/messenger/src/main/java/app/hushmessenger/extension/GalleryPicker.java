@@ -26,6 +26,8 @@ final class GalleryPicker {
     static final String SHARE_HANDLER = "com.facebook.messenger.intents.ShareIntentHandler";
     /** The share sheet reads the chats to put on top from this key as a list of threads or as user ids. */
     static final String SHARE_TARGETS = "android.intent.extra.shortcut.ID";
+    /** Google Photos' provider. A pick of something already on the phone carries its MediaStore URI in its path. */
+    static final String PHOTOS_PROVIDER = "com.google.android.apps.photos.contentprovider";
     private static final String[] MEDIA = {"image/*", "video/*"};
     enum Outcome { NOT_USED, PICKER_MISSING, COMPONENT_MISSING, LAUNCH_FAILED, RESULT_INVALID, RESULT_REVOKED,
         RESULT_TIMEOUT, RESULT_BUSY, CANCELED, SELECTED }
@@ -106,15 +108,16 @@ final class GalleryPicker {
      * the chat can still open the items once the pick screen is gone. Gallery apps often send no type, and the chat sends
      * an item without one as a plain file, so the type comes from the item then. A pick of several comes back in the
      * ClipData, with or without the first in the data. The first stays the data, so the chat still opens that one when the
-     * switch is turned off before it comes back, and the rest ride along marked.
+     * switch is turned off before it comes back, and the rest ride along marked. Runs on a worker, since it can open items.
      */
     static Intent handBack(Context context, Intent picked) {
         if (picked == null) return null;
         java.util.List<Uri> items = new java.util.ArrayList<>();
-        if (picked.getData() != null) items.add(picked.getData());
+        if (picked.getData() != null) items.add(onPhone(context, picked.getData()));
         ClipData clip = picked.getClipData();
         for (int i = 0; clip != null && i < clip.getItemCount(); i++) {
             Uri item = clip.getItemAt(i).getUri();
+            if (item != null) item = onPhone(context, item);
             if (item != null && !items.contains(item)) items.add(item);
         }
         if (items.isEmpty()) return null;
@@ -138,6 +141,27 @@ final class GalleryPicker {
             result.putExtra(ITEMS_MARK, true);
         }
         return result.putExtra(RESULT_PREPARED, true).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+    }
+
+    /**
+     * The phone's own MediaStore item a Google Photos pick wraps, when Messenger can open it, otherwise the item as picked.
+     * Messenger reads that item with its own media access, as its own gallery does, so sending it no longer leans on the
+     * grant Photos gave (#103). A cloud-only pick has no MediaStore URI in it and stays as picked, and so does one the phone
+     * doesn't list as a photo or video. Its type then comes from the phone, not from what Photos said.
+     */
+    static Uri onPhone(Context context, Uri item) {
+        if (!"content".equals(item.getScheme()) || !PHOTOS_PROVIDER.equals(item.getAuthority())) return item;
+        for (String segment : item.getPathSegments()) {
+            if (!segment.startsWith("content://media/")) continue;
+            Uri media = Uri.parse(segment);
+            try (android.content.res.AssetFileDescriptor file = context.getContentResolver().openAssetFileDescriptor(media, "r")) {
+                String type = file == null ? null : typeOf(context, media);
+                return type != null && mediaType(type) ? media : item;
+            } catch (java.io.IOException | RuntimeException unreadable) {
+                return item;
+            }
+        }
+        return item;
     }
 
     private static String typeOf(Context context, Uri item) {

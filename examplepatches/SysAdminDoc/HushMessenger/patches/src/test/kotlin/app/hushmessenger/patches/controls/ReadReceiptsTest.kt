@@ -34,9 +34,9 @@ private val FINAL = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
 private val SEEN_BODY = "const-string v0, \"$CHAT_SEEN_JOB\"\nconst-string v1, \"$CHAT_SEEN_TRACE\"\nreturn-void"
 private const val DISPATCH = "LX/Dispatch;->send(${FB_USER_SESSION}LX/Enum;LX/Message;Ljava/lang/String;Ljava/lang/String;)V"
 
-/** Keep the native instruction positions while omitting unrelated composer logic. The default is 584's body. */
-private fun sendBody(changes: Map<Int, String> = emptyMap(), shape: ReplyReadShape = REPLY_READ_SHAPE): String {
-    val c = MutableList(shape.size) { "nop" }
+/** Keep the native instruction positions while omitting unrelated composer logic. The default is 585's arm64 body. */
+private fun sendBody(changes: Map<Int, String> = emptyMap(), shape: ReplyReadShape = REPLY_READ_SHAPE, size: Int = shape.sizes.max()): String {
+    val c = MutableList(size) { "nop" }
     val n = shape.nullThread
     val d = shape.dispatch
     val s = d - shape.stage
@@ -49,7 +49,7 @@ private fun sendBody(changes: Map<Int, String> = emptyMap(), shape: ReplyReadSha
         shape.absent to ":null_thread\nmove-object v12, v5", shape.absent + 1 to "goto :thread_ready",
         s - 3 to ":send_stage\nnop", s - 1 to "move-object/from16 v11, v${shape.composerReg}", s to "move-object v12, v10", d - 2 to "move-object v15, v0",
         d to "invoke-interface/range {v11 .. v16}, $DISPATCH", d + 1 to "const/4 v0, 0x0", d + 2 to "const/4 v1, 0x0", d + 33 to "return-void",
-        shape.size - 1 to "return-void",
+        size - 1 to "return-void",
     ).plus(changes).forEach { (i, value) -> c[i] = value }
     return c.joinToString("\n")
 }
@@ -136,12 +136,23 @@ class ReadReceiptsTest {
         assertStockCode(before, c, setOf(s, d + 2, d + 3, d + 4), "send dispatcher")
     }
 
+    /** The 32-bit builds end four instructions sooner with the seam at the same indices. */
+    @Test fun theShorter32BitBodyKeepsTheSameSeam() {
+        val method = fixtureMethod(SYNTHETIC_SEND_EVENT, sendBody(size = REPLY_READ_SHAPE.sizes.min()), 35, STATIC)
+        val before = method.code()
+        val d = REPLY_READ_SHAPE.dispatch
+        assertEquals(d, method.validateReplyRead())
+        method.injectReplyRead()
+        assertStockCode(before, method.code(), setOf(d - REPLY_READ_SHAPE.stage, d + 2, d + 3, d + 4), "32-bit send dispatcher")
+    }
+
     /** Messenger 582's dispatcher had one more parameter check, so the same seam sat four instructions later. It's refused. */
     @Test fun a582DispatcherOrABodyOfAnotherSizeIsRefused() {
-        val shape582 = ReplyReadShape(size = 402, composer = 13, session = 25, nullThread = 31, absent = 73, dispatch = 239)
+        val shape582 = ReplyReadShape(sizes = setOf(402), composer = 13, session = 25, nullThread = 31, absent = 73, dispatch = 239)
         for ((label, method) in listOf(
             "582 send dispatcher" to send(shape = shape582),
             "one more instruction" to fixtureMethod(SYNTHETIC_SEND_EVENT, sendBody() + "\nnop", 35, STATIC),
+            "between the two sizes" to fixtureMethod(SYNTHETIC_SEND_EVENT, sendBody(size = 395), 35, STATIC),
         )) {
             val before = method.code()
             assertFailsWith<PatchException>(label) { method.injectReplyRead() }

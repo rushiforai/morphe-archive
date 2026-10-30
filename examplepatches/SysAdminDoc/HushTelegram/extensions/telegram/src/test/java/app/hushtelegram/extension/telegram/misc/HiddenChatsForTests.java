@@ -57,11 +57,13 @@ public final class HiddenChatsForTests {
         public final SparseArray<ArrayList<Object>> folders = new SparseArray<>();
         public Object[] filters = new Object[0];
         public int selected = 0;
+        public int slots = 4;
         public final Map<Integer, Long> users = new HashMap<>();
         /** Each account's chat list (folder 0) and archive (folder 1). */
         public final Map<String, List<Object>> chats = new HashMap<>();
         public final Map<Long, String> names = new HashMap<>();
         public final List<Integer> resorted = new ArrayList<>();
+        public final List<Integer> recounted = new ArrayList<>();
         public boolean broken;
 
         public Fake folder(int id, long... dialogs) {
@@ -91,10 +93,16 @@ public final class HiddenChatsForTests {
             return selected;
         }
 
+        @Override public int accountSlots() {
+            if (broken) throw new IllegalStateException("Telegram changed");
+            return slots;
+        }
+
         @Override public long userId(int account) { return users.getOrDefault(account, 0L); }
         @Override public List<?> dialogs(int account, int folder) { return chats.get(account + "/" + folder); }
         @Override public String peerName(int account, long id) { return names.get(id); }
         @Override public void resort(int account) { resorted.add(account); }
+        @Override public void recount(int account) { recounted.add(account); }
 
         /** The long press menu's items as "id text", and the chat ids a long press picked. */
         public final List<String> menu = new ArrayList<>();

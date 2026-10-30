@@ -102,11 +102,14 @@ internal fun sendChatMessageFingerprint(mutation: String) = Fingerprint(
 
 // Auto-claim channel points.
 
-// The presenter behind the channel points button in chat. It holds the claim action.
+// The presenter behind the channel points button in chat. It holds the claim action. The whole string:
+// Morphe Patcher 2.0 compares fingerprint strings exactly.
 internal object PointsButtonPresenterFingerprint : Fingerprint(
     name = "<init>", returnType = "V",
     strings = listOf(
-        "processStateUpdate(Ltv/twitch/android/shared/community/points/presenters/CommunityPointsButtonStateProvider\$State;",
+        "processStateUpdate(Ltv/twitch/android/shared/community/points/presenters/CommunityPointsButtonStateProvider\$State;" +
+            "Ltv/twitch/android/shared/community/points/presenters/CommunityPointsButtonStateProvider\$UpdateEvent;)" +
+            "Ltv/twitch/android/core/mvp/presenter/StateAndAction;",
     ),
 )
 

@@ -11,8 +11,9 @@ import java.util.regex.Pattern;
 
 /**
  * The Report a problem row's GitHub link: a new issue with the versions, the phone and the controls that are on
- * filled in, and the two questions left for the person to answer. The repository has no issue form, so it all goes in
- * the body and the title is left for them.
+ * filled in, and the two questions left for the person to answer. The repository's bug form
+ * (.github/ISSUE_TEMPLATE/bug_report.yml) is for people who arrive through GitHub; this link opens a blank issue with
+ * everything in the body instead, so it keeps working from every installed version, and the title is left for them.
  *
  * <p>It carries only what a report needs: version names, the Messenger build it was patched from (which Spoof package
  * version hides from Android's version code), the phone's maker and model, Android's version, whether
@@ -37,7 +38,7 @@ final class ProblemReport {
     static final Pattern ORIGINAL =Pattern.compile("([0-9][0-9A-Za-z.]{0,31})\\|([1-9][0-9]{0,9})\\|([0-9A-Za-z]{1,16})");
 
     /**
-     * "584.1.0.61.98 (346816935, base mapping)": the build the patch started from, which Android's own version code
+     * "585.0.0.53.94 (347015062, base mapping)": the build the patch started from, which Android's own version code
      * stops saying once Spoof package version is in. "unknown" for a build patched before the patch wrote it down or a
      * value that doesn't parse, never a guess from the installed version.
      */

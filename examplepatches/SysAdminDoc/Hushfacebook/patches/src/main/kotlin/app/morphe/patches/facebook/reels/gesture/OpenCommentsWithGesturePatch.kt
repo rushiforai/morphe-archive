@@ -73,7 +73,8 @@ val openCommentsWithGesturePatch = bytecodePatch(
     name = "Open comments with a gesture",
     description = "Open a reel's comments with a double tap or a long press, on the sheet the Comment button opens, " +
         "instead of liking or holding, and a feed post's with a long press on its photo or name line. Starts off. " +
-        "Turn it on in Hushfacebook settings > Reels and Watch.",
+        "Turn it on in Hushfacebook settings > Reels and Watch. It also lets a long press on a post's text open " +
+        "that text to select part of it, a switch in Hushfacebook settings > News feed.",
 ) {
     category("Reels")
     dependsOn(settingsPatch, turnOffDoubleTapLikePatch, holdReelFor2xPatch)

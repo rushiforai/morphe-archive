@@ -190,11 +190,11 @@ class SpoofSelfReadsTest {
         assertTrue(spoofSelfReadsPatch in spoofPackageVersionPatch.dependencies)
     }
 
-    /** The armv7 builds expect ACRA's extra pre-Android 9 read, and every arm64 build the usual 15. */
+    /** The armv7 builds expect ACRA's extra pre-Android 9 read, and every arm64 build the usual 17. */
     @Test fun theArmv7BuildsExpectOneMoreRead() {
         for (code in MessengerTarget.VERSION_CODES) {
-            val armv7 = code in setOf(346816949, 346816966, 346817019)
-            assertEquals(if (armv7) 16 else 15, selfVersionReadsFor(controlProfileFor(code.toString())), "$code")
+            val armv7 = code in setOf(347014974, 347014990)
+            assertEquals(if (armv7) 18 else 17, selfVersionReadsFor(controlProfileFor(code.toString())), "$code")
         }
     }
 
@@ -216,7 +216,7 @@ class SpoofSelfReadsTest {
                 continue
             }
             val found = planSelfVersionReads(methods, expected)
-            // The obfuscated owners move between 584.1's families, so those two go by the version check's log line and the trace hook's name.
+            // The obfuscated owners move between 585's families, so those two go by the version check's log line and the trace hook's name.
             val versionCheck = methods.filter { m ->
                 m.implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string?.startsWith(VERSION_CHECK_LOG) == true } == true
             }.map { it.hookId() }.distinct()
@@ -225,6 +225,7 @@ class SpoofSelfReadsTest {
             assertEquals(1, found.count { it.startsWith("LX/") && it.contains(";->logOnTraceEnd(") }, "$apk $found")
             for (anchor in listOf("Lcom/facebook/appcomponentmanager/AppComponentManagerService;->A06(",
                 "Lcom/facebook/acra/CrashTimeDataCollector;->getPackageManagerVersionCode(",
+                "Lcom/android/billingclient/api/ProxyBillingActivity;->onCreate(",
                 "Lcom/mapbox/mapboxsdk/http/HttpIdentifier;->getIdentifier(",
                 "Lcom/meta/hatch/ui/settings/bugreport/data/HatchBugReportSender\$send\$1;->invokeSuspend(")) {
                 assertTrue(found.any { it.startsWith(anchor) }, "$apk $anchor")

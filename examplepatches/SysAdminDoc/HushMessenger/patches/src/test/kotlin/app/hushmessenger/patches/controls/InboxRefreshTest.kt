@@ -35,11 +35,13 @@ class InboxRefreshTest {
     @Test fun theRouteIsTheSubscribeCallAndTheCountItsObserverSets() {
         val route = resolve(inboxRefreshClasses())
         assertEquals(INBOX_ROUTE, route)
-        assertEquals("$INBOX_SUPPLIER->A04($INBOX_SUPPLIER)V|$INBOX_SUPPLIER->A00:I", route.toString())
+        assertEquals("$INBOX_SUPPLIER->A0A(${INBOX_SUPPLIER}Z)V|$INBOX_SUPPLIER->A00:I", route.toString())
         // The supplier's other static calls and the observer's other methods don't get in the way.
-        val other = fixtureMethod("$INBOX_SUPPLIER->A05($INBOX_SUPPLIER)V", "return-void", 1,
+        val other = fixtureMethod("$INBOX_SUPPLIER->A05(${INBOX_SUPPLIER}Z)V", "return-void", 2,
             AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
         assertEquals(INBOX_ROUTE, resolve(listOf(inboxSupplierClass(subscribe = listOf(inboxSubscribeMethod(), other)), inboxObserverClass())))
+        // Writes to other registers between the early 1 and the check change nothing.
+        assertEquals(INBOX_ROUTE, resolve(listOf(inboxSupplierClass(), inboxObserverClass(between = "const/4 v1, 0x0\nconst/4 v3, 0x5"))))
     }
 
     @Test fun anyChangeToTheRouteFailsClosed() {
@@ -54,8 +56,14 @@ class InboxRefreshTest {
                 inboxSubscribeMethod(init = "<init>(Ljava/lang/Object;Ljava/lang/Object;)V"))), inboxObserverClass()),
             "a shared lambda class picked by an int" to listOf(inboxSupplierClass(subscribe = listOf(
                 inboxSubscribeMethod(init = "<init>(Ljava/lang/Object;I)V", args = "v1, v2, v4"))), inboxObserverClass()),
-            "supplier-only constructor given an extra value" to listOf(inboxSupplierClass(subscribe = listOf(
-                inboxSubscribeMethod(args = "v1, v2, v4"))), inboxObserverClass()),
+            "observer constructor given an extra value" to listOf(inboxSupplierClass(subscribe = listOf(
+                inboxSubscribeMethod(args = "v1, v2, v4, v3"))), inboxObserverClass()),
+            "584's observer built from the supplier alone" to listOf(inboxSupplierClass(subscribe = listOf(
+                inboxSubscribeMethod(init = "<init>($INBOX_SUPPLIER)V", args = "v1, v2"))), inboxObserverClass()),
+            "584's subscribe call without its flag" to listOf(inboxSupplierClass(subscribe = listOf(
+                inboxSubscribeMethod(params = INBOX_SUPPLIER))), inboxObserverClass()),
+            "subscribe flag changed" to listOf(inboxSupplierClass(subscribe = listOf(
+                inboxSubscribeMethod(params = "${INBOX_SUPPLIER}I"))), inboxObserverClass()),
             "observer created elsewhere" to listOf(inboxSupplierClass(subscribe = listOf(inboxSubscribeMethod(between = "const/4 v3, 0x0"))),
                 inboxObserverClass()),
             "observer missing" to listOf(inboxSupplierClass()),
@@ -63,25 +71,16 @@ class InboxRefreshTest {
             "no list callback" to listOf(inboxSupplierClass(), inboxObserverClass(callbacks = 0)),
             "loaded value changed" to listOf(inboxSupplierClass(), inboxObserverClass(high = 4)),
             "empty value changed" to listOf(inboxSupplierClass(), inboxObserverClass(low = 0)),
-            "comparison changed" to listOf(inboxSupplierClass(), inboxObserverClass(branch = "if-ge")),
+            "comparison changed" to listOf(inboxSupplierClass(), inboxObserverClass(branch = "if-lt")),
+            "the early 1 overwritten before the check" to listOf(inboxSupplierClass(),
+                inboxObserverClass(between = "invoke-interface {p1}, Ljava/util/List;->hashCode()I\nmove-result v2")),
+            "a wide value over the early 1" to listOf(inboxSupplierClass(), inboxObserverClass(between = "const-wide/16 v1, 0x0")),
+            "a jump lands between the early 1 and the check" to listOf(inboxSupplierClass(),
+                inboxObserverClass(between = "if-eqz p1, :mid\n:mid")),
+            "no early value at all" to listOf(inboxSupplierClass(), inboxObserverClass(low = 1, between = "move-object v2, p1")),
             "second count write" to listOf(inboxSupplierClass(), inboxObserverClass(secondWrite = true)),
             "count not declared" to listOf(inboxSupplierClass(), inboxObserverClass(field = "A09")),
             "count not read by the list" to listOf(inboxSupplierClass(), inboxObserverClass(field = "A01")),
-        )
-        for ((change, classes) in changed) {
-            assertFailsWith<PatchException>(change) { resolve(classes, inboxItemsMethod()) }
-        }
-    }
-
-    @Test fun theForwardedCallbackOf584ResolvesTheSameRoute() {
-        assertEquals(INBOX_ROUTE, resolve(inboxForwardedClasses()))
-    }
-
-    @Test fun aForwardedCallbackThatIsNotExactlyTheForwardFailsClosed() {
-        val changed = mapOf(
-            "forward target missing" to inboxForwardedClasses(forwardTarget = "A07"),
-            "no null guard" to inboxForwardedClasses(guard = "const/4 v2, 0x0"),
-            "supplier not passed" to inboxForwardedClasses(callsite = "invoke-static {p1, p1}, $INBOX_SUPPLIER->A06($INBOX_SUPPLIER" + "Ljava/util/List;)V"),
         )
         for ((change, classes) in changed) {
             assertFailsWith<PatchException>(change) { resolve(classes, inboxItemsMethod()) }

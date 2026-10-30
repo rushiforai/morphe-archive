@@ -38,7 +38,22 @@ Il codice delle diverse app e separato per package sotto `patches/src/main/kotli
 ## Elenco automatico delle patch pubblicate
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.5.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+<details open>
+<summary>📦 DNS Changer&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 3.0.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [DNS Changer - Force Pro test D2](#dns-changer-force-pro-test-d2) | Test only: forces z() to return true and logs the forced value; does not change purchases. |  |
+
+</details>
+
 <details open>
 <summary>📦 Flowx&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>

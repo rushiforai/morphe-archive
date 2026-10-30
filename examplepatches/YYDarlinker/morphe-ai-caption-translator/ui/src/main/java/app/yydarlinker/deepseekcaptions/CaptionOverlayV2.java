@@ -26,14 +26,12 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import app.yydarlinker.caption.contracts.CaptionContracts;
-import app.yydarlinker.caption.contracts.CaptionContracts.Basis;
-import app.yydarlinker.caption.contracts.CaptionContracts.Unit;
-import app.yydarlinker.caption.contracts.CaptionContracts.Window;
 
 import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -102,12 +100,11 @@ final class CaptionOverlay {
     // ---- What is to be shown ----
 
     private static RenderGuard currentGuard;
-    private static Unit pendingUnit;
     private static String pendingText = "", pendingIdentity = "", pendingCanonicalHash = "";
     private static long pendingStart = -1, pendingEnd = -1, pendingPosition = -1;
     private static boolean pendingStatus, pendingWaiting;
     private static CaptionRenderSpec pendingRenderSpec = CaptionRenderSpec.LEGACY;
-    private static long[] pendingSourceAnchors;
+    private static CaptionEventTimeline pendingSourceTimeline;
     private static List<CaptionPageLayout.Page> pendingPages = Collections.emptyList();
     private static int shownPage = -1;
 
@@ -128,32 +125,9 @@ final class CaptionOverlay {
     private static boolean previousShorts;
     private static CaptionPresentationClass.Kind previousClass;
 
-    /**
-     * One presentation class per reading mode. The PlayerType model decides it; geometry is only
-     * the fallback for the first frame and for sessions that never deliver a type. It changes once
-     * per model event, never per animation frame.
-     */
-    private static CaptionPresentationClass.Kind presentationClass;
-
-    private static int classFrameWidth, reducedVideoWidth;
-
-    /**
-     * The class width a presentation-class commit chose, before any stable-width re-plan. A
-     * narrower video re-plans against its own width but can never grow the box past this ceiling.
-     */
-    private static int classBaseWidth;
-
-    /**
-     * The last pre-draw video rectangle. The geometry is settled only after three consecutive
-     * samples with exactly the same width; one different sample starts the count again. A
-     * rectangle that alternates between two values therefore never settles, while the old
-     * "this frame equals the previous one" test settled on every second frame of such a flicker.
-     * No time constant is involved: the count is of samples, not of milliseconds.
-     */
-    private static final Rect previousGeometrySample = new Rect();
-
-    private static final int STABLE_GEOMETRY_SAMPLES = 3;
-    private static int stableGeometrySamples;
+    /** Numerical presentation decisions; View lifetime and applied facts remain here. */
+    private static final CaptionPresentationDecision presentationDecision =
+            new CaptionPresentationDecision();
 
     private static int stableTextWidth, stableTextLines;
     private static long nextPageAt;
@@ -322,12 +296,12 @@ final class CaptionOverlay {
     }
 
     static void showStatus(String s, RenderGuard g) {
-        show(s, true, g, "", -1, -1, -1, false, CaptionRenderSpec.LEGACY, null, "", null);
+        show(s, true, g, "", -1, -1, -1, false, CaptionRenderSpec.LEGACY, "", null);
     }
 
     static void showWaitingEvent(
             String s, RenderGuard g, String id, long start, long end, long position) {
-        show(s, false, g, id, start, end, position, true, CaptionRenderSpec.LEGACY, null, "", null);
+        show(s, false, g, id, start, end, position, true, CaptionRenderSpec.LEGACY, "", null);
     }
 
     static void showEvent(
@@ -349,24 +323,14 @@ final class CaptionOverlay {
             long end,
             long at,
             CaptionRenderSpec spec,
-            long[] sourceAnchors) {
-        // A failed or withheld event carries no text: it clears the box (the contract Unit rejects
-        // blanks).
+            CaptionEventTimeline sourceTimeline) {
+        // A failed or withheld event carries no text and clears the box.
         if (text == null || text.trim().isEmpty()) {
             hide(guard);
             return;
         }
-        Unit unit =
-                start >= 0 && end > start
-                        ? new Unit(
-                                id,
-                                0,
-                                1,
-                                text,
-                                Collections.singletonList(new Window(start, end)),
-                                Basis.ESTIMATED,
-                                0)
-                        : null;
+        // Previously the timed Unit constructor enforced this before checking the guard.
+        if (start >= 0 && end > start) Objects.requireNonNull(id);
         show(
                 text,
                 false,
@@ -377,9 +341,8 @@ final class CaptionOverlay {
                 at,
                 false,
                 spec,
-                unit,
                 CaptionContracts.hash(text),
-                sourceAnchors);
+                sourceTimeline);
     }
 
     private static void show(
@@ -392,9 +355,8 @@ final class CaptionOverlay {
             long position,
             boolean waiting,
             CaptionRenderSpec spec,
-            Unit sourceUnit,
             String canonicalHash,
-            long[] sourceAnchors) {
+            CaptionEventTimeline sourceTimeline) {
         if (g != null && !g.isValid()) return;
         long command = g == null ? COMMAND.incrementAndGet() : COMMAND.get();
         final long renderEpoch = playerRenderEpoch;
@@ -403,8 +365,7 @@ final class CaptionOverlay {
                     if (!accepts(g, command, renderEpoch)) return;
                     pendingRenderSpec = spec;
                     pendingCanonicalHash = canonicalHash;
-                    pendingUnit = sourceUnit;
-                    pendingSourceAnchors = sourceAnchors;
+                    pendingSourceTimeline = sourceTimeline;
                     pendingText = s == null ? "" : s;
                     pendingIdentity = id;
                     pendingStart = start;
@@ -492,11 +453,10 @@ final class CaptionOverlay {
 
     private static void forgetPending() {
         pendingText = "";
-        pendingUnit = null;
         pendingStart = -1;
         pendingEnd = -1;
         pendingIdentity = "";
-        pendingSourceAnchors = null;
+        pendingSourceTimeline = null;
         pendingPages = Collections.emptyList();
         shownPage = -1;
         stableTextWidth = 0;
@@ -522,7 +482,7 @@ final class CaptionOverlay {
                     pendingPosition = latest;
                     boolean timed = pendingStart >= 0 && pendingEnd > pendingStart;
                     if (CaptionPageLayout.indexAt(pendingPages, latest) != shownPage
-                            || pendingUnit != null
+                            || hasPendingTimedCaption()
                                     && (!ownsDisplayPosition(latest)
                                             || !ownsDisplayPosition(before))
                             || timed && (!inWindow(latest) || !inWindow(before))) {
@@ -755,12 +715,7 @@ final class CaptionOverlay {
         previous.setEmpty();
         previousScreenWidth = 0;
         previousClass = null;
-        presentationClass = null;
-        classFrameWidth = 0;
-        classBaseWidth = 0;
-        previousGeometrySample.setEmpty();
-        stableGeometrySamples = 0;
-        reducedVideoWidth = 0;
+        presentationDecision.clear();
         lastScan = -SCAN_INTERVAL_MS;
         lastNotice = "";
         lastBlankIdentity = null;
@@ -824,8 +779,7 @@ final class CaptionOverlay {
             if (text != null && current != null && boxWidth > 0)
                 placeVisibleText(a, host, anchor, text, current, boxWidth);
             videoGeometry.setEmpty();
-            previousGeometrySample.setEmpty();
-            stableGeometrySamples = 0;
+            presentationDecision.resetSamples();
             previous.setEmpty();
             previousScreenWidth = 0;
             dirty = true;
@@ -902,6 +856,13 @@ final class CaptionOverlay {
         }
 
         @Override
+        public void scrollTo(int x, int y) {
+            // Pages already fit this non-editable viewport. TextView's deferred caret/centering
+            // scroll must not move its text and the custom background onto different clip edges.
+            super.scrollTo(0, 0);
+        }
+
+        @Override
         protected void onDraw(Canvas canvas) {
             drawCaptionBackground(canvas);
             super.onDraw(canvas);
@@ -927,8 +888,15 @@ final class CaptionOverlay {
         }
     }
 
+    private static boolean hasPendingTimedCaption() {
+        // The canonical hash is installed with a real event, before displayPosition may reenter.
+        // Status/waiting commands carry an empty hash; clear/hide also empty the text.
+        return !pendingCanonicalHash.isEmpty() && !pendingText.isEmpty()
+                && pendingStart >= 0 && pendingEnd > pendingStart;
+    }
+
     private static boolean ownsDisplayPosition(long at) {
-        return pendingUnit != null && pendingUnit.audible(at);
+        return hasPendingTimedCaption() && inWindow(at);
     }
 
     /** Height belongs to the page that is actually shown, never to the widest page in the plan. */
@@ -943,7 +911,7 @@ final class CaptionOverlay {
         boolean held =
                 currentGuard != null
                         && currentGuard.isValid()
-                        && pendingUnit != null
+                        && hasPendingTimedCaption()
                         && !pendingStatus
                         && !pendingWaiting
                         && pendingEnd > pendingStart
@@ -991,7 +959,7 @@ final class CaptionOverlay {
                 + "|"
                 + Float.floatToIntBits(budget.preferredPx)
                 + "|"
-                + java.util.Arrays.toString(pendingSourceAnchors);
+                + String.valueOf(pendingSourceTimeline);
     }
 
     /** The pages of the pending event; laid out off the main thread, empty until they are ready. */
@@ -1006,13 +974,14 @@ final class CaptionOverlay {
         List<CaptionPageLayout.Page> ready = LAYOUTS.get(key);
         if (ready != null) return ready;
         final String body = pendingText, identity = pendingIdentity;
+        final CaptionEventTimeline timeline = pendingSourceTimeline;
         final long start = pendingStart, end = pendingEnd;
         final RenderGuard guard = currentGuard;
         LAYOUTS.request(
                 key,
                 () ->
                         CaptionActions.displayPages(
-                                body, start, end, budget, spec, pendingSourceAnchors),
+                                body, start, end, budget, spec, timeline),
                 pages ->
                         MAIN.post(
                                 () -> {
@@ -1052,7 +1021,7 @@ final class CaptionOverlay {
         // Pages still being laid out belong to render(), which also holds the previous text.
         if (currentGuard == null
                 || !currentGuard.isValid()
-                || pendingUnit == null
+                || !hasPendingTimedCaption()
                 || !anchorVisible()
                 || pendingPages.isEmpty()) return;
         long at = currentGuard.displayPosition(pendingPosition);
@@ -1109,7 +1078,7 @@ final class CaptionOverlay {
                         : new Rect(videoGeometry);
         if (placement == null) placement = new Rect(previous);
         int planWidth = budget.width + text.getPaddingLeft() + text.getPaddingRight();
-        int anchorWidth = classFrameWidth > 0 ? classFrameWidth : planWidth;
+        int anchorWidth = presentationDecision.frameWidth() > 0 ? presentationDecision.frameWidth() : planWidth;
         anchorWidth = Math.min(anchorWidth, planWidth);
         if (!placement.isEmpty()) anchorWidth = Math.min(anchorWidth, placement.width());
         placeVisibleText(
@@ -1198,64 +1167,35 @@ final class CaptionOverlay {
         followVisibleTextTranslation(a, anchor);
     }
 
-    /**
-     * Re-plans the box against a video that settled narrower than the presentation class's stable
-     * width, or back to the class width once the video is wide enough again.
-     *
-     * <p>The trigger is geometry, not time: three consecutive pre-draw samples must have exactly
-     * the same width, so the player/sheet animation has stopped and did not merely return to one
-     * of two alternating values. A difference of at most 2% is inside the class's own margin; a
-     * larger one means the class width no longer describes the viewport. The plan is requested
-     * through the existing frame callback, so pre-draw neither measures nor lays anything out.
-     */
+    /** Re-plan only after a settled width; pre-draw still delegates application to a frame. */
     private static boolean replanForStableVideo(Activity a, TextView text, Rect video) {
-        if (video.width() == previousGeometrySample.width()) stableGeometrySamples++;
-        else stableGeometrySamples = 1;
-        previousGeometrySample.set(video);
-        if (stableGeometrySamples < STABLE_GEOMETRY_SAMPLES
-                || text == null
-                || boxWidth <= 0
-                || classBaseWidth <= 0) return false;
-        float difference = Math.abs(video.width() - boxWidth) / (float) boxWidth;
-        if (difference <= .02f) return false;
-        int plan = stablePlanWidth(text, video.width());
-        if (plan == classFrameWidth) return false;
-        int previous = classFrameWidth;
-        classFrameWidth = plan;
-        // One re-plan per settled width: a further one needs a new run of three samples.
-        stableGeometrySamples = 0;
+        int videoWidth = video.width();
+        if (!presentationDecision.sampleStableWidth(videoWidth, boxWidth, text != null)) return false;
+        float difference = Math.abs(videoWidth - boxWidth) / (float) boxWidth;
+        int wide = presentationDecision.stableWide(videoWidth);
+        int planPadding = wide >= presentationDecision.baseWidth()
+                ? 0 : text.getPaddingLeft() + text.getPaddingRight();
+        int previous = presentationDecision.frameWidth();
+        if (!presentationDecision.replanStableWidth(wide, planPadding)) return false;
+        int padding = text.getPaddingLeft() + text.getPaddingRight();
         CaptionDiagnostics.mark(
                 a,
                 "CAPTION_STABLE_REPLAN",
                 "class="
-                        + presentationClass
+                        + presentationDecision.currentClass()
                         + ";video_width="
-                        + video.width()
+                        + videoWidth
                         + ";class_width="
-                        + classBaseWidth
+                        + presentationDecision.baseWidth()
                         + ";previous_width="
                         + previous
                         + ";plan_width="
-                        + plan
+                        + presentationDecision.frameWidth()
                         + ";difference="
                         + difference
                         + ";padding="
-                        + (text.getPaddingLeft() + text.getPaddingRight()));
+                        + padding);
         return true;
-    }
-
-    /**
-     * The box width for a stable video: the class's 92% reading margin, capped by the class width
-     * and quantized to 8 px so a sequence of inset endpoints cannot produce a different plan per
-     * pixel. When the video is wide enough that 92% reaches the class width, the class width is
-     * used unchanged - the fullscreen box is not re-quantized away from its established size.
-     */
-    private static int stablePlanWidth(TextView text, int videoWidth) {
-        int wide = Math.round(videoWidth * .92f);
-        if (wide >= classBaseWidth) return classBaseWidth;
-        int padding = text.getPaddingLeft() + text.getPaddingRight();
-        int inner = Math.max(8, ((wide - padding) / 8) * 8);
-        return Math.min(classBaseWidth, inner + padding);
     }
 
     private static boolean computeTarget(
@@ -1334,8 +1274,7 @@ final class CaptionOverlay {
 
     private static void resetGeometry() {
         videoGeometry.setEmpty();
-        previousGeometrySample.setEmpty();
-        stableGeometrySamples = 0;
+        presentationDecision.resetSamples();
         boxWidth = 0;
         boxHeight = 0;
         boxClass = null;
@@ -1345,59 +1284,19 @@ final class CaptionOverlay {
         nextPageAt = 0;
     }
 
-    /**
-     * Classifies the current reading mode. A PlayerType notification is the model's own statement
-     * about the mode, so it is authoritative; geometry is only the fallback for the first frame and
-     * for tests/versions that never deliver a type. There is no candidate timer: a class commit is
-     * a consequence of the model event, not of the geometry having been still for N milliseconds.
-     */
+    /** The player authority and display are sampled here; only the decision is delegated. */
     private static boolean updatePresentationClass(Rect video) {
         Activity a = activityRef.get();
         if (a == null || video == null) return false;
         DisplayMetrics metrics = a.getResources().getDisplayMetrics();
         int screenWidth = metrics.widthPixels, screenHeight = metrics.heightPixels;
         boolean shorts = CaptionSurface.isShorts();
-        CaptionPresentationClass.Kind next = playerTypeClass(screenWidth, screenHeight, shorts);
-        if (next == null)
-            next =
-                    CaptionPresentationClass.classify(
-                            presentationClass, video, screenWidth, screenHeight, shorts);
-        if (presentationClass == null)
-            return commitPresentationClass(a, next, video, screenWidth, screenHeight, shorts);
-        if (next == presentationClass) {
-            if (next == CaptionPresentationClass.Kind.REDUCED) {
-                int cap = reducedWidthCap(screenWidth, screenHeight);
-                if (video.width() > 0 && video.width() <= cap) reducedVideoWidth = video.width();
-                else if (reducedVideoWidth > cap) reducedVideoWidth = 0;
-            }
-            return false;
-        }
-        return commitPresentationClass(a, next, video, screenWidth, screenHeight, shorts);
-    }
-
-    /**
-     * The reading class the player-type model currently asks for. Null means the model has no
-     * opinion (unknown, or sliding between two sizes), and geometry decides the first frame.
-     */
-    private static CaptionPresentationClass.Kind playerTypeClass(
-            int screenWidth, int screenHeight, boolean shorts) {
-        if (shorts) return CaptionPresentationClass.Kind.SHORTS_FULL;
-        if (screenWidth <= screenHeight) return CaptionPresentationClass.Kind.DETAIL;
-        String type = CaptionPlayerAuthority.playerType();
-        if (type.isEmpty()) return null;
-        if (type.contains("SLIDING")) return presentationClass;
-        if (type.contains("FULLSCREEN")) return CaptionPresentationClass.Kind.FULL;
-        if (type.contains("MAXIMIZED")) return CaptionPresentationClass.Kind.REDUCED;
-        return null;
-    }
-
-    /** A reduced viewport is by definition no wider than the reduced threshold. */
-    private static int reducedWidthCap(int screenWidth, int screenHeight) {
-        return Math.max(
-                1,
-                Math.round(
-                        CaptionPresentationClass.referenceVideoWidth(screenWidth, screenHeight)
-                                * CaptionPresentationClass.ENTER_REDUCED));
+        String type = !shorts && screenWidth > screenHeight
+                ? CaptionPlayerAuthority.playerType() : "";
+        CaptionPresentationClass.Kind next = presentationDecision.classToCommit(
+                video, screenWidth, screenHeight, shorts, type);
+        return next != null
+                && commitPresentationClass(a, next, video, screenWidth, screenHeight, shorts);
     }
 
     /**
@@ -1510,16 +1409,16 @@ final class CaptionOverlay {
         float fit = 1f;
         int videoWidth = videoGeometry.width();
         int contentWidth = stableTextWidth;
-        if (boxClass == presentationClass
+        if (boxClass == presentationDecision.currentClass()
                 && contentWidth > 0
                 && videoWidth > 0
                 && videoWidth < contentWidth) fit = videoWidth / (float) contentWidth;
         float scale = captionScale(glyphTransition.displayedPx(), glyphLocalPx, anchorScale) * fit;
         if (!(scale > 0f) || Float.isNaN(scale) || Float.isInfinite(scale)) return;
+        text.setPivotX(text.getWidth() / 2f);
+        text.setPivotY(text.getHeight() / 2f);
         if (Math.abs(text.getScaleX() - scale) > .002f
                 || Math.abs(text.getScaleY() - scale) > .002f) {
-            text.setPivotX(text.getWidth() / 2f);
-            text.setPivotY(text.getHeight() / 2f);
             text.setScaleX(scale);
             text.setScaleY(scale);
         }
@@ -1592,29 +1491,15 @@ final class CaptionOverlay {
                 text == null
                         ? dp(a, 6) * 2
                         : text.getPaddingLeft() + text.getPaddingRight();
-        // A new fullscreen viewport is the start of a new reduced-width observation; keeping the
-        // previous video's reduced width would make the first comments opening too narrow.
-        if (next == CaptionPresentationClass.Kind.FULL) reducedVideoWidth = 0;
-        // FULL is a stable target for the whole fullscreen class: capturing it from the first
-        // frame of a closing comments sheet would leave the caption permanently too narrow. The
-        // render path still caps the effective width by the displayed video.
-        int videoWidth =
-                next == CaptionPresentationClass.Kind.FULL
-                        ? CaptionPresentationClass.referenceVideoWidth(screenWidth, screenHeight)
-                        : CaptionPresentationClass.layoutVideoWidth(
-                                next, video, screenWidth, screenHeight, reducedVideoWidth);
-        classFrameWidth = Math.max(1, Math.round(videoWidth * (shorts ? .78f : .92f)));
-        classBaseWidth = classFrameWidth;
-        // A class commit is a new reading width: the previous video's stable re-plan is over.
-        previousGeometrySample.setEmpty();
-        stableGeometrySamples = 0;
+        int videoWidth = presentationDecision.prepareClassCommit(
+                next, video, screenWidth, screenHeight, shorts);
         float classGlyph =
                 CaptionPresentationClass.glyphHeightPx(
                         DeepSeekConfig.displayStyle(a).captionSizeTier,
                         screenWidth,
                         screenHeight,
                         next);
-        presentationClass = next;
+        presentationDecision.finishClassCommit(next);
         stableTextWidth = 0;
         stableTextLines = 0;
         CaptionDiagnostics.mark(
@@ -1633,11 +1518,11 @@ final class CaptionOverlay {
                         + ";layout_video_width="
                         + videoWidth
                         + ";class_frame_width="
-                        + classFrameWidth
+                        + presentationDecision.frameWidth()
                         + ";glyph_height_px="
                         + classGlyph
                         + ";reduced_width="
-                        + reducedVideoWidth
+                        + presentationDecision.reducedWidth()
                         + ";padding="
                         + padding);
         return true;
@@ -1654,7 +1539,7 @@ final class CaptionOverlay {
         if (a == null
                 || pendingStatus
                 || pendingWaiting
-                || pendingUnit == null
+                || !hasPendingTimedCaption()
                 || pendingText.isEmpty()
                 || pendingStart < 0
                 || pendingEnd <= pendingStart) return;
@@ -1662,8 +1547,8 @@ final class CaptionOverlay {
         int screenWidth = metrics.widthPixels, screenHeight = metrics.heightPixels;
         boolean shorts = CaptionSurface.isShorts();
         CaptionPresentationClass.Kind target =
-                playerTypePrefetchClass(type, screenWidth, screenHeight, shorts);
-        if (target == null || target == presentationClass) return;
+                presentationDecision.prefetchClass(type, screenWidth, screenHeight, shorts);
+        if (target == null || target == presentationDecision.currentClass()) return;
         TextView text = textRef.get();
         if (text == null) return;
         FrameLayout host = hostRef.get();
@@ -1671,13 +1556,8 @@ final class CaptionOverlay {
         if (video == null && !videoGeometry.isEmpty()) video = new Rect(videoGeometry);
         if (video == null || video.width() <= 0) return;
         int padding = text.getPaddingLeft() + text.getPaddingRight();
-        int videoWidth =
-                target == CaptionPresentationClass.Kind.FULL
-                        ? CaptionPresentationClass.referenceVideoWidth(screenWidth, screenHeight)
-                        : CaptionPresentationClass.layoutVideoWidth(
-                                target, video, screenWidth, screenHeight, reducedVideoWidth);
-        int width = Math.max(1, Math.round(videoWidth * (shorts ? .78f : .92f)));
-        width = Math.min(width, screenWidth);
+        int width = presentationDecision.prefetchWidth(
+                target, video, screenWidth, screenHeight, shorts);
         int inner = Math.max(1, width - padding);
         int tier =
                 presentationTier >= 0
@@ -1699,21 +1579,10 @@ final class CaptionOverlay {
         String key = planKey(budget, spec);
         String body = pendingText;
         long start = pendingStart, end = pendingEnd;
-        long[] anchors = pendingSourceAnchors;
+        CaptionEventTimeline timeline = pendingSourceTimeline;
         LAYOUTS.prefetch(
                 key,
-                () -> CaptionActions.displayPages(body, start, end, budget, spec, anchors));
-    }
-
-    /** The class a PlayerType event is heading to, including the destination of a slide. */
-    private static CaptionPresentationClass.Kind playerTypePrefetchClass(
-            String type, int screenWidth, int screenHeight, boolean shorts) {
-        if (shorts) return CaptionPresentationClass.Kind.SHORTS_FULL;
-        if (screenWidth <= screenHeight) return CaptionPresentationClass.Kind.DETAIL;
-        String name = type == null ? "" : type.toUpperCase(Locale.ROOT);
-        if (name.contains("FULLSCREEN")) return CaptionPresentationClass.Kind.FULL;
-        if (name.contains("MAXIMIZED")) return CaptionPresentationClass.Kind.REDUCED;
-        return null;
+                () -> CaptionActions.displayPages(body, start, end, budget, spec, timeline));
     }
 
     // ---- Render ----
@@ -1799,12 +1668,12 @@ final class CaptionOverlay {
                 && b.equals(previous)
                 && screenWidth == previousScreenWidth
                 && shorts == previousShorts
-                && presentationClass == previousClass
+                && presentationDecision.currentClass() == previousClass
                 && (anchor.getVisibility() == View.VISIBLE
                         || anchor.getVisibility() == View.GONE
                                 && pendingIdentity.equals(lastBlankIdentity))) return;
         previousShorts = shorts;
-        previousClass = presentationClass;
+        previousClass = presentationDecision.currentClass();
         dirty = false;
         previous.set(b);
         // A new surface is committed only outside a player transition.
@@ -1822,18 +1691,18 @@ final class CaptionOverlay {
         // animation cannot rescale or re-paginate the text mid-flight.
         float targetGlyphHeight =
                 CaptionPresentationClass.glyphHeightPx(
-                        cfg.captionSizeTier, screenWidth, screenHeight, presentationClass);
+                        cfg.captionSizeTier, screenWidth, screenHeight, presentationDecision.currentClass());
         float preferred =
                 SubtitleStyleMetrics.textSizePxForGlyphHeight(text.getPaint(), targetGlyphHeight);
         float minimum =
                 SubtitleStyleMetrics.textSizePxForGlyphHeight(
                         text.getPaint(),
                         CaptionPresentationClass.glyphHeightPx(
-                                0, screenWidth, screenHeight, presentationClass));
+                                0, screenWidth, screenHeight, presentationDecision.currentClass()));
         int width =
-                classFrameWidth > 0
-                        ? classFrameWidth
-                        : Math.max(1, Math.round(b.width() * (shorts ? .78f : .92f)));
+                presentationDecision.frameWidth() > 0
+                        ? presentationDecision.frameWidth()
+                        : CaptionPresentationDecision.readingWidth(b.width(), shorts);
         // The committed class width is the stable reading width for this mode. A transition frame
         // must not narrow the plan: that would re-paginate the caption while the player animates.
         width = Math.min(width, screenWidth);
@@ -1860,7 +1729,7 @@ final class CaptionOverlay {
         pendingPages =
                 ownedCaption ? currentPlan(planBudget, measuredSpec) : Collections.emptyList();
         shownPage =
-                pendingUnit != null && !ownsDisplayPosition(pendingPosition)
+                hasPendingTimedCaption() && !ownsDisplayPosition(pendingPosition)
                         ? -1
                         : CaptionPageLayout.indexAt(pendingPages, pendingPosition);
         if (shownPage >= 0) {
@@ -1965,7 +1834,7 @@ final class CaptionOverlay {
                                         screenWidth,
                                         host,
                                         cfg.captionSizeTier,
-                                        presentationClass)
+                                        presentationDecision.currentClass())
                                 : "")
                         + ";available_width_px="
                         + inner
@@ -2071,7 +1940,7 @@ final class CaptionOverlay {
                 b,
                 shorts
                         ? "shorts"
-                        : presentationClass == CaptionPresentationClass.Kind.FULL
+                        : presentationDecision.currentClass() == CaptionPresentationClass.Kind.FULL
                                 ? "fullscreen"
                                 : "detail",
                 appliedGuard == null ? "" : appliedGuard.session(),
@@ -2162,7 +2031,7 @@ final class CaptionOverlay {
                         ? "full_screen"
                         : "detail")
                 + ";class_frame_width_px="
-                + classFrameWidth
+                + presentationDecision.frameWidth()
                 + ";stable_text_width_px="
                 + stableTextWidth
                 + ";stable_lines="
@@ -2334,8 +2203,21 @@ final class CaptionOverlay {
         boolean sizeChanged = width != boxWidth || height != boxHeight;
         boxWidth = width;
         boxHeight = height;
-        boxClass = presentationClass;
+        boxClass = presentationDecision.currentClass();
         CaptionHorizontalPlacement.position(parent, anchor, nextLeft, nextTop, boxWidth, boxHeight);
+        if (anchor.isLayoutRequested() || text.isLayoutRequested()
+                || anchor.getWidth() != width || anchor.getHeight() != height
+                || text.getWidth() != text.getMeasuredWidth()
+                || text.getHeight() != text.getMeasuredHeight()) {
+            // The player may defer its own traversal during fullscreen entry. Commit only our
+            // measured subtree now: new text must never draw through the preceding page's bounds.
+            // Geometry-only pre-draw uses translate(), and never enters this content commit.
+            anchor.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
+            int left = parent.getPaddingLeft(), top = parent.getPaddingTop();
+            anchor.layout(left, top, left + width, top + height);
+            applyCommentScale(owner, text);
+        }
         if (sizeChanged && DeepSeekConfig.displayTextDebugEnabled(owner)) {
             FrameLayout currentHost = hostRef.get();
             CaptionDiagnostics.mark(
@@ -2620,7 +2502,7 @@ final class CaptionOverlay {
                     anchor,
                     text,
                     dragBounds,
-                    classFrameWidth > 0 ? classFrameWidth : boxWidth > 0 ? boxWidth : anchor.getWidth(),
+                    presentationDecision.frameWidth() > 0 ? presentationDecision.frameWidth() : boxWidth > 0 ? boxWidth : anchor.getWidth(),
                     dragLandscape);
         }
     }
@@ -2747,7 +2629,7 @@ final class CaptionOverlay {
                         + ";dragging="
                         + dragging
                         + ";class="
-                        + presentationClass);
+                        + presentationDecision.currentClass());
     }
 
     /** The rectangle the finger is really dragging over; never the stale content snapshot. */

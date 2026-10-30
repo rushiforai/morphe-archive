@@ -6,10 +6,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.LocaleList;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import org.json.JSONObject;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.robolectric.*;
@@ -35,7 +32,6 @@ public class N25DiagnosticsLocalizationTest {
 
     @Test public void diagnosticSummaryFollowsTheInterfaceLanguageWhileTheExportStaysRaw() throws Exception {
         Activity activity=Robolectric.buildActivity(Activity.class).setup().get();
-        JSONArrayRecorder record=new JSONArrayRecorder();
         try{
             for(String[] locale:LOCALES){
                 String tag=locale[0];
@@ -82,18 +78,9 @@ public class N25DiagnosticsLocalizationTest {
                                 &&export.contains("block=3;tier=2;unit=7"));
                 // Event names, JSON keys and protocol codes are never translated.
                 assertTrue(tag+" must not translate an event name",ui.contains("REBUILD_PRESENTED"));
-                record.add(new JSONObject().put("locale",tag)
-                        .put("ui_engine_line",CaptionStrings.get(c,"engine")
-                                +CaptionStrings.get(c,"engine_event_rebuild")+" / "+CaptionDiagnostics.engineVersion())
-                        .put("ui_mode_line",CaptionStrings.get(c,"label_separator")
-                                .replace("%1$s",CaptionStrings.get(c,"mode"))
-                                +CaptionStrings.get(c,"mode_auto_translate"))
-                        .put("ui_debug_line",String.format(java.util.Locale.ROOT,
-                                CaptionStrings.get(c,"display_debug"),CaptionStrings.get(c,"on")))
-                        .put("raw_engine_heading","Engine: Event rebuild / "+CaptionDiagnostics.engineVersion()));
+
             }
         }finally{activity.finish();}
-        writeArtifact("n25-diagnostics-localization.json",record.toString());
     }
 
     @Test public void tokenAuditPanelIsLocalizedAndItsRawFormIsUnchanged(){
@@ -116,22 +103,4 @@ public class N25DiagnosticsLocalizationTest {
         }finally{activity.finish();}
     }
 
-    /** Minimal ordered JSON array writer; the project's org.json has no array builder here. */
-    static final class JSONArrayRecorder {
-        private final List<String> items=new ArrayList<>();
-        void add(JSONObject object){items.add(object.toString());}
-        @Override public String toString(){return "[\n"+String.join(",\n",items)+"\n]";}
-    }
-
-    private void writeArtifact(String name,String content){
-        String output=System.getenv("N25_PREVIEW_OUTPUT");
-        if(output==null)return;
-        File file=new File(output,name);
-        file.getParentFile().mkdirs();
-        try(FileOutputStream stream=new FileOutputStream(file)){
-            stream.write(content.getBytes(StandardCharsets.UTF_8));
-        }catch(IOException failed){
-            throw new IllegalStateException(failed);
-        }
-    }
 }

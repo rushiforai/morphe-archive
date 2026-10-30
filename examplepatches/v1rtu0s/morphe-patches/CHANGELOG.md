@@ -4,6 +4,42 @@
 
 * BlitzerMorph patch for microG Maps v26.36.04.973607363 ([0da478a](https://github.com/v1rtu0s/morphe-patches/commit/0da478a82a2e93633ba21333e098c21d7d2e41f8))
 * BlitzerMorph patch for microG Maps v26.36.04.973607363 ([54a8d3d](https://github.com/v1rtu0s/morphe-patches/commit/54a8d3d97ccfbf751de1652d1336346d309d83b5))
+* target com.google.android.apps.maps (microG Maps package name) ([9677291](https://github.com/v1rtu0s/morphe-patches/commit/967729146f23e64c4d8a99ed4c70e3423fe114a7))
+* target com.google.android.apps.maps (microG Maps package name) ([42fdd99](https://github.com/v1rtu0s/morphe-patches/commit/42fdd99b2051f22c7a6807d1841d65ed90eed345))
+* update bundle for microG Maps v26.36.04.973607363 ([f3cb0bc](https://github.com/v1rtu0s/morphe-patches/commit/f3cb0bce88368267abc5eafeacfd30726b91d0f8))
+* update version to 1.2.0 and target com.google.android.apps.maps ([110e2b8](https://github.com/v1rtu0s/morphe-patches/commit/110e2b87114ecba39d330bb751f933c6de91efc4))
+* upload patches-1.1.0.mpp with correct fingerprint ([ac24201](https://github.com/v1rtu0s/morphe-patches/commit/ac242017b11c03d4173f3122956bedb92f6abc99))
+
+### ✨ New Features
+
+* add patches-1.0.0.mpp ([dc371e4](https://github.com/v1rtu0s/morphe-patches/commit/dc371e4aeb7a67be7bd2dd7113541f4913ce8290))
+* BlitzerMorph patch for microG Maps v26.36.04.973607363 ([0e10384](https://github.com/v1rtu0s/morphe-patches/commit/0e103845bbd6c017d3db72052ac1388befe3b517))
+* functional BlitzerMorph patch with Atudo API integration ([3ad9f9e](https://github.com/v1rtu0s/morphe-patches/commit/3ad9f9e296899ad7f0e1b254f879c11f9a743c89))
+
+## [1.1.0](https://github.com/v1rtu0s/morphe-patches/compare/v1.0.0...v1.1.0) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* BlitzerMorph patch for microG Maps v26.36.04.973607363 ([0da478a](https://github.com/v1rtu0s/morphe-patches/commit/0da478a82a2e93633ba21333e098c21d7d2e41f8))
+* BlitzerMorph patch for microG Maps v26.36.04.973607363 ([54a8d3d](https://github.com/v1rtu0s/morphe-patches/commit/54a8d3d97ccfbf751de1652d1336346d309d83b5))
+* target com.google.android.apps.maps (microG Maps package name) ([9677291](https://github.com/v1rtu0s/morphe-patches/commit/967729146f23e64c4d8a99ed4c70e3423fe114a7))
+* target com.google.android.apps.maps (microG Maps package name) ([42fdd99](https://github.com/v1rtu0s/morphe-patches/commit/42fdd99b2051f22c7a6807d1841d65ed90eed345))
+* update bundle for microG Maps v26.36.04.973607363 ([f3cb0bc](https://github.com/v1rtu0s/morphe-patches/commit/f3cb0bce88368267abc5eafeacfd30726b91d0f8))
+* update version to 1.2.0 and target com.google.android.apps.maps ([110e2b8](https://github.com/v1rtu0s/morphe-patches/commit/110e2b87114ecba39d330bb751f933c6de91efc4))
+
+### ✨ New Features
+
+* add patches-1.0.0.mpp ([dc371e4](https://github.com/v1rtu0s/morphe-patches/commit/dc371e4aeb7a67be7bd2dd7113541f4913ce8290))
+* BlitzerMorph patch for microG Maps v26.36.04.973607363 ([0e10384](https://github.com/v1rtu0s/morphe-patches/commit/0e103845bbd6c017d3db72052ac1388befe3b517))
+* functional BlitzerMorph patch with Atudo API integration ([3ad9f9e](https://github.com/v1rtu0s/morphe-patches/commit/3ad9f9e296899ad7f0e1b254f879c11f9a743c89))
+
+## [1.1.0](https://github.com/v1rtu0s/morphe-patches/compare/v1.0.0...v1.1.0) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* BlitzerMorph patch for microG Maps v26.36.04.973607363 ([0da478a](https://github.com/v1rtu0s/morphe-patches/commit/0da478a82a2e93633ba21333e098c21d7d2e41f8))
+* BlitzerMorph patch for microG Maps v26.36.04.973607363 ([54a8d3d](https://github.com/v1rtu0s/morphe-patches/commit/54a8d3d97ccfbf751de1652d1336346d309d83b5))
+* target com.google.android.apps.maps (microG Maps package name) ([42fdd99](https://github.com/v1rtu0s/morphe-patches/commit/42fdd99b2051f22c7a6807d1841d65ed90eed345))
 
 ### ✨ New Features
 

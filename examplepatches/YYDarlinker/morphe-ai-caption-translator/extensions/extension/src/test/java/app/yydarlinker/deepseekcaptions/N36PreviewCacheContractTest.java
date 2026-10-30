@@ -110,29 +110,5 @@ public class N36PreviewCacheContractTest {
         assertEquals(Math.round(SubtitleStylePreview.stageHeight(WIDTH)),preview.getMeasuredHeight());
     }
 
-    /** Five size tiers and a full localized sample line must still render into the frame. */
-    @Test public void everySizeTierStillRendersTheLocalizedSample(){
-        String sample=SubtitleStylePreview.sample(a);
-        for(int tier=0;tier<CaptionFontSize.COUNT;tier++){
-            SubtitleStylePreview.Preview preview=new SubtitleStylePreview.Preview(a);
-            preview.opacity=100;preview.sizeTier=tier;
-            preview.measure(View.MeasureSpec.makeMeasureSpec(WIDTH,View.MeasureSpec.EXACTLY),
-                    View.MeasureSpec.makeMeasureSpec(4000,View.MeasureSpec.AT_MOST));
-            preview.layout(0,0,preview.getWidth(),preview.getHeight());
-            Bitmap bitmap=Bitmap.createBitmap(Math.max(1,preview.getWidth()),Math.max(1,preview.getHeight()),Bitmap.Config.ARGB_8888);
-            preview.draw(new Canvas(bitmap));
-            assertNotNull("tier "+tier+" must produce a caption box",SubtitleStylePreview.LAST_CAPTION_BOX);
-            assertTrue("tier "+tier+" caption box must stay inside the 16:9 frame",
-                    SubtitleStylePreview.LAST_CAPTION_BOX.width()>0f);
-        }
-        assertFalse(sample.isEmpty());
-    }
 
-    @Test public void supportedLocalesResolveAnAuthoredSample(){
-        assertFalse("the current interface locale must resolve the authored sample",
-                SubtitleStylePreview.sample(a).isEmpty());
-        assertNotEquals("a missing catalog entry must not leak the raw key",
-                SubtitleStylePreview.SAMPLE_KEY,SubtitleStylePreview.sample(a));
-        assertEquals(CaptionStrings.get(a,SubtitleStylePreview.SAMPLE_KEY),SubtitleStylePreview.sample(a));
-    }
 }

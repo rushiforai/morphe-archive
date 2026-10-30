@@ -32,8 +32,10 @@ internal const val INBOX_SUBSCRIBE_WARNING =
 internal const val INBOX_REFRESH = "Lapp/hushmessenger/extension/InboxRefresh;"
 internal const val INBOX_ITEMS_CALL = "$INBOX_REFRESH->onInboxItems(Ljava/lang/Object;)V"
 internal const val INBOX_REFRESH_ROUTE = "$HOST_SCREENS->inboxRefreshRoute()Ljava/lang/String;"
-/** The list observer has a class of its own, built from the supplier alone. */
-private const val OBSERVER_INIT = "<init>($INBOX_SUPPLIER)V"
+/** The list observer has a class of its own, built from the supplier and the subscription's generation number. */
+private const val OBSERVER_INIT = "<init>(${INBOX_SUPPLIER}I)V"
+/** 585's subscribe call takes the supplier and a flag; stock's retries pass true, and so does the extension. */
+private val SUBSCRIBE_PARAMS = listOf(INBOX_SUPPLIER, "Z")
 
 /** The supplier's static subscribe call and the int its list observer sets once rows arrive, as the extension reads them. */
 internal data class InboxRefreshRoute(val subscribe: String, val listed: String) {
@@ -73,7 +75,7 @@ internal fun resolveInboxRefresh(items: Method, classOf: (String) -> ClassDef?):
     val supplier = classOf(INBOX_SUPPLIER) ?: routeChanged()
     if (!AccessFlags.FINAL.isSet(supplier.accessFlags)) routeChanged()
     val subscribe = supplier.methods.filter { method ->
-        AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && method.parameterTypes == listOf(INBOX_SUPPLIER) &&
+        AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && method.parameterTypes == SUBSCRIBE_PARAMS &&
             method.implementation?.instructions?.any { it.string() == INBOX_SUBSCRIBE_WARNING } == true
     }.singleOrNull() ?: routeChanged()
     val code = subscribe.implementation!!.instructions.toList()
@@ -85,15 +87,16 @@ internal fun resolveInboxRefresh(items: Method, classOf: (String) -> ClassDef?):
     val init = code[at] as FiveRegisterInstruction
     val created = code.getOrNull(at - 1)
     val observerType = ((created as? ReferenceInstruction)?.reference as? TypeReference)?.type
-    if (created?.opcode != Opcode.NEW_INSTANCE || init.registerCount != 2 ||
+    if (created?.opcode != Opcode.NEW_INSTANCE || init.registerCount != 3 ||
         (created as OneRegisterInstruction).registerA != init.registerC ||
         observerType != ((code[at] as ReferenceInstruction).reference as MethodReference).definingClass) routeChanged()
     val observer = classOf(observerType!!) ?: routeChanged()
     val callback = observer.methods.filter {
         !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" && it.parameterTypes == listOf("Ljava/util/List;")
     }.singleOrNull() ?: routeChanged()
-    val body = (forwardedCallback(callback, observerType, supplier) ?: callback).implementation?.instructions?.toList() ?: routeChanged()
-    val site = body.indices.filter { body.isListedWrite(it) }.singleOrNull() ?: routeChanged()
+    val body = callback.implementation?.instructions?.toList() ?: routeChanged()
+    val targets = callback.jumpTargets()
+    val site = body.indices.filter { body.isListedWrite(it, targets) }.singleOrNull() ?: routeChanged()
     val field = (body[site] as ReferenceInstruction).reference as FieldReference
     val listed = "$INBOX_SUPPLIER->${field.name}:I"
     if (supplier.fields.singleOrNull { it.name == field.name && it.type == "I" && !AccessFlags.STATIC.isSet(it.accessFlags) } == null ||
@@ -104,42 +107,26 @@ internal fun resolveInboxRefresh(items: Method, classOf: (String) -> ClassDef?):
 }
 
 /**
- * 584 moved the list callback's body into a static supplier method; the observer's callback only forwards its list:
- * `iget-object vS, this, observer->A:supplier; if-eqz list, :end; invoke-static {vS, list}, supplier->M(supplier, List)V; return-void`.
- * Returns that method, or null when the callback is not exactly this forward.
+ * The observer's listed-count update, `size < limit ? 5 : 1`, as 585 compiles it: `const/4 vR, 1` earlier in the same
+ * straight run (it also feeds a flag write), then `if-ge ..., <the write>; const/4 vR, 5; iput vR, supplier->F:I`.
+ * Between that `const/4 vR, 1` and the branch nothing writes vR and no jump lands, so vR is 1 whenever the branch is taken.
  */
-private fun forwardedCallback(callback: Method, observerType: String, supplier: ClassDef): Method? {
-    val implementation = callback.implementation ?: return null
-    val body = implementation.instructions.toList()
-    if (body.size != 4) return null
-    val read = body[0] as? TwoRegisterInstruction
-    val owner = (body[0] as? ReferenceInstruction)?.reference as? FieldReference
-    val check = body[1] as? OneRegisterInstruction
-    val call = body[2] as? FiveRegisterInstruction
-    val target = (body[2] as? ReferenceInstruction)?.reference as? MethodReference
-    val list = implementation.registerCount - 1
-    if (body[0].opcode != Opcode.IGET_OBJECT || read == null || owner == null || read.registerB != list - 1 ||
-        owner.definingClass != observerType || owner.type != INBOX_SUPPLIER ||
-        body[1].opcode != Opcode.IF_EQZ || check == null || check.registerA != list || body.branchTarget(1) != 3 ||
-        body[2].opcode != Opcode.INVOKE_STATIC || call == null || target == null || call.registerCount != 2 ||
-        call.registerC != read.registerA || call.registerD != list ||
-        target.definingClass != INBOX_SUPPLIER || target.returnType != "V" ||
-        target.parameterTypes.map { it.toString() } != listOf(INBOX_SUPPLIER, "Ljava/util/List;") ||
-        body[3].opcode != Opcode.RETURN_VOID) return null
-    return supplier.methods.singleOrNull { it.name == target.name && it.returnType == "V" && AccessFlags.STATIC.isSet(it.accessFlags) &&
-        it.parameterTypes.map { type -> type.toString() } == listOf(INBOX_SUPPLIER, "Ljava/util/List;") }
-}
-
-/** `const/4 vR, 5; if-lt ..., <the write>; const/4 vR, 1; iput vR, supplier->F:I`, the observer's listed-count update. */
-private fun List<Instruction>.isListedWrite(at: Int): Boolean {
+private fun List<Instruction>.isListedWrite(at: Int, targets: Set<Int>): Boolean {
     val write = this[at]
     if (at < 3 || write.opcode != Opcode.IPUT) return false
     val field = (write as ReferenceInstruction).reference as? FieldReference ?: return false
     val value = (write as TwoRegisterInstruction).registerA
     fun constant(index: Int, literal: Int) = this[index].opcode == Opcode.CONST_4 &&
         (this[index] as OneRegisterInstruction).registerA == value && (this[index] as NarrowLiteralInstruction).narrowLiteral == literal
-    return field.definingClass == INBOX_SUPPLIER && field.type == "I" && constant(at - 3, 5) &&
-        this[at - 2].opcode == Opcode.IF_LT && branchTarget(at - 2) == at && constant(at - 1, 1)
+    if (field.definingClass != INBOX_SUPPLIER || field.type != "I" || this[at - 2].opcode != Opcode.IF_GE ||
+        branchTarget(at - 2) != at || !constant(at - 1, 5)) return false
+    for (i in at - 3 downTo 0) {
+        if (i + 1 in targets) return false
+        val sets = this[i].opcode
+        val register = (this[i] as? OneRegisterInstruction)?.registerA ?: continue
+        if (sets.setsRegister() && (register == value || (sets.setsWideRegister() && register + 1 == value))) return constant(i, 1)
+    }
+    return false
 }
 
 /** The extension stub the route is written into: `const-string vX, ""` then `return-object vX`. */

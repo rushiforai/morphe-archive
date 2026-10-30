@@ -16,6 +16,19 @@ Open [Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutc
 
 Leave Use pre-release patches off for stable releases. Development builds come from `dev` and are intended for testing. The [release notes](https://github.com/johnneerdael/dutch-applications-patches/releases) list the patch bundle versions. The bundle has its own version, separate from the app version.
 
+### Test a development build
+
+1. Open **Sources** in Morphe Manager and expand **Dutch App Patches** (`johnneerdael/dutch-applications-patches`).
+2. Enable the source's **Pre-release patches** toggle. Some Manager versions call it **Use pre-release patches**. This is per source; the Manager app's own prerelease-update setting can stay off.
+3. Tap the source card's **Update** button (the circular arrow). Check its **Version**: a development bundle contains `-dev.`. If it still shows a stable version, refresh that source again before patching.
+4. Select your original app file and follow its guide. For [Videoland Android TV](../apps/videoland-android-tv.md), choose the exact TV APKS. **Hide ads** and **Disable tracking** are recommended/default on, so Simple mode applies both. Keep both enabled if you customize the selection. If the app is missing, open the source card's **Apps** list and enable it.
+
+We welcome both successful tests and reproducible failures. [Report your results](https://github.com/johnneerdael/dutch-applications-patches/issues/new/choose) with the app/build, bundle version, chosen controls, subscription tier where relevant, device/Android version and steps. For Videoland, use the [test feedback form](https://github.com/johnneerdael/dutch-applications-patches/issues/new?template=videoland_test.yml); feedback from the paid ad-supported tier is particularly useful. Keep credentials, tokens and identifying logs out of reports.
+
+To return to stable patches, disable **Pre-release patches** for this source and tap **Update**. Switching the source does not replace an already installed patched app; rebuild from the original app files if you want to replace it. Keep your signing key and a working installer for updates.
+
+[Morphe's patch-source documentation](https://github.com/MorpheApp/morphe-manager/blob/main/docs/patch-sources.md) explains the source controls.
+
 ## 3. Select and apply patches
 
 Select the original APK or complete split set, review the available patches and follow Manager's patching process. [Choosing patches](choose-patches.md) explains the differences between hiding ads, stopping collection and skipping a prompt. Manager can automatically include other components that the selected patch needs.

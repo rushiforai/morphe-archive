@@ -274,7 +274,7 @@ public class LanguageConformanceTest {
                         Arrays.asList(new int[] {0, 0}, new int[] {2, 2}, new int[] {4, 4}));
         RebuildProtocol.Plan merged =
                 RebuildReview.accept(
-                        shown, retry, s, b, CaptionLanguageContext.explicit("en", "de"));
+                        shown, retry, b);
         assertEquals("all three accepted events survive", 3, merged.events.size());
         assertEquals("only token 2 and 4 remain holes", 2, merged.holes.size());
         assertTrue(merged.partial);

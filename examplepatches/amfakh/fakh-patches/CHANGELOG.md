@@ -1,3 +1,34 @@
+## [1.6.2](https://github.com/amfakh/fakh-patches/compare/v1.6.1...v1.6.2) (2026-10-30)
+
+### ✨ New Features
+
+* **LinkedIn:** group the patches into Ads, Feed, Privacy, Theme and Feature categories in Morphe Manager ([1f5224c](https://github.com/amfakh/fakh-patches/commit/1f5224cdfbada94d1b524c032c0b2bfb9476d3f4))
+
+## [1.6.1](https://github.com/amfakh/fakh-patches/compare/v1.6.0...v1.6.1) (2026-10-30)
+
+### ✨ New Features
+
+* **Tuya Smart:** support 7.12.3-870 with Hide Plus button, Hide Recommended for you, Hide AI ask bar, Hide Explore tab, Hide Rewards Hub, Hide My Orders, Hide Tuya AI Web Version, Disable analytics and GmsCore support ([1b7478e](https://github.com/amfakh/fakh-patches/commit/1b7478e0f9acf75dd75f1cf075ea92808af19967))
+* **Smart Life, Tuya Smart:** add Hide ads to remove the ad banners and the AdMob ad entry ([1b7478e](https://github.com/amfakh/fakh-patches/commit/1b7478e0f9acf75dd75f1cf075ea92808af19967))
+* **BARDI:** support Smart Home 1.5.3 with Hide Mall tab, Hide Me banner and Hide App Mall to clean up the bottom navigation and the Me tab ([1b7478e](https://github.com/amfakh/fakh-patches/commit/1b7478e0f9acf75dd75f1cf075ea92808af19967))
+* **BARDI:** add GmsCore support (off by default) so "Sign in with Google" works through microG RE ([1b7478e](https://github.com/amfakh/fakh-patches/commit/1b7478e0f9acf75dd75f1cf075ea92808af19967))
+
+## [1.6.0](https://github.com/amfakh/fakh-patches/compare/v1.5.5...v1.6.0) (2026-10-30)
+
+### ✨ New Features
+
+* **Smart Life:** add Hide Plus button to remove the "Plus" pill from the home header ([ae307e8](https://github.com/amfakh/fakh-patches/commit/ae307e827983ee65a86e289a5b6e1120f77697c1))
+* **Smart Life:** add Hide Recommended for you to remove the "Recommended for You" section and its cards from the home screen ([ae307e8](https://github.com/amfakh/fakh-patches/commit/ae307e827983ee65a86e289a5b6e1120f77697c1))
+* **Smart Life:** add Hide AI ask bar to remove the "How can I help?" Tuya AI bar above the bottom navigation ([ae307e8](https://github.com/amfakh/fakh-patches/commit/ae307e827983ee65a86e289a5b6e1120f77697c1))
+* **Smart Life:** add Hide Explore tab to remove the Explore tab from the bottom navigation ([ae307e8](https://github.com/amfakh/fakh-patches/commit/ae307e827983ee65a86e289a5b6e1120f77697c1))
+* **Smart Life:** add Hide Rewards Hub, Hide My Orders and Hide Tuya AI Web Version to remove those rows from the Me tab ([ae307e8](https://github.com/amfakh/fakh-patches/commit/ae307e827983ee65a86e289a5b6e1120f77697c1))
+* **Smart Life:** add Disable analytics to stop AppsFlyer and turn off Firebase Analytics, Crashlytics and Sessions ([ae307e8](https://github.com/amfakh/fakh-patches/commit/ae307e827983ee65a86e289a5b6e1120f77697c1))
+* **Smart Life:** add GmsCore support (off by default) so "Sign in with Google" works through microG RE ([ae307e8](https://github.com/amfakh/fakh-patches/commit/ae307e827983ee65a86e289a5b6e1120f77697c1))
+
+### 🐛 Bug Fixes
+
+* **Smart Life:** fix GmsCore support leaving the app without a device location, which pinned the map at 0,0 ([cbbef17](https://github.com/amfakh/fakh-patches/commit/cbbef1702875555fd877e67c3c395d1a87318d0a))
+
 ## [1.5.5](https://github.com/amfakh/fakh-patches/compare/v1.5.4...v1.5.5) (2026-10-29)
 
 ### 🐛 Bug Fixes

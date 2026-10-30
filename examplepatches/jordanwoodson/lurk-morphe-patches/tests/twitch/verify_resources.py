@@ -30,7 +30,8 @@ def verify(root, stock, *, label=None, package=None, privacy=False, icon=False, 
         assert manifest.get("package") == package, "Package was not changed"
         before = {e.get(A + "name"): e for e in original_app.findall("provider")}
         after = {e.get(A + "name"): e for e in app.findall("provider")}
-        assert len(after) == 9 and before.keys() == after.keys(), "Provider classes changed"
+        # Every provider is kept and renamed (nine in 31.7.0; 31.8.0 added IVS's BackgroundDetector).
+        assert len(after) == len(before) >= 9 and before.keys() == after.keys(), "Provider classes changed"
         for name, old in before.items():
             new = after[name]
             authority = old.get(A + "authorities").replace(ORIGINAL, package)

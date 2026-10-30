@@ -57,7 +57,8 @@ the test probes and how releases work. Read it first, then:
 - **Fingerprint on what survives obfuscation:** strings, method signatures, access flags and
   instruction patterns. Never on obfuscated class or method names. A fingerprint must match
   exactly once; throw a `PatchException` with a clear message when it doesn't, so a new app
-  version fails to patch instead of patching wrong.
+  version fails to patch instead of patching wrong. Give fingerprint strings whole, not a prefix:
+  Morphe Patcher 2.0 compares them exactly (`tests/verify_fingerprint_strings.py` checks).
 - **Every behavior patch gets a Lurk setting**, registered only when that patch is included.
   With the setting off, the app must behave exactly as unpatched. Say "applies after a
   restart" when the value is only read at startup. Changes that can only be made while

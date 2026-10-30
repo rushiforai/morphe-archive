@@ -2,6 +2,19 @@
 
 Every HushTelegram release, newest first.
 
+## Unreleased
+
+* **Telegram:** Reactions to your messages now show a notification on patched builds, which Google's push never reaches. **UnifiedPush notifications** has a new switch under it, **Reaction notifications without push**, on by default. While Telegram is connected, someone reacting to one of your messages gets the same "reacted to your message" notification Telegram shows from a push, once per reaction. Telegram's own **Reactions** switch in Notifications and Sounds still has to be on. (#41)
+* **Telegram:** With **Keep Telegram's files in internal storage** on, files Telegram downloaded before you turned it on open from Android/data again instead of downloading a second copy. New downloads still land in Internal storage/Telegram. (#7)
+* **Telegram:** **Ask before sending a voice or video message** pauses the recording before it asks, the way Telegram does before its own paid-message question, so nothing you say or film while the question is up ends up in the message. Send sends the clip as it was. Cancel leaves it paused in Telegram's preview, where you can play it, delete it or send it. The send button under that preview asks too, and Cancel there keeps the clip just as it was.
+* **Telegram:** Chats hidden with **Hide picked chats** no longer count toward the unread numbers on the folder tabs, and hiding or unhiding one updates them right away, on every account you're signed in to. The app badge still counts their unread messages, since they keep their notifications. (#24)
+* **Telegram:** The settings lock now covers **Emoji next to the chat list title** too. While the settings are locked, tapping it shows the lock note instead of opening the editor. (#17)
+* **Telegram:** Turning **Hide folder tab counters** on or off changes the folder tabs right away. Before, the counts stayed as they were until Telegram restarted.
+* **Telegram:** When **Hide All Chats** is on but All Chats is still in the tabs, its description in the settings now says why. Either nothing else opens Archived Chats (turn on the side menu to fix that), your account has no folder of its own to open, or the folder tabs couldn't be read. The diagnostic report counts the same reasons. (#38)
+* **Telegram:** Turning **Hide Stories** on or off now shows the restart button in the settings. Telegram sets up the Post Story button and loads the story list when the chat list opens, so before, the button stayed (or stayed away) until Telegram happened to restart, with nothing saying so.
+* **Telegram:** **Open a folder at launch** brings the folder you picked into view. With more folders than fit across the screen, a pick past the edge used to open selected but out of sight until you scrolled the tabs. With fewer folders the tabs look just as they did.
+* **Tooling:** `release.ps1 -Stage publish` takes a walk receipt for each Telegram build the bundle patches, so `-Walk` names one for telegram.org's build and one for the Play build. It refuses to publish when either is missing, or when the Play build's walk was signed out. Until now one walk of the web build was enough, and nothing had opened the Play build's screens past sign-in.
+
 ## 0.0.21 (2026-10-27)
 
 The twelfth release, with 67 patches for Telegram 13.1.1 from Google Play and 13.1.0 from telegram.org. It's built on Morphe patcher 2.0.1, so update Morphe Manager to 2.2.0 before you patch. Most of what's new came out of your reports. You can hide chats you pick, drop the All Chats tab, keep the text of edited messages and translate into any language Google knows, and the settings are one short list now.

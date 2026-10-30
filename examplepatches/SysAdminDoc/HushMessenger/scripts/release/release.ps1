@@ -26,13 +26,20 @@
                  walk of this exact bundle on a release phone or an emulator, with the screenshot
                  and UI dump of every required step beside it. Then the annotated
                  tag, pushed on its own, and the GitHub release with the bundle, SHA256SUMS.txt
-                 and the signature. Notes are the whole CHANGELOG section. Each asset is
-                 downloaded back and compared.
+                 and the signature. scripts/release_notes.py writes the notes: the description's
+                 summary, every bullet of the CHANGELOG section, the reports, How to update and
+                 What was checked from the walk. Each asset is downloaded back and compared.
       index      Pushes main, which carries the new source index, then checks that GitHub serves
                  it and that its download URL returns the released bundle.
 
     Gradle goes through HUSHMESSENGER_BUILD_WRAPPER when it is set and the Desktop runs through
     the machine queue BUILD_QUEUE_SCRIPT names, both at release priority. Unset, they run directly.
+
+    -BundleKey names the Base64 private key that morphe-signing.pub belongs to, by default
+    ~/.ssh/hushmessenger_morphe_signing.key. prepare and build hand it to Gradle as
+    MORPHE_SIGNING_KEY, so :patches:buildAndroid signs the bundle the way Morphe Manager 2.3 checks
+    it, and prepare writes the public key into the source index as public_key. Manager pins the
+    first key a source signs with, so this key can never change.
 
 .EXAMPLE
     scripts/release/release.ps1 -Stage prepare -Version 0.23.0
@@ -46,6 +53,7 @@ param(
     [Parameter(Mandatory = $true)][ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version,
     [ValidatePattern('^(\d{4}-\d{2}-\d{2})?$')][string]$Date,
     [string]$SigningKey,
+    [string]$BundleKey,
     [string]$DesktopJar,
     [string]$CompatClasspath,
     [string]$Java,
@@ -65,6 +73,7 @@ $stageTimer = [Diagnostics.Stopwatch]::StartNew()
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 if (-not $Date) { $Date = (Get-Date).ToString('yyyy-MM-dd') }
 if (-not $SigningKey) { $SigningKey = Join-Path $HOME '.ssh/hushmessenger_release_ed25519' }
+if (-not $BundleKey) { $BundleKey = Join-Path $HOME '.ssh/hushmessenger_morphe_signing.key' }
 $tag = "v$Version"
 $bundleName = "patches-$Version.mpp"
 $work = Join-Path $root "build/release/$Version"
@@ -74,7 +83,7 @@ $statePath = Join-Path $work $(if ($Development) { 'development-state.json' } el
 # Run from a pwsh prompt, this script shares the prompt's process, so it puts back the variables it sets.
 $savedEnvironment = @{}
 foreach ($name in 'HUSHMESSENGER_BUILD_WRAPPER', 'BUILD_QUEUE_SCRIPT', 'HUSH_NATIVE_FIXTURES',
-        'HUSHMESSENGER_DESKTOP_JAR', 'HUSHMESSENGER_COMPAT_CLASSPATH', 'BUILD_QUEUE_PRIORITY') {
+        'HUSHMESSENGER_DESKTOP_JAR', 'HUSHMESSENGER_COMPAT_CLASSPATH', 'BUILD_QUEUE_PRIORITY', 'MORPHE_SIGNING_KEY') {
     $savedEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process')
 }
 function Restore-Environment {
@@ -193,6 +202,16 @@ function Write-Text([string]$Path, [string]$Text) {
 
 function Get-PublicVersion { (Get-Content -LiteralPath (Join-Path $root 'patches-bundle.json') -Raw | ConvertFrom-Json).version }
 
+function Get-BundlePublicKey { (Get-Content -LiteralPath (Join-Path $root 'morphe-signing.pub') -Raw).Trim() }
+
+# The build signs the bundle in :patches:buildAndroid and refuses a key that isn't morphe-signing.pub's.
+function Use-BundleKey {
+    if (-not (Test-Path -LiteralPath $BundleKey -PathType Leaf)) {
+        throw "Pass -BundleKey, the private key morphe-signing.pub belongs to. $BundleKey is not there."
+    }
+    $env:MORPHE_SIGNING_KEY = (Get-Content -LiteralPath $BundleKey -Raw).Trim()
+}
+
 # The bundle checksum README.md pins, which prepare wrote and every later stage must reproduce.
 function Get-PinnedSha256 {
     $readme = Get-Content -LiteralPath (Join-Path $root 'README.md') -Raw
@@ -208,13 +227,6 @@ function Assert-Facts {
     if (-not $heading.StartsWith("$Version (")) { throw "The first CHANGELOG heading is '$heading', not $Version." }
     if ((Get-PublicVersion) -ne $Version) { throw "patches-bundle.json isn't at $Version." }
     Get-PinnedSha256 | Out-Null
-}
-
-function Get-ChangelogSection {
-    $text = Get-Content -LiteralPath (Join-Path $root 'CHANGELOG.md') -Raw
-    $match = [regex]::Match($text, "(?ms)^## $([regex]::Escape($Version)) \([^)]*\)\r?\n(.*?)(?=^## |\z)")
-    if (-not $match.Success -or -not $match.Groups[1].Value.Trim()) { throw "CHANGELOG.md has no section for $Version." }
-    return $match.Groups[1].Value.Trim()
 }
 
 # One code per Messenger build family: records whose hook lines are identical share a mapping.
@@ -236,6 +248,7 @@ function Get-StockApk([string]$Code) {
 switch ($Stage) {
     'prepare' {
         Assert-Clean
+        Use-BundleKey
         $changelogPath = Join-Path $root 'CHANGELOG.md'
         $changelog = Get-Content -LiteralPath $changelogPath -Raw
         $heading = [regex]::Match($changelog, '(?m)^## (.+?)\r?$').Groups[1].Value
@@ -262,17 +275,29 @@ switch ($Stage) {
             $readme = $readme -replace "(?<![\w.-])patches-$old(?!\.?\d)", "patches-$Version"
             $readme = ($readme -split "`n" | Where-Object { $_ -notmatch 'img\.shields\.io/badge/development-' }) -join "`n"
             Write-Text $readmePath $readme
+            # The bug form's example line names the release the way the README does; check_release.py reads it.
+            $formPath = Join-Path $root '.github/ISSUE_TEMPLATE/bug_report.yml'
+            $form = Get-Content -LiteralPath $formPath -Raw
+            Write-Text $formPath ($form -replace "placeholder: HushMessenger $old on Messenger ", "placeholder: HushMessenger $Version on Messenger ")
 
             $indexPath = Join-Path $root 'patches-bundle.json'
             $index = Get-Content -LiteralPath $indexPath -Raw | ConvertFrom-Json
             $index.version = $Version
             $index.download_url = "https://github.com/$Repository/releases/download/$tag/$bundleName"
             $index.created_at = $now.UtcDateTime.ToString('yyyy-MM-ddTHH:mm:ss')
+            $index | Add-Member -NotePropertyName public_key -NotePropertyValue (Get-BundlePublicKey) -Force
             Write-Text $indexPath (($index | ConvertTo-Json -Depth 5) + "`n")
         } elseif ($heading.StartsWith("$Version (")) {
             # Already cut: rebuild and pin the checksum again after a fix, keeping the timestamp.
             Assert-Facts
             Write-Step 'already cut, pinning the checksum again'
+            # A release cut before bundles were signed has no public_key yet; the build's check wants it.
+            $indexPath = Join-Path $root 'patches-bundle.json'
+            $index = Get-Content -LiteralPath $indexPath -Raw | ConvertFrom-Json
+            if ($index.public_key -ne (Get-BundlePublicKey)) {
+                $index | Add-Member -NotePropertyName public_key -NotePropertyValue (Get-BundlePublicKey) -Force
+                Write-Text $indexPath (($index | ConvertTo-Json -Depth 5) + "`n")
+            }
         } else {
             throw "The first CHANGELOG heading is '$heading', neither Unreleased nor $Version."
         }
@@ -291,7 +316,7 @@ switch ($Stage) {
         } catch {
             # Put the cut back, so prepare starts again from a clean tree after the fix. A missing bundle or
             # checksum line fails here too, not only Gradle.
-            if ($heading -eq 'Unreleased') { & git -C $root checkout -- gradle.properties CHANGELOG.md README.md patches-bundle.json }
+            if ($heading -eq 'Unreleased') { & git -C $root checkout -- gradle.properties CHANGELOG.md README.md patches-bundle.json .github/ISSUE_TEMPLATE/bug_report.yml }
             throw
         }
         Save-Stage 'prepare' @{ base = (Get-Head); sha256 = $digest }
@@ -345,6 +370,7 @@ switch ($Stage) {
         Assert-Stage 'preflight' -SameCommit | Out-Null
         Assert-Clean
         Assert-Facts
+        Use-BundleKey
         if (-not $env:HUSH_NATIVE_FIXTURES -or -not (Test-Path -LiteralPath $env:HUSH_NATIVE_FIXTURES -PathType Container)) {
             throw 'Set HUSH_NATIVE_FIXTURES to the folder of exact stock APKs.'
         }
@@ -450,7 +476,8 @@ switch ($Stage) {
         }
         Write-Step "walked on $($walked.Receipt.device): $($walked.Receipt.screens) screens, no crash"
         $notes = Join-Path $work 'notes.md'
-        Write-Text $notes ((Get-ChangelogSection) + "`n")
+        Invoke-Python -I (Join-Path $root 'scripts/release_notes.py') --root $root --version $Version `
+            --walk (Resolve-Path -LiteralPath $Walk).Path --out $notes
 
         $existing = & git -C $root tag -l $tag
         if (-not $existing) {
@@ -504,6 +531,7 @@ switch ($Stage) {
             Start-Sleep -Seconds 15
         }
         if (-not $served -or $served.version -ne $Version) { throw "GitHub still serves source index $($served.version)." }
+        if ($served.public_key -cne (Get-BundlePublicKey)) { throw "The served source index public_key isn't the key in morphe-signing.pub." }
         $check = Join-Path $work 'index-download.mpp'
         Invoke-WebRequest -Uri $served.download_url -OutFile $check
         if ((Get-FileSha256 $check) -ne $published.sha256) { throw "The index download URL doesn't return the released bundle." }

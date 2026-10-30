@@ -7,7 +7,8 @@ Kies je app hieronder. Op elke app-pagina vind je de exacte ondersteunde versie,
 - [Weer](weather/index.md): Buienalarm, Buienradar, Weeronline en Weerplaza.
 - [Nieuws en lezen](news/index.md): NU.nl, de Volkskrant, Trouw, FTM, AD, NRC, Parool, RTL Nieuws, Omroep Brabant, Voetbal International en NOS Teletekst.
 - [Verkeer en navigatie](mobility/index.md): Flitsmeister.
-- [Amusement](entertainment/index.md): Dumpert.
+- [Amusement](entertainment/index.md): Dumpert, KIJK Android TV en NPO Start Android TV.
+- [Overige apps](other/index.md): Marktplaats.
 - [Alleen onderzocht](research.md): bevindingen zonder gepubliceerde privacyopties.
 
 De [gegenereerde catalogus](../reference/catalogue.md) vermeldt patchnamen, standaardinstellingen en de ondersteunde versies per patch. Deze gegevens komen uit de repositorymetadata. Het merkpakket bevat alleen een momentopname voor het ontwerp.

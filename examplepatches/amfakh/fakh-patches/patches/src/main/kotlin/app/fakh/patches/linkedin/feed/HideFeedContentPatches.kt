@@ -22,6 +22,7 @@ val hideSuggestedPostsPatch = bytecodePatch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Feed")
     dependsOn(sduiComponentFilterPatch)
     execute { markIncluded("isHideSuggestedIncluded") }
 }
@@ -33,6 +34,7 @@ val hidePromotedJobsPatch = bytecodePatch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Ads")
     dependsOn(sduiComponentFilterPatch)
     execute { markIncluded("isHidePromotedJobsIncluded") }
 }
@@ -45,6 +47,7 @@ val feedFiltersPatch = bytecodePatch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Feed")
     dependsOn(sduiComponentFilterPatch)
     execute { markIncluded("isFeedFiltersIncluded") }
 }
@@ -72,6 +75,7 @@ val hidePremiumUpsellsPatch = bytecodePatch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Ads")
     dependsOn(sduiComponentFilterPatch)
     execute {
         markIncluded("isHidePremiumIncluded")

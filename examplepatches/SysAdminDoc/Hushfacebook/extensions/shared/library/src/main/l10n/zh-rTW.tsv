@@ -846,6 +846,9 @@ With the switch above on, only a hold on the right third of a reel plays it at d
 Hold a feed video for 2x	長按動態消息影片以 2 倍速播放
 # context: summary of that switch; Watch is Facebook's video tab, keep its name; the switches above are Hold a reel for 2x and Only on the right edge
 Holding a video in the feed or in Watch plays it at double speed until you let go. It works without the switches above.	長按動態消息或 Watch 中的影片時，會以兩倍速度播放，放開後恢復。不必啟用上方的開關即可使用。
+Hide the pull down to lock hint	隱藏「下拉鎖定」提示
+# context: summary of that switch; the quoted hint is Facebook's own text on the pill over a video held for 2x, translate it the way Facebook would; the switches above are Hold a reel for 2x's
+Holding a video for 2x shows the plain 2x pill, without the "Pull down to lock 2x speed" hint. Pulling down still locks it. It works without the switches above.	長按影片以 2 倍速播放時只顯示一般的 2x 標籤，不顯示「下拉鎖定 2 倍速」提示。下拉仍可鎖定。不必啟用上方的開關即可使用。
 Default playback quality	預設播放畫質
 Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.	以指定畫質播放影片、Reels 與限時動態。在影片本身選單選擇的畫質仍優先使用。
 Playback quality	播放畫質
@@ -1862,8 +1865,8 @@ Silent parts play in this video	此影片會播放無聲片段
 Skipping silent parts again	已恢復略過無聲片段
 # context: switch title under News feed; posts Facebook shows from groups the user hasn't joined, which come with a Join button next to the group's name
 Hide posts from groups you're not in	隱藏未加入社團的貼文
-# context: summary of that switch; a friend's share of a group post is a post on the friend's own profile that shares a group post, and it stays
-Hides posts from groups you haven't joined, like a friend's post in a public group. Posts from your groups and a friend's share of a group post stay.	隱藏你尚未加入社團的貼文，例如朋友在公開社團中的貼文。你已加入社團的貼文，以及朋友分享的社團貼文仍會保留。
+# context: summary of that switch; a group post a friend commented on or shared reaches the feed wrapped in the friend's activity, and the switch hides it too
+Hides posts from groups you haven't joined, like a friend's post in a public group, and a group post a friend commented on or shared. Posts from your groups stay.	隱藏你尚未加入社團的貼文，例如朋友在公開社團中的貼文，以及朋友留言或分享過的社團貼文。你已加入社團的貼文仍會保留。
 # context: switch title under Search; For you is the section of searches Facebook suggests on the search screen before anything is typed, under a header that reads For you
 Hide For you in search	隱藏搜尋中的為你推薦
 # context: summary of that switch; recent searches are the user's own past searches, and the suggestions as you type are the ones under the search box while typing
@@ -2090,3 +2093,26 @@ If your patched Facebook includes Badge and logo colors, the logo will be Facebo
 If your patched Facebook includes Badge and logo colors, badges will be %1$s.	如果你修補的 Facebook 包含「徽章和標誌顏色」，徽章將為 %1$s。
 # context: import preview sentence: the file sets the Logo color row; %1$s is a color code like #2ECC71; "Badge and logo colors" is the patch's name, keep it as translated for that patch
 If your patched Facebook includes Badge and logo colors, the logo will be %1$s.	如果你修補的 Facebook 包含「徽章和標誌顏色」，標誌將為 %1$s。
+# context: title of the row that holds a color code for the selected tab's icon and the line over it in the tab bar
+Selected tab color	已選取分頁顏色
+# context: dialog message of the Selected tab color row; keep #RRGGBB and #2ECC71 as they are
+A color code (#RRGGBB) for the selected tab's icon and the line over it in the tab bar, like #2ECC71. Leave it blank for Facebook's own.	分頁列中已選取分頁的圖示及其上方線條的色碼（#RRGGBB），例如 #2ECC71。留白則使用 Facebook 的顏色。
+# context: summary of the Selected tab color row while it's blank
+The selected tab keeps Facebook's color. Type a color code to change it.	已選取分頁維持 Facebook 的顏色。輸入色碼即可變更。
+# context: summary of the Selected tab color row; %1$s is a color code like #2ECC71
+The selected tab in the tab bar is %1$s. Restart Facebook to see the change.	分頁列中已選取的分頁為 %1$s。重新啟動 Facebook 即可看到變更。
+# context: import preview sentence: the file sets the Selected tab color row back to blank; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, the selected tab will be Facebook's color.	如果你修補的 Facebook 包含「徽章和標誌顏色」，已選取分頁將使用 Facebook 的顏色。
+# context: import preview sentence: the file sets the Selected tab color row; %1$s is a color code like #2ECC71; "Badge and logo colors" is the patch's name, keep it as translated for that patch
+If your patched Facebook includes Badge and logo colors, the selected tab will be %1$s.	如果你修補的 Facebook 包含「徽章和標誌顏色」，已選取分頁將為 %1$s。
+Hide the emoji row on comments	隱藏留言的表情符號列
+The row of emoji over the comment box goes away. You can still type emoji from your keyboard.	留言框上方的表情符號列不再顯示。你仍然可以用鍵盤輸入表情符號。
+Show Comment when comments are off	留言關閉時仍顯示留言按鈕
+Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	在關閉留言的 Reels 上保留留言按鈕，讓你仍能閱讀已有的留言。從下一個 Reel 開始生效。
+Select part of a post's text	選取貼文文字的一部分
+Holding a post's text still copies all of it, and also opens the text in a box where you can select just the part you want and copy that.	長按貼文文字仍會複製全部內容，同時會在一個方塊中開啟這段文字，你可以只選取想要的部分再複製。
+Select text	選取文字
+Done	完成
+Oldest	最早
+Comments open oldest first, on every post. Facebook's sort menu then shows All comments.	每則貼文的留言都從最早的開始顯示。Facebook 的排序選單這時會顯示「所有留言」。
+Comments will open oldest first.	留言將從最早的開始顯示。

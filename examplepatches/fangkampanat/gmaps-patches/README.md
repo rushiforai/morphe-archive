@@ -4,21 +4,24 @@
 
 Patch Google Maps with [Morphe Desktop](https://github.com/MorpheApp/morphe-desktop) and use it with [MicroG-RE 7.2.2](https://github.com/MorpheApp/MicroG-RE/releases/tag/7.2.2). This is the only supported provider for the current patch.
 
-Our Maps sign-in and location fixes were merged upstream in [MicroG-RE PR #272](https://github.com/MorpheApp/MicroG-RE/pull/272) and are included since 7.2.1. We now use the official provider; the separate BYD fork is no longer maintained.
-
 This repository provides `.mpp` patch bundles. Supply a clean Google Maps APK to patch.
+
+> **BYD head units:** New BYD features go to [Google Maps Automotive for MicroG-RE](https://github.com/fangkampanat/google-maps-automotive-patches) (Maps Car). This repository is in maintenance mode. We fix the default patches when a new Maps version breaks them.
 
 ## Patches list
 
 <!-- PATCHES_START -->
-[v1.4.2](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.4.2) · 3 patches
+[v1.4.4](https://github.com/fangkampanat/gmaps-patches/releases/tag/v1.4.4) · 6 patches
 
 Eligible versions: Any version.
 
 | Patch | Description | Options |
 | --- | --- | --- |
 | BYD native battery experiment | Experimental: sends this BYD's battery and road-load model to Google through Maps' native EV route requests. Starts from the car's own average consumption, learns slowly from BMS energy/distance, and adds in-app vehicle settings. Native hooks inspected on Maps 26.41 and 26.42. Targets BYD DiLink 3; DiLink 5 unverified. | • Arrival battery during navigation |
-| Google Maps for MicroG-RE | Connects supported Google Maps builds to MicroG-RE 7.2.2, skips the uncertified-device screen, avoids a crash when a location-settings dialog cannot open, and prefers synthesized navigation speech with early Google TTS startup and the existing audio fallback. |  |
+| BYD navigation audio routing | Routes navigation prompts to the BYD-specific audio stream when supported, retaining the original fallback. Not needed on phones. |  |
+| Device certification fix | Skips the uncertified-device screen that closes Maps on devices Google does not certify. |  |
+| Google Maps for MicroG-RE | Connects supported Google Maps builds to MicroG-RE 7.2.2 and avoids a crash when a location-settings dialog cannot open. |  |
+| Navigation speech and TTS startup | Prefers synthesized navigation speech, keeping the existing audio fallback, and starts Google TTS when Maps opens. |  |
 | Picture-in-picture setting | Adds a Picture-in-picture On/Off setting to Maps Settings. Turn it off so navigation does not open a small window when you leave Maps; it starts on, as in Maps. Hooks inspected on Maps 26.41 and 26.42. |  |
 
 <!-- PATCHES_END -->
@@ -32,16 +35,9 @@ Eligible versions: Any version.
 
 The patch accepts any Google Maps version. It stops if required hooks cannot be identified safely. Compatibility with every Maps release is not guaranteed; the recorded runtime results below apply only to the listed versions and bundles.
 
-## Tested devices and apps
+## Tested devices
 
-The latest tested Maps version is `26.42.02.997557324`, patched in Morphe Desktop `1.19.1` and used with official MicroG-RE `7.2.2`. Tests for bundle `1.4.2` ran on a pre-release build with the same patch code.
-
-| Device | Results |
-|---|---|
-| Android 16 phone / 4 KiB pages | Bundle `1.4.2` on `26.42.02.997557324`: the Picture-in-picture setting passed. Bundle `1.4.1` on `26.42.01.997557324`: sign-in, use without an account, online maps, search, place details, routing, and Thai and English voice guidance passed. |
-| BYD Dolphin, DiLink 3.0 / Android 10 / 4 KiB pages | Bundle `1.4.2` on `26.42.02.997557324` with MicroG-RE `7.2.2`: the Picture-in-picture setting, route ETA, voice guidance and arrival battery passed. Bundle `1.4.0` on `26.41.04.993332563` with MicroG-RE `7.2.1` and patched Google TTS `20260817.01_p0.966249458`: static checks and in-car testing passed. |
-
-16 KiB devices, English-script street-name maneuvers, automatic voice timing while driving, and Timeline recording and backup are outside the verified scope.
+Bundle `1.4.4` with the default patches passed sign-in, online maps, location, routing, and voice guidance on an Android 16 phone with Maps `26.43.00.1002020710`, patched in Morphe Desktop `1.19.1`, with MicroG-RE `7.2.2`.
 
 ## Install MicroG-RE
 
@@ -49,20 +45,8 @@ Use the official MorpheApp release listed below. Older patch releases retain the
 
 1. Download `microg-7.2.2-icon-arm64-v8a.apk` from [MicroG-RE 7.2.2](https://github.com/MorpheApp/MicroG-RE/releases/tag/7.2.2). MicroG-RE 7.2.1 updates to it in place (same signing key).
 2. If Android rejects an update from another provider because the signing key differs, uninstall that provider first. This removes its accounts and settings, so you will need to sign in again. **Keep official Google Play services installed.**
-3. Install MicroG-RE. On BYD, complete the setup below before signing in. On other devices, grant the requested permissions, allow background activity and sign in.
+3. Install MicroG-RE, grant the requested permissions, allow background activity and sign in.
 4. Check Maps and your Morphe media apps. Compatible existing YouTube and YouTube Music APKs do not need to be patched again just to switch providers.
-
-### BYD setup after installation
-
-1. Connect ADB to the head unit and add MicroG-RE to the Doze whitelist:
-
-   ```bash
-   adb shell dumpsys deviceidle whitelist +app.revanced.android.gms
-   ```
-
-2. Turn OFF **MicroG RE** in BYD's **Disable Autostart** screen (unchecked, gray/left) to allow automatic startup.
-3. Open **MicroG RE** and grant all requested app permissions.
-4. Sign in to your Google account and select **Huawei**.
 
 ## Add the patch source
 
@@ -84,48 +68,17 @@ Use the official MorpheApp release listed below. Older patch releases retain the
 
 1. Confirm this repository's name and Stable bundle version appear at the top center of the Home screen.
 2. Drop a clean, supported Google Maps APK onto **Drop APK here**, or click that area to browse for the file.
-3. After the APK loads, confirm the screen shows **Google Maps Morphe** and **Google Maps for MicroG-RE** is enabled. The Picture-in-picture setting and the native battery experiment are optional.
+3. After the APK loads, confirm the screen shows **Google Maps Morphe** with these default patches enabled: **Google Maps for MicroG-RE**, **Device certification fix** and **Navigation speech and TTS startup**. Other patches are optional.
 4. Click **PATCH WITH DEFAULTS**.
 5. When patching finishes, install the resulting APK on the target device.
 
 ## Navigation voice
 
 1. Install the patched APK from [Google TTS for MicroG-RE](https://github.com/fangkampanat/google-tts-microg#download-and-install) separately from Maps.
-2. On BYD, turn OFF **Speech Recognition and Synthesis from Google** in **Disable Autostart** to allow automatic startup.
-3. On BYD, add Google TTS to the Doze whitelist:
-
-   ```bash
-   adb shell dumpsys deviceidle whitelist +com.google.android.tts
-   ```
-
-4. Open **Google TTS** and download Thai and English (US) voices.
-5. In Maps' navigation voice settings, select **Default (language)** for spoken street names.
+2. Open **Google TTS** and download Thai and English (US) voices.
+3. In Maps' navigation voice settings, select **Default (language)** for spoken street names.
 
 Explicit language selections can use prerecorded prompts.
-
-## Picture-in-picture setting
-
-This optional patch adds **Maps → Settings → Picture-in-picture**. Tap it and choose **On** or **Off** for Maps' small navigation window; it starts on. When it is off, leaving Maps during navigation does not open the window. This helps on head units that lack Android's own picture-in-picture setting.
-
-Enable **Google Maps for MicroG-RE** and **Picture-in-picture setting** when patching. The row appears only on devices that support picture-in-picture. The patch is inspected on Maps `26.41.04.993332563`, `26.42.01.997557324` and `26.42.02.997557324`, and tested on `26.42.02.997557324` on an Android 16 phone and a BYD Dolphin.
-
-## BYD native battery experiment
-
-This optional patch sends the car's live battery level and an estimated road-load model to Maps' EV route requests, so Google shows the expected battery percentage at the destination. Google calculates the route and the estimate.
-
-![Patched Maps with MicroG-RE 7.2.1 on a BYD head unit, showing "32% on arrival" in route preview](docs/images/byd-battery-preview.jpg)
-
-Enable **Google Maps for MicroG-RE** and **BYD native battery experiment** when patching. Route preview shows the arrival percentage, and during navigation a battery icon with that percentage follows the ETA. With several stops, it shows the next stop.
-
-**Maps → Settings → Vehicle and battery**:
-
-- **Automatic** (default) starts from the car's average consumption and learns from drives of 10 km or more.
-- **Fixed** uses the consumption you enter.
-- **Manual A/B/C** sets the road-load coefficients and the capacity used below 10% SOC.
-
-Battery capacity is measured automatically above 50% SOC. Changes saved during navigation apply after it ends.
-
-The patch is inspected on Maps `26.41.04.993332563`, `26.42.01.997557324` and `26.42.02.997557324`. It was tested in a BYD Dolphin, DiLink 3.0 on `26.41.04.993332563` and `26.42.02.997557324`. On other Maps versions patching may stop; disable this patch there. Other BYD models and DiLink 5.0 are untested.
 
 ## Troubleshooting
 

@@ -27,7 +27,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Predicate;
 
 /**
  * Generation-safe orchestration. Every block has one owner and an immutable accepted event plan.
@@ -57,16 +56,6 @@ final class RebuildController {
      * being retried forever behind the "翻译中…" placeholder.
      */
     static final int MAX_SLOW_RETRIES = 3;
-
-    /**
-     * Display guarantee (N52): a speech instant may never render an empty box. When no unit covers
-     * the instant, the last translated page is held for at most this long, then the neutral
-     * placeholder stands in while the page itself is requested.
-     */
-    static final long DISPLAY_HOLD_MS = 4000;
-
-    /** Quantization of the held/placeholder window, so the render signature changes rarely. */
-    static final long DISPLAY_QUANTUM_MS = 500;
 
     /** Page-sized repair requests per block; each asks only for the uncovered page range. */
     static final int MAX_PAGE_REPAIRS_PER_BLOCK = 4;
@@ -104,8 +93,6 @@ final class RebuildController {
     private static volatile String video = "";
     private static volatile long publicationEpoch;
     private static boolean tickPosted;
-    private static volatile boolean compact;
-    private static long restoreUntil;
 
     private static ExecutorService lane(String name, int concurrency) {
         return Executors.newFixedThreadPool(
@@ -117,7 +104,8 @@ final class RebuildController {
                 });
     }
 
-    static void dispatch(boolean priority, Runnable work) {
+    static void dispatch(Session owner, boolean priority, Runnable work) {
+        if (Thread.holdsLock(owner)) throw new IllegalStateException("submit_under_session_lock");
         (priority ? PRIORITY_IO : PREFETCH_IO).submit(work);
     }
 
@@ -137,69 +125,23 @@ final class RebuildController {
 
         /** The source evidence kind accepted for this generation; authored cue pages use it. */
         volatile boolean authored;
-        volatile long sourceRetry, position, providerRetry;
-        long lastSeekAt = -1, prefetchPausedUntil;
-        volatile long pausedDisplayPosition = -1;
-        private PlaybackState pausedHookState;
-        private long pauseOwnerEpoch = -1, pauseClockEpoch = -1;
-        private String pauseSource = "";
-        volatile RebuildClock.Observation observation;
-        private long observedSeekSerial = -1;
+        volatile long sourceRetry, position;
+        final RebuildPlaybackSelection playback = new RebuildPlaybackSelection();
         volatile String status = "";
-        int sourceFailures, repairCount;
+        int sourceFailures;
         volatile int generation;
         volatile long renderRevision;
         volatile long appliedRenderRevision;
         volatile long renderSubmission;
         final RebuildCache.Publication publication = new RebuildCache.Publication();
-        boolean[] cacheReading;
+        final RebuildWorkSet work = new RebuildWorkSet();
         Job sourceJob;
         String cacheKey = "", lastShown = "";
-        boolean everReady;
 
-        /** What reached the screen in this generation; reset on every seek. */
-        final RebuildDisplayGroups.Cursor display = new RebuildDisplayGroups.Cursor();
-
-        DisplayLayout[] displayLayouts;
+        final RebuildPresentationSelection presentation = new RebuildPresentationSelection();
         TranslationSourceAccess.Source raw;
         RebuildSource source;
-
-        /** Local reading pages of the video's own captions (source-only display). */
-        List<RebuildSource.TimedWindow> readingPages;
-
-        RebuildSource readingFor;
         List<RebuildPlanner.Block> blocks;
-        RebuildProtocol.Plan[] plans, pendingPlans;
-
-        /** Leading events of a reply still streaming in; shown only while the block has no plan. */
-        RebuildProtocol.Plan[] provisional;
-
-        // Sending eligibility survives display generations, independently of READY/retained text.
-        final Set<Integer> filteredBlocks = new HashSet<>(); // guarded by this Session
-
-        // A hole denied before admission keeps its original one-shot eligibility. Existing kick
-        // calls resume it after the gate; queued reservations prevent duplicate executor work.
-        final Set<Integer> pendingHoles = new HashSet<>(), queuedHoles = new HashSet<>();
-
-        int[] states, attempts;
-        long[] retryAt;
-        String[] reasons;
-        Job[] jobs;
-        boolean[] cacheChecked;
-
-        /** Slow retries spent on a block that never produced a usable plan; capped per session. */
-        int[] slowRetries;
-
-        /** Page ranges already asked for as a repair in this generation, and the per-block count. */
-        final Set<String> pageRepairs = Collections.synchronizedSet(new HashSet<>());
-
-        /** Unadmitted reservations, separate from the bounded history that can be cleared. */
-        final Set<String> queuedPages = new HashSet<>(); // guarded by this Session
-
-        int[] pageRepairCount;
-
-        /** When the current page of a block first had no translation in this generation. */
-        long[] uncoveredSince;
 
         /** Rate limit for the DISPLAY_GAP fallback record. */
         volatile long lastDisplayGapAt;
@@ -266,10 +208,10 @@ final class RebuildController {
                 }
                 cancelled = true;
                 retired = publication.finishSent();
-                pausedDisplayPosition = -1;
-                pausedHookState = null;
+                playback.clearPause();
                 pendingFocus = null;
-                if (pendingPlans != null) Arrays.fill(pendingPlans, null);
+                if (work.slots != null)
+                    for (RebuildWorkSet.Slot slot : work.slots) slot.pending = null;
                 sourceJob = null;
                 loading = false;
             }
@@ -362,61 +304,42 @@ final class RebuildController {
             }
         }
 
-        /** Seeks arriving in quick succession pause look-ahead; the caller holds the lock. */
-        void noteSeek(long now) {
-            if (lastSeekAt >= 0 && now - lastSeekAt <= SEEK_STORM_WINDOW_MS)
-                prefetchPausedUntil = now + SEEK_STORM_PAUSE_MS;
-            lastSeekAt = now;
-        }
     }
 
     static final class Job implements DeepSeekApiClient.RequestControl, RebuildStream.Early {
         final long traceId = IDS.incrementAndGet();
         final Session session;
         final CaptionLanguageContext languageContext;
-        final int index;
-        final boolean priority;
-        volatile HttpURLConnection connection;
-
-        /**
-         * {@code dispatched}: the job holds a lane slot. {@code sent}: the provider request body is
-         * written. Only dispatched jobs count against the translation budget, and only the
-         * not-yet-sent newest foreground job may be replaced by a later seek.
-         */
-        volatile boolean cancelled, sent, dispatched;
-
-        /** This attempt is a paid semantic/structural repair, not a transient retry. */
-        boolean repair;
-
-        // Only queued, gate-denied ordinary work returns these reservations.
-        boolean slowRetry;
-        int attemptsBeforeSlowRetry;
+        final RebuildWorkSet.Attempt attempt;
 
         private long httpStartedAt;
 
         Job(Session session, int index, boolean priority) {
+            this(session, new RebuildWorkSet.Attempt(index, priority));
+        }
+
+        Job(Session session, RebuildWorkSet.Attempt attempt) {
             this.session = session;
             languageContext = session.languageContext;
-            this.index = index;
-            this.priority = priority;
+            this.attempt = attempt;
         }
 
         @Override
         public boolean tryBeginAttempt() {
             // current's Publication.isOpen check orders admission against revoke. No I/O or
             // permit is held here: overlapping retirement may still stop an unsent transport.
-            return !cancelled && current(session);
+            return !attempt.cancelled && current(session);
         }
 
         @Override
         public boolean isCancelled() {
-            return cancelled || (!current(session) && !(sent && session.publication.finishSent()));
+            return attempt.cancelled || (!current(session) && !(attempt.sent && session.publication.finishSent()));
         }
 
         @Override
         public void onConnection(HttpURLConnection c) {
-            if (connection != null) session.connections.remove(connection);
-            connection = c;
+            if (attempt.connection != null) session.connections.remove(attempt.connection);
+            attempt.connection = c;
             if (c != null) {
                 session.connections.add(c);
                 if (isCancelled()) {
@@ -428,7 +351,7 @@ final class RebuildController {
 
         @Override
         public void onRequestBodySent() {
-            sent = true;
+            attempt.sent = true;
         }
 
         /** A longer validated prefix of this job's streaming reply. Display only; never cached. */
@@ -436,13 +359,10 @@ final class RebuildController {
         public void onProvisional(RebuildProtocol.Plan prefix) {
             Session s = session;
             synchronized (s) {
-                if (!current(s)
-                        || cancelled
-                        || s.jobs == null
-                        || s.jobs[index] != this
-                        || s.plans[index] != null
-                        || s.provisional == null) return;
-                s.provisional[index] = prefix;
+                if (!current(s) || attempt.cancelled || s.work.slots == null) return;
+                RebuildWorkSet.Slot slot = s.work.slots[attempt.index];
+                if (slot.attempt != attempt || slot.accepted != null) return;
+                slot.provisional = prefix;
             }
             render(s);
         }
@@ -460,7 +380,7 @@ final class RebuildController {
                             + ";request="
                             + traceId
                             + ";block="
-                            + index
+                            + attempt.index
                             + ";"
                             + detail,
                     session.credential);
@@ -475,7 +395,7 @@ final class RebuildController {
                     traceId,
                     source,
                     response,
-                    metadata + ";session=" + session.id + ";block=" + index);
+                    metadata + ";session=" + session.id + ";block=" + attempt.index);
         }
     }
 
@@ -496,11 +416,6 @@ final class RebuildController {
     static boolean ownsNativeTrack() {
         Session s = active;
         return current(s) && !s.sourceOnly;
-    }
-
-    static String activeUrl() {
-        Session s = active;
-        return current(s) ? s.url : "";
     }
 
     static void activity(Context ignored) {
@@ -545,16 +460,16 @@ final class RebuildController {
             epoch = ++publicationEpoch;
         }
         clear(epoch);
-        if (s != null && s.plans != null) {
+        if (s != null && s.work.slots != null) {
             int complete = 0, partial = 0, failed = 0, holes = 0;
-            for (int i = 0; i < s.plans.length; i++) {
-                RebuildProtocol.Plan plan = s.plans[i];
+            for (int i = 0; i < s.work.slots.length; i++) {
+                RebuildProtocol.Plan plan = s.work.slots[i].accepted;
                 if (plan != null) {
                     if (plan.partial) {
                         partial++;
                         holes += plan.holes.size();
                     } else complete++;
-                } else if (s.states != null && s.states[i] == FAILED) failed++;
+                } else if (s.work.slots != null && s.work.slots[i].state == FAILED) failed++;
             }
             TranslationRuntime.mark(
                     s.context,
@@ -562,7 +477,7 @@ final class RebuildController {
                     "session="
                             + s.id
                             + ";blocks="
-                            + s.plans.length
+                            + s.work.slots.length
                             + ";complete="
                             + complete
                             + ";partial="
@@ -595,7 +510,8 @@ final class RebuildController {
         boolean show = previous != null && previous.visible;
         stop();
         long epoch = publicationEpoch;
-        CLEANUP.execute(
+        try {
+            CLEANUP.execute(
                 () -> {
                     try {
                         if (previous != null) previous.awaitRetirement();
@@ -603,6 +519,7 @@ final class RebuildController {
                         TranslationRuntime.host().clearSourceCache(context);
                         MAIN.post(
                                 () -> {
+                                    TranslationRuntime.host().cacheClearFinished(context, true);
                                     if (publicationEpoch != epoch || active != null) return;
                                     if (!selected.isEmpty())
                                         activate(context, selected, original, show);
@@ -612,32 +529,13 @@ final class RebuildController {
                                 context,
                                 "TRANSLATION_CACHE_CLEAR_FAILED",
                                 failure.getClass().getSimpleName());
+                        MAIN.post(() -> TranslationRuntime.host().cacheClearFinished(context, false));
                     }
                 });
-    }
-
-    static void player(String type) {
-        // The authority records the player type and derives display permission; this only tracks
-        // the short URL-restoration window that a compact excursion opens.
-        String t = type == null ? "" : type.toUpperCase(Locale.ROOT);
-        boolean small = TranslationRuntime.isCompactType(t) && !TranslationRuntime.isShorts();
-        if (compact && !small) restoreUntil = SystemClock.elapsedRealtime() + 3000;
-        compact = small;
-    }
-
-    static String restore(String url) {
-        Session s = active;
-        if (!current(s)
-                || s.sourceOnly
-                || !s.visible
-                || !TranslationRuntime.translates()
-                || (!compact
-                        && !TranslationRuntime.authoritativeType()
-                        && SystemClock.elapsedRealtime() > restoreUntil)) return url;
-        String owner = CaptionUrls.videoId(url);
-        return CaptionUrls.isTimedText(url) && (owner.isEmpty() || owner.equals(s.owner))
-                ? TargetLanguage.withCode(url, s.target)
-                : url;
+        } catch (RejectedExecutionException capacity) {
+            TranslationRuntime.mark(context, "TRANSLATION_CACHE_CLEAR_FAILED", "cleanup_capacity");
+            MAIN.post(() -> TranslationRuntime.host().cacheClearFinished(context, false));
+        }
     }
 
     static void refresh(Context c) {
@@ -647,20 +545,6 @@ final class RebuildController {
         String url = s.url;
         stop();
         if (TranslationRuntime.settings(c).enabled) activate(c, url, original, show);
-    }
-
-    /**
-     * Starts the source fetch without waiting for any native CC observation. The only authority is
-     * the user's intent: no caption-known/CC state is consulted, so a session that already has a
-     * target is warmed as soon as its signed source url is available.
-     */
-    static void prewarm(Context c, String url) {
-        if (c == null
-                || !TranslationRuntime.translates()
-                || !TranslationRuntime.settings(c).ready()
-                || active != null) return;
-        String target = TranslationRuntime.target();
-        if (!target.isEmpty()) activate(c, TargetLanguage.withCode(url, target), false, false);
     }
 
     static void activate(Context c, String url, boolean original, boolean show) {
@@ -813,7 +697,7 @@ final class RebuildController {
         boolean seek =
                 nativeUpdate.seek
                         || (!nativeSample.available && hookUpdate.seek)
-                        || s.observedSeekSerial >= 0 && s.observedSeekSerial != CLOCK.seekSerial();
+                        || s.playback.hasNewSeek(CLOCK.seekSerial());
         long presentation =
                 nativeSample.available
                         ? CLOCK.current(now)
@@ -843,24 +727,24 @@ final class RebuildController {
                                 + ";clock_source="
                                 + CLOCK.source();
             RebuildClock.Observation selected = CLOCK.observation(now);
-            freeze(s, selected, state, true, ms);
-            presentation =
-                    s.pausedDisplayPosition >= 0 ? s.pausedDisplayPosition : selected.position;
+            presentation = s.playback.select(selected, state, TranslationRuntime.ownerEpoch(), true, ms);
             s.position = presentation;
             if (seek) {
-                s.noteSeek(now);
+                s.work.noteSeek(now);
                 resetDisplay(s);
-                if (s.jobs != null)
-                    for (Job j : s.jobs)
-                        if (j != null
-                                && !j.sent
+                if (s.work.slots != null)
+                    for (RebuildWorkSet.Slot slot : s.work.slots) {
+                        RebuildWorkSet.Attempt attempt = slot.attempt;
+                        if (attempt != null
+                                && !attempt.sent
                                 && s.blocks != null
-                                && !covers(s.blocks.get(j.index), presentation)) {
-                            j.cancelled = true;
-                            if (j.connection != null) disconnect.add(j.connection);
+                                && !RebuildPresentationSelection.covers(s.blocks.get(attempt.index), presentation)) {
+                            attempt.cancelled = true;
+                            if (attempt.connection != null) disconnect.add(attempt.connection);
                         }
+                    }
             }
-            s.observedSeekSerial = CLOCK.seekSerial();
+            s.playback.consumeSeek(CLOCK.seekSerial());
             generation = s.generation;
         }
         if (seekMark != null) TranslationRuntime.mark(s.context, "REBUILD_SEEK", seekMark);
@@ -875,11 +759,8 @@ final class RebuildController {
     private static void resetDisplay(Session s) {
         s.generation++;
         s.lastShown = "";
-        s.display.reset();
-        s.pageRepairs.clear();
-        s.queuedPages.clear();
-        if (s.pageRepairCount != null) java.util.Arrays.fill(s.pageRepairCount, 0);
-        if (s.uncoveredSince != null) java.util.Arrays.fill(s.uncoveredSince, 0);
+        s.presentation.reset();
+        s.work.resetDisplay();
     }
 
     private static TranslationOutput.RenderGuard positionGuard(Session s) {
@@ -926,8 +807,7 @@ final class RebuildController {
         if (s == null) return selected.position;
         synchronized (s) {
             observeSeek(s, selected, now);
-            freeze(s, selected, state, false, 0);
-            return s.pausedDisplayPosition >= 0 ? s.pausedDisplayPosition : selected.position;
+            return s.playback.select(selected, state, TranslationRuntime.ownerEpoch(), false, 0);
         }
     }
 
@@ -936,8 +816,8 @@ final class RebuildController {
      */
     private static void observeSeek(Session s, RebuildClock.Observation selected, long now) {
         long serial = CLOCK.seekSerial();
-        if (s.observedSeekSerial >= 0 && s.observedSeekSerial != serial && current(s)) {
-            s.noteSeek(now);
+        if (s.playback.hasNewSeek(serial) && current(s)) {
+            s.work.noteSeek(now);
             resetDisplay(s);
             s.position = selected.position;
             TranslationRuntime.mark(
@@ -951,64 +831,7 @@ final class RebuildController {
                             + selected.source,
                     s.credential);
         }
-        s.observedSeekSerial = serial;
-    }
-
-    /** One owner/session/seek-bound freeze, derived only from the winning observation. */
-    private static void freeze(
-            Session s,
-            RebuildClock.Observation selected,
-            PlaybackState raw,
-            boolean hook,
-            long hookPosition) {
-        s.observation = selected;
-        long owner = TranslationRuntime.ownerEpoch();
-        if (!selected.paused()) {
-            s.pausedDisplayPosition = -1;
-            s.pausedHookState = null;
-            s.pauseSource = "";
-            s.pauseOwnerEpoch = owner;
-            s.pauseClockEpoch = selected.epoch;
-            return;
-        }
-        long donor = selected.position;
-        boolean changed =
-                s.pausedDisplayPosition < 0
-                        || s.pauseOwnerEpoch != owner
-                        || s.pauseClockEpoch != selected.epoch
-                        || !s.pauseSource.equals(selected.source);
-        if (RebuildClock.OFFICIAL_PLAYER_QUERY.equals(selected.source)) {
-            // A currently queried paused native position is authoritative, including a real
-            // rewind. Repeated +/-16 ms reports are jitter; a matching explicit callback may
-            // confirm a tiny seek.
-            changed |=
-                    Math.abs(donor - s.pausedDisplayPosition) > 16
-                            || hook && hookPosition == donor && donor != s.pausedDisplayPosition;
-            s.pausedHookState = null;
-        } else {
-            boolean oldHook =
-                    raw != null
-                            && s.pausedHookState != null
-                            && raw.getPosition() == s.pausedHookState.getPosition()
-                            && raw.getLastPositionUpdateTime()
-                                    == s.pausedHookState.getLastPositionUpdateTime();
-            if (hook) {
-                // Native unavailable: keep the explicit hook-seek fallback. Its old MediaSession
-                // acknowledgement cannot restore the pre-seek position on the next read.
-                donor = Math.max(0, hookPosition);
-                changed = true;
-                s.pausedHookState = raw;
-            } else if (!oldHook && Math.abs(donor - s.pausedDisplayPosition) > 1500) {
-                changed = true;
-                s.pausedHookState = null;
-            }
-        }
-        if (changed) {
-            s.pausedDisplayPosition = donor;
-            s.pauseOwnerEpoch = owner;
-            s.pauseClockEpoch = selected.epoch;
-            s.pauseSource = selected.source;
-        }
+        s.playback.consumeSeek(serial);
     }
 
     private static long displayPosition(Session s) {
@@ -1025,10 +848,10 @@ final class RebuildController {
             synchronized (s) {
                 RebuildClock.Observation selected = CLOCK.observation(sample.readElapsed);
                 observeSeek(s, selected, sample.readElapsed);
-                freeze(s, selected, null, false, 0);
+                s.playback.select(selected, null, TranslationRuntime.ownerEpoch(), false, 0);
             }
         }
-        if (s.pausedDisplayPosition >= 0) return s.pausedDisplayPosition;
+        if (s.playback.frozenPosition() >= 0) return s.playback.frozenPosition();
         long now = SystemClock.elapsedRealtime(), live = CLOCK.current(now);
         if (!CLOCK.fresh(now)) return s.position;
         return live - s.position >= 8 ? live : s.position;
@@ -1038,7 +861,7 @@ final class RebuildController {
         Session s = active;
         if (!current(s)) return false;
         position(s); // A scheduler-only entry still selects the current position/state pair.
-        return s.observation != null && s.observation.paused();
+        return s.playback.paused();
     }
 
     private static void scheduleTick() {
@@ -1102,7 +925,7 @@ final class RebuildController {
         }
         try {
             TranslationSourceAccess.Source raw =
-                    TranslationSourceAccess.load(s.context, s.url, false, !s.sourceOnly, control);
+                    TranslationSourceAccess.load(s.context, s.url, !s.sourceOnly, control);
             if (!current(s)) return;
             long availablePosition = position(s);
             synchronized (s) {
@@ -1113,37 +936,15 @@ final class RebuildController {
             // The parsed cues are already time-bounded: show the current one while rebuilding and
             // planning run. Translation requests still wait for the full plan.
             render(s);
-            RebuildSource source = RebuildSource.read(raw.body, raw.document, !s.sourceOnly);
-            // A coarse automatic track is exactly the case that needs a finer ASR reference. The
-            // old gate required native words first, so a completely coarse primary never tried the
-            // reference at all. A manually authored track keeps its cue-level timing and needs no
-            // second download.
-            boolean authoredTrack = authored(s);
-            if (!s.sourceOnly
-                    && !authoredTrack
-                    && source.nativeWordCount() < source.words.size())
-                source = alignedToReference(s, source, control);
-            else if (!s.sourceOnly && !authoredTrack)
-                TranslationRuntime.mark(
-                        s.context,
-                        "REBUILD_SOURCE_REFERENCE_SKIPPED",
-                        "session="
-                                + s.id
-                                + ";native_words="
-                                + source.nativeWordCount()
-                                + ";words="
-                                + source.words.size()
-                                + ";reason=all_words_native");
-            // A manually authored track keeps its own segmentation: every authored cue is a display
-            // boundary, while consecutive cues may share one request block so the model sees the
-            // sentence around a fragment. Automatic tracks keep the sentence-sized blocks.
-            List<RebuildPlanner.Block> blocks =
-                    authoredTrack
-                            ? RebuildPlanner.planAuthored(source, s.languageContext)
-                            : RebuildPlanner.plan(source, s.languageContext);
-            String key =
-                    RebuildCache.identity(
-                            source, s.config, s.target, s.languageContext, authoredTrack);
+            RebuildSourcePreparation.Built built =
+                    RebuildSourcePreparation.build(
+                            s.context, raw, s.sourceOnly, s.config, s.target, s.languageContext,
+                            s.id, () -> s.url, control,
+                            (stage, detail) -> TranslationRuntime.mark(s.context, stage, detail));
+            RebuildSource source = built.source;
+            boolean authoredTrack = built.authored;
+            List<RebuildPlanner.Block> blocks = built.blocks;
+            String key = built.key;
             RebuildProtocol.Plan[] plans = new RebuildProtocol.Plan[blocks.size()];
             int[] states = new int[blocks.size()];
             boolean[] checked = new boolean[blocks.size()];
@@ -1168,8 +969,6 @@ final class RebuildController {
                 }
             }
             long readyPosition = position(s);
-            String[] reasons = new String[blocks.size()];
-            Arrays.fill(reasons, "");
             synchronized (s) {
                 if (!current(s) || s.sourceJob != control) return;
                 if (cacheGeneration != s.generation) {
@@ -1181,50 +980,24 @@ final class RebuildController {
                 s.source = source;
                 s.authored = authoredTrack;
                 s.cacheKey = key;
-                s.plans = plans;
-                s.pendingPlans = new RebuildProtocol.Plan[plans.length];
-                s.displayLayouts = new DisplayLayout[plans.length];
-                s.provisional = new RebuildProtocol.Plan[plans.length];
-                s.states = states;
-                s.attempts = new int[blocks.size()];
-                s.retryAt = new long[blocks.size()];
-                s.reasons = reasons;
-                s.jobs = new Job[blocks.size()];
-                s.cacheChecked = checked;
-                s.slowRetries = new int[blocks.size()];
-                s.pageRepairCount = new int[blocks.size()];
-                s.uncoveredSince = new long[blocks.size()];
-                s.pageRepairs.clear();
-                s.queuedPages.clear();
+                s.presentation.configure(source, blocks, s.languageContext);
+                s.work.initialize(blocks.size());
+                for (int i = 0; i < blocks.size(); i++) {
+                    RebuildWorkSet.Slot slot = s.work.slots[i];
+                    slot.accepted = plans[i];
+                    slot.state = states[i];
+                    slot.cacheChecked = checked[i];
+                }
+                s.work.pageRepairs.clear();
+                s.work.queuedPages.clear();
                 s.loading = false;
                 s.sourceJob = null;
                 s.status = "";
-                s.everReady = focusIndex < plans.length && plans[focusIndex] != null;
+                s.work.everReady = focusIndex < plans.length && plans[focusIndex] != null;
                 s.blocks = blocks;
                 s.position = readyPosition;
             }
-            int precise = 0;
-            for (RebuildSource.Word w : source.words)
-                if (w.precision != RebuildSource.Precision.ESTIMATED) precise++;
-            TranslationRuntime.mark(
-                    s.context,
-                    "REBUILD_SOURCE_READY",
-                    "words="
-                            + source.words.size()
-                            + ";measured_or_aligned="
-                            + precise
-                            + ";estimated="
-                            + (source.words.size() - precise)
-                            + ";coarse_reconstructed="
-                            + source.coarseCueReconstructed
-                            + ";coarse_cues="
-                            + source.coarseCueCount
-                            + ";blocks="
-                            + blocks.size()
-                            + ";cache_hits="
-                            + restored
-                            + ";precision="
-                            + source.precisionEvidence());
+            TranslationRuntime.mark(s.context, "REBUILD_SOURCE_READY", built.readyDetail(restored));
             TranslationAudit.recordUnitCacheOutcome(
                     Math.min(2, blocks.size() - focusIndex), restored);
             render(s);
@@ -1255,87 +1028,12 @@ final class RebuildController {
         }
     }
 
-    /** The source with a reference track's timing adopted; unchanged when none is available. */
-    private static RebuildSource alignedToReference(Session s, RebuildSource source, Job control)
-            throws InterruptedException {
-        try {
-            TranslationSourceAccess.Source ref =
-                    TranslationSourceAccess.reference(s.context, s.url, source, control);
-            if (ref == null) return source;
-            RebuildSource evidence =
-                    ref.timingEvidence != null
-                            ? ref.timingEvidence
-                            : RebuildSource.read(ref.body, ref.document, !s.sourceOnly);
-            String profile = ";profile=" + ref.timingProfile + ";quality=" + ref.timingQuality;
-            RebuildSource aligned =
-                    source.align(
-                            evidence,
-                            detail ->
-                                    TranslationRuntime.mark(
-                                            s.context,
-                                            "REBUILD_SOURCE_ALIGNMENT",
-                                            "session=" + s.id + profile + ";" + detail));
-            TranslationRuntime.mark(
-                    s.context,
-                    "REBUILD_SOURCE_REFERENCE_APPLIED",
-                    "session="
-                            + s.id
-                            + profile
-                            + ";before="
-                            + source.precisionEvidence()
-                            + ";after="
-                            + aligned.precisionEvidence());
-            return aligned;
-        } catch (Exception failure) {
-            TranslationSourceAccess.checkActive(control);
-            TranslationRuntime.mark(
-                    s.context,
-                    "ASR_REFERENCE_FETCH_FAILED",
-                    "session=" + s.id + ";reason=" + TranslationRuntime.errorDetail(failure));
-            return source;
-        }
-    }
-
-    private static int blockAt(Session s, long time) {
-        if (s.blocks == null) return -1;
-        int lo = 0, hi = s.blocks.size() - 1;
-        while (lo <= hi) {
-            int m = (lo + hi) >>> 1;
-            if (s.blocks.get(m).start <= time) lo = m + 1;
-            else hi = m - 1;
-        }
-        return hi;
-    }
-
-    private static boolean covers(RebuildPlanner.Block b, long time) {
-        return time >= b.start && time < b.end;
-    }
-
     /** The block the user is on right now, with the same rounding the planner already used. */
     private static int currentIndex(Session s) {
-        int index = blockAt(s, s.position);
+        int index = RebuildPresentationSelection.blockAt(s.blocks, s.position);
         if (index < 0) return 0;
-        if (!covers(s.blocks.get(index), s.position) && index + 1 < s.blocks.size()) index++;
+        if (!RebuildPresentationSelection.covers(s.blocks.get(index), s.position) && index + 1 < s.blocks.size()) index++;
         return index;
-    }
-
-    /** Jobs that hold a lane slot and have not finished yet. Unsent pending work is excluded. */
-    private static int dispatched(Session s, boolean focus) {
-        int count = 0;
-        if (s.jobs != null)
-            for (Job j : s.jobs) if (j != null && j.dispatched && j.priority == focus) count++;
-        return count;
-    }
-
-    /**
-     * Hands a selected job to its lane. Attempt and repair accounting happens exactly here, so a
-     * job replaced before it is dispatched never consumes a translation attempt or a repair.
-     */
-    private static void markDispatched(Session s, Job job) {
-        if (job.repair) s.repairCount++;
-        s.attempts[job.index]++;
-        s.states[job.index] = RUNNING;
-        job.dispatched = true;
     }
 
     /**
@@ -1346,11 +1044,7 @@ final class RebuildController {
         Job pending = s.pendingFocus;
         if (pending == null) return;
         s.pendingFocus = null;
-        if (s.jobs[pending.index] == pending) s.jobs[pending.index] = null;
-        if (s.states[pending.index] == RUNNING) {
-            s.states[pending.index] = WAITING;
-            deferRetry(s, pending.index, SystemClock.elapsedRealtime(), 500);
-        }
+        s.work.retirePending(pending.attempt, SystemClock.elapsedRealtime());
     }
 
     private static final class CacheLookup {
@@ -1358,18 +1052,18 @@ final class RebuildController {
         final RebuildSource source;
         final RebuildPlanner.Block block;
         final String key;
-        final Job job;
+        final RebuildWorkSet.Attempt attempt;
+        final RebuildWorkSet.Slot slot;
         final boolean bootstrap;
-        final boolean[] reading;
 
         CacheLookup(Session s, RebuildPlanner.Block block, boolean bootstrap) {
             generation = s.generation;
             source = s.source;
             key = s.cacheKey;
             this.block = block;
-            job = s.jobs[block.index];
+            slot = s.work.slots[block.index];
+            attempt = slot.attempt;
             this.bootstrap = bootstrap;
-            reading = s.cacheReading;
         }
 
         /** Is the session still the one this lookup was reserved for? */
@@ -1378,21 +1072,15 @@ final class RebuildController {
                     && s.generation == generation
                     && s.source == source
                     && s.cacheKey.equals(key)
-                    && s.jobs[block.index] == job;
+                    && sameSlot(s)
+                    && slot.attempt == attempt;
         }
-    }
 
-    /** A seek storm pauses look-ahead until scrubbing stops and the landing block is ready. */
-    private static boolean prefetchPaused(Session s, int index, long now) {
-        return now < s.prefetchPausedUntil
-                && !(s.plans[index] != null
-                        && s.lastSeekAt >= 0
-                        && now - s.lastSeekAt >= SEEK_SETTLED_MS);
-    }
-
-    /** The first accepted plan of this session: the engine has proven it can deliver. */
-    private static void markEverReady(Session s, int index) {
-        if (!s.everReady && s.plans[index] != null && s.states[index] == READY) s.everReady = true;
+        boolean sameSlot(Session s) {
+            return s.work.slots != null
+                    && block.index < s.work.slots.length
+                    && s.work.slots[block.index] == slot;
+        }
     }
 
     private static void restoreCandidates(Session s, long now, boolean playbackAhead) {
@@ -1401,38 +1089,37 @@ final class RebuildController {
             if (!current(s)
                     || s.blocks == null
                     || s.blocks.isEmpty()
-                    || s.cacheChecked == null
-                    || now < s.providerRetry) return;
-            if (s.cacheReading == null) s.cacheReading = new boolean[s.blocks.size()];
+                    || s.work.slots == null
+                    || now < s.work.providerRetry) return;
             int index = currentIndex(s);
-            markEverReady(s, index);
+            s.work.markEverReady(index);
             boolean ahead =
                     playbackAhead
-                            && !prefetchPaused(s, index, now)
-                            && (s.plans[index] != null
-                                    || s.states[index] == FAILED
-                                    || s.jobs[index] != null && s.jobs[index].sent);
+                            && !s.work.prefetchPaused(index, now)
+                            && (s.work.slots[index].accepted != null
+                                    || s.work.slots[index].state == FAILED
+                                    || s.work.slots[index].attempt != null && s.work.slots[index].attempt.sent);
             boolean bootstrap =
-                    !s.everReady
+                    !s.work.everReady
                             && s.source != null
                             && !s.sourceOnly
-                            && s.jobs[index] != null
-                            && s.jobs[index].sent;
-            int prefetch = dispatched(s, false);
+                            && s.work.slots[index].attempt != null
+                            && s.work.slots[index].attempt.sent;
+            int prefetch = s.work.dispatched(false);
             for (int i = index; i < s.blocks.size(); i++) {
                 RebuildPlanner.Block b = s.blocks.get(i);
                 if (b.start > s.position + 30000
                         || i > index
                                 && (!ahead
-                                        || !s.everReady && (!bootstrap || i != index + 1)
+                                        || !s.work.everReady && (!bootstrap || i != index + 1)
                                         || prefetch >= MAX_PREFETCH_CONCURRENCY)) break;
-                if (s.states[i] == WAITING
-                        && s.retryAt[i] <= now
-                        && s.plans[i] == null
-                        && !s.cacheChecked[i]
-                        && !s.cacheReading[i]) {
-                    s.cacheReading[i] = true;
-                    lookups.add(new CacheLookup(s, b, !s.everReady && i == index + 1));
+                if (s.work.slots[i].state == WAITING
+                        && s.work.slots[i].retryAt <= now
+                        && s.work.slots[i].accepted == null
+                        && !s.work.slots[i].cacheChecked
+                        && !s.work.slots[i].cacheReading) {
+                    s.work.slots[i].cacheReading = true;
+                    lookups.add(new CacheLookup(s, b, !s.work.everReady && i == index + 1));
                 }
             }
         }
@@ -1452,7 +1139,7 @@ final class RebuildController {
         int index = lookup.block.index;
         synchronized (s) {
             if (!lookup.valid(s)) {
-                if (s.cacheReading == lookup.reading) s.cacheReading[index] = false;
+                if (lookup.sameSlot(s)) lookup.slot.cacheReading = false;
                 return;
             }
         }
@@ -1461,14 +1148,14 @@ final class RebuildController {
                         s.context, lookup.key, lookup.source, lookup.block, s.languageContext);
         boolean admitted = false, valid;
         synchronized (s) {
-            if (s.cacheReading == lookup.reading) s.cacheReading[index] = false;
+            if (lookup.sameSlot(s)) lookup.slot.cacheReading = false;
             valid = lookup.valid(s);
             if (valid) {
-                s.cacheChecked[index] = true;
+                s.work.slots[index].cacheChecked = true;
                 if (cached != null) {
-                    s.plans[index] = cached;
-                    s.states[index] = READY;
-                    if (!lookup.bootstrap || s.plans[currentIndex(s)] != null) s.everReady = true;
+                    s.work.slots[index].accepted = cached;
+                    s.work.slots[index].state = READY;
+                    if (!lookup.bootstrap || s.work.slots[currentIndex(s)].accepted != null) s.work.everReady = true;
                     admitted = true;
                 }
             }
@@ -1485,124 +1172,48 @@ final class RebuildController {
     private static void schedule(Session s) {
         List<Job> start = new ArrayList<>();
         long now = SystemClock.elapsedRealtime();
-        boolean playbackAhead = !paused() && (CLOCK.fresh(now) || s.everReady);
+        boolean playbackAhead = !paused() && (CLOCK.fresh(now) || s.work.everReady);
         restoreCandidates(s, now, playbackAhead);
         synchronized (s) {
             if (current(s) && s.pendingFocus != null
-                    && !modelEligible(s, s.pendingFocus.index, now))
+                    && !modelEligible(s, s.pendingFocus.attempt.index, now))
                 releaseGatedJob(s, s.pendingFocus);
             if (!current(s) || s.sourceOnly || s.terminal || s.blocks == null
-                    || s.blocks.isEmpty() || now < s.providerRetry) return;
+                    || s.blocks.isEmpty() || now < s.work.providerRetry) return;
             int index = currentIndex(s);
-            markEverReady(s, index);
-            int focusDispatched = dispatched(s, true);
-            int prefetchDispatched = dispatched(s, false);
+            s.work.markEverReady(index);
+            int focusDispatched = s.work.dispatched(true);
+            int prefetchDispatched = s.work.dispatched(false);
             // A retained pending request is only valid for the landing it was chosen for.
             if (s.pendingFocus != null
-                    && (s.pendingFocus.cancelled || s.pendingFocus.index != index))
+                    && (s.pendingFocus.attempt.cancelled || s.pendingFocus.attempt.index != index))
                 retirePendingFocus(s);
             // The newest landing takes the free foreground slot immediately when one exists.
             if (s.pendingFocus != null
-                    && modelEligible(s, s.pendingFocus.index, now)
+                    && modelEligible(s, s.pendingFocus.attempt.index, now)
                     && focusDispatched < MAX_FOCUS_CONCURRENCY) {
                 Job promote = s.pendingFocus;
                 s.pendingFocus = null;
-                markDispatched(s, promote);
+                s.work.markDispatched(promote.attempt);
                 start.add(promote);
                 focusDispatched++;
             }
-            boolean focusUnderWay =
-                    s.plans[index] != null
-                            || s.states[index] == FAILED
-                            || (s.jobs[index] != null && s.jobs[index].sent);
-            // The prefetch budget, not the mere existence of another job, bounds look-ahead.
-            boolean allowAhead = focusUnderWay && !prefetchPaused(s, index, now) && playbackAhead;
-            for (int i = index; i < s.blocks.size(); i++) {
-                RebuildPlanner.Block b = s.blocks.get(i);
-                if (b.start > s.position + 30000) break;
-                if (i > index && !allowAhead) break;
-                if (i > index && prefetchDispatched >= MAX_PREFETCH_CONCURRENCY) break;
-                boolean focus = i == index;
-                // Before the first acceptance only the imminent next block is requested, alongside
-                // the already sent landing block: a slow provider then has both ready in time.
-                if (!focus
-                        && !s.everReady
-                        && (i != index + 1 || b.start > s.position + BOOTSTRAP_NEXT_MS)) break;
-                // An existing job for this block is reused, whichever lane it came from.
-                if (s.states[i] != WAITING || s.jobs[i] != null || !modelEligible(s, i, now)) continue;
-                // Disk candidates are reserved and read outside the monitor before a lane is
-                // charged.
-                if (s.cacheReading != null && s.cacheReading[i]
-                        || s.cacheChecked != null && !s.cacheChecked[i]) continue;
-                int maxAttempts =
-                        RebuildReview.hasSemanticRepairRisk(s.plans[i])
-                                ? RebuildReview.MAX_SEMANTIC_ATTEMPTS
-                                : s.attempts[i] == 2
-                                                && s.plans[i] == null
-                                                && RebuildReview.structuralRetry(s.reasons[i])
-                                                && s.repairCount < RebuildReview.MAX_SESSION_REPAIRS
-                                        ? 3
-                                        : 2;
-                boolean slowRetry = false;
-                int attemptsBeforeSlowRetry = s.attempts[i];
-                if (s.attempts[i] >= maxAttempts
-                        || s.attempts[i] > 0
-                                && s.plans[i] != null
-                                && s.repairCount >= RebuildReview.MAX_SESSION_REPAIRS) {
-                    if (s.plans[i] != null) {
-                        s.states[i] = READY;
-                        continue;
-                    }
-                    // A block that never produced anything keeps a slow, bounded-rate retry
-                    // while it is still in front of the viewer, instead of disappearing for good.
-                    // A deterministic rejection repeats the same paid request, so the retries are
-                    // capped: after MAX_SLOW_RETRIES the block is abandoned for this session.
-                    if (now < s.retryAt[i]) continue;
-                    if (s.slowRetries != null && s.slowRetries[i] >= MAX_SLOW_RETRIES) {
-                        s.states[i] = FAILED;
-                        TranslationRuntime.mark(
-                                s.context,
-                                "REBUILD_BLOCK_ABANDONED",
-                                "session="
-                                        + s.id
-                                        + ";block="
-                                        + b.index
-                                        + ";reason="
-                                        + s.reasons[i]
-                                        + ";slow_retries="
-                                        + s.slowRetries[i]
-                                        + ";position="
-                                        + s.position);
-                        continue;
-                    }
-                    if (s.slowRetries != null) s.slowRetries[i]++;
-                    s.attempts[i] = Math.max(0, maxAttempts - 1);
-                    slowRetry = true;
-                }
-                Job job = new Job(s, i, focus);
-                job.slowRetry = slowRetry;
-                job.attemptsBeforeSlowRetry = attemptsBeforeSlowRetry;
-                job.repair =
-                        !slowRetry
-                                && s.attempts[i] > 0
-                                && (s.plans[i] != null
-                                        || RebuildReview.structuralRetry(s.reasons[i]));
-                s.jobs[i] = job;
-                if (focus && focusDispatched >= MAX_FOCUS_CONCURRENCY) {
-                    // Both foreground slots are busy: keep only this newest landing.
-                    retirePendingFocus(s);
-                    s.states[i] = RUNNING;
-                    s.pendingFocus = job;
-                    break;
-                }
-                markDispatched(s, job);
-                start.add(job);
-                if (focus) focusDispatched++;
-                else prefetchDispatched++;
+            RebuildWorkSet.Selection selected = s.work.select(
+                    s.blocks, index, s.position, now, playbackAhead, focusDispatched, prefetchDispatched);
+            for (int abandoned : selected.abandoned) {
+                RebuildWorkSet.Slot slot = s.work.slots[abandoned];
+                TranslationRuntime.mark(s.context, "REBUILD_BLOCK_ABANDONED",
+                        "session=" + s.id + ";block=" + s.blocks.get(abandoned).index + ";reason=" + slot.reason
+                                + ";slow_retries=" + slot.slowRetries + ";position=" + s.position);
+            }
+            for (RebuildWorkSet.Attempt attempt : selected.starts) start.add(new Job(s, attempt));
+            if (selected.pending != null) {
+                retirePendingFocus(s);
+                s.pendingFocus = new Job(s, selected.pending);
             }
         }
         for (Job j : start) {
-            RebuildPlanner.Block b = s.blocks.get(j.index);
+            RebuildPlanner.Block b = s.blocks.get(j.attempt.index);
             TranslationRuntime.mark(
                     s.context,
                     "REBUILD_REQUEST",
@@ -1613,14 +1224,14 @@ final class RebuildController {
                             + ";block="
                             + b.id()
                             + ";purpose="
-                            + (j.priority ? "focus" : "prefetch")
+                            + (j.attempt.priority ? "focus" : "prefetch")
                             + ";position="
                             + s.position
                             + ";range="
                             + b.start
                             + "-"
                             + b.end);
-            dispatch(j.priority, () -> translate(j));
+            dispatch(s, j.attempt.priority, () -> translate(j));
         }
     }
 
@@ -1628,26 +1239,14 @@ final class RebuildController {
      * Once admitted, a call keeps its existing negotiation rules; M5c checks every physical attempt.
      */
     private static boolean modelEligible(Session s, int index, long now) {
-        return current(s) && !s.sourceOnly && !s.terminal && !s.filteredBlocks.contains(index)
-                && now >= s.providerRetry && now >= s.retryAt[index];
+        return current(s) && !s.sourceOnly && !s.terminal && s.work.eligible(index, now);
     }
 
     /** An executor queue reservation refused before logical admission spent no request quota. */
     private static void releaseGatedJob(Session s, Job job) {
-        if (s.jobs[job.index] != job) return;
-        s.jobs[job.index] = null;
+        if (s.work.slots[job.attempt.index].attempt != job.attempt) return;
         if (s.pendingFocus == job) s.pendingFocus = null;
-        if (job.dispatched) {
-            s.attempts[job.index] = Math.max(0, s.attempts[job.index] - 1);
-            if (job.repair) s.repairCount = Math.max(0, s.repairCount - 1);
-        }
-        if (job.slowRetry) {
-            s.attempts[job.index] = job.attemptsBeforeSlowRetry;
-            s.slowRetries[job.index] = Math.max(0, s.slowRetries[job.index] - 1);
-        }
-        boolean stopped = s.terminal || s.filteredBlocks.contains(job.index);
-        s.states[job.index] = stopped ? (s.plans[job.index] != null ? READY : FAILED) : WAITING;
-        // Leave the failure reason and both deadlines untouched. A future tick can retry.
+        s.work.releaseGated(job.attempt, s.terminal);
     }
 
     /**
@@ -1656,117 +1255,104 @@ final class RebuildController {
      * again.
      */
     private static void finishCancelled(Session s, Job job) {
-        s.jobs[job.index] = null;
-        if (s.provisional != null) s.provisional[job.index] = null;
-        if (!job.sent) {
-            if (s.attempts[job.index] > 1) s.repairCount = Math.max(0, s.repairCount - 1);
-            s.attempts[job.index] = Math.max(0, s.attempts[job.index] - 1);
-        }
-        s.states[job.index] = WAITING;
-        deferRetry(s, job.index, SystemClock.elapsedRealtime(), 500);
+        s.work.finishCancelled(job.attempt, SystemClock.elapsedRealtime());
+    }
+
+    /** Called under the Session monitor; an asynchronous reply never owns lifecycle authority. */
+    private static boolean replyCurrent(Session s, Job job, RebuildSource source,
+                                        RebuildPlanner.Block block, String cacheKey) {
+        int index = job.attempt.index;
+        return current(s) && s.source == source && s.cacheKey.equals(cacheKey)
+                && s.blocks != null && index >= 0 && index < s.blocks.size()
+                && s.blocks.get(index) == block && s.work.slots != null
+                && index < s.work.slots.length && s.work.slots[index].attempt == job.attempt;
     }
 
     private static void translate(Job job) {
         Session s = job.session;
-        RebuildPlanner.Block b = s.blocks.get(job.index);
+        RebuildPlanner.Block b = s.blocks.get(job.attempt.index);
         RebuildCache.Prepared prepared = null;
         RebuildCache.Permit permit = null;
         try {
+            RebuildSource requestSource;
+            String requestKey, requestReason;
             synchronized (s) {
-                if (!current(s) || s.jobs[job.index] != job) return;
-                if (!modelEligible(s, job.index, SystemClock.elapsedRealtime())) {
+                if (!current(s) || s.work.slots[job.attempt.index].attempt != job.attempt) return;
+                if (!modelEligible(s, job.attempt.index, SystemClock.elapsedRealtime())) {
                     releaseGatedJob(s, job);
                     return;
                 }
+                requestSource = s.source;
+                requestKey = s.cacheKey;
+                requestReason = s.work.slots[job.attempt.index].reason;
             }
             TranslationSourceAccess.checkActive(job);
-            RebuildProtocol.Plan candidate =
-                    RebuildApi.translate(
-                            s.source,
-                            b,
-                            s.config,
-                            s.target,
-                            job,
-                            job.priority,
-                            s.reasons[job.index],
-                            job.languageContext);
+            RebuildProtocol.Plan candidate = RebuildApi.translate(
+                    requestSource, b, s.config, s.target, job, job.attempt.priority,
+                    requestReason, job.languageContext);
             RebuildProtocol.Plan accepted, old;
-            boolean cacheable;
+            boolean cacheable, durable;
             int generation;
-            for (; ; ) {
+            for (;;) {
                 synchronized (s) {
-                    if (!current(s) || s.jobs[job.index] != job) return;
-                    if (job.cancelled) {
+                    if (!replyCurrent(s, job, requestSource, b, requestKey)) return;
+                    if (job.attempt.cancelled) {
                         finishCancelled(s, job);
                         return;
                     }
-                    old = s.plans[job.index];
+                    old = s.work.slots[job.attempt.index].accepted;
                     generation = s.generation;
                 }
-                accepted =
-                        RebuildReview.accept(
-                                old, candidate, s.source, b, job.languageContext);
-                if (prepared != null) {
-                    prepared.close();
-                    prepared = null;
-                }
-                cacheable = !accepted.partial && RebuildReview.score(accepted.issues) == 0;
-                if (cacheable)
-                    prepared =
-                            RebuildCache.prepare(
-                                    s.context,
-                                    s.cacheKey,
-                                    s.source,
-                                    b,
-                                    accepted,
-                                    job.languageContext);
+                RebuildReplyPreparation.Evaluation evaluation = RebuildReplyPreparation.evaluate(
+                        s.context, requestKey, requestSource, b, job.languageContext,
+                        old, candidate, prepared);
+                accepted = evaluation.accepted;
+                cacheable = evaluation.cacheable;
+                prepared = evaluation.prepared;
                 synchronized (s) {
-                    if (!current(s) || s.jobs[job.index] != job) return;
-                    if (job.cancelled) {
+                    if (!replyCurrent(s, job, requestSource, b, requestKey)) return;
+                    if (job.attempt.cancelled) {
                         finishCancelled(s, job);
                         return;
                     }
-                    if (s.generation != generation || s.plans[job.index] != old) continue;
+                    if (s.generation != generation || s.work.slots[job.attempt.index].accepted != old) continue;
                     permit = s.publication.reserve();
                     if (permit == null) return;
                 }
-                break;
-            }
-            // Preparation/fsync is outside all lifecycle monitors. Admission and revoke share one
-            // CAS.
-            boolean durable = prepared != null && prepared.commit();
-            synchronized (s) {
-                if (!current(s) || s.jobs[job.index] != job) return;
-                if (job.cancelled || s.generation != generation) {
-                    finishCancelled(s, job);
-                    if (s.cacheChecked != null) s.cacheChecked[job.index] = false;
-                    return;
+                // Preparation/fsync and the physical move run outside the lifecycle monitor.
+                durable = prepared != null && prepared.commit();
+                boolean recheck;
+                synchronized (s) {
+                    if (!replyCurrent(s, job, requestSource, b, requestKey)) return;
+                    if (job.attempt.cancelled || s.generation != generation) {
+                        finishCancelled(s, job);
+                        s.work.slots[job.attempt.index].cacheChecked = false;
+                        return;
+                    }
+                    recheck = s.work.slots[job.attempt.index].accepted != old;
+                    if (!recheck) {
+                        // A differently segmented repair waits for a boundary shared with displayed text.
+                        if (old != null && accepted != old && s.presentation.shownIn(job.attempt.index))
+                            s.work.slots[job.attempt.index].pending = accepted;
+                        else s.work.slots[job.attempt.index].accepted = accepted;
+                        s.work.slots[job.attempt.index].provisional = null;
+                        boolean review = !accepted.partial && RebuildReview.shouldRepair(
+                                accepted, s.work.slots[job.attempt.index].attempts,
+                                s.work.repairCount, s.position, b.end);
+                        s.work.slots[job.attempt.index].state = review ? WAITING : READY;
+                        if (review) {
+                            s.work.slots[job.attempt.index].reason = RebuildReview.repair(accepted.issues);
+                            s.work.deferRetry(job.attempt.index, SystemClock.elapsedRealtime(), 1200);
+                        }
+                        s.work.slots[job.attempt.index].attempt = null;
+                        s.work.everReady = true;
+                    }
                 }
-                // Once text of this block reached the screen, a differently segmented repair waits
-                // until render reaches a boundary it shares with what was shown, so no text is
-                // shown twice.
-                if (old != null && accepted != old && s.display.shownIn(job.index))
-                    s.pendingPlans[job.index] = accepted;
-                else s.plans[job.index] = accepted;
-                if (s.provisional != null) s.provisional[job.index] = null;
-                boolean review =
-                        !accepted.partial
-                                && RebuildReview.shouldRepair(
-                                        accepted,
-                                        s.attempts[job.index],
-                                        s.repairCount,
-                                        s.position,
-                                        b.end);
-                s.states[job.index] = review ? WAITING : READY;
-                if (review) {
-                    s.reasons[job.index] = RebuildReview.repair(accepted.issues);
-                    deferRetry(s, job.index, SystemClock.elapsedRealtime(), 1200);
-                }
-                s.jobs[job.index] = null;
-                s.everReady = true;
+                permit.close();
+                permit = null;
+                if (!recheck) break;
+                // Another accepted plan won while the move ran; re-review this reply, without HTTP.
             }
-            permit.close();
-            permit = null;
             if (cacheable) {
                 if (!durable)
                     TranslationRuntime.mark(
@@ -1804,7 +1390,7 @@ final class RebuildController {
                             + ";review_risks="
                             + RebuildReview.score(accepted.issues)
                             + ";attempts="
-                            + s.attempts[b.index]
+                            + s.work.slots[b.index].attempts
                             + ";partial="
                             + accepted.partial
                             + ";holes="
@@ -1857,12 +1443,12 @@ final class RebuildController {
                                 + ";holes="
                                 + ranges
                                 + ";reason="
-                                + s.reasons[b.index]);
+                                + s.work.slots[b.index].reason);
             }
             if (accepted.partial
                     && !accepted.holes.isEmpty()
-                    && s.slowRetries != null
-                    && s.slowRetries[job.index] < 1
+                    && s.work.slots != null
+                    && s.work.slots[job.attempt.index].slowRetries < 1
                     && s.position < b.end) fillHoles(s, job, b, accepted);
         } catch (Exception e) {
             if (!current(s)) return;
@@ -1887,32 +1473,30 @@ final class RebuildController {
     private static void fillHoles(
             Session s, Job job, RebuildPlanner.Block parent, RebuildProtocol.Plan plan,
             int expectedGeneration) {
-        int[] hole = largestHole(plan.holes);
+        int[] hole = RebuildWorkSet.largestHole(plan.holes);
         if (hole == null) return;
-        RebuildPlanner.Block range = holeBlock(parent, s.source, hole);
+        RebuildSource requestSource = s.source;
+        RebuildPlanner.Block range = RebuildReplyPreparation.holeBlock(parent, requestSource, hole);
         if (range == null) return;
         final int generation;
         synchronized (s) {
-            if (!current(s) || s.generation != expectedGeneration
-                    || job.cancelled || s.plans[parent.index] != plan
-                    || s.slowRetries == null || s.slowRetries[parent.index] >= 1) return;
-            if (!modelEligible(s, parent.index, SystemClock.elapsedRealtime())) {
-                if (!s.sourceOnly && !s.terminal && !s.filteredBlocks.contains(parent.index))
-                    s.pendingHoles.add(parent.index);
-                return;
-            }
-            s.pendingHoles.remove(parent.index);
+            if (!current(s) || s.generation != expectedGeneration || s.source != requestSource
+                    || job.attempt.cancelled || s.work.slots == null
+                    || s.work.slots[parent.index].accepted != plan
+                    || s.work.slots[parent.index].slowRetries >= 1) return;
+            if (!s.work.admitHole(parent.index,
+                    modelEligible(s, parent.index, SystemClock.elapsedRealtime()),
+                    !s.sourceOnly && !s.terminal && !s.work.filteredBlocks.contains(parent.index))) return;
             generation = s.generation;
-            s.slowRetries[parent.index]++;
         }
-        // The parent already completed and no longer owns s.jobs[index]. This child owns only
+        // The parent already completed and no longer owns s.work.slots[index].attempt. This child owns only
         // its transport, not another ordinary job's slot, provisional output or cleanup.
         Job child = new Job(s, parent.index, true);
         RebuildProtocol.Plan candidate;
         try {
             candidate =
                     RebuildApi.translate(
-                            s.source,
+                            requestSource,
                             range,
                             s.config,
                             s.target,
@@ -1940,13 +1524,13 @@ final class RebuildController {
                                     : failed.getClass().getSimpleName()));
             return;
         }
-        RebuildProtocol.Plan merged;
+        RebuildProtocol.Plan merged = RebuildReview.mergeInto(plan, candidate, parent);
         synchronized (s) {
-            if (!current(s) || s.generation != generation || s.plans[parent.index] != plan) return;
-            merged = RebuildReview.mergeInto(plan, candidate, parent);
+            if (!current(s) || s.generation != generation || s.source != requestSource
+                    || s.work.slots[parent.index].accepted != plan) return;
             if (merged == plan) return;
-            s.plans[parent.index] = merged;
-            s.states[parent.index] = READY;
+            s.work.slots[parent.index].accepted = merged;
+            s.work.slots[parent.index].state = READY;
         }
         TranslationRuntime.mark(
                 s.context,
@@ -1966,63 +1550,43 @@ final class RebuildController {
         render(s);
     }
 
-    /** No new timer: the normal tick/readiness kick resumes only unspent, deferred holes. */
+    /** Reserve under the session monitor; submit only after releasing it. */
     private static void resumeHoles(Session s) {
+        List<RebuildWorkSet.HoleReservation> reservations;
         synchronized (s) {
             if (!current(s) || !s.visible || s.blocks == null) return;
-            for (int index : new ArrayList<>(s.pendingHoles)) {
-                RebuildProtocol.Plan plan = s.plans[index];
-                RebuildPlanner.Block parent = s.blocks.get(index);
-                if (s.sourceOnly || s.terminal || s.filteredBlocks.contains(index)
-                        || plan == null || !plan.partial || plan.holes.isEmpty()
-                        || s.slowRetries[index] >= 1 || s.position >= parent.end) {
-                    s.pendingHoles.remove(index);
-                    continue;
+            reservations = s.work.reservePendingHoles(s.blocks, s.position,
+                    SystemClock.elapsedRealtime(), s.sourceOnly || s.terminal, s.generation);
+            for (java.util.Iterator<RebuildWorkSet.HoleReservation> it = reservations.iterator(); it.hasNext();) {
+                RebuildWorkSet.HoleReservation reservation = it.next();
+                if (!modelEligible(s, reservation.index, SystemClock.elapsedRealtime())) {
+                    s.work.queuedHoles.remove(reservation.index);
+                    it.remove();
                 }
-                if (s.jobs[index] != null || s.queuedHoles.contains(index)
-                        || !modelEligible(s, index, SystemClock.elapsedRealtime())) continue;
-                int generation = s.generation;
-                s.queuedHoles.add(index);
-                dispatch(true, () -> {
-                    try {
-                        synchronized (s) {
-                            if (!current(s) || s.generation != generation) return;
-                        }
-                        fillHoles(s, new Job(s, index, true), parent, plan, generation);
-                    } finally {
-                        synchronized (s) { s.queuedHoles.remove(index); }
-                    }
-                });
             }
         }
-    }
-
-    private static int[] largestHole(List<int[]> holes) {
-        int[] best = null;
-        for (int[] hole : holes)
-            if (best == null || hole[1] - hole[0] > best[1] - best[0]) best = hole;
-        return best;
-    }
-
-    /**
-     * The request block of one hole. Authored holes are whole cue groups; a hole that does not
-     * match one cue exactly is not requested (a partial cue must never become a page).
-     */
-    private static RebuildPlanner.Block holeBlock(
-            RebuildPlanner.Block parent, RebuildSource source, int[] hole) {
-        int from = hole[0], to = hole[1];
-        if (source == null
-                || from < parent.from
-                || to > parent.to
-                || to < from
-                || from >= source.words.size()
-                || to >= source.words.size()) return null;
-        if (!parent.authored) return new RebuildPlanner.Block(parent.index, from, to, source);
-        for (RebuildPlanner.Block.CueRange cue : parent.cues)
-            if (cue.from == from && cue.to == to)
-                return new RebuildPlanner.Block(
-                        parent.index, from, to, source, Collections.singletonList(cue));
-        return null;
+        for (int i = 0; i < reservations.size(); i++) {
+            RebuildWorkSet.HoleReservation reservation = reservations.get(i);
+            try {
+                dispatch(s, true, () -> {
+                    try {
+                        synchronized (s) {
+                            if (!current(s) || s.generation != reservation.generation) return;
+                        }
+                        fillHoles(s, new Job(s, reservation.index, true), reservation.parent,
+                                reservation.plan, reservation.generation);
+                    } finally {
+                        synchronized (s) { s.work.queuedHoles.remove(reservation.index); }
+                    }
+                });
+            } catch (RuntimeException failed) {
+                synchronized (s) {
+                    for (int j = i; j < reservations.size(); j++)
+                        s.work.queuedHoles.remove(reservations.get(j).index);
+                }
+                throw failed;
+            }
+        }
     }
 
     /** A failed request: schedules the retry (or gives the block up) and records the reason. */
@@ -2031,13 +1595,14 @@ final class RebuildController {
         String rejection = failureReason(e);
         String mark = null;
         synchronized (s) {
-            if (!current(s) || s.jobs[job.index] != job) return;
-            if (job.cancelled) {
+            if (!current(s) || s.work.slots[job.attempt.index].attempt != job.attempt) return;
+            if (job.attempt.cancelled) {
                 finishCancelled(s, job);
                 return;
             }
-            s.jobs[job.index] = null;
-            if (s.provisional != null) s.provisional[job.index] = null;
+            RebuildWorkSet.Slot slot = s.work.slots[job.attempt.index];
+            slot.attempt = null;
+            slot.provisional = null;
             applyFailure(s, job, e);
             mark =
                     "block="
@@ -2051,9 +1616,9 @@ final class RebuildController {
                             + ";detail="
                             + TranslationRuntime.redact(rejection, s.config.apiKey, 400)
                             + ";attempts="
-                            + s.attempts[b.index]
+                            + s.work.slots[b.index].attempts
                             + ";session_repairs="
-                            + s.repairCount;
+                            + s.work.repairCount;
         }
         TranslationRuntime.mark(s.context, "REBUILD_EVENTS_REJECTED", mark);
     }
@@ -2070,98 +1635,43 @@ final class RebuildController {
         return failureCode(e) + (detail.isEmpty() ? "" : "; " + detail);
     }
 
-    /** Caller holds s. A late result or slot cleanup cannot shorten this parent's existing wait. */
-    private static void deferRetry(Session s, int index, long now, long delay) {
-        s.retryAt[index] = Math.max(s.retryAt[index], RetryAfter.after(now, delay));
-    }
-
     /** Shared failure decision; caller holds s. Content and sending eligibility are independent. */
     private static void applyFailure(Session s, Job job, Exception e) {
-        int index = job.index;
+        int index = job.attempt.index;
         RebuildApi.Failure failure = e instanceof RebuildApi.Failure ? (RebuildApi.Failure) e : null;
         String code = failureCode(e);
         boolean fatal = failure != null && failure.configuration;
         boolean filtered = failure != null && "content_filter".equals(code);
-        s.reasons[index] = failureReason(e);
         if (fatal) {
             s.terminal = true;
             s.status = String.format(Locale.ROOT,
                     TranslationRuntime.message(s.context, "api_config_error"), code);
         }
-        if (filtered) s.filteredBlocks.add(index);
-        s.states[index] = s.plans[index] != null ? READY : fatal || filtered ? FAILED : WAITING;
         long delay = failure != null ? failure.delay : 0;
-        long backoff = s.attempts[index] >= 3 ? 15000 : s.attempts[index] >= 2 ? 5000 : 1200;
         long now = SystemClock.elapsedRealtime();
-        deferRetry(s, index, now, Math.max(backoff, delay));
-        if (code.equals("http_429") || code.startsWith("http_5"))
-            s.providerRetry = Math.max(s.providerRetry, RetryAfter.after(now, Math.max(5000, delay)));
+        s.work.applyFailure(index, code, failureReason(e), fatal, filtered, delay, now);
         // Read back the decision just applied, including any older, later gate. Accounting
         // categories are deliberately not used to infer configuration or sending eligibility.
         job.trace("REBUILD_FAILURE_DECISION",
                 "reason=" + code
                         + ";configuration=" + (failure == null ? "unknown" : failure.configuration)
                         + ";failure_delay_ms=" + (failure == null ? "unknown" : failure.delay)
-                        + ";state=" + (s.states[index] == READY ? "READY"
-                                : s.states[index] == FAILED ? "FAILED" : "WAITING")
+                        + ";state=" + (s.work.slots[index].state == READY ? "READY"
+                                : s.work.slots[index].state == FAILED ? "FAILED" : "WAITING")
                         + ";terminal=" + s.terminal
-                        + ";filtered=" + s.filteredBlocks.contains(index)
+                        + ";filtered=" + s.work.filteredBlocks.contains(index)
                         + ";decided_at_elapsed_ms=" + now
-                        + ";retry_at_elapsed_ms=" + s.retryAt[index]
-                        + ";provider_retry_at_elapsed_ms=" + s.providerRetry + ";");
+                        + ";retry_at_elapsed_ms=" + s.work.slots[index].retryAt
+                        + ";provider_retry_at_elapsed_ms=" + s.work.providerRetry + ";");
     }
 
     /** A child has no ordinary slot to clear. A different job at this index remains its owner. */
     private static void repairRejected(Session s, Job child, Exception e) {
         synchronized (s) {
             // Failure eligibility belongs to the Session/parent, even if a seek reset display.
-            if (!current(s) || child.cancelled) return;
+            if (!current(s) || child.attempt.cancelled) return;
             applyFailure(s, child, e);
         }
-    }
-
-    private static CaptionDocument.Cue originalCue(Session s, long time) {
-        // Before the source is accepted the raw parsed cue is the only trustworthy window. Once it
-        // is, derive the same window from source words so ready/pending/gap rendering cannot split
-        // across two timelines.
-        if (s.source != null) {
-            RebuildSource.TimedWindow window = s.source.windowAt(time);
-            if (window != null)
-                return new CaptionDocument.Cue(
-                        window.start, window.end, s.source.text(window.from, window.to));
-        }
-        if (s.raw == null) return null;
-        CaptionDocument.Cue latest = null;
-        for (CaptionDocument.Cue c : s.raw.document.cues())
-            if (time >= c.startMs
-                    && time < c.endMs
-                    && (latest == null || c.startMs >= latest.startMs)) latest = c;
-        return latest;
-    }
-
-    /**
-     * The authored cue exactly as uploaded: its own line breaks (a romanisation row above a
-     * translation row, a speaker line) and its own pages, held through a short pause.
-     */
-    private static CaptionDocument.Cue authoredCue(Session s, long time) {
-        if (s.raw == null) return originalCue(s, time);
-        CaptionDocument.Cue current = null, next = null;
-        for (CaptionDocument.Cue c : s.raw.document.cues()) {
-            if (time >= c.startMs && time < c.endMs) {
-                if (current == null || c.startMs >= current.startMs) current = c;
-            } else if (c.startMs > time && (next == null || c.startMs < next.startMs)) next = c;
-        }
-        CaptionDocument.Cue shown = current;
-        if (shown == null && next != null) {
-            CaptionDocument.Cue before = null;
-            for (CaptionDocument.Cue c : s.raw.document.cues())
-                if (c.endMs <= time && (before == null || c.endMs > before.endMs)) before = c;
-            if (before != null && next.startMs - before.endMs < RebuildDisplayGroups.HOLD_MS)
-                shown = before;
-        }
-        if (shown == null) return null;
-        String text = shown.text.replaceAll("[\u200B\u2060\uFEFF]", "").trim();
-        return text.isEmpty() ? null : new CaptionDocument.Cue(shown.startMs, shown.endMs, text);
     }
 
     /**
@@ -2175,132 +1685,21 @@ final class RebuildController {
         }
     }
 
-    /** Source-only display: the cue (or reading page) to show, held through a short pause. */
-    private static CaptionDocument.Cue sourceCue(Session s, long time) {
-        if (s.source == null) return originalCue(s, time);
-        if (!machineMade(s)) return authoredCue(s, time);
-        if (s.readingPages == null || s.readingFor != s.source) {
-            s.readingPages =
-                    SourceReadingWindows.build(
-                            s.source, s.languageContext.renderSpec, s.languageContext);
-            s.readingFor = s.source;
-        }
-        RebuildSource.TimedWindow page = SourceReadingWindows.at(s.readingPages, time);
-        if (page == null) {
-            RebuildSource.TimedWindow before = SourceReadingWindows.before(s.readingPages, time);
-            RebuildSource.TimedWindow next = SourceReadingWindows.after(s.readingPages, time);
-            if (before != null
-                    && next != null
-                    && next.start - before.end < RebuildDisplayGroups.HOLD_MS) page = before;
-        }
-        return page == null
-                ? null
-                : new CaptionDocument.Cue(page.start, page.end, s.source.text(page.from, page.to));
-    }
-
-    /**
-     * Display units of one plan at the current measured geometry; recomputed only when it changes.
-     */
-    private static final class DisplayLayout {
-        final RebuildProtocol.Plan plan;
-        final String geometry;
-        final List<RebuildDisplayGroups.Unit> units;
-
-        DisplayLayout(
-                RebuildProtocol.Plan plan, String geometry, List<RebuildDisplayGroups.Unit> units) {
-            this.plan = plan;
-            this.geometry = geometry;
-            this.units = units;
-        }
-    }
-
-    /** True when the source track is manually authored rather than machine generated. */
-    private static boolean authored(Session s) {
-        return TranslationRuntime.authoredTrack(s.url);
-    }
-
-    /**
-     * Pages for an authored plan. The projection keeps the author's cue where the reply tiles it
-     * exactly and publishes the remaining events as their own pages, so a sentence that crosses a
-     * cue boundary is displayed instead of being withheld.
-     */
-    private static RebuildCueProjection.Result authoredProjection(
-            Session s, int index, RebuildProtocol.Plan plan) {
-        return RebuildCueProjection.project(
-                index,
-                s.source,
-                s.blocks.get(index),
-                plan.events,
-                s.languageContext);
-    }
-
     /** Diagnostic view of the authored cue contract: cue count and events per cue. */
     private static String authoredSummary(
             RebuildSource source, RebuildPlanner.Block block, RebuildProtocol.Plan plan) {
         return RebuildCueContract.summary(source, block, plan.events);
     }
 
-    /**
-     * Real speech boundaries inside one display unit: a word end followed by a pause or a clause
-     * mark. Page turns use these instead of character counts when the source has word timing.
-     */
-    private static long[] pageAnchors(Session s, RebuildDisplayGroups.Unit unit) {
-        if (s == null || s.source == null || unit == null || unit.end <= unit.start) return null;
-        java.util.List<Long> anchors = new java.util.ArrayList<>();
-        int from = Math.max(0, unit.from), to = Math.min(s.source.words.size() - 1, unit.to);
-        long last = -1;
-        for (int i = from; i <= to && anchors.size() < 64; i++) {
-            RebuildSource.Word word = s.source.words.get(i);
-            boolean pause =
-                    i > from && word.start - s.source.words.get(i - 1).end >= 220;
-            boolean clause = word.text != null && endsClauseMark(word.text.trim());
-            if (!pause && !clause) continue;
-            long at = word.end;
-            if (at <= unit.start + RebuildPageLayout.MIN_PAGE_MS
-                    || at >= unit.end - RebuildPageLayout.MIN_PAGE_MS
-                    || at <= last + 80) continue;
-            anchors.add(at);
-            last = at;
-        }
-        if (anchors.isEmpty()) return null;
-        long[] out = new long[anchors.size()];
-        for (int i = 0; i < out.length; i++) out[i] = anchors.get(i);
-        return out;
-    }
-
-    private static boolean endsClauseMark(String text) {
-        if (text == null || text.isEmpty()) return false;
-        char last = text.charAt(text.length() - 1);
-        return "，。！？；：,!?;:".indexOf(last) >= 0 || RebuildSource.terminal(text);
-    }
-
     private static List<RebuildDisplayGroups.Unit> displayUnits(
             Session s, int index, RebuildProtocol.Plan plan) {
-        CaptionRenderSpec spec = s.languageContext.renderSpec;
         TranslationBudget budget = TranslationOutput.budget();
-        CaptionRenderSpec measured =
-                budget != null
-                                && budget.renderSpec != null
-                                && budget.renderSpec.targetCode.equals(spec.targetCode)
-                        ? budget.renderSpec
-                        : spec;
-        String geometry =
-                budget == null
-                        ? ""
-                        : budget.width
-                                + ":"
-                                + Float.floatToIntBits(budget.preferredPx)
-                                + ":"
-                                + measured.measurementKey();
-        DisplayLayout cached = s.displayLayouts[index];
-        if (cached != null && cached.plan == plan && cached.geometry.equals(geometry))
-            return cached.units;
-        // An authored track prefers the author's cue pages and falls back to event pages for any
-        // cue the reply does not tile exactly; text that arrived is never withheld for alignment.
-        boolean authoredTrack = s.blocks.get(index).authored;
-        if (authoredTrack) {
-            boolean partial = s.provisional != null && s.provisional[index] == plan;
-            RebuildCueProjection.Result projection = authoredProjection(s, index, plan);
+        RebuildDisplayPlanning.Layout layout = s.presentation.layout(index, plan, budget);
+        List<RebuildDisplayGroups.Unit> cached = layout.cachedUnits();
+        if (cached != null) return cached;
+        if (layout.projection != null) {
+            boolean partial = s.work.slots != null && s.work.slots[index].provisional == plan;
+            RebuildCueProjection.Result projection = layout.projection;
             List<RebuildDisplayGroups.Unit> units = projection.units;
             TranslationRuntime.mark(
                     s.context,
@@ -2338,8 +1737,7 @@ final class RebuildController {
                             + authoredSummary(s.source, s.blocks.get(index), plan)
                             + ";url="
                             + s.url);
-            if (!units.isEmpty()) s.displayLayouts[index] = new DisplayLayout(plan, geometry, units);
-            return units;
+            return s.presentation.units(layout);
         }
         TranslationRuntime.mark(
                 s.context,
@@ -2350,63 +1748,7 @@ final class RebuildController {
                         + index
                         + ";authored=false;url="
                         + s.url);
-        // A joined unit may use the two lines the box has, so a fragment the model cut in half can
-        // be completed inside one unit; the page planner still shows it as one-line clauses.
-        Predicate<String> fits =
-                budget == null
-                        ? null
-                        : value -> measured.fits(value, budget.preferredPx, budget.width, 2);
-        // Advisory concerns are logged, not a reason to withhold a complete translation.
-        List<RebuildDisplayGroups.Unit> units =
-                RebuildDisplayGroups.partition(
-                        index, plan.events, s.source, s.languageContext, fits, null);
-        s.displayLayouts[index] = new DisplayLayout(plan, geometry, units);
-        return units;
-    }
-
-    /**
-     * A repaired plan replaces the shown one only where it continues exactly after the shown text.
-     */
-    private static void adoptPendingPlan(Session s, int index, long position) {
-        RebuildProtocol.Plan pending = s.pendingPlans == null ? null : s.pendingPlans[index];
-        if (pending == null) return;
-        boolean visible =
-                s.display.onScreen(index, position) && !s.display.keepsShown(index, pending);
-        if (visible || !s.display.continues(index, pending)) return;
-        s.plans[index] = pending;
-        s.pendingPlans[index] = null;
-    }
-
-    /** Why a block has no text yet: a retry is still the same unresolved caption. */
-    private static String unresolvedPhase(int state, String reason) {
-        if (state == READY) return "";
-        return state == FAILED ? "failed:" + reason : "pending_translation";
-    }
-
-    /** Neutral text for a source range a salvaged plan could not translate. Never source text. */
-    private static final String UNAVAILABLE_MARKER = "\u2026";
-
-    /** The source window of the salvaged-plan hole covering [time], or null. */
-    private static long[] holeWindow(
-            Session s, RebuildProtocol.Plan plan, long time) {
-        if (s.source == null || plan == null || !plan.partial || plan.holes.isEmpty()) return null;
-        int size = s.source.words.size();
-        for (int[] hole : plan.holes) {
-            int from = Math.max(0, Math.min(hole[0], size - 1));
-            int to = Math.max(0, Math.min(hole[1], size - 1));
-            if (to < from) continue;
-            long start = s.source.words.get(from).start;
-            long end = s.source.words.get(to).end;
-            if (time >= start && time < end) return new long[] {start, end};
-        }
-        return null;
-    }
-
-    /** True when [time] is inside a source window that carries speech. */
-    private static boolean speechAt(Session s, long time) {
-        if (s.source == null) return false;
-        RebuildSource.TimedWindow window = s.source.windowAt(time);
-        return window != null && !RebuildSource.nonSpeech(s.source.text(window.from, window.to));
+        return s.presentation.units(layout);
     }
 
     /** Records, at most about once a second, which gate left a speech instant uncovered. */
@@ -2435,65 +1777,44 @@ final class RebuildController {
      * uncovered estimated gap): the request is page-sized, so it is independent of whatever made
      * the block-wide reply unusable.
      */
-    private static void requestPageRepair(Session s, int index, long time) {
-        RebuildSource source = s.source;
-        if (source == null || s.blocks == null || index < 0 || index >= s.blocks.size()) return;
-        RebuildPlanner.Block parent = s.blocks.get(index);
-        int[] range = pageRange(parent, source, time);
-        if (range == null) return;
-        int from = range[0], to = range[1];
+    private static final class PageReservation {
+        final int index, from, to, generation;
         final String key;
-        final int generation;
-        synchronized (s) {
-            if (!modelEligible(s, index, SystemClock.elapsedRealtime())) return;
-            generation = s.generation;
-            key = generation + ":" + index + ":" + from + "-" + to;
-            // A reply that is still arriving is the cheapest source of this page; a provisional
-            // prefix is already text for it, and an in-flight block request must not be duplicated.
-            if (s.provisional != null && s.provisional[index] != null) return;
-            if (s.jobs != null && s.jobs[index] != null) return;
-            if (s.pageRepairs.contains(key) || s.queuedPages.contains(key)) return;
-            if (s.pageRepairCount != null
-                    && s.pageRepairCount[index] >= MAX_PAGE_REPAIRS_PER_BLOCK) return;
-            RebuildProtocol.Plan plan = s.plans[index];
-            if (plan != null && covered(plan, from, to)) return;
-            // While the block reply is still in flight, give it a short grace first: a pending
-            // block is usually cheaper than a second request. A hole or a failed block is repaired
-            // immediately.
-            if (plan == null && s.uncoveredSince != null && index < s.uncoveredSince.length) {
-                long since = s.uncoveredSince[index];
-                if (since > 0
-                        && SystemClock.elapsedRealtime() - since < PAGE_REPAIR_GRACE_MS) return;
+
+        PageReservation(int index, int from, int to, int generation, String key) {
+            this.index = index;
+            this.from = from;
+            this.to = to;
+            this.generation = generation;
+            this.key = key;
+        }
+    }
+
+    /** Caller holds the session monitor; this method never submits to an executor. */
+    private static PageReservation reservePageRepair(Session s, int index, long time) {
+        RebuildSource source = s.source;
+        if (source == null || s.blocks == null || index < 0 || index >= s.blocks.size()) return null;
+        RebuildPlanner.Block parent = s.blocks.get(index);
+        int[] range = RebuildReplyPreparation.pageRange(parent, source, time);
+        if (range == null || !modelEligible(s, index, SystemClock.elapsedRealtime())) return null;
+        int generation = s.generation;
+        String key = generation + ":" + index + ":" + range[0] + "-" + range[1];
+        if (!s.work.reservePage(index, key, range[0], range[1], SystemClock.elapsedRealtime())) return null;
+        return new PageReservation(index, range[0], range[1], generation, key);
+    }
+
+    private static void requestPageRepair(Session s, PageReservation reservation) {
+        markDisplayGap(s, reservation.index, "repair");
+        try {
+            dispatch(s, true, () -> repairPage(s, reservation.index, reservation.from,
+                    reservation.to, reservation.generation));
+        } catch (RuntimeException failed) {
+            synchronized (s) {
+                if (s.generation == reservation.generation)
+                    s.work.releasePage(reservation.index, reservation.key);
             }
-            if (s.pageRepairs.size() > 128) s.pageRepairs.clear();
-            s.pageRepairs.add(key);
-            s.queuedPages.add(key);
-            if (s.pageRepairCount != null) s.pageRepairCount[index]++;
+            throw failed;
         }
-        markDisplayGap(s, index, "repair");
-        dispatch(true, () -> repairPage(s, index, from, to, generation));
-    }
-
-    /** The source range of the page at [time]: one authored cue group, or one source window. */
-    private static int[] pageRange(RebuildPlanner.Block parent, RebuildSource source, long time) {
-        if (parent.authored) {
-            for (RebuildPlanner.Block.CueRange group : RebuildCueContract.groups(source, parent))
-                if (time >= group.start && time < group.end)
-                    return new int[] {group.from, group.to};
-            return null;
-        }
-        RebuildSource.TimedWindow window = source.windowAt(time);
-        if (window == null) return null;
-        int from = Math.max(parent.from, window.from);
-        int to = Math.min(parent.to, window.to);
-        return to < from ? null : new int[] {from, to};
-    }
-
-    /** True when one event already covers the whole page range. */
-    private static boolean covered(RebuildProtocol.Plan plan, int from, int to) {
-        for (RebuildProtocol.Event event : plan.events)
-            if (event.from <= from && event.to >= to) return true;
-        return false;
     }
 
     /**
@@ -2502,39 +1823,41 @@ final class RebuildController {
      * treating the block as a hard failure.
      */
     private static void repairPage(Session s, int index, int from, int to, long generation) {
+        String key = generation + ":" + index + ":" + from + "-" + to;
         RebuildPlanner.Block parent;
-        RebuildPlanner.Block page;
+        RebuildSource requestSource;
         synchronized (s) {
-            String key = generation + ":" + index + ":" + from + "-" + to;
             if (!current(s) || s.generation != generation || s.blocks == null) return;
             if (!modelEligible(s, index, SystemClock.elapsedRealtime())
-                    || s.jobs[index] != null
-                    || s.provisional != null && s.provisional[index] != null
-                    || s.plans[index] != null && covered(s.plans[index], from, to)) {
-                releasePageReservation(s, index, key);
+                    || s.work.slots[index].attempt != null
+                    || s.work.slots[index].provisional != null
+                    || s.work.slots[index].accepted != null
+                            && RebuildWorkSet.covered(s.work.slots[index].accepted, from, to)) {
+                s.work.releasePage(index, key);
                 return;
             }
             parent = s.blocks.get(index);
-            page = pageBlock(parent, s.source, from, to);
-            if (page == null) {
-                releasePageReservation(s, index, key);
+            requestSource = s.source;
+        }
+        RebuildPlanner.Block page = RebuildReplyPreparation.pageBlock(parent, requestSource, from, to);
+        synchronized (s) {
+            if (!current(s) || s.generation != generation || s.blocks == null) return;
+            if (s.source != requestSource || s.blocks.get(index) != parent || page == null
+                    || !modelEligible(s, index, SystemClock.elapsedRealtime())
+                    || s.work.slots[index].attempt != null || s.work.slots[index].provisional != null
+                    || s.work.slots[index].accepted != null
+                            && RebuildWorkSet.covered(s.work.slots[index].accepted, from, to)) {
+                s.work.releasePage(index, key);
                 return;
             }
-            s.queuedPages.remove(key); // logical admission; the quota and history now stay spent
-            if (s.plans[index] == null) {
-                s.plans[index] = RebuildProtocol.degraded(parent);
-                s.states[index] = READY;
+            s.work.admitPage(key); // logical admission; the quota and history now stay spent
+            if (s.work.slots[index].accepted == null) {
+                s.work.slots[index].accepted = RebuildProtocol.degraded(parent);
+                s.work.slots[index].state = READY;
                 TranslationRuntime.mark(
                         s.context,
                         "REBUILD_BLOCK_DEGRADED",
-                        "session="
-                                + s.id
-                                + ";block="
-                                + index
-                                + ";reason=no_plan;range="
-                                + from
-                                + "-"
-                                + to);
+                        "session=" + s.id + ";block=" + index + ";reason=no_plan;range=" + from + "-" + to);
             }
         }
         Job job = new Job(s, index, true);
@@ -2542,7 +1865,7 @@ final class RebuildController {
         try {
             candidate =
                     RebuildApi.translate(
-                            s.source,
+                            requestSource,
                             page,
                             s.config,
                             s.target,
@@ -2571,27 +1894,28 @@ final class RebuildController {
             return;
         }
         RebuildProtocol.Plan merged;
-        synchronized (s) {
-            if (!current(s) || s.generation != generation) return;
-            RebuildProtocol.Plan current = s.plans[index];
-            if (current == null) current = RebuildProtocol.degraded(parent);
-            merged = RebuildReview.mergeInto(current, candidate, parent);
-            if (merged == current) {
-                TranslationRuntime.mark(
-                        s.context,
-                        "REBUILD_PAGE_REPAIR_EMPTY",
-                        "session="
-                                + s.id
-                                + ";block="
-                                + index
-                                + ";range="
-                                + from
-                                + "-"
-                                + to);
-                return;
+        for (;;) {
+            RebuildProtocol.Plan previous, base;
+            synchronized (s) {
+                if (!current(s) || s.generation != generation || s.source != requestSource
+                        || s.blocks == null || s.blocks.get(index) != parent) return;
+                previous = s.work.slots[index].accepted;
+                base = previous == null ? RebuildProtocol.degraded(parent) : previous;
             }
-            s.plans[index] = merged;
-            s.states[index] = READY;
+            merged = RebuildReview.mergeInto(base, candidate, parent);
+            synchronized (s) {
+                if (!current(s) || s.generation != generation || s.source != requestSource
+                        || s.blocks == null || s.blocks.get(index) != parent) return;
+                if (s.work.slots[index].accepted != previous) continue;
+                if (merged == base) {
+                    TranslationRuntime.mark(s.context, "REBUILD_PAGE_REPAIR_EMPTY",
+                            "session=" + s.id + ";block=" + index + ";range=" + from + "-" + to);
+                    return;
+                }
+                s.work.slots[index].accepted = merged;
+                s.work.slots[index].state = READY;
+                break;
+            }
         }
         TranslationRuntime.mark(
                 s.context,
@@ -2609,222 +1933,54 @@ final class RebuildController {
         render(s);
     }
 
-    /** Only reservations rejected before logical admission are returned; admitted keys stay spent. */
-    private static void releasePageReservation(Session s, int index, String key) {
-        if (s.queuedPages.remove(key)) {
-            s.pageRepairs.remove(key);
-            if (s.pageRepairCount != null)
-                s.pageRepairCount[index] = Math.max(0, s.pageRepairCount[index] - 1);
-        }
-    }
-
-    /** The request block of one page: an automatic window, or exactly one authored cue group. */
-    private static RebuildPlanner.Block pageBlock(
-            RebuildPlanner.Block parent, RebuildSource source, int from, int to) {
-        if (source == null
-                || from < parent.from
-                || to > parent.to
-                || to < from
-                || from >= source.words.size()
-                || to >= source.words.size()) return null;
-        if (!parent.authored) return new RebuildPlanner.Block(parent.index, from, to, source);
-        for (RebuildPlanner.Block.CueRange group : RebuildCueContract.groups(source, parent))
-            if (group.from == from && group.to == to)
-                return new RebuildPlanner.Block(
-                        parent.index, from, to, source, Collections.singletonList(group));
-        return null;
-    }
-
     private static void render(Session s) {
         if (!current(s) || !s.visible) return;
         String translating = TranslationRuntime.message(s.context, "caption_translating");
         String text = "", fallbackReason = "", displayEmptyReason = "", eventId = "none";
         boolean status = false;
-        int guaranteeIndex = -1;
+        PageReservation pageReservation = null;
         int generation;
         long revision, submission, selectedAt, observedAt;
         long eventStart = -1, eventEnd = -1;
-        long[] eventAnchors = null;
+        CaptionEventTimeline eventTimeline = null;
         synchronized (s) {
             if (!current(s) || !s.visible) return;
             generation = s.generation;
             observedAt = s.position;
             selectedAt = displayPosition(s);
-            if (s.source == null && !s.status.isEmpty()) {
-                text = s.status;
-                status = true;
-            } else if (s.sourceOnly) {
-                CaptionDocument.Cue cue = sourceCue(s, selectedAt);
-                if (cue != null) {
-                    text = cue.text;
-                    eventId = "source:" + cue.startMs + "_" + cue.endMs;
-                }
-            } else if (s.source == null && s.raw != null && !s.terminal) {
-                CaptionDocument.Cue cue = originalCue(s, selectedAt);
-                if (cue != null) {
-                    text = translating;
-                    eventId = "source:raw:" + cue.startMs + "_" + cue.endMs;
-                    eventStart = cue.startMs;
-                    eventEnd = cue.endMs;
-                    fallbackReason = "pending_engine";
-                }
-            } else if (s.source == null) {
-                text = s.status.isEmpty() ? translating : s.status;
-                status = true;
-            } else if (s.terminal && (blockAt(s, selectedAt) < 0
-                    || s.plans[blockAt(s, selectedAt)] == null
-                    || s.plans[blockAt(s, selectedAt)].events.isEmpty())) {
-                text = s.status;
-                status = true;
-            } else {
-                int i = blockAt(s, selectedAt);
-                guaranteeIndex = i;
-                // A page held across the short pause after its block stays until the next speaks.
-                if (i >= 0
-                        && (covers(s.blocks.get(i), selectedAt)
-                                || s.display.onScreen(i, selectedAt))) {
-                    adoptPendingPlan(s, i, selectedAt);
-                    RebuildProtocol.Plan p = s.plans[i];
-                    // Until the reply is complete, its validated leading events show as they
-                    // arrive.
-                    boolean provisional =
-                            p == null && s.provisional != null && s.provisional[i] != null;
-                    if (provisional) p = s.provisional[i];
-                    RebuildDisplayGroups.Unit unit =
-                            p == null
-                                    ? null
-                                    : s.display.select(
-                                            i, p.events, displayUnits(s, i, p), selectedAt);
-                    if (unit != null) {
-                        eventId = unit.id();
-                        eventStart = unit.start;
-                        eventEnd = unit.end;
-                        eventAnchors = pageAnchors(s, unit);
-                        text = unit.text;
-                        if (text.isEmpty()) displayEmptyReason = "non_speech";
-                        if (!text.isEmpty()) {
-                            s.display.shown(unit);
-                            if (s.uncoveredSince != null) s.uncoveredSince[i] = 0;
-                        }
-                    } else if (p == null || provisional) {
-                        fallbackReason = unresolvedPhase(s.states[i], s.reasons[i]);
-                        // Waiting displays keep each source cue's own window, so a block-wide
-                        // placeholder never announces a later cue before its onset. The video's own
-                        // line is never a substitute for a translation: only the neutral placeholder
-                        // may stand in while a reply can still arrive.
-                        CaptionDocument.Cue cue = originalCue(s, selectedAt);
-                        RebuildPlanner.Block block = s.blocks.get(i);
-                        if (fallbackReason.equals("pending_translation")
-                                && cue != null
-                                && cue.startMs < block.end
-                                && cue.endMs > block.start) {
-                            eventStart = Math.max(cue.startMs, block.start);
-                            eventEnd = Math.min(cue.endMs, block.end);
-                            if (eventStart <= selectedAt && selectedAt < eventEnd) {
-                                text = translating;
-                                eventId = "waiting:" + i + ":" + eventStart + "_" + eventEnd;
-                            }
-                        }
-                        // A block abandoned after bounded retries (or refused by the provider)
-                        // gets the same neutral marker: never the video's own line, never an
-                        // unexplained blank for a speech range.
-                        if (text.isEmpty()
-                                && s.states != null
-                                && s.states[i] == FAILED
-                                && cue != null
-                                && cue.startMs < block.end
-                                && cue.endMs > block.start) {
-                            eventStart = Math.max(cue.startMs, block.start);
-                            eventEnd = Math.min(cue.endMs, block.end);
-                            if (eventStart <= selectedAt && selectedAt < eventEnd) {
-                                text = UNAVAILABLE_MARKER;
-                                eventId =
-                                        "unavailable:failed:"
-                                                + i
-                                                + ":"
-                                                + eventStart
-                                                + "_"
-                                                + eventEnd;
-                            }
-                        }
-                    } else {
-                        // The plan is ready but this instant falls outside every display unit.
-                        // A salvaged plan knows which source ranges it could not translate; show a
-                        // neutral marker instead of an unexplained blank. A plain estimated gap
-                        // (no hole) stays empty: there is no speech there to stand in for.
-                        long[] hole = holeWindow(s, p, selectedAt);
-                        if (hole != null) {
-                            eventStart = hole[0];
-                            eventEnd = hole[1];
-                            text = UNAVAILABLE_MARKER;
-                            eventId =
-                                    "unavailable:" + i + ":" + eventStart + "_" + eventEnd;
-                        }
-                        fallbackReason = "";
-                    }
-                }
+            int index = s.source != null && !s.sourceOnly
+                    ? RebuildPresentationSelection.blockAt(s.blocks, selectedAt) : -1;
+            RebuildPresentationSelection.BlockView view = index >= 0 && s.work.slots != null
+                    ? s.work.block(index) : null;
+            RebuildPresentationSelection.Selected selected = s.presentation.begin(
+                    s.raw, s.source, s.blocks, s.languageContext, s.sourceOnly, s.terminal, s.status,
+                    s.sourceOnly && s.source != null && machineMade(s), translating, selectedAt,
+                    index, view);
+            if (selected.inBlock) {
+                if (s.presentation.canAdopt(index, view, selectedAt)) s.work.adoptPending(index);
+                RebuildProtocol.Plan plan = s.presentation.plan(view);
+                List<RebuildDisplayGroups.Unit> units = plan == null ? null : displayUnits(s, index, plan);
+                s.presentation.selectBlock(s.raw, s.source, s.blocks.get(index), view, plan,
+                        units, selectedAt, translating);
+                if (selected.clearUncovered && s.work.slots != null) s.work.clearUncovered(index);
             }
-            // N52 display guarantee: speech never renders an empty box. The screen follows the
-            // source timeline, not a block's plan: an uncovered speech instant holds the last
-            // translated page (bounded) or shows the neutral placeholder, and the uncovered page
-            // itself is requested once, at page size. No gate may turn a missing page into a
-            // silent caption box.
-            if (!status
-                    && !s.sourceOnly
-                    && (text.isEmpty()
-                            || UNAVAILABLE_MARKER.equals(text)
-                            || fallbackReason.equals("pending_translation"))
-                    && speechAt(s, selectedAt)) {
-                if (s.uncoveredSince != null
-                        && guaranteeIndex >= 0
-                        && s.uncoveredSince[guaranteeIndex] == 0)
-                    s.uncoveredSince[guaranteeIndex] = SystemClock.elapsedRealtime();
-                boolean uncovered = text.isEmpty() || UNAVAILABLE_MARKER.equals(text);
-                RebuildDisplayGroups.Unit held = s.display.shown();
-                boolean holdable =
-                        held != null
-                                && !held.text.trim().isEmpty()
-                                && selectedAt < held.end + DISPLAY_HOLD_MS;
-                if (uncovered) {
-                    if (holdable) {
-                        long until =
-                                Math.max(
-                                        selectedAt + DISPLAY_QUANTUM_MS,
-                                        ((selectedAt / DISPLAY_QUANTUM_MS) + 1) * DISPLAY_QUANTUM_MS);
-                        text = held.text;
-                        eventStart = held.start;
-                        eventEnd = Math.max(until, held.end);
-                        // The quantum is part of the identity: the window itself is not part of
-                        // the render signature, so the held page must be re-issued as it grows.
-                        eventId =
-                                "hold:"
-                                        + guaranteeIndex
-                                        + ":"
-                                        + held.from
-                                        + "-"
-                                        + held.to
-                                        + ":"
-                                        + (eventEnd / DISPLAY_QUANTUM_MS);
-                        fallbackReason = "";
-                        displayEmptyReason = "";
-                        markDisplayGap(s, guaranteeIndex, "hold");
-                    } else if (text.isEmpty()) {
-                        RebuildSource.TimedWindow window = s.source.windowAt(selectedAt);
-                        eventStart = window == null ? selectedAt : Math.max(window.start, selectedAt);
-                        eventEnd = window == null ? selectedAt + DISPLAY_QUANTUM_MS : window.end;
-                        if (eventEnd <= eventStart) eventEnd = eventStart + DISPLAY_QUANTUM_MS;
-                        text = translating;
-                        fallbackReason = "pending_translation";
-                        eventId =
-                                "ensure:" + guaranteeIndex + ":" + (selectedAt / DISPLAY_QUANTUM_MS);
-                        markDisplayGap(s, guaranteeIndex, "placeholder");
-                    } else {
-                        // Nothing to hold yet: keep the neutral marker, but still ask for this page.
-                        markDisplayGap(s, guaranteeIndex, "marker");
-                    }
-                }
-                if (guaranteeIndex >= 0) requestPageRepair(s, guaranteeIndex, selectedAt);
+            if (s.presentation.needsGuarantee(s.source, s.sourceOnly, selectedAt)) {
+                if (s.work.slots != null && selected.index >= 0
+                        && s.work.slots[selected.index].uncoveredSince == 0)
+                    s.work.startUncovered(selected.index, SystemClock.elapsedRealtime());
+                s.presentation.guarantee(s.source, selectedAt, translating);
+                if (!selected.gapGate.isEmpty()) markDisplayGap(s, selected.index, selected.gapGate);
+                if (selected.repairPage) pageReservation = reservePageRepair(s, selected.index, selectedAt);
             }
+            // These values, not the reusable selection object, are used by queued callbacks.
+            text = selected.text;
+            fallbackReason = selected.fallbackReason;
+            displayEmptyReason = selected.displayEmptyReason;
+            eventId = selected.eventId;
+            eventStart = selected.eventStart;
+            eventEnd = selected.eventEnd;
+            eventTimeline = selected.timeline;
+            status = selected.status;
             String signature = (status ? "status:" : "caption:") + eventId + "|" + text + "|";
             if (signature.equals(s.lastShown) && s.appliedRenderRevision == s.renderRevision) {
                 revision = -1;
@@ -2838,6 +1994,7 @@ final class RebuildController {
                 submission = ++s.renderSubmission;
             }
         }
+        if (pageReservation != null) requestPageRepair(s, pageReservation);
         if (revision < 0) return;
         String appliedIdentity = s.id + ":" + generation + ":" + eventId;
         long appliedStart = eventStart, appliedEnd = eventEnd;
@@ -2917,7 +2074,7 @@ final class RebuildController {
                     s.authored
                             ? s.languageContext.renderSpec.withAuthored()
                             : s.languageContext.renderSpec,
-                    eventAnchors);
+                    eventTimeline);
         if (TranslationRuntime.debugEnabled(s.context))
             TranslationRuntime.mark(
                     s.context,

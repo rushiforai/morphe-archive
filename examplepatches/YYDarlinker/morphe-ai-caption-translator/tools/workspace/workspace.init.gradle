@@ -16,9 +16,23 @@ def robolectricDir = System.getenv('MORPHE_ROBOLECTRIC_DIR')
 gradle.projectsEvaluated {
     gradle.rootProject.allprojects { project ->
         project.tasks.withType(org.gradle.api.tasks.testing.Test).configureEach { task ->
-            def temp = new File(testRoot, project.path.replace(':', '_'))
+            def temp = new File(testRoot, project.path.replace(':', '_') + '/run-' + UUID.randomUUID())
             temp.mkdirs()
             task.systemProperty 'java.io.tmpdir', temp.absolutePath
+            // Windows may retain loaded native DLLs during JVM shutdown. Once a successful
+            // test worker has exited, discard only its own reproducible native extraction.
+            // Failed-test temp and other runs remain available for investigation.
+            task.doLast {
+                def allowed = new File(gradle.rootProject.projectDir, 'work/test-temp').canonicalFile.toPath()
+                if (temp.canonicalFile.toPath().startsWith(allowed)) {
+                    temp.eachDirMatch(~/robolectric-nativeruntime.*/) { nativeDir ->
+                        if (nativeDir.canonicalFile.toPath().startsWith(temp.canonicalFile.toPath())
+                                && !java.nio.file.Files.isSymbolicLink(nativeDir.toPath())) {
+                            project.delete(nativeDir)
+                        }
+                    }
+                }
+            }
             if (robolectricDir) {
                 task.systemProperty 'robolectric.offline', 'true'
                 task.systemProperty 'robolectric.dependency.dir', robolectricDir

@@ -113,7 +113,8 @@ public enum PatchFamily {
             Settings.HIDE_REEL_THREADS_CARDS, Settings.REEL_CLEAN_MODE, Settings.PLAY_REELS_ONCE,
             Settings.ORIGINAL_AUDIO, Settings.HIDE_REEL_SEARCH_PILL, Settings.HIDE_REEL_COUNTS,
             Settings.HIDE_REEL_SAVE_BUTTON, Settings.HIDE_REEL_WHATSAPP_BUTTON, Settings.HIDE_REEL_LIKE_BUTTON,
-            Settings.HIDE_REEL_COMMENT_BUTTON, Settings.HIDE_REEL_SHARE_BUTTON, Settings.HIDE_REEL_SOUND_BUTTON, Settings.HIDE_REEL_AUDIO_LINE,
+            Settings.HIDE_REEL_COMMENT_BUTTON, Settings.HIDE_REEL_SHARE_BUTTON, Settings.SHOW_REEL_COMMENT_BUTTON,
+            Settings.HIDE_REEL_SOUND_BUTTON, Settings.HIDE_REEL_AUDIO_LINE,
             Settings.HIDE_SLOW_CONNECTION_MESSAGE, Settings.FEED_VIDEOS_ALONE, Settings.PLAY_FEED_REELS_WHOLE),
     REEL_PROMPTS(FamilyNames.REEL_PROMPTS, "reelPrompts", null,
             Settings.HIDE_REEL_PROMPTS),
@@ -128,11 +129,12 @@ public enum PatchFamily {
     TAP_SHOWS_CONTROLS(FamilyNames.TAP_SHOWS_CONTROLS, "tapShowsControls", null,
             Settings.TAP_SHOWS_CONTROLS),
     REEL_GESTURES(FamilyNames.REEL_GESTURES, "reelGestures", null,
-            Settings.DOUBLE_TAP_OPENS_COMMENTS, Settings.LONG_PRESS_OPENS_COMMENTS),
+            Settings.DOUBLE_TAP_OPENS_COMMENTS, Settings.LONG_PRESS_OPENS_COMMENTS, Settings.SELECT_POST_TEXT),
     KEEP_REEL_SPEED(FamilyNames.KEEP_REEL_SPEED, "keepReelSpeed", null,
             Settings.KEEP_REEL_SPEED, Settings.KEEP_VIDEO_SPEED, Settings.SLOWER_REEL_SPEEDS),
     REEL_HOLD(FamilyNames.HOLD_REEL_FOR_2X, "reelHold", null,
-            Settings.HOLD_REEL_FOR_2X, Settings.HOLD_REEL_RIGHT_EDGE, Settings.HOLD_FEED_VIDEO_FOR_2X),
+            Settings.HOLD_REEL_FOR_2X, Settings.HOLD_REEL_RIGHT_EDGE, Settings.HOLD_FEED_VIDEO_FOR_2X,
+            Settings.HIDE_2X_LOCK_HINT),
     DEFAULT_COMMENT_ORDER(FamilyNames.DEFAULT_COMMENT_ORDER, "defaultCommentOrder", null,
             Settings.DEFAULT_COMMENT_ORDER),
     META_AI_SUMMARIES(FamilyNames.META_AI_SUMMARIES, "metaAiSummaries", null,
@@ -143,7 +145,8 @@ public enum PatchFamily {
             Settings.HIDE_SHOP_LINK_COMMENTS, Settings.HIDE_COMMENTS_WITH_WORDS,
             Settings.HIDE_INCOMING_COMMENT_TYPING, Settings.HIDE_NEW_COMMENTS_PILL,
             Settings.HIDE_VIDEO_COMMENT_COMPOSER, Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES,
-            Settings.HIDE_POST_COMMENT_PREVIEWS, Settings.HIDE_COMMENT_DOWNVOTE_BUTTON),
+            Settings.HIDE_POST_COMMENT_PREVIEWS, Settings.HIDE_COMMENT_DOWNVOTE_BUTTON,
+            Settings.HIDE_COMMENT_EMOJI_ROW),
     FULL_HEIGHT_COMMENTS(FamilyNames.FULL_HEIGHT_COMMENTS, "fullHeightComments", null,
             Settings.OPEN_COMMENTS_FULL_HEIGHT, Settings.PAUSE_REELS_UNDER_COMMENTS),
     TAG_SUGGESTIONS(FamilyNames.TAG_SUGGESTIONS, "tagSuggestions", null,
@@ -273,7 +276,7 @@ public enum PatchFamily {
     MATERIAL_YOU_THEME(FamilyNames.MATERIAL_YOU_THEME, "materialYouTheme", FamilyNames.MATERIAL_YOU_THEME),
     // No switch: a list picks the accent, and Pause makes it read Facebook's blue, so nothing stays in.
     ACCENT_COLOR(FamilyNames.ACCENT_COLOR, "accentColor", Settings.ACCENT_COLOR),
-    // No switch: two color codes pick the colors, and Pause makes them read Facebook's own.
+    // No switch: three color codes pick the colors, and Pause makes them read Facebook's own.
     MARK_COLORS(FamilyNames.MARK_COLORS, "markColors", Settings.BADGE_COLOR),
     RESTORE_TRUST(FamilyNames.RESTORE_TRUST, "restoreTrust", "Profiles and posts work again"),
     // Runs while the application is built, before a switch can be read, and keeps Facebook starting.

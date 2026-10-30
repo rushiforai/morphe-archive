@@ -15,8 +15,11 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -238,6 +241,27 @@ public class AccentColorTest {
      * Stand in for Mig's text and glyph colour enums, and for another of its colour enums that shares
      * a name with each but neither pair: only the constant names matter.
      */
+    /**
+     * This class's start parses MaterialYouTheme's token lists, and MaterialYouTheme's start reads
+     * the chosen preset's palette from here (#272). Whichever starts first runs the other's start
+     * inside its own, so the preset palettes have to be made before the token lists are asked for:
+     * on a phone with the theme out of the build this class starts first, and with an accent picked
+     * the read found no palette map yet, a toast at every start of Facebook (#300). The JVM hands
+     * the fields back in the order they're declared.
+     */
+    @Test
+    public void thePresetPalettesAreMadeBeforeMaterialYouIsAskedForItsTokens() {
+        List<String> order = new ArrayList<>();
+        for (Field field : AccentColor.class.getDeclaredFields()) order.add(field.getName());
+        int palettes = order.indexOf("PALETTES");
+        assertTrue("no PALETTES field in " + order, palettes >= 0);
+        for (String tokens : new String[]{"DARK_ONLY", "BOTH"}) {
+            int at = order.indexOf(tokens);
+            assertTrue("no " + tokens + " field in " + order, at >= 0);
+            assertTrue(tokens + " is declared before PALETTES: " + order, at > palettes);
+        }
+    }
+
     enum MigText {
         ACTIVE, LINK, SECONDARY_EMPHASIZED
     }

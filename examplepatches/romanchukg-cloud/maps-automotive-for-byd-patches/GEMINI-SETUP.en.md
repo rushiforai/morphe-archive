@@ -1,0 +1,16 @@
+# Gemini Live in Maps Automotive — quick setup (TEST preview 10)
+
+First installation? Start with [the complete guide](START-HERE.en.md). Maps works independently. This optional Google/Gemini setup requires **Android API32+**; Maps-only DiLink3/API29 support does not extend to Gemini.
+
+1. **Build both apps.** Refresh our Morphe source to preview10 (turn off older duplicate sources). Apply only **Maps Automotive for BYD (MicroG-RE TEST)** to original Maps Automotive26.10.120001.E, and only **Google app for BYD (MicroG-RE TEST)** to the pinned Google17.62.11.ve.arm64 APKM. Sign both with your **same backed-up personal key**; update without clearing data. Install the original Gemini shell separately. [Exact inputs/build guide](GEMINI-BUILD.en.md).
+2. **MicroG-RE and permissions.** Download from [official Releases](https://github.com/MorpheApp/MicroG-RE/releases), minimum7.2.2 (7.2.2 tested). Allow MicroG-RE **Contacts/Location**, then add your Google account privately. Allow Maps **Contacts/Location**, Google **Contacts/Microphone** and Location for current-position requests. Finish Gemini setup/consents yourself.
+3. **BYD self-start.** **General → Apps → Disable Self-Start → Google = OFF**. OFF means Google is allowed to start. Keep Maps startup/background operation allowed too. Menu labels vary by firmware; recheck after updates.
+4. **Compact recovery.** In Maps → **Instrument cluster → Gemini voice assistant**, enable **Compact assistant** and **Automatic compact recovery**. Authorize the Maps local ADB key with **Always allow**. `127.0.0.1:5555` is this head unit; no computer is needed after setup. Choose Google as Android's digital assistant; another selected assistant is not replaced automatically. Wait for **Google assistant is ready**.
+5. **Open Live.** Tap the conversation icon under the cluster-map toggle. The compact Live capsule offers pause/resume and × to close. There is no Launch mode/Microphone selector since preview 8. A second press of our map/wheel button can close compact Gemini.
+6. **Optional steering wheel.** Enable the existing wheel-key service and keep it **Connected**. On the tested Tang, long-press microphone opens Live; short press keeps BYD's assistant, star keeps cluster zoom. Assign a different key in **Gemini button** if needed; **Recent keys** shows keys Android actually delivers.
+
+If full Gemini opens, recheck self-start, compact/recovery ON, the Google assistant selection and same signing key. If login stalls, first check **MicroG-RE's own Contacts/Location permissions**. Local ADB can need fresh owner authorization after reinstalling Maps. Do not clear app data or delete microG accounts as a routine fix.
+
+**Music test requested:** while parked, play music → open Live → close it. Does music become quieter or pause, and does volume/playback return? Report model, DiLink/Android and player. **On our Tang/DiLink5.0, Spotify stayed at the same volume with Google20; attenuation is experimental and not confirmed.** No new reboot, phone-call or other-player test is claimed.
+
+**Routes:** Live-to-Maps directions have not been established. Earlier ordinary Gemini route-handoff tests do not prove Live support. See [Google's Live limitations](https://support.google.com/gemini/answer/16622866) and [release notes](RELEASE-NOTES.md).

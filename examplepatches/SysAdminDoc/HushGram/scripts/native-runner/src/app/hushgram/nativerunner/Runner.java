@@ -61,15 +61,18 @@ public final class Runner extends Instrumentation {
     // extension first in the write request's six-argument constructor.
     private static final String PRESENCE_MODEL = "com.facebook.presence.model.upi.";
     private static final String[] PRESENCE_STATUSES = {"ACTIVE", "IDLE", "OFFLINE", "DISABLED"};
-    // Each declared 453.0.0.55.79 build's view-once receipt names, found with DexProbe from the handler's
+    // Each 453.0.0.57.79 build's view-once receipt names, found with DexProbe from the handler's
     // endpoint and raven_media strings: the build, the visual and voice handlers, their shared
     // method, the visual and voice mutations, the mutation base, its analytics extras and the
-    // completion interface. A set is used only once Instagram's own code agrees with it.
+    // completion interface. A set is used only once Instagram's own code agrees with it. The three
+    // declared builds come first; 385914503 and 385914518 carry 385914556's and 385914558's names.
     private static final String[][] VISUAL_NAMES = {
-            {"385914283", "X.04wm", "X.04wp", "Gxe", "X.0KN3", "X.0KMW", "X.0999", "X.08hM", "X.0Wom"},
-            {"385914282", "X.05eb", "X.05ef", "Gxn", "X.0J1i", "X.0J1O", "X.0682", "X.08wE", "X.0VAA"},
-            {"385914284", "X.04xq", "X.04xt", "Gxt", "X.0KP3", "X.0KOW", "X.0974", "X.08iU", "X.0Wa2"},
-            {"385914285", "X.04wm", "X.04wp", "Gxd", "X.0KM6", "X.0KM1", "X.0997", "X.08hM", "X.0Wnn"},
+            {"385914557", "X.05ek", "X.05en", "H2J", "X.0K8M", "X.0K8L", "X.0As6", "X.02nc", "X.0Vae"},
+            {"385914556", "X.05ob", "X.05oe", "H2W", "X.0GFt", "X.0GFs", "X.0BHF", "X.02su", "X.0Zhp"},
+            {"385914558", "X.05fr", "X.05fw", "H2a", "X.0L6u", "X.0L6s", "X.0AtC", "X.02oh", "X.0Uhp"},
+            {"385914517", "X.05ek", "X.05en", "H2J", "X.0K8L", "X.0K8A", "X.0As6", "X.02nc", "X.0VbG"},
+            {"385914546", "X.05ef", "X.05ej", "H28", "X.0L8b", "X.0L8N", "X.089W", "X.02mz", "X.0XAz"},
+            {"385914510", "X.05ph", "X.05pl", "H2b", "X.0GHA", "X.0GH2", "X.0B69", "X.02tt", "X.0a21"},
     };
     private static final String VISUAL_MUTATION = "send_visual_item_seen_marker";
     private static final String VOICE_MUTATION = "send_voice_item_seen_marker";

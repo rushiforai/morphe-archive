@@ -452,7 +452,7 @@ internal class HermesBundle(input: ByteArray, compiledPredicate: Boolean = false
     private fun align(offset: Int) = (offset + 3) and -4
 
     companion object {
-        const val SOURCE_SHA256 = "928f89c5766562e9cb266485282e90c058dd7947f73c9bcafa1d0fc626debf5e"
+        const val SOURCE_SHA256 = "059f4713e0cea80b58e68b675fb05d63053056869e2ac60c79f5d57567a3e583"
 
         /**
          * Byte length of each v98 instruction, by opcode, in base 36. Generated from hermes-dec 0.1.7's

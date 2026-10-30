@@ -332,3 +332,62 @@ internal fun containersWritten(method: Method, player: String): List<FieldRefere
         .mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference }
         .filter { it.definingClass == player && it.type == VIEW_GROUP }
         .distinctBy { it.toString() }
+
+/*
+ * Hide the pull down to lock hint (issue #289), the third switch of Hold a reel for 2x. The pill a
+ * video held for 2x shows is a Litho component made with its state, an enum whose constants keep
+ * their names (584: LX/Txp;), its speed and a flag, in one constructor (584: LX/TbY;-><init>(Txp,F,Z)).
+ * The patch hands the state to the extension's LockHint first in that constructor, which answers
+ * NORMAL, the plain 2x pill, in place of the hints while the switch is on.
+ */
+
+internal const val LOCK_HINT_CLASS = "$EXTENSION_PACKAGE/reels/LockHint;"
+internal const val LOCK_HINT_PILL = "$LOCK_HINT_CLASS->pill(Ljava/lang/Enum;)Ljava/lang/Enum;"
+internal val PILL_STATES = listOf(
+    "NORMAL", "LOCK_HINT", "READY_TO_LOCK", "LOCKED", "UNLOCK_HINT", "READY_TO_UNLOCK", "NUX_PROMPT",
+)
+
+/** Whether [classDef] is the 2x pill's state enum: an enum whose static initializer names every one of [PILL_STATES]. */
+internal fun isPillStates(classDef: ClassDef): Boolean {
+    if (classDef.superclass != "Ljava/lang/Enum;") return false
+    val init = classDef.methods.singleOrNull { it.name == "<clinit>" } ?: return false
+    return PILL_STATES.all { holdsString(init, it) }
+}
+
+/** Whether [method] is the 2x pill's constructor: an instance constructor taking [states], a float and a boolean. */
+internal fun isPillConstructor(method: Method, states: String): Boolean =
+    method.name == "<init>" && !AccessFlags.STATIC.isSet(method.accessFlags) &&
+        method.parameterTypes.map(CharSequence::toString) == listOf(states, "F", "Z")
+
+/*
+ * Reels draw their own 2x pill (584: LX/TZK;), made in one place with the session, its state enum
+ * (584: LX/91l;, constants named below), the video's state and two flags. The first flag (584: TZK.A03,
+ * from LX/8N6;->A0I) says whether the pill speaks in hints at all: on, a held reel reads "Pull down
+ * to lock 2x speed" (0x7f146209) or "Slide up to lock 2x speed" (0x7f146e56, picked by the second
+ * flag); off, the render skips to the plain speed (0x7f145c59, "2x"), as Facebook draws it where it
+ * has no lock. The patch hands the state and the first flag to LockHint.reelPill first in the
+ * constructor.
+ */
+internal const val LOCK_HINT_REEL_PILL = "$LOCK_HINT_CLASS->reelPill(Ljava/lang/Enum;Z)Z"
+internal val REEL_PILL_STATES = listOf(
+    "LOCKED_WITH_FOOTER", "INITIATING_LOCK", "INITIATING_RESTORE", "UNLOCKED_ORIGINAL_SPEED", "UNLOCKED_2X_SPEED",
+    "ORIGINAL_SPEED",
+)
+
+/** Whether [classDef] is the Reels 2x pill's state enum: an enum whose static initializer names every one of [REEL_PILL_STATES]. */
+internal fun isReelPillStates(classDef: ClassDef): Boolean {
+    if (classDef.superclass != "Ljava/lang/Enum;") return false
+    val init = classDef.methods.singleOrNull { it.name == "<clinit>" } ?: return false
+    return REEL_PILL_STATES.all { holdsString(init, it) }
+}
+
+/**
+ * Whether [method] is the Reels 2x pill's constructor: an instance constructor taking the session,
+ * [states], one more object and two booleans, the first being the hints flag.
+ */
+internal fun isReelPillConstructor(method: Method, states: String): Boolean {
+    if (method.name != "<init>" || AccessFlags.STATIC.isSet(method.accessFlags)) return false
+    val parameters = method.parameterTypes.map(CharSequence::toString)
+    return parameters.size == 5 && parameters[0] == FB_USER_SESSION && parameters[1] == states &&
+        parameters[2].startsWith("L") && parameters[3] == "Z" && parameters[4] == "Z"
+}

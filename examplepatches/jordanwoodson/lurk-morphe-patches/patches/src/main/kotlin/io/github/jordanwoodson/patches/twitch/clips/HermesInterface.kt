@@ -22,17 +22,17 @@ internal fun HermesBundle.hideClipDiscoveryTabs() {
         hex("90 07 ${id16("clips")} 63 07 05 07 00 48 04 03 00 $objectId 44 03 04 02 $keys 6e 04 03 04 05 10 01 04 93 00 93 00"))
 
     // DiscoveryFeedContent's offsets and registers are the compiler's for the supported version: its pager children
-    // array is r89, built from r90; the page after the second child starts at 0x6802.
+    // array is r93, built from r94; the page after the second child starts at 0x6bc3.
     val content = function("DiscoveryFeedContent")
-    replace(content, "hide_clips", hex("08 59 03 00 5a 59 5a 00"), hex("08 59 02 00 5a 59 5a 00"))
+    replace(content, "hide_clips", hex("08 5d 03 00 5a 5d 5e 00"), hex("08 5d 02 00 5a 5d 5e 00"))
     // Skip creation and insertion of ClipsFeedPage. The first two children, parent JSX call,
     // scroll ranges and initial selection now all use the same two-entry TABS model. Nothing
     // outside the skipped range jumps into it, and it writes none of the registers read after it.
-    // `children[1] = page; jsxs`, then a long jump to the parent props after the third child.
-    val secondPage = hex("5a 59 5a 01 44 5e 5b ff ${id8("jsxs")}")
-    if (!content.body.copyOfRange(0x67fe, 0x6807).contentEquals(secondPage))
+    // `children[1] = page; jsxs`, then a long jump to the parent props after the third child (0x6d24).
+    val secondPage = hex("5a 5d 5e 01 44 62 5f ff ${id8("jsxs")}")
+    if (!content.body.copyOfRange(0x6bbf, 0x6bc8).contentEquals(secondPage))
         throw PatchException("Twitch: unexpected clip pager children")
-    replace(content, "hide_clips", secondPage, hex("5a 59 5a 01 af 61 01 00 00"))
+    replace(content, "hide_clips", secondPage, hex("5a 5d 5e 01 af 61 01 00 00"))
 
     // Explicit in-feed clip requests use Twitch's existing native clip pager instead. The
     // original t86 callback selected index 2 before injecting a clip, which is no longer valid.
@@ -55,23 +55,24 @@ internal fun HermesBundle.hideClipDiscoveryTabs() {
     // The native pager fetches the requested slug itself. The old readiness gate waited for
     // Home feed edges, which could remain empty after falling back from initialTab=clips.
     // The effect still requires a non-empty initialClipSlug and deduplicates it through its ref.
-    replace(content, "hide_clips", hex("6e 4b 3e 05 25"), hex("95 4b 10 4b 4b"))
+    // `ready = Boolean(clipSlug && !loading && edges.length > 0)`: the Call2 becomes LoadConstTrue r82.
+    replace(content, "hide_clips", hex("6e 52 43 05 2f"), hex("95 52 10 52 52"))
 
     // Give initial clipSlug effects and pending deep-link events the same native callback.
-    // Omit one memo dependency save (slot 189), so this small props block recomputes safely.
-    val props = content.body.copyOfRange(0x2045, 0x20a3)
-    val oldSave = hex("8b 00 bd 60 0e 00 4f")
+    // Omit one memo dependency save (slot 190), so this small props block recomputes safely.
+    val props = content.body.copyOfRange(0x20af, 0x210d)
+    val oldSave = hex("8b 00 be 60 10 00 58")
     val saveAt = props.indices.singleOrNull { at -> at + oldSave.size <= props.size && props.copyOfRange(at, at + oldSave.size).contentEquals(oldSave) }
         ?: throw PatchException("Twitch: missing clip props memo dependency")
     val updatedProps = props.copyOf()
-    if (!updatedProps.copyOfRange(30, 34).contentEquals(hex("52 25 4f 05")))
+    if (!updatedProps.copyOfRange(30, 34).contentEquals(hex("52 2f 58 05")))
         throw PatchException("Twitch: missing initial clip callback prop")
-    // r154 holds the stock clip callback closure, which is created right after this block, so it is
-    // free here; r97 is the component's function environment.
-    if (!content.body.copyOfRange(3, 5).contentEquals(hex("40 61")))
+    // r160 holds the stock clip callback closure, which is created right after this block, so it is
+    // free here; r101 is the component's function environment.
+    if (!content.body.copyOfRange(3, 5).contentEquals(hex("40 65")))
         throw PatchException("Twitch: unexpected clip feed environment register")
-    updatedProps[32] = 154.toByte()
-    val closure = byteArrayOf(0x84.toByte(), 154.toByte(), 97, entry.id.toByte(), (entry.id ushr 8).toByte())
+    updatedProps[32] = 160.toByte()
+    val closure = byteArrayOf(0x84.toByte(), 160.toByte(), 101, entry.id.toByte(), (entry.id ushr 8).toByte())
     replace(content, "hide_clips", props, closure + updatedProps.copyOfRange(0, saveAt) +
         updatedProps.copyOfRange(saveAt + oldSave.size, updatedProps.size) + hex("93 05"))
 

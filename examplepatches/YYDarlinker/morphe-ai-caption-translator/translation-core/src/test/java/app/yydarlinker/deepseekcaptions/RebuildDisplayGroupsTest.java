@@ -27,39 +27,51 @@ public class RebuildDisplayGroupsTest {
     return RebuildDisplayGroups.partition(0,Arrays.asList(events),s,spec,null,null);
   }
 
-  @Test public void chineseLeadJoinsItsContinuationWithAPauseSeparator() {
+  @Test public void missingFullStopsDoNotMergeACompletedRankingWithTheNextSentence() {
     RebuildSource s=source(3);
     List<RebuildDisplayGroups.Unit> units=partition(ZH,s,event(0,0,1400,"自信地把俄罗斯排在第二位"),
         event(1,1400,4400,"见鬼，甚至还有几个把俄罗斯排在第一位"),event(2,4400,8000,"想必是那些认为衡量军事实力的标准仍是坦克的人写的。"));
-    assertEquals(2,units.size());
-    assertEquals("自信地把俄罗斯排在第二位\u200b见鬼，甚至还有几个把俄罗斯排在第一位",units.get(0).text);
-    assertEquals(0,units.get(0).start);assertEquals(4400,units.get(0).end);
+    assertEquals(3,units.size());
+    assertEquals("自信地把俄罗斯排在第二位",units.get(0).text);
+    assertEquals("见鬼，甚至还有几个把俄罗斯排在第一位",units.get(1).text);
+    assertEquals(0,units.get(0).start);assertEquals(1400,units.get(0).end);
   }
 
   @Test public void punctuationNeedsNoExtraSeparatorAndListsChainWithinLimits() {
-    RebuildSource s=source(6);
-    List<RebuildDisplayGroups.Unit> units=partition(ZH,s,event(0,0,1900,"那么这些……都从哪里来"),
-        event(1,1900,2900,"隐形战斗机"),event(2,2900,3800,"航空母舰"),event(3,3800,4800,"高超音速导弹"),
-        event(4,4800,6300,"以及反舰弹道导弹"),event(5,6300,6900,"又是从哪来的？"));
-    assertEquals("那么这些……都从哪里来\u200b隐形战斗机\u200b航空母舰\u200b高超音速导弹",units.get(0).text);
-    assertEquals("以及反舰弹道导弹\u200b又是从哪来的？",units.get(1).text);
+    RebuildSource s=words("Where","are","the","stealth","fighters","aircraft","carriers",
+        "hypersonic","missiles","and","ballistic","missiles","coming","from");
+    List<RebuildDisplayGroups.Unit> units=partition(ZH,s,
+        new RebuildProtocol.Event(0,2,0,1900,"那么这些……都从哪里来"),
+        new RebuildProtocol.Event(3,4,1900,2900,"隐形战斗机"),
+        new RebuildProtocol.Event(5,6,2900,3800,"航空母舰"),
+        new RebuildProtocol.Event(7,8,3800,4800,"高超音速导弹"),
+        new RebuildProtocol.Event(9,11,4800,6300,"以及反舰弹道导弹"),
+        new RebuildProtocol.Event(12,13,6300,6900,"又是从哪来的？"));
     assertEquals(2,units.size());
+    assertTrue(units.get(0).text.contains("隐形战斗机"));
+    assertTrue(units.get(1).text.endsWith("又是从哪来的？"));
+    assertEquals("那么这些……都从哪里来隐形战斗机航空母舰高超音速导弹以及反舰弹道导弹又是从哪来的？",
+        String.join("",texts(units)).replace("\u200b",""));
+    for(RebuildDisplayGroups.Unit unit:units)
+      assertTrue("a list item must not become a sub-minimum page",unit.end-unit.start>=RebuildPageLayout.MIN_PAGE_MS);
     units=partition(ZH,source(2),event(0,0,900,"毕竟，"),event(1,900,3000,"谁会在乎呢"));
     assertEquals("毕竟，谁会在乎呢",units.get(0).text);
   }
 
-  @Test public void completeSentencesAndLongWindowsStayIndependent() {
+  @Test public void completeSentencesStayIndependentAndContinuationsCanSpanPages() {
     List<RebuildDisplayGroups.Unit> units=partition(ZH,source(3),event(0,0,1500,"好的。"),
         event(1,1500,4000,"我们开始吧"),event(2,4000,9500,"今天讲预算"));
     assertEquals(Arrays.asList("好的。","我们开始吧","今天讲预算"),texts(units));
     // A lead without a sentence end joins its continuation: one page that reads as one thought is
-    // better than a page that stops mid-sentence, even when the joined hold runs past the nominal
-    // page time. A fragment that would run far beyond it still stays its own page.
+    // better than a page that stops mid-sentence. Unit duration is not page duration:
+    // capacity and pacing are decided after this semantic span is assembled.
     units=partition(ZH,source(2),event(0,0,1500,"而且"),event(1,1500,6600,"这支部队后来成为了正规军"));
     assertEquals(1,units.size());
-    assertEquals("而且\u200b这支部队后来成为了正规军",units.get(0).text);
+    assertEquals("而且这支部队后来成为了正规军",units.get(0).text);
     units=partition(ZH,source(2),event(0,0,1500,"而且"),event(1,1500,12000,"这支部队后来成为了正规军"));
-    assertEquals(2,units.size());
+    assertEquals(1,units.size());
+    assertEquals(2,units.get(0).events.size());
+    assertEquals(12000,units.get(0).end);
   }
 
   @Test public void spacedAndJapaneseTargetsUseTheirOwnSeparator() {
@@ -112,16 +124,20 @@ public class RebuildDisplayGroupsTest {
   @Test public void aLatinWordNextToChineseKeepsItsSpaceWhenPagesAreJoined() {
     // Captured DeepSeek page: "...iPhone 18 Pro Max" | "把它和上一代对比一下" came out as "Max把它".
     RebuildSource s=words("dismantled","the","iPhone","Pro","Max","and","compared","it");
-    List<RebuildDisplayGroups.Unit> units=partition(ZH,s,new RebuildProtocol.Event(0,4,0,1999,"我已经拆解了 iPhone 18 Pro Max"),
-        new RebuildProtocol.Event(5,7,2000,3499,"把它和上一代对比一下"));
+    // A sub-minimum first event still joins; spacing is checked when a join is justified.
+    List<RebuildDisplayGroups.Unit> units=partition(ZH,s,new RebuildProtocol.Event(0,4,0,799,"我已经拆解了 iPhone 18 Pro Max"),
+        new RebuildProtocol.Event(5,7,800,3499,"把它和上一代对比一下"));
     assertEquals(Arrays.asList("我已经拆解了 iPhone 18 Pro Max 把它和上一代对比一下"),texts(units));
   }
 
   @Test public void aShortTailClosingTheSentenceJoinsTheOpenTextBeforeIt() {
-    RebuildSource s=source(3);
-    List<RebuildDisplayGroups.Unit> units=partition(ZH,s,event(0,0,2900,"在2月24日之前，你在网上不用走多远"),
-        event(1,2900,5000,"就能找到有人声称俄罗斯拥有"),event(2,5000,7000,"世界第二强大的军队"));
-    assertEquals(Arrays.asList("在2月24日之前，你在网上不用走多远","就能找到有人声称俄罗斯拥有\u200b世界第二强大的军队"),texts(units));
+    RebuildSource s=words("Before","February","24th","you","need","not","look","far",
+        "to","find","people","claiming","Russia","had","the","second","strongest","army");
+    List<RebuildDisplayGroups.Unit> units=partition(ZH,s,
+        new RebuildProtocol.Event(0,7,0,2900,"在2月24日之前，你在网上不用走多远"),
+        new RebuildProtocol.Event(8,14,2900,5000,"就能找到有人声称俄罗斯拥有"),
+        new RebuildProtocol.Event(15,17,5000,7000,"世界第二强大的军队"));
+    assertEquals(Arrays.asList("在2月24日之前，你在网上不用走多远","就能找到有人声称俄罗斯拥有世界第二强大的军队"),texts(units));
   }
 
   @Test public void shortPausesAreBridgedSoTheCaptionDoesNotFlicker() {

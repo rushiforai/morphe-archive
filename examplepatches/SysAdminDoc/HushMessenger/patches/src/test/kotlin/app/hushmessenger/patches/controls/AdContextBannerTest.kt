@@ -44,7 +44,7 @@ class AdContextBannerTest {
     }
 
     @Test fun eachMappingHooksItsOneBannerGate() {
-        assertEquals(setOf("LX/LfI;->A00()Z"), BASE_PROFILE.hooks.getValue(AD_CONTEXT_BANNER))
+        assertEquals(setOf("LX/Kjz;->A00()Z"), BASE_PROFILE.hooks.getValue(AD_CONTEXT_BANNER))
         assertEquals(setOf(SYNTHETIC_AD_BANNER_GATE), SYNTHETIC_PROFILE.hooks.getValue(AD_CONTEXT_BANNER))
     }
 

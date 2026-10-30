@@ -42,12 +42,14 @@ final class FeedCategory {
         boolean homePlace = build.contains(PatchFamily.HOME_PLACE);
         boolean feedSound = build.contains(PatchFamily.FEED_SOUND);
         boolean feedTapPause = build.contains(PatchFamily.FEED_TAP_PAUSE);
+        boolean feedSeekBar = build.contains(PatchFamily.FEED_SEEK_BAR);
         boolean longPressZoom = build.contains(PatchFamily.LONG_PRESS_ZOOM);
         boolean roundedCorners = build.contains(PatchFamily.ROUNDED_POST_CORNERS);
         boolean fullScreen = build.contains(PatchFamily.FULL_SCREEN_BARS);
         boolean feedFollow = build.contains(PatchFamily.FEED_FOLLOW);
         PreferenceCategory feed = suggestions || following || swipe || fullResolution || homeFeed || tabSwipe
-                || askLike || askRefresh || postTime || hiddenLikes || backHome || homePlace || feedSound || feedTapPause || longPressZoom || roundedCorners
+                || askLike || askRefresh || postTime || hiddenLikes || backHome || homePlace || feedSound || feedTapPause || feedSeekBar || longPressZoom
+                || roundedCorners
                 || fullScreen || feedFollow
                 ? category(screen, L10n.t("Feed"), SettingsIcons.FEED,
                         L10n.t("Choose what Home shows and how it behaves.")) : null;
@@ -166,6 +168,11 @@ final class FeedCategory {
             feed.addPreference(toggle(context, Settings.TAP_FEED_VIDEO_TO_PAUSE, L10n.t("Tap a feed video to pause it"),
                     L10n.t("Tap the video playing in a feed to pause it in place instead of opening it in Reels, and tap it "
                             + "again to play it. Ads keep Instagram's own tap.")));
+        }
+        if (feedSeekBar) {
+            feed.addPreference(toggle(context, Settings.FEED_SEEK_BAR, L10n.t("Seek bar on feed videos"),
+                    L10n.t("Shows a bar along the bottom of the video playing in a feed. Drag it and let go to jump "
+                            + "to that point in the video.")));
         }
         if (longPressZoom) {
             feed.addPreference(toggle(context, Settings.LONG_PRESS_TO_ZOOM, L10n.t("Long press a photo to zoom"),

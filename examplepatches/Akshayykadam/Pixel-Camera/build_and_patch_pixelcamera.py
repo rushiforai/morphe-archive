@@ -115,11 +115,18 @@ def patch_manifest():
     content = re.sub(r'<meta-data android:name="com\.android\.stamp\.source"[^>]*/>', '', content)
     content = re.sub(r'<meta-data android:name="com\.android\.stamp\.type"[^>]*/>', '', content)
 
+    # 6. Ensure launcher activity-alias explicitly carries app_name label
+    if '<activity-alias android:exported="true" android:name="com.android.camera.CameraLauncher"' in content:
+        content = content.replace(
+            '<activity-alias android:exported="true" android:name="com.android.camera.CameraLauncher"',
+            '<activity-alias android:exported="true" android:label="@string/app_name" android:name="com.android.camera.CameraLauncher"'
+        )
+
     with open(manifest_path, "w", encoding="utf-8") as f:
         f.write(content)
     print("    [+] AndroidManifest.xml successfully patched.")
 
-    # 6. Lower minSdkVersion in apktool.yml so APK can install on Android 14, 15, and 16
+    # 7. Lower minSdkVersion in apktool.yml so APK can install on Android 14, 15, and 16
     apktool_yml_path = os.path.join(APKTOOL_DIR, "apktool.yml")
     if os.path.exists(apktool_yml_path):
         with open(apktool_yml_path, "r", encoding="utf-8") as f:
@@ -155,17 +162,151 @@ def patch_manifest():
             print(f"    [+] apktool.yml: Added {added_count} explicit asset paths to doNotCompress (apktool 3.0.3 bug workaround).")
 
 def patch_app_name():
-    print("[*] Setting app label to 'PixelCamera'...")
-    strings_path = os.path.join(APKTOOL_DIR, "res", "values", "strings.xml")
-    with open(strings_path, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    content = content.replace('<string name="app_name">Camera</string>',
-                            '<string name="app_name">PixelCamera</string>')
-
-    with open(strings_path, "w", encoding="utf-8") as f:
-        f.write(content)
-    print("    [+] App label set to 'PixelCamera'.")
+    print("[*] Setting app label to 'Pixel Camera' with comprehensive international localization...")
+    lang_map = {
+        "values": "Pixel Camera",
+        "values-en-rGB": "Pixel Camera",
+        "values-en-rXA": "[Þîxéļ Çåméŕå one]",
+        "values-ar-rXB": "‏‮Pixel Camera‬‏",
+        "values-de": "Pixel Kamera",
+        "values-de-rAT": "Pixel Kamera",
+        "values-de-rCH": "Pixel Kamera",
+        "values-gsw": "Pixel Kamera",
+        "values-fr": "Appareil photo Pixel",
+        "values-fr-rCA": "Appareil photo Pixel",
+        "values-fr-rCH": "Appareil photo Pixel",
+        "values-es": "Cámara Pixel",
+        "values-es-rUS": "Cámara Pixel",
+        "values-b+es+419": "Cámara Pixel",
+        "values-es-rAR": "Cámara Pixel",
+        "values-es-rBO": "Cámara Pixel",
+        "values-es-rCL": "Cámara Pixel",
+        "values-es-rCO": "Cámara Pixel",
+        "values-es-rCR": "Cámara Pixel",
+        "values-es-rDO": "Cámara Pixel",
+        "values-es-rEC": "Cámara Pixel",
+        "values-es-rGT": "Cámara Pixel",
+        "values-es-rHN": "Cámara Pixel",
+        "values-es-rMX": "Cámara Pixel",
+        "values-es-rNI": "Cámara Pixel",
+        "values-es-rPA": "Cámara Pixel",
+        "values-es-rPE": "Cámara Pixel",
+        "values-es-rPR": "Cámara Pixel",
+        "values-es-rPY": "Cámara Pixel",
+        "values-es-rSV": "Cámara Pixel",
+        "values-es-rUY": "Cámara Pixel",
+        "values-es-rVE": "Cámara Pixel",
+        "values-it": "Fotocamera Pixel",
+        "values-pt": "Câmera Pixel",
+        "values-pt-rBR": "Câmera Pixel",
+        "values-pt-rPT": "Câmara Pixel",
+        "values-nl": "Pixel Camera",
+        "values-pl": "Aparat Pixel",
+        "values-ru": "Камера Pixel",
+        "values-uk": "Камера Pixel",
+        "values-cs": "Fotoaparát Pixel",
+        "values-sk": "Kamera Pixel",
+        "values-sl": "Fotoaparat Pixel",
+        "values-ro": "Camera Pixel",
+        "values-mo": "Camera Pixel",
+        "values-bg": "Камера Pixel",
+        "values-hr": "Pixel kamera",
+        "values-sr": "Pixel камера",
+        "values-b+sr+Latn": "Pixel kamera",
+        "values-bs": "Pixel kamera",
+        "values-hu": "Pixel kamera",
+        "values-el": "Κάμερα Pixel",
+        "values-tr": "Pixel Kamera",
+        "values-sv": "Pixel Kamera",
+        "values-da": "Pixel Kamera",
+        "values-nb": "Pixel Kamera",
+        "values-no": "Pixel Kamera",
+        "values-fi": "Pixel Kamera",
+        "values-ca": "Càmera Pixel",
+        "values-gl": "Cámara Pixel",
+        "values-eu": "Pixel kamera",
+        "values-is": "Pixel Myndavél",
+        "values-lt": "Pixel fotoaparatas",
+        "values-lv": "Pixel kamera",
+        "values-et": "Pixel kaamera",
+        "values-be": "Камера Pixel",
+        "values-mk": "Камера Pixel",
+        "values-sq": "Pixel Kamera",
+        "values-ga": "Pixel Camera",
+        "values-cy": "Pixel Camera",
+        "values-hy": "Pixel տեսախցիկ",
+        "values-ka": "Pixel კამერა",
+        "values-az": "Pixel Kamera",
+        "values-kk": "Pixel камерасы",
+        "values-ky": "Pixel камера",
+        "values-uz": "Pixel Kamera",
+        "values-af": "Pixel Kamera",
+        "values-zu": "Ikhamera yePixel",
+        "values-sw": "Kamera ya Pixel",
+        "values-am": "Pixel ካሜራ",
+        "values-ar": "كاميرا Pixel",
+        "values-ar-rEG": "كاميرا Pixel",
+        "values-ar-rSA": "كاميرا Pixel",
+        "values-iw": "מצלמת Pixel",
+        "values-he": "מצלמת Pixel",
+        "values-fa": "دوربین Pixel",
+        "values-ur": "Pixel کیمرا",
+        "values-hi": "Pixel कैमरा",
+        "values-mr": "Pixel Camera",
+        "values-gu": "Pixel Camera",
+        "values-bn": "Pixel ক্যামেরা",
+        "values-pa": "Pixel ਕੈਮਰਾ",
+        "values-ta": "Pixel கேமரா",
+        "values-te": "Pixel కెమెరా",
+        "values-kn": "Pixel ಕ್ಯಾಮರಾ",
+        "values-ml": "Pixel ക്യാമറ",
+        "values-or": "Pixel କେମେରା",
+        "values-as": "Pixel কেমেৰা",
+        "values-ne": "Pixel क्यामेरा",
+        "values-si": "Pixel කැමරාව",
+        "values-my": "Pixel ကင်မရာ",
+        "values-km": "កាមេរ៉ា Pixel",
+        "values-lo": "ກ້ອງ Pixel",
+        "values-th": "กล้อง Pixel",
+        "values-vi": "Camera Pixel",
+        "values-in": "Kamera Pixel",
+        "values-id": "Kamera Pixel",
+        "values-ms": "Kamera Pixel",
+        "values-tl": "Pixel Camera",
+        "values-fil": "Pixel Camera",
+        "values-ja": "Pixel カメラ",
+        "values-ko": "Pixel 카메라",
+        "values-zh": "Pixel 相機",
+        "values-zh-rCN": "Pixel 相机",
+        "values-zh-rHK": "Pixel 相機",
+        "values-zh-rTW": "Pixel 相機",
+        "values-mn": "Pixel Камер",
+        "values-en-rAU": "Pixel Camera",
+        "values-en-rCA": "Pixel Camera",
+        "values-en-rIE": "Pixel Camera",
+        "values-en-rIN": "Pixel Camera",
+        "values-en-rSG": "Pixel Camera",
+        "values-en-rXC": "Pixel Camera",
+        "values-en-rZA": "Pixel Camera",
+    }
+    res_dir = os.path.join(APKTOOL_DIR, "res")
+    updated_count = 0
+    if os.path.isdir(res_dir):
+        for entry in os.listdir(res_dir):
+            if entry.startswith("values"):
+                strings_file = os.path.join(res_dir, entry, "strings.xml")
+                if os.path.exists(strings_file):
+                    label = lang_map.get(entry, "Pixel Camera")
+                    with open(strings_file, "r", encoding="utf-8") as f:
+                        c = f.read()
+                    if '<string name="app_name">' in c:
+                        c = re.sub(r'<string name="app_name">.*?</string>', f'<string name="app_name">{label}</string>', c)
+                    else:
+                        c = c.replace('<resources>', f'<resources>\n    <string name="app_name">{label}</string>')
+                    with open(strings_file, "w", encoding="utf-8") as f:
+                        f.write(c)
+                    updated_count += 1
+    print(f"    [+] App label set to 'Pixel Camera' across {updated_count} language locales.")
 
 def patch_vku_smali():
     print("[*] Patching vku.smali (Device Eligibility Checks, was uyv)...")
@@ -631,7 +772,7 @@ def patch_ksf_smali():
 
     if-eqz v1, :cond_check_ark
 
-    const/4 v0, 0x0
+    const/4 v0, 0x1
 
     return v0
 
@@ -705,6 +846,8 @@ def patch_ksf_smali():
                 "camera.ark_edge_hex",
                 "camera.ark_shutter_speed_available",
                 "camera.ark_ISO_available",
+                "camera.ark_lens_selector_available",
+                "camera.ark_lens_selector",
                 "camcorder.jellybean_setting",
                 "camcorder_jellybean_feature",
             ]
@@ -833,7 +976,7 @@ def patch_ksf_smali():
 
     if-eqz v1, :cond_check_ark_x
 
-    const/4 v0, 0x0
+    const/4 v0, 0x1
 
     return v0
 
@@ -1834,6 +1977,50 @@ def patch_libgcastartup():
         elif orig5 == bytes.fromhex("20008052c0035fd6"):
             print("    [+] 0x2420880 already patched.")
 
+        # 6. 0x442ef3c: cbz x8, #0x442ef68 (68 01 00 b4) -> b #0x442ef68 (0b 00 00 14)
+        # Bypasses Halide pyramidal Luma denoiser kernel in finish_raw, jumping straight to operator delete(runner)
+        f.seek(0x442ef3c)
+        orig6 = f.read(4)
+        if orig6 == bytes.fromhex("680100b4"):
+            f.seek(0x442ef3c)
+            f.write(bytes.fromhex("0b000014"))
+            print("    [+] Patched 0x442ef3c: cbz -> b (bypass Halide Luma denoiser kernel)")
+        elif orig6 == bytes.fromhex("0b000014"):
+            print("    [+] 0x442ef3c already patched.")
+
+        # 7. 0x442efb4: cbz x8, #0x442efe4 (88 01 00 b4) -> b #0x442efe4 (0c 00 00 14)
+        # Bypasses Halide pyramidal Chroma denoiser kernel in finish_raw
+        f.seek(0x442efb4)
+        orig7 = f.read(4)
+        if orig7 == bytes.fromhex("880100b4"):
+            f.seek(0x442efb4)
+            f.write(bytes.fromhex("0c000014"))
+            print("    [+] Patched 0x442efb4: cbz -> b (bypass Halide Chroma denoiser kernel)")
+        elif orig7 == bytes.fromhex("0c000014"):
+            print("    [+] 0x442efb4 already patched.")
+
+        # 8. 0x534f36c: cbz w9, #0x534f424 (c9 05 00 34) -> nop (1f 20 03 d5)
+        # Forces Pecan neural RAW denoiser into PecanNoOpCopy mode (skips TPU/GPU neural network inference, copying raw sensor pixels directly)
+        f.seek(0x534f36c)
+        orig8 = f.read(4)
+        if orig8 == bytes.fromhex("c9050034"):
+            f.seek(0x534f36c)
+            f.write(bytes.fromhex("1f2003d5"))
+            print("    [+] Patched 0x534f36c: cbz -> nop (force PecanNoOpCopy)")
+        elif orig8 == bytes.fromhex("1f2003d5"):
+            print("    [+] 0x534f36c already patched.")
+
+        # 9. 0x534f5f4: fmov s10, #1.00000000 (0a 10 2e 1e) -> fmov s10, wzr (ea 03 27 1e)
+        # Sets Pecan residual_scaling_factor to 0.0f (no noise residual subtraction)
+        f.seek(0x534f5f4)
+        orig9 = f.read(4)
+        if orig9 == bytes.fromhex("0a102e1e"):
+            f.seek(0x534f5f4)
+            f.write(bytes.fromhex("ea03271e"))
+            print("    [+] Patched 0x534f5f4: fmov s10, #1.0 -> fmov s10, wzr (0.0f residual scaling)")
+        elif orig9 == bytes.fromhex("ea03271e"):
+            print("    [+] 0x534f5f4 already patched.")
+
 
 def patch_msr_smali():
     print("[*] Patching msr.smali (Enabling native Tomte model in InitParams and Gcam creation, was mjy)...")
@@ -2773,16 +2960,18 @@ def patch_camera_app_smali():
 
     # Hook onCreate to save sAppContext (locals 20 in 11.1)
     on_create_target = ".method public final onCreate()V\n    .locals 20\n\n    move-object/from16 v0, p0"
-    on_create_repl = ".method public final onCreate()V\n    .locals 20\n\n    sput-object p0, Lcom/google/android/apps/camera/app/CameraApp;->sAppContext:Landroid/content/Context;\n\n    move-object/from16 v0, p0"
+    on_create_repl = ".method public final onCreate()V\n    .locals 20\n\n    sput-object p0, Lcom/google/android/apps/camera/app/CameraApp;->sAppContext:Landroid/content/Context;\n\n    invoke-static/range {p0 .. p0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->setContext(Landroid/content/Context;)V\n\n    move-object/from16 v0, p0"
     if on_create_target in content:
         content = content.replace(on_create_target, on_create_repl)
+    elif "TomteInitHelper;->setContext" not in content and "sput-object p0, Lcom/google/android/apps/camera/app/CameraApp;->sAppContext" in content:
+        content = content.replace("sput-object p0, Lcom/google/android/apps/camera/app/CameraApp;->sAppContext:Landroid/content/Context;", "sput-object p0, Lcom/google/android/apps/camera/app/CameraApp;->sAppContext:Landroid/content/Context;\n\n    invoke-static/range {p0 .. p0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->setContext(Landroid/content/Context;)V")
 
     with open(camera_app_path, "w", encoding="utf-8") as f:
         f.write(content)
     print("    [+] CameraApp.smali patched successfully.")
 
 def inject_tomte_init_helper():
-    print("[*] Injecting TomteInitHelper...")
+    print("[*] Injecting TomteInitHelper and ProSettingsPanel...")
     helper_src = os.path.join(ROOT_DIR, "smali_patches", "TomteInitHelper.smali")
     if not os.path.exists(helper_src):
         helper_src = os.path.join(ROOT_DIR, "scratch", "smali_out", "smali", "com", "google", "android", "patch", "cameralooks", "TomteInitHelper.smali")
@@ -2794,6 +2983,12 @@ def inject_tomte_init_helper():
         print(f"    [+] Injected {helper_dst}")
     else:
         print(f"    [!] Warning: {helper_src} not found!")
+
+    import glob
+    for smali_file in glob.glob(os.path.join(ROOT_DIR, "smali_patches", "TomteProSettingsPanel*.smali")):
+        dst = os.path.join(helper_dst_dir, os.path.basename(smali_file))
+        shutil.copyfile(smali_file, dst)
+        print(f"    [+] Injected {os.path.basename(smali_file)}")
 
 def patch_mkm_smali():
     print("[*] Patching mkm.smali (Make Flare Removal a safe no-op to prevent FinishShot crashes)...")
@@ -3464,9 +3659,472 @@ def patch_mtt_smali():
     if target_metadata in content:
         content = content.replace(target_metadata, repl_metadata, 1)
 
+    # Hook Pecan ML Denoiser in ShotParams
+    pecan_target = """    iget-wide v10, v9, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    iget-boolean v3, v2, Lmvg;->b:Z
+
+    invoke-static {v10, v11, v9, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_force_pecan_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    iget-wide v10, v9, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    iget-object v2, v2, Lmvg;->a:Laaaa;
+
+    iget v2, v2, Laaaa;->h:I
+
+    invoke-static {v10, v11, v9, v2}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_pecan_model_type_set(JLcom/google/googlex/gcam/ShotParams;I)V"""
+
+    pecan_repl = """    iget-wide v10, v9, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    iget-boolean v3, v2, Lmvg;->b:Z
+
+    invoke-static {v3}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterPecanForce(Z)Z
+
+    move-result v3
+
+    invoke-static {v10, v11, v9, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_force_pecan_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    iget-wide v10, v9, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    iget-object v2, v2, Lmvg;->a:Laaaa;
+
+    iget v2, v2, Laaaa;->h:I
+
+    invoke-static {v2}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterPecanModelType(I)I
+
+    move-result v2
+
+    invoke-static {v10, v11, v9, v2}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_pecan_model_type_set(JLcom/google/googlex/gcam/ShotParams;I)V"""
+
+    if pecan_target in content:
+        content = content.replace(pecan_target, pecan_repl, 1)
+        print("    [+] mtt.smali: ShotParams Pecan ML denoiser hooked to TomteInitHelper.")
+    elif "TomteInitHelper;->filterPecanForce" in content:
+        print("    [+] mtt.smali: ShotParams Pecan ML denoiser already hooked.")
+
+    # Hook Sky Denoise Strengthener in ShotParams
+    sky_target = """    iget-wide v11, v9, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v11, v12, v9, v10}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_strengthen_denoise_for_sky_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    sky_repl = """    iget-wide v11, v9, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v10}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterSkyDenoise(Z)Z
+
+    move-result v10
+
+    invoke-static {v11, v12, v9, v10}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_strengthen_denoise_for_sky_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    if sky_target in content:
+        content = content.replace(sky_target, sky_repl, 1)
+        print("    [+] mtt.smali: ShotParams Sky denoise strengthener hooked to TomteInitHelper.")
+    elif "TomteInitHelper;->filterSkyDenoise" in content:
+        print("    [+] mtt.smali: ShotParams Sky denoise strengthener already hooked.")
+
+    # Hook Chess in ShotParams
+    chess_target = """    iget-wide v3, v9, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v3, v4, v9, v2}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_chess_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    chess_repl = """    iget-wide v3, v9, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v2}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterChessEnabled(Z)Z
+
+    move-result v2
+
+    invoke-static {v3, v4, v9, v2}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_chess_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    if chess_target in content:
+        content = content.replace(chess_target, chess_repl, 1)
+        print("    [+] mtt.smali: ShotParams Chess denoiser hooked to TomteInitHelper.")
+    elif "TomteInitHelper;->filterChessEnabled" in content:
+        print("    [+] mtt.smali: ShotParams Chess denoiser already hooked.")
+
     with open(mtt_path, "w", encoding="utf-8") as f:
         f.write(content)
-    print("    [+] mtt.smali patched: getEffectiveLookId hooked for ShotParams and TomteMetadata.")
+    print("    [+] mtt.smali patched: getEffectiveLookId & denoiser filters hooked.")
+
+
+def patch_pyp_smali():
+    print("[*] Patching pyp.smali (ShotParams Walnut, Chess, Edamame, Almond, and Mochi ML models)...")
+    pyp_path = os.path.join(APKTOOL_DIR, "smali", "pyp.smali")
+    if not os.path.exists(pyp_path):
+        print("    [!] Warning: pyp.smali not found.")
+        return
+    with open(pyp_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    walnut_target = """    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v6, v7, v1, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_walnut_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    walnut_repl = """    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v3}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterWalnutEnabled(Z)Z
+
+    move-result v3
+
+    invoke-static {v6, v7, v1, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_walnut_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    walnut_opt_target = """    iget-wide v7, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    iget v6, v6, Laaam;->c:I
+
+    invoke-static {v7, v8, v1, v6}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_walnut_option_set(JLcom/google/googlex/gcam/ShotParams;I)V"""
+
+    walnut_opt_repl = """    iget-wide v7, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    iget v6, v6, Laaam;->c:I
+
+    invoke-static {v6}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterWalnutOption(I)I
+
+    move-result v6
+
+    invoke-static {v7, v8, v1, v6}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_walnut_option_set(JLcom/google/googlex/gcam/ShotParams;I)V"""
+
+    chess_force_target = """    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v6, v7, v1, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_force_chess_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    chess_force_repl = """    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v3}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterChessEnabled(Z)Z
+
+    move-result v3
+
+    invoke-static {v6, v7, v1, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_force_chess_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    edamame_target = """    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v6, v7, v1, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_bento_edamame_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v6, v7, v1, v5}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_bento_edamame_force_apply_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    edamame_repl = """    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v3}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterEdamameEnabled(Z)Z
+
+    move-result v3
+
+    invoke-static {v6, v7, v1, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_bento_edamame_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v5}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterEdamameEnabled(Z)Z
+
+    move-result v5
+
+    invoke-static {v6, v7, v1, v5}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_bento_edamame_force_apply_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    almond_target = """    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v6, v7, v1, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_almond_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v6, v7, v1, v5}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_almond_force_apply_limited_by_times_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    almond_repl = """    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v3}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterAlmondEnabled(Z)Z
+
+    move-result v3
+
+    invoke-static {v6, v7, v1, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_almond_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v5}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterAlmondEnabled(Z)Z
+
+    move-result v5
+
+    invoke-static {v6, v7, v1, v5}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_almond_force_apply_limited_by_times_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    mochi_target = """    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v6, v7, v1, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_mochi_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v6, v7, v1, v5}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_mochi_force_apply_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    mochi_repl = """    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v3}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterMochiEnabled(Z)Z
+
+    move-result v3
+
+    invoke-static {v6, v7, v1, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_mochi_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    iget-wide v6, v1, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    invoke-static {v5}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterMochiEnabled(Z)Z
+
+    move-result v5
+
+    invoke-static {v6, v7, v1, v5}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_mochi_force_apply_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    modified = False
+    if walnut_target in content:
+        content = content.replace(walnut_target, walnut_repl, 1)
+        modified = True
+        print("    [+] pyp.smali: Walnut ML denoiser hooked to TomteInitHelper.")
+    elif "TomteInitHelper;->filterWalnutEnabled" in content:
+        print("    [+] pyp.smali: Walnut ML denoiser already hooked.")
+
+    if walnut_opt_target in content:
+        content = content.replace(walnut_opt_target, walnut_opt_repl, 1)
+        modified = True
+        print("    [+] pyp.smali: Walnut option hooked to TomteInitHelper.")
+    elif "TomteInitHelper;->filterWalnutOption" in content:
+        print("    [+] pyp.smali: Walnut option already hooked.")
+
+    if chess_force_target in content:
+        content = content.replace(chess_force_target, chess_force_repl, 1)
+        modified = True
+        print("    [+] pyp.smali: Force Chess denoiser hooked to TomteInitHelper.")
+    elif "TomteInitHelper;->filterChessEnabled" in content:
+        print("    [+] pyp.smali: Force Chess denoiser already hooked.")
+
+    if edamame_target in content:
+        content = content.replace(edamame_target, edamame_repl, 1)
+        modified = True
+        print("    [+] pyp.smali: Bento Edamame hooked to TomteInitHelper.")
+    elif "TomteInitHelper;->filterEdamameEnabled" in content:
+        print("    [+] pyp.smali: Bento Edamame already hooked.")
+
+    if almond_target in content:
+        content = content.replace(almond_target, almond_repl, 1)
+        modified = True
+        print("    [+] pyp.smali: Almond texture filter hooked to TomteInitHelper.")
+    elif "TomteInitHelper;->filterAlmondEnabled" in content:
+        print("    [+] pyp.smali: Almond texture filter already hooked.")
+
+    if mochi_target in content:
+        content = content.replace(mochi_target, mochi_repl, 1)
+        modified = True
+        print("    [+] pyp.smali: Mochi filter hooked to TomteInitHelper.")
+    elif "TomteInitHelper;->filterMochiEnabled" in content:
+        print("    [+] pyp.smali: Mochi filter already hooked.")
+
+    dng_target = """    const/4 v4, 0x1
+
+    invoke-static {v2, v3, v1, v4}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_compress_merged_dng_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    dng_repl = """    const/4 v4, 0x1
+
+    invoke-static {v4}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterCompressDng(Z)Z
+
+    move-result v4
+
+    invoke-static {v2, v3, v1, v4}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_compress_merged_dng_set(JLcom/google/googlex/gcam/ShotParams;Z)V"""
+
+    if dng_target in content:
+        content = content.replace(dng_target, dng_repl, 1)
+        modified = True
+        print("    [+] pyp.smali: ShotParams compress_merged_dng hooked to TomteInitHelper.")
+    elif "TomteInitHelper;->filterCompressDng" in content:
+        print("    [+] pyp.smali: ShotParams compress_merged_dng already hooked.")
+
+    if modified:
+        with open(pyp_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("    [+] pyp.smali patched successfully.")
+
+def patch_rdb_smali():
+    print("[*] Patching rdb.smali (Unrestricted 50MP Capture - neutralizing automatic 12MP downgrade)...")
+    rdb_path = os.path.join(APKTOOL_DIR, "smali", "rdb.smali")
+    if not os.path.exists(rdb_path):
+        print("    [!] Warning: rdb.smali not found.")
+        return
+    with open(rdb_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    target_d = """.method public static D(ZLusf;Lppk;Lnhz;Lyia;)V
+    .locals 1
+
+    if-nez p0, :cond_0
+
+    invoke-interface {p1}, Lusf;->d()Ljava/lang/Object;
+
+    move-result-object p0
+
+    check-cast p0, Lppp;
+
+    sget-object v0, Lppp;->ay:Lppp;
+
+    invoke-virtual {p0, v0}, Lppp;->equals(Ljava/lang/Object;)Z
+
+    move-result p0
+
+    if-eqz p0, :cond_0
+
+    invoke-static {p1, p2}, Lrdb;->C(Lusf;Lppk;)V
+
+    check-cast p4, Lyig;
+
+    iget-object p0, p4, Lyig;->a:Ljava/lang/Object;
+
+    check-cast p0, Lnib;
+
+    invoke-virtual {p3, p0}, Lnhz;->a(Lnib;)Luww;
+
+    :cond_0
+    return-void
+.end method"""
+
+    repl_d = """.method public static D(ZLusf;Lppk;Lnhz;Lyia;)V
+    .locals 0
+
+    return-void
+.end method"""
+
+    target_c = """.method public static C(Lusf;Lppk;)V
+    .locals 1
+
+    sget-object v0, Lppp;->ax:Lppp;
+
+    invoke-interface {p0, v0}, Lusf;->a(Ljava/lang/Object;)V
+
+    const/4 p0, 0x0
+
+    sget-object v0, Lpph;->m:Lpph;
+
+    invoke-interface {p1, p0, v0}, Lppk;->q(ZLpph;)V
+
+    return-void
+.end method"""
+
+    repl_c = """.method public static C(Lusf;Lppk;)V
+    .locals 0
+
+    return-void
+.end method"""
+
+    modified = False
+    if target_d in content:
+        content = content.replace(target_d, repl_d)
+        modified = True
+        print("    [+] rdb.smali: D() neutralized (no 50MP downgrade).")
+    elif ".method public static D(ZLusf;Lppk;Lnhz;Lyia;)V\n    .locals 0\n\n    return-void\n.end method" in content:
+        print("    [+] rdb.smali: D() already neutralized.")
+
+    if target_c in content:
+        content = content.replace(target_c, repl_c)
+        modified = True
+        print("    [+] rdb.smali: C() neutralized (no forced 12MP).")
+    elif ".method public static C(Lusf;Lppk;)V\n    .locals 0\n\n    return-void\n.end method" in content:
+        print("    [+] rdb.smali: C() already neutralized.")
+
+    if modified:
+        with open(rdb_path, "w", encoding="utf-8") as f:
+            f.write(content)
+
+def patch_ons_smali():
+    print("[*] Patching ons.smali (Unrestricted 50MP in Pro Controls UI)...")
+    ons_path = os.path.join(APKTOOL_DIR, "smali", "ons.smali")
+    if not os.path.exists(ons_path):
+        print("    [!] Warning: ons.smali not found.")
+        return
+    with open(ons_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    target = """    iget-object p0, p0, Looa;->j:Lppk;
+
+    const/4 v0, 0x0
+
+    sget-object v1, Lpph;->m:Lpph;
+
+    invoke-interface {p0, v0, v1}, Lppk;->q(ZLpph;)V"""
+
+    repl = """    iget-object p0, p0, Looa;->j:Lppk;
+
+    const/4 v0, 0x1
+
+    sget-object v1, Lpph;->m:Lpph;
+
+    invoke-interface {p0, v0, v1}, Lppk;->q(ZLpph;)V"""
+
+    if target in content:
+        content = content.replace(target, repl)
+        with open(ons_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("    [+] ons.smali: e() patched to keep 50MP option enabled in UI.")
+    elif "const/4 v0, 0x1\n\n    sget-object v1, Lpph;->m:Lpph;" in content:
+        print("    [+] ons.smali: 50MP UI already kept enabled.")
+    else:
+        print("    [!] Warning: target not found in ons.smali")
+
+def patch_poy_smali():
+    print("[*] Patching poy.smali (Inject TomteProSettingsPanel in bottomsheet M(I))...")
+    poy_path = os.path.join(APKTOOL_DIR, "smali", "poy.smali")
+    if not os.path.exists(poy_path):
+        print("    [!] Warning: poy.smali not found.")
+        return
+    with open(poy_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    target = """.method public final M(I)V
+    .locals 3
+
+    iget-object v0, p0, Lpoy;->B:Lusf;"""
+    replacement = """.method public final M(I)V
+    .locals 3
+
+    invoke-static {p0}, Lcom/google/android/patch/cameralooks/TomteProSettingsPanel;->injectProSettings(Ljava/lang/Object;)V
+
+    iget-object v0, p0, Lpoy;->B:Lusf;"""
+
+    if target in content and "invoke-static {p0}, Lcom/google/android/patch/cameralooks/TomteProSettingsPanel;->injectProSettings" not in content[:content.find(target) + 200]:
+        content = content.replace(target, replacement)
+        print("    [+] poy.smali patched M(I) with TomteProSettingsPanel.injectProSettings.")
+
+    target_r = """.method public final r(I)V
+    .locals 1
+
+    iget-boolean v0, p0, Lpoy;->U:Z"""
+    replacement_r = """.method public final r(I)V
+    .locals 1
+
+    invoke-static {p0}, Lcom/google/android/patch/cameralooks/TomteProSettingsPanel;->injectProSettings(Ljava/lang/Object;)V
+
+    iget-boolean v0, p0, Lpoy;->U:Z"""
+
+    if target_r in content:
+        content = content.replace(target_r, replacement_r)
+        print("    [+] poy.smali patched r(I) with TomteProSettingsPanel.injectProSettings.")
+
+    with open(poy_path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+def patch_pji_smali():
+    print("[*] Patching pji.smali (Inject TomteProSettingsPanel at end of wire loop)...")
+    pji_path = os.path.join(APKTOOL_DIR, "smali", "pji.smali")
+    if not os.path.exists(pji_path):
+        print("    [!] Warning: pji.smali not found.")
+        return
+    with open(pji_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    target = """    :cond_6
+    if-eqz v5, :cond_7"""
+    replacement = """    :cond_6
+    invoke-static {p0}, Lcom/google/android/patch/cameralooks/TomteProSettingsPanel;->injectProSettings(Ljava/lang/Object;)V
+
+    if-eqz v5, :cond_7"""
+
+    if "TomteProSettingsPanel;->injectProSettings" not in content:
+        if target in content:
+            content = content.replace(target, replacement)
+            with open(pji_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            print("    [+] pji.smali patched with TomteProSettingsPanel.injectProSettings.")
+        else:
+            print("    [!] Warning: target not found in pji.smali")
+    else:
+        print("    [+] pji.smali already contains TomteProSettingsPanel.")
 
 
 def patch_qfr_smali():
@@ -5131,28 +5789,115 @@ def patch_brightness_shadows_controllers():
                 f.write(oau_c)
             print("    [+] oau.smali: Loau.o initialized to 0.5f neutral.")
 
-    # 5. Patch plh.smali: Set HIGH_QUALITY (2) for EDGE_MODE and NOISE_REDUCTION_MODE
+    # 5. Patch plh.smali: Dynamically route NOISE_REDUCTION_MODE to TomteInitHelper.getNoiseReductionMode()
     plh_path = os.path.join(APKTOOL_DIR, "smali", "plh.smali")
     if os.path.exists(plh_path):
         with open(plh_path, "r", encoding="utf-8") as f:
             plh_c = f.read()
-        target_plh = """    const/4 v7, 0x1
+        target_plh_stock = """    const/4 v7, 0x1
 
     invoke-static {v7}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
 
     move-result-object v8"""
-        repl_plh = """    const/4 v7, 0x2
+        target_plh_hq = """    const/4 v7, 0x2
 
     invoke-static {v7}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
 
     move-result-object v8"""
-        if target_plh in plh_c:
-            plh_c = plh_c.replace(target_plh, repl_plh)
+        repl_plh = """    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getNoiseReductionMode()I
+
+    move-result v7
+
+    invoke-static {v7}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v8"""
+        target_plh_pxp = """    new-instance v15, Lpxp;
+
+    sget-object v3, Ltpb;->a:Landroid/hardware/camera2/CaptureRequest$Key;"""
+        repl_plh_pxp = """    new-instance v15, Lpxp;
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getNoiseReductionMode()I
+
+    move-result v7
+
+    invoke-static {v7}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v8
+
+    sget-object v3, Ltpb;->a:Landroid/hardware/camera2/CaptureRequest$Key;"""
+        if "const/4 v7, 0x2\n\n    move-object/from16 v18, v3" not in plh_c:
+            plh_c = plh_c.replace(":goto_4\n    move-object/from16 v18, v3", ":goto_4\n    const/4 v7, 0x2\n\n    move-object/from16 v18, v3")
             with open(plh_path, "w", encoding="utf-8") as f:
                 f.write(plh_c)
-            print("    [+] plh.smali: EDGE_MODE and NOISE_REDUCTION_MODE set to HIGH_QUALITY (2).")
-        elif "const/4 v7, 0x2" in plh_c:
-            print("    [+] plh.smali: EDGE_MODE and NOISE_REDUCTION_MODE already set to HIGH_QUALITY (2).")
+            print("    [+] plh.smali: Restored primitive int v7=2 at goto_4.")
+
+        if "TomteInitHelper;->getEdgeMode" not in plh_c and "TomteInitHelper;->getNoiseReductionMode" in plh_c:
+            edge_target = """    move-result-object v8
+
+    sget-object v3, Ltpb;->a:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    if-eqz v3, :cond_a
+
+    sget-object v4, Landroid/hardware/camera2/CaptureRequest;->EDGE_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    new-instance v12, Lvaz;
+
+    invoke-direct {v12, v4, v8}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V"""
+            edge_repl = """    move-result-object v8
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getEdgeMode()I
+
+    move-result v7
+
+    invoke-static {v7}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+
+    move-result-object v7
+
+    sget-object v3, Ltpb;->a:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    if-eqz v3, :cond_a
+
+    sget-object v4, Landroid/hardware/camera2/CaptureRequest;->EDGE_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    new-instance v12, Lvaz;
+
+    invoke-direct {v12, v4, v7}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V"""
+            cond_a_target = """:cond_a
+    sget-object v3, Landroid/hardware/camera2/CaptureRequest;->EDGE_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    new-instance v4, Lvaz;
+
+    invoke-direct {v4, v3, v8}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V"""
+            cond_a_repl = """:cond_a
+    sget-object v3, Landroid/hardware/camera2/CaptureRequest;->EDGE_MODE:Landroid/hardware/camera2/CaptureRequest$Key;
+
+    new-instance v4, Lvaz;
+
+    invoke-direct {v4, v3, v7}, Lvaz;-><init>(Landroid/hardware/camera2/CaptureRequest$Key;Ljava/lang/Object;)V"""
+            if edge_target in plh_c:
+                plh_c = plh_c.replace(edge_target, edge_repl)
+            if cond_a_target in plh_c:
+                plh_c = plh_c.replace(cond_a_target, cond_a_repl)
+            with open(plh_path, "w", encoding="utf-8") as f:
+                f.write(plh_c)
+            print("    [+] plh.smali: EDGE_MODE hooked to TomteInitHelper.getEdgeMode().")
+        elif "TomteInitHelper;->getNoiseReductionMode" in plh_c:
+            print("    [+] plh.smali: NOISE_REDUCTION_MODE and EDGE_MODE already hooked.")
+        elif target_plh_pxp in plh_c:
+            plh_c = plh_c.replace(target_plh_pxp, repl_plh_pxp)
+            with open(plh_path, "w", encoding="utf-8") as f:
+                f.write(plh_c)
+            print("    [+] plh.smali: NOISE_REDUCTION_MODE hooked to TomteInitHelper.getNoiseReductionMode().")
+        elif target_plh_stock in plh_c:
+            plh_c = plh_c.replace(target_plh_stock, repl_plh)
+            with open(plh_path, "w", encoding="utf-8") as f:
+                f.write(plh_c)
+            print("    [+] plh.smali: NOISE_REDUCTION_MODE hooked to TomteInitHelper.getNoiseReductionMode().")
+        elif target_plh_hq in plh_c:
+            plh_c = plh_c.replace(target_plh_hq, repl_plh)
+            with open(plh_path, "w", encoding="utf-8") as f:
+                f.write(plh_c)
+            print("    [+] plh.smali: NOISE_REDUCTION_MODE updated to TomteInitHelper.getNoiseReductionMode().")
 
     # 6. Patch pin.smali: Bypass jsn fallback overwrite loop so dual-EV settings persist
     pin_path = os.path.join(APKTOOL_DIR, "smali", "pin.smali")
@@ -5744,6 +6489,8 @@ def patch_creator_suite_smali():
             "camera.ark_edge_hex",
             "camera.ark_shutter_speed_available",
             "camera.ark_ISO_available",
+            "camera.ark_lens_selector_available",
+            "camera.ark_lens_selector",
         ]
 
         q_start = content.find(".method public final q(Lkps;)Z")
@@ -6932,22 +7679,35 @@ def clean_build_artifacts():
         print(f"    [+] Removed {len(xml_dumps)} temporary UI dump XML files.")
 
 def copy_to_desktop(signed_apk):
-    print("[*] Copying APK to Desktop...")
+    print("[*] Copying APK and Morphe patch to Desktop...")
     desktop_dir = os.path.expanduser("~/Desktop")
     if os.path.isdir(desktop_dir):
         dest_apk = os.path.join(desktop_dir, os.path.basename(signed_apk))
         shutil.copy2(signed_apk, dest_apk)
-        dest_v107 = os.path.join(desktop_dir, "PixelCamera-1.0.7.apk")
-        shutil.copy2(signed_apk, dest_v107)
+        dest_v108 = os.path.join(desktop_dir, "PixelCamera-1.0.8.apk")
+        shutil.copy2(signed_apk, dest_v108)
         size_mb = os.path.getsize(dest_apk) / (1024 * 1024)
-        print(f"    [+] Successfully copied APK to Desktop: {dest_apk} and {dest_v107} ({size_mb:.2f} MB)")
+        print(f"    [+] Successfully copied APK to Desktop: {dest_apk} and {dest_v108} ({size_mb:.2f} MB)")
+
+        # Also copy the Morphe .mpp patch file to Desktop
+        mpp_src = os.path.join(ROOT_DIR, "morphe-patches-pixelcamera-1.0.8.mpp")
+        if not os.path.exists(mpp_src):
+            built_mpp = os.path.join(ROOT_DIR, "morphe-patches", "patches", "build", "libs", "patches-1.0.8.mpp")
+            if os.path.exists(built_mpp):
+                mpp_src = built_mpp
+        if os.path.exists(mpp_src):
+            shutil.copy2(mpp_src, os.path.join(desktop_dir, "morphe-patches-pixelcamera-1.0.8.mpp"))
+            shutil.copy2(mpp_src, os.path.join(desktop_dir, "patches-1.0.8.mpp"))
+            print(f"    [+] Successfully copied patch to Desktop: {os.path.join(desktop_dir, 'morphe-patches-pixelcamera-1.0.8.mpp')}")
         
         pixelcam_dir = os.path.join(desktop_dir, "PixelCam")
         if os.path.isdir(pixelcam_dir):
             shutil.copy2(signed_apk, os.path.join(pixelcam_dir, os.path.basename(signed_apk)))
-            shutil.copy2(signed_apk, os.path.join(pixelcam_dir, "PixelCamera-1.0.7.apk"))
-            print(f"    [+] Also copied to {pixelcam_dir}/PixelCamera-1.0.7.apk")
-        return dest_v107
+            shutil.copy2(signed_apk, os.path.join(pixelcam_dir, "PixelCamera-1.0.8.apk"))
+            if os.path.exists(mpp_src):
+                shutil.copy2(mpp_src, os.path.join(pixelcam_dir, "morphe-patches-pixelcamera-1.0.8.mpp"))
+            print(f"    [+] Also copied to {pixelcam_dir}/PixelCamera-1.0.8.apk")
+        return dest_v108
     else:
         print("    [!] Warning: Desktop directory not found, skipping Desktop copy.")
         return None
@@ -6966,7 +7726,7 @@ def install_and_launch(signed_apk):
         print("[!] No physical phone connected yet (only emulators detected). Skipping auto-install.")
         return
     print(f"[*] Installing {signed_apk} on connected device {target_device}...")
-    res = subprocess.run(["adb", "-s", target_device, "install", "-r", "-d", signed_apk], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    res = subprocess.run(["adb", "-s", target_device, "install", "-r", "-d", "-g", signed_apk], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     print(f"    {res.stdout.strip()}")
     if "Success" in res.stdout:
         print(f"[*] Launching PixelCamera on {target_device} (com.google.android.GoogleCameraEng)...")
@@ -6975,8 +7735,8 @@ def install_and_launch(signed_apk):
         print("    [+] App launched successfully!")
 
 def patch_looks_fine_tuning_and_grain():
-    print("[*] Patching Looks Fine-Tuning controls and Film Grain settings...")
-    # 1. Patch qut.smali to expose all 10 Tomte fine-tuning sliders unconditionally
+    print("[*] Patching Looks Fine-Tuning controls (gated on device support)...")
+    # 1. Patch qut.smali to expose fine-tuning sliders on viewfinder unconditionally
     qut_path = os.path.join(APKTOOL_DIR, "smali", "qut.smali")
     if os.path.exists(qut_path):
         with open(qut_path, "r", encoding="utf-8") as f:
@@ -7000,11 +7760,38 @@ def patch_looks_fine_tuning_and_grain():
     goto/16 :goto_0"""
         if target in content:
             content = content.replace(target, "    goto :cond_0")
-            with open(qut_path, "w", encoding="utf-8") as f:
-                f.write(content)
-            print("    [+] qut.smali: bypassed flag check, all 10 Tomte fine-tuning sliders enabled.")
-        elif "goto :cond_0" in content:
-            print("    [+] qut.smali: already patched to goto :cond_0.")
+        gate_target = """    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isFineTuningSupported()Z
+
+    move-result v0
+
+    if-nez v0, :cond_0
+
+    goto/16 :goto_0"""
+        if gate_target in content:
+            content = content.replace(gate_target, "    goto :cond_0")
+
+        # Hide Grain (v22) from bottom sheet by setting Lnzw.b(false), preserving v23 (TOMTE_SELECTION)
+        grain_target = """    new-instance v0, Lnzw;
+
+    invoke-direct {v0}, Ljava/lang/Object;-><init>()V
+
+    invoke-virtual {v0, v1}, Lnzw;->b(Z)V
+
+    sget-object v3, Lnzy;->z:Lnzy;"""
+        grain_hidden = """    new-instance v0, Lnzw;
+
+    invoke-direct {v0}, Ljava/lang/Object;-><init>()V
+
+    const/4 v3, 0x0
+
+    invoke-virtual {v0, v3}, Lnzw;->b(Z)V
+
+    sget-object v3, Lnzy;->z:Lnzy;"""
+        if grain_target in content:
+            content = content.replace(grain_target, grain_hidden)
+            print("    [+] qut.smali: Grain hidden from bottom sheet (b=false).")
+        with open(qut_path, "w", encoding="utf-8") as f:
+            f.write(content)
 
     # 2. Inject Film Grain strings into strings.xml
     strings_path = os.path.join(APKTOOL_DIR, "res", "values", "strings.xml")
@@ -7020,37 +7807,18 @@ def patch_looks_fine_tuning_and_grain():
         else:
             print("    [+] strings.xml: Film Grain strings already present.")
 
-    # 3. Inject Film Grain toggle into camera_gm3_preferences.xml
-    gm3_path = os.path.join(APKTOOL_DIR, "res", "xml", "camera_gm3_preferences.xml")
-    if os.path.exists(gm3_path):
-        with open(gm3_path, "r", encoding="utf-8") as f:
-            content = f.read()
-        if "pref_camera_looks_film_grain_key" not in content:
-            target_gm3 = '<com.google.android.apps.camera.ui.preference.ManagedSwitchPreferenceCompat android:icon="@drawable/gs_colors_vd_theme_24" android:title="@string/pref_sauce_stickiness_title" android:key="pref_sauce_stickiness_key" android:summary="@string/pref_sauce_stickiness_summary" android:order="0" android:defaultValue="false" />'
-            replacement_gm3 = target_gm3 + '\n        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreferenceCompat android:icon="@drawable/gs_grain_vd_theme_24" android:title="@string/pref_camera_looks_film_grain_title" android:key="pref_camera_looks_film_grain_key" android:summary="@string/pref_camera_looks_film_grain_summary" android:order="1" android:defaultValue="true" />'
-            if target_gm3 in content:
-                content = content.replace(target_gm3, replacement_gm3)
-                with open(gm3_path, "w", encoding="utf-8") as f:
-                    f.write(content)
-                print("    [+] camera_gm3_preferences.xml: Film Grain toggle preference injected.")
-        else:
-            print("    [+] camera_gm3_preferences.xml: Film Grain preference already present.")
-
-    # 4. Inject Film Grain toggle into camera_preferences.xml
-    cam_pref_path = os.path.join(APKTOOL_DIR, "res", "xml", "camera_preferences.xml")
-    if os.path.exists(cam_pref_path):
-        with open(cam_pref_path, "r", encoding="utf-8") as f:
-            content = f.read()
-        if "pref_camera_looks_film_grain_key" not in content:
-            target_cam = '<com.google.android.apps.camera.ui.preference.ManagedSwitchPreference android:icon="@drawable/gs_water_lux_vd_theme_24" android:layout="@layout/preference_with_margin" android:title="" android:key="pref_camera_acineta_enabled_key" android:summary="" android:defaultValue="false" />'
-            replacement_cam = target_cam + '\n            <com.google.android.apps.camera.ui.preference.ManagedSwitchPreference android:icon="@drawable/gs_grain_vd_theme_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_looks_film_grain_title" android:key="pref_camera_looks_film_grain_key" android:summary="@string/pref_camera_looks_film_grain_summary" android:defaultValue="true" />'
-            if target_cam in content:
-                content = content.replace(target_cam, replacement_cam)
-                with open(cam_pref_path, "w", encoding="utf-8") as f:
-                    f.write(content)
-                print("    [+] camera_preferences.xml: Film Grain toggle preference injected.")
-        else:
-            print("    [+] camera_preferences.xml: Film Grain preference already present.")
+    # 3. Ensure Film Grain toggle is stripped from camera_gm3_preferences.xml and camera_preferences.xml
+    # (since the neural film grain model relies on DarwiNN TPU /dev/gxp unavailable on non-platform apps)
+    for xml_path in [os.path.join(APKTOOL_DIR, "res", "xml", "camera_gm3_preferences.xml"),
+                     os.path.join(APKTOOL_DIR, "res", "xml", "camera_preferences.xml")]:
+        if os.path.exists(xml_path):
+            with open(xml_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            if "pref_camera_looks_film_grain_key" in content:
+                lines = [line for line in content.splitlines() if "pref_camera_looks_film_grain_key" not in line]
+                with open(xml_path, "w", encoding="utf-8") as f:
+                    f.write("\n".join(lines))
+                print(f"    [+] {os.path.basename(xml_path)}: Film Grain toggle removed.")
 
 def patch_display_max_brightness():
     print("[*] Patching 100% Display Backlight / Max Screen Brightness toggle...")
@@ -7250,86 +8018,95 @@ def patch_image_quality_preferences():
         else:
             print("    [+] strings.xml: JPEG Quality strings already present.")
 
+        if "pref_camera_raw_compression_title" not in content:
+            extra_strings = """    <string name="pref_camera_raw_compression_title">RAW DNG Format</string>
+    <string name="pref_camera_raw_compression_entry_uncompressed">Uncompressed 16-Bit RAW (Lossless Linear)</string>
+    <string name="pref_camera_raw_compression_entry_uncompressed_desc">Saves pure uncompressed 16-bit linear Bayer samples for maximum dynamic range in Lightroom</string>
+    <string name="pref_camera_raw_compression_entry_compressed">Compressed RAW (Standard)</string>
+    <string name="pref_camera_raw_compression_entry_compressed_desc">Standard compressed DNG with reduced file size</string>
+    <string name="pref_camera_sharpness_title">Edge Sharpness &amp; De-Ring</string>
+    <string name="pref_camera_sharpness_entry_soft">Soft / Filmic (0.0x)</string>
+    <string name="pref_camera_sharpness_entry_soft_desc">Zero digital unsharp masking; eliminates harsh edge halos and ringing</string>
+    <string name="pref_camera_sharpness_entry_natural">Natural (0.5x)</string>
+    <string name="pref_camera_sharpness_entry_natural_desc">Subtle edge contrast with film-like organic rolloff</string>
+    <string name="pref_camera_sharpness_entry_standard">Standard (1.0x)</string>
+    <string name="pref_camera_sharpness_entry_standard_desc">Default Google Camera edge sharpening</string>"""
+            content = content.replace("<resources>", f"<resources>\n{extra_strings}")
+            with open(strings_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            print("    [+] strings.xml: RAW compression and Sharpness strings added.")
+        else:
+            print("    [+] strings.xml: RAW compression strings already present.")
+
     # 2. Inject arrays into arrays.xml
     arrays_path = os.path.join(APKTOOL_DIR, "res", "values", "arrays.xml")
     if os.path.exists(arrays_path):
         with open(arrays_path, "r", encoding="utf-8") as f:
             content = f.read()
-        if "pref_camera_jpeg_quality_entries" not in content:
-            arrays_to_inject = """    <string-array name="pref_camera_jpeg_quality_entries">
-        <item>@string/pref_camera_jpeg_quality_entry_100</item>
-        <item>@string/pref_camera_jpeg_quality_entry_98</item>
-        <item>@string/pref_camera_jpeg_quality_entry_95</item>
+        if "pref_camera_raw_compression_entries" not in content:
+            extra_arrays = """    <string-array name="pref_camera_raw_compression_entries">
+        <item>@string/pref_camera_raw_compression_entry_uncompressed</item>
+        <item>@string/pref_camera_raw_compression_entry_compressed</item>
     </string-array>
-    <string-array name="pref_camera_jpeg_quality_entrydescriptions">
-        <item>@string/pref_camera_jpeg_quality_entry_100_desc</item>
-        <item>@string/pref_camera_jpeg_quality_entry_98_desc</item>
-        <item>@string/pref_camera_jpeg_quality_entry_95_desc</item>
+    <string-array name="pref_camera_raw_compression_entrydescriptions">
+        <item>@string/pref_camera_raw_compression_entry_uncompressed_desc</item>
+        <item>@string/pref_camera_raw_compression_entry_compressed_desc</item>
     </string-array>
-    <string-array name="pref_camera_jpeg_quality_entryvalues">
-        <item>100</item>
-        <item>98</item>
-        <item>95</item>
+    <string-array name="pref_camera_raw_compression_entryvalues">
+        <item>uncompressed</item>
+        <item>compressed</item>
     </string-array>
-    <string-array name="pref_camera_noise_reduction_entries">
-        <item>@string/pref_camera_noise_reduction_entry_stock</item>
-        <item>@string/pref_camera_noise_reduction_entry_minimal</item>
-        <item>@string/pref_camera_noise_reduction_entry_off</item>
+    <string-array name="pref_camera_sharpness_entries">
+        <item>@string/pref_camera_sharpness_entry_soft</item>
+        <item>@string/pref_camera_sharpness_entry_natural</item>
+        <item>@string/pref_camera_sharpness_entry_standard</item>
     </string-array>
-    <string-array name="pref_camera_noise_reduction_entrydescriptions">
-        <item>@string/pref_camera_noise_reduction_entry_stock_desc</item>
-        <item>@string/pref_camera_noise_reduction_entry_minimal_desc</item>
-        <item>@string/pref_camera_noise_reduction_entry_off_desc</item>
+    <string-array name="pref_camera_sharpness_entrydescriptions">
+        <item>@string/pref_camera_sharpness_entry_soft_desc</item>
+        <item>@string/pref_camera_sharpness_entry_natural_desc</item>
+        <item>@string/pref_camera_sharpness_entry_standard_desc</item>
     </string-array>
-    <string-array name="pref_camera_noise_reduction_entryvalues">
-        <item>stock</item>
-        <item>minimal</item>
-        <item>off</item>
+    <string-array name="pref_camera_sharpness_entryvalues">
+        <item>soft</item>
+        <item>natural</item>
+        <item>standard</item>
     </string-array>"""
-            content = content.replace("<resources>", f"<resources>\n{arrays_to_inject}")
+            content = content.replace("<resources>", f"<resources>\n{extra_arrays}")
             with open(arrays_path, "w", encoding="utf-8") as f:
                 f.write(content)
-            print("    [+] arrays.xml: JPEG Quality and Noise Reduction arrays added.")
+            print("    [+] arrays.xml: RAW compression and Sharpness arrays added.")
         else:
-            print("    [+] arrays.xml: JPEG Quality arrays already present.")
+            print("    [+] arrays.xml: RAW compression arrays already present.")
 
     # 3. Inject into camera_gm3_preferences.xml
     gm3_path = os.path.join(APKTOOL_DIR, "res", "xml", "camera_gm3_preferences.xml")
     if os.path.exists(gm3_path):
         with open(gm3_path, "r", encoding="utf-8") as f:
             content = f.read()
-        if "pref_camera_jpeg_quality_key" not in content:
-            gm3_prefs = """        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_high_res_vd_theme_24" android:entries="@array/pref_camera_jpeg_quality_entries" android:title="@string/pref_camera_jpeg_quality_title" android:key="pref_camera_jpeg_quality_key" android:summary="%s" android:order="10" android:defaultValue="100" android:entryValues="@array/pref_camera_jpeg_quality_entryvalues" />
-        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_camera_noise_reduction_entries" android:title="@string/pref_camera_noise_reduction_title" android:key="pref_camera_noise_reduction_key" android:summary="%s" android:order="11" android:defaultValue="stock" android:entryValues="@array/pref_camera_noise_reduction_entryvalues" />"""
-            cat_match = re.search(r'(android:key="pref_category_resolution_camera"[^>]*>[\s\S]*?)(</androidx\.preference\.PreferenceCategory>)', content)
-            if cat_match:
-                content = content[:cat_match.start()] + cat_match.group(1) + '\n' + gm3_prefs + '\n  ' + cat_match.group(2) + content[cat_match.end():]
-            else:
-                content = content.replace("</androidx.preference.PreferenceScreen>", f"    {gm3_prefs}\n</androidx.preference.PreferenceScreen>")
+        if "pref_camera_raw_compression_key" not in content:
+            extra_gm3 = """        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="12" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="13" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />"""
+            content = content.replace('android:key="pref_camera_noise_reduction_key"', f'{extra_gm3}\n        android:key="pref_camera_noise_reduction_key"')
             with open(gm3_path, "w", encoding="utf-8") as f:
                 f.write(content)
-            print("    [+] camera_gm3_preferences.xml: JPEG Quality & Noise Reduction menus injected.")
+            print("    [+] camera_gm3_preferences.xml: RAW compression and Sharpness menus injected.")
         else:
-            print("    [+] camera_gm3_preferences.xml: JPEG Quality preference already present.")
+            print("    [+] camera_gm3_preferences.xml: RAW compression preference already present.")
 
     # 4. Inject into camera_preferences.xml
     cam_pref_path = os.path.join(APKTOOL_DIR, "res", "xml", "camera_preferences.xml")
     if os.path.exists(cam_pref_path):
         with open(cam_pref_path, "r", encoding="utf-8") as f:
             content = f.read()
-        if "pref_camera_jpeg_quality_key" not in content:
-            cam_prefs = """            <ListPreference android:icon="@drawable/gs_high_res_vd_theme_24" android:entries="@array/pref_camera_jpeg_quality_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_jpeg_quality_title" android:key="pref_camera_jpeg_quality_key" android:summary="%s" android:order="10" android:defaultValue="100" android:entryValues="@array/pref_camera_jpeg_quality_entryvalues" />
-            <ListPreference android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_camera_noise_reduction_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_noise_reduction_title" android:key="pref_camera_noise_reduction_key" android:summary="%s" android:order="11" android:defaultValue="stock" android:entryValues="@array/pref_camera_noise_reduction_entryvalues" />"""
-            cat_match = re.search(r'(android:key="pref_category_resolution_camera"[^>]*>[\s\S]*?)(</PreferenceCategory>)', content)
-            if cat_match:
-                content = content[:cat_match.start()] + cat_match.group(1) + '\n' + cam_prefs + '\n  ' + cat_match.group(2) + content[cat_match.end():]
-            else:
-                content = content.replace("</PreferenceScreen>", f"    {cam_prefs}\n</PreferenceScreen>")
+        if "pref_camera_raw_compression_key" not in content:
+            extra_cam = """            <ListPreference android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="12" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
+            <ListPreference android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="13" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />"""
+            content = content.replace('android:key="pref_camera_noise_reduction_key"', f'{extra_cam}\n            android:key="pref_camera_noise_reduction_key"')
             with open(cam_pref_path, "w", encoding="utf-8") as f:
                 f.write(content)
-            print("    [+] camera_preferences.xml: JPEG Quality & Noise Reduction menus injected.")
+            print("    [+] camera_preferences.xml: RAW compression and Sharpness menus injected.")
         else:
-            print("    [+] camera_preferences.xml: JPEG Quality preference already present.")
+            print("    [+] camera_preferences.xml: RAW compression preference already present.")
 
     # 5. Patch pbe.smali (Camera2 CaptureRequest providers)
     pbe_path = os.path.join(APKTOOL_DIR, "smali", "pbe.smali")
@@ -7403,6 +8180,51 @@ def patch_image_quality_preferences():
             print("    [+] JpgEncodeOptions.smali: b(I)V hooked to override quality with TomteInitHelper.getJpegQuality().")
 
         with open(jpg_options_path, "w", encoding="utf-8") as f:
+            f.write(content)
+
+    # 7. Patch aaei.smali (Gcam HDR+ NoiseModel tuning)
+    aaei_path = os.path.join(APKTOOL_DIR, "smali", "aaei.smali")
+    if os.path.exists(aaei_path):
+        with open(aaei_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        aaei_target_1 = """    invoke-virtual {v4}, Ljava/lang/Double;->floatValue()F
+
+    move-result v4
+
+    invoke-virtual {v11, v4}, Lcom/google/googlex/gcam/FloatVector;->c(F)V"""
+        aaei_repl_1 = """    invoke-virtual {v4}, Ljava/lang/Double;->floatValue()F
+
+    move-result v4
+
+    invoke-static {v4}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterNoiseScale(F)F
+
+    move-result v4
+
+    invoke-virtual {v11, v4}, Lcom/google/googlex/gcam/FloatVector;->c(F)V"""
+
+        aaei_target_2 = """    invoke-virtual {v4}, Ljava/lang/Double;->floatValue()F
+
+    move-result v4
+
+    invoke-virtual {v14, v4}, Lcom/google/googlex/gcam/FloatVector;->c(F)V"""
+        aaei_repl_2 = """    invoke-virtual {v4}, Ljava/lang/Double;->floatValue()F
+
+    move-result v4
+
+    invoke-static {v4}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->filterNoiseScale(F)F
+
+    move-result v4
+
+    invoke-virtual {v14, v4}, Lcom/google/googlex/gcam/FloatVector;->c(F)V"""
+
+        if aaei_target_1 in content:
+            content = content.replace(aaei_target_1, aaei_repl_1)
+        if aaei_target_2 in content:
+            content = content.replace(aaei_target_2, aaei_repl_2)
+            print("    [+] aaei.smali: FloatVector.c(F)V hooked with TomteInitHelper.filterNoiseScale().")
+
+        with open(aaei_path, "w", encoding="utf-8") as f:
             f.write(content)
 
 def patch_fzf_smali():
@@ -7528,6 +8350,11 @@ def main():
     patch_jex_smali()
     patch_rfx_smali()
     patch_mtt_smali()
+    patch_pyp_smali()
+    patch_rdb_smali()
+    patch_ons_smali()
+    patch_poy_smali()
+    patch_pji_smali()
     patch_sauce_onboarding()
     patch_sof_smali()
     patch_creator_suite_smali()

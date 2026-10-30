@@ -22,7 +22,7 @@ hide:
 </div>
 
 <!-- HOME_APPS_START -->
-<!-- Generated from patches-list.json; run scripts/generate_docs_catalog.py. -->
+<!-- Generated from release metadata; run scripts/generate_docs_catalog.py. -->
 <div class="dap-catalogue" markdown>
 ## Supported apps
 
@@ -35,12 +35,34 @@ hide:
 <button type="button" data-category="news" aria-pressed="false">News and reading</button>
 <button type="button" data-category="mobility" aria-pressed="false">Traffic</button>
 <button type="button" data-category="entertainment" aria-pressed="false">Entertainment</button>
+<button type="button" data-category="other" aria-pressed="false">Other</button>
 </div>
 </div>
-<p class="dap-catalogue__status"><span data-app-count aria-live="polite" aria-atomic="true">17 apps</span> · Patch bundle <span class="dap-data">1.12.0</span></p>
+<p class="dap-catalogue__status"><span data-app-count aria-live="polite" aria-atomic="true">22 apps</span> · Patch bundle: <span class="dap-catalogue__channel">Stable <span class="dap-data">1.19.0</span></span></p>
 <div class="dap-app-grid" markdown>
-<article class="dap-app-card" data-category="news" data-search="ad be.persgroep.android.news.mobilead 9.22.0 disable tracking hide premium banner hide ads read full articles skip consent screens" markdown>
-<p class="dap-app-card__category">News and reading</p>
+<article class="dap-app-card" data-category="mobility" data-channel="stable" data-search="9292 nl.negentwee 2.48.1  disable tracking fix pairip startup hide ads skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">Traffic</p></div>
+
+### [9292](apps/9292.md)
+
+<p class="dap-app-card__version">App versions: <span class="dap-data">2.48.1</span></p>
+<p class="dap-app-card__package">nl.negentwee</p>
+<details class="dap-app-card__patches">
+<summary>4 patches</summary>
+<ul>
+<li>Disable tracking <span class="dap-app-card__target">2.48.1</span></li>
+<li>Fix PairIP startup <span class="dap-app-card__target">2.48.1</span></li>
+<li>Hide ads <span class="dap-app-card__target">2.48.1</span></li>
+<li>Skip consent screens <span class="dap-app-card__target">2.48.1</span></li>
+</ul>
+</details>
+
+[Guide and downloads](apps/9292.md){ .dap-app-card__link }
+
+</article>
+
+<article class="dap-app-card" data-category="news" data-channel="stable" data-search="ad be.persgroep.android.news.mobilead 9.22.0  disable tracking hide premium banner hide ads read full articles skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">News and reading</p></div>
 
 ### [AD](apps/ad.md)
 
@@ -61,8 +83,8 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="weather" data-search="buienalarm org.yoki.android.buienalarm 4.32.0 disable tracking fix google services hide premium banner hide ads skip consent screens" markdown>
-<p class="dap-app-card__category">Weather</p>
+<article class="dap-app-card" data-category="weather" data-channel="stable" data-search="buienalarm org.yoki.android.buienalarm 4.32.0  disable tracking fix google services hide premium banner hide ads skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">Weather</p></div>
 
 ### [Buienalarm](apps/buienalarm.md)
 
@@ -83,8 +105,8 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="weather" data-search="buienradar com.supportware.buienradar 7.4.8 disable swrve and location upload disable tracking hide premium banner hide ads skip consent screens" markdown>
-<p class="dap-app-card__category">Weather</p>
+<article class="dap-app-card" data-category="weather" data-channel="stable" data-search="buienradar com.supportware.buienradar 7.4.8  disable swrve and location upload disable tracking hide premium banner hide ads skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">Weather</p></div>
 
 ### [Buienradar](apps/buienradar.md)
 
@@ -105,8 +127,8 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="entertainment" data-search="dumpert nl.dumpert 5.8.0 disable tracking hide ads skip consent screens" markdown>
-<p class="dap-app-card__category">Entertainment</p>
+<article class="dap-app-card" data-category="entertainment" data-channel="stable" data-search="dumpert nl.dumpert 5.8.0  disable tracking hide ads skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">Entertainment</p></div>
 
 ### [Dumpert](apps/dumpert.md)
 
@@ -125,8 +147,8 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="mobility" data-search="flitsmeister nl.flitsmeister 14.17 disable partner services disable tracking fix pairip startup hide pro notices hide ads unlock pro" markdown>
-<p class="dap-app-card__category">Traffic</p>
+<article class="dap-app-card" data-category="mobility" data-channel="stable" data-search="flitsmeister nl.flitsmeister 14.17  disable partner services disable tracking fix pairip startup hide pro notices hide ads unlock pro" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">Traffic</p></div>
 
 ### [Flitsmeister](apps/flitsmeister.md)
 
@@ -148,8 +170,8 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="news" data-search="ftm nl.ftm.ftmpulse 2.6.8 disable tracking hide premium banner hide ads read full articles skip consent screens" markdown>
-<p class="dap-app-card__category">News and reading</p>
+<article class="dap-app-card" data-category="news" data-channel="stable" data-search="ftm nl.ftm.ftmpulse 2.6.8  disable tracking hide premium banner hide ads read full articles skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">News and reading</p></div>
 
 ### [FTM](apps/ftm.md)
 
@@ -170,8 +192,50 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="news" data-search="nos teletekst com.eoffice.android 2.8.10 disable tracking hide promotions" markdown>
-<p class="dap-app-card__category">News and reading</p>
+<article class="dap-app-card" data-category="entertainment" data-channel="stable" data-search="kijk android tv com.talpa.kijk 7.2.7  disable tracking enable webview debugging hide ads" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">Entertainment</p></div>
+
+### [KIJK Android TV](apps/kijk-android-tv.md)
+
+<p class="dap-app-card__version">App versions: <span class="dap-data">7.2.7</span></p>
+<p class="dap-app-card__package">com.talpa.kijk</p>
+<details class="dap-app-card__patches">
+<summary>3 patches</summary>
+<ul>
+<li>Disable tracking <span class="dap-app-card__target">7.2.7</span></li>
+<li>Enable WebView debugging <span class="dap-app-card__target">7.2.7 · default off</span></li>
+<li>Hide ads <span class="dap-app-card__target">7.2.7</span></li>
+</ul>
+</details>
+
+[Guide and downloads](apps/kijk-android-tv.md){ .dap-app-card__link }
+
+</article>
+
+<article class="dap-app-card" data-category="other" data-channel="stable" data-search="marktplaats nl.marktplaats.android 16.17.0  disable threatmetrix disable tracking google sign-in via microg-re hide ads skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">Other</p></div>
+
+### [Marktplaats](apps/marktplaats.md)
+
+<p class="dap-app-card__version">App versions: <span class="dap-data">16.17.0</span></p>
+<p class="dap-app-card__package">nl.marktplaats.android</p>
+<details class="dap-app-card__patches">
+<summary>5 patches</summary>
+<ul>
+<li>Disable ThreatMetrix <span class="dap-app-card__target">16.17.0</span></li>
+<li>Disable tracking <span class="dap-app-card__target">16.17.0</span></li>
+<li>Google sign-in via microG-Re <span class="dap-app-card__target">16.17.0</span></li>
+<li>Hide ads <span class="dap-app-card__target">16.17.0</span></li>
+<li>Skip consent screens <span class="dap-app-card__target">16.17.0</span></li>
+</ul>
+</details>
+
+[Guide and downloads](apps/marktplaats.md){ .dap-app-card__link }
+
+</article>
+
+<article class="dap-app-card" data-category="news" data-channel="stable" data-search="nos teletekst com.eoffice.android 2.8.10  disable tracking hide promotions" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">News and reading</p></div>
 
 ### [NOS Teletekst](apps/nos-teletekst.md)
 
@@ -189,8 +253,28 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="news" data-search="nrc com.twipemobile.nrc 5.12.24 disable tracking hide premium banner hide ads hide newspaper tab read full articles skip consent screens" markdown>
-<p class="dap-app-card__category">News and reading</p>
+<article class="dap-app-card" data-category="entertainment" data-channel="stable" data-search="npo start android tv nl.uitzendinggemist 1.48.2-2405  disable tracking fix pairip startup hide ads" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">Entertainment</p></div>
+
+### [NPO Start Android TV](apps/npo-start-android-tv.md)
+
+<p class="dap-app-card__version">App versions: <span class="dap-data">1.48.2-2405</span></p>
+<p class="dap-app-card__package">nl.uitzendinggemist</p>
+<details class="dap-app-card__patches">
+<summary>3 patches</summary>
+<ul>
+<li>Disable tracking <span class="dap-app-card__target">1.48.2-2405</span></li>
+<li>Fix PairIP startup <span class="dap-app-card__target">1.48.2-2405</span></li>
+<li>Hide ads <span class="dap-app-card__target">1.48.2-2405</span></li>
+</ul>
+</details>
+
+[Guide and downloads](apps/npo-start-android-tv.md){ .dap-app-card__link }
+
+</article>
+
+<article class="dap-app-card" data-category="news" data-channel="stable" data-search="nrc com.twipemobile.nrc 5.12.24  disable tracking hide premium banner hide ads hide newspaper tab read full articles skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">News and reading</p></div>
 
 ### [NRC](apps/nrc.md)
 
@@ -212,8 +296,8 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="news" data-search="nu.nl nl.sanomamedia.android.nu 26.9.0 disable tracking hide premium banner hide ads skip consent screens" markdown>
-<p class="dap-app-card__category">News and reading</p>
+<article class="dap-app-card" data-category="news" data-channel="stable" data-search="nu.nl nl.sanomamedia.android.nu 26.9.0  disable tracking hide premium banner hide ads skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">News and reading</p></div>
 
 ### [NU.nl](apps/nunl.md)
 
@@ -233,8 +317,8 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="news" data-search="omroep brabant nl.omroepbrabant.android 11.1.0 disable tracking hide ads skip consent screens" markdown>
-<p class="dap-app-card__category">News and reading</p>
+<article class="dap-app-card" data-category="news" data-channel="stable" data-search="omroep brabant nl.omroepbrabant.android 11.1.0  disable tracking hide ads skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">News and reading</p></div>
 
 ### [Omroep Brabant](apps/omroep-brabant.md)
 
@@ -253,8 +337,8 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="news" data-search="parool be.persgroep.android.news.mobilepa 7.53.1 disable tracking hide premium banner hide ads read full articles skip consent screens" markdown>
-<p class="dap-app-card__category">News and reading</p>
+<article class="dap-app-card" data-category="news" data-channel="stable" data-search="parool be.persgroep.android.news.mobilepa 7.53.1  disable tracking hide premium banner hide ads read full articles skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">News and reading</p></div>
 
 ### [Parool](apps/parool.md)
 
@@ -275,8 +359,8 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="news" data-search="rtl nieuws nl.rtl.rtlnieuws 12.7.1 disable swrve (expert) disable tracking hide ads skip consent screens" markdown>
-<p class="dap-app-card__category">News and reading</p>
+<article class="dap-app-card" data-category="news" data-channel="stable" data-search="rtl nieuws nl.rtl.rtlnieuws 12.7.1  disable swrve (expert) disable tracking hide ads skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">News and reading</p></div>
 
 ### [RTL Nieuws](apps/rtl-nieuws.md)
 
@@ -296,8 +380,8 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="news" data-search="trouw be.persgroep.android.news.mobiletr 7.53.1 disable tracking hide premium banner hide ads read full articles skip consent screens" markdown>
-<p class="dap-app-card__category">News and reading</p>
+<article class="dap-app-card" data-category="news" data-channel="stable" data-search="trouw be.persgroep.android.news.mobiletr 7.53.1  disable tracking hide premium banner hide ads read full articles skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">News and reading</p></div>
 
 ### [Trouw](apps/trouw.md)
 
@@ -318,8 +402,28 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="news" data-search="voetbal international nl.vi 5.13.52 disable tracking hide ads read full articles skip consent screens" markdown>
-<p class="dap-app-card__category">News and reading</p>
+<article class="dap-app-card" data-category="entertainment" data-channel="stable" data-search="tvgids.nl nl.tvgids 7.0.16  disable tracking hide ads skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">Entertainment</p></div>
+
+### [TVgids.nl](apps/tvgids-nl.md)
+
+<p class="dap-app-card__version">App versions: <span class="dap-data">7.0.16</span></p>
+<p class="dap-app-card__package">nl.tvgids</p>
+<details class="dap-app-card__patches">
+<summary>3 patches</summary>
+<ul>
+<li>Disable tracking <span class="dap-app-card__target">7.0.16</span></li>
+<li>Hide ads <span class="dap-app-card__target">7.0.16</span></li>
+<li>Skip consent screens <span class="dap-app-card__target">7.0.16</span></li>
+</ul>
+</details>
+
+[Guide and downloads](apps/tvgids-nl.md){ .dap-app-card__link }
+
+</article>
+
+<article class="dap-app-card" data-category="news" data-channel="stable" data-search="voetbal international nl.vi 5.13.52  disable tracking hide ads read full articles skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">News and reading</p></div>
 
 ### [Voetbal International](apps/voetbal-international.md)
 
@@ -339,8 +443,8 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="news" data-search="volkskrant be.persgroep.android.news.mobilevk 7.53.1 disable tracking hide premium banner hide ads read full articles skip consent screens" markdown>
-<p class="dap-app-card__category">News and reading</p>
+<article class="dap-app-card" data-category="news" data-channel="stable" data-search="volkskrant be.persgroep.android.news.mobilevk 7.53.1  disable tracking hide premium banner hide ads read full articles skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">News and reading</p></div>
 
 ### [Volkskrant](apps/volkskrant.md)
 
@@ -361,8 +465,8 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="weather" data-search="weeronline com.xs2theworld.weeronline 3.61.0 disable tracking hide premium banner hide ads skip consent screens unlock plus" markdown>
-<p class="dap-app-card__category">Weather</p>
+<article class="dap-app-card" data-category="weather" data-channel="stable" data-search="weeronline com.xs2theworld.weeronline 3.61.0  disable tracking hide premium banner hide ads skip consent screens unlock plus" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">Weather</p></div>
 
 ### [Weeronline](apps/weeronline.md)
 
@@ -383,8 +487,8 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="weather" data-search="weerplaza nl.weerplaza.app 3.13.1 disable tracking fix google maps hide premium banner hide ads skip consent screens" markdown>
-<p class="dap-app-card__category">Weather</p>
+<article class="dap-app-card" data-category="weather" data-channel="stable" data-search="weerplaza nl.weerplaza.app 3.13.1  disable tracking fix google maps hide premium banner hide ads skip consent screens" markdown>
+<div class="dap-app-card__meta"><p class="dap-app-card__category">Weather</p></div>
 
 ### [Weerplaza](apps/weerplaza.md)
 
@@ -408,7 +512,7 @@ hide:
 </div>
 <p class="dap-catalogue__empty" hidden>No matching apps. Change your search or category filter.</p>
 
-Versions may differ by patch. [View all patch details](reference/catalogue.md).
+Versions may differ by patch. [Stable patch catalogue](reference/catalogue.md).
 
 </div>
 <!-- HOME_APPS_END -->

@@ -1,0 +1,15 @@
+__pycache__/
+*.class
+*.dex
+*.mpp
+*.apk
+*.apks
+*.aab
+*.keystore
+*.jks
+*.key
+*.idsig
+*.log
+.build-local.json
+build*/
+out/

@@ -90,6 +90,7 @@ import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.facebook.misc.ShareSheetItems;
 import app.morphe.extension.facebook.misc.TextSize;
 import app.morphe.extension.facebook.theme.AccentColor;
+import app.morphe.extension.facebook.theme.MarkColors.Mark;
 import app.morphe.extension.facebook.navigation.FeedsSubtab;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.L10n;
@@ -103,6 +104,7 @@ import app.morphe.extension.shared.settings.FailingStore;
 import app.morphe.extension.shared.settings.HushfacebookPause;
 import app.morphe.extension.shared.settings.PauseForTests;
 import app.morphe.extension.shared.settings.Setting;
+import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
 import app.morphe.extension.shared.settings.preference.ReopenSettingsAfterRestart;
@@ -222,6 +224,7 @@ public class SettingsBackupTest {
         Settings.AMOLED_LIGHT_BACKGROUND.resetToDefault();
         Settings.BADGE_COLOR.resetToDefault();
         Settings.LOGO_COLOR.resetToDefault();
+        Settings.TAB_COLOR.resetToDefault();
         Settings.HEADER_TEXT.resetToDefault();
         Settings.SEEN_MENU_TILES.resetToDefault();
         Settings.SEEN_SHARE_ITEMS.resetToDefault();
@@ -272,7 +275,7 @@ public class SettingsBackupTest {
                 Settings.FILENAME_TEMPLATE, Settings.PHOTO_FILENAME_TEMPLATE, Settings.DOWNLOAD_ACTION, Settings.SEND_TO_APP,
                 Settings.START_TAB, Settings.FEEDS_SUBTAB, Settings.COMMENT_ORDER, Settings.PLAYBACK_QUALITY,
                 Settings.REELS_PLAYBACK_QUALITY, Settings.STORIES_PLAYBACK_QUALITY, Settings.QUIET_HOURS_FROM,
-                Settings.QUIET_HOURS_UNTIL, Settings.APP_LOCK_AFTER, Settings.TEXT_SIZE, Settings.ACCENT_COLOR, Settings.BADGE_COLOR, Settings.LOGO_COLOR), SettingsBackup.VALUES);
+                Settings.QUIET_HOURS_UNTIL, Settings.APP_LOCK_AFTER, Settings.TEXT_SIZE, Settings.ACCENT_COLOR, Settings.BADGE_COLOR, Settings.LOGO_COLOR, Settings.TAB_COLOR), SettingsBackup.VALUES);
         assertEquals(Settings.SAVE_TO, SettingsBackup.TO);
         assertEquals(Settings.HIDDEN_WORDS, SettingsBackup.HIDDEN);
         assertEquals(Settings.KEPT_WORDS, SettingsBackup.KEPT);
@@ -1148,41 +1151,51 @@ public class SettingsBackupTest {
     }
 
     /**
-     * Badge and logo colors (#263) go out and come back as their rows keep them, and a code written
-     * any other way refuses the whole file.
+     * Badge and logo colors (#263) and the Selected tab color (#297) go out and come back as their
+     * rows keep them, and a code written any other way refuses the whole file.
      */
     @Test
-    public void badgeAndLogoColorsRoundTripAsTheirRowsKeepThem() throws Exception {
+    public void badgeLogoAndTabColorsRoundTripAsTheirRowsKeepThem() throws Exception {
         Settings.BADGE_COLOR.save("#2ECC71");
         Settings.LOGO_COLOR.save(" ff00aa ");
+        Settings.TAB_COLOR.save("#e91e63");
         String file = SettingsBackup.create();
         JSONObject settings = new JSONObject(file).getJSONObject("settings");
         assertEquals("#2ECC71", settings.get(SettingsBackup.BADGE.key));
         assertEquals("#FF00AA", settings.get(SettingsBackup.LOGO.key));
+        assertEquals("#E91E63", settings.get(SettingsBackup.TAB.key));
         Settings.BADGE_COLOR.resetToDefault();
         Settings.LOGO_COLOR.resetToDefault();
+        Settings.TAB_COLOR.resetToDefault();
 
         SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
         assertEquals("#2ECC71", snapshot.badgeChange());
         assertEquals("#FF00AA", snapshot.logoChange());
-        assertEquals(2, SettingsBackup.apply(snapshot));
+        assertEquals("#E91E63", snapshot.tabChange());
+        assertEquals(3, SettingsBackup.apply(snapshot));
         assertEquals("#2ECC71", Settings.BADGE_COLOR.savedValue());
         assertEquals("#FF00AA", Settings.LOGO_COLOR.savedValue());
+        assertEquals("#E91E63", Settings.TAB_COLOR.savedValue());
         assertEquals("If your patched Facebook includes Badge and logo colors, badges will be #2ECC71.",
-                SettingsBackupPreference.markColorSentence(false, snapshot.badge)
+                SettingsBackupPreference.markColorSentence(Mark.BADGE, snapshot.badge)
                         .replace(String.valueOf((char) 0x2068), "").replace(String.valueOf((char) 0x2069), ""));
         assertEquals("If your patched Facebook includes Badge and logo colors, the logo will be Facebook's blue.",
-                SettingsBackupPreference.markColorSentence(true, ""));
+                SettingsBackupPreference.markColorSentence(Mark.LOGO, ""));
+        assertEquals("If your patched Facebook includes Badge and logo colors, the selected tab will be #E91E63.",
+                SettingsBackupPreference.markColorSentence(Mark.TAB, snapshot.tab)
+                        .replace(String.valueOf((char) 0x2068), "").replace(String.valueOf((char) 0x2069), ""));
 
         Map<String, ?> before = store();
-        for (Object refused : new Object[]{"#2ecc71", "2ECC71", "#802ECC71", "green", "#2ECC7", 5, JSONObject.NULL}) {
-            JSONObject hostile = new JSONObject(file);
-            hostile.getJSONObject("settings").put(SettingsBackup.LOGO.key, refused);
-            try {
-                SettingsBackup.parse(hostile.toString());
-                fail("a file with the Logo color " + printable(String.valueOf(refused)) + " was read");
-            } catch (SettingsBackup.Rejected rejected) {
-                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+        for (StringSetting row : new StringSetting[]{SettingsBackup.LOGO, SettingsBackup.TAB}) {
+            for (Object refused : new Object[]{"#2ecc71", "2ECC71", "#802ECC71", "green", "#2ECC7", 5, JSONObject.NULL}) {
+                JSONObject hostile = new JSONObject(file);
+                hostile.getJSONObject("settings").put(row.key, refused);
+                try {
+                    SettingsBackup.parse(hostile.toString());
+                    fail("a file with " + row.key + " " + printable(String.valueOf(refused)) + " was read");
+                } catch (SettingsBackup.Rejected rejected) {
+                    assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+                }
             }
         }
         assertEquals("a refused file wrote something", before, store());
@@ -1190,6 +1203,7 @@ public class SettingsBackupTest {
         Bundle state = snapshot.toBundle();
         assertEquals("#2ECC71", SettingsBackup.Snapshot.fromBundle(state).badge);
         assertEquals("#FF00AA", SettingsBackup.Snapshot.fromBundle(state).logo);
+        assertEquals("#E91E63", SettingsBackup.Snapshot.fromBundle(state).tab);
     }
 
     /**

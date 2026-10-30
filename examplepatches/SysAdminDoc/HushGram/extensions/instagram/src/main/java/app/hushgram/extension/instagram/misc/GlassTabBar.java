@@ -594,7 +594,8 @@ public final class GlassTabBar {
      * and the bottom of that height.
      */
     static final int FIT_GAP_DP = 1;
-    static final int BLUR_DP = 18;
+    /** The blur radius the glass has always drawn, and where its slider starts (#391). */
+    public static final int BLUR_DP = 18;
     /** The selected tab's capsule sits 4dp in from the pill's top and bottom and stands 4dp past its slot. */
     static final int HIGHLIGHT_INSET_DP = 4;
     static final int HIGHLIGHT_GROW_DP = 4;
@@ -995,13 +996,12 @@ public final class GlassTabBar {
      * solid and a dark one is lifted a little so the pill still shows against the bar.
      */
     static int tint(int base, boolean blurred) {
-        return tint(base, blurred, GlassOpacity.STANDARD);
+        return tint(base, blurred, 1f);
     }
 
-    /** {@link #tint(int, boolean)} with the strength of the fill scaled by the opacity step chosen. */
-    static int tint(int base, boolean blurred, GlassOpacity opacity) {
+    /** {@link #tint(int, boolean)} with the strength of the fill scaled by [scale], the opacity slider's share. */
+    static int tint(int base, boolean blurred, float scale) {
         boolean dark = isDark(base);
-        float scale = opacity == null ? 1f : opacity.scale;
         if (blurred) return (base & 0x00ffffff) | (scaledAlpha(dark ? 0x70 : 0xa6, scale) << 24);
         int solid = dark ? blend(base, Color.WHITE, 0.10f) : base;
         return (solid & 0x00ffffff) | (scaledAlpha(0xe6, scale) << 24);
@@ -1009,6 +1009,11 @@ public final class GlassTabBar {
 
     static int scaledAlpha(int alpha, float scale) {
         return Math.max(0, Math.min(255, Math.round(alpha * scale)));
+    }
+
+    /** The opacity slider as a share of the standard tint, read as the pill draws so a move shows at once (#391). */
+    static float opacityScale() {
+        return Settings.GLASS_TAB_BAR_OPACITY.get() / 100f;
     }
 
     /** The shortest a compact pill is drawn, so the icons, the capsule round the selected one and badges fit. */
@@ -1227,11 +1232,8 @@ public final class GlassTabBar {
         private final ViewGroup bar;
         private final float density;
         private final boolean blurWanted;
-        /** How strongly the glass blurs what's behind it (#289). */
-        private final GlassBlur blurStrength;
         private final boolean haptics;
         private final HapticStyle hapticStyle;
-        private final GlassOpacity opacity;
         private final GlassHeight height;
         /** How round the pill and its highlight are, outside the liquid look (#144). */
         private final GlassCorners corners;
@@ -1356,10 +1358,8 @@ public final class GlassTabBar {
             this.floating = Settings.GLASS_TAB_BAR_FLOAT.get();
             this.haptics = Settings.GLASS_TAB_BAR_HAPTICS.get();
             this.hapticStyle = Settings.GLASS_TAB_BAR_HAPTIC_STYLE.get();
-            this.opacity = Settings.GLASS_TAB_BAR_OPACITY.get();
             this.height = Settings.GLASS_TAB_BAR_HEIGHT.get();
             this.corners = Settings.GLASS_TAB_BAR_CORNERS.get();
-            this.blurStrength = Settings.GLASS_TAB_BAR_BLUR_STRENGTH.get();
             this.lift = liftPx(Settings.GLASS_TAB_BAR_LIFT.get(), floating, density);
             this.room = lift;
             this.liquid = Settings.GLASS_TAB_BAR_LIQUID.get();
@@ -2231,6 +2231,8 @@ public final class GlassTabBar {
             private float nodeLeft, nodeTop;
             private int nodeWidth = -1;
             private int nodeHeight = -1;
+            /** The blur slider's dp the node's effect was made for (#391). */
+            private int nodeBlurDp = -1;
             private boolean drawingBackdrop;
             private float sheenTop = Float.NaN;
             private float sheenBottom = Float.NaN;
@@ -2292,7 +2294,7 @@ public final class GlassTabBar {
                 // Light glass has nothing under it to stand out against, so it gets a soft shadow.
                 if (!dark) shadow(canvas, rect, radius);
                 boolean blurred = blurWanted && !tries.resting(SystemClock.uptimeMillis()) && drawBackdrop(canvas);
-                fill.setColor(tint(base, blurred, opacity));
+                fill.setColor(tint(base, blurred, opacityScale()));
                 canvas.drawRoundRect(rect, radius, radius, fill);
 
                 keepSheen(dark);
@@ -2334,7 +2336,7 @@ public final class GlassTabBar {
                     canvas.restoreToCount(saved);
                 }
                 blurShown = blurred;
-                fill.setColor(tint(base, blurred, opacity));
+                fill.setColor(tint(base, blurred, opacityScale()));
                 canvas.drawPath(shapes, fill);
                 keepSheen(dark);
                 canvas.drawPath(shapes, sheen);
@@ -2465,7 +2467,7 @@ public final class GlassTabBar {
                     lens = made;
                 }
                 if (made.paint(canvas, node, nodeLeft, nodeTop, DOWNSAMPLE, bar.getWidth(), bar.getHeight(), capsule, corner)) {
-                    fill.setColor(tint(base, true, opacity));
+                    fill.setColor(tint(base, true, opacityScale()));
                     canvas.drawRoundRect(capsule, corner, corner, fill);
                 }
             }
@@ -2699,7 +2701,9 @@ public final class GlassTabBar {
                 drawingBackdrop = true;
                 try {
                     float scale = 1f / DOWNSAMPLE;
-                    float pad = GlassBlur.radiusPx(blurStrength, density);
+                    // The blur slider is read each recording, so a move shows on the next frame (#391).
+                    int blurDp = Settings.GLASS_TAB_BAR_BLUR_RADIUS.get();
+                    float pad = GlassBlur.radiusPx(blurDp, density);
                     float radius = cornerPx(corners, false, area.height(), density);
                     float wide = area.width() + 2 * pad;
                     float tall = area.height() + 2 * pad;
@@ -2709,16 +2713,22 @@ public final class GlassTabBar {
                     if (backdrop == null) {
                         backdrop = new RenderNode("hushgram-glass");
                         backdrop.setClipToOutline(true);
-                        float blur = GlassBlur.effectRadius(blurStrength, density, scale);
+                        node = backdrop;
+                        nodeBlurDp = -1;
+                    }
+                    boolean newBlur = blurDp != nodeBlurDp;
+                    if (newBlur) {
+                        float blur = GlassBlur.effectRadius(blurDp, density, scale);
                         ColorMatrix saturate = new ColorMatrix();
                         saturate.setSaturation(1.5f);
                         ColorFilter colour = new ColorMatrixColorFilter(saturate);
                         backdrop.setRenderEffect(RenderEffect.createChainEffect(
                                 RenderEffect.createColorFilterEffect(colour),
                                 RenderEffect.createBlurEffect(blur, blur, Shader.TileMode.CLAMP)));
-                        node = backdrop;
+                        nodeBlurDp = blurDp;
                     }
-                    if (width != nodeWidth || height != nodeHeight) {
+                    // The outline sits the blur's reach inside the node, so a new radius moves it too.
+                    if (newBlur || width != nodeWidth || height != nodeHeight) {
                         backdrop.setPosition(0, 0, width, height);
                         Outline outline = new Outline();
                         float inner = pad * scale;

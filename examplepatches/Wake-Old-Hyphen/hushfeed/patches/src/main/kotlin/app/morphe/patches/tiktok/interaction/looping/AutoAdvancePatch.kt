@@ -42,6 +42,8 @@ private const val EXTENSION = "Lapp/morphe/extension/tiktok/interaction/AutoAdva
 private const val COMPONENT = "Lcom/ss/android/ugc/feed/platform/panel/autoscroll/AutoScrollComponent;"
 private const val RIGHT_COLUMN = "Lcom/ss/android/ugc/feed/platform/cell/interact/right/InteractRightAreaComponent;"
 private const val RAIL_SWITCH = "Lcom/ss/android/ugc/feed/platform/panel/autoscroll/AutoScrollSwitchAssem;"
+internal const val TABLET_BUTTON = "Lcom/ss/android/ugc/feed/platform/panel/autoscroll/TabletDefaultAutoScrollComponent;"
+private const val TABLET_DEFAULT_KEY = "ITabletAutoScroll.isDefaultAutoScroll"
 private const val LAZY = "LAZY"
 private const val IMMEDIATE = "IMMEDIATE"
 private const val SEARCH_FLAG = "search_auto_scroll"
@@ -183,6 +185,47 @@ internal fun MutableMethod.answerRailGate(gate: Method): Int {
         val result = instructions[index + 1]
         check(result.opcode == Opcode.MOVE_RESULT) {
             "Auto advance: the right column's feed gate read at $index keeps no result."
+        }
+        val register = (result as OneRegisterInstruction).registerA
+        addInstructions(
+            index + 2,
+            """
+                invoke-static/range {v$register .. v$register}, $EXTENSION->railAvailable(Z)Z
+                move-result v$register
+            """,
+        )
+    }
+    return reads.size
+}
+
+// The tablet service's default auto scroll read, found by the trace label it loads first. The
+// interface the button calls it through is one the defining class implements.
+internal object TabletDefaultGate : Fingerprint(
+    returnType = "Z",
+    parameters = emptyList(),
+    strings = listOf(TABLET_DEFAULT_KEY),
+    custom = { method, _ -> method.loadsExactly(TABLET_DEFAULT_KEY) },
+)
+
+/**
+ * Sends each of this method's reads of the tablet's default auto scroll answer through the
+ * extension's rail answer. The round button at the top right of an unfolded foldable's video
+ * shows itself when that read says yes and hides itself when it says no. Returns how many reads
+ * it hooked.
+ */
+internal fun MutableMethod.answerTabletGate(gateName: String, services: Collection<String>): Int {
+    val instructions = implementation?.instructions?.toList() ?: return 0
+    val reads = instructions.withIndex().filter { (_, instruction) ->
+        instruction.opcode == Opcode.INVOKE_INTERFACE &&
+            instruction.getReference<MethodReference>()?.let {
+                it.definingClass in services && it.name == gateName &&
+                    it.parameterTypes.isEmpty() && it.returnType == "Z"
+            } == true
+    }
+    reads.asReversed().forEach { (index, _) ->
+        val result = instructions[index + 1]
+        check(result.opcode == Opcode.MOVE_RESULT) {
+            "Auto advance: the tablet button's default auto scroll read at $index keeps no result."
         }
         val register = (result as OneRegisterInstruction).registerA
         addInstructions(
@@ -468,6 +511,18 @@ val autoAdvancePatch = bytecodePatch(
             it.name == "onViewCreated" && it.parameterTypes == listOf("Landroid/view/View;")
         }.singleOrPatchException("Auto advance: right column onViewCreated(View)")
             .answerRailGate(available)
+
+        // Unfolded, the video also gets a round Auto scroll button at its top right, which TikTok
+        // shows or hides on the tablet's default auto scroll read rather than on the feed gate.
+        // The button's own reads go through the same hide switch; the read's other callers keep
+        // their answer (#234).
+        val tabletGate = TabletDefaultGate.originalMethod
+        val tabletServices = TabletDefaultGate.originalClassDef.interfaces
+        val tabletReads = mutableClassDefBy(TABLET_BUTTON).methods
+            .sumOf { it.answerTabletGate(tabletGate.name, tabletServices) }
+        check(tabletReads > 0) {
+            "Auto advance: the tablet Auto scroll button no longer reads the default auto scroll answer."
+        }
 
         // Search results' own flag, answered through the child switch. Their feed builds the
         // same component, so the hooks above start it there once the flag lets it exist. The

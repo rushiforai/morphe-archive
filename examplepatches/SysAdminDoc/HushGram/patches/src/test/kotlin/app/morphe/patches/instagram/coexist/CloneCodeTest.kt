@@ -16,18 +16,26 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The code half on every build of Instagram 453.0.0.55.79. Each build names its own package by the same
+ * The code half on every build of Instagram 453.0.0.57.79. Each build names its own package by the same
  * uses, Redex's names aside, and every use that means the running app moves while the rest stay.
  */
 class CloneCodeTest {
     private val clone = "com.hush.second"
 
-    /** The const-string loads of an authority each build has, and the loads of Instagram's package that stay. */
+    /**
+     * The const-string loads of an authority each build has, and the loads of Instagram's package that stay,
+     * as each build's plan counts them. The screen density builds differ from their kind's declared one:
+     * 385914546 keeps five more package loads and has one authority load fewer, and 385914510 has three more.
+     */
     private val authorityLoads = mapOf(
-        "385914283" to 35, "385914282" to 35, "385914284" to 31, "385914285" to 35,
+        "385914557" to 35, "385914517" to 35, "385914546" to 34,
+        "385914503" to 35, "385914510" to 38, "385914556" to 35,
+        "385914518" to 31, "385914558" to 31,
     )
     private val keptLoads = mapOf(
-        "385914283" to 85, "385914282" to 86, "385914284" to 86, "385914285" to 85,
+        "385914557" to 86, "385914517" to 86, "385914546" to 91,
+        "385914503" to 86, "385914510" to 86, "385914556" to 86,
+        "385914518" to 86, "385914558" to 86,
     )
     private val uses = mapOf(
         SelfUse.INLINED to 4, SelfUse.PACKAGE_MANAGER to 6, SelfUse.OWN_INTENT to 9,
@@ -37,7 +45,9 @@ class CloneCodeTest {
 
     /** Google Play's uses, the one count that differs by build: R8 keeps more or fewer of its helpers in each. */
     private val googlePlayUses = mapOf(
-        "385914283" to 6, "385914282" to 7, "385914284" to 7, "385914285" to 6,
+        "385914557" to 6, "385914517" to 6, "385914546" to 7,
+        "385914503" to 7, "385914510" to 7, "385914556" to 7,
+        "385914518" to 7, "385914558" to 7,
     )
 
     /** The uses in classes Redex leaves named, the same in every build. 453 renames the Play billing classes, so theirs count among the LX/ ones. */
@@ -68,7 +78,7 @@ class CloneCodeTest {
         run {
             val authorities = readCloneManifest(CloneFixtures.manifest(file)).authorities
             val classes = CloneFixtures.classes(file, authorities)
-            if (build == "385914283") {
+            if (build == "385914557") {
                 val withoutAnswer = PatchContexts.of(classes).planClone(clone, authorities)
                 val refusal = assertThrows(PatchException::class.java) { withoutAnswer.requireComplete() }
                 assertTrue(refusal.message, refusal.message!!.contains("OwnPackage.name()"))

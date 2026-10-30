@@ -30,6 +30,8 @@ class DefaultSelectionPolicyTest {
             "needs a file picked in its option, which Manager only shows in Expert mode.",
         "Custom launcher icon" to "It redraws Messenger's home screen icon when you patch, with no switch, so " +
             "only people who want the new look should get it. Its style option shows in Expert mode.",
+        "GmsCore support" to "It points Messenger's Google Play services calls at microG-RE, so on a phone without " +
+            "microG-RE push notifications stop, with no switch to send them back to Google.",
     )
 
     private fun namedPatches(): List<JsonObject> {

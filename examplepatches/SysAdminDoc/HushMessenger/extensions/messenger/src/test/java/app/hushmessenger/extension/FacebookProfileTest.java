@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Switch;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.Before;
@@ -40,6 +41,23 @@ public class FacebookProfileTest {
         Settings.preferences.edit().putBoolean(Settings.KEEP_FACEBOOK_PROFILE, true).commit();
         assertFalse(Settings.hideFacebookProfile());
         assertTrue("The rest stay hidden", Settings.hideFacebook());
+    }
+
+    private enum HeaderAction { THREAD_DETAILS, VIEW_PROFILE, AUDIO_CALL }
+
+    @Test public void theEmptyChatHeaderLosesOnlyViewProfileWhileTheButtonHides() {
+        List<Object> actions = List.of(HeaderAction.THREAD_DETAILS, HeaderAction.VIEW_PROFILE, "VIEW_PROFILE", HeaderAction.AUDIO_CALL);
+        assertSame("Hide Facebook shortcuts off", actions, Settings.withoutViewProfile(actions));
+
+        Settings.preferences.edit().putBoolean("facebook", true).commit();
+        assertEquals("Only the enum constant goes, in order", List.of(HeaderAction.THREAD_DETAILS, "VIEW_PROFILE", HeaderAction.AUDIO_CALL),
+            Settings.withoutViewProfile(actions));
+        List<HeaderAction> without = List.of(HeaderAction.THREAD_DETAILS, HeaderAction.AUDIO_CALL);
+        assertSame("Nothing to drop hands the list back", without, Settings.withoutViewProfile(without));
+        assertNull(Settings.withoutViewProfile(null));
+
+        Settings.preferences.edit().putBoolean(Settings.KEEP_FACEBOOK_PROFILE, true).commit();
+        assertSame("Keep the Profile button keeps it here too", actions, Settings.withoutViewProfile(actions));
     }
 
     @Test public void pauseSafeModeAndAMissingControlShowTheButton() {

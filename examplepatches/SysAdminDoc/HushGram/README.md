@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/version-0.0.17-E1306C" alt="Version 0.0.17">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
-  <img src="https://img.shields.io/badge/Instagram-453.0.0.55.79-E1306C" alt="Instagram 453.0.0.55.79">
+  <img src="https://img.shields.io/badge/Instagram-453.0.0.57.79-E1306C" alt="Instagram 453.0.0.57.79">
   <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.2.0%2B-8A2BE2" alt="For Morphe Manager 2.2.0 or newer">
 </p>
 
@@ -34,7 +34,7 @@ This project has no connection to Meta or to the Morphe project. Neither endorse
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.2.0 or newer.
 2. Add HushGram as a patch source by opening [this link](https://morphe.software/add-source?github=SysAdminDoc%2FHushGram) on your phone. Or in Manager open **Sources**, tap **+**, choose **Remote** and enter `github.com/SysAdminDoc/HushGram`. Use HushGram as your only Instagram source, since mixing in another one can stop patching.
-3. Get Instagram 453.0.0.55.79 from APKMirror. Take [the bundle labelled (arm64-v8a) (480-640dpi) (Android 9.0+), build 385914283](https://www.apkmirror.com/apk/instagram/instagram-instagram/instagram-453-0-0-55-79-release/). The version's other builds work too (see [Supported Instagram builds](#supported-instagram-builds)).
+3. Get Instagram 453.0.0.57.79 from APKMirror. Take [the bundle labelled (arm64-v8a) (480-640dpi) (Android 9.0+), build 385914557](https://www.apkmirror.com/apk/instagram/instagram-instagram/instagram-453-0-0-57-79-release/). The version's other builds work too (see [Supported Instagram builds](#supported-instagram-builds)).
 4. Uninstall the Instagram you got from the Play Store. The patched app is signed with your own key, so Android won't install it over Meta's. Uninstalling signs you out, so have your password and two-factor codes ready. On a rooted phone, Manager's Root Mount can lay HushGram over the Play Store app instead, and you stay signed in.
 5. In Morphe Manager, pick the Instagram file, keep the default patch selection or change it, and patch.
 6. Open HushGram settings and turn on what you want. It's at the top of Instagram's Settings and activity. A long press on the Instagram logo at the top of your feed opens it too.
@@ -48,7 +48,7 @@ When a patch can't find its target in your Instagram file, patching stops with a
 > [!WARNING]
 > Meta's [Terms of Use](https://help.instagram.com/581066165581870) don't allow modified versions of its apps, and Meta can disable accounts that break them. Nobody outside Meta knows what gets an account suspended, so nobody can promise yours won't be.
 >
-> - **Assume Meta can tell.** A patched Instagram has a different signing certificate, and Instagram 450 carries Play Integrity and Keystore attestation code. `Restore trust on re-signed builds` keeps parts of the app working on a re-signed build, but it doesn't make the APK Meta-signed.
+> - **Assume Meta can tell.** A patched Instagram has a different signing certificate, and Instagram 453 carries Play Integrity and Keystore attestation code. `Restore trust on re-signed builds` keeps parts of the app working on a re-signed build, but it doesn't make the APK Meta-signed.
 > - **Try a spare account first** if you'd rather not put the one you care about on the line. People whose accounts were suspended on patched Instagram often describe a new or long-idle account signing in on a fresh install. That's what they saw, not a proven cause.
 > - **Keep the sign-in you have.** Update over the top with the same signing key, or use Root Mount on a rooted phone, rather than starting fresh each time.
 >
@@ -62,7 +62,7 @@ Back it up right after your first patch. In Morphe Manager open **Settings → S
 
 ## Patches
 
-There are 123 patches for `com.instagram.android`, checked against Instagram 453.0.0.55.79. Manager's simple mode includes 119 of them, so you don't need Expert mode to get any feature below. A patch that comes in this way changes nothing until you turn its switch on in HushGram settings, and each description says where that switch is. A few start on: Hide ads, Sanitize sharing links, Open links in external browser, Remove build expired popup, Hide suggested posts, Hide suggested stories, Hide Meta AI's search and posts switches, Show if a profile follows you, Download any reel, Download any story and Keep the reel speed. Story ring size and Default playback quality start on too, but they keep Instagram's own size and quality until you pick one. Tab bar layout has no switch at all and keeps the bar Instagram gives you until you pick another.
+There are 125 patches for `com.instagram.android`, checked against Instagram 453.0.0.57.79. Manager's simple mode includes 121 of them, so you don't need Expert mode to get any feature below. A patch that comes in this way changes nothing until you turn its switch on in HushGram settings, and each description says where that switch is. A few start on: Hide ads, Sanitize sharing links, Open links in external browser, Remove build expired popup, Hide suggested posts, Hide suggested stories, Hide Meta AI's search and posts switches, Show if a profile follows you, Download any reel, Download any story and Keep the reel speed. Story ring size and Default playback quality start on too, but they keep Instagram's own size and quality until you pick one. Tab bar layout has no switch at all and keeps the bar Instagram gives you until you pick another.
 
 Four patches stay out of simple mode. Tick them in Manager's patch list (Expert mode, then **Choose patches**) if you want them:
 
@@ -141,7 +141,7 @@ In Expert mode the patches are grouped under Ads, Ghost mode, Privacy, Messages,
 | `Install next to Instagram` | Installs this build as a second Instagram beside your normal one, with its own data and sign-in. Pick its package name and app name in the patch's options, and whether its icon gets a HushGram badge. Works as soon as you patch it in, with no switch. | Opt-in |
 | `Keep a seek bar on Reels` | Keeps a seek bar under every reel, short ones too, with the time played and the reel's length above it, like 0:10 / 0:55. Starts off. Turn it on in HushGram settings > Reels. | Included |
 | `Keep in chat` | Keeps view once and replayable photos and videos in your chats after you open them, so they don't disappear. A photo or video you send stays Instagram's own sent bubble. Starts off. Turn it on in HushGram settings > Messages. | Included |
-| `Swipe through a chat's reels` | Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Starts off. Turn it on in HushGram settings > Messages. | Included |
+| `Swipe through a chat's reels` | Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels, and can stop after them. Both start off. Turn them on in HushGram settings > Messages. | Included |
 | `Keep Reels auto scroll on` | Keeps Instagram's auto scroll in Reels turned on after you leave Reels or restart Instagram, until you turn it off yourself. It can also move on to the next reel when one ends on accounts where Instagram doesn't offer auto scroll. Starts off. Turn it on in HushGram settings > Reels. | Included |
 | `Keep the reel speed` | Keeps the 2x speed on for the next reels after you lock a reel at 2x (hold its edge, then slide down), until you slide the lock off. On by default. Turn it off in HushGram settings > Reels. | Included |
 | `Keep your place in Home` | Coming back to Instagram leaves Home on the post you were on, however long you were away, instead of reloading it and jumping to the top. Starts off. Turn it on in HushGram settings > Feed. | Included |
@@ -152,6 +152,7 @@ In Expert mode the patches are grouped under Ads, Ghost mode, Privacy, Messages,
 | `Open comments without the keyboard` | Comments open with the keyboard down. A tap in the comment box, or on Reply, still brings it up. Starts off. Turn it on in HushGram settings > Comments. | Included |
 | `Open links in external browser` | Opens web links you tap in your usual browser instead of Instagram's built-in one, without Instagram's click tracker. Instagram pages and ads still open in the app. On by default. Turn it off in HushGram settings > Ads and privacy. | Included |
 | `Pick the app icon` | Lets you pick the icon Instagram shows on your home screen: Instagram's own, HushGram's, or Instagram's glyph on black, on plum, or in black on white. The new icon shows once you leave Instagram, and you may need to add it to your home screen again from the app drawer. Starts on Instagram's own. Pick one in HushGram settings > Layout. | Included |
+| `Pinch to zoom on Reels` | Lets you zoom into a playing reel with two fingers, the way a photo zooms. Lift your fingers and it goes back. Restart Instagram to see the change. Starts off. Turn it on in HushGram settings > Reels. | Included |
 | `Profile posts as a list` | Opening someone's profile takes you on to their posts as a scrolling list of full posts. Back shows the grid. Your own profile keeps its grid. Starts off. Turn it on in HushGram settings > Profiles. | Included |
 | `Pure black dark mode` | Makes Instagram's dark mode pure black instead of dark gray, on the menus that slide up from the bottom too. It looks deeper and can save battery on an OLED screen. Buttons keep their grays so they stay easy to see. Works as soon as you patch it in, with no switch. | Opt-in |
 | `Read messages without the seen receipt` | Opening a chat no longer tells people you've seen their messages. You still see when they've seen yours. Mark as read still tells them. Ghost mode turns it on too. Starts off. Turn it on in HushGram settings > Messages. | Included |
@@ -169,6 +170,7 @@ In Expert mode the patches are grouped under Ads, Ghost mode, Privacy, Messages,
 | `Show a reel's exact time` | Adds the date and time a reel was posted under the author's name, like Oct 2, 3:45 PM, with the seconds or how long ago (1d 2h 5m ago) if you want them. Starts off. Turn it on in HushGram settings > Reels. | Included |
 | `Show a story's exact time` | Shows the date and time a story was posted, like Oct 2, 3:45 PM, instead of how long ago. A choice under the switch can show the time left instead. Starts off. Turn it on in HushGram settings > Stories. | Included |
 | `See who a story mentions` | Adds a small label in a story's header showing how many accounts it mentions. Tap it for a list and tap an account to open their profile. Starts off. Turn it on in HushGram settings > Stories. | Included |
+| `Seek bar on feed videos` | Shows a bar along the bottom of the video playing in your feed that you can drag to jump to any point in it. Starts off. Turn it on in HushGram settings > Feed. | Included |
 | `Seek bar on stories` | Shows a bar near the bottom of a video story that you can drag to jump to any point in the video. Photos don't get one. Starts off. Turn it on in HushGram settings > Stories. | Included |
 | `Show hidden like counts` | Shows how many likes a post or reel has when its owner hid the count, as long as Instagram's server still sends the number. If it doesn't, nothing changes. Starts off. Turn it on in HushGram settings > Feed. | Included |
 | `Show if a profile follows you` | Adds Follows you or Doesn't follow you beside the name on someone's profile. Other switches add a chip and mark accounts on your Following list that don't follow you back, and Recent unfollowers shows who left your Followers list. The chip is blue for Follows you, green for Following each other and red for Doesn't follow you, and it can go small under the profile picture. On by default. Turn it off in HushGram settings > Profiles. | Included |
@@ -228,10 +230,11 @@ A few rows to know about:
 - **Downloads** go to Movies and Pictures, each in an Instagram folder unless you name another, and voice messages to Recordings (Music before Android 12). **Skip what's already saved** remembers your newest 15,000 saves so the same post isn't saved twice.
 - **Download file name** accepts `{shortcode}` for the post's code from its link. Including it applies the template to photos too. Stories and saves without a known post leave that token out.
 - **Settings backup** exports your choices to a JSON file and brings them back later, on this install or another. Accounts, signing keys and playback history aren't included.
+- **Descriptions behind an info button**, under Settings entry, keeps each switch to its name. Tap the small i beside a name to read what it does. It starts off, and a screen reader always gets the full text.
 - **Date in backup file names**, under Settings backup, adds the current date and time to the suggested export name. It starts off.
 - **Pause and diagnostics** copies a quick report or saves the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out, but read it over for other private text before you share it. A source build also shows an `hg1:` build identity under Version in About and in the report.
 
-If Instagram crashes within a minute of starting three times in a row, HushGram pauses itself and the status card says why. Turn it back on once you've patched again or left out the patch at fault.
+If Instagram crashes within a minute of starting three times in a row, HushGram pauses itself and the status card says why. Turn it back on once you've patched again or left out the patch at fault. A crash in that first minute is kept, so the full report you save under Pause and diagnostics shows what crashed and which patches were on.
 
 ## Help
 
@@ -240,7 +243,7 @@ If Instagram crashes within a minute of starting three times in a row, HushGram 
 - **Can't find the settings.** Long-press Instagram's home screen icon and tap **HushGram settings**. If there's no way in at all, refresh the source in Manager and patch again.
 - **Switches do nothing.** Refreshing a source only downloads patches. The switches live inside the patched app, so patch and install again. Some switches need Instagram restarted, and their description says so.
 - **Package conflict or App not installed.** Android won't replace an app with one signed by a different key. Update with the key the installed build used, or uninstall the differently signed app first. That deletes its data, so make sure you can sign in again.
-- **Unsupported Version.** Manager is told one 453.0.0.55.79 build per kind of phone (the codes in [Supported Instagram builds](#supported-instagram-builds)), so it says this for a build meant for another kind of phone or any other version. Those may work, but nobody has checked them.
+- **Unsupported Version.** Manager is told one 453.0.0.57.79 build per kind of phone (the codes in [Supported Instagram builds](#supported-instagram-builds)), so it says this for a build meant for another kind of phone or any other version. The other screen density builds listed there patch cleanly in HushGram's tests even though Manager calls them unsupported. Anything else may work, but nobody has checked it.
 - **Patching stops on one patch.** Check that you're patching a supported build, and if several patch sources are enabled, try HushGram alone. If it still stops, open an issue naming the patch, your Manager version and the error.
 - **Patching runs out of memory.** Turn on **Use embedded VM** in Manager's settings and patch again. Instagram's DEX index and resource table can exceed a 256 MB heap before HushGram's patches run. Desktop 1.19.1 passed with a 512 MB heap. That desktop result hasn't been verified on Android.
 - **Instagram won't stay open long enough to reach settings.** Create an empty file named `hushgram-safe-mode` in `Android/data/com.instagram.android/files` (a computer or a file manager can reach it). HushGram starts paused until you delete it.
@@ -266,16 +269,16 @@ For something that's broken, use the [bug form](https://github.com/SysAdminDoc/H
 | Field | Value |
 | --- | --- |
 | Package | `com.instagram.android` |
-| Version | `453.0.0.55.79` |
-| arm64-v8a builds | `385914283`, for most phones |
-| armeabi-v7a builds | `385914282`, for older 32-bit phones |
-| x86 and x86_64 builds | `385914284` (x86) and `385914285` (x86_64), for emulators and Intel phones |
+| Version | `453.0.0.57.79` |
+| arm64-v8a builds | `385914557`, for most phones. `385914546` and `385914517` are the same release for other screen densities |
+| armeabi-v7a builds | `385914556`, for older 32-bit phones. `385914503` and `385914510` are the same release for other screen densities |
+| x86 builds | `385914558`, for emulators and Intel phones. `385914518` is the same release for another screen density. Meta published no x86_64 build of this version, so an x86_64 emulator with an arm translator takes the arm64 build |
 | Minimum Android version | Android 9 (API 28) for every ABI |
 | Where to get it | [APKMirror](https://www.apkmirror.com/apk/instagram/instagram-instagram/) |
 
 Other Instagram versions haven't been checked. Meta can publish different APKs under one version name, so go by the build number too.
 
-Patching raises the minimum to Android 9 for the two 32-bit builds, which Instagram ships with an Android 8 minimum. HushGram's settings use Android 9 APIs.
+Patching raises the minimum to Android 9 for the armeabi-v7a and x86 builds, which Instagram ships with an Android 8 minimum. HushGram's settings use Android 9 APIs.
 
 Meta signs genuine Instagram builds with one of two certificates, and Morphe Manager warns before it patches an APK signed with any other key. To check a file yourself, run `apksigner verify --print-certs` (from Android's build tools) on the base APK and look for one of these certificate SHA-256 digests:
 

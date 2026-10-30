@@ -199,7 +199,7 @@ class HideNotesRowHookTest {
     }
 
     /** The classes of [bundle] the patches read: the holders of their markers, the factory the diff update calls and the set's class. */
-    private fun fixtureClasses(bundle: File): List<ClassDef> {
+    internal fun fixtureClasses(bundle: File): List<ClassDef> {
         val holders = listOf(INBOX_DIFF, INBOX_SECTION_MARKER, NOTES_SECTION)
             .flatMap { FixtureDex.classesHolding(bundle, it) }.distinctBy { it.type }
         val diffs = holders.flatMap { it.methods }.filter { method -> method.code().any { it.referenceText() == INBOX_DIFF } }

@@ -124,38 +124,57 @@ class CommunityInboxTest {
         }
     }
 
-    @Test fun theCommunityCheckComparesTheKeyTypeWithBothChannelTypesInline() {
+    @Test fun theCommunityCheckAsksTheKeysChannelTestThenComparesTheAnnouncementType() {
         val contract = assertNotNull(findCommunityInbox(communityInboxFixture()))
-        // The identity names no separate channel check.
+        // The identity names the key's channel test after the check that calls it.
         assertEquals(SYNTHETIC_PROFILE.nativeCommunityInbox, contract.identity)
-        assertEquals(17, contract.identity.split('|').size)
-        // 582 asked a separate channel check first, then compared the key type with the announcement channel. That isn't taken.
-        assertNull(findCommunityInbox(communityInboxFixture(channelCheck = true)))
-        // The inline check must compare the key's type with the channel, then the announcement channel, and nothing else.
+        assertEquals(18, contract.identity.split('|').size)
+        // 583 and 584 compared both types inline, with no channel test. That isn't taken.
+        assertNull(findCommunityInbox(communityInboxFixture(inlineCheck = true)))
+        // The check must ask the channel test, then compare the key's type with the announcement channel, and nothing else.
         val kind = "Lcom/facebook/messaging/model/threadkey/ThreadKey;->kind:LX/KeyKind;"
-        fun inline(first: String, second: String, register: Int = 1, field: String = kind) = """
+        val channel = SYNTHETIC_PROFILE.nativeCommunityInbox.split('|')[8]
+        fun split(type: String = "announcement", jump: String = "if-nez", register: Int = 1, field: String = kind, call: String = channel) = """
+            invoke-virtual {p0}, $call
+            move-result v0
+            $jump v0, :yes
             iget-object v1, p0, $field
-            sget-object v0, LX/KeyKind;->$first:LX/KeyKind;
+            sget-object v0, LX/KeyKind;->$type:LX/KeyKind;
             if-eq v$register, v0, :yes
-            sget-object v0, LX/KeyKind;->$second:LX/KeyKind;
-            if-eq v1, v0, :yes
             const/4 v0, 0x0
             return v0
             :yes
             const/4 v0, 0x1
             return v0
         """.trimIndent()
-        assertNotNull(findCommunityInbox(communityInboxFixture(anyBody = inline("channel", "announcement"))))
-        assertNull(findCommunityInbox(communityInboxFixture(anyBody = inline("announcement", "channel"))))
-        assertNull(findCommunityInbox(communityInboxFixture(anyBody = inline("channel", "channel"))))
-        assertNull(findCommunityInbox(communityInboxFixture(anyBody = inline("channel", "announcement", register = 2))))
-        // The type has to come from the key's own field, not another class's or a field the key doesn't have.
-        assertNull(findCommunityInbox(communityInboxFixture(anyBody = inline("channel", "announcement", field = "LX/OtherKey;->kind:LX/KeyKind;"))))
-        assertNull(findCommunityInbox(communityInboxFixture(anyBody = inline("channel", "announcement", field = kind.replace("->kind", "->other")))))
-        // Every recorded build refuses the separate channel check too, and discovery fails before anything changes.
+        fun test(type: String = "channel", jump: String = "if-ne", field: String = kind) = """
+            iget-object v1, p0, $field
+            sget-object v0, LX/KeyKind;->$type:LX/KeyKind;
+            $jump v1, v0, :no
+            const/4 v0, 0x1
+            return v0
+            :no
+            const/4 v0, 0x0
+            return v0
+        """.trimIndent()
+        assertNotNull(findCommunityInbox(communityInboxFixture(anyBody = split(), channelBody = test())))
+        assertNull(findCommunityInbox(communityInboxFixture(anyBody = split(type = "channel"))))
+        assertNull(findCommunityInbox(communityInboxFixture(anyBody = split(jump = "if-eqz"))))
+        assertNull(findCommunityInbox(communityInboxFixture(anyBody = split(register = 2))))
+        // The call has to reach the key's own channel test, and that test has to compare with the channel type alone.
+        assertNull(findCommunityInbox(communityInboxFixture(anyBody = split(call = "LX/OtherKey;->A1W()Z"))))
+        assertNull(findCommunityInbox(communityInboxFixture(anyBody = split(call = channel.replace("A1W", "A1X")))))
+        assertNull(findCommunityInbox(communityInboxFixture(channelBody = test(type = "announcement"))))
+        assertNull(findCommunityInbox(communityInboxFixture(channelBody = test(jump = "if-eq"))))
+        // The type has to come from the key's own field, in both methods, not another class's or a field the key doesn't have.
+        for (field in listOf("LX/OtherKey;->kind:LX/KeyKind;", kind.replace("->kind", "->other"))) {
+            assertNull(findCommunityInbox(communityInboxFixture(anyBody = split(field = field))), field)
+            assertNull(findCommunityInbox(communityInboxFixture(channelBody = test(field = field))), field)
+        }
+        // Every recorded build refuses the inline form too, and discovery fails before anything changes.
         for (profile in controlProfiles.values.toSet()) {
             activeProfile = profile
-            val classes = communityInboxFixture(channelCheck = true)
+            val classes = communityInboxFixture(inlineCheck = true)
             assertNull(findCommunityInbox(classes))
             assertFailsWith<PatchException> { validateControls(mirroredControls(classes), setOf(COMMUNITY_INBOX)) }
         }
@@ -217,7 +236,7 @@ class CommunityInboxTest {
             val at = renderer.communityReadSite(valid.capturedScope)
             when (change) {
                 "enum_init" -> classes.single { it.type == valid.requests.substringBefore("->") }.methods.removeIf { it.name == "<clinit>" }
-                "channel_field" -> classes.flatMap { it.methods }.single { it.hookId() == ids[7] }.replaceInstruction(0, "const-string v1, \"changed\"")
+                "channel_field" -> classes.flatMap { it.methods }.single { it.hookId() == ids[8] }.replaceInstruction(0, "const-string v1, \"changed\"")
                 "snapshot" -> update.replaceInstruction(58, "move-object/from16 v26, v2")
                 "scope" -> update.replaceInstruction(111, "const/16 v23, 0x0")
                 "first_read" -> renderer.replaceInstruction(6, "invoke-virtual {v1}, Ljava/util/AbstractCollection;->isEmpty()Z")
@@ -450,11 +469,11 @@ class CommunityInboxTest {
     private fun exerciseTypedHelpers(all: List<Method>, contract: CommunityInboxContract) {
         val methods = all.associateBy { it.hookId() }
         val ids = contract.identity.split('|')
-        // The community check compares the key type with both channel types inline.
+        // The community check asks the key's channel test, then compares the key type with the announcement channel.
         val any = body(methods.getValue(ids[7]))
-        val kindField = reference(any[0]) as FieldReference
-        val channelField = reference(any[1]).toString()
-        val announcementField = reference(any[3]).toString()
+        val kindField = reference(any[3]) as FieldReference
+        val channelField = reference(body(methods.getValue(ids[8]))[1]).toString()
+        val announcementField = reference(any[4]).toString()
         val scopeType = contract.requests.substringBefore("->")
         val request = NativeValue(scopeType, mapOf("kind" to "requests"))
         val ordinaryScope = NativeValue(scopeType, mapOf("kind" to "all"))

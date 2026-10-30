@@ -319,7 +319,10 @@
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/HiddenChats.java",
         "patches/src/main/kotlin/app/morphe/patches/telegram/misc/folders/HiddenChatsSupport.kt",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/SideMenu.java",
-        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/SideMenuPanel.java"
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/SideMenuPanel.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/ReactionAlerts.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/ReactionAlertsBridge.java",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/unifiedpush/ReactionAlertsHook.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/HushTelegram",

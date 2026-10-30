@@ -176,6 +176,11 @@ TwitchHighlights.storiesShelf
 # if hide_tipping
 TwitchInterface.bitsVisible
 
+# if hide_subscription_upsells
+# The chat header's Subscribe, Gift A Sub and Upgrade buttons.
+TwitchInterface.subscriptionButtons
+TwitchInterface.subscriptionUpsellVisible
+
 # if clip_download
 TwitchClips.overflowMenu
 

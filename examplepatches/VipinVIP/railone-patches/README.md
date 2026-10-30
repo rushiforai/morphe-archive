@@ -9,13 +9,14 @@ Add this repository as a patch source in Morphe:
 
 [**+ Add RailOne Patches to Morphe**](https://morphe.software/add-source?github=VipinVIP/railone-patches)
 
-Then patch RailOne:
+Then patch the RailOne APK file:
 
-1. Pick RailOne. If it's installed, Morphe can use that copy directly; if it isn't, point Morphe
-   at the APK/APKS (the installer file) from a source you trust. Only the genuine Play-signed file
-   is accepted, so a modified one is refused.
-2. Pick the patches - all six are on by default - and hit patch.
-3. Install the patched app. It can't go on top of the Play version, so remove that first, or turn
+1. Pick RailOne. If it's installed, Morphe can use that copy directly; if it isn't, point
+   Morphe at the APK/APKS (the installer file) from a source you trust. Only the genuine
+   Play-signed file is accepted, so a modified one is refused.
+2. In Morphe tap **Select other apps → Open APK file** and pick that file.
+3. Pick the patches (all seven are on by default) and tap **Patch**.
+4. Install the patched app. It can't go on top of the Play version, so remove that first, or turn
    on Morphe's **Clone app** patch to keep the original and the patched app side by side.
 
 ## Patch Details
@@ -36,6 +37,7 @@ All seven are enabled by default.
 
 | Version | Status |
 |---|---|
+| 2.1.71 | verified |
 | 2.1.66 | verified |
 | 2.1.62 | verified |
 | later versions | experimental |

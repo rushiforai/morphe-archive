@@ -56,11 +56,16 @@ private fun Instruction.reads(): List<Int> = when (this) {
     else -> emptyList()
 }
 
-/** A class whose instance getId() is nothing but the constant ADD_TO_STORY_ID. */
-internal fun ClassDef.isStoryRow() = methods.any { method ->
+/**
+ * A class whose instance getId() is nothing but the constant ADD_TO_STORY_ID: the literal, or, as 585 arm64 and the
+ * 347014974 armv7 family write it, the constant looked up in a [redexStringTables] table and returned as is.
+ */
+internal fun ClassDef.isStoryRow(tables: Map<String, Map<Int, String>> = activeStringTables) = methods.any { method ->
     method.name == "getId" && method.returnType == "Ljava/lang/String;" && method.parameterTypes.isEmpty() &&
         !AccessFlags.STATIC.isSet(method.accessFlags) && method.code().let {
-            it.size == 2 && it[0].opcode == Opcode.CONST_STRING && it[0].string() == STORY_ROW_ID && it[1].opcode == Opcode.RETURN_OBJECT
+            (it.size == 2 && it[0].opcode == Opcode.CONST_STRING && it[0].string() == STORY_ROW_ID && it[1].opcode == Opcode.RETURN_OBJECT) ||
+                (it.size == 4 && it.tableLookupAt(1, tables) == STORY_ROW_ID && it[2].opcode == Opcode.MOVE_RESULT_OBJECT &&
+                    it[3].opcode == Opcode.RETURN_OBJECT && (it[2] as OneRegisterInstruction).registerA == (it[3] as OneRegisterInstruction).registerA)
         }
 }
 
@@ -130,10 +135,10 @@ internal fun Method.storyGate(row: String = shareStoryRow): StoryGate? {
  * The one story row class, and the two methods that create it: the hoisted loader and the unhoisted section, each in
  * its proven shape. A second row class, a third creator, or either one in another shape leaves the switch unapplied.
  */
-internal fun findShareStory(classes: Iterable<ClassDef>): List<Method> {
+internal fun findShareStory(classes: Iterable<ClassDef>, tables: Map<String, Map<Int, String>> = activeStringTables): List<Method> {
     shareStoryRow = ""
     val all = classes.toList()
-    val row = all.filter { it.isStoryRow() }.singleOrNull()?.type ?: return emptyList()
+    val row = all.filter { it.isStoryRow(tables) }.singleOrNull()?.type ?: return emptyList()
     val creators = all.flatMap { cls -> cls.methods.filter { method -> method.code().any { it.created() == row } } }
     val gates = creators.map { it to it.storyGate(row) }
     if (gates.size != 2 || gates.any { it.second == null }) return emptyList()

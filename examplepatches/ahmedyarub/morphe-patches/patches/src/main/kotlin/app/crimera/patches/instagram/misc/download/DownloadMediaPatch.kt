@@ -94,32 +94,41 @@ val downloadMediaPatch =
                         } ?: throw PatchException("The media saver has no save routine taking the message holder")
 
                 // The extension switches on the message's wire type ("media", "voice_media", ...).
-                // The saver already resolves that enum for its holder, so take the accessor it
-                // calls: the field that accessor reads is the type field, and the enum's single
-                // instance field is the wire name. Resolved this way rather than by picking a
-                // field of the enum's type — the message base class declares two of those.
-                val itemTypeAccessor =
-                    holderBuilder.implementation!!
-                        .instructions
-                        .mapNotNull { it.getReference<MethodReference>() }
-                        .firstOrNull { reference ->
-                            reference.parameterTypes.size == 1 &&
-                                classDefByOrNull(reference.returnType)?.let { returned ->
-                                    returned.superclass == "Ljava/lang/Enum;" &&
-                                        returned.fields.count { field -> !AccessFlags.STATIC.isSet(field.accessFlags) } == 1
-                                } == true
-                        } ?: throw PatchException("The media saver never resolves the message type")
+                // The saver already resolves that enum for its holder, so take what it reads: up to
+                // 453.0.0.55 it calls an accessor, and the field that accessor reads is the type
+                // field; from 453.0.0.57 the accessor is inlined and the saver reads the field
+                // itself. The enum's single instance field is the wire name. Resolved this way
+                // rather than by picking a field of the enum's type — the message base class
+                // declares two of those.
+                fun isItemTypeEnum(type: String) =
+                    classDefByOrNull(type)?.let { enum ->
+                        enum.superclass == "Ljava/lang/Enum;" &&
+                            enum.fields.count { field -> !AccessFlags.STATIC.isSet(field.accessFlags) } == 1
+                    } == true
 
+                val holderInstructions = holderBuilder.implementation!!.instructions
                 val itemTypeField =
-                    classDefBy(itemTypeAccessor.definingClass)
-                        .methods
-                        .first { it.name == itemTypeAccessor.name && it.parameterTypes.toList() == itemTypeAccessor.parameterTypes.toList() }
-                        .implementation!!
-                        .instructions
-                        .first { it.opcode == Opcode.IGET_OBJECT }
-                        .getReference<FieldReference>()!!
+                    holderInstructions
+                        .mapNotNull { it.getReference<MethodReference>() }
+                        .firstOrNull { reference -> reference.parameterTypes.size == 1 && isItemTypeEnum(reference.returnType) }
+                        ?.let { accessor ->
+                            classDefBy(accessor.definingClass)
+                                .methods
+                                .first { it.name == accessor.name && it.parameterTypes.toList() == accessor.parameterTypes.toList() }
+                                .implementation!!
+                                .instructions
+                                .first { it.opcode == Opcode.IGET_OBJECT }
+                                .getReference<FieldReference>()!!
+                        }
+                        ?: holderInstructions
+                            .firstOrNull { instruction ->
+                                instruction.opcode == Opcode.IGET_OBJECT &&
+                                    isItemTypeEnum(instruction.getReference<FieldReference>()!!.type)
+                            }?.getReference<FieldReference>()
+                        ?: throw PatchException("The media saver never resolves the message type")
+                val itemTypeEnum = itemTypeField.type
                 val itemTypeNameField =
-                    classDefBy(itemTypeAccessor.returnType)
+                    classDefBy(itemTypeEnum)
                         .fields
                         .single { !AccessFlags.STATIC.isSet(it.accessFlags) }
 
@@ -128,7 +137,7 @@ val downloadMediaPatch =
                 // alone finds the wrong field and reads null.
                 GetMessageTypeExtension.changeString("itemTypeOwner", classNameToExtension(itemTypeField.definingClass))
                 GetMessageTypeExtension.changeString("itemTypeField", itemTypeField.name)
-                GetMessageTypeExtension.changeString("itemTypeNameOwner", classNameToExtension(itemTypeAccessor.returnType))
+                GetMessageTypeExtension.changeString("itemTypeNameOwner", classNameToExtension(itemTypeEnum))
                 GetMessageTypeExtension.changeString("itemTypeNameField", itemTypeNameField.name)
 
                 val parameterTypes = saveRoutine.parameterTypes.map { it.toString() }

@@ -10,7 +10,7 @@ Use Python 3.13 on Windows with a writable NTFS folder. No extra packages are ne
 py -3.13 scripts/crowdin-l10n.py prepare --output build/translation-review
 ```
 
-The output folder must be new. This protects a reviewer's edits. The package contains the English source JSON, the existing seven language JSON files, and one review CSV per language. `manifest.json` binds the uploads to the current catalog. `REVIEW.txt` explains the worksheets.
+The output folder must be new. This protects a reviewer's edits. The package contains the English source JSON, the existing eight language JSON files, and one review CSV per language. `manifest.json` binds the uploads to the current catalog. `REVIEW.txt` explains the worksheets.
 
 Every worksheet starts with `pending` in `review_status`. A native reader records `accepted` or `change`, the replacement if needed, their notes and name. Check these points before calling a language reviewed:
 

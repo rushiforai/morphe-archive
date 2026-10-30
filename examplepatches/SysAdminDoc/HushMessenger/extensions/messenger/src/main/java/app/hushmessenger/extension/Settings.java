@@ -169,8 +169,28 @@ public final class Settings {
     /** Under Hide Facebook shortcuts: leaves the Profile button on a chat's details page while the rest stays hidden. */
     static final String KEEP_FACEBOOK_PROFILE = "facebook_keep_profile";
 
-    /** Asked by the gates that create only the chat details Profile button. */
+    /** Asked by the gates that create only the chat details Profile button, and by the empty chat header's View profile. */
     public static boolean hideFacebookProfile() { return hideFacebook() && !preferences.getBoolean(KEEP_FACEBOOK_PROFILE, false); }
+
+    /**
+     * An empty chat's header builds its button row from a list of action constants, and View profile opens the person's
+     * Facebook profile. Asked right after the row reads that list, this hands back a copy without View profile while the
+     * Profile button is hidden, so the row draws no View profile button. Anything else comes back as it was.
+     */
+    public static List<?> withoutViewProfile(List<?> actions) {
+        try {
+            if (actions == null || !hideFacebookProfile()) return actions;
+            List<Object> kept = new ArrayList<>(actions.size());
+            for (Object action : actions) {
+                if (!(action instanceof Enum && "VIEW_PROFILE".equals(((Enum<?>) action).name()))) kept.add(action);
+            }
+            return kept.size() == actions.size() ? actions : kept;
+        } catch (RuntimeException error) {
+            hookFailed("facebook", "Can't hide View profile on an empty chat", error);
+            return actions;
+        }
+    }
+
     public static boolean hideMetaAi() { return enabled("meta_ai"); }
 
     /**

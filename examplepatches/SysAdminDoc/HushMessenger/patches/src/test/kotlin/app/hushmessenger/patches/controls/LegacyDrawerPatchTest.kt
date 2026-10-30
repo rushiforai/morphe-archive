@@ -44,8 +44,9 @@ class LegacyDrawerPatchTest {
 
     @Test fun factoryUsesFreshNativeModelsAndItsOwnCachedKeyAcrossAllFactoryMappings() {
         val profiles = controlProfiles.values.distinct()
-        // 584.1's armv7 build makes the Settings icon in place; every other recorded build calls the icon's factory.
-        assertEquals(setOf(false, true), profiles.map { legacyDrawerFixture(it).mapping.inlineIcon }.toSet())
+        // Every 585 build calls the icon's factory. 584.1's armv7 build made the Settings icon in place, a shape the inline
+        // tests below still give each profile.
+        assertEquals(setOf(false), profiles.map { legacyDrawerFixture(it).mapping.inlineIcon }.toSet())
         for (profile in profiles.filter { !legacyDrawerFixture(it).mapping.inlineIcon }) {
             val fixture = legacyDrawerFixture(profile)
             val before = fixture.methods.map { it.implementation?.instructions?.toList() }
@@ -71,7 +72,7 @@ class LegacyDrawerPatchTest {
         }
     }
 
-    /** 584.1's 951 family calls G7K.A00, which lives on the icon's parent and returns a new G7P. */
+    /** 584.1's 951 family called G7K.A00, which lived on the icon's parent and returned a new G7P. */
     @Test fun anIconFactoryOnTheParentTypeIsAcceptedButNotOneOnAnUnrelatedClass() {
         for (profile in controlProfiles.values.distinct()) {
             if (legacyDrawerFixture(profile).mapping.inlineIcon) continue
@@ -84,13 +85,13 @@ class LegacyDrawerPatchTest {
             assertFailsWith<PatchException> { plan(unrelated, profile) }
             assertEquals(before, unrelated.methods.map { it.implementation?.instructions?.toList() })
         }
-        assertTrue(controlProfiles.values.distinct().any { legacyDrawerFixture(it).mapping.iconFactoryOnBase })
+        // 585 keeps every build's factory on the icon itself.
+        assertTrue(controlProfiles.values.distinct().none { legacyDrawerFixture(it).mapping.iconFactoryOnBase })
     }
 
     @Test fun anInlineSettingsIconUsesItsOwnConstructorAndKeepsTheFactoryUnused() {
         for (profile in controlProfiles.values.distinct()) {
-            val fixture = legacyDrawerFixture(profile)
-            if (!fixture.mapping.inlineIcon) continue
+            val fixture = legacyDrawerFixture(profile, inlineIcon = true)
             val before = fixture.methods.map { it.implementation?.instructions?.toList() }
             val prepared = plan(fixture, profile)
             assertEquals(before, fixture.methods.map { it.implementation?.instructions?.toList() }, "Preflight edited a source")
@@ -138,12 +139,12 @@ class LegacyDrawerPatchTest {
             "factory", "cache-helper", "append-helper")
         val factoryOnly = listOf("icon-origin", "icon-return", "icon-shared")
         val inlineOnly = listOf("inline-icon-missing-ctor", "inline-icon-constructor", "inline-icon-type", "inline-icon-color")
-        for (profile in controlProfiles.values.distinct()) {
-            val failures = common + if (legacyDrawerFixture(profile).mapping.inlineIcon) inlineOnly else factoryOnly
+        for (profile in controlProfiles.values.distinct()) for (inline in listOf(false, true)) {
+            val failures = common + if (inline) inlineOnly else factoryOnly
             for (broken in failures) {
-            val fixture = legacyDrawerFixture(profile, broken)
+            val fixture = legacyDrawerFixture(profile, broken, inlineIcon = inline)
             val before = fixture.methods.map { it.implementation?.instructions?.toList() }
-            assertFailsWith<PatchException>(broken) { plan(fixture, profile) }
+            assertFailsWith<PatchException>("$broken inline=$inline") { plan(fixture, profile) }
             assertEquals(before, fixture.methods.map { it.implementation?.instructions?.toList() }, broken)
             }
         }
@@ -161,9 +162,8 @@ class LegacyDrawerPatchTest {
             "key-constructor", "key-equality", "map-store", "section-store", "section-kind", "section-branch",
             "check-missing", "check-side-effect", "check-parameter", "check-access", "check-target") +
             listOf("row", "section", "icon", "map", "key").flatMap { kind -> listOf("$kind-abstract", "$kind-interface") }
-        for (profile in controlProfiles.values.distinct()) {
-            val inline = legacyDrawerFixture(profile).mapping.inlineIcon
-            assertEquals(emptyList(), problems(legacyDrawerFixture(profile), profile), "$profile")
+        for (profile in controlProfiles.values.distinct()) for (inline in listOf(false, true)) {
+            assertEquals(emptyList(), problems(legacyDrawerFixture(profile, inlineIcon = inline), profile), "$profile inline=$inline")
             if (!inline) {
                 assertEquals(emptyList(), problems(legacyDrawerFixture(profile, iconFactoryOn = "base"), profile), "$profile base")
                 assertTrue(problems(legacyDrawerFixture(profile, iconFactoryOn = "dispatcher"), profile).isNotEmpty(), "$profile dispatcher")
@@ -172,9 +172,9 @@ class LegacyDrawerPatchTest {
                 else listOf("icon-origin", "icon-return", "icon-shared")
             for (broken in variants) {
                 // The patch's refusal for the same fixture, so a variant only it refuses for an extension reason can't slip in.
-                assertFailsWith<PatchException>(broken) { plan(legacyDrawerFixture(profile, broken), profile) }
-                val found = problems(legacyDrawerFixture(profile, broken), profile)
-                assertTrue(found.isNotEmpty() && found.all { it.startsWith("legacy drawer ") }, "$broken: $found")
+                assertFailsWith<PatchException>(broken) { plan(legacyDrawerFixture(profile, broken, inlineIcon = inline), profile) }
+                val found = problems(legacyDrawerFixture(profile, broken, inlineIcon = inline), profile)
+                assertTrue(found.isNotEmpty() && found.all { it.startsWith("legacy drawer ") }, "$broken inline=$inline: $found")
             }
         }
     }

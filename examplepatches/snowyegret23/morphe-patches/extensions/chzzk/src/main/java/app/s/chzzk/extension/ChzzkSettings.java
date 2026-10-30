@@ -366,16 +366,18 @@ public final class ChzzkSettings {
         row.addView(text(context, title, 14, TEXT), new LinearLayout.LayoutParams(0, -2, 1));
         int current = number(key, fallback);
         boolean seconds = "live_catch_up_buffer_seconds".equals(key);
+        boolean rewind = "live_rewind_seconds".equals(key);
+        int seekUnit = rewind ? 5 : 1;
         boolean viewer = key.startsWith("viewer_");
-        boolean stepped = seconds || viewer || "chat_width_scale".equals(key) || "font_scale".equals(key) || "audio_volume".equals(key);
+        boolean stepped = seconds || rewind || viewer || "chat_width_scale".equals(key) || "font_scale".equals(key) || "audio_volume".equals(key);
         int stepSize = seconds || "viewer_outline_width".equals(key) || "viewer_margin".equals(key) ? 1 : 5;
         TextView value = text(context, current + unit + (stepped && current == fallback ? " · 기본" : ""), 13, GREEN);
         value.setTypeface(null, Typeface.BOLD);
         row.addView(value);
         panel.addView(row);
         SeekBar seek = new SeekBar(context);
-        seek.setMax(max - min);
-        seek.setProgress(Math.max(0, current - min));
+        seek.setMax((max - min) / seekUnit);
+        seek.setProgress(Math.max(0, (current - min) / seekUnit));
         seek.setProgressTintList(ColorStateList.valueOf(GREEN));
         seek.setProgressBackgroundTintList(ColorStateList.valueOf(0xff434950));
         seek.setThumbTintList(ColorStateList.valueOf(GREEN));
@@ -392,7 +394,7 @@ public final class ChzzkSettings {
                     new LinearLayout.LayoutParams(dp(context, 40), dp(context, 40)));
                 step.setOnClickListener(view -> {
                     int next = Math.max(min, Math.min(max, number(key, fallback) + delta));
-                    seek.setProgress(next - min);
+                    seek.setProgress((next - min) / seekUnit);
                     value.setText(next + unit + (next == fallback ? " · 기본" : ""));
                     setNumber(key, next);
                 });
@@ -401,7 +403,7 @@ public final class ChzzkSettings {
         seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             public void onProgressChanged(SeekBar bar, int progress, boolean fromUser) {
                 if (!fromUser) return;
-                int next = progress + min;
+                int next = progress * seekUnit + min;
                 value.setText(next + unit + (stepped && next == fallback ? " · 기본" : ""));
                 setNumber(key, next);
             }
@@ -654,7 +656,9 @@ public final class ChzzkSettings {
             case "drag_chat_width": case "device_icons": case "hide_role_badge":
             case "hide_subscription_badge": case "hide_donation_badge": case "hide_activity_badge":
             case "hide_verified_badge": case "hide_channel_badge": case "hide_clip_button":
-            case "live_catch_up": case "audio_compression": case "audio_boost":
+            case "live_catch_up": case "live_rewind":
+            case "chat_profile_button": case "chat_emoji_button": case "chat_donation_button":
+            case "audio_compression": case "audio_boost":
             case "hide_cast_button": case "hide_share_button": case "viewer_count":
                 return true;
             default: return false;
@@ -672,6 +676,7 @@ public final class ChzzkSettings {
             case "audio_compression_strength": return new int[] {0, 2};
             case "audio_volume": return new int[] {100, 300};
             case "live_catch_up_buffer_seconds": return new int[] {1, 10};
+            case "live_rewind_seconds": return new int[] {5, 60};
             case "timestamp_size": return new int[] {60, 100};
             case "viewer_corner": return new int[] {0, 3};
             case "viewer_color": case "viewer_outline_color": return new int[] {0, 0xffffff};
@@ -703,6 +708,9 @@ public final class ChzzkSettings {
             } else if (range != null) {
                 if (!(value instanceof Integer)) throw new IllegalArgumentException(key + ": 정수가 필요합니다.");
                 int number = (Integer) value;
+                if ("live_rewind_seconds".equals(key) && number % 5 != 0) {
+                    throw new IllegalArgumentException(key + ": 5초 단위로 설정하세요.");
+                }
                 if (!((key.endsWith("_width") || key.equals("chat_width_percent")) && number == 0)
                         && (number < range[0] || number > range[1])) {
                     throw new IllegalArgumentException(key + ": 설정 범위를 벗어났습니다.");
@@ -816,11 +824,15 @@ public final class ChzzkSettings {
         slider(content, "시각 크기 · 닉네임 대비", "timestamp_size", 60, 100, 80, "%");
         toggle(content, "PC·모바일·iOS 아이콘 표시", "device_icons", false);
         label(content, "PC는 모니터, 안드로이드는 휴대폰, iOS는 Apple 아이콘으로 표시합니다. 접속 기기 정보가 있는 채팅에만 적용됩니다.");
+        label(content, "채팅 입력창 버튼");
+        toggle(content, "프로필 버튼 표시", "chat_profile_button", true);
+        toggle(content, "이모티콘 버튼 표시", "chat_emoji_button", true);
+        toggle(content, "치즈 후원 버튼 표시", "chat_donation_button", true);
     }
 
     private static void badgePage(Sheet sheet) {
         LinearLayout content = page(sheet, "닉네임과 배지");
-        toggle(content, "닉네임만 숨기기", "hide_nickname", false);
+        toggle(content, "닉네임 숨기기", "hide_nickname", false);
         label(content, "닉네임과 배지는 서로 독립적으로 설정됩니다.");
         toggle(content, "구독 배지 숨기기", "hide_subscription_badge", false);
         toggle(content, "후원 순위 배지 숨기기", "hide_donation_badge", false);
@@ -856,6 +868,9 @@ public final class ChzzkSettings {
     private static void playerPage(Sheet sheet) {
         LinearLayout content = page(sheet, "플레이어");
         navigation(content, "시청자 수 표시", "모서리 위치 · 색 · 크기 · 외곽선 · 투명도", () -> viewerPage(sheet));
+        toggle(content, "라이브 되감기 버튼", "live_rewind", true);
+        slider(content, "한 번에 되감을 시간", "live_rewind_seconds", 5, 60, 5, "초");
+        label(content, "현재 방송에서 재생 가능한 구간 안에서 되감습니다. 방송에 따라 이동 가능한 길이가 다를 수 있습니다.");
         toggle(content, "실시간 따라잡기 버튼", "live_catch_up", true);
         slider(content, "남길 버퍼", "live_catch_up_buffer_seconds", 1, 10, 3, "초");
         label(content, "동심원 버튼으로 앞으로 이동할 때 남길 영상의 길이입니다. 값을 줄이면 더 최신 위치로 이동하지만 끊김이 늘 수 있습니다.");
@@ -979,7 +994,8 @@ public final class ChzzkSettings {
         });
         toggle(content, "추가 증폭", "audio_boost", false);
         slider(content, "증폭 배율", "audio_volume", 100, 300, 100, "%");
-        label(content, "100%는 원래 음량입니다. 큰 소리가 찌그러지지 않도록 출력 한도를 제한합니다.");
+        label(content, "100%는 원래 음량, 200%는 +6dB입니다. 체감 음량이 두 배라는 뜻은 아닙니다.");
+        label(content, "추가 증폭을 켜면 자동 감쇄 없이 증폭합니다. 평준화와 함께 켜면 평준화한 소리를 증폭하며, 최대 출력을 넘는 부분은 잘릴 수 있습니다.");
         label(content, "이 기기에서 재생되는 소리에 바로 적용됩니다.");
     }
 

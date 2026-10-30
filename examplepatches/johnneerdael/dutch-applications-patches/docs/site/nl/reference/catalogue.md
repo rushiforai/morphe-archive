@@ -1,10 +1,51 @@
 # Patchcatalogus
 
-**Patchbundel: 1.13.0**
+**Patchbundel: 1.19.2**
 
 Controleer per patch welke app-versies worden ondersteund en of de patch standaard aanstaat. Patches voor dezelfde app kunnen verschillende versies ondersteunen.
 
 De Engelse beschrijvingen komen ongewijzigd uit het gepubliceerde `patches-list.json`. Op [de app-pagina’s](../apps/index.md) lees je in het Nederlands wat elke patch verandert en welke gegevens de app nog kan versturen.
+
+## 9292
+
+`nl.negentwee`
+
+### Disable tracking
+
+**Standaard: Aan**
+
+Disables optional app analytics, diagnostic collection, queued Firebase measurements, Usercentrics session pixels and Adyen analytics. Includes Hide ads. Preserves the functional API identity, travel location, consent choices, notifications and genuine checkout outcomes.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 2.48.1 | `ARM64_V8A`: 32189, `ARMEABI_V7A`: 32189, `X86`: 32189, `X86_64`: 32189 | 32 | Ondersteund |
+### Fix PairIP startup
+
+**Standaard: Aan**
+
+Stops 9292's local Play licensing entry point from redirecting re-signed builds to Play and scheduling shutdown. Preserves native application initialization, journeys, tickets and payment checks.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 2.48.1 | `ARM64_V8A`: 32189, `ARMEABI_V7A`: 32189, `X86`: 32189, `X86_64`: 32189 | 32 | Ondersteund |
+### Hide ads
+
+**Standaard: Aan**
+
+Uses 9292's native no-ad paths for Google/PubMatic, station ads and post-payment voucher promotions. Stops ad auto-initialization and advertising location publication while preserving journeys, precise location, tickets and payment outcomes.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 2.48.1 | `ARM64_V8A`: 32189, `ARMEABI_V7A`: 32189, `X86`: 32189, `X86_64`: 32189 | 32 | Ondersteund |
+### Skip consent screens
+
+**Standaard: Aan**
+
+Rejects advertising and analytics consent before startup onboarding is selected. Allows local trips, favourites and tickets through 9292's separate functional-data service. Includes ad and tracking controls and preserves native completion handling.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 2.48.1 | `ARM64_V8A`: 32189, `ARMEABI_V7A`: 32189, `X86`: 32189, `X86_64`: 32189 | 32 | Ondersteund |
 
 ## AD
 
@@ -214,7 +255,7 @@ Disables automatic usage/location telemetry, Firebase analytics/crash/performanc
 
 **Standaard: Aan**
 
-Restores captured startup strings and reflection registrations, merges the original embedded lifecycle DEX and bypasses only the damaged startup dispatcher and Java signature gate.
+Restores captured startup data, lifecycle helpers and functional car, audio, connectivity, location and background-work callbacks while avoiding damaged PairIP execution.
 
 | App-versie | Build per architectuur | Min. SDK | Status |
 | --- | --- | --- | --- |
@@ -297,6 +338,88 @@ Skips the post-edition account offer as a guest and hides the cookie notice whil
 | --- | --- | --- | --- |
 | 2.6.8 | `ARM64_V8A`: 58, `ARMEABI_V7A`: 58, `X86`: 58, `X86_64`: 58 | 32 | Ondersteund |
 
+## KIJK Android TV
+
+`com.talpa.kijk`
+
+### Disable tracking
+
+**Standaard: Aan**
+
+Limits the native advertising-ID bridge, disables hosted ID5/Conviva/GA/Sentry configuration and omits identified Tealium and measurement requests. Retains real consent, account and media services.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.2.7 | `ARM64_V8A`: 10003, `ARMEABI_V7A`: 10003, `X86`: 10003, `X86_64`: 10003 | 27 | Ondersteund |
+### Enable WebView debugging
+
+**Standaard: Uit**
+
+Diagnostic only: permits local inspection of KIJK's hosted frontend. Disabled by default; use for test builds.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.2.7 | `ARM64_V8A`: 10003, `ARMEABI_V7A`: 10003, `X86`: 10003, `X86_64`: 10003 | 27 | Ondersteund |
+### Hide ads
+
+**Standaard: Aan**
+
+Disables KIJK TV's client VAST/VMAP schedules, FreeWheel decisions and pause-ad display. Preserves content playback; broadcast or server-stitched ads require separate evidence.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.2.7 | `ARM64_V8A`: 10003, `ARMEABI_V7A`: 10003, `X86`: 10003, `X86_64`: 10003 | 27 | Ondersteund |
+
+## Marktplaats
+
+`nl.marktplaats.android`
+
+### Disable ThreatMetrix
+
+**Standaard: Aan**
+
+Stops ThreatMetrix initialization, device/security profiling and its session headers. Independent and enabled by default.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 16.17.0 | `ARM64_V8A`: 633462, `ARMEABI_V7A`: 633462, `X86`: 633462, `X86_64`: 633462 | 32 | Ondersteund |
+### Disable tracking
+
+**Standaard: Aan**
+
+Disables optional measurement while preserving normal marketplace services.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 16.17.0 | `ARM64_V8A`: 633462, `ARMEABI_V7A`: 633462, `X86`: 633462, `X86_64`: 633462 | 32 | Ondersteund |
+### Google sign-in via microG-Re
+
+**Standaard: Aan**
+
+Routes Google sign-in through an installed microG-Re with Credential Manager support. Preserves the original route when that service is unavailable; device sign-in testing is required.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 16.17.0 | `ARM64_V8A`: 633462, `ARMEABI_V7A`: 633462, `X86`: 633462, `X86_64`: 633462 | 32 | Ondersteund |
+### Hide ads
+
+**Standaard: Aan**
+
+Removes explicit display/native advertising slots and advertising startup while preserving genuine seller listings, promoted seller inventory, search metadata and functional services.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 16.17.0 | `ARM64_V8A`: 633462, `ARMEABI_V7A`: 633462, `X86`: 633462, `X86_64`: 633462 | 32 | Ondersteund |
+### Skip consent screens
+
+**Standaard: Aan**
+
+Prevents the startup cookie popup from being displayed and requests the SDK's reject-all choice. Manual privacy settings remain available.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 16.17.0 | `ARM64_V8A`: 633462, `ARMEABI_V7A`: 633462, `X86`: 633462, `X86_64`: 633462 | 32 | Ondersteund |
+
 ## NOS Teletekst
 
 `com.eoffice.android`
@@ -319,6 +442,38 @@ Stops the recurring NOS-app promotion on the scoreboard page. Preserves Teleteks
 | App-versie | Build per architectuur | Min. SDK | Status |
 | --- | --- | --- | --- |
 | 2.8.10 | `ARM64_V8A`: 62, `ARMEABI_V7A`: 62, `X86`: 62, `X86_64`: 62 | 23 | Ondersteund |
+
+## NPO Start Android TV
+
+`nl.uitzendinggemist`
+
+### Disable tracking
+
+**Standaard: Aan**
+
+Stops NPO Tag/Topspin/DAM, STER targeting, Bitmovin/Sentry collection, Cast/TV-ad diagnostics and Google telemetry collection/uploads, including queued batches. Preserves playback, authentication and functional Cast controls.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 1.48.2-2405 | `ARM64_V8A`: 245497937, `ARMEABI_V7A`: 245497937, `X86`: 245497937, `X86_64`: 245497937 | 32 | Ondersteund |
+### Fix PairIP startup
+
+**Standaard: Aan**
+
+Restores the exact TV startup data and lifecycle helpers, AppAuth discovery and token requests, network updates and audio-route events. Retains native VM execution for other protected callbacks.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 1.48.2-2405 | `ARM64_V8A`: 245497937, `ARMEABI_V7A`: 245497937, `X86`: 245497937, `X86_64`: 245497937 | 32 | Ondersteund |
+### Hide ads
+
+**Standaard: Aan**
+
+Suppresses nullable preroll inputs and the optional IMA ad loader. Uses the player's existing content-only path while retaining real content, DRM, subtitles and player state.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 1.48.2-2405 | `ARM64_V8A`: 245497937, `ARMEABI_V7A`: 245497937, `X86`: 245497937, `X86_64`: 245497937 | 32 | Ondersteund |
 
 ## NRC
 
@@ -592,6 +747,38 @@ Completes automatic consent refresh without opening the advertising choice scree
 | App-versie | Build per architectuur | Min. SDK | Status |
 | --- | --- | --- | --- |
 | 7.53.1 | `ARM64_V8A`: 23136515, `ARMEABI_V7A`: 23136515, `X86`: 23136515, `X86_64`: 23136515 | 32 | Ondersteund |
+
+## TVgids.nl
+
+`nl.tvgids`
+
+### Disable tracking
+
+**Standaard: Aan**
+
+Disables OSB, Comscore, Sentry and optional Facebook/Firebase measurement, tracking identifiers and queued telemetry. Includes Hide ads. Keeps manual privacy choices and functional account, guide and messaging paths.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.0.16 | `ARM64_V8A`: 106691, `ARMEABI_V7A`: 106691, `X86`: 106691, `X86_64`: 106691 | 26 | Ondersteund |
+### Hide ads
+
+**Standaard: Aan**
+
+Removes ad placements, their reserved space and explicitly branded promotions. Stops ad-only configuration requests and native ad startup/loading while preserving guide and editorial content.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.0.16 | `ARM64_V8A`: 106691, `ARMEABI_V7A`: 106691, `X86`: 106691, `X86_64`: 106691 | 26 | Ondersteund |
+### Skip consent screens
+
+**Standaard: Aan**
+
+Skips automatic privacy-consent screens after disabling ads and tracking. Records no consent choice and preserves manual cookie settings and existing choices.
+
+| App-versie | Build per architectuur | Min. SDK | Status |
+| --- | --- | --- | --- |
+| 7.0.16 | `ARM64_V8A`: 106691, `ARMEABI_V7A`: 106691, `X86`: 106691, `X86_64`: 106691 | 26 | Ondersteund |
 
 ## Voetbal International
 

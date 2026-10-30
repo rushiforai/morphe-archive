@@ -15,23 +15,28 @@ import static org.junit.Assert.*;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = {28, 36})
 public class InboxRefreshTest {
-    /** Stands in for Messenger's chat list supplier: a listed count, another int, and a static subscribe call. */
+    /** Stands in for Messenger's chat list supplier: a listed count, another int, and a static subscribe call with its flag. */
     static final class Supplier {
         int A00;
         int A03;
         int subscribes;
+        int unflagged;
         RuntimeException failure;
 
-        static void A04(Supplier supplier) {
+        static void A04(Supplier supplier, boolean retry) {
             supplier.subscribes++;
+            if (!retry) supplier.unflagged++;
             if (supplier.failure != null) throw supplier.failure;
         }
 
-        void A05(Supplier supplier) { supplier.subscribes++; }
+        /** 584's one-argument subscribe, which a 585 route must never reach. */
+        static void A06(Supplier supplier) { supplier.subscribes++; }
+
+        void A05(Supplier supplier, boolean retry) { supplier.subscribes++; }
     }
 
     private static final String TYPE = "L" + Supplier.class.getName().replace('.', '/') + ";";
-    private static final String ROUTE = TYPE + "->A04(" + TYPE + ")V|" + TYPE + "->A00:I";
+    private static final String ROUTE = TYPE + "->A04(" + TYPE + "Z)V|" + TYPE + "->A00:I";
     private static final long FIRST_CHECK = InboxRefresh.CHECKS_MS[0];
     private static final long ALL_CHECKS = InboxRefresh.CHECKS_MS[InboxRefresh.CHECKS_MS.length - 1];
     private static final int MOST_SUBSCRIBES = InboxRefresh.CHECKS_MS.length;
@@ -67,6 +72,8 @@ public class InboxRefreshTest {
         }
         idle(60_000);
         assertEquals(MOST_SUBSCRIBES, supplier.subscribes);
+        // Every extra subscribe passes true, as stock's own retries do.
+        assertEquals(0, supplier.unflagged);
         // Later reads of the same supplier never schedule it again.
         for (int i = 0; i < 5; i++) InboxRefresh.refresh(supplier, ROUTE);
         idle(60_000);
@@ -182,8 +189,10 @@ public class InboxRefreshTest {
         String[] wrong = {
             "changed",
             ROUTE + "|" + TYPE + "->A03:I",
-            ROUTE.replace("->A04(", "->A06("),
+            ROUTE.replace("->A04(", "->A07("),
             ROUTE.replace("->A04(", "->A05("),
+            ROUTE.replace("->A04(", "->A06(").replace("Z)V", ")V"),
+            ROUTE.replace("Z)V", "I)V"),
             ROUTE.replace("->A00:I", "->A07:I"),
             ROUTE.replace("->A00:I", "->failure:I"),
             ROUTE.replace("->A00:I", "->A00:J"),

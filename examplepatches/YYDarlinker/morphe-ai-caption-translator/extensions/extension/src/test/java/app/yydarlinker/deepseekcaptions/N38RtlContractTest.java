@@ -49,8 +49,7 @@ public class N38RtlContractTest {
   int actual=b.getPixel(Math.round(l+.9f*(r-l)),y);
   assertEquals("filled source-over alpha",alpha,Color.alpha(actual),1);
   assertEquals("filled RGB",primary&0xffffff,actual&0xffffff);
-  File dir=new File(System.getProperty("scheduler.output"));dir.mkdirs();
-  try(FileOutputStream out=new FileOutputStream(new File(dir,"rtl-opacity28-sdk"+android.os.Build.VERSION.SDK_INT+".png"))){b.compress(Bitmap.CompressFormat.PNG,100,out);}
+
  }
  public void touchUsesSameTravelAndValueIsNotInverted(){
   View root=row(DeepSeekSliderPreference.KEY_OPACITY);
@@ -64,11 +63,3 @@ public class N38RtlContractTest {
   }
  }
 }
-
-
-
-
-
-
-
-

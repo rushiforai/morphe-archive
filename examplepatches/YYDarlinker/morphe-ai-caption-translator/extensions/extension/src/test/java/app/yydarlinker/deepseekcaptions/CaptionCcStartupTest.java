@@ -123,6 +123,8 @@ public class CaptionCcStartupTest {
         CaptionButtonController.onPlayerStable();idle(200);assertFalse(active);
     }
     @Test public void aStableCcOnCannotInventANativeLanguage(){
+        assertEquals("",NativeCaptionBridge.nativeModelVideo(null));
+        assertEquals("",NativeCaptionBridge.nativeModelVideo(new Object()));
         entering(true);CaptionNativeProjection.beginVideo(B);stable();idle(300);
         assertEquals(CaptionIntentPolicy.ON,CaptionNativeProjection.ccState());assertEquals(0,starts);assertFalse(active);
         selected(B,"fr",true);CaptionSessionReconciler.onNativeSelection(a,CaptionPlayerAuthority.ownerEpoch(),false);

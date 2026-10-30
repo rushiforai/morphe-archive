@@ -1,0 +1,1 @@
+{"models": [{"name": "suv", "filename": "suv.fbx", "scale": 65.0, "colors": [{"colorID": 1, "light": {"texture": "texture.png"}, "dark": {"texture": "texture_dark.png"}}], "modelBasis": "Z_UP", "transform": "rotX 90 rotY -90 rotZ 0"}]}

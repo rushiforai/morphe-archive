@@ -10,6 +10,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 # Editorial destinations only; app names, versions and patches come from metadata.
 APP_PAGES = {
+    'be.persgroep.android.news.mobiledm': ('demorgen', 'news'),
+    'be.humo.tvgids': ('humo', 'news'),
+    'be.persgroep.android.news.mobilehln': ('hln', 'news'),
+    'com.twipemobile.nbmobile': ('nieuwsblad', 'news'),
+    'com.twipemobile.dsmobile': ('dsnieuws', 'news'),
+    'com.talpa.kijk': ('kijk-android-tv', 'entertainment'),
+    'nl.uitzendinggemist': ('npo-start-android-tv', 'entertainment'),
+    'nl.tvgids': ('tvgids-nl', 'entertainment'),
+    'nl.rtl.videoland.v2': ('videoland-android-tv', 'entertainment'),
+    'nl.marktplaats.android': ('marktplaats', 'other'),
+    'nl.negentwee': ('9292', 'mobility'),
     'org.yoki.android.buienalarm': ('buienalarm', 'weather'),
     'com.supportware.Buienradar': ('buienradar', 'weather'),
     'com.xs2theworld.weeronline': ('weeronline', 'weather'),
@@ -28,22 +39,64 @@ APP_PAGES = {
 }
 
 
-def render_home_apps(data, language):
-    """Render a progressively enhanced catalogue, usable without JavaScript."""
+def _app_groups(data):
+    groups = {}
+    for patch in (data or {}).get('patches', []):
+        for package in patch.get('compatiblePackages') or []:
+            key = (package['packageName'], package.get('formFactor'))
+            groups.setdefault(key, {'package': package, 'patches': []})['patches'].append((patch, package))
+    return groups
+
+
+def _app_profile(group):
+    # Compare controls/targets, not bundle versions or descriptive copy. Unchanged
+    # apps keep their stable card even when included in a newer dev bundle.
+    return sorted(json.dumps({
+        'name': patch['name'], 'default': patch.get('default', True),
+        'options': patch.get('options') or [],
+        'targets': sorted((package.get('targets') or []), key=lambda t: json.dumps(t, sort_keys=True)),
+    }, sort_keys=True) for patch, package in group['patches'])
+
+
+def _app_versions(group, dutch):
+    return list(dict.fromkeys(
+        str(t['version']) + ((' · experimenteel' if dutch else ' · experimental') if t.get('isExperimental') else '')
+        for _, package in group['patches'] for t in package.get('targets') or []))
+
+
+def _patch_rows(group, dutch):
+    rows = ['<ul>']
+    for patch, package in group['patches']:
+        versions = ', '.join(_app_versions({'patches': [(patch, package)]}, dutch))
+        target = versions or ('Geen specifieke versie opgegeven' if dutch else 'No specific version declared')
+        off = (' · standaard uit' if dutch else ' · default off') if not patch.get('default', True) else ''
+        rows.append(f'<li>{escape(patch["name"])} <span class="dap-app-card__target">{escape(target + off)}</span></li>')
+    return rows + ['</ul>']
+
+
+def render_home_apps(data, language, prerelease=None):
+    """List stable and published prerelease apps together, without changing metadata."""
     if language not in {'en', 'nl'}:
         raise ValueError('Supported catalogue languages: en, nl')
+    def is_prerelease(metadata):
+        return bool(re.match(r'^v?\d+\.\d+\.\d+-', str(metadata['version'])))
+    stable = None if is_prerelease(data) else data
+    preview = prerelease if prerelease is not None else (data if stable is None else None)
+    if preview is not None and not is_prerelease(preview):
+        raise ValueError('Expected prerelease metadata with a prerelease bundle version')
+    groups = _app_groups(stable)
+    for key, group in _app_groups(preview).items():
+        if key not in groups:
+            groups[key] = dict(group, prerelease_only=True)
+        elif _app_profile(groups[key]) != _app_profile(group):
+            groups[key]['prerelease'] = group
     dutch = language == 'nl'
     categories = dict(zip(
         ('all', 'weather', 'news', 'mobility', 'entertainment', 'other'),
         ('Alle apps', 'Weer', 'Nieuws en lezen', 'Verkeer', 'Amusement', 'Overige') if dutch else
         ('All apps', 'Weather', 'News and reading', 'Traffic', 'Entertainment', 'Other')))
-    groups = {}
-    for patch in data['patches']:
-        for package in patch.get('compatiblePackages') or []:
-            key = (package['packageName'], package.get('formFactor'))
-            groups.setdefault(key, {'package': package, 'patches': []})['patches'].append((patch, package))
     text = [
-        '<!-- Generated from patches-list.json; run scripts/generate_docs_catalog.py. -->',
+        '<!-- Generated from release metadata; run scripts/generate_docs_catalog.py. -->',
         '<div class="dap-catalogue" markdown>',
         '## Ondersteunde apps' if dutch else '## Supported apps', '',
         '<div class="dap-catalogue__tools" hidden>',
@@ -56,45 +109,70 @@ def render_home_apps(data, language):
     for key, label in categories.items():
         if key == 'all' or key in used:
             text.append(f'<button type="button" data-category="{key}" aria-pressed="{"true" if key == "all" else "false"}">{label}</button>')
+    channels = []
+    if stable is not None:
+        channels.append(('Stabiel' if dutch else 'Stable') + f' <span class="dap-data">{escape(stable["version"])}</span>')
+    if preview is not None:
+        channels.append(f'Pre-release <span class="dap-data">{escape(preview["version"])}</span>')
+    bundle_label = ('Patchbundels' if dutch else 'Patch bundles') if len(channels) > 1 else ('Patchbundel' if dutch else 'Patch bundle')
     text += ['</div>', '</div>',
-             f'<p class="dap-catalogue__status"><span data-app-count aria-live="polite" aria-atomic="true">{len(groups)} apps</span> · '
-             f'{"Patchbundel" if dutch else "Patch bundle"} <span class="dap-data">{escape(data["version"])}</span></p>',
-             '<div class="dap-app-grid" markdown>']
+             f'<p class="dap-catalogue__status"><span data-app-count aria-live="polite" aria-atomic="true">{len(groups)} apps</span> · ' +
+             bundle_label + ': ' + ' · '.join(f'<span class="dap-catalogue__channel">{channel}</span>' for channel in channels) +
+             '</p>', '<div class="dap-app-grid" markdown>']
     for group in sorted(groups.values(), key=lambda g: g['package']['name'].casefold()):
         package = group['package']
         slug, category = APP_PAGES.get(package['packageName'], (None, 'other'))
         name = package['name']
-        if package.get('formFactor') not in (None, 'MOBILE'):
+        if package.get('formFactor') not in (None, 'MOBILE') and not name.endswith('Android TV'):
             name += f' ({package["formFactor"]})'
+        only_preview = group.get('prerelease_only', False)
+        extra = group.get('prerelease')
+        has_preview = only_preview or extra is not None
         anchor = re.sub(r'[^\w\- ]', '', package['name'].lower()).replace(' ', '-')
         destination = f'apps/{slug}.md' if slug else f'reference/catalogue.md#{anchor}'
-        versions = list(dict.fromkeys(
-            str(t['version']) + ((' · experimenteel' if dutch else ' · experimental') if t.get('isExperimental') else '')
-            for _, p in group['patches'] for t in p.get('targets') or []))
-        search = ' '.join([name, package['packageName'], *versions,
-                           *(p['name'] for p, _ in group['patches'])]).lower()
-        text += [f'<article class="dap-app-card" data-category="{category}" data-search="{escape(search, quote=True)}" markdown>',
-                 f'<p class="dap-app-card__category">{categories[category]}</p>', '',
+        if not slug and only_preview:
+            destination = f'https://github.com/johnneerdael/dutch-applications-patches/blob/dev/docs/site/{language}/reference/catalogue.md#{anchor}'
+        versions = _app_versions(group, dutch)
+        extra_versions = [v for v in _app_versions(extra, dutch) if v not in versions] if extra else []
+        all_patches = group['patches'] + (extra['patches'] if extra else [])
+        search = ' '.join([name, package['packageName'], *versions, *extra_versions,
+                           'pre-release prerelease' if has_preview else '',
+                           *(patch['name'] for patch, _ in all_patches)]).lower()
+        channel = 'prerelease' if only_preview else ('stable prerelease' if extra else 'stable')
+        badge = ''
+        if has_preview:
+            label = 'Pre-release'
+            badge = f'<span class="dap-app-card__badge">{label}</span>'
+        text += [f'<article class="dap-app-card" data-category="{category}" data-channel="{channel}" data-search="{escape(search, quote=True)}" markdown>',
+                 f'<div class="dap-app-card__meta"><p class="dap-app-card__category">{categories[category]}</p>{badge}</div>', '',
                  f'### [{escape(name)}]({destination})', '',
                  '<p class="dap-app-card__version">' + ('App-versies' if dutch else 'App versions') +
-                 ': <span class="dap-data">' + escape(', '.join(versions) or ('Niet opgegeven' if dutch else 'Not specified')) + '</span></p>',
-                 f'<p class="dap-app-card__package">{escape(package["packageName"])}</p>',
-                 '<details class="dap-app-card__patches">',
-                 f'<summary>{len(group["patches"])} {"patch" if len(group["patches"]) == 1 else "patches"}</summary>', '<ul>']
-        for patch, own_package in group['patches']:
-            targets = ', '.join(str(t['version']) +
-                                ((' · experimenteel' if dutch else ' · experimental') if t.get('isExperimental') else '')
-                                for t in own_package.get('targets') or [])
-            target_label = targets or ('Geen specifieke versie opgegeven' if dutch else 'No specific version declared')
-            off = (' · standaard uit' if dutch else ' · default off') if not patch.get('default', True) else ''
-            text.append(f'<li>{escape(patch["name"])} <span class="dap-app-card__target">{escape(target_label + off)}</span></li>')
-        text += ['</ul>', '</details>', '',
+                 ': <span class="dap-data">' + escape(', '.join(versions) or ('Niet opgegeven' if dutch else 'Not specified')) + '</span></p>']
+        if extra_versions:
+            text.append('<p class="dap-app-card__version">Pre-release: <span class="dap-data">' + escape(', '.join(extra_versions)) + '</span></p>')
+        text += [f'<p class="dap-app-card__package">{escape(package["packageName"])}</p>',
+                 '<details class="dap-app-card__patches">']
+        if extra:
+            summary = f'{len(group["patches"])} {"stabiel" if dutch else "stable"} · {len(extra["patches"])} pre-release patches'
+        elif only_preview:
+            summary = f'{len(group["patches"])} pre-release patches'
+        else:
+            summary = f'{len(group["patches"])} {"patch" if len(group["patches"]) == 1 else "patches"}'
+        text.append(f'<summary>{summary}</summary>')
+        if extra:
+            text.append('<p class="dap-app-card__channel">' + ('Stabiel' if dutch else 'Stable') + '</p>')
+        text += _patch_rows(group, dutch)
+        if extra:
+            text.append('<p class="dap-app-card__channel">Pre-release</p>')
+            text += _patch_rows(extra, dutch)
+        text += ['</details>', '',
                  f'[{"Uitleg en downloads" if dutch else "Guide and downloads"}]({destination}){{ .dap-app-card__link }}',
                  '', '</article>', '']
+    details_label = ('Stabiele patchcatalogus' if dutch else 'Stable patch catalogue') if stable is not None else ('Pre-release patchcatalogus' if dutch else 'Pre-release patch catalogue')
     text += ['</div>', '<p class="dap-catalogue__empty" hidden>' +
              ('Geen apps gevonden. Pas je zoekopdracht of filter aan.' if dutch else 'No matching apps. Change your search or category filter.') + '</p>',
              '', ('Versies kunnen per patch verschillen. ' if dutch else 'Versions may differ by patch. ') +
-             ('[Bekijk alle patchdetails](reference/catalogue.md).' if dutch else '[View all patch details](reference/catalogue.md).'),
+             f'[{details_label}](reference/catalogue.md).',
              '', '</div>']
     return '\n'.join(text)
 
@@ -150,14 +228,17 @@ def render(data, language):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true', help='Fail if committed catalogues differ from metadata')
+    parser.add_argument('--prerelease-metadata', type=Path,
+                        help='Published prerelease patches-list.json to include on homepages only')
     args = parser.parse_args()
     data = json.loads((ROOT / 'patches-list.json').read_text())
+    prerelease = json.loads(args.prerelease_metadata.read_text()) if args.prerelease_metadata else None
     stale = []
     for lang in ('nl', 'en'):
         home = ROOT / 'docs/site' / lang / 'index.md'
         home_text, count = re.subn(
             r'(?s)(<!-- HOME_APPS_START -->\n).*?(<!-- HOME_APPS_END -->)',
-            lambda m: m[1] + render_home_apps(data, lang) + '\n' + m[2], home.read_text())
+            lambda m: m[1] + render_home_apps(data, lang, prerelease=prerelease) + '\n' + m[2], home.read_text())
         if count != 1:
             raise ValueError(f'Expected one homepage app catalogue marker in {home}')
         for target, expected in [(ROOT / 'docs/site' / lang / 'reference/catalogue.md', render(data, lang)),

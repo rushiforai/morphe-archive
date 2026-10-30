@@ -25,6 +25,7 @@ val gmsCoreSupportPatch = bytecodePatch(
     default = false
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Feature")
     dependsOn(settingsPatch, gmsCoreSupportResourcePatch(LINKEDIN_PACKAGE, LINKEDIN_SIGNATURE))
 
     execute {

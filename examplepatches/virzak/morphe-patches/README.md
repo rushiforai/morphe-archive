@@ -4,9 +4,9 @@ A personal [Morphe](https://github.com/MorpheApp) patch source. Add it once and 
 in Morphe alongside the built-in patches; each app it supports appears as its own section on
 the patch screen.
 
-It currently ships patches for **RuTube**. A Morphe source can carry more than one app, so
-others may be added here over time - if you have already added the source, new apps arrive
-with the next update, nothing to re-add.
+Today it ships patches for **RuTube** and **Toyota**, with **Instagram** the actively
+developed flagship. A Morphe source can carry more than one app, so if you have already
+added the source, new apps and patches arrive with the next update, nothing to re-add.
 
 ## ➕ Add it to Morphe
 

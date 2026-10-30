@@ -866,18 +866,18 @@ final class ValueRows {
         /** Says why Save was refused. The page sets it, since its dialogs close with it. */
         @Nullable Consumer<String> refused;
 
-        /** Whether it's the logo's row rather than the badges'. */
-        final boolean logo;
+        /** Whose row it is: the badges', the logo's or the selected tab's. */
+        final app.morphe.extension.facebook.theme.MarkColors.Mark mark;
 
-        MarkColorRow(Context context, boolean logo) {
+        MarkColorRow(Context context, app.morphe.extension.facebook.theme.MarkColors.Mark mark) {
             super(context);
-            this.logo = logo;
+            this.mark = mark;
         }
 
         @Override
         public void setText(String text) {
             super.setText(text);
-            setSummary(HushfacebookPreferenceFragment.markColorSummary(logo, text));
+            setSummary(HushfacebookPreferenceFragment.markColorSummary(mark, text));
         }
 
         @Override

@@ -701,6 +701,31 @@ public final class MediaSave {
     }
 
     /**
+     * What the report adds to a save line when Never save AV1 video (#379) passed over an AV1
+     * picture of [tracks] larger than the [saved] one within [quality], or nothing. So a report
+     * shows the switch, not the phone or the quality, is why a smaller picture was saved.
+     */
+    private static String av1Note(boolean skipAv1, List<DashManifest.Track> tracks, int saved, DownloadQuality quality) {
+        if (!skipAv1) return "";
+        DashManifest.Track passed = better(av1Split(tracks, true), saved, quality);
+        return passed == null ? "" : ", passing over the manifest's " + passed + " as Never save AV1 video is on";
+    }
+
+    /** [tracks] without its AV1 pictures: what a save with Never save AV1 video on is weighed against (#379). */
+    private static List<DashManifest.Track> withoutAv1(List<DashManifest.Track> tracks) {
+        return av1Split(tracks, false);
+    }
+
+    /** The AV1 pictures of [tracks] when [av1], else everything but them. Sound tracks stay with the latter. */
+    private static List<DashManifest.Track> av1Split(List<DashManifest.Track> tracks, boolean av1) {
+        List<DashManifest.Track> kept = new ArrayList<>(tracks.size());
+        for (DashManifest.Track track : tracks) {
+            if (track.codecs.startsWith("av01") == av1) kept.add(track);
+        }
+        return kept;
+    }
+
+    /**
      * The largest picture of [tracks] that fits [quality] and is larger than a saved one of quality
      * [saved], whatever its format, or null: the picture the app's player can show that the save
      * didn't keep. AV1 on a phone with no AV1 decoder is one, and so is any picture of a DASH save
@@ -781,6 +806,19 @@ public final class MediaSave {
     static boolean convertSaves() {
         try {
             return compatibleSaves() && Settings.DOWNLOAD_CONVERT.get();
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /**
+     * Whether the save starting now passes AV1 tracks over ({@link Settings#DOWNLOAD_NO_AV1}), the
+     * way a phone with no AV1 decoder does (#379). Read when the save starts. Never throws: before
+     * the settings are ready, or when they can't be read, it's off.
+     */
+    static boolean skipsAv1() {
+        try {
+            return Utils.settingsReady() && Settings.DOWNLOAD_NO_AV1.get();
         } catch (Throwable t) {
             return false;
         }
@@ -1006,11 +1044,14 @@ public final class MediaSave {
             if (MediaUrlPolicy.shapeRefusal(track.url) == null) tracks.add(track);
         }
         renditions = metaOnly(renditions);
-        boolean allowAv1 = DashSave.canWriteAv1();
+        boolean skipAv1 = skipsAv1();
+        boolean allowAv1 = DashSave.canWriteAv1() && !skipAv1;
         // What a save below is weighed against when it tells the person it's lower. Not with saves
         // other apps can open on: that switch passes better pictures over by choice, and its own
-        // report lines say so.
-        List<DashManifest.Track> offered = compatible ? Collections.emptyList() : tracks;
+        // report lines say so. Nor an AV1 picture with Never save AV1 video on (#379): the save
+        // line names what that switch passed over, and a choice isn't a shortfall.
+        List<DashManifest.Track> offered = compatible ? Collections.emptyList()
+            : skipAv1 ? withoutAv1(tracks) : tracks;
 
         // What the pick below chose from, as each track's type, codec, size and bitrate. Never its
         // address: the report is pasted into public issues.
@@ -1034,7 +1075,9 @@ public final class MediaSave {
                 "the manifest has no H.264 video with AAC-LC or HE-AAC sound", null, quality, writer, progress);
         }
         if (choice.taken == null && kept == null) {
-            info(() -> "the manifest of " + label + " has no track to save: " + tracks);
+            info(() -> "the manifest of " + label + " has no track to save"
+                + (skipAv1 && withoutAv1(tracks).size() < tracks.size() ? " with Never save AV1 video on" : "")
+                + ": " + tracks);
             return saveSingleVideo(application, renditions, offered, Dash.SINGLE_FILE,
                 "the manifest has no track to save", null, quality, writer, progress);
         }
@@ -1066,7 +1109,8 @@ public final class MediaSave {
             + qualityNote(quality)
             + (choice.converts ? ", converted to H.264 for other apps" : compatibleNote(keptCompatible))
             + (choice.soundFromFile ? ", the manifest's sound being only xHE-AAC" : soundNote(audio))
-            + belowNote(better));
+            + belowNote(better)
+            + av1Note(skipAv1, tracks, picture(video, quality), quality));
 
         Downloader.Result result = dashJob(application, video, audio, fallback, quality, choice.converts, instead,
             choice.soundFromFile).run(writer, progress);
@@ -1088,7 +1132,8 @@ public final class MediaSave {
         }
         if (largest == null) return;
         DashManifest.Track picture = largest;
-        String why = VideoConvert.whyNot(picture, allowAv1);
+        String why = picture.codecs.startsWith("av01") && skipsAv1()
+            ? "Never save AV1 video is on" : VideoConvert.whyNot(picture, allowAv1);
         info(() -> "not converting " + label + "'s " + picture + ": "
             + (why != null ? why : "what's saved suits the quality as well"));
     }
@@ -1227,7 +1272,7 @@ public final class MediaSave {
         for (DashManifest.Track track : DashManifest.parse(manifest)) {
             if (MediaUrlPolicy.shapeRefusal(track.url) == null) tracks.add(track);
         }
-        DashChoice choice = DashChoice.of(tracks, files, quality, compatibleSaves(), DashSave.canWriteAv1(),
+        DashChoice choice = DashChoice.of(tracks, files, quality, compatibleSaves(), DashSave.canWriteAv1() && !skipsAv1(),
             convertible(convertSaves()));
         return new Planned(choice.fallback, choice.taken == null ? null : choice.taken.video);
     }

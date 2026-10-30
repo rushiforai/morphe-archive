@@ -11,7 +11,7 @@ import java.security.MessageDigest
 fun main(args: Array<String>) {
     val original = File(args[0]).readBytes()
     val bundle = HermesBundle(original)
-    check(bundle.function("KicksShopButton").offset == 0x8e36c9)
+    check(bundle.function("KicksShopButton").offset == 0x8e3709)
     check(bundle.function("preferencesSettingsSlice").body.size == 97)
     fun rejects(block: () -> Unit) = check(runCatching(block).isFailure)
     rejects { HermesBundle(original.copyOf().also { it[8] = 98 }) }

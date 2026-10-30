@@ -111,8 +111,9 @@ public class ConfigurationBackupTest {
         original.edit().putString("private-session", "secret-token").commit();
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_ADS);
         JSONObject values = new JSONObject(new String(ConfigurationBackup.export(), StandardCharsets.UTF_8)).getJSONObject("settings");
-        assertEquals(9, values.length());
+        assertEquals(10, values.length());
         assertFalse(values.getJSONObject(Settings.DATE_SETTINGS_EXPORT.key).getBoolean("value"));
+        assertFalse(values.getJSONObject(Settings.DESCRIPTIONS_BEHIND_INFO.key).getBoolean("value"));
         assertTrue(values.getJSONObject(Settings.HIDE_ADS.key).getBoolean("value"));
         assertTrue(values.has(BaseSettings.DEBUG.key));
         assertEquals("OFF", values.getJSONObject(Settings.NAVIGATION_SETTINGS_TARGET.key).getString("value"));
@@ -358,6 +359,122 @@ public class ConfigurationBackupTest {
         assertEquals(1, unknown.skipped);
         assertEquals(StoryRingColor.BLUE, Settings.STORY_RING_COLOR.savedValue());
         assertEquals(StoryRingSize.SMALLER, Settings.STORY_RING_SCALE.savedValue());
+    }
+
+    // The glass sliders (#391) travel as whole numbers and come back without a restart. A number outside
+    // the slider's range, or one that isn't a whole number, is skipped while the rest of the file applies.
+    @Test public void glassSlidersRoundTripAsWholeNumbersInsideTheirRange() throws Exception {
+        Settings.GLASS_TAB_BAR_OPACITY.save(65);
+        Settings.GLASS_TAB_BAR_BLUR_RADIUS.save(36);
+        byte[] exported = ConfigurationBackup.export();
+        JSONObject values = new JSONObject(new String(exported, StandardCharsets.UTF_8)).getJSONObject("settings");
+        assertEquals("integer", values.getJSONObject(Settings.GLASS_TAB_BAR_OPACITY.key).getString("type"));
+        assertEquals(65, values.getJSONObject(Settings.GLASS_TAB_BAR_OPACITY.key).getInt("value"));
+        assertEquals(36, values.getJSONObject(Settings.GLASS_TAB_BAR_BLUR_RADIUS.key).getInt("value"));
+        Settings.GLASS_TAB_BAR_OPACITY.resetToDefault();
+        Settings.GLASS_TAB_BAR_BLUR_RADIUS.resetToDefault();
+
+        ConfigurationBackup.Result restored = ConfigurationBackup.restore(exported);
+        assertEquals(0, restored.skipped);
+        assertFalse("the sliders show at once", restored.restart);
+        assertEquals(65, (int) Settings.GLASS_TAB_BAR_OPACITY.savedValue());
+        assertEquals(36, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
+        assertEquals("65", original.getString(Settings.GLASS_TAB_BAR_OPACITY.key, ""));
+        ConfigurationBackup.forgetUndo();
+
+        for (String entry : new String[]{
+                entry(Settings.GLASS_TAB_BAR_OPACITY.key, "integer", 151),
+                entry(Settings.GLASS_TAB_BAR_OPACITY.key, "integer", -1),
+                entry(Settings.GLASS_TAB_BAR_OPACITY.key, "integer", 12.5),
+                entry(Settings.GLASS_TAB_BAR_OPACITY.key, "integer", "80"),
+                entry(Settings.GLASS_TAB_BAR_OPACITY.key, "enum", "FROSTED"),
+                entry(Settings.GLASS_TAB_BAR_BLUR_RADIUS.key, "integer", 1),
+                entry(Settings.GLASS_TAB_BAR_BLUR_RADIUS.key, "integer", 49),
+                entry(Settings.GLASS_TAB_BAR_BLUR_RADIUS.key, "string", "20"),
+        }) {
+            ConfigurationBackup.Result refused = ConfigurationBackup.restore(file(entry(Settings.HIDE_ADS.key, "boolean", false) + "," + entry));
+            assertEquals(entry, 1, refused.skipped);
+            assertFalse(entry, Settings.HIDE_ADS.savedValue());
+            assertEquals(entry, 65, (int) Settings.GLASS_TAB_BAR_OPACITY.savedValue());
+            assertEquals(entry, 36, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
+            Settings.HIDE_ADS.resetToDefault();
+            ConfigurationBackup.forgetUndo();
+        }
+        assertEquals(0, ConfigurationBackup.accepted(Settings.GLASS_TAB_BAR_OPACITY, "integer", 0));
+        assertEquals(150, ConfigurationBackup.accepted(Settings.GLASS_TAB_BAR_OPACITY, "integer", 150));
+        assertEquals(2, ConfigurationBackup.accepted(Settings.GLASS_TAB_BAR_BLUR_RADIUS, "integer", 2));
+        assertEquals(48, ConfigurationBackup.accepted(Settings.GLASS_TAB_BAR_BLUR_RADIUS, "integer", 48));
+    }
+
+    // A file an older build exported carries the glass steps under their old keys. Each comes back as the
+    // value it drew, a step this build never had is skipped, and a file that carries a slider too keeps the slider.
+    @Test public void glassStepsFromAnOlderFileComeBackAsTheValueTheyDrew() throws Exception {
+        assertFalse(ConfigurationBackup.eligible().containsKey(Settings.OLD_GLASS_BLUR_KEY));
+        assertFalse(ConfigurationBackup.eligible().containsKey(Settings.OLD_GLASS_OPACITY_KEY));
+        ConfigurationBackup.Result restored = ConfigurationBackup.restore(file(
+                entry(Settings.OLD_GLASS_BLUR_KEY, "enum", "STRONG") + "," + entry(Settings.OLD_GLASS_OPACITY_KEY, "enum", "FROSTED")));
+        assertEquals(2, restored.applied);
+        assertEquals(0, restored.skipped);
+        assertEquals(30, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
+        assertEquals(135, (int) Settings.GLASS_TAB_BAR_OPACITY.savedValue());
+        assertFalse("nothing is saved under the old keys", original.contains(Settings.OLD_GLASS_BLUR_KEY));
+        assertFalse(original.contains(Settings.OLD_GLASS_OPACITY_KEY));
+        ConfigurationBackup.forgetUndo();
+
+        ConfigurationBackup.Result light = ConfigurationBackup.restore(file(
+                entry(Settings.OLD_GLASS_BLUR_KEY, "enum", "LIGHT") + "," + entry(Settings.OLD_GLASS_OPACITY_KEY, "enum", "CLEAR")));
+        assertEquals(2, light.applied);
+        assertEquals(9, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
+        assertEquals(50, (int) Settings.GLASS_TAB_BAR_OPACITY.savedValue());
+        ConfigurationBackup.forgetUndo();
+
+        ConfigurationBackup.Result unknown = ConfigurationBackup.restore(file(
+                entry(Settings.OLD_GLASS_BLUR_KEY, "enum", "HEAVY") + "," + entry(Settings.OLD_GLASS_OPACITY_KEY, "string", "STANDARD")
+                        + "," + entry(Settings.HIDE_ADS.key, "boolean", false)));
+        assertEquals(1, unknown.applied);
+        assertEquals(2, unknown.skipped);
+        assertEquals(9, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
+        assertEquals(50, (int) Settings.GLASS_TAB_BAR_OPACITY.savedValue());
+        ConfigurationBackup.forgetUndo();
+
+        ConfigurationBackup.Result both = ConfigurationBackup.restore(file(
+                entry(Settings.OLD_GLASS_BLUR_KEY, "enum", "STRONG") + "," + entry(Settings.GLASS_TAB_BAR_BLUR_RADIUS.key, "integer", 12)));
+        assertEquals(1, both.applied);
+        assertEquals(1, both.skipped);
+        assertEquals(12, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
+        ConfigurationBackup.forgetUndo();
+
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_ADS);
+        assertNull("no glass bar in the build, no slider to carry a step to", ConfigurationBackup.oldGlassStep(
+                Settings.OLD_GLASS_BLUR_KEY, "enum", "STRONG", ConfigurationBackup.eligible()));
+    }
+
+    // A step saved on the phone by an older build becomes the slider's value the first time this build's
+    // settings load, its key goes, and a slider the user already moved is left alone (#391).
+    @Test public void glassStepsSavedByAnOlderBuildCarryOverOnceToTheSliders() {
+        original.edit().putString(Settings.OLD_GLASS_BLUR_KEY, "STRONG").putString(Settings.OLD_GLASS_OPACITY_KEY, "CLEAR").commit();
+        Settings.carryOverGlassSteps();
+        assertEquals(30, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
+        assertEquals(50, (int) Settings.GLASS_TAB_BAR_OPACITY.savedValue());
+        assertFalse(original.contains(Settings.OLD_GLASS_BLUR_KEY));
+        assertFalse(original.contains(Settings.OLD_GLASS_OPACITY_KEY));
+
+        original.edit().putString(Settings.OLD_GLASS_BLUR_KEY, "LIGHT").putString(Settings.OLD_GLASS_OPACITY_KEY, "FROSTED").commit();
+        Settings.carryOverGlassSteps();
+        assertEquals("the slider already moved, so the step is dropped", 30, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
+        assertEquals(50, (int) Settings.GLASS_TAB_BAR_OPACITY.savedValue());
+        assertFalse(original.contains(Settings.OLD_GLASS_BLUR_KEY));
+        assertFalse(original.contains(Settings.OLD_GLASS_OPACITY_KEY));
+
+        Settings.GLASS_TAB_BAR_BLUR_RADIUS.resetToDefault();
+        Settings.GLASS_TAB_BAR_OPACITY.resetToDefault();
+        original.edit().putString(Settings.OLD_GLASS_BLUR_KEY, "HEAVY").putString(Settings.OLD_GLASS_OPACITY_KEY, "STANDARD").commit();
+        Settings.carryOverGlassSteps();
+        assertEquals("a step this build never had draws the standard", 18, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
+        assertEquals(100, (int) Settings.GLASS_TAB_BAR_OPACITY.savedValue());
+        assertFalse(original.contains(Settings.OLD_GLASS_BLUR_KEY));
+        assertFalse(original.contains(Settings.OLD_GLASS_OPACITY_KEY));
+        assertFalse("standard saves nothing", original.contains(Settings.GLASS_TAB_BAR_OPACITY.key));
     }
 
     @Test public void documentedRestartChoicesShareMetadataWithRowAndImportFeedback() throws Exception {

@@ -100,6 +100,64 @@ public class TonePaletteTest {
         }
     }
 
+    /** #115: a theme's two colours make a palette with the same shape as the wallpaper's. */
+    @Test public void aPaletteFromTwoColoursKeepsTheirHuesAtEveryTone() {
+        int pink = 0xFFE1306C, plum = 0xFF1A1418;
+        for (TonePalette p : new TonePalette[]{TonePalette.fromSeeds(pink, plum), TonePalette.fromAccent(pink)}) {
+            assertFalse(p.dynamic);
+            for (int family : new int[]{TonePalette.ACCENT, TonePalette.NEUTRAL, TonePalette.NEUTRAL_VARIANT}) {
+                assertEquals("tone 0 is black", 0xFF000000, p.tone(family, 0));
+                assertEquals("tone 100 is white", 0xFFFFFFFF, p.tone(family, 100));
+                double prev = -1;
+                for (int tone : TonePalette.TONES) {
+                    double l = TonePalette.lstar(p.tone(family, tone));
+                    assertEquals("family " + family + " tone " + tone + " sits at its tone", tone, l, 0.6);
+                    assertTrue("family " + family + " tone " + tone + " brighter than previous", l >= prev);
+                    prev = l;
+                }
+            }
+            // The accent keeps the seed's hue where there's room for colour.
+            for (int tone : new int[]{30, 40, 50, 60, 70, 80})
+                assertEquals("accent tone " + tone, hue(pink), hue(p.tone(TonePalette.ACCENT, tone)), 6);
+        }
+        TonePalette two = TonePalette.fromSeeds(pink, plum);
+        assertEquals(two.tone(TonePalette.NEUTRAL, 50), two.tone(TonePalette.NEUTRAL_VARIANT, 50));
+        // The plum is barely coloured (chroma about 4), so a step of rounding moves its hue further.
+        assertEquals("neutral tone 50", hue(plum), hue(two.tone(TonePalette.NEUTRAL, 50)), 15);
+        assertTrue("the neutral is no more colourful than its seed", chroma(two.tone(TonePalette.NEUTRAL, 50)) <= chroma(plum) + 1.5);
+        // On its own, the accent's neutrals are its hue, barely tinted.
+        TonePalette one = TonePalette.fromAccent(pink);
+        assertEquals(TonePalette.NEUTRAL_CHROMA, chroma(one.tone(TonePalette.NEUTRAL, 50)), 1.5);
+        assertEquals("neutral tone 50", hue(pink), hue(one.tone(TonePalette.NEUTRAL, 50)), 15);
+        // A grey seed stays grey.
+        int grey = TonePalette.fromSeeds(pink, 0xFF333333).tone(TonePalette.NEUTRAL, 50);
+        assertEquals(((grey >> 16) & 0xFF), grey & 0xFF);
+        assertEquals(((grey >> 8) & 0xFF), grey & 0xFF);
+    }
+
+    /** CIE Lab hue in degrees and chroma, worked from sRGB so the test doesn't share the palette's code. */
+    private static double[] lch(int color) {
+        double[] linear = new double[3];
+        for (int i = 0; i < 3; i++) {
+            double c = ((color >> (16 - 8 * i)) & 0xFF) / 255.0;
+            linear[i] = c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+        }
+        double x = (0.4124 * linear[0] + 0.3576 * linear[1] + 0.1805 * linear[2]) / 0.95047;
+        double y = 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+        double z = (0.0193 * linear[0] + 0.1192 * linear[1] + 0.9505 * linear[2]) / 1.08883;
+        double fx = f(x), fy = f(y), fz = f(z);
+        double a = 500 * (fx - fy), b = 200 * (fy - fz);
+        return new double[]{Math.toDegrees(Math.atan2(b, a)), Math.hypot(a, b)};
+    }
+
+    private static double f(double t) {
+        return t > 216.0 / 24389.0 ? Math.cbrt(t) : (24389.0 / 27.0 * t + 16) / 116;
+    }
+
+    private static double hue(int color) { return lch(color)[0]; }
+
+    private static double chroma(int color) { return lch(color)[1]; }
+
     @Test(expected = IllegalArgumentException.class)
     public void anUnknownToneThrows() {
         TonePalette.fallback().tone(TonePalette.ACCENT, 42);

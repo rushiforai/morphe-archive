@@ -389,6 +389,43 @@ public class FullScreenBarsTest {
     }
 
     /**
+     * #385: a reel opened from its author's profile plays in the profile's window, and Back leaves it
+     * for the profile in that same window. The hide wrote 0 into Instagram's copy and no pass of its
+     * listener came after the show, so the profile kept no room for the status bar and its name sat
+     * under the clock. The show writes back the heights Instagram last offered, and the kept listeners
+     * hear them without waiting for a pass.
+     */
+    @Test public void leavingAReelInItsOwnWindowGivesTheHeightsBack() {
+        List<String> told = new ArrayList<>();
+        FullScreenBars.resetHeightsForTests((listener, status, nav) -> told.add(listener + " " + status + " " + nav));
+        FullScreenBars.registeredForTests(true);
+        try {
+            Settings.FULL_SCREEN_REELS.save(true);
+            FullScreenBars.nowResumed(activity);
+            FullScreenBars.heightsAsked(activity, "profile");
+            heights(75, 135);
+            showViewer(W, H);
+            FullScreenBars.Session session = watch();
+            assertTrue(session.isHidden());
+            shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(Arrays.asList("profile 75 135", "profile 0 0"), told);
+
+            root.removeView(viewer);
+            layout();
+            session.evaluate();
+            assertFalse(session.isHidden());
+            shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("told with no pass of Instagram's", Arrays.asList("profile 75 135", "profile 0 0", "profile 75 135"), told);
+            assertArrayEquals("nothing is owed back", new int[] {0, 0}, FullScreenBars.heightsToGiveBack());
+            heights(75, 135);
+            assertEquals("the pass after it tells nothing new", 3, told.size());
+        } finally {
+            FullScreenBars.registeredForTests(false);
+            FullScreenBars.resetHeightsForTests(null);
+        }
+    }
+
+    /**
      * #203: with Full screen Home on, the first tab opened from Home (Messages, Profile) was built
      * while Home had the bars hidden, so it heard 0 and drew under the status bar until the next
      * switch. Its kept listener hears the real heights once the bars come back.

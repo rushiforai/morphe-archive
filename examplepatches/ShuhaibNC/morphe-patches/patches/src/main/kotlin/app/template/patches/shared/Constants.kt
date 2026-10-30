@@ -363,7 +363,6 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = "7.1.5.974952539",
-                versionCode = 2024017
             )
         )
     )

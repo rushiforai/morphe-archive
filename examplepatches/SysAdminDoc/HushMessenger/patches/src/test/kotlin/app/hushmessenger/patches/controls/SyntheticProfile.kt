@@ -24,10 +24,11 @@ internal val syntheticHooks: Map<String, Set<String>> = mapOf(
         "LX/JjY;->A01()Z", "LX/JjZ;->A01()Z", "LX/Jjb;->A06()Z", "LX/Jjc;->A06()Z", "LX/Jjd;->A06()Z",
     ),
     FACEBOOK_PROFILE to setOf("LX/JjV;->A03()Z", "LX/JjW;->A03()Z"),
+    FACEBOOK_PROFILE_HEADER to setOf(SYNTHETIC_PROFILE_HEADER),
     "ai_menu" to setOf("LX/HFe;->A00()Z", "LX/HFe;->A01()Z", "LX/Jiu;->A00()Z", "LX/Jiu;->A01()Z"),
     "ai_fab" to setOf("LX/6k8;->render(LX/2MZ;)LX/1GG;"),
-    "ai_sticker_cell" to setOf("LX/CSp;->render(LX/2DF;)LX/1J7;"),
-    "ai_sticker_grid" to setOf("LX/CZ2;->render(LX/2DF;)LX/1J7;"),
+    "ai_sticker_cell" to setOf("LX/R3i;->render(LX/2ED;)LX/1IG;"),
+    "ai_sticker_grid" to setOf("LX/CZ2;->render(LX/2ED;)LX/1IG;"),
     "subtabs" to setOf("LX/2UL;->run()V"),
     "typing" to setOf("LX/Ahp;->run()V"),
     "typing_mailbox" to setOf("LX/8eb;->A0I(Ljava/lang/String;Z)LX/325;"),
@@ -51,7 +52,7 @@ internal val syntheticHooks: Map<String, Set<String>> = mapOf(
     REPLY_READ to setOf(SYNTHETIC_SEND_EVENT),
     "keep_unsent" to setOf("LX/SH3;->A01(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Ljava/util/Map;)V"),
     "anonymous_stories" to setOf("LX/HNV;->C1V(${MONTAGE_CARD}Z)V", STORY_PREVIEW_INIT),
-    APP_ICONS to setOf("LX/7Ya;->A02($FB_USER_SESSION)Z", "LX/7Ya;->A03($FB_USER_SESSION)Z"),
+    APP_ICONS to setOf("LX/7Ya;->A02($FB_USER_SESSION)Z", "LX/7Ya;->A03(Landroid/content/Context;$FB_USER_SESSION)Z"),
     "save_stories" to setOf("LX/JgG;->onClick(Landroid/view/View;)V"),
     "growth_notes" to setOf("Lcom/facebook/presence/note/ui/nux/controller/NotesNuxController;->" +
         "A01(Landroidx/fragment/app/Fragment;LX/Ocr;Ljava/util/List;LX/5MS;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;"),
@@ -118,7 +119,7 @@ internal val syntheticHooks: Map<String, Set<String>> = mapOf(
     FONT_ROBOTO to setOf(FONT_ROBOTO_BUILDER),
     FONT_BY_NAME to setOf(FONT_BY_NAME_LOOKUP),
     FONT_INPUT to setOf(FONT_INPUT_FIELD, FONT_INPUT_ALIGNED, FONT_INPUT_HINTED),
-    "avatar_tabs" to setOf("$COMPOSER_FACTORY->A6X(LX/5vA;)V"),
+    "avatar_tabs" to setOf("$COMPOSER_FACTORY->A0S()$IMMUTABLE_LIST"),
     "menu_settings" to setOf(
         "LX/9rv;->A1i()V",
         "LX/HFb;->Ax1(LX/0MG;)Ljava/util/ArrayList;",
@@ -179,5 +180,5 @@ internal val SYNTHETIC_PROFILE = ControlProfile(
     bubbleCapabilityGetter = "LX/1hy;->A03(Lcom/facebook/auth/usersession/FbUserSession;I)Z",
     bubbleRolloutGetter = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->Ah8(J)Z",
     nativeBubbleRoutes = "LX/8qv;->A02(Landroid/graphics/Bitmap;LX/0MX;Lcom/facebook/auth/usersession/FbUserSession;LX/8qz;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/6ev;Lcom/facebook/push/constants/PushProperty;Z)V|LX/8qx;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/messaging/model/threadkey/ThreadKey;Ljava/lang/String;)LX/8qz;|LX/MP1;->A04(Landroid/content/Context;Landroid/graphics/Bitmap;Lcom/facebook/auth/usersession/FbUserSession;LX/MP1;Lcom/facebook/messaging/model/threads/ThreadSummary;)Z",
-    nativeCommunityInbox = "LX/1k3;->A0G(LX/1k3;LX/1mM;Ljava/lang/String;Z)V|LX/2GW;-><init>(Lcom/facebook/auth/usersession/FbUserSession;LX/2Fu;LX/2GC;LX/2GU;LX/2EW;LX/2GR;LX/4mt;LX/4sx;LX/1lQ;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;LX/4pk;Lcom/google/common/collect/ImmutableList;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Z)V|LX/1mE;->A01()LX/1lQ;|LX/1k3;->A0H(LX/1k3;LX/1lQ;)V|LX/2WR;->A03:Lcom/facebook/messaging/model/threads/ThreadSummary;|LX/2hK;->A03(Lcom/facebook/messaging/model/threads/ThreadSummary;)Z|Lcom/facebook/messaging/model/threadkey/ThreadKey;->A0o(Lcom/facebook/messaging/model/threadkey/ThreadKey;)Z|Lcom/facebook/messaging/model/threadkey/ThreadKey;->A1J()Z|LX/1lQ;->A0E:LX/1lQ;|LX/2GW;->\$prefixOffsetCallback:LX/4mt;|LX/1kf;->A00:LX/1k3;|LX/1k3;->A0Y:LX/1mE;|LX/1mE;->A07:LX/1mH;|LX/1mH;->A01:LX/1ma;|LX/1ma;->A00:LX/1mZ;|LX/1mZ;->A00()LX/1V4;|LX/1V4;->A0L:LX/1V4;",
+    nativeCommunityInbox = "LX/1k3;->A0G(LX/1k3;LX/1mM;Ljava/lang/String;Z)V|LX/2GW;-><init>(Lcom/facebook/auth/usersession/FbUserSession;LX/2Fu;LX/2GC;LX/2GU;LX/2EW;LX/2GR;LX/4mt;LX/4sx;LX/1lQ;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;LX/4pk;Lcom/google/common/collect/ImmutableList;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Z)V|LX/1mE;->A01()LX/1lQ;|LX/1k3;->A0H(LX/1k3;LX/1lQ;)V|LX/2WR;->A03:Lcom/facebook/messaging/model/threads/ThreadSummary;|LX/2hK;->A03(Lcom/facebook/messaging/model/threads/ThreadSummary;)Z|Lcom/facebook/messaging/model/threadkey/ThreadKey;->A0o(Lcom/facebook/messaging/model/threadkey/ThreadKey;)Z|Lcom/facebook/messaging/model/threadkey/ThreadKey;->A1J()Z|Lcom/facebook/messaging/model/threadkey/ThreadKey;->A1W()Z|LX/1lQ;->A0E:LX/1lQ;|LX/2GW;->\$prefixOffsetCallback:LX/4mt;|LX/1kf;->A00:LX/1k3;|LX/1k3;->A0Y:LX/1mE;|LX/1mE;->A07:LX/1mH;|LX/1mH;->A01:LX/1ma;|LX/1ma;->A00:LX/1mZ;|LX/1mZ;->A00()LX/1V4;|LX/1V4;->A0L:LX/1V4;",
 )

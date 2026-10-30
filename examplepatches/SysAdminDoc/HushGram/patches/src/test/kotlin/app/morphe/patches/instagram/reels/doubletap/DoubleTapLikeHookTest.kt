@@ -188,7 +188,7 @@ class DoubleTapLikeHookTest {
     /**
      * Every build's three comment rows, two filing fb_comment_double_tap and one filing like_comment
      * or unlike_comment, are found, wherever Redex left their names: 385611439 asks a pool for
-     * like_comment (#95).
+     * like_comment (#95), and 453's 385914510 asks one for both, so its row holds neither.
      */
     @Test
     fun eachBuildFindsItsThreeCommentRows() {
@@ -197,7 +197,7 @@ class DoubleTapLikeHookTest {
             Fixtures.otherBuilds()
         for (bundle in bundles) {
             val label = "${bundle.parentFile.name}/${bundle.name}"
-            val rows = (FixtureDex.classesHolding(bundle, FB_COMMENT_DOUBLE_TAP) + FixtureDex.classesHolding(bundle, UNLIKE_COMMENT))
+            val rows = (FixtureDex.classesHolding(bundle, FB_COMMENT_DOUBLE_TAP) + FixtureDex.classesLoading(bundle, UNLIKE_COMMENT))
                 .distinctBy { it.type }
             val context = PatchContexts.of(FixtureDex.withStringPools(bundle, rows))
             val taps = rows.filter { it.superclass == "Landroid/view/GestureDetector\$SimpleOnGestureListener;" }.flatMap { it.methods }

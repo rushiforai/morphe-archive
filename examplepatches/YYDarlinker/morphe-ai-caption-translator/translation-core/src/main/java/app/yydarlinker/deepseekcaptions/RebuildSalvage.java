@@ -13,7 +13,7 @@ import java.util.List;
  *
  * <p>A block is a batch of segments; a single unusable event must not withhold the rest. Every
  * event is checked on its own: structurally invalid, echoed, wrong-script, empty-for-speech,
- * overlapping or collapsed events are dropped and become explicit holes; quality observations
+ * overlapping, contradictory source-owned or collapsed events are dropped and become explicit holes; quality observations
  * (numbers, semantic anchors, sentence ends, marked pauses) are recorded but never suppress the
  * event. The returned plan is marked partial and carries the untranslated token ranges, so the
  * display can show a neutral marker over those ranges instead of an unexplained blank.
@@ -59,6 +59,7 @@ final class RebuildSalvage {
         JSONArray rows = root.optJSONArray("events");
         if (rows == null || rows.length() == 0 || rows.length() > b.to - b.from + 1)
             throw new RebuildProtocol.Invalid("event_count");
+        RebuildProtocol.bindQuotedEvents(root, s, b);
         List<RebuildProtocol.Event> accepted = new ArrayList<>();
         List<RebuildReview.Issue> issues = new ArrayList<>();
         List<int[]> holes = new ArrayList<>();
@@ -100,6 +101,14 @@ final class RebuildSalvage {
             String source = s.text(from, to);
             if (from > next) holes.add(new int[] {next, from - 1});
             next = to + 1;
+            if (e.opt("source") instanceof String
+                    && RebuildProtocol.quoteOverclaims(s, b, from, to, e.getString("source"))) {
+                // The text may translate either the IDs or the wider quote. Keeping it under
+                // the shorter time range can rush a whole paragraph, then repeat it in repair.
+                issues.add(issue(from, to, "salvage_source_ownership", "wider exact quote contradicts IDs; dropped"));
+                holes.add(new int[] {from, to});
+                continue;
+            }
             if (text.isEmpty()) {
                 if (RebuildSource.nonSpeech(source)) {
                     accepted.add(
@@ -172,12 +181,7 @@ final class RebuildSalvage {
                                 "quoted source differs; IDs are authoritative; translation kept"));
             RebuildProtocol.Event event = new RebuildProtocol.Event(from, to, a, z, text);
             try {
-                RebuildSemantics.validatePlan(s, b, Collections.singletonList(event), context);
-            } catch (RebuildProtocol.Invalid advisory) {
-                issues.add(issue(from, to, "advisory_" + advisory.code, advisory.detail));
-            }
-            try {
-                RebuildSemantics.validate(s, from, to, text, context);
+                RebuildSemantics.validatePlan(s, b, Collections.singletonList(event));
             } catch (RebuildProtocol.Invalid advisory) {
                 issues.add(issue(from, to, "advisory_" + advisory.code, advisory.detail));
             }

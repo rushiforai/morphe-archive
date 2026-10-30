@@ -19,15 +19,19 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 if __package__:
+    from . import bundle_signature
     from .build_queue import gradle, time_limit
     from .readme_captures import check as check_captures
 else:
     # Run as a script, or loaded by file path from the tests.
     if str(Path(__file__).resolve().parent) not in sys.path:
         sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import bundle_signature
     from build_queue import gradle, time_limit
     from readme_captures import check as check_captures
 
+BUNDLE_PUBLIC_KEY = Path("morphe-signing.pub")
+BUG_REPORT_FORM = Path(".github/ISSUE_TEMPLATE/bug_report.yml")
 RELEASE_SIGNERS = Path("scripts/release_signers")
 RELEASE_SIGNER = "SysAdminDoc"
 SIGNATURE_NAMESPACE = "hushmessenger-release"
@@ -96,6 +100,50 @@ def describe(root):
     return f"Source index description carries the {version} CHANGELOG groups"
 
 
+# morphe-patcher 2.1 loads a bundle's classes on Java 17 and refuses any compiled for a newer one,
+# except under META-INF/versions/, which a multi-release jar keeps for newer runtimes.
+MAX_CLASS_MAJOR = 61
+CLASS_MAGIC = b"\xca\xfe\xba\xbe"
+
+
+def check_class_versions(archive):
+    """Refuse a class the patcher won't load, naming it, so only people on the newer patcher don't find out."""
+    for name in archive.namelist():
+        if not name.endswith(".class") or name.startswith("META-INF/versions/"):
+            continue
+        header = archive.read(name)[:8]
+        require(
+            len(header) == 8 and header[:4] == CLASS_MAGIC,
+            f"{name} isn't a class file",
+        )
+        major = int.from_bytes(header[6:8], "big")
+        require(
+            major <= MAX_CLASS_MAJOR,
+            f"{name} is compiled for class file version {major}; morphe-patcher loads up to"
+            f" {MAX_CLASS_MAJOR} (Java 17)",
+        )
+
+
+def bundle_signer(root, data, required):
+    """The key the bundle is signed with, which has to be the one morphe-signing.pub publishes.
+
+    Morphe Manager 2.3 pins the first key a source signs with and refuses a later bundle signed with
+    another key or none, so every release after the first signed one has to carry this key.
+    """
+    signer = bundle_signature.verify(data)
+    if signer is None:
+        require(
+            not required,
+            "Bundle isn't signed. Build it with MORPHE_SIGNING_KEY set, which release.ps1 does",
+        )
+        return None
+    require(
+        signer == bundle_signature.read_public(root / BUNDLE_PUBLIC_KEY),
+        f"Bundle is signed with another key than {BUNDLE_PUBLIC_KEY}",
+    )
+    return signer
+
+
 def verify(root, bundle=None, evidence=None, release_tag=None, checksums=None):
     properties = dict(
         re.findall(
@@ -116,12 +164,15 @@ def verify(root, bundle=None, evidence=None, release_tag=None, checksums=None):
         release_tag is None or release_tag == f"v{version}",
         "Release tag differs from project version",
     )
-    digest = hashlib.sha256(bundle.read_bytes()).hexdigest()
+    data = bundle.read_bytes()
+    digest = hashlib.sha256(data).hexdigest()
+    signer = bundle_signer(root, data, required=True)
     with zipfile.ZipFile(bundle) as archive:
         require(
             {"classes.dex", "extensions/messenger.mpe"}.issubset(archive.namelist()),
             "Incomplete Android bundle",
         )
+        check_class_versions(archive)
         manifest = (
             archive.read("META-INF/MANIFEST.MF")
             .decode("utf-8")
@@ -151,6 +202,10 @@ def verify(root, bundle=None, evidence=None, release_tag=None, checksums=None):
         index.get("download_url")
         == f"https://github.com/SysAdminDoc/HushMessenger/releases/download/v{version}/{filename}",
         "Source download URL differs from release version or artifact name",
+    )
+    require(
+        index.get("public_key") == signer,
+        "Source index public_key differs from the bundle's signing key",
     )
     timestamp = index.get("created_at", "")
     require(
@@ -206,6 +261,12 @@ def verify(root, bundle=None, evidence=None, release_tag=None, checksums=None):
         hashes == [(digest, filename)],
         "README artifact checksum differs from built bundle",
     )
+    # Manager 2.3 shows this fingerprint when it meets the source, for people to compare.
+    key_fingerprint = bundle_signature.fingerprint(signer)
+    require(
+        f"`{key_fingerprint}`" in readme,
+        "README doesn't print the bundle signing key's fingerprint",
+    )
     # Only this repository's release links (absolute in any case, or relative) and
     # its own bundle names; another project's release or bundle is not ours to pin.
     release_links = re.compile(
@@ -231,6 +292,28 @@ def verify(root, bundle=None, evidence=None, release_tag=None, checksums=None):
         require(
             all(target in step.group(1) for target in targets),
             "README Get the APK step names a different Messenger version than the bundle targets",
+        )
+        # The Messenger badge sits next to the version badge, so it can't name a build the release refuses.
+        require(
+            all(
+                badge in targets
+                for badge in re.findall(r"shields\.io/badge/Messenger-([\d.]+)-", readme)
+            ),
+            "README Messenger badge names a different Messenger version than the bundle targets",
+        )
+        # The bug form's example answer names the release the same way, so a report copies a real pair.
+        form = (root / BUG_REPORT_FORM).read_text(encoding="utf-8")
+        example = re.search(
+            r"^\s*placeholder: HushMessenger (\S+) on Messenger (\S+)\s*$", form, re.MULTILINE
+        )
+        require(example is not None, "Bug report form has no HushMessenger ... on Messenger ... placeholder")
+        require(
+            example.group(1) == version,
+            "Bug report form placeholder names a different HushMessenger version than source",
+        )
+        require(
+            example.group(2) in targets,
+            "Bug report form placeholder names a Messenger version the bundle doesn't target",
         )
     # Its settings screenshots show this catalog, and the app's help links reach real headings.
     check_captures(root)
@@ -267,7 +350,8 @@ def verify(root, bundle=None, evidence=None, release_tag=None, checksums=None):
             "Release checksum file differs from built bundle",
         )
     return (
-        f"Release metadata passed: v{version}, {len(entries)} patches, SHA-256 {digest}"
+        f"Release metadata passed: v{version}, {len(entries)} patches, SHA-256 {digest}, "
+        f"signed by {key_fingerprint}"
     )
 
 
@@ -316,9 +400,13 @@ def verify_development(root, bundle, evidence, held_index_sha256, checksums=None
     require(
         bundle.name == f"patches-{version}.mpp", "Bundle filename differs from source"
     )
-    digest = hashlib.sha256(bundle.read_bytes()).hexdigest()
+    data = bundle.read_bytes()
+    digest = hashlib.sha256(data).hexdigest()
+    # A development build may go unsigned, but a signature it carries has to be the release key's.
+    bundle_signer(root, data, required=False)
     with zipfile.ZipFile(bundle) as archive:
         require(archive.testzip() is None, "Corrupt bundle entry")
+        check_class_versions(archive)
         manifest = (
             archive.read("META-INF/MANIFEST.MF")
             .decode("utf-8")

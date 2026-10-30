@@ -383,8 +383,11 @@ class ReelSeekBarHookTest {
 
     private fun builds(bundle: File, label: String) {
         val holders = mutableListOf<ClassDef>()
+        val tagging = mutableListOf<ClassDef>()
+        val builders = HashSet<String>()
         FixtureDex.forEach(bundle) { dex ->
             for (classDef in dex.classes) {
+                classDef.methods.filter { it.buildsTheTag() }.mapTo(builders) { "$it" }
                 if (classDef.type == SEEK_BAR || classDef.type == APPCOMPAT_SEEK_BAR ||
                     classDef.methods.any {
                         it.loadsAny(ORGANIC_MIN_SECONDS, ORGANIC_LAZY) || it.holdsMarker() ||
@@ -392,9 +395,13 @@ class ReelSeekBarHookTest {
                     }
                 ) {
                     holders += ImmutableClassDef.of(classDef)
+                } else if (classDef.methods.any { it.tagsFromAStaticString() }) {
+                    tagging += ImmutableClassDef.of(classDef)
                 }
             }
         }
+        // 385914510's binder calls a static method of its own for the tag, so the classes calling one come too.
+        holders += tagging.filter { classDef -> classDef.methods.any { method -> method.calls().any { "$it" in builders } } }
         val context = PatchContexts.of(holders)
 
         val sites = context.findReelSeekBarSites()
@@ -436,10 +443,27 @@ class ReelSeekBarHookTest {
      * 385713109 and 385713111 get the binder's tag. The pool itself holds the tag, so it comes along.
      */
     private fun Method.tagsFromAPool(): Boolean {
-        val calls = implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }.orEmpty()
+        val calls = calls()
         return calls.any { "$it" == "Landroid/view/View;->setTag(Ljava/lang/Object;)V" } &&
             calls.any { it.returnType == "Ljava/lang/String;" && it.parameterTypes.map(Any::toString) == listOf("I") }
     }
+
+    /** Whether this method tags a view and asks some other static method for a String, as 385914510's binder asks LX/0JcH->A01. */
+    private fun Method.tagsFromAStaticString(): Boolean {
+        val code = implementation?.instructions?.toList().orEmpty()
+        return calls().any { "$it" == "Landroid/view/View;->setTag(Ljava/lang/Object;)V" } && code.any { instruction ->
+            (instruction.opcode == Opcode.INVOKE_STATIC || instruction.opcode == Opcode.INVOKE_STATIC_RANGE) &&
+                ((instruction as ReferenceInstruction).reference as MethodReference).returnType == "Ljava/lang/String;"
+        }
+    }
+
+    /** Whether this is a static method answering a String that holds the tag and tags nothing, as 385914510's LX/0JcH->A01 builds it. */
+    private fun Method.buildsTheTag(): Boolean =
+        AccessFlags.STATIC.isSet(accessFlags) && returnType == "Ljava/lang/String;" && parameterTypes.map(Any::toString) != listOf("I") &&
+            holdsString(SCRUBBER_TAG) && calls().none { "$it" == "Landroid/view/View;->setTag(Ljava/lang/Object;)V" }
+
+    private fun Method.calls(): List<MethodReference> =
+        implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }.orEmpty()
 
     private fun BytecodePatchContext.method(type: String, name: String): Method = mutableClassDefBy(type).methods.single { it.name == name }
 

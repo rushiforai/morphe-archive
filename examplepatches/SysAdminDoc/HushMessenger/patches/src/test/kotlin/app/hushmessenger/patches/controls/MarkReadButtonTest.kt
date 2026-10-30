@@ -37,6 +37,9 @@ private const val LAZIES = "LX/MrLazies;"
 private const val PROVIDER = "LX/MrProvider;"
 private const val LISTENER = "LX/MrListener;"
 private const val ICON_SETTER = "$BUILDER->A01($ICON$PROVIDER$BUILDER)V"
+private const val ICON_SETTER_BODY = "invoke-virtual {p1, p0}, $PROVIDER->A05($ICON)I\nmove-result v0\niput v0, p2, $BUILDER->A00:I\nreturn-void"
+private const val SETTER_COPY = "LX/MrZSetters;"
+private const val LIST_HELPER = "LX/MrListHelper;"
 private const val DETAILS = "LX/MrDetails;"
 private const val TITLE_BAR = "LX/MrTitleBar;"
 private const val LIST_BUILDER = "Lcom/google/common/collect/ImmutableList\$Builder;"
@@ -212,7 +215,7 @@ internal fun markReadFixture(
     """.trimIndent(), 3, CONSTRUCTOR), clickMethod), extraFields = listOf(field(CLICK, "A00", "Ljava/lang/Object;"), field(CLICK, "A01", "I"))),
     fixtureClass(BUILDER, listOf(fixtureMethod("$BUILDER-><init>(Ljava/lang/String;)V", "return-void", 2, CONSTRUCTOR),
         // 584 sets the icon through the provider's resolver into an int field; this helper is the same two steps.
-        fixtureMethod(ICON_SETTER, "invoke-virtual {p1, p0}, $PROVIDER->A05($ICON)I\nmove-result v0\niput v0, p2, $BUILDER->A00:I\nreturn-void", 4, STATIC)),
+        fixtureMethod(ICON_SETTER, ICON_SETTER_BODY, 4, STATIC)),
         flags = builderFlags),
     fixtureClass(SPEC, listOf(fixtureMethod("$SPEC-><init>($BUILDER)V", "return-void", 2, CONSTRUCTOR))),
     fixtureClass(FACTORY, listOf(helper("$FACTORY->A0M($LAZY)$PROVIDER"))),
@@ -264,7 +267,46 @@ class MarkReadButtonTest {
         val factory = factory()
         assertEquals(SYNTHETIC_MARK_READ_FACTORY, recipe.factory.hookId())
         assertEquals(MarkReadFactory(FACTORY_SITE, 0, factory.parameterRegister(1), factory.parameterRegister(2), factory.parameterRegister(3),
-            listOf(1, 2, 3)), recipe.factorySite)
+            listOf(1, 2, 3), "$LIST_BUILDER->build()$IMMUTABLE_LIST"), recipe.factorySite)
+        assertEquals(DETAILS_BUILD, recipe.details)
+    }
+
+    // 585's factory is an instance method whose early returns hand back other lists, and builds the button list through a
+    // static helper that only builds and null-checks it. The site is the one return the details button reaches.
+    @Test fun anInstanceFactoryReturnsTheListTheDetailsButtonReachesThroughItsBuildHelper() {
+        val build = "$LIST_HELPER->A00($LIST_BUILDER)$IMMUTABLE_LIST"
+        val body = """
+            const/4 v0, 0x0
+            if-eqz v0, :late
+            invoke-virtual {p5}, $LIST_BUILDER->build()$IMMUTABLE_LIST
+            move-result-object v0
+            return-object v0
+            :late
+            invoke-virtual {v0, v0, v0, p4}, $DETAILS_BUILD
+            move-result-object v1
+            invoke-virtual {p5, v1}, $LIST_BUILDER->add(Ljava/lang/Object;)$LIST_BUILDER
+            invoke-static {p5}, $build
+            move-result-object v0
+            return-object v0
+        """.trimIndent()
+        val helper = fixtureMethod(build, "invoke-virtual {p0}, $LIST_BUILDER->build()$IMMUTABLE_LIST\nmove-result-object v0\n" +
+            "invoke-static {v0}, LX/MrCheck;->A0Z(Ljava/lang/Object;)V\nreturn-object v0", 2, STATIC)
+        val factory = fixtureMethod(SYNTHETIC_MARK_READ_FACTORY, body, 10, AccessFlags.PUBLIC.value)
+        val classes = markReadFixture(factoryMethod = factory) + fixtureClass(LIST_HELPER, listOf(helper))
+        assertEquals(listOf(SYNTHETIC_MARK_READ_BAR, SYNTHETIC_MARK_READ_FACTORY, SYNTHETIC_MARK_READ_CLICK), found(classes))
+        validateControls(mirroredControls(classes), setOf(MARK_READ_BAR, MARK_READ_CLICK))
+        // p0 is the receiver, so the session, chat and colors are p2..p4, and the scratch stays below it.
+        val site = body.lines().filter { !it.startsWith(":") }.indexOfLast { "return-object" in it }
+        assertEquals(MarkReadFactory(site, 0, factory.parameterRegister(2), factory.parameterRegister(3), factory.parameterRegister(4),
+            listOf(1, 2, 3), build), markReadRecipe!!.factorySite)
+    }
+
+    // 585 carries the icon setter on more than one public class; copies that do the same steps are the same helper.
+    @Test fun anIdenticalIconSetterCopyLeavesTheFirstSetterInUse() {
+        val copy = fixtureMethod("$SETTER_COPY->A00($ICON$PROVIDER$BUILDER)V", ICON_SETTER_BODY, 4, STATIC)
+        val classes = markReadFixture() + fixtureClass(SETTER_COPY, listOf(copy))
+        assertEquals(listOf(SYNTHETIC_MARK_READ_BAR, SYNTHETIC_MARK_READ_FACTORY, SYNTHETIC_MARK_READ_CLICK), found(classes))
+        assertEquals(ICON_SETTER, markReadRecipe!!.iconSetter)
     }
 
     @Test fun everyProfileNamesBothBarsAndOneListener() {
@@ -286,7 +328,14 @@ class MarkReadButtonTest {
             "a jump onto the factory's return" to markReadFixture(factoryMethod = factory(FACTORY_BODY.replace("const/4 v0, 0x0", "const/4 v0, 0x0\nif-eqz v0, :out").replace(ret, ":out\n$ret"))),
             "a factory list written after it's built" to markReadFixture(factoryMethod = factory(FACTORY_BODY.replace(ret, "move-object v0, p4\n$ret"))),
             "a factory without a free local" to markReadFixture(factoryMethod = fixtureMethod(SYNTHETIC_MARK_READ_FACTORY, FACTORY_BODY, 7, STATIC)),
-            "a factory that isn't static" to markReadFixture(factoryMethod = fixtureMethod(SYNTHETIC_MARK_READ_FACTORY, FACTORY_BODY, 10, AccessFlags.PUBLIC.value)),
+            "a factory list built by an unknown call" to markReadFixture(factoryMethod = factory(FACTORY_BODY.replace("invoke-virtual {p4}, $LIST_BUILDER->build()$IMMUTABLE_LIST",
+                "invoke-static {p4}, $LIST_HELPER->A00($LIST_BUILDER)$IMMUTABLE_LIST"))),
+            "a build helper that does more" to markReadFixture(factoryMethod = factory(FACTORY_BODY.replace("invoke-virtual {p4}, $LIST_BUILDER->build()$IMMUTABLE_LIST",
+                "invoke-static {p4}, $LIST_HELPER->A00($LIST_BUILDER)$IMMUTABLE_LIST"))) + fixtureClass(LIST_HELPER, listOf(fixtureMethod(
+                "$LIST_HELPER->A00($LIST_BUILDER)$IMMUTABLE_LIST", "invoke-virtual {p0}, $LIST_BUILDER->build()$IMMUTABLE_LIST\nmove-result-object v0\n" +
+                    "invoke-virtual {p0}, $LIST_BUILDER->build()$IMMUTABLE_LIST\nreturn-object v0", 2, STATIC))),
+            "an icon setter copy with other steps" to markReadFixture() + fixtureClass(SETTER_COPY, listOf(fixtureMethod("$SETTER_COPY->A00($ICON$PROVIDER$BUILDER)V",
+                ICON_SETTER_BODY.replace("$BUILDER->A00:I", "$BUILDER->A07:I"), 4, STATIC))),
             "a second caller of the details button" to markReadFixture(others = listOf(fixtureMethod("LX/MrOtherBar;->A00()V",
                 "const/4 v0, 0x0\ninvoke-virtual {v0, v0, v0, v0}, $DETAILS_BUILD\nreturn-void", 2, STATIC))),
             "a details button with another tag" to markReadFixture(detailsMethod = details("circles_settings_button")),

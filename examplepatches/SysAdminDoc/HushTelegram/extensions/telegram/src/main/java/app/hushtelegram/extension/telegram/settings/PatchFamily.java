@@ -130,7 +130,7 @@ public enum PatchFamily {
             Settings.DISABLE_UPDATE_CHECKS),
     REPAIR_FIREBASE_PUSH(FamilyNames.REPAIR_FIREBASE_PUSH, "repairFirebasePush", null,
             Settings.REPAIR_FIREBASE_PUSH),
-    UNIFIED_PUSH(FamilyNames.UNIFIED_PUSH, "unifiedPush", null, Settings.UNIFIED_PUSH);
+    UNIFIED_PUSH(FamilyNames.UNIFIED_PUSH, "unifiedPush", null, Settings.UNIFIED_PUSH, Settings.REACTION_ALERTS);
 
     /** The patch's name in Morphe Manager. */
     public final String patchName;
@@ -366,6 +366,7 @@ public enum PatchFamily {
         LAUNCH_FOLDER(HIDE_FOLDER_COUNTERS, "launchFolder", "which folder the chat list opens on", true),
         HIDE_ALL_CHATS(HIDE_FOLDER_COUNTERS, "hideAllChats", "the All Chats tab", true),
         HIDDEN_CHATS(HIDE_FOLDER_COUNTERS, "hiddenChats", "chats hidden from the chat list", true),
+        HIDDEN_UNREAD(HIDE_FOLDER_COUNTERS, "hiddenUnread", "hidden chats in the unread counts", true),
         LOCKED_VOICE(VOICE_ONE_AT_A_TIME, "lockedVoice", "voice playback while locked", true),
         DATA_SAVER_DOWNLOADS(FASTER_DOWNLOADS, "dataSaverDownloads", "automatic downloads on Data Saver", true),
         GALLERY_FOLDER(SAVE_DOWNLOADS, "galleryFolder", "gallery folder for saved photos and videos", true),
@@ -377,7 +378,8 @@ public enum PatchFamily {
         VIDEO_ONLY_FROM_BUTTON(KEEP_VIDEOS_MUTED, "videoOnlyFromButton", "keeping a video upright until full screen", true),
         HIDE_CHANNEL_MUTE(HIDE_CHANNEL_BUTTONS, "hideChannelMute", "Mute button on the channel bar", true),
         FIREBASE_CERTIFICATE_HEADER(REPAIR_FIREBASE_PUSH, "firebaseCertificateHeader", "Firebase certificate header"),
-        FIREBASE_LOCAL_STATUS(REPAIR_FIREBASE_PUSH, "firebaseLocalStatus", "local notification status");
+        FIREBASE_LOCAL_STATUS(REPAIR_FIREBASE_PUSH, "firebaseLocalStatus", "local notification status"),
+        REACTION_ALERTS(UNIFIED_PUSH, "reactionAlerts", "reaction notifications without push", true);
 
         public final PatchFamily family;
         final String statusMethod;

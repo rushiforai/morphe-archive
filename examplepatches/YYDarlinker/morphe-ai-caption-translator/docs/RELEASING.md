@@ -1,57 +1,23 @@
 # Release process
 
-Current public product: **1.5.8 / release-1.5.8**, tag`83a8b72a795285234f6c164991f65007750e6272`, asset SHA-256`5c9dfb19a3b0b88f55516bfca38bf47ee18ed3f282511b6b6401c37e8c5db686`. The [release result](maintenance/results/RELEASE-1.5.8-RESULT.md) records real876-test strict prepare, final publication, anonymous main/dev checks and two fresh compositions of the downloaded asset. The device sample is retained from m7b with unchanged production inputs. Publication does not authorize model calls or device installation.
+The current publisher is `.github/workflows/release.yml` plus `.releaserc` and locked npm dependencies. Current local configuration validates main/dev/feature pushes; publication is a separate manual workflow_dispatch on main, and the dev→main PR helper is manual on dev. These local guards take effect on GitHub only after their exact revision is delivered. Older remote revisions can still have automatic main publication/dev PR triggers; inspect the actual remote revision before pushing. Source delivery is not permission for publication or PR creation. Current identities and blockers are in [PROJECT-STATE](PROJECT-STATE.md).
 
-The existing `.github/workflows/release.yml` and `.releaserc` are the only publisher. This follows the [official template](https://github.com/MorpheApp/morphe-patches-template/blob/main/README.md).
+## Prepare and publish
 
-1. Develop on `dev`, preserving release tags and historical product anchors. Use semantic commits; a `feat:` since the latest stable tag requests a minor release, `fix:` requests a patch. Preview the computed version before merging.
-2. PR validation builds the **current Java/Kotlin source**, at the version declared in `gradle.properties`. The recovered 1.3.5 Smali snapshot is historical and never substitutes for validating current source.
-3. Review both the English and Chinese user docs against the new runtime behavior, compatibility declarations, secret/privacy hygiene and actual build provenance. Build and validate the final addon against the intended official/YouTube inputs. A compatibility listing is not proof of every OEM scene.
-4. Merge `dev` into `main` without squashing or rewriting existing history. `release.yml` runs semantic-release, which generates the version, CHANGELOG, bundle metadata and patch list, builds the current Android MPP, and regenerates the README patch table from the final patch list before creating the release commit.
-5. Publish `patches-<version>.mpp` and automatic build provenance. Do not upload patched YouTube APKs, private API profiles, signing keys or phone diagnostics. The runtime MPE is already embedded in the MPP.
-6. Verify anonymous retrieval of `main/patches-bundle.json`, patch list, changelog and asset; match the downloaded asset SHA-256 to the final CI build. Keep source metadata/version/URL and actual MPP identity coherent.
-7. Record tag/source/asset identity and known evidence boundaries in the project state. Do not overwrite published assets; fix mistakes with a new release. Keep backups for local rollback.
+1. Review the precise source changes, privacy/compatibility/user docs and pending product issues. Keep historical tags/assets immutable. Do not upload patched YouTube APKs, profiles, credentials, signing keys or raw diagnostics.
+2. Validate fixed source with the [canonical entry](DEVELOPMENT.md), then the intended finite official/YouTube compositions and relevant device observation. A compatibility declaration or green unit suite does not prove a physical player or translation completeness.
+3. Use semantic commits and preview the version decision. feat requests a minor version; fix/perf/bump request a patch under the current release rules. Do not invent a tag or rename a local 1.5.8 package as a released 1.5.9.
+4. After authorization for the concrete changeset and workflow effects, synchronize the intended branches without rewriting history. Source pushes run validation. Publication requires a separately authorized explicit dispatch of Release on main; the publisher rejects a stale main checkout. The PR helper requires a separately authorized manual dispatch on dev.
+5. Semantic-release prepare normalizes generated metadata and persists `release-<version>` in gradle.properties, then calls `tools/verify_current.py --mode release --version <next-version>` before git/GitHub publication. It runs both suites, generates metadata/patch list and applies strict package checks. The Gradle publisher subsequently invokes its own build; it must see the same persisted identity. The exec publish hook checks that final package again before the GitHub plugin uploads it. Failure stops publication.
+6. The pipeline generates version/CHANGELOG/metadata/README patch table, then publishes patches-<version>.mpp and provenance. The raw MPE is embedded. Do not hand-maintain metadata to bypass this sequence.
+7. Verify real CI, final tag/source, downloaded asset SHA and anonymous Manager metadata chain. Record exact delivery and remaining limits in state; local preparation is not remote completion.
 
-Generated `patches-list.json`, `patches-bundle.json` and version changes are produced by the pipeline, not hand-maintained. The pipeline also generates a first draft of `CHANGELOG.md` and the GitHub Release description from commits. Review that draft and replace generic commit titles with concise, user-facing changes compared with the previous release, keeping the current CHANGELOG entry and Release description aligned. Follow the existing English bullet-list style, without language headings or added translations unless requested. Editorial corrections to release notes may update those two texts after publication; preserve the published tag and download asset. Keep version-specific update lists in Releases and CHANGELOG, rather than the README. Verification details belong in the linked release report. Keep `main` stable; dev prerelease publishing is optional and must be deliberately enabled rather than creating accidental releases during preparation.
+Candidate mode accepts explicit local build IDs and checks current public metadata with `--mode published` without regenerating it. Release mode requires exact release identity and rejects local markers. Keep that distinction and the rejection tests.
 
-## Current verification and release gates
+Review generated release-note drafts as concise user-facing English bullets compared with the previous version. Notes may be corrected editorially after publication without changing the tag/asset; preserve the existing language/style. Version-specific history belongs in CHANGELOG/Releases, not an accumulating README update diary.
 
-Use `tools/workspace/verify-full.cmd` after configuring the [development environment](DEVELOPMENT.md), or
-`python3 tools/verify_current.py --run-id <unique-id>` with a configured toolchain. Candidate mode
-checks both `:translation-core:testDebugUnitTest` and `:extensions:extension:testDebugUnitTest`,
-localization, source/provenance and compiled boundaries, independent UI and explicit MPP/MPE
-identity. Reports and actual task outcomes are archived under `validation/runs/<unique-id>/`;
-the isolated candidate is under `build/maintenance/M1a/<unique-id>/`. See the [maintenance operations guide](maintenance/OPERATIONS.md). The ignored local `.devenv` files are not required.
+## Tool and evidence boundaries
 
-These are separate contracts:
+PR/main/dev/codex/fix validation uses the current source and canonical verifier. Candidate files and evidence are under build/maintenance/M1a and validation/runs; failure artifacts include both suites and package checks. `npm ci` reconstructs release dependencies. A locally inspected workflow is not evidence of an executed remote run.
 
-- Candidate consistency uses the version/build ID of current source and permits local IDs. It
-  does not regenerate public metadata. Existing online metadata is checked internally with
-  `validate_morphe_metadata.py --mode published`, so a local 1.5.8 can coexist with public 1.5.7.
-- Semantic-release prepare calls `tools/verify_current.py --mode release --version <next-version>`
-  before the git/GitHub publisher plugins. That entry runs both suites, builds with a process-only
-  `-PcaptionBuildId=release-<version>`, generates the patch list at the normal release output path,
-  and applies strict source/public-metadata and package checks. Failure stops prepare. The README
-  table and final strict checks follow in the same prepare command.
-- The strict bundle checker defaults to release mode, including existing `verify_bundle.py
-  <version>` callers. It requires the exact release ID and rejects local markers; candidate mode
-  must name `--mpp`, `--mpe`, `--version` and `--build-id`. Never relax release mode for a local build.
-
-Validation runs for dev/codex/fix pushes and PRs targeting main/dev. Failure artifacts include
-core reports at the evaluated build root and extension reports at `extensions/extension/build/`.
-Release workflow also archives prepublication evidence on failure. A local run or configuration
-inspection is not evidence that remote GitHub Actions or a real publication ran.
-
-## Community visibility
-
-Maintain a clear README, repository About and relevant topics. The official website links [Morphe Community Patches](https://morphe-patches.software/); it is community-maintained, and no automatic listing is promised. Its Feedback form can be used to ask about adding a source.
-
-[Awesome Morphe](https://github.com/nvbangg/awesome-morphe) has a [Bundle Request](https://github.com/nvbangg/awesome-morphe/issues/new?template=bundle-request.yml) requiring an existing release and compatibility with Morphe. This is an independent directory.
-
-The official community [r/MorpheApp](https://www.reddit.com/r/MorpheApp/) permits discussion subject to its current rules; do not share or link pre-patched APKs. Share the source, instructions and compatibility limits instead. Community inclusion is not official endorsement. Prepare outreach separately and only send it when explicitly authorized.
-
-## Completed1.5.8 publication and cleanup
-
-[GitHub record](maintenance/GITHUB-UPDATE-PLAN.md) lists the completed source/CI/release and branch/PR cleanup. The unavailable third-party Action wrapper was removed; the workflow invokes the official semantic-release JavaScript API from the locked npm toolchain and uses its actual boolean/version/tag result for outputs. The no-release main path has been tested too. Old releases/tags/assets remain immutable. main/dev prevent force pushes/deletion while normal publisher-generated version commits remain allowed; no mandatory solo-maintainer approval gate was added.
-
-The1.5.8 user authorization covered this release and cleanup. Future releases require the corresponding user request; routine maintenance does not imply permission to publish a new version. Source synchronization, candidate verification, actual publication and device/model operations remain distinct.
+The released 1.5.8 asset remains immutable. Historical publication/CI observations and branch-policy snapshots are available through [history](history/README.md); they do not authorize future actions or certify unchanged remote settings. Public release, source synchronization, phone installation and paid service calls are distinct operations.

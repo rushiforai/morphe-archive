@@ -121,6 +121,43 @@ try {
     $bad = Test-WalkReceipt -Path (Join-Path $work 'none.json') -BundlePath $bundle -PatchListPath $catalogPath
     Assert-WalkContract (-not $bad.Valid -and $bad.Reason -like "*there's no walk receipt at*") "A missing receipt read as: $($bad.Reason)"
 
+    # Publish takes one walk of each Telegram build the bundle patches, the Play build's signed in.
+    function Write-BuildWalk([string]$Package, [string]$Account, [string]$Name) {
+        $buildTarget = Get-PatchTarget -PatchList $catalog -PackageName $Package
+        $version = $buildTarget.PackageVersion
+        $code = [string]@($buildTarget.PackageVersionCodes[$version])[0]
+        $artifact = New-WalkArtifact -ApkSha256 $apkSha256 -Package $Package -PackageVersion $version -VersionCode $code `
+            -SignerSha256 ('8' * 64) -FixtureName (Get-VendorFixtureName -Target $buildTarget -VersionName $version -VersionCode $code) `
+            -FixtureSha256 ('7' * 64) -BundleVersion '0.0.20' -BundleSha256 $bundleSha256 -Patches $allPatches -Created '2026-10-21T15:55:00Z'
+        $walk = New-WalkReceipt -Result PASS -Full $true -Serial 'TESTPHONE01' -Device 'SM-S908U1' -Package $Package `
+            -AppVersion $version -BundleSha256 $bundleSha256 -InstalledApkSha256 $apkSha256 -Artifact $artifact `
+            -Account $Account -Scenarios ([string[]]@(Get-WalkRequiredScenarios -Scenarios $scenarios -Patches $allPatches -Account $Account)) `
+            -Started '2026-10-21T16:00:00Z' -Finished '2026-10-21T16:30:00Z' -Screens 40 -Crashes 0
+        $to = Join-Path $work $Name
+        [IO.File]::WriteAllText($to, (ConvertTo-Json -InputObject $walk -Depth 5))
+        return $to
+    }
+    function Test-Builds([string[]]$Paths) { Test-WalkReceipts -Path $Paths -BundlePath $bundle -PatchListPath $catalogPath }
+    $webSmoke = Write-BuildWalk 'org.telegram.messenger.web' 'signed out' 'web-smoke.json'
+    $webIn = Write-BuildWalk 'org.telegram.messenger.web' 'signed in' 'web-in.json'
+    $playIn = Write-BuildWalk 'org.telegram.messenger' 'signed in' 'play-in.json'
+    $playSmoke = Write-BuildWalk 'org.telegram.messenger' 'signed out' 'play-smoke.json'
+    foreach ($pair in @(@($webSmoke, $playIn), @($playIn, $webIn))) {
+        $both = Test-Builds $pair
+        Assert-WalkContract ($both.Valid -and @($both.Walks).Count -eq 2 -and @($both.Walks | ForEach-Object { $_.Receipt.package }) -ccontains 'org.telegram.messenger') `
+            "A walk of each build, the Play one signed in, was refused: $($both.Reason)"
+    }
+    foreach ($badSet in @(
+            @(@($webIn), '*no walk receipt is of org.telegram.messenger, and every build*'),
+            @(@($playIn), '*no walk receipt is of org.telegram.messenger.web,*'),
+            @(@(), '*no walk receipt is of org.telegram.messenger.web, org.telegram.messenger,*'),
+            @(@($webIn, $playSmoke), '*the walk of org.telegram.messenger was signed out, and that build''s walk has to be signed in*'),
+            @(@($webSmoke, $webIn, $playIn), '*two walk receipts are of org.telegram.messenger.web*'),
+            @(@($playIn, (Join-Path $work 'none.json')), "*the walk at *none.json doesn't count: there's no walk receipt at*"))) {
+        $bad = Test-Builds $badSet[0]
+        Assert-WalkContract (-not $bad.Valid -and $bad.Reason -like $badSet[1]) "Expected the walks refusal [$($badSet[1])], got [$($bad.Reason)]."
+    }
+
     # A walk of one bundle never backs another, even a rebuild of the same commit.
     Write-Walk
     [IO.File]::WriteAllText($bundle, 'the signed bundle, rebuilt')
@@ -136,7 +173,7 @@ try {
 $releaseText = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'release/release.ps1'))
 $publishAt = $releaseText.IndexOf("'publish' {")
 $assetsAt = $releaseText.IndexOf('$bundleHash = Test-Assets', $publishAt)
-$walkAt = $releaseText.IndexOf('$walked = Test-WalkReceipt -Path $Walk', $publishAt)
+$walkAt = $releaseText.IndexOf('$walked = Test-WalkReceipts -Path $Walk', $publishAt)
 $refuseAt = $releaseText.IndexOf('if (-not $walked.Valid) {', $publishAt)
 foreach ($later in @('New-ReleaseNotes', 'Tagging $tag', 'Pushing $tag', 'gh release create')) {
     $laterAt = $releaseText.IndexOf($later, $publishAt)
@@ -145,5 +182,5 @@ foreach ($later in @('New-ReleaseNotes', 'Tagging $tag', 'Pushing $tag', 'gh rel
 }
 Assert-WalkContract ($releaseText.IndexOf("-PatchListPath (Join-Path `$Root 'patches-list.json')", $walkAt) -gt $walkAt) `
     'release.ps1 holds the walk to no patch list.'
-Assert-WalkContract ($releaseText -match '(?m)^\s*\[string\]\$Walk,') 'release.ps1 has no -Walk.'
+Assert-WalkContract ($releaseText -match '(?m)^\s*\[string\[\]\]\$Walk,') 'release.ps1 has no -Walk that takes a receipt per build.'
 Write-Host '[scripts] walk receipt contracts passed'

@@ -56,7 +56,7 @@ function New-WalkFixture {
             uiDump = "steps/$id.xml"; uiDumpSha256 = (Write-WalkFixtureFile (Join-Path $Folder "steps/$id.xml") ([Text.Encoding]::UTF8.GetBytes((Get-WalkFixtureXml $id))))
         }
     }
-    return New-WalkReceipt -Result PASS -Full $true -Serial $Serial -Device $Device -Sdk $Sdk -AppVersion '584.1.0.61.98' `
+    return New-WalkReceipt -Result PASS -Full $true -Serial $Serial -Device $Device -Sdk $Sdk -AppVersion '585.0.0.53.94' `
         -BundleSha256 $BundleSha256 -PatchedApkSha256 $ApkSha256 -InstalledApkSha256 $ApkSha256 `
         -Started '2026-10-26T16:00:00Z' -Finished '2026-10-26T16:30:00Z' -AppliedPatches $AppliedPatches -Steps @($records) -Crashes 0
 }

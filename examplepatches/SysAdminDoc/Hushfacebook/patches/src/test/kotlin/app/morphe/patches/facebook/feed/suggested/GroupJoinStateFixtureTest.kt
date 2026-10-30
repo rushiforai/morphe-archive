@@ -10,8 +10,13 @@ import app.morphe.PatchContexts
 import app.morphe.patches.facebook.feed.BASE_MODEL_WITH_TREE
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.GRAPHQL_STORY
+import app.morphe.patches.facebook.feed.aidetected.GRAPHQL_STORY_ATTACHMENT
+import app.morphe.patches.facebook.feed.aidetected.isModelListAccessor
 import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.feed.isModelAccessor
 import app.morphe.patches.facebook.feed.isStoryModelAccessor
+import app.morphe.patches.facebook.feed.loadedClass
+import app.morphe.patches.facebook.feed.modelAccessors
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -111,6 +116,79 @@ class GroupJoinStateFixtureTest {
         assertEquals("a declared build went unchecked: $checked", versions.toSet(), checked.keys)
     }
 
+    /**
+     * Debug logging's shape of a story posted to no profile (#195): one accessor each of the story's
+     * title and shareable, the title class's ranges list, the range class's entity and the attachment's
+     * target, the target read as the class the story's `to` is (so the join state stub takes it), and
+     * the five stubs calling them. The control: the title's and the attachment's siblings of the same
+     * return type load other keys.
+     */
+    @Test
+    fun `each declared build has one accessor for each piece of a story's shape, and the stubs call them`() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }
+        assertTrue("the bundle declares no Facebook build", versions.isNotEmpty())
+        val checked = mutableMapOf<String, String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val name = bundle.name
+                val first = FixtureDex.classes(bundle, setOf(GRAPHQL_STORY, GRAPHQL_STORY_ATTACHMENT))
+                val story = first[GRAPHQL_STORY] ?: throw AssertionError("$name has no $GRAPHQL_STORY")
+                val attachment = first[GRAPHQL_STORY_ATTACHMENT]
+                    ?: throw AssertionError("$name has no $GRAPHQL_STORY_ATTACHMENT")
+                val titles = modelAccessors(story, STORY_TITLE_FIELD, STORY_TITLE_TYPE)
+                assertEquals("$name: title ${titles.map { it.name }}", 1, titles.size)
+                val shareables = modelAccessors(story, STORY_SHAREABLE_FIELD, STORY_SHAREABLE_TYPE)
+                assertEquals("$name: shareable ${shareables.map { it.name }}", 1, shareables.size)
+                val title = titles.single()
+                for (sibling in story.methods.filter {
+                    it.name != title.name && it.parameterTypes.isEmpty() && it.returnType == title.returnType
+                }) {
+                    assertFalse("$name: ${sibling.name}() matches title too",
+                        isModelAccessor(sibling, GRAPHQL_STORY, STORY_TITLE_FIELD, STORY_TITLE_TYPE))
+                }
+
+                val text = FixtureDex.classes(bundle, setOf(title.returnType))[title.returnType]
+                    ?: throw AssertionError("$name has no ${title.returnType}")
+                val ranges = text.methods.filter { isModelListAccessor(it, text.type, TITLE_RANGES_FIELD, TITLE_RANGE_TYPE) }
+                assertEquals("$name: ranges ${ranges.map { it.name }}", 1, ranges.size)
+                val rangeClass = ranges.single().loadedClass()
+                assertNotNull("$name: ${ranges.single().name} names no element class", rangeClass)
+                val range = FixtureDex.classes(bundle, setOf(rangeClass!!))[rangeClass]
+                    ?: throw AssertionError("$name has no $rangeClass")
+                val entities = modelAccessors(range, RANGE_ENTITY_FIELD, RANGE_ENTITY_TYPE)
+                assertEquals("$name: entity ${entities.map { it.name }}", 1, entities.size)
+
+                val targets = modelAccessors(attachment, ATTACHMENT_TARGET_FIELD, ATTACHMENT_TARGET_TYPE)
+                assertEquals("$name: target ${targets.map { it.name }}", 1, targets.size)
+                val target = targets.single()
+                for (sibling in attachment.methods.filter {
+                    it.name != target.name && it.parameterTypes.isEmpty() && it.returnType == target.returnType
+                }) {
+                    assertFalse("$name: ${sibling.name}() matches target too",
+                        isModelAccessor(sibling, GRAPHQL_STORY_ATTACHMENT, ATTACHMENT_TARGET_FIELD, ATTACHMENT_TARGET_TYPE))
+                }
+                assertEquals("$name: the attachment's target isn't read as the story's `to`",
+                    storyTargetAccessors(story).single().returnType, target.returnType)
+
+                val context = PatchContexts.of(listOf(story, text, range, attachment, ExtensionDex.classDef(GROUP_POSTS)))
+                context.fillStoryShapeStubs()
+                val filled = context.mutableClassDefBy(GROUP_POSTS)
+                for ((stub, accessor) in listOf(
+                    STORY_TITLE_STUB to title, STORY_SHAREABLE_STUB to shareables.single(),
+                    TITLE_RANGES_STUB to ranges.single(), RANGE_ENTITY_STUB to entities.single(),
+                    ATTACHMENT_TARGET_STUB to target,
+                )) {
+                    assertEquals("$name: $stub",
+                        accessor.definingClass to "${accessor.definingClass}->${accessor.name}()${accessor.returnType}",
+                        filled.stub(stub).castAndCall())
+                }
+                checked[version] = "${title.name} ${shareables.single().name} ${ranges.single().name} " +
+                    "${entities.single().name} ${target.name}"
+            }
+        }
+        assertEquals("a declared build went unchecked: $checked", versions.toSet(), checked.keys)
+    }
+
     private fun Method.code(): List<Instruction> = implementation!!.instructions.toList()
 
     private fun Instruction.called() = (this as? ReferenceInstruction)?.reference as? MethodReference
@@ -178,8 +256,10 @@ class GroupJoinStateFixtureTest {
         assertEquals(VIEWER_JOIN_STATE_FIELD, ExtensionDex.stringConstant(GROUP_POSTS, "JOIN_STATE_FIELD"))
         assertEquals("Group", ExtensionDex.stringConstant(GROUP_POSTS, "GROUP_TYPE"))
         val stubs = ExtensionDex.classDef(GROUP_POSTS).methods.map { it.name }
-        assertTrue("the extension has no $STORY_TARGET_STUB", STORY_TARGET_STUB in stubs)
-        assertTrue("the extension has no $JOIN_STATE_STUB", JOIN_STATE_STUB in stubs)
+        for (stub in listOf(STORY_TARGET_STUB, JOIN_STATE_STUB, STORY_TITLE_STUB, STORY_SHAREABLE_STUB,
+            TITLE_RANGES_STUB, RANGE_ENTITY_STUB, ATTACHMENT_TARGET_STUB)) {
+            assertTrue("the extension has no $stub", stub in stubs)
+        }
         val hook = ExtensionDex.classDef(GROUP_POSTS).methods.singleOrNull { it.name == "askForJoinState" }
         assertNotNull("the extension has no GroupPosts.askForJoinState", hook)
         assertEquals("askForJoinState's shape", ASK_FOR_JOIN_STATE,

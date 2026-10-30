@@ -26,7 +26,7 @@ Diagnostic data put back.	Data diagnostik dikembalikan.
 Diagnostic report copied to the clipboard.	Laporan diagnostik disalin ke papan klip.
 Download failed	Unduhan gagal
 Downloading	Mengunduh
-Empties the activity log that a diagnostic report would include.	Mengosongkan log aktivitas yang akan disertakan dalam laporan diagnostik.
+Empties the activity log and any kept crash that a diagnostic report would include.	Mengosongkan log aktivitas dan crash tersimpan yang akan disertakan dalam laporan diagnostik.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.
 Export diagnostic report	Ekspor laporan diagnostik
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Mulai peluncuran berikutnya, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif, dan pilihan Anda tetap tersimpan.
@@ -151,6 +151,8 @@ Downloads	Unduhan
 Save videos other apps can open	Simpan video yang bisa dibuka aplikasi lain
 For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	Untuk WhatsApp, editor video seperti CapCut dan InShot, atau galeri atau pemutar yang memutar video tersimpan tanpa suara. Kualitas bisa lebih rendah.
 Convert to keep the full size	Konversi agar tetap ukuran penuh
+For phones that play AV1 badly. A video Instagram has at full size only as AV1 is saved as VP9 when it has one, or at its largest H.264 size. Convert to keep the full size then converts only VP9.	Untuk ponsel yang memutar AV1 dengan buruk. Video yang di Instagram hanya tersedia dalam ukuran penuh sebagai AV1 disimpan sebagai VP9 jika ada, atau dalam ukuran H.264 terbesarnya. Konversi agar tetap ukuran penuh lalu hanya mengonversi VP9.
+Never save AV1 video	Jangan pernah simpan video AV1
 Saves videos other apps can open, at full size. A video Instagram only has as VP9 or AV1 is converted to H.264 on your phone instead of saved smaller. Slower, and videos over 3 minutes stay smaller.	Menyimpan video yang bisa dibuka aplikasi lain, dalam ukuran penuh. Video yang di Instagram hanya ada sebagai VP9 atau AV1 dikonversi ke H.264 di ponselmu, bukan disimpan lebih kecil. Lebih lambat, dan video lebih dari 3 menit tetap lebih kecil.
 Converting to H.264	Mengonversi ke H.264
 Download quality	Kualitas unduhan
@@ -534,6 +536,8 @@ View live anonymously	Tonton siaran langsung secara anonim
 Photos and videos sent as view once or replayable stay in the chat so you can open them again. Open the chat again to update ones already loaded.	Foto dan video yang dikirim sekali lihat atau bisa diputar ulang tetap ada di chat sehingga bisa kamu buka lagi. Buka chat lagi untuk memperbarui yang sudah dimuat.
 Swipe through a chat's reels	Geser melalui reel di chat
 Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Back takes you to the chat.	Menggeser ke atas pada reel yang kamu buka dari chat akan melewati reel lain yang dibagikan di chat itu sebelum reel yang disarankan. Kembali membawamu ke chat.
+Stop after the chat's reels	Berhenti setelah reel chat
+Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	Reel yang kamu buka dari chat berakhir setelah reel terakhir yang dibagikan di chat itu, tanpa reel yang disarankan setelahnya. Berfungsi saat Geser melalui reel di chat aktif.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	Menambahkan Unduh sampul di bawah Unduh. Ini menyimpan gambar diam yang ditampilkan reel sebelum diputar, dalam ukuran terbesarnya.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	Menambahkan Unduh audio di bawah Unduh. Ini menyimpan suara reel sebagai file audio.
 After 20 reels, swiping in Reels stops until Instagram has been in the background for 15 minutes. A reel you open from a message or a post still plays.	Setelah 20 reel, menggeser di Reels berhenti sampai Instagram berada di latar belakang selama 15 menit. Reel yang Anda buka dari pesan atau postingan tetap diputar.
@@ -590,6 +594,8 @@ Hide story rewinds	Sembunyikan rewind cerita
 Nothing in the row of stories at the top of Home loads, your own story included, and highlights on profiles stay empty too. Saves data. A story ring on a profile or in a chat still opens its stories.	Tidak ada yang dimuat di baris cerita di bagian atas Beranda, termasuk cerita Anda sendiri, dan sorotan di profil juga tetap kosong. Menghemat data. Cincin cerita di profil atau di chat tetap membuka ceritanya.
 Expandable categories	Kategori yang dapat diperluas
 Tap a category to show or hide its settings on this page.	Ketuk kategori untuk menampilkan atau menyembunyikan pengaturannya di halaman ini.
+Descriptions behind an info button	Deskripsi di balik tombol info
+Shows each switch by its name alone. Tap the i next to a name to read what it does.	Menampilkan setiap sakelar dengan namanya saja. Ketuk i di samping nama untuk membaca fungsinya.
 Expanded	Diperluas
 Collapsed	Diciutkan
 Hide the HushGram row in Instagram's menu	Sembunyikan baris HushGram di menu Instagram
@@ -673,7 +679,7 @@ Details	Detail
 Details in a post's menu	Detail di menu postingan
 Media ID %1$s	ID media %1$s
 Media link	Tautan media
-Media link copied	Tautan media disalin
+Media link copied. It stops working after a few days.	Tautan media disalin. Tautan ini tidak berfungsi lagi setelah beberapa hari.
 No direct link for this one	Tidak ada tautan langsung untuk yang ini
 Posted %1$s	Diposting %1$s
 Size %1$d × %2$d	Ukuran %1$d × %2$d
@@ -904,14 +910,14 @@ Show all settings as a list	Tampilkan semua pengaturan sebagai daftar
 Show settings by category	Tampilkan pengaturan menurut kategori
 Tab bar opacity	Opasitas bilah tab
 Tab bar height	Tinggi bilah tab
-Clearest	Paling bening
-Clear	Bening
-Frosted	Buram
 Standard	Standar
 Blur strength	Kekuatan blur
-# context: a blur strength step of the tab bar
-Light	Ringan
-Strong	Kuat
+# context: the blur slider's value under its title; dp is Android's screen unit, keep it
+%1$d dp	%1$d dp
+# context: the tab bar opacity slider's value under its title
+%1$d%%	%1$d%%
+# context: a slider's value when it sits at the starting setting, %1$s is the value
+%1$s (standard)	%1$s (standar)
 Compact	Ringkas
 Tall	Tinggi
 Tab bar corners	Sudut bilah tab
@@ -1031,6 +1037,8 @@ Rounded corners on Reels	Sudut membulat pada Reels
 Rounded corners on stories	Sudut membulat pada cerita
 Seek bar on stories	Bilah geser di cerita
 Shows a bar near the bottom of a video story. Drag it to jump to any point in the video. Photos don't get one.	Menampilkan bilah di dekat bagian bawah cerita video. Geser bilahnya untuk melompat ke titik mana pun di video. Foto tidak mendapatkannya.
+Seek bar on feed videos	Bilah geser di video feed
+Shows a bar along the bottom of the video playing in a feed. Drag it and let go to jump to that point in the video.	Menampilkan bilah di bagian bawah video yang sedang diputar di feed. Geser lalu lepaskan untuk melompat ke titik itu di video.
 Thicker story progress bar	Bilah progres cerita lebih tebal
 Draws the bar along the top of a story as thick as the choice below. Its segments and timing stay as they were.	Menggambar bilah di bagian atas cerita setebal pilihan di bawah. Segmen dan waktunya tetap seperti semula.
 Thickness	Ketebalan
@@ -1292,3 +1300,5 @@ The row of stories at the top of Home keeps only the accounts the choice below n
 Stories to keep	Cerita yang disimpan
 Only verified accounts	Hanya akun terverifikasi
 Only accounts that aren't verified	Hanya akun yang tidak terverifikasi
+Pinch to zoom	Cubit untuk memperbesar
+Two fingers zoom into a playing reel, the way a photo zooms. Lift them and it goes back. Restart Instagram to see the change.	Dua jari memperbesar reel yang sedang diputar, seperti memperbesar foto. Angkat jari dan reel kembali seperti semula. Mulai ulang Instagram untuk melihat perubahannya.

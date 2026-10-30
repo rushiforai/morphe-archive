@@ -1,5 +1,5 @@
 {
-  "version": "v1.0.3",
+  "version": "v1.0.4",
   "appNames": {
     "com.zhiliaoapp.musically": "TikTok"
   },
@@ -231,6 +231,54 @@
         }
       ],
       "options": []
+    },
+    {
+      "name": "Favorites button in share menu",
+      "description": "Puts the Add to favorites button into the share menu's bottom row, in the place you choose. The place is set in the Pixkk Patches settings.",
+      "category": "Interface",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": {
+        "com.zhiliaoapp.musically": [
+          "47.5.3"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "TikTok",
+          "packageName": "com.zhiliaoapp.musically",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba"
+          ],
+          "targets": [
+            {
+              "version": "47.5.3",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 2024705030,
+                "ARMEABI_V7A": 2024705030,
+                "X86": 2024705030,
+                "X86_64": 2024705030
+              }
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "place",
+          "title": "Button place",
+          "description": "Where the button goes in the bottom row, counted from the left from 1 (Report is 1). A place past the last button puts it last; 0 leaves it out. A patched app starts with it until it is changed on the settings page.",
+          "required": false,
+          "type": "kotlin.Int",
+          "default": 3,
+          "values": null
+        }
+      ]
     },
     {
       "name": "Old-style counts",

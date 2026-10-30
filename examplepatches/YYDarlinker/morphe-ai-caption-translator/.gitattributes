@@ -1,6 +1,3 @@
 # Provenance and verification manifests identify exact bytes, including original line endings.
 # Disable checkout conversion; diff/merge detection remains automatic for text files.
 * -text
-
-# Historical recovered output is not the current maintained source.
-recovered/** linguist-generated=true

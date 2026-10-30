@@ -25,34 +25,34 @@ class ControlProfileTest {
             for (key in BASE_PROFILE.hooks.keys) {
                 assertEquals(BASE_PROFILE.hooks.getValue(key).size, profile.hooks.getValue(key).size, key)
             }
-            assertEquals(ExpectedTotals.HOOKS_584, profile.hooks.values.sumOf { it.size })
+            assertEquals(ExpectedTotals.HOOKS_585, profile.hooks.values.sumOf { it.size })
         }
-        assertEquals(4, BASE_PROFILE.hooks.getValue(EMOJI_DRAWER).size)
+        assertEquals(6, BASE_PROFILE.hooks.getValue(EMOJI_DRAWER).size)
     }
 
     @Test fun theVersionCodePicksTheProfile() {
         assertEquals(MessengerTarget.VERSION_CODES.toSet(), controlProfiles.keys)
-        assertSame(PROFILE_346816935, BASE_PROFILE)
-        for (code in listOf("346816935", "346814999", null)) assertSame(BASE_PROFILE, controlProfileFor(code))
+        assertSame(PROFILE_347015062, BASE_PROFILE)
+        for (code in listOf("347015062", "346814999", null)) assertSame(BASE_PROFILE, controlProfileFor(code))
         val profiles = controlProfiles + (348000001 to SYNTHETIC_PROFILE)
         assertSame(SYNTHETIC_PROFILE, controlProfileFor("348000001", profiles))
-        assertSame(BASE_PROFILE, controlProfileFor("346816935", profiles))
+        assertSame(BASE_PROFILE, controlProfileFor("347015062", profiles))
     }
 
     @Test fun aSecondVersionNameUsesItsOwnBuildsProfile() {
-        val versions = MessengerTarget.VERSIONS + ("585.0.0.1.91" to listOf(348000001))
+        val versions = MessengerTarget.VERSIONS + ("586.0.0.1.91" to listOf(348000001))
         val profiles = controlProfiles + (348000001 to SYNTHETIC_PROFILE)
         assertSame(SYNTHETIC_PROFILE, controlProfileFor("348000001", profiles))
-        assertSame(BASE_PROFILE, controlProfileFor("346816935", profiles))
+        assertSame(BASE_PROFILE, controlProfileFor("347015062", profiles))
         val found = mapOf("ad_context_banner" to SYNTHETIC_PROFILE.hooks.getValue("ad_context_banner").map { id ->
             fixtureMethod(id, "const/4 v0, 0x0\nreturn v0")
         })
         activeProfile = controlProfileFor("348000001", profiles)
         validateControls(found, setOf("ad_context_banner"), versions)
-        activeProfile = controlProfileFor("346816935", profiles)
+        activeProfile = controlProfileFor("347015062", profiles)
         val failure = assertFailsWith<PatchException> { validateControls(found, setOf("ad_context_banner"), versions) }
         assertContains(failure.message.orEmpty(),
-            "Use an unmodified Messenger ${MessengerTarget.supportedApks()} or 585.0.0.1.91 APK (version code 348000001).")
+            "Use an unmodified Messenger ${MessengerTarget.supportedApks()} or 586.0.0.1.91 APK (version code 348000001).")
     }
 
     @Test fun validationFollowsTheActiveBuild() {
@@ -88,8 +88,9 @@ class ControlProfileTest {
     private val build = "LX/32c;->A00($builder)Lcom/google/common/collect/ImmutableList;"
     private val folded = "LX/34B;->A0l(${builder}Ljava/lang/Iterable;)Lcom/google/common/collect/ImmutableList;"
 
-    // Shaped like 584's BaseXappComposerConfigurationFactory.A6e, where the builder's addAll takes the local list and a
-    // static build follows it. [foldedCopy] is 583's form instead: one static call taking the builder and the list.
+    // Shaped like 585's BaseXappComposerConfigurationFactory.A0S, where the builder's addAll takes the local list and a
+    // static build follows it, and the method returns the built list. [foldedCopy] is 583's form instead: one static
+    // call taking the builder and the list.
     private fun inlineTabs(
         extraCopy: Boolean = false,
         branchIntoCopy: Boolean = false,
@@ -99,7 +100,7 @@ class ControlProfileTest {
         rangeCopy: Boolean = false,
         unbuilt: Boolean = false,
         otherBuilder: Boolean = false,
-    ) = fixtureMethod("$COMPOSER_FACTORY->A6X(LX/5vA;)V", """
+    ) = fixtureMethod("$COMPOSER_FACTORY->A0S()$IMMUTABLE_LIST", """
             new-instance v12, Ljava/util/ArrayList;
             invoke-direct {v12}, Ljava/util/ArrayList;-><init>()V
             const/4 v4, 0x0
@@ -118,7 +119,7 @@ class ControlProfileTest {
             move-result-object v3
             ${if (extraCopy) "invoke-virtual {v2, v12}, $copy\ninvoke-static {v2}, $build" else "nop"}
             sget-object v0, $AVATAR_TAB_EVENT->A00:$AVATAR_TAB_EVENT
-            return-void
+            return-object v3
             ${if (switchIntoCopy) ":cases\n.packed-switch 0x1\n:copy\n.end packed-switch" else ""}
         """.trimIndent(), registers = 16).apply {
             // Instruction snippets carry no try blocks, so the handler is added directly.

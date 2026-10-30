@@ -597,6 +597,38 @@ public final class FullScreenBars {
     }
 
     /**
+     * Called as a session shows the bars again for another screen in the same window. A reel opened
+     * from its author's profile plays in the profile's window, and Back leaves it for the profile there.
+     * The hide wrote 0 into Instagram's copy ({@link #takeHiddenHeights}) and no pass of its listener
+     * came after the show, so the profile kept no room for the status bar and its name sat under the
+     * clock (#385). Each height answered 0 that no window still hides gets the height Instagram last
+     * offered back, the navigation bar's as a floating glass pill would have it, and the activity's
+     * kept listeners hear it. A pass that comes after brings the same pair, so nothing is told twice.
+     */
+    static void giveBackShownHeights() {
+        try {
+            boolean gave = false;
+            if (statusTaken && statusOffered > 0 && !anyHidden(true)) {
+                keepStatusBarHeight(statusOffered);
+                statusTaken = false;
+                statusAnswer = statusOffered;
+                gave = true;
+            }
+            if (navTaken && navOffered > 0 && !anyHidden(false)) {
+                int answer = GlassTabBar.navBarHeight(navOffered, 0);
+                if (answer > 0) {
+                    keepNavBarHeight(answer);
+                    navTaken = false;
+                    gave = true;
+                }
+            }
+            if (gave) heightsKept(statusTaken ? 0 : statusOffered, navTaken ? 0 : navOffered);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.FULL_SCREEN_BARS, "bar heights shown", failure);
+        }
+    }
+
+    /**
      * Called when the keyboard comes up ([shows]) or goes in a window with the navigation bar hidden
      * ([bars]). Instagram lifts a chat's message box above the keyboard by the keyboard's height less
      * the navigation bar's, and in a chat that opened with the bars hidden nothing told its screens
@@ -839,7 +871,10 @@ public final class FullScreenBars {
             if (hasFocus && hidden) {
                 hidden = false;
                 evaluate();
-                if (!hidden) show();
+                if (!hidden) {
+                    show();
+                    giveBackShownHeights();
+                }
             }
         }
 
@@ -854,7 +889,10 @@ public final class FullScreenBars {
                 boolean want = wanted(screenOf(decor));
                 // A Bars to hide choice changed while hidden takes over at the next look.
                 if (want && (!hidden || bars != chosenBars())) hide(found.getWindow(), decor);
-                else if (!want && hidden) show();
+                else if (!want && hidden) {
+                    show();
+                    giveBackShownHeights();
+                }
             } catch (Throwable failure) {
                 HookStatus.threw(FamilyNames.FULL_SCREEN_BARS, "check", failure);
             }

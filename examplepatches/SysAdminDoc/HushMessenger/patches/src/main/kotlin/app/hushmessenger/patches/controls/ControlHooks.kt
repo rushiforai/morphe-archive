@@ -303,9 +303,9 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
                 DRAWER_FOLDER_SELECTED in strings) add("menu_settings")
             if (method.returnType == "V" && method.parameterTypes.isEmpty() &&
                 !AccessFlags.STATIC.isSet(method.accessFlags) && DRAWER_REFRESH in strings) add("menu_settings")
-            // The sticker keyboard's tab list is filled inline in a void composer factory method that reads the avatar
-            // tab's activate event.
-            if (method.returnType == "V" && cls.type == COMPOSER_FACTORY &&
+            // The sticker keyboard's tab list is filled inline in a composer factory method that reads the avatar
+            // tab's activate event and returns the built list.
+            if (method.returnType == IMMUTABLE_LIST && cls.type == COMPOSER_FACTORY &&
                 refs.any { it.toString().startsWith("$AVATAR_TAB_EVENT->") } &&
                 refs.any { it.toString().startsWith("$IMMUTABLE_LIST->builder()") }) add("avatar_tabs")
             if (method.name == "render" && SEARCH_CLEAR_TAG in strings) searchFieldRender = method
@@ -375,6 +375,7 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     found.getValue(EMOJI_SEARCH).addAll(findEmojiSearch(classes))
     found.getValue(TAB_BADGES).addAll(findTabBadges(classes))
     found.getValue(FACEBOOK_BADGE).addAll(findFacebookBadge(classes))
+    found.getValue(FACEBOOK_PROFILE_HEADER).addAll(findProfileHeader(classes))
     found.getValue(TAB_CONFIG).addAll(findTabConfig(classes))
     found.getValue(AI_MENTIONS).addAll(findAiMentions(classes))
     found.getValue(AI_COMMANDS).addAll(findAiCommands(classes))
@@ -813,8 +814,8 @@ internal fun ClassDef.isRowWrapper(): Boolean =
 internal fun ClassDef.hasMessageIdGetter(): Boolean = messageIdGetterName.isNotEmpty() &&
     methods.any { it.name == messageIdGetterName && it.returnType == "Ljava/lang/String;" && it.parameterTypes == listOf("I") }
 
-/** The Notifications tab's server flag ID as 584 numbers it. Meta renumbers it with each release. */
-private const val PEOPLE_SERVER_FLAG = 72344171435866083L
+/** The Notifications tab's server flag ID as 585 numbers it. Meta renumbers it with each release. */
+private const val PEOPLE_SERVER_FLAG = 72344162845931861L
 
 /**
  * Where the Notifications tab loads its server flag: the method's only constant with that value, at 17, after the
@@ -836,8 +837,8 @@ private fun Method.isPeopleSectionShape() = parameterTypes.map(CharSequence::toS
 /**
  * The Notifications tab reads its stock "section hidden" preference into v0 and branches on it. A hidden
  * section is still shown when a server flag (v0, three instructions after its constant) is on; both branches
- * land on the final false return. The false value is a local loaded at 9: v5 of a ten-register body, or v3 of the
- * eight-register one some 584.1 arm64 builds compile. The body logs a skipped impression under a monitor after the
+ * land on the final false return. The false value is a local loaded at 9: v3 of the eight-register body every 585
+ * build compiles, or v5 of the ten-register one older builds had. The body logs a skipped impression under a monitor after the
  * server branch.
  */
 internal fun MutableMethod.validatePeopleSection() {
@@ -1073,8 +1074,8 @@ internal fun MutableMethod.injectMenuDrawerAdd() {
 private const val IMMUTABLE_LIST_BUILDER = "Lcom/google/common/collect/ImmutableList\$Builder;"
 
 /**
- * 584 fills the keyboard's tab list inline: a local ArrayList of tab items goes into a fresh ImmutableList.Builder
- * through one addAll that is built on the very next instruction:
+ * 585 fills the keyboard's tab list inline and returns it: a local ArrayList of tab items goes into a fresh
+ * ImmutableList.Builder through one addAll that is built on the very next instruction:
  *
  *     invoke-static {}, ImmutableList;->builder()
  *     move-result-object vB
@@ -1093,7 +1094,7 @@ internal fun MutableMethod.validateKeyboardTabsInline(): Pair<Int, Int> {
             call.parameterTypes.map { it.toString() } == listOf("Ljava/lang/Iterable;")
     }.singleOrNull()
     // Code inserted before a jump target would be skipped by whatever jumps there.
-    if (returnType != "V" || copy == null || copy < 2 || copy + 1 >= code.size || copy in jumpTargets()) changed()
+    if (returnType != IMMUTABLE_LIST || copy == null || copy < 2 || copy + 1 >= code.size || copy in jumpTargets()) changed()
     val add = code[copy] as FiveRegisterInstruction
     val builder = (code[copy - 1] as? OneRegisterInstruction)?.takeIf { code[copy - 1].opcode == Opcode.MOVE_RESULT_OBJECT }?.registerA
     val made = (code[copy - 2] as? ReferenceInstruction)?.reference as? DexMethodReference
@@ -1610,8 +1611,9 @@ internal class StorySave(
     val fragmentType: String,
     val menuType: String,
     val controller: String,
-    /** Card controllers the item is offered for. */
+    /** Card controllers the item is offered for, in builds that list them; empty where [canSave] answers instead. */
     val saveable: List<String>,
+    val canSave: String?,
     val id: Long,
     val label: Long,
     val labelOf: String,
@@ -1642,23 +1644,23 @@ internal fun MutableMethod.validateStorySave(): StorySave {
     fun answer(check: Int) = (check - 1 downTo 0).firstOrNull { op(it) !in RESOURCE_CONSTS && op(it) != Opcode.CONST_STRING } ?: -1
 
     // "Is this your story?" and a second flag both branch to your own story's items; what follows them is for anyone else's.
+    // 585's arm64 builds ask their fragment manager the same way later in this onClick, so only the question asked right
+    // after the menu is built counts.
     val own = code.indices.filter { i ->
         if (op(i) != Opcode.IF_NEZ || op(i + 1) != Opcode.IGET_BOOLEAN || op(i + 2) != Opcode.IF_NEZ || reg(i + 2) != reg(i + 1) ||
             branch(i) < 0 || branch(i) != branch(i + 2)) return@filter false
         val result = answer(i)
         op(result) == Opcode.MOVE_RESULT && reg(result) == reg(i) && op(result - 1) == Opcode.INVOKE_VIRTUAL &&
             call(result - 1)?.returnType == "Z" && params(result - 1)?.isEmpty() == true &&
-            args(result - 1) == listOf((code[i + 1] as TwoRegisterInstruction).registerB)
-    }.singleOrNull() ?: fail("no longer asks once whether the story is yours")
+            args(result - 1) == listOf((code[i + 1] as TwoRegisterInstruction).registerB) &&
+            op(result - 2) == Opcode.MOVE_RESULT_OBJECT && op(result - 3) == Opcode.INVOKE_STATIC
+    }.singleOrNull() ?: fail("no longer builds its menu and then asks once whether the story is yours")
     val result = answer(own)
     val flag = reg(own)
     val fragment = args(result - 1).single()
     val fragmentType = call(result - 1)!!.definingClass
     val menu = reg(result - 2)
-    val menuType = call(result - 3)?.returnType
-    if (op(result - 2) != Opcode.MOVE_RESULT_OBJECT || op(result - 3) != Opcode.INVOKE_STATIC || menuType == null) {
-        fail("no longer builds its menu right before asking whether the story is yours")
-    }
+    val menuType = call(result - 3)?.returnType ?: fail("no longer builds its menu with a method call")
     // The helper reads the fragment and the menu where the other path starts, so nothing on the way may change or skip to it.
     val others = own + 3
     val targets = jumpTargets()
@@ -1679,19 +1681,32 @@ internal fun MutableMethod.validateStorySave(): StorySave {
     }
     val card = reg(entry + 3)
     val saveable = mutableListOf<String>()
+    var canSave: String? = null
     var add = entry + 4
-    // 584 lists the card types: a match jumps to the item, the last miss skips it.
-    if (op(add) != Opcode.INSTANCE_OF) fail("Save item's card test no longer matches the tested build")
-    while (op(add) == Opcode.INSTANCE_OF) {
-        val test = code[add] as TwoRegisterInstruction
-        if (test.registerB != card || reg(add + 1) != test.registerA) fail("Save item's card test no longer matches the tested build")
-        saveable += ((code[add] as ReferenceInstruction).reference as TypeReference).type
-        add += 2
-        if (op(add - 1) == Opcode.IF_EQZ && branch(add - 1) == skip) break
-        if (op(add - 1) != Opcode.IF_NEZ) fail("Save item's card test no longer matches the tested build")
-    }
-    if (op(add - 1) != Opcode.IF_EQZ || (entry + 5 until add - 1 step 2).any { branch(it) != add }) {
-        fail("Save item's card test no longer matches the tested build")
+    if (op(add) == Opcode.INSTANCE_OF) {
+        // 585's 347014990 lists the card types: a match jumps to the item, the last miss skips it.
+        while (op(add) == Opcode.INSTANCE_OF) {
+            val test = code[add] as TwoRegisterInstruction
+            if (test.registerB != card || reg(add + 1) != test.registerA) fail("Save item's card test no longer matches the tested build")
+            saveable += ((code[add] as ReferenceInstruction).reference as TypeReference).type
+            add += 2
+            if (op(add - 1) == Opcode.IF_EQZ && branch(add - 1) == skip) break
+            if (op(add - 1) != Opcode.IF_NEZ) fail("Save item's card test no longer matches the tested build")
+        }
+        if (op(add - 1) != Opcode.IF_EQZ || (entry + 5 until add - 1 step 2).any { branch(it) != add }) {
+            fail("Save item's card test no longer matches the tested build")
+        }
+    } else {
+        // The other 585 builds moved that list into a method on the card's controller and ask it.
+        val test = call(add)
+        if (op(add) != Opcode.INVOKE_VIRTUAL || test == null || test.definingClass != controller.returnType ||
+            test.returnType != "Z" || test.parameterTypes.isNotEmpty() || args(add) != listOf(card) ||
+            op(add + 1) != Opcode.MOVE_RESULT || op(add + 2) != Opcode.IF_EQZ || reg(add + 2) != reg(add + 1) ||
+            branch(add + 2) != skip) {
+            fail("Save item's card test no longer matches the tested build")
+        }
+        canSave = test.toString()
+        add += 3
     }
     val id = literal(add)
     val label = literal(add + 1)
@@ -1715,7 +1730,7 @@ internal fun MutableMethod.validateStorySave(): StorySave {
     }
     val handler = handlers.singleOrNull() ?: fail("no longer sends its clicks to one handler")
     return StorySave(
-        others, fragment, menu, fragmentType, menuType, controller.toString(), saveable, id, label,
+        others, fragment, menu, fragmentType, menuType, controller.toString(), saveable, canSave, id, label,
         labelOf.toString(), icon.toString(), addItem.toString(), ((code[handler] as ReferenceInstruction).reference as TypeReference).type,
     )
 }
@@ -1739,9 +1754,10 @@ internal fun ClassDef.validateStoryMenuHandler(save: StorySave) {
 
 /** Offers Save on someone else's story the way the menu offers it on yours, while the switch is on. */
 internal fun storySaveHelper(definingClass: String, save: StorySave): MutableMethod {
-    val test = save.saveable.mapIndexed { i, type ->
-        "instance-of v1, v0, $type\n" + if (i == save.saveable.lastIndex) "if-eqz v1, :done" else "if-nez v1, :add"
-    }.joinToString("\n")
+    val test = save.canSave?.let { "invoke-virtual {v0}, $it\nmove-result v1\nif-eqz v1, :done" }
+        ?: save.saveable.mapIndexed { i, type ->
+            "instance-of v1, v0, $type\n" + if (i == save.saveable.lastIndex) "if-eqz v1, :done" else "if-nez v1, :add"
+        }.joinToString("\n")
     val parameters = listOf(save.fragmentType, save.menuType).map { ImmutableMethodParameter(it, null, null) }
     return MutableMethod(ImmutableMethod(definingClass, STORY_SAVE_HELPER, parameters, "V",
         AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null, ImmutableMethodImplementation(6, emptyList(), null, null)))

@@ -54,6 +54,22 @@ public final class ReelHoldForTests {
         if (ReelHold.release(false) && ReelHold.release(false)) setter.set(player, facebooks);
     }
 
+    /** Facebook's 2x pill states, by the names its enum keeps. */
+    public enum Pill { NORMAL, LOCK_HINT, READY_TO_LOCK, LOCKED, UNLOCK_HINT, READY_TO_UNLOCK, NUX_PROMPT }
+
+    /**
+     * A 2x pill and a Reels 2x pill made with the "Pull down to lock" hint, in a build with Hold a
+     * reel for 2x: true when either hook drew its pill as the plain one.
+     */
+    public static boolean hidesTheLockHint() {
+        return withHold(() -> LockHint.pill(Pill.LOCK_HINT) == Pill.NORMAL || !LockHint.reelPill(ReelPill.UNLOCKED_2X_SPEED, true));
+    }
+
+    /** Facebook's Reels 2x pill states, by the names its enum keeps. */
+    public enum ReelPill {
+        LOCKED_WITH_FOOTER, INITIATING_LOCK, INITIATING_RESTORE, UNLOCKED_ORIGINAL_SPEED, UNLOCKED_2X_SPEED, ORIGINAL_SPEED
+    }
+
     /**
      * A reel at 1.5x held, whose lift sets normal speed: true when the setter's hook changed that
      * speed. Leaves nothing behind.

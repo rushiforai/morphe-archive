@@ -19,7 +19,6 @@ private const val READ_SETTINGS = "Lapp/template/extension/extension/NezumiSetti
 private object SeenAckFingerprint : Fingerprint(
     returnType = "V",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    parameters = listOf("Ljava/util/List;", "Z", "I", "I", "Lf11/j0;"),
     filters = listOf(
         string("ackMsgList"),
         string("seen"),
@@ -32,7 +31,6 @@ private object SeenAckFingerprint : Fingerprint(
 private object ReadMarkerFingerprint : Fingerprint(
     returnType = "V",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    parameters = listOf("Ljava/util/List;", "Z", "Z", "Z", "Ln62/l;", "Ln62/l;"),
     filters = listOf(
         literal(10309),
         literal(205),
@@ -52,7 +50,7 @@ val hideReadReceiptsPatch = bytecodePatch(
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(AppTarget(version = "26.08.01")),
+        targets = listOf(AppTarget(version = "26.08.01"), AppTarget(version = "26.10.02")),
     ))
 
     dependsOn(nativeSignaturePatch)
@@ -63,6 +61,13 @@ val hideReadReceiptsPatch = bytecodePatch(
         check(ReadMarkerFingerprint.matchAll(1..1).size == 1)
 
         val seenAck = SeenAckFingerprint.method
+        check(seenAck.parameters.size == 5 && seenAck.parameters.map { it.type }.take(4) ==
+            listOf("Ljava/util/List;", "Z", "I", "I"))
+        val callbackType = seenAck.parameters.last().type
+        val callback = mutableClassDefBy(callbackType).methods.single {
+            it.parameterTypes == listOf("Ljava/lang/Object;") && it.returnType == "V" &&
+                it.accessFlags and AccessFlags.PUBLIC.value != 0
+        }
         check(seenAck.implementation!!.registerCount >= 14)
         val ackStart = seenAck.implementation!!.instructions.first()
         seenAck.addInstructionsWithLabels(0, """
@@ -80,14 +85,16 @@ val hideReadReceiptsPatch = bytecodePatch(
             if-eqz p5, :nezumi_seen_done
             new-instance v0, Lorg/json/JSONObject;
             invoke-direct {v0}, Lorg/json/JSONObject;-><init>()V
-            invoke-virtual {p5, v0}, Lf11/j0;->j(Ljava/lang/Object;)V
+            invoke-virtual {p5, v0}, $callbackType->${callback.name}(Ljava/lang/Object;)V
             :nezumi_seen_done
             return-void
             :nezumi_delivery_ack
-            const/4 p2, 0x0
+            const/16 p2, 0x0
         """.trimIndent(), ExternalLabel("nezumi_original_ack", ackStart))
 
         val readMarker = ReadMarkerFingerprint.method
+        check(readMarker.parameters.size == 6 && readMarker.parameters.map { it.type }.take(4) ==
+            listOf("Ljava/util/List;", "Z", "Z", "Z"))
         check(readMarker.implementation!!.registerCount >= 16)
         val markerStart = readMarker.implementation!!.instructions.first()
         readMarker.addInstructionsWithLabels(0, """
@@ -97,7 +104,7 @@ val hideReadReceiptsPatch = bytecodePatch(
             invoke-static {v0}, $READ_SETTINGS->isReadReceiptsHidden(Landroid/content/Context;)Z
             move-result v0
             if-eqz v0, :nezumi_original_marker
-            const/4 p2, 0x0
+            const/16 p2, 0x0
         """.trimIndent(), ExternalLabel("nezumi_original_marker", markerStart))
 
         attachNezumiSettings()

@@ -58,13 +58,11 @@ public class M6aFailureDiagnosticsTest {
     RebuildController.Session session() throws Exception {
         TranslationSettings config=new TranslationSettings(true,server.url("/v1").toString(),"fixture-model","faithful","fixture-secret","stored_custom");
         RebuildController.Session s=new RebuildController.Session(activity,"fixture",(String)field(RebuildController.class,"video"),"scope","zh-Hans",config,false,true,language);
-        s.source=source;s.blocks=Collections.singletonList(block);s.states=new int[]{RebuildController.RUNNING};s.attempts=new int[]{1};s.retryAt=new long[1];s.reasons=new String[1];
-        s.plans=new RebuildProtocol.Plan[1];s.provisional=new RebuildProtocol.Plan[1];s.pendingPlans=new RebuildProtocol.Plan[1];s.jobs=new RebuildController.Job[1];
-        s.cacheChecked=new boolean[]{true};s.slowRetries=new int[1];s.pageRepairCount=new int[1];s.uncoveredSince=new long[1];
+        s.source=source;s.blocks=Collections.singletonList(block);s.work.initialize(1);s.work.slots[0].state=RebuildController.RUNNING;s.work.slots[0].attempts=1;s.work.slots[0].cacheChecked=true;
         set(RebuildController.class,"active",s);return s;
     }
     Exception request(RebuildController.Session s) throws Exception {
-        RebuildController.Job job=new RebuildController.Job(s,0,true);s.jobs[0]=job;
+        RebuildController.Job job=new RebuildController.Job(s,0,true);s.work.slots[0].attempt=job.attempt;
         Exception failure=caller.submit(()->{
             try{RebuildApi.translate(source,block,s.config,"zh-Hans",job,true,"",language);throw new AssertionError("expected failure");}
             catch(Exception e){return e;}
@@ -79,7 +77,7 @@ public class M6aFailureDiagnosticsTest {
     long count(String key) throws Exception {return ((JSONObject)field(TokenCostAudit.class,"memoryState")).getJSONObject("buckets").getJSONObject("all").optLong(key);}
     void gated(RebuildController.Session s) throws Exception {
         int sent=server.getRequestCount();Method schedule=RebuildController.class.getDeclaredMethod("schedule",RebuildController.Session.class);schedule.setAccessible(true);schedule.invoke(null,s);
-        assertNull(s.jobs[0]);assertEquals(sent,server.getRequestCount());
+        assertNull(s.work.slots[0].attempt);assertEquals(sent,server.getRequestCount());
     }
     @Test public void sameLegacyBucketReportsDifferentActualWaitFilterAndTerminalDecisions() throws Exception {
         int[] statuses={401,429,503,400};String[] reasons={"http_401","http_429","http_503","content_filter"};
@@ -89,14 +87,14 @@ public class M6aFailureDiagnosticsTest {
             if(i==1||i==2)response.setHeader("Retry-After","17");server.enqueue(response);
             long now=SystemClock.elapsedRealtime();Exception failure=request(s);assertTrue(failure instanceof RebuildApi.Failure);
             assertEquals(reasons[i],((RebuildApi.Failure)failure).code);assertEquals(i==0,((RebuildApi.Failure)failure).configuration);
-            assertEquals(i==0,s.terminal);assertEquals(i==3,s.filteredBlocks.contains(0));
-            assertEquals(i==0||i==3?RebuildController.FAILED:RebuildController.WAITING,s.states[0]);
+            assertEquals(i==0,s.terminal);assertEquals(i==3,s.work.filteredBlocks.contains(0));
+            assertEquals(i==0||i==3?RebuildController.FAILED:RebuildController.WAITING,s.work.slots[0].state);
             String facts=decision(s);assertFalse("missing facts from the actual decision",facts.isEmpty());
             assertTrue(facts,facts.contains("reason="+reasons[i]+";"));assertTrue(facts,facts.contains("configuration="+(i==0)+";"));
             assertTrue(facts,facts.contains("terminal="+s.terminal+";"));assertTrue(facts,facts.contains("filtered="+(i==3)+";"));
-            assertTrue(facts,facts.contains("retry_at_elapsed_ms="+s.retryAt[0]+";"));
-            assertTrue(facts,facts.contains("provider_retry_at_elapsed_ms="+s.providerRetry+";"));
-            if(i==1||i==2){assertEquals(now+17000,s.retryAt[0]);assertEquals(now+17000,s.providerRetry);}
+            assertTrue(facts,facts.contains("retry_at_elapsed_ms="+s.work.slots[0].retryAt+";"));
+            assertTrue(facts,facts.contains("provider_retry_at_elapsed_ms="+s.work.providerRetry+";"));
+            if(i==1||i==2){assertEquals(now+17000,s.work.slots[0].retryAt);assertEquals(now+17000,s.work.providerRetry);}
             gated(s);assertEquals(i+1,server.getRequestCount());
             System.out.println("M6A_DECISION "+facts);
         }
@@ -112,7 +110,7 @@ public class M6aFailureDiagnosticsTest {
         assertEquals(2,count("attempts"));assertEquals(1,count("failures"));assertEquals(1,count("quality_rejected_units"));assertEquals(0,count("category_http_config"));
     }
     @Test public void cancellationBeforeAdmissionDoesNotPretendAnAttemptReachedTheServer() throws Exception {
-        RebuildController.Session s=session();RebuildController.Job job=new RebuildController.Job(s,0,true);s.jobs[0]=job;job.cancelled=true;
+        RebuildController.Session s=session();RebuildController.Job job=new RebuildController.Job(s,0,true);s.work.slots[0].attempt=job.attempt;job.attempt.cancelled=true;
         try{RebuildApi.translate(source,block,s.config,"zh-Hans",job,true,"",language);fail("cancelled admitted");}catch(InterruptedException expected){}
         assertEquals(0,server.getRequestCount());assertEquals(0,count("attempts"));assertEquals(0,count("failures"));assertEquals("",decision(s));
     }

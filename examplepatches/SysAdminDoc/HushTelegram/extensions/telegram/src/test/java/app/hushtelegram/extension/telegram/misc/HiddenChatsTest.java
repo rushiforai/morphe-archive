@@ -168,7 +168,7 @@ public class HiddenChatsTest {
         assertTrue(report(), report().contains("chat list for hiding"));
         // The report names the first hook that broke, so the refresh's own failure gets a clean slate.
         HookStatus.clear();
-        HiddenChats.refreshShown();
+        HiddenChats.refreshAll();
         assertTrue(report(), report().contains("chat list refresh"));
     }
 
@@ -268,11 +268,63 @@ public class HiddenChatsTest {
         assertTrue(archive == HiddenChats.pinOrder(controller, 1, archive));
     }
 
-    @Test public void aRefreshSortsTheAccountAgain() {
+    @Test public void aRefreshSortsTheAccountAgainAndCountsItsUnreadChatsAgain() {
         HiddenChats.refresh(1);
-        telegram.selected = 0;
-        HiddenChats.refreshShown();
-        assertEquals(Arrays.asList(1, 0), telegram.resorted);
+        assertEquals(Collections.singletonList(1), telegram.resorted);
+        assertEquals(Collections.singletonList(1), telegram.recounted);
+    }
+
+    @Test public void refreshingThemAllTakesEachSignedInAccountNotOnlyTheOneShown() {
+        // Slots 0 and 1 are signed in, 2 and 3 aren't, and the second account is on screen.
+        telegram.selected = 1;
+        HiddenChats.refreshAll();
+        assertEquals(Arrays.asList(0, 1), telegram.resorted);
+        assertEquals(Arrays.asList(0, 1), telegram.recounted);
+    }
+
+    @Test public void theUnreadCountsSkipOnlyTheHiddenChatsOfTheStoragesOwnAccount() {
+        HiddenChats.hide(1000, ids(12L));
+        HiddenChats.hide(2000, ids(13L));
+        Object storage = new Object();
+        // Off by default: every chat counts.
+        assertFalse(HiddenChats.uncounted(storage, 12));
+        Settings.HIDDEN_CHATS.save(true);
+        assertTrue(HiddenChats.uncounted(storage, 12));
+        assertFalse(HiddenChats.uncounted(storage, 11));
+        assertFalse(HiddenChats.uncounted(storage, 13));
+        // A row with no chat id is never a hidden chat.
+        assertFalse(HiddenChats.uncounted(storage, 0));
+        assertTrue(report(), report().contains(HiddenChats.UNCOUNTED));
+        // The storage reads the user its own account belongs to, not the account shown.
+        telegram.controllerUser = 2000;
+        assertTrue(HiddenChats.uncounted(storage, 13));
+        assertFalse(HiddenChats.uncounted(storage, 12));
+        telegram.controllerUser = 0;
+        assertFalse(HiddenChats.uncounted(storage, 13));
+    }
+
+    @Test public void pauseMissingContextAndBrokenReadsCountEveryChat() {
+        Settings.HIDDEN_CHATS.save(true);
+        HiddenChats.hide(1000, ids(12L));
+        for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+            if (reason == HushTelegramPause.Reason.NONE) continue;
+            PauseForTests.pause(reason);
+            assertFalse(reason.name(), HiddenChats.uncounted(new Object(), 12));
+            PauseForTests.resume();
+        }
+        boolean[] counted = {true};
+        SettingsContextRule.withoutContext(() -> counted[0] = !HiddenChats.uncounted(new Object(), 12));
+        assertTrue(counted[0]);
+        SettingReadsForTests.breakReads(Settings.HIDDEN_CHATS);
+        assertFalse(HiddenChats.uncounted(new Object(), 12));
+        SettingReadsForTests.mend(Settings.HIDDEN_CHATS);
+        assertFalse(report(), report().contains(HiddenChats.UNCOUNTED));
+        // Telegram's side changing under the hook counts the chat and says so.
+        HiddenChatsForTests.use(new HiddenChatsForTests.Fake() {
+            @Override public long controllerUser(Object controller) { throw new IllegalStateException("Telegram changed"); }
+        });
+        assertFalse(HiddenChats.uncounted(new Object(), 12));
+        assertTrue(report(), report().contains("unread counts"));
     }
 
     @Test public void theLongPressItemFollowsTheSwitch() {

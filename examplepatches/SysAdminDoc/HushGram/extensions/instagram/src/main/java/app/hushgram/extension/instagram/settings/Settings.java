@@ -119,6 +119,13 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting CATEGORY_PAGES =
             new BooleanSetting("hushgram_category_pages", TRUE);
 
+    /**
+     * Each switch's description behind an "i" at the end of its title, for a shorter page (#130).
+     * Off to start. A settings-page choice, read saved even during Pause ({@link DescriptionInfo}).
+     */
+    public static final BooleanSetting DESCRIPTIONS_BEHIND_INFO =
+            new BooleanSetting("hushgram_descriptions_behind_info", FALSE);
+
     /** A settings-page choice, read saved even during Pause. Existing backup names stay the default. */
     public static final BooleanSetting DATE_SETTINGS_EXPORT =
             new BooleanSetting("hushgram_date_settings_export", FALSE);
@@ -299,6 +306,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting TAP_FEED_VIDEO_TO_PAUSE =
             new BooleanSetting("hushgram_tap_feed_video_to_pause", FALSE);
+
+    /**
+     * A seek bar along the bottom of the video playing in a feed, which moves the video to where a
+     * drag lets go ({@link app.hushgram.extension.instagram.feed.FeedSeekBar}). Off to start.
+     */
+    public static final BooleanSetting FEED_SEEK_BAR =
+            new BooleanSetting("hushgram_feed_seek_bar", FALSE);
 
     /**
      * A long press on a feed photo shows it zoomed in around the finger until the finger lifts, in
@@ -541,6 +555,12 @@ public class Settings extends BaseSettings {
      * Off to start.
      */
     public static final BooleanSetting SWIPE_CHAT_REELS = new BooleanSetting("hushgram_swipe_chat_reels", FALSE);
+
+    /**
+     * Reels opened from a chat end after the chat's own shared reels, with no suggested reels after
+     * them ({@link app.hushgram.extension.instagram.direct.ChatReels#stop()}, #390). Off to start.
+     */
+    public static final BooleanSetting STOP_AFTER_CHAT_REELS = new BooleanSetting("hushgram_stop_after_chat_reels", FALSE);
 
     /**
      * A call started from a chat waits for a question first
@@ -1042,13 +1062,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_glass_tab_bar_blur", TRUE, true, parent(GLASS_TAB_BAR));
 
     /**
-     * Under {@link #GLASS_TAB_BAR_BLUR}: how strongly the pill blurs what's behind it
-     * ({@link app.hushgram.extension.instagram.misc.GlassBlur}, #289). Standard is the blur the bar has always
-     * had. The blur is made once as the bar is built, so a change shows after a restart and asks for one.
+     * Under {@link #GLASS_TAB_BAR_BLUR}: how far the pill blurs what's behind it, in dp, from a slider
+     * (#289, #391). Starts on the blur the bar has always had. Read as each frame records the backdrop,
+     * so a change shows on the bar without a restart.
      */
-    public static final EnumSetting<app.hushgram.extension.instagram.misc.GlassBlur> GLASS_TAB_BAR_BLUR_STRENGTH =
-            new EnumSetting<>("hushgram_glass_tab_bar_blur_strength",
-                    app.hushgram.extension.instagram.misc.GlassBlur.STANDARD, true, parent(GLASS_TAB_BAR_BLUR));
+    public static final IntegerSetting GLASS_TAB_BAR_BLUR_RADIUS =
+            new IntegerSetting("hushgram_glass_tab_bar_blur_radius",
+                    app.hushgram.extension.instagram.misc.GlassTabBar.BLUR_DP, false, parent(GLASS_TAB_BAR_BLUR))
+                    .withRange(2, 48);
 
     /**
      * Under {@link #GLASS_TAB_BAR}: Home and the other tabs run down behind the bar, so the glass has
@@ -1112,12 +1133,43 @@ public class Settings extends BaseSettings {
                     app.hushgram.extension.instagram.misc.HapticStyle.SYSTEM, parent(GLASS_TAB_BAR_HAPTICS));
 
     /**
-     * Under {@link #GLASS_TAB_BAR}: how see-through the pill is ({@link app.hushgram.extension.instagram.misc.GlassOpacity}).
-     * Starts on the look the bar has always had. A change shows after a restart, so it asks for one.
+     * Under {@link #GLASS_TAB_BAR}: how strong the pill's tint is, in percent of the look the bar has always
+     * had, from a slider (#391). Lower is clearer, higher more frosted. Read as the pill draws, so a change
+     * shows on the bar without a restart.
      */
-    public static final EnumSetting<app.hushgram.extension.instagram.misc.GlassOpacity> GLASS_TAB_BAR_OPACITY =
-            new EnumSetting<>("hushgram_glass_tab_bar_opacity",
-                    app.hushgram.extension.instagram.misc.GlassOpacity.STANDARD, true, parent(GLASS_TAB_BAR));
+    public static final IntegerSetting GLASS_TAB_BAR_OPACITY =
+            new IntegerSetting("hushgram_glass_tab_bar_opacity_percent", 100, false, parent(GLASS_TAB_BAR))
+                    .withRange(0, 150);
+
+    /** Where the steps the blur and opacity had before their sliders were saved (#391). */
+    static final String OLD_GLASS_BLUR_KEY = "hushgram_glass_tab_bar_blur_strength";
+    static final String OLD_GLASS_OPACITY_KEY = "hushgram_glass_tab_bar_opacity";
+
+    static {
+        carryOverGlassSteps();
+    }
+
+    /**
+     * A step an older build saved becomes the value it drew, once, unless the slider already moved, and
+     * its key goes. A second process can't save, so it leaves the step for the main one.
+     */
+    static void carryOverGlassSteps() {
+        String blur = Setting.preferences.getString(OLD_GLASS_BLUR_KEY, "");
+        Integer blurDp = app.hushgram.extension.instagram.misc.GlassBlur.dpOf(blur);
+        if (!blur.isEmpty() && (blurDp == null || carryOver(GLASS_TAB_BAR_BLUR_RADIUS, blurDp))) {
+            Setting.preferences.removeKey(OLD_GLASS_BLUR_KEY);
+        }
+        String opacity = Setting.preferences.getString(OLD_GLASS_OPACITY_KEY, "");
+        Integer percent = app.hushgram.extension.instagram.misc.GlassOpacity.percentOf(opacity);
+        if (!opacity.isEmpty() && (percent == null || carryOver(GLASS_TAB_BAR_OPACITY, percent))) {
+            Setting.preferences.removeKey(OLD_GLASS_OPACITY_KEY);
+        }
+    }
+
+    private static boolean carryOver(IntegerSetting slider, int value) {
+        if (!slider.savedValue().equals(slider.defaultValue)) return true;
+        return slider.save(value);
+    }
 
     /**
      * Under {@link #GLASS_TAB_BAR}: how tall the pill is ({@link app.hushgram.extension.instagram.misc.GlassHeight}).
@@ -2284,6 +2336,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_start_reels_with_sound", FALSE);
 
     /**
+     * Two fingers zoom into a playing reel, through Instagram's own Reels zoom and its two server
+     * flags ({@link app.hushgram.extension.instagram.reels.ReelZoom}). Instagram reads them once a
+     * session, so a change takes a restart. Off to start.
+     */
+    public static final BooleanSetting PINCH_ZOOM_REELS =
+            new BooleanSetting("hushgram_pinch_zoom_reels", FALSE, true);
+
+    /**
      * A video or reel over two minutes left partway picks up there the next time a player starts
      * it ({@link app.hushgram.extension.instagram.media.ResumePlayback}). Starts off: it keeps the
      * IDs of the videos you left partway, for 30 days, in the app's own storage.
@@ -2461,6 +2521,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting DOWNLOAD_CONVERT =
             new BooleanSetting("hushgram_download_convert", FALSE);
+
+    /**
+     * Passes AV1 tracks over, for a phone that plays AV1 badly (#379): a video Instagram has at
+     * full size only as AV1 is saved as VP9 when it has that size as VP9, or at its largest H.264
+     * size, and {@link #DOWNLOAD_CONVERT} converts only VP9. Starts off.
+     */
+    public static final BooleanSetting DOWNLOAD_NO_AV1 =
+            new BooleanSetting("hushgram_download_no_av1", FALSE);
 
     /**
      * A save remembers what reached the gallery, and the same post, carousel page, reel, story,

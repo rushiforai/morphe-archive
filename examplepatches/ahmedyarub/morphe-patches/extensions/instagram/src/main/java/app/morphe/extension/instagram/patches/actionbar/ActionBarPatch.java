@@ -32,8 +32,10 @@ public class ActionBarPatch {
 
             if (SettingsStatus.saveDeletedMessages) {
                 Context context = viewGroup.getContext();
-                UI.addImageViewToViewGroup(viewGroup, UI.DRAWABLE_HISTORY_ICON,
-                        () -> SavedMessagesHook.openDeletedMessages(context));
+                // Called before the header is inflated into the container; posting puts the
+                // button after it.
+                viewGroup.post(() -> UI.addImageViewToViewGroup(viewGroup, UI.DRAWABLE_HISTORY_ICON,
+                        () -> SavedMessagesHook.openDeletedMessages(context)));
             }
         } catch (Exception e) {
             Logger.printException(() -> "chatActionBarButton:", e);

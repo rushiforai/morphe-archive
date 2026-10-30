@@ -43,6 +43,7 @@ public class StoryTrayOrderTest {
         Settings.GRAY_OUT_WATCHED_STORIES.resetToDefault();
         PauseForTests.resume();
         HookStatus.clear();
+        StoryTrayOrder.refreshed();
     }
 
     private static StoryTrayOrder.Seen seenAre(String... names) {
@@ -83,7 +84,9 @@ public class StoryTrayOrderTest {
         List<Object> tray = Arrays.<Object>asList("watched", "unknown", "new");
         assertEquals(Arrays.<Object>asList("new", "unknown", "watched"), StoryTrayOrder.order(tray, ON,
                 reel -> reel.equals("unknown") ? StoryTrayOrder.PINNED : reel.equals("watched") ? 1 : 0));
+        StoryTrayOrder.refreshed();
         assertSame(tray, StoryTrayOrder.order(tray, ON, reel -> StoryTrayOrder.PINNED));
+        StoryTrayOrder.refreshed();
         assertSame(tray, StoryTrayOrder.order(tray, ON,
                 reel -> reel.equals("unknown") ? StoryTrayOrder.PINNED : 1));
     }
@@ -102,8 +105,84 @@ public class StoryTrayOrderTest {
     public void eachRefreshUsesItsOwnNativeState() {
         List<Object> tray = Arrays.<Object>asList("a", "b", "c");
         assertEquals(Arrays.<Object>asList("b", "c", "a"), StoryTrayOrder.order(tray, ON, seenAre("a")));
+        StoryTrayOrder.refreshed();
         assertEquals(Arrays.<Object>asList("a", "c", "b"), StoryTrayOrder.order(tray, ON, seenAre("b")));
+        StoryTrayOrder.refreshed();
         assertSame(tray, StoryTrayOrder.order(tray, ON, seenAre("c")));
+    }
+
+    /** A story just watched keeps its slot, and the row's scroll with it, until the tray refreshes (#377). */
+    @Test
+    public void aStoryJustWatchedStaysInPlaceUntilTheTrayRefreshes() {
+        List<Object> tray = Arrays.<Object>asList("a", "b", "c");
+        assertSame(tray, StoryTrayOrder.order(tray, ON, seenAre()));
+        assertEquals(Arrays.<Object>asList("a", "b", "c"), StoryTrayOrder.order(tray, ON, seenAre("b")));
+        assertEquals(Arrays.<Object>asList("a", "b", "c"), StoryTrayOrder.order(tray, ON, seenAre("b", "c")));
+        String counted = String.join("\n", HookStatus.report());
+        assertTrue(counted, counted.contains(StoryTrayOrder.KEPT));
+        assertFalse(counted, counted.contains(StoryTrayOrder.MOVED));
+        StoryTrayOrder.refreshed();
+        assertEquals(Arrays.<Object>asList("a", "c", "b"), StoryTrayOrder.order(tray, ON, seenAre("b")));
+        counted = String.join("\n", HookStatus.report());
+        assertTrue(counted, counted.contains(StoryTrayOrder.MOVED));
+    }
+
+    /** A tray that went out sorted keeps that order as more of it is watched. */
+    @Test
+    public void aTrayThatWentOutSortedKeepsThatOrderAsMoreAreWatched() {
+        List<Object> tray = Arrays.<Object>asList("a", "b", "c");
+        assertEquals(Arrays.<Object>asList("b", "c", "a"), StoryTrayOrder.order(tray, ON, seenAre("a")));
+        assertEquals(Arrays.<Object>asList("b", "c", "a"), StoryTrayOrder.order(tray, ON, seenAre("a", "b")));
+        assertEquals(Arrays.<Object>asList("b", "c", "a"), StoryTrayOrder.order(tray, ON, seenAre("a", "b", "c")));
+        assertEquals("the list that went out is never Instagram's own", Arrays.<Object>asList("a", "b", "c"), tray);
+    }
+
+    /** A refresh that brings a reel more, fewer, elsewhere or as another object is sorted afresh. */
+    @Test
+    public void aTrayWithOtherReelsOrAnotherOrderIsSortedAfresh() {
+        List<Object> tray = Arrays.<Object>asList("a", "b", "c");
+        assertSame(tray, StoryTrayOrder.order(tray, ON, seenAre()));
+        assertEquals("one more reel", Arrays.<Object>asList("b", "c", "d", "a"),
+                StoryTrayOrder.order(Arrays.<Object>asList("a", "b", "c", "d"), ON, seenAre("a")));
+        assertEquals("one fewer", Arrays.<Object>asList("b", "a"),
+                StoryTrayOrder.order(Arrays.<Object>asList("a", "b"), ON, seenAre("a")));
+        assertEquals("the same reels elsewhere", Arrays.<Object>asList("c", "a", "b"),
+                StoryTrayOrder.order(Arrays.<Object>asList("c", "a", "b"), ON, seenAre("a", "b")));
+        Object another = new StringBuilder("a").toString();
+        assertEquals("a's slot held by another object that reads the same", Arrays.<Object>asList("b", "c", another),
+                StoryTrayOrder.order(Arrays.<Object>asList(another, "b", "c"), ON, seenAre("a")));
+    }
+
+    /** Either switch off forgets the order that went out, so on again sorts afresh. */
+    @Test
+    public void offForgetsTheOrderThatWentOut() {
+        List<Object> tray = Arrays.<Object>asList("a", "b", "c");
+        assertEquals(Arrays.<Object>asList("b", "c", "a"), StoryTrayOrder.order(tray, ON, seenAre("a")));
+        assertSame(tray, StoryTrayOrder.order(tray, OFF, seenAre("a")));
+        assertEquals(Arrays.<Object>asList("a", "c", "b"), StoryTrayOrder.order(tray, ON, seenAre("b")));
+    }
+
+    /** Home's top row and its feed adapter ask for trays of their own, and each keeps its order. */
+    @Test
+    public void eachTrayAskedForKeepsItsOwnOrder() {
+        List<Object> top = Arrays.<Object>asList("a", "b", "c");
+        List<Object> feed = Arrays.<Object>asList("own", "a", "b", "c");
+        assertSame(top, StoryTrayOrder.order(top, ON, seenAre()));
+        assertSame(feed, StoryTrayOrder.order(feed, ON, seenAre()));
+        assertEquals(Arrays.<Object>asList("a", "b", "c"), StoryTrayOrder.order(top, ON, seenAre("a")));
+        assertEquals(Arrays.<Object>asList("own", "a", "b", "c"), StoryTrayOrder.order(feed, ON, seenAre("a")));
+    }
+
+    /** Only the last few trays are remembered, so an old one that comes round again is sorted afresh. */
+    @Test
+    public void onlyTheLastFewTraysAreRemembered() {
+        List<Object> first = Arrays.<Object>asList("a", "b");
+        assertSame(first, StoryTrayOrder.order(first, ON, seenAre()));
+        for (int index = 0; index < StoryTrayOrder.REMEMBERED; index++) {
+            List<Object> another = Arrays.<Object>asList("a", "b", "x" + index);
+            assertSame(another, StoryTrayOrder.order(another, ON, seenAre()));
+        }
+        assertEquals(Arrays.<Object>asList("b", "a"), StoryTrayOrder.order(first, ON, seenAre("a")));
     }
 
     @Test

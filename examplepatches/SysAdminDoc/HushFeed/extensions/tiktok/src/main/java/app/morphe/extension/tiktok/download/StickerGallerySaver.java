@@ -124,6 +124,8 @@ public final class StickerGallerySaver {
         Bitmap poster = null;
         try {
             if (Looper.myLooper() != Looper.getMainLooper()) return;
+            // Off leaves the tap to TikTok alone (#274).
+            if (!Settings.DM_STICKER_SAVE_BOX.get()) return;
             View image = dmStickerImage(tapped);
             if (image == null) return;
             StickerAsset asset = findDmStickerAsset(template);

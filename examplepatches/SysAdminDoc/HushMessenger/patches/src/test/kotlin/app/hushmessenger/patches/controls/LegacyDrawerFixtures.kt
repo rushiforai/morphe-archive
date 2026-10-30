@@ -13,7 +13,7 @@ internal data class DrawerFixtureMapping(
     val dispatcher: String, val iconBase: String, val icon: String, val glyph: String, val enums: String,
     /** The Settings icon is built in place instead of coming from the icon's static factory (582 and 584.1's armv7 build). */
     val inlineIcon: Boolean = false,
-    /** 584 builds its QR code row after Settings, from the same row class and its own folder key. */
+    /** 584 and 585 build their QR code row after Settings, from the same row class and its own folder key. */
     val qrRow: Boolean = false,
     /** The icon factory sits on [iconBase] and returns [icon] (584.1's second arm64 family, G7K.A00 returning G7P). */
     val iconFactoryOnBase: Boolean = false,
@@ -23,14 +23,12 @@ internal data class DrawerFixtureMapping(
 
 private fun drawerMapping(refreshOwner: String) = when (refreshOwner) {
     "LX/9rv;" -> DrawerFixtureMapping("LX/CTJ;", "Ax4", "LX/HRf;", "LX/HRe;", "LX/Cfq;", "LX/Imx;", "LX/HNS;", "LX/1hJ;", "LX/0R2;")
-    "LX/7n5;" -> DrawerFixtureMapping("LX/8X3;", "B08", "LX/GTk;", "LX/GTi;", "LX/GTA;", "LX/HJq;", "LX/GTn;", "LX/1iq;", "LX/0OD;",
+    "LX/95S;" -> DrawerFixtureMapping("LX/9zh;", "BSn", "LX/HbD;", "LX/HbC;", "LX/Ha8;", "LX/In9;", "LX/HbG;", "LX/1k0;", "LX/0R8;",
         qrRow = true)
-    "LX/8Wp;" -> DrawerFixtureMapping("LX/Bdu;", "B0G", "LX/G8j;", "LX/G8o;", "LX/G7c;", "LX/G7K;", "LX/G7P;", "LX/1jJ;", "LX/0OS;",
-        qrRow = true, iconFactoryOnBase = true)
-    "LX/8Yi;" -> DrawerFixtureMapping("LX/BgD;", "B0B", "LX/GKg;", "LX/GL0;", "LX/GJM;", "LX/H1B;", "LX/GNe;", "LX/1jJ;", "LX/0OS;",
+    "LX/99t;" -> DrawerFixtureMapping("LX/A3v;", "BSu", "LX/HkH;", "LX/HkG;", "LX/HjP;", "LX/IuE;", "LX/HkK;", "LX/1lH;", "LX/0RF;",
         qrRow = true)
-    "LX/8WE;" -> DrawerFixtureMapping("LX/Bcw;", "B0I", "LX/XwG;", "LX/Lxq;", "LX/GKD;", "LX/HA9;", "LX/Lyd;", "LX/1jj;", "LX/0OY;",
-        inlineIcon = true, qrRow = true)
+    "LX/93V;" -> DrawerFixtureMapping("LX/9x8;", "BSu", "LX/HdT;", "LX/HdS;", "LX/HcX;", "LX/IVW;", "LX/HdV;", "LX/1kQ;", "LX/0R9;",
+        qrRow = true)
     else -> error("Unrecorded drawer mapping: $refreshOwner")
 }
 

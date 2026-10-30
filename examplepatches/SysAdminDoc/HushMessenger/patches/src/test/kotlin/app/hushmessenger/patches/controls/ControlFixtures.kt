@@ -162,8 +162,8 @@ internal fun screenHostClasses() = listOf(
 
 internal const val INBOX_ITEMS_HOOK = "$INBOX_SUPPLIER->A0B()$IMMUTABLE_LIST"
 internal const val INBOX_OBSERVER = "LX/34A;"
-/** What every supported build resolves: the subscribe call A04 and the listed count A00. */
-internal val INBOX_ROUTE = InboxRefreshRoute("$INBOX_SUPPLIER->A04($INBOX_SUPPLIER)V", "$INBOX_SUPPLIER->A00:I")
+/** What every supported build resolves: the subscribe call A0A and the listed count A00. */
+internal val INBOX_ROUTE = InboxRefreshRoute("$INBOX_SUPPLIER->A0A(${INBOX_SUPPLIER}Z)V", "$INBOX_SUPPLIER->A00:I")
 
 /** The chat list supplier's items read as Messenger starts it: the trace, then a check of the listed count. */
 internal fun inboxItemsMethod(
@@ -186,14 +186,15 @@ internal fun inboxItemsMethod(
     """.trimIndent(), registers = 3, flags = flags)
 }
 
-/** The supplier's static subscribe call, cut down to its warning and the observer it builds from the supplier alone. */
+/** The supplier's static subscribe call, cut down to its warning and the observer it builds from the supplier and a generation. */
 internal fun inboxSubscribeMethod(
     warning: String = INBOX_SUBSCRIBE_WARNING,
-    init: String = "<init>($INBOX_SUPPLIER)V",
+    init: String = "<init>(${INBOX_SUPPLIER}I)V",
     between: String = "",
-    name: String = "A04",
-    args: String = "v1, v2",
-) = fixtureMethod("$INBOX_SUPPLIER->$name($INBOX_SUPPLIER)V", """
+    name: String = "A0A",
+    args: String = "v1, v2, v4",
+    params: String = "${INBOX_SUPPLIER}Z",
+) = fixtureMethod("$INBOX_SUPPLIER->$name($params)V", """
     move-object v2, p0
     const-string v0, "$warning"
     const/4 v4, 0x0
@@ -202,7 +203,7 @@ internal fun inboxSubscribeMethod(
     invoke-direct {$args}, $INBOX_OBSERVER->$init
     invoke-static {v1, v2}, LX/0D8;->A00(Ljava/lang/Object;Ljava/lang/Object;)V
     return-void
-""".trimIndent(), registers = 6, flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value)
+""".trimIndent(), registers = 7, flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value)
 
 internal fun inboxSupplierClass(
     items: Method = inboxItemsMethod(),
@@ -211,34 +212,40 @@ internal fun inboxSupplierClass(
 ) = fixtureClass(INBOX_SUPPLIER, listOf(items) + subscribe, flags = flags,
     extraFields = listOf("A00", "A01", "A02", "A03").map { ImmutableField(INBOX_SUPPLIER, it, "I", AccessFlags.PUBLIC.value, null, null, null) })
 
-/** The observer's list callback as Messenger has it: the size, then 5 or 1 into the listed count. */
+/**
+ * The observer's list callback as 585 has it: 1 loaded early (it also sets a flag), the size, then the listed count
+ * keeps that 1 or takes 5 when the list is shorter than its limit. [between] lands after the early 1.
+ */
 internal fun inboxObserverClass(
     high: Int = 5,
     low: Int = 1,
     field: String = "A00",
-    branch: String = "if-lt",
+    branch: String = "if-ge",
     secondWrite: Boolean = false,
     callbacks: Int = 1,
+    between: String = "",
 ) = fixtureClass(INBOX_OBSERVER, listOf(
-    fixtureMethod("$INBOX_OBSERVER-><init>($INBOX_SUPPLIER)V", "invoke-direct {p0}, Ljava/lang/Object;-><init>()V\nreturn-void", 2),
+    fixtureMethod("$INBOX_OBSERVER-><init>(${INBOX_SUPPLIER}I)V", "invoke-direct {p0}, Ljava/lang/Object;-><init>()V\nreturn-void", 3),
 ) + (0 until callbacks).map { index ->
     val again = if (!secondWrite) "" else """
-        const/4 v2, 0x5
-        if-lt v4, v3, :again
         const/4 v2, 0x1
+        if-ge v4, v3, :again
+        const/4 v2, 0x5
         :again
         iput v2, v0, $INBOX_SUPPLIER->$field:I
     """.trimIndent()
     fixtureMethod("$INBOX_OBSERVER->Cj${'P' + index}(Ljava/util/List;)V", listOf(
         "iget-object v0, p0, $INBOX_OBSERVER->A00:Ljava/lang/Object;",
         "check-cast v0, $INBOX_SUPPLIER",
+        "const/4 v2, $low",
+        "iput-boolean v2, v0, $INBOX_SUPPLIER->A07:Z",
+        between,
         "invoke-interface {p1}, Ljava/util/List;->size()I",
         "move-result v4",
         "iget v3, v0, $INBOX_SUPPLIER->A02:I",
         "iput v4, v0, $INBOX_SUPPLIER->A03:I",
-        "const/4 v2, $high",
         "$branch v4, v3, :listed",
-        "const/4 v2, $low",
+        "const/4 v2, $high",
         ":listed",
         "iput v2, v0, $INBOX_SUPPLIER->$field:I",
         again,
@@ -325,7 +332,7 @@ internal fun peopleStoryMethod(
 internal fun peopleJewelMethod(
     key: String = "LX/JTx;->A01:LX/1BL;",
     resultRegister: String = "v0",
-    serverFlag: String = "72344171435866083L",
+    serverFlag: String = "72344162845931861L",
     serverTarget: String = ":shown",
     flags: Int = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
     inlinedReset: Boolean = false,
@@ -582,30 +589,4 @@ internal fun storyPreviewClass(
         (0 until cards).map { ImmutableField(MONTAGE_BUCKET_PREVIEW, "A0${5 + it}", MONTAGE_CARD, final, null, null, null) }
     val methods = listOf(fixtureMethod(STORY_PREVIEW_INIT, init, registers = 23), fixtureMethod(STORY_PREVIEW_RING, ring, registers = 5)) + extraMethods
     return MutableClass(ImmutableClassDef(MONTAGE_BUCKET_PREVIEW, final, "Ljava/lang/Object;", emptyList(), null, emptySet(), fields, methods))
-}
-
-/** 584's shape: the observer callback only forwards its list to a static supplier method that holds the count logic. */
-internal fun inboxForwardedClasses(
-    forwardTarget: String = "A06",
-    callsite: String = "invoke-static {v0, p1}, $INBOX_SUPPLIER->$forwardTarget($INBOX_SUPPLIER" + "Ljava/util/List;)V",
-    guard: String = "if-eqz p1, :end",
-): List<ClassDef> {
-    val logic = fixtureMethod("$INBOX_SUPPLIER->A06($INBOX_SUPPLIER" + "Ljava/util/List;)V", listOf(
-        "invoke-interface {p1}, Ljava/util/List;->size()I",
-        "move-result v4",
-        "iget v3, p0, $INBOX_SUPPLIER->A02:I",
-        "iput v4, p0, $INBOX_SUPPLIER->A03:I",
-        "const/4 v2, 0x5",
-        "if-lt v4, v3, :listed",
-        "const/4 v2, 0x1",
-        ":listed",
-        "iput v2, p0, $INBOX_SUPPLIER->A00:I",
-        "return-void",
-    ).joinToString("\n"), 7, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
-    val observer = fixtureClass(INBOX_OBSERVER, listOf(
-        fixtureMethod("$INBOX_OBSERVER-><init>($INBOX_SUPPLIER)V", "invoke-direct {p0}, Ljava/lang/Object;-><init>()V\nreturn-void", 2),
-        fixtureMethod("$INBOX_OBSERVER->CjP(Ljava/util/List;)V", listOf(
-            "iget-object v0, p0, $INBOX_OBSERVER->A00:$INBOX_SUPPLIER", guard, callsite, ":end", "return-void").joinToString("\n"), 3),
-    ), flags = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value)
-    return listOf(inboxSupplierClass(subscribe = listOf(inboxSubscribeMethod(), logic)), observer)
 }

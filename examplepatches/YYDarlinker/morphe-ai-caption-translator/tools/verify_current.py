@@ -49,7 +49,7 @@ def source_manifest():
                 'application-host/', 'presentation/', 'ui/', 'ui-preview/', 'patches/', 'extensions/',
                 'localization/', 'gradle/', 'tools/workspace/', '.github/')
     roots = {'build.gradle.kts', 'settings.gradle.kts', 'gradle.properties', 'gradlew', 'gradlew.bat',
-             '.releaserc', 'package.json', 'package-lock.json', 'docs/core-provenance.json', 'docs/ui-preservation.json'}
+             '.releaserc', 'package.json', 'package-lock.json', 'docs/core-provenance.json'}
     files = sorted(set(git('ls-files', '-z').split('\0') + git('ls-files', '--others', '--exclude-standard', '-z').split('\0')))
     rows = []
     for name in files:
@@ -76,6 +76,10 @@ def collect_tests(receipt, archive):
     modules = {}
     for task in TEST_TASKS:
         outcome = require_task(receipt, task)
+        compiler_task = task.removesuffix('testDebugUnitTest') + 'compileDebugUnitTestJavaWithJavac'
+        compiler = require_task(receipt, compiler_task)
+        if compiler.get('skipped') or not compiler.get('test_output_reset'):
+            raise ValueError(f'test output was not freshly compiled from current source: {compiler_task}')
         xml_dir = Path(outcome['xml'])
         files = sorted(xml_dir.glob('TEST-*.xml'))
         if not files:
@@ -99,6 +103,7 @@ def collect_tests(receipt, archive):
         if html.is_dir():
             copy_reports(html, dst.with_name(dst.name + '-html'))
         modules[module] = dict(**counts, task=task, xml=str(xml_dir), html=str(html), archived_xml=str(dst),
+                               compiler_task=compiler_task, compiler_outcome=compiler,
                                outcome=outcome, execution='gradle-confirmed reuse' if outcome.get('skip_message') in ('UP-TO-DATE', 'FROM-CACHE') else 'executed',
                                reports=[dict(file=p.name, sha256=sha(p)) for p in files])
     return modules
@@ -180,7 +185,7 @@ def main(argv=None):
         tasks = TEST_TASKS + BUILD_TASKS + ((':patches:generatePatchesList',) if a.mode == 'release' else ())
         command = gradle + list(tasks) + ['--no-daemon', '--no-parallel', '--console=plain',
                 '--init-script', 'tools/verification.init.gradle', '-Pverification.receipt=' + str(receipt_path),
-                '-Pverification.buildRoot=' + build_root, '-Ptranslation.live=false', '-Pscheduler.output=' + str(evidence / 'test-evidence')]
+                '-Pverification.buildRoot=' + build_root, '-Ptranslation.live=false']
         if a.mode == 'release':
             command += ['-PcaptionBuildId=' + build_id]
         if a.rerun_tests:

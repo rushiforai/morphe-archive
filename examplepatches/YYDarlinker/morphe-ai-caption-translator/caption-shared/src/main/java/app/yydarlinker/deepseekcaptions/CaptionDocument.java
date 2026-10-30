@@ -8,7 +8,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,47 +16,25 @@ import java.util.List;
 import java.util.Locale;
 
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 /** Parses common YouTube Timed Text formats and exposes a format-independent cue timeline. */
 final class CaptionDocument {
-    /** Puts translated texts back into the document the cues were read from. */
-    private interface Renderer {
-        byte[] render(List<String> translated) throws Exception;
-    }
-
-    /** One parsed caption file: its cues, its raw timing fragments and how to write it back. */
+    /** One parsed caption file: its cues and raw timing fragments. */
     static final class Parsed {
-        private final List<String> texts;
         private final List<Cue> cues;
         private final List<RawFragment> fragments;
-        private final String contentType, format;
+        private final String format;
         private final WebVttSourceReader.Result vtt;
-        private final Renderer renderer;
 
         private Parsed(
-                List<String> texts,
                 List<Cue> cues,
                 List<RawFragment> fragments,
-                String contentType,
                 String format,
-                WebVttSourceReader.Result vtt,
-                Renderer renderer) {
-            this.texts = texts;
+                WebVttSourceReader.Result vtt) {
             this.cues = Collections.unmodifiableList(cues);
             this.fragments = Collections.unmodifiableList(fragments);
-            this.contentType = contentType;
             this.format = format;
             this.vtt = vtt;
-            this.renderer = renderer;
-        }
-
-        List<String> texts() {
-            return texts;
         }
 
         List<Cue> cues() {
@@ -68,18 +45,8 @@ final class CaptionDocument {
             return fragments;
         }
 
-        String contentType() {
-            return contentType;
-        }
-
         WebVttSourceReader.Result vtt() {
             return vtt;
-        }
-
-        byte[] render(List<String> translated) throws Exception {
-            if (texts.size() != translated.size())
-                throw new IllegalArgumentException("翻译条数与原字幕不一致");
-            return renderer.render(translated);
         }
 
         String timingCapabilities() {
@@ -154,9 +121,9 @@ final class CaptionDocument {
         if (trimmed.startsWith("<?xml")
                 || trimmed.startsWith("<transcript")
                 || trimmed.startsWith("<timedtext")) return parseXml(data);
-        if (trimmed.startsWith("WEBVTT")) return parseBlockFormat(body, "text/vtt; charset=utf-8");
+        if (trimmed.startsWith("WEBVTT")) return parseBlockFormat(body, true);
         if (looksLikeSrt(trimmed))
-            return parseBlockFormat(body, "application/x-subrip; charset=utf-8");
+            return parseBlockFormat(body, false);
         throw new IllegalArgumentException(
                 "暂不支持此字幕格式: "
                         + (fallbackContentType == null || fallbackContentType.isEmpty()
@@ -169,8 +136,6 @@ final class CaptionDocument {
         JSONArray events = root.optJSONArray("events");
         if (events == null) throw new IllegalArgumentException("JSON3 缺少 events");
 
-        List<JSONObject> cueEvents = new ArrayList<>();
-        List<String> texts = new ArrayList<>();
         List<Cue> cues = new ArrayList<>();
         List<RawFragment> fragments = new ArrayList<>();
         for (int i = 0; i < events.length(); i++) {
@@ -209,37 +174,13 @@ final class CaptionDocument {
             }
             String value = text.toString();
             if (value.trim().isEmpty()) continue;
-            cueEvents.add(event);
-            texts.add(value);
             cues.add(
                     new Cue(
                             startMs,
                             startMs + (durationMs > 0L ? durationMs : DEFAULT_CUE_MS),
                             value));
         }
-        return new Parsed(
-                texts,
-                cues,
-                fragments,
-                "application/json; charset=utf-8",
-                "json3",
-                null,
-                translated -> {
-                    for (int i = 0; i < cueEvents.size(); i++) {
-                        JSONArray segments = cueEvents.get(i).getJSONArray("segs");
-                        JSONObject first = segments.optJSONObject(0);
-                        if (first == null) {
-                            first = new JSONObject();
-                            segments.put(0, first);
-                        }
-                        first.put("utf8", translated.get(i));
-                        for (int j = 1; j < segments.length(); j++) {
-                            JSONObject segment = segments.optJSONObject(j);
-                            if (segment != null) segment.put("utf8", "");
-                        }
-                    }
-                    return root.toString().getBytes(StandardCharsets.UTF_8);
-                });
+        return new Parsed(cues, fragments, "json3", null);
     }
 
     private static Parsed parseXml(byte[] data) throws Exception {
@@ -263,9 +204,7 @@ final class CaptionDocument {
         boolean timedTextP = nodes.getLength() == 0;
         if (timedTextP) nodes = document.getElementsByTagName("p");
 
-        List<Node> cueNodes = new ArrayList<>();
         List<RawFragment> fragments = new ArrayList<>();
-        List<String> texts = new ArrayList<>();
         List<Cue> cues = new ArrayList<>();
         for (int i = 0; i < nodes.getLength(); i++) {
             Node node = nodes.item(i);
@@ -321,38 +260,16 @@ final class CaptionDocument {
                                 false,
                                 Collections.emptyList()));
             }
-            cueNodes.add(node);
-            texts.add(value);
             cues.add(new Cue(startMs, endMs, value));
         }
-        return new Parsed(
-                texts,
-                cues,
-                fragments,
-                "application/xml; charset=utf-8",
-                "xml",
-                null,
-                translated -> {
-                    for (int i = 0; i < cueNodes.size(); i++)
-                        cueNodes.get(i).setTextContent(translated.get(i));
-                    Transformer transformer = TransformerFactory.newInstance().newTransformer();
-                    transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-                    transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-                    ByteArrayOutputStream output = new ByteArrayOutputStream();
-                    transformer.transform(new DOMSource(document), new StreamResult(output));
-                    return output.toByteArray();
-                });
+        return new Parsed(cues, fragments, "xml", null);
     }
 
     /** WebVTT and SRT: blocks separated by blank lines, a timing line, then the payload. */
-    private static Parsed parseBlockFormat(String body, String contentType) {
-        boolean vtt = contentType.startsWith("text/vtt");
+    private static Parsed parseBlockFormat(String body, boolean vtt) {
         WebVttSourceReader.Result timing = vtt ? WebVttSourceReader.read(body) : null;
-        String newline = body.contains("\r\n") ? "\r\n" : "\n";
-        List<String> blocks = new ArrayList<>(Arrays.asList(body.split("\\r?\\n\\r?\\n", -1)));
-        List<Integer> cueIndexes = new ArrayList<>();
+        List<String> blocks = Arrays.asList(body.split("\\r?\\n\\r?\\n", -1));
         List<RawFragment> fragments = new ArrayList<>();
-        List<String> texts = new ArrayList<>();
         List<Cue> cues = new ArrayList<>();
 
         int sourceCue = 0;
@@ -381,30 +298,9 @@ final class CaptionDocument {
                             false,
                             Collections.emptyList()));
             if (text.trim().isEmpty()) continue;
-            cueIndexes.add(i);
-            texts.add(text);
             cues.add(new Cue(startMs, endMs, text));
         }
-        return new Parsed(
-                texts,
-                cues,
-                fragments,
-                contentType,
-                vtt ? "vtt" : "srt",
-                timing,
-                translated -> {
-                    for (int i = 0; i < cueIndexes.size(); i++) {
-                        int blockIndex = cueIndexes.get(i);
-                        String[] lines = blocks.get(blockIndex).split("\\r?\\n", -1);
-                        int timeline = timingLine(lines);
-                        if (timeline < 0) continue;
-                        List<String> output = new ArrayList<>();
-                        Collections.addAll(output, Arrays.copyOfRange(lines, 0, timeline + 1));
-                        output.add(translated.get(i));
-                        blocks.set(blockIndex, String.join(newline, output));
-                    }
-                    return String.join(newline + newline, blocks).getBytes(StandardCharsets.UTF_8);
-                });
+        return new Parsed(cues, fragments, vtt ? "vtt" : "srt", timing);
     }
 
     private static int timingLine(String[] lines) {

@@ -14,6 +14,12 @@ ROOT = Path(__file__).resolve().parents[1]
 DESKTOP = ROOT / ".tools/morphe-desktop-1.19.1-all.jar"
 # Patch -> patches it includes through dependencies.
 APPS = {
+    "tvgids": {"Hide ads": [], "Disable tracking": ["Hide ads"],
+               "Skip consent screens": ["Disable tracking", "Hide ads"]},
+    "marktplaats": {"Hide ads": [], "Disable tracking": ["Hide ads"], "Disable ThreatMetrix": [], "Skip consent screens": ["Disable tracking", "Hide ads"], "Google sign-in via microG-Re": []},
+    "9292": {"Fix PairIP startup": [], "Hide ads": ["Fix PairIP startup"],
+             "Disable tracking": ["Hide ads", "Fix PairIP startup"],
+             "Skip consent screens": ["Disable tracking", "Hide ads", "Fix PairIP startup"]},
     "buienradar": {
         "Hide ads": [], "Hide Premium banner": [], "Disable tracking": [],
         "Disable Swrve and location upload": ["Disable tracking"],
@@ -120,13 +126,18 @@ def prepare_input(original: Path, out: Path) -> tuple[Path, Path]:
     return staged, reference
 
 
-def verifier_command(app: str, destination: Path, effective: set[str], apk: Path | None = None) -> list[str]:
-    if app in {"weerplaza", "nunl", "volkskrant", "trouw", "parool", "ftm", "flitsmeister", "ad", "nrc", "dumpert", "rtl", "brabant", "vi", "teletekst"}:
+def verifier_command(app: str, destination: Path, effective: set[str], apk: Path | None = None,
+                     original_reference: Path | None = None) -> list[str]:
+    if app in {"tvgids", "marktplaats", "9292", "weerplaza", "nunl", "volkskrant", "trouw", "parool", "ftm", "flitsmeister", "ad", "nrc", "dumpert", "rtl", "brabant", "vi", "teletekst"}:
         command = [sys.executable, f"tests/verify_{app}.py", str(destination)]
     else:
         command = [sys.executable, "tests/verify_targets.py", app, str(destination)]
-    if app in {"dumpert", "rtl", "brabant", "vi", "teletekst"} and apk is not None:
+    if app in {"tvgids", "marktplaats", "9292", "dumpert", "rtl", "brabant", "vi", "teletekst"} and apk is not None:
         command += ["--apk", str(apk)]
+    if app == "tvgids":
+        if original_reference is None:
+            raise ValueError("TVgids native verification needs the trusted original APK")
+        command += ["--original", str(original_reference)]
     for patch in sorted(effective):
         command += ["-e", patch]
     return command
@@ -164,10 +175,11 @@ def run(command: list[str], log: Path) -> None:
         raise SystemExit(f"Failed {log.stem}; exit {result.returncode}")
 
 
-def decode_and_verify(out: Path, app: str, apk: Path, name: str, effective: set[str], compact: bool = False) -> None:
+def decode_and_verify(out: Path, app: str, apk: Path, name: str, effective: set[str], compact: bool = False,
+                      original_reference: Path | None = None) -> None:
     with decoded_destination(out, name, compact) as destination:
         run(["apktool", "d", "-f", "-o", str(destination), str(apk)], out / f"decode-{name}.log")
-        run(verifier_command(app, destination, effective, apk=apk), out / f"verify-{name}.log")
+        run(verifier_command(app, destination, effective, apk=apk, original_reference=original_reference), out / f"verify-{name}.log")
 
 
 def main() -> None:
@@ -198,7 +210,7 @@ def main() -> None:
         patch_input, reference = prepare_input(original, out)
     except (ValueError, KeyError, zipfile.BadZipFile) as error:
         parser.error(str(error))
-    decode_and_verify(out, args.app, reference, "original", set(), args.compact)
+    decode_and_verify(out, args.app, reference, "original", set(), args.compact, reference)
     print(f"PASS: {args.app} original has none of the patch effects", flush=True)
 
     for selection in selections:
@@ -219,7 +231,7 @@ def main() -> None:
         assert set(result["appliedPatches"]) == set(selection)
         run(["apksigner", "verify", str(output)], out / f"signature-{name}.log")
         effective = set(selection) | {dependency for patch in selection for dependency in patches[patch]}
-        decode_and_verify(out, args.app, output, name, effective, args.compact)
+        decode_and_verify(out, args.app, output, name, effective, args.compact, reference)
         print(f"PASS: {args.app} {name}; patch report, signature and decoded effects", flush=True)
         if args.compact and name != "all":
             output.unlink()

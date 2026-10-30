@@ -22,6 +22,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
@@ -31,11 +33,12 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Tab bar layout: every return of Instagram's newer tab bar gate hands its answer to the extension first (#356). */
+/** Tab bar layout: every return of Instagram's newer tab bar gate hands its answer to the extension first (#356), and so does the classic bar's quick search wait (#383). */
 class TabBarLayoutHookTest {
     private val session = "Lcom/instagram/common/session/UserSession;"
     private val configs = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;"
     private val gateType = "Lfixture/NavGate;"
+    private val tabHost = "Lcom/instagram/mainactivity/InstagramMainActivity;"
     private val flagHex = NEW_TAB_BAR_FLAG.toString(16)
 
     /** The hook the patch writes is in the TabBarLayout the bundle ships, public and static. */
@@ -45,6 +48,64 @@ class TabBarLayoutHookTest {
             .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
             .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
         assertTrue("$NEW_TAB_BAR is not in the extension: $declared", NEW_TAB_BAR.substringAfter("->") in declared)
+        assertTrue("$QUICK_SEARCH_PAGES is not in the extension: $declared", QUICK_SEARCH_PAGES.substringAfter("->") in declared)
+    }
+
+    /** Only the tab list's count goes through the call, the pager's own count stays, and nothing else changes (#383). */
+    @Test
+    fun theClassicBarsPageCountIsHandedToTheExtension() {
+        val context = PatchContexts.of(quickSearchClasses())
+        context.hookQuickSearchWait()
+        val code = context.mutableClassDefBy(quickSearchType).methods.single { it.name == "invokeSuspend" }.code()
+        assertEquals("what was added", quickSearchClasses().single().methods.single().code().size + 2, code.size)
+        val call = code.indexOfFirst { it.referenceText() == QUICK_SEARCH_PAGES }
+        assertEquals("the size read before the call", "Ljava/util/List;->size()I", code[call - 2].referenceText())
+        assertEquals("what it's handed", 4, (code[call] as RegisterRangeInstruction).startRegister)
+        assertEquals("the answer", Opcode.MOVE_RESULT, code[call + 1].opcode)
+        assertEquals("the register", 4, (code[call + 1] as OneRegisterInstruction).registerA)
+        assertEquals("the pager's count is left alone", 1, code.count { it.referenceText() == QUICK_SEARCH_PAGES })
+    }
+
+    /** A build without that one read fails at patch time, saying what it found. */
+    @Test
+    fun aBuildWithoutOneClassicBarPageCountFails() {
+        val cases = listOf(
+            quickSearchClasses(twoReads = true) to "found 2",
+            quickSearchClasses(pageCount = "getCount") to "found 0",
+        )
+        for ((classes, message) in cases) {
+            val failure = assertThrows(PatchException::class.java) { PatchContexts.of(classes).hookQuickSearchWait() }
+            assertTrue("${failure.message}", failure.message!!.contains("Tab bar layout: ") && failure.message!!.contains(message))
+        }
+    }
+
+    /** On every 453 build: one read, of a tab list on the class the tab host hands its pager through. */
+    @Test
+    fun eachBuildHandsTheClassicBarsPageCountToTheExtension() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val bundles = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } } + Fixtures.otherBuilds()
+        assertEquals("every 453 build: ${bundles.map { it.name }}", Fixtures.BUILDS, bundles.size)
+        for (bundle in bundles) {
+            val readers = mutableListOf<ClassDef>()
+            val hostReturns = mutableSetOf<String>()
+            FixtureDex.forEach(bundle) { dex ->
+                for (classDef in dex.classes) {
+                    if (classDef.methods.any { it.readsPagerList() }) readers += ImmutableClassDef.of(classDef)
+                    if (classDef.type == tabHost) classDef.methods.filter { it.parameterTypes.isEmpty() }.mapTo(hostReturns) { it.returnType }
+                }
+            }
+            val context = PatchContexts.of(readers)
+            val site = context.findQuickSearchWait()
+            val code = site.method.code()
+            val list = ((code[site.index - 2] as ReferenceInstruction).reference as FieldReference).definingClass
+            assertTrue("${bundle.name}: $tabHost hands out no $list (${site.method.definingClass})", list in hostReturns)
+            context.hookQuickSearchWait()
+            val hooked = context.mutableClassDefBy(site.method.definingClass).methods.single {
+                it.name == site.method.name && it.parameterTypes.map(CharSequence::toString) == site.method.parameterTypes.map(CharSequence::toString)
+            }.code()
+            assertEquals("${bundle.name}: hooks", 1, hooked.count { it.referenceText() == QUICK_SEARCH_PAGES })
+            assertEquals("${bundle.name}: the call follows the size", QUICK_SEARCH_PAGES, hooked[site.index + 1].referenceText())
+        }
     }
 
     /** Each return gets the call and its answer, a branch to a return goes through it, and nothing else changes. */
@@ -74,22 +135,35 @@ class TabBarLayoutHookTest {
         }
     }
 
-    /** On every 452 build: one gate, every return answered, and every branch that reached a return now reaches the call. */
+    /**
+     * On every 453 build: one gate, the tab host asks it, every return answered, and every branch that
+     * reached a return now reaches the call. A same-shaped gate the tab host never asks (the first 453
+     * flag was one) would hook cleanly and change nothing on the phone.
+     */
     @Test
     fun eachBuildAnswersEveryReturnOfTheGate() {
         val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
         val bundles = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } } + Fixtures.otherBuilds()
-        assertEquals("every 452 build: ${bundles.map { it.name }}", Fixtures.BUILDS, bundles.size)
+        assertEquals("every 453 build: ${bundles.map { it.name }}", Fixtures.BUILDS, bundles.size)
         for (bundle in bundles) {
             val holders = mutableListOf<ClassDef>()
+            val hostCalls = mutableSetOf<String>()
             FixtureDex.forEach(bundle) { dex ->
                 for (classDef in dex.classes) {
                     if (classDef.methods.any { it.loadsFlag() }) holders += ImmutableClassDef.of(classDef)
+                    if (classDef.type != tabHost) continue
+                    for (method in classDef.methods) {
+                        for (instruction in method.implementation?.instructions ?: emptyList()) {
+                            val called = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: continue
+                            hostCalls += "${called.definingClass}->${called.name}"
+                        }
+                    }
                 }
             }
             assertTrue("${bundle.name}: classes loading $flagHex: ${holders.map { it.type }}", holders.isNotEmpty())
             val context = PatchContexts.of(holders)
             val found = context.findTabBarGate()
+            assertTrue("${bundle.name}: $tabHost never asks ${found.definingClass}->${found.name}", "${found.definingClass}->${found.name}" in hostCalls)
             val returns = found.code().count { it.opcode == Opcode.RETURN }
             context.hookTabBarGate()
             val gate = context.mutableClassDefBy(found.definingClass).methods.single {
@@ -131,7 +205,7 @@ class TabBarLayoutHookTest {
         error("no instruction at $units code units")
     }
 
-    /** Shaped like 452's 07xk.A05: an override first, then the config, then a second gate, with a branch straight to a return. */
+    /** Shaped like 453's 00SK.A04 (452's 07xk.A05): an override first, then the config, then a second gate, with a branch straight to a return. */
     private fun gateBody(flag: Long = NEW_TAB_BAR_FLAG, boolean: Boolean = true) = """
         const/4 v4, 0x0
         invoke-static {v5}, Lfixture/Override;->of($session)Ljava/lang/Object;
@@ -181,6 +255,43 @@ class TabBarLayoutHookTest {
             if (twoGates) method(gateType, "A06", listOf(session), "Z", 5, gateBody(flag)) else null,
         )
         return listOf(ImmutableClassDef(gateType, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;", null, null, null, null, methods))
+    }
+
+    private val quickSearchType = "Lfixture/QuickSearch;"
+    private val pagerHost = "Lfixture/PagerHost;"
+
+    /**
+     * Shaped like 453's 0BG3 case 0x19: the pager's adapter count, or with no pager the host's tab
+     * list size, then the wait. [twoReads] adds a second class with the same read.
+     */
+    private fun quickSearchClasses(twoReads: Boolean = false, pageCount: String = "getItemCount"): List<ClassDef> {
+        val body = """
+            iget-object v1, v5, $pagerHost->A00:Landroidx/viewpager2/widget/ViewPager2;
+            if-eqz v1, :tabs
+            iget-object v1, v1, Landroidx/viewpager2/widget/ViewPager2;->A04:Landroidx/recyclerview/widget/RecyclerView;
+            iget-object v1, v1, Landroidx/recyclerview/widget/RecyclerView;->A0E:Lfixture/Adapter;
+            if-eqz v1, :tabs
+            invoke-virtual {v1}, Lfixture/Adapter;->$pageCount()I
+            move-result v4
+            :wait
+            invoke-static {v4}, Lfixture/Wait;->until(I)V
+            return-void
+            :tabs
+            iget-object v1, v5, $pagerHost->A07:Ljava/util/List;
+            invoke-interface {v1}, Ljava/util/List;->size()I
+            move-result v4
+            goto :wait
+        """.trimIndent()
+        return listOfNotNull(quickSearchType, if (twoReads) "Lfixture/QuickSearchAgain;" else null).map { type ->
+            val methods = listOf(method(type, "invokeSuspend", listOf(pagerHost), "V", 5, body))
+            ImmutableClassDef(type, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;", null, null, null, null, methods)
+        }
+    }
+
+    private fun Method.readsPagerList(): Boolean = code().any {
+        val field = (it as? ReferenceInstruction)?.reference as? FieldReference
+        it.opcode == Opcode.IGET_OBJECT && field?.definingClass == "Landroidx/viewpager2/widget/ViewPager2;" &&
+            field.type == "Landroidx/recyclerview/widget/RecyclerView;"
     }
 
     private fun method(owner: String, name: String, parameters: List<String>, returns: String, registers: Int, body: String): Method {

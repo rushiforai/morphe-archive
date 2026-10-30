@@ -3,7 +3,7 @@ package app.hushmessenger.patches
 import app.hushmessenger.patches.coexist.expectedDexSitesFor
 import app.hushmessenger.patches.controls.BASE_PROFILE
 import app.hushmessenger.patches.controls.ControlProfile
-import app.hushmessenger.patches.controls.PROFILE_346816935
+import app.hushmessenger.patches.controls.PROFILE_347015062
 import app.hushmessenger.patches.controls.controlProfileFor
 import com.android.tools.smali.dexlib2.Opcode
 import java.io.File
@@ -81,21 +81,21 @@ class CompatProfileTest {
         }
     }
 
-    @Test fun record346816935GeneratesItsProfileAndSitesExactlyAsInTheSource(@TempDir dir: Path) {
-        assertSame(PROFILE_346816935, controlProfileFor("346816935"))
+    @Test fun record347015062GeneratesItsProfileAndSitesExactlyAsInTheSource(@TempDir dir: Path) {
+        assertSame(PROFILE_347015062, controlProfileFor("347015062"))
         // A copy of the script that knows only this record prints the blocks.
         Files.copy(Path.of("../scripts/CompatReport.java"), dir.resolve("CompatReport.java"))
         dir.resolve("profiles").createDirectories()
-        Files.copy(profiles.resolve("346816935.txt"), dir.resolve("profiles/346816935.txt"))
+        Files.copy(profiles.resolve("347015062.txt"), dir.resolve("profiles/347015062.txt"))
         val (exit, output) = compatReport(
-            "--kotlin", dir.resolve("profiles/346816935.txt").toString(), script = dir.resolve("CompatReport.java").toString(),
+            "--kotlin", dir.resolve("profiles/347015062.txt").toString(), script = dir.resolve("CompatReport.java").toString(),
         )
         assertEquals(0, exit, output)
         val blocks = output.split("\n\n").filter { it.startsWith("internal val ") }.map { it.trimEnd() + "\n" }
         assertEquals(2, blocks.size, output)
-        assertTrue(blocks[0].startsWith("internal val PROFILE_346816935 = ControlProfile("), blocks[0])
+        assertTrue(blocks[0].startsWith("internal val PROFILE_347015062 = ControlProfile("), blocks[0])
         assertContains(source("controls/ControlProfiles.kt"), blocks[0])
-        assertTrue(blocks[1].startsWith("internal val expectedDexSites346816935 = mapOf("), blocks[1])
+        assertTrue(blocks[1].startsWith("internal val expectedDexSites347015062 = mapOf("), blocks[1])
         assertContains(source("coexist/InstallBesideMetaAppsPatch.kt"), blocks[1])
     }
 
@@ -109,24 +109,24 @@ class CompatProfileTest {
     }
 
     @Test fun aRecordLikeAnotherBuildsReusesItsProfileAndSites(@TempDir dir: Path) {
-        assertEquals(BASE_PROFILE.lines(), controlLines(346816935))
+        assertEquals(BASE_PROFILE.lines(), controlLines(347015062))
         Files.copy(Path.of("../scripts/CompatReport.java"), dir.resolve("CompatReport.java"))
         dir.resolve("profiles").createDirectories()
-        Files.copy(profiles.resolve("346816935.txt"), dir.resolve("profiles/346816935.txt"))
-        val twin = dir.resolve("profiles/346816936.txt")
-        twin.writeLines(record(346816935).map { if (it == "code 346816935") "code 346816936" else it })
+        Files.copy(profiles.resolve("347015062.txt"), dir.resolve("profiles/347015062.txt"))
+        val twin = dir.resolve("profiles/347015063.txt")
+        twin.writeLines(record(347015062).map { if (it == "code 347015062") "code 347015063" else it })
         val (exit, output) = compatReport("--kotlin", twin.toString(), script = dir.resolve("CompatReport.java").toString())
         assertEquals(0, exit, output)
         assertFalse("internal val" in output, output)
-        assertContains(output, "the controls match build 346816935.")
-        assertContains(output, "the permission loads match build 346816935.")
+        assertContains(output, "the controls match build 347015062.")
+        assertContains(output, "the permission loads match build 347015062.")
     }
 
     @Test fun aRecordWithUnresolvedControlsListsThemAndGeneratesNothing(@TempDir dir: Path) {
         val broken = dir.resolve("346999999.txt")
-        broken.writeLines(profiles.resolve("346816935.txt").readLines()
+        broken.writeLines(profiles.resolve("347015062.txt").readLines()
             .filterNot { it.startsWith("hook ai_fab ") || it.startsWith("browserPreferenceIndex ") }
-            .map { if (it == "code 346816935") "code 346999999" else it } + "hook people LX/Extra;->A00()Z")
+            .map { if (it == "code 347015062") "code 346999999" else it } + "hook people LX/Extra;->A00()Z")
         val (exit, output) = compatReport("--kotlin", broken.toString())
         assertEquals(1, exit, output)
         assertContains(output, "No profile generated. These controls did not resolve:")

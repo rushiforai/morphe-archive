@@ -4,13 +4,15 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.checkCast
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
+import com.android.tools.smali.dexlib2.iface.ClassDef
 
 internal const val ADS = "Lio/github/jordanwoodson/extension/shared/twitch/TwitchAds;"
 internal const val AD_EDGE_API = "Ltv/twitch/android/shared/ad/edge/api/AdEdgeApi;"
 internal const val IVS_MEDIA_PLAYER = "Lcom/amazonaws/ivs/player/MediaPlayer;"
 internal const val RN_PLAYER_VIEW = "Lcom/twitchrn/player/TwitchIVSPlayerView;"
-internal const val RN_PLAYBACK_SESSION = "Lcom/twitchrn/player/PlaybackSession;"
 internal const val RN_PLAYBACK_DISPLAY = "Lcom/twitchrn/player/PlaybackDisplay;"
+internal const val RN_PLAYBACK_COMMANDS = "Lcom/twitchrn/player/PlaybackCommands;"
+internal const val RN_PLAYER_LISTENER_TARGET = "Lcom/twitchrn/player/PlayerListenerTarget;"
 internal const val BASE_VIEW_DELEGATE = "Ltv/twitch/android/core/mvp/viewdelegate/BaseViewDelegate;"
 internal const val BRAND_SURVEY_ITEM = "Ltv/twitch/android/shared/viewer/pub/FeedItem\$BrandSurveyItem;"
 internal const val RN_VIDEO_AD_PLAYER = "Ltv/twitch/android/feature/discovery/feed/rn/runtime/TwitchRNVideoAdPlayer;"
@@ -66,17 +68,25 @@ internal object StitchedAdPlayingFingerprint : Fingerprint(
     strings = listOf("AdPlaying(countdownText=", ", podSize=", ", isPlayStoreAd="),
 )
 
+// React Native's playback session: the one class that takes the player view's commands and the IVS
+// player's events. Twitch renamed it (PlaybackSession in 31.7.0, PlaybackSlot in 31.8.0), so it is found
+// by those two interfaces.
+private fun isRnPlaybackSession(classDef: ClassDef) =
+    classDef.interfaces.containsAll(listOf(RN_PLAYBACK_COMMANDS, RN_PLAYER_LISTENER_TARGET))
+
 internal object RnPlayerMetadataFingerprint : Fingerprint(
-    definingClass = RN_PLAYBACK_SESSION, name = "handleMetadata", returnType = "V",
-    parameters = listOf("Ljava/lang/String;", "Ljava/nio/ByteBuffer;"),
+    name = "handleMetadata", returnType = "V", parameters = listOf("Ljava/lang/String;", "Ljava/nio/ByteBuffer;"),
+    custom = { _, classDef -> isRnPlaybackSession(classDef) },
 )
 
 internal object RnPlayerStreamUrlFingerprint : Fingerprint(
-    definingClass = RN_PLAYBACK_SESSION, name = "setStreamUrl", returnType = "V", parameters = listOf("Ljava/lang/String;"),
+    name = "setStreamUrl", returnType = "V", parameters = listOf("Ljava/lang/String;"),
+    custom = { _, classDef -> isRnPlaybackSession(classDef) },
 )
 
 internal object RnPlayerReleaseFingerprint : Fingerprint(
-    definingClass = RN_PLAYBACK_SESSION, name = "release", returnType = "V", parameters = emptyList(),
+    name = "release", returnType = "V", parameters = emptyList(),
+    custom = { _, classDef -> isRnPlaybackSession(classDef) },
 )
 
 // The native live playlist (usher) URL, built from the channel and its signed playback token.
@@ -86,10 +96,13 @@ internal object LivePlaylistUrlFingerprint : Fingerprint(
     strings = listOf("api/v2/channel/hls/", "api/channel/hls/"),
 )
 
-// React Native's player preloader, keyed by the stream URL the player view later asks for.
+// React Native's player preloader, keyed by the stream URL the player view later asks for. It takes
+// (context, url, warm), and since 31.8.0 the preload's owner after them.
 internal object RnPreloadFingerprint : Fingerprint(
     definingClass = "Lcom/twitchrn/player/PreloadHolder;", name = "preload", returnType = "V",
-    parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Z"),
+    custom = { method, _ ->
+        method.parameterTypes.map { it.toString() }.take(3) == listOf("Landroid/content/Context;", "Ljava/lang/String;", "Z")
+    },
 )
 
 internal object ProxyTemplateFingerprint : Fingerprint(

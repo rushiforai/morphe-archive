@@ -219,7 +219,10 @@ public final class MaterialYouTheme {
         palette = TonePalette.fallback();
         publish();
         DarkMode.changed = MaterialYouTheme::publish;
-        bind();
+        // Only with the theme in the build: nothing asks for the phone's palette otherwise, and the
+        // read it makes through the Accent color row was what an Android 11 phone without the theme
+        // saw as a toast at every start (#300).
+        if (SettingsStatus.materialYouTheme()) bind();
     }
 
     /**

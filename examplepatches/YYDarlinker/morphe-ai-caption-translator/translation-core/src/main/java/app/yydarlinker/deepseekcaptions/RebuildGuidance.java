@@ -2,8 +2,7 @@ package app.yydarlinker.deepseekcaptions;
 
 /**
  * Extra request guidance for event sizing, sentence completeness and the authored display
- * contract. Kept out of the pinned protocol literal so the upstream prompt/protocol audit stays
- * byte-identical; it is appended to every request instead.
+ * contract. Appended to every request; local protocol/guidance changes are recorded by provenance.
  */
 final class RebuildGuidance {
     private RebuildGuidance() {}
@@ -48,7 +47,7 @@ final class RebuildGuidance {
 
     static final String SENTENCE =
             " Event sizing: one event is one complete clause or sentence that reads naturally on its"
-                + " own, ideally one line and at most two. Punctuate every event's text for its own"
+                + " own. Local presentation handles line count and page size. Punctuate every event's text for its own"
                 + " range: end with a full stop when that range ends a sentence, a comma when the"
                 + " clause continues into the next event, and never drop the closing punctuation."
                 + " A long source sentence may stay in one event, or be split only where each side"

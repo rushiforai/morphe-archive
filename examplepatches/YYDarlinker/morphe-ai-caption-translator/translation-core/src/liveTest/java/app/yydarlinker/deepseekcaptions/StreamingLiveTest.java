@@ -26,12 +26,25 @@ public class StreamingLiveTest {
   @Test public void capturedBlocksStreamAndMatchTheAcceptedPlan() throws Exception {
     int maxRequests=Integer.parseInt(System.getProperty("live.maxRequests","0"));
     long maxTokens=Long.parseLong(System.getProperty("live.maxTokens","0"));
-    assertTrue("Live requires explicit positive budgets",maxRequests>0&&maxTokens>0);
+    int elapsedSeconds=Integer.parseInt(System.getProperty("live.elapsedSeconds","0"));
+    assertTrue("Live requires explicit positive budgets",maxRequests>0&&maxTokens>0&&elapsedSeconds>0);
+    int configured=0;
+    for(String provider:new String[]{"QWEN","DEEPSEEK"}) {
+      String endpoint=System.getenv(provider+"_BASE_URL"),model=System.getenv(provider+"_MODEL"),key=System.getenv(provider+"_API_KEY");
+      if(endpoint==null&&model==null&&key==null)continue;
+      assertTrue(provider+" live configuration is incomplete",
+              endpoint!=null&&!endpoint.isBlank()&&model!=null&&!model.isBlank()&&key!=null&&!key.isBlank());
+      configured++;
+    }
+    assertTrue("No live provider configured; zero calls cannot prove streaming",configured>0);
+    long began=System.nanoTime();
     long[] charged={0};int[] attempts={0};
     TranslationOutput.install(new TranslationOutput.Sink(){});
     TranslationAudit.install(new TranslationAudit.Sink(){
       public int attempt(TranslationAudit.Request r,int bytes){
-        if(attempts[0]>=maxRequests||charged[0]+8000>maxTokens)throw new IllegalStateException("live_budget_exhausted_before_send");
+        if(attempts[0]>=maxRequests||charged[0]+8000>maxTokens
+                ||(System.nanoTime()-began)/1000000000L>=elapsedSeconds)
+            throw new IllegalStateException("live_budget_exhausted_before_send");
         charged[0]+=8000;return ++attempts[0];
       }
       public void response(TranslationAudit.Request r,int attempt,JSONObject root){
@@ -72,6 +85,7 @@ public class StreamingLiveTest {
     Path output=Paths.get(System.getProperty("live.output"));Files.createDirectories(output.getParent());
     Files.write(output,new JSONObject().put("kind","real_streamed_capture_blocks").put("attempts",attempts[0])
         .put("charged_tokens",charged[0]).put("rows",rows).toString(2).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    assertTrue("A live run must exercise at least one configured provider",rows.length()>0&&attempts[0]>0);
     for(int i=0;i<rows.length();i++)assertFalse(rows.getJSONObject(i).toString(),rows.getJSONObject(i).has("failure"));
   }
 }

@@ -44,6 +44,7 @@ import app.morphe.extension.facebook.settings.SettingsRows.FontRow;
 import app.morphe.extension.facebook.settings.SettingsRows.PictureRow;
 import app.morphe.extension.facebook.settings.SettingsRows.Row;
 import app.morphe.extension.facebook.theme.AmoledTheme;
+import app.morphe.extension.facebook.theme.MarkColors;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -178,8 +179,9 @@ final class HushfacebookPages {
         }
         if (build.contains(PatchFamily.MARK_COLORS)) {
             // Colours Facebook asks for as each screen builds, so a change shows fully after a restart.
-            appearance.addPreference(page.markColorRow(context, false));
-            appearance.addPreference(page.markColorRow(context, true));
+            appearance.addPreference(page.markColorRow(context, MarkColors.Mark.BADGE));
+            appearance.addPreference(page.markColorRow(context, MarkColors.Mark.LOGO));
+            appearance.addPreference(page.markColorRow(context, MarkColors.Mark.TAB));
         }
         if (build.contains(PatchFamily.FORCE_DARK_MODE)) {
             // Facebook asks for dark mode as each screen applies its theme, so a change shows fully after a restart.
@@ -206,7 +208,8 @@ final class HushfacebookPages {
         }
         subheading(appearance, L10n.t("Screen and motion"));
         if (build.contains(PatchFamily.BOTTOM_TAB_BAR)) {
-            // Asked as each frame of the main screen draws, so a change shows right away.
+            // Asked as each frame of the main screen draws, so a change shows right away, except on
+            // a kept tab bar, where the page's restart row says the change waits (#250).
             appearance.addPreference(toggle(context, Settings.TRANSLUCENT_BARS,
                     L10n.t("The top bar and the tab bar turn see-through, so the feed shows through them as you scroll. "
                             + "On Android 12 and newer the feed behind them is blurred.")));

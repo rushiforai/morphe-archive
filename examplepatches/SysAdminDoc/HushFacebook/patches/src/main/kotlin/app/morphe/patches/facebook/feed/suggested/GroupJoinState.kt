@@ -11,10 +11,14 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.facebook.feed.BASE_MODEL_WITH_TREE
 import app.morphe.patches.facebook.feed.GRAPHQL_STORY
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
+import app.morphe.patches.facebook.feed.aidetected.GRAPHQL_STORY_ATTACHMENT
+import app.morphe.patches.facebook.feed.aidetected.isModelListAccessor
 import app.morphe.patches.facebook.feed.fillStoryModelStub
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.feed.isModelEnumAccessor
+import app.morphe.patches.facebook.feed.loadedClass
 import app.morphe.patches.facebook.feed.methodsHolding
+import app.morphe.patches.facebook.feed.modelAccessors
 import app.morphe.patches.facebook.feed.storyModelAccessors
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.util.findMutableMethodOf
@@ -111,6 +115,96 @@ internal fun BytecodePatchContext.fillGroupJoinStubs() {
     val found = groupJoinAccessors()
     fillStoryModelStub(GROUP_POSTS, STORY_TARGET_STUB, found.target)
     fillStoryModelStub(GROUP_POSTS, JOIN_STATE_STUB, found.joinState)
+}
+
+/*
+ * The shape of a story posted to no profile (#195, third report, read from 584 on 2026-10-29). A kept
+ * group post with no `to` and no attached story names its group somewhere else, and Debug logging
+ * says where, as GraphQL type names only: the entities the title's ranges point at
+ * (GraphQLStory.A09 `title` as TextWithEntities 0xdb1d8904, GraphQLTextWithEntities.A03 `ranges`
+ * as an EntityAtRange list of the generic model LX/45C, whose A0O `entity` is a GraphQLEntity), the
+ * story's `shareable` (A02, a GraphQLEntity) and each attachment's `target` (GraphQLStoryAttachment.A05
+ * `target` as Node, an LX/45C). LX/45C is the class the story's `to` is read as too, so a target
+ * typed Group can be asked its join state through the join state stub. GraphQLEntity answers its
+ * type name and nothing more.
+ */
+internal const val STORY_TITLE_FIELD = "title"
+internal const val STORY_TITLE_TYPE = "TextWithEntities"
+internal const val STORY_SHAREABLE_FIELD = "shareable"
+internal const val STORY_SHAREABLE_TYPE = "Entity"
+internal const val TITLE_RANGES_FIELD = "ranges"
+internal const val TITLE_RANGE_TYPE = "EntityAtRange"
+internal const val RANGE_ENTITY_FIELD = "entity"
+internal const val RANGE_ENTITY_TYPE = "Entity"
+internal const val ATTACHMENT_TARGET_FIELD = "target"
+internal const val ATTACHMENT_TARGET_TYPE = "Node"
+
+/** The five GroupPosts stubs the shape is read through. */
+internal const val STORY_TITLE_STUB = "storyTitle"
+internal const val STORY_SHAREABLE_STUB = "storyShareable"
+internal const val TITLE_RANGES_STUB = "titleRanges"
+internal const val RANGE_ENTITY_STUB = "rangeEntity"
+internal const val ATTACHMENT_TARGET_STUB = "attachmentTarget"
+
+/** The accessors a story's shape is read through, each on the class the one before it answers. */
+internal class StoryShapeAccessors(
+    val title: Method,
+    val shareable: Method,
+    val ranges: Method,
+    val entity: Method,
+    val target: Method,
+)
+
+private fun one(found: List<Method>, owner: String, field: String, type: String): Method =
+    found.singleOrNull() ?: throw PatchException(
+        "$owner has ${found.size} accessors of $field as $type, expected one: ${found.joinToString { it.name }}",
+    )
+
+/**
+ * The five accessors, each held to one match on its class: the story's title and shareable, the
+ * title class's ranges list, the range class's entity, and the attachment class's target. Throws a
+ * [PatchException] when a class or an accessor is missing or ambiguous.
+ */
+internal fun BytecodePatchContext.storyShapeAccessors(): StoryShapeAccessors {
+    val story = classDefBy(GRAPHQL_STORY)
+    val title = one(modelAccessors(story, STORY_TITLE_FIELD, STORY_TITLE_TYPE), GRAPHQL_STORY, STORY_TITLE_FIELD, STORY_TITLE_TYPE)
+    val shareable = one(
+        modelAccessors(story, STORY_SHAREABLE_FIELD, STORY_SHAREABLE_TYPE), GRAPHQL_STORY, STORY_SHAREABLE_FIELD, STORY_SHAREABLE_TYPE,
+    )
+    val text = classDefByOrNull(title.returnType)
+        ?: throw PatchException("${title.returnType}, GraphQLStory's $STORY_TITLE_FIELD, isn't in this Facebook build")
+    val ranges = one(
+        text.methods.filter { isModelListAccessor(it, text.type, TITLE_RANGES_FIELD, TITLE_RANGE_TYPE) },
+        text.type, TITLE_RANGES_FIELD, TITLE_RANGE_TYPE,
+    )
+    val rangeClass = ranges.loadedClass()
+        ?: throw PatchException("${text.type}->${ranges.name} doesn't name the class it reads its $TITLE_RANGES_FIELD as")
+    val range = classDefByOrNull(rangeClass)
+        ?: throw PatchException("$rangeClass, the $TITLE_RANGES_FIELD element, isn't in this Facebook build")
+    val entity = one(modelAccessors(range, RANGE_ENTITY_FIELD, RANGE_ENTITY_TYPE), range.type, RANGE_ENTITY_FIELD, RANGE_ENTITY_TYPE)
+    val attachment = classDefByOrNull(GRAPHQL_STORY_ATTACHMENT)
+        ?: throw PatchException("$GRAPHQL_STORY_ATTACHMENT isn't in this Facebook build")
+    val target = one(
+        modelAccessors(attachment, ATTACHMENT_TARGET_FIELD, ATTACHMENT_TARGET_TYPE),
+        GRAPHQL_STORY_ATTACHMENT, ATTACHMENT_TARGET_FIELD, ATTACHMENT_TARGET_TYPE,
+    )
+    // The join state stub casts to the class the story's `to` is read as, so a target handed to it
+    // has to be read as that class too.
+    val profile = storyTargetAccessors(story).singleOrNull()?.returnType
+    if (target.returnType != profile) {
+        throw PatchException("$GRAPHQL_STORY_ATTACHMENT->${target.name} answers ${target.returnType}, not $profile")
+    }
+    return StoryShapeAccessors(title, shareable, ranges, entity, target)
+}
+
+/** Fills in the extension's five shape stubs on GroupPosts with the accessors [storyShapeAccessors] finds. */
+internal fun BytecodePatchContext.fillStoryShapeStubs() {
+    val found = storyShapeAccessors()
+    fillStoryModelStub(GROUP_POSTS, STORY_TITLE_STUB, found.title)
+    fillStoryModelStub(GROUP_POSTS, STORY_SHAREABLE_STUB, found.shareable)
+    fillStoryModelStub(GROUP_POSTS, TITLE_RANGES_STUB, found.ranges)
+    fillStoryModelStub(GROUP_POSTS, RANGE_ENTITY_STUB, found.entity)
+    fillStoryModelStub(GROUP_POSTS, ATTACHMENT_TARGET_STUB, found.target)
 }
 
 /** The query parameter asking Home for each group's join state. */

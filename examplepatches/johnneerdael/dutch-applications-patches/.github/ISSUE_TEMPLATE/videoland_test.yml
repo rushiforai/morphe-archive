@@ -1,0 +1,71 @@
+name: Videoland Android TV dev test
+description: Share a successful dev test or a playback/ad problem.
+title: "test(videoland-tv): "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing the Videoland Android TV dev prerelease. Successful
+        tests are welcome, especially with the paid ad-supported tier.
+        Premium playback alone cannot establish ad removal on that tier.
+        Do not share credentials, pairing codes, tokens or personal logs.
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Subscription tier
+      options:
+        - Paid ad-supported tier
+        - Premium / ad-free tier
+        - Other / not sure
+    validations:
+      required: true
+  - type: input
+    id: bundle
+    attributes:
+      label: Patch bundle version
+      description: Find Version on the Dutch App Patches source card in Morphe.
+      placeholder: "1.x.0-dev.x"
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: TV model and Android version
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: Videoland app version and build
+      placeholder: "1.117.0 / 1622"
+    validations:
+      required: true
+  - type: dropdown
+    id: controls
+    attributes:
+      label: Selected controls
+      options:
+        - Both recommended controls
+        - Hide ads only
+        - Disable tracking only
+        - Other / not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Result
+      options:
+        - Works as expected
+        - Playback works but ads still play
+        - Playback or sign-in fails
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: playback
+    attributes:
+      label: Programme/channel and observed behaviour
+      description: Include VOD/live, preroll/midroll or pause ads, seeking, next episode and whether content continues. For a problem, include the approximate playback time, visible error and reproducible steps.
+    validations:
+      required: true

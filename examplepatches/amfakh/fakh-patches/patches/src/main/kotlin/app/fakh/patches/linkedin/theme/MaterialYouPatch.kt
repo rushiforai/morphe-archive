@@ -685,6 +685,7 @@ val removeGapsAndDividersPatch = bytecodePatch(
     default = false
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Theme")
     dependsOn(settingsPatch, removeGapsResourcePatch, sharedColorsPatch)
 
     execute {
@@ -722,6 +723,7 @@ val materialYouPatch = bytecodePatch(
     default = false
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Theme")
     dependsOn(settingsPatch, materialYouResourcePatch, materialYouBackgroundsResourcePatch, sharedColorsPatch)
 
     execute {

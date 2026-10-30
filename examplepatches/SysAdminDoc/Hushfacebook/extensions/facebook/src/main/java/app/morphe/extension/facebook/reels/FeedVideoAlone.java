@@ -290,7 +290,10 @@ public final class FeedVideoAlone {
      * reel: "user_timeline::feed_story" for a page's video post and "group::multimedia_post" for a
      * group's (584 emulator 2026-10-27, the viewer stood empty 1.4-2.3 s with the yes against 0.1-0.7
      * s without), where a feed reel reads "newsfeed::fb_shorts_native_in_feed_unit" or
-     * "group::fb_shorts_reshare_feed_unit".
+     * "group::fb_shorts_reshare_feed_unit". A reel posted in a group itself,
+     * "group::fb_shorts_creation_feed_unit", isn't one: its first page carries the next reel too, so
+     * keeping Facebook's answer there showed an Up next reel a swipe away (#237, 584 emulator
+     * 2026-10-29).
      */
     static boolean plainVideo(String origin) {
         int cut = origin.indexOf("::");

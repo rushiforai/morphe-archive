@@ -1,3 +1,21 @@
+## [1.4.6](https://github.com/snowyegret23/morphe-patches/compare/v1.4.5...v1.4.6) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* refresh chat controls and prevent runtime library conflicts ([5b5ec02](https://github.com/snowyegret23/morphe-patches/commit/5b5ec02c7e9e48f5a988f3a11e24393e2261f5ef))
+
+## [1.4.5](https://github.com/snowyegret23/morphe-patches/compare/v1.4.4...v1.4.5) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* restore CHZZK 3.16.0 startup after APK signing ([737c35b](https://github.com/snowyegret23/morphe-patches/commit/737c35bdeff922b14551f533700d726992379c26))
+
+## [1.4.4](https://github.com/snowyegret23/morphe-patches/compare/v1.4.3...v1.4.4) (2026-10-29)
+
+### ✨ New Features
+
+* support CHZZK 3.16.0 with chat, seeking and audio controls ([e795d4a](https://github.com/snowyegret23/morphe-patches/commit/e795d4a928328cae45103f526af7652af06a7c70)), closes [#7](https://github.com/snowyegret23/morphe-patches/issues/7) [#8](https://github.com/snowyegret23/morphe-patches/issues/8)
+
 ## [1.4.3](https://github.com/snowyegret23/morphe-patches/compare/v1.4.2...v1.4.3) (2026-10-22)
 
 ### 🚀 Updated App Support

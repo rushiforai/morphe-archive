@@ -58,7 +58,7 @@ private val editorHostStringPatch = resourcePatch {
 @Suppress("unused")
 val redditUploadPatch = bytecodePatch(
     name = "Editor image and GIF upload",
-    description = "Uploads images and GIFs to Reddit directly when adding comments. Both can be uploaded via the image button. Also adds keyboard gif auto upload to reddit (click markdown in editor (far left icon) to enable keyboard gif support). Video support to be added.",
+    description = "Uploads images and GIFs to Reddit directly when adding comments. Both can be uploaded via the image button. Also adds keyboard gif auto upload to reddit (click markdown in editor (far left icon) to enable keyboard gif support).",
 ) {
     compatibleWith(JOEY)
     dependsOn(editorHostStringPatch)

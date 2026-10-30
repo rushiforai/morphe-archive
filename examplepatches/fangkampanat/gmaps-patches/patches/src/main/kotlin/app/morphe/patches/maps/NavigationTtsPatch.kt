@@ -49,6 +49,14 @@ private class TtsLayout(
         fail(reason, related)
     }
 
+    /** The one known form whose exact shape is code[from, until); none or several fail. */
+    fun <T : TtsForm> form(block: String, forms: List<T>, from: Int, until: Int): T {
+        val matched = forms.filter { code.subList(from, until).shape(it.shape) }
+        require(matched.size == 1, "$block: ${if (matched.isEmpty()) "no" else "ambiguous"} known R8 form; " +
+            "known: ${forms.joinToString { it.name }}")
+        return matched.single()
+    }
+
     private fun fail(reason: String, related: TtsLayout? = null): Nothing = throw PatchException(
         "Unrecognized navigation TTS layout: $reason; ${details()}" +
             (related?.let { "; related: ${it.details()}" } ?: ""),
@@ -72,6 +80,108 @@ private class TtsLayout(
 }
 private fun MethodReference.same(other: MethodReference?) = other != null &&
     definingClass == other.definingClass && name == other.name && returnType == other.returnType && parameterTypes == other.parameterTypes
+
+/** An accepted R8 form of one provider sub-block; [shape] is its exact opcode sequence. */
+private sealed interface TtsForm {
+    val name: String
+    val shape: String
+}
+
+/** Provider selection [gate, create): mode switch, then the e/c/i flags. Indices are relative to the gate. */
+private class SelectionForm(
+    override val name: String,
+    override val shape: String,
+    val modeDefault: Int, // if-nez over the move that maps mode 0 to 1
+    val toDynamicOnly: Int,
+    val toCannedOnly: Int,
+    val toFlagI: List<Int>, // a null e config or a clear flag falls through to the i flag
+    val flagI: Int,
+    val skipDynamic: List<Int>, // a set flag skips the dynamic creation
+) : TtsForm
+
+/** Provider creation/merge [create, pairAt + 1]; [result] (relative to create) writes the pair's first argument. */
+private class CreationForm(override val name: String, override val shape: String, val result: Int) : TtsForm
+
+private const val SELECTION_HEAD = """
+    INVOKE_INTERFACE MOVE_RESULT_OBJECT IGET INVOKE_STATIC MOVE_RESULT CONST_4 IF_NEZ MOVE
+    ADD_INT_LIT8 IF_EQZ IF_EQ INVOKE_INTERFACE MOVE_RESULT_OBJECT IGET_OBJECT IF_EQZ
+    IGET_BOOLEAN IF_EQZ IGET_BOOLEAN"""
+// R8 picks the two sub-block forms independently: 26.36-26.39 goto/direct, 26.41-26.42 if-nez/moved, 26.43 if-nez/direct.
+private val selectionForms = listOf(
+    // 26.41-26.43: a set e flag branches straight to the canned creation.
+    SelectionForm("e-flag if-nez", "$SELECTION_HEAD IF_NEZ IGET_BOOLEAN IF_NEZ", modeDefault = 6, toDynamicOnly = 9,
+        toCannedOnly = 10, toFlagI = listOf(14, 16), flagI = 19, skipDynamic = listOf(18, 20)),
+    // 26.36-26.39: R8 inverts the e flag and jumps over the i flag with a goto.
+    SelectionForm("e-flag if-eqz + goto", "$SELECTION_HEAD IF_EQZ GOTO IGET_BOOLEAN IF_NEZ", modeDefault = 6,
+        toDynamicOnly = 9, toCannedOnly = 10, toFlagI = listOf(14, 16, 18), flagI = 20, skipDynamic = listOf(19, 21)),
+)
+private const val CREATION_TAIL = """
+    IGET_OBJECT INVOKE_VIRTUAL MOVE_RESULT_OBJECT GOTO IGET_OBJECT INVOKE_VIRTUAL MOVE_RESULT_OBJECT GOTO
+    INVOKE_VIRTUAL MOVE_RESULT_OBJECT MOVE_OBJECT MOVE_OBJECT MOVE_OBJECT NEW_INSTANCE INVOKE_DIRECT IPUT_OBJECT"""
+private val creationForms = listOf(
+    // 26.36-26.39 and 26.43: the dynamic result lands in the pair's first argument.
+    CreationForm("direct result", "INVOKE_VIRTUAL MOVE_RESULT_OBJECT $CREATION_TAIL", result = 1),
+    // 26.41-26.42: R8 moves it there from a temporary.
+    CreationForm("moved result", "INVOKE_VIRTUAL MOVE_RESULT_OBJECT MOVE_OBJECT $CREATION_TAIL", result = 2),
+)
+
+/** Positions of the provider block that the caller's class-level checks use. */
+internal class TtsProviderBlock(val forms: String, val fieldAt: Int, val cannedAt: Int, val merge: Int)
+
+/**
+ * Instruction-level recognition of the provider block: each sub-block must match exactly one known form, and every
+ * operand, branch and live-register guard takes its positions from those forms. Class-level checks stay with the caller.
+ */
+internal fun recognizeTtsProviderBlock(factory: Method, h: List<Instruction>, gate: Int, create: Int, pairAt: Int): TtsProviderBlock {
+    val layout = TtsLayout(factory, h, gate - 1..pairAt + 1)
+    val selection = layout.form("provider selection block", selectionForms, gate, create)
+    val creation = layout.form("provider creation/merge", creationForms, create, pairAt + 2)
+    val dynamicFactory = h[create].call() ?: throw PatchException("Missing dynamic provider factory")
+    val resultAt = create + creation.result
+    val fieldAt = resultAt + 1
+    val cannedAt = fieldAt + 1
+    val cannedOnly = cannedAt + 4
+    val dynamicOnly = cannedOnly + 3
+    val merge = pairAt - 1
+    val dynamicRegs = h[create].regs()
+    val cannedRegs = h[cannedAt].regs()
+    val dynamicResult = h[resultAt].regs().first()
+    // The moved form copies the dynamic call's move-result register; the direct form is that register.
+    val copied = h.subList(create + 1, resultAt).map { it.regs().single() }
+    layout.require(dynamicFactory.parameterTypes.size == 2 && dynamicFactory.returnType.startsWith("L") &&
+        dynamicFactory.same(h[dynamicOnly].call()) && dynamicRegs.size == 3 && cannedRegs.size == 5 &&
+        dynamicRegs[0] == cannedRegs[0] && dynamicRegs[2] == cannedRegs[2] &&
+        h[dynamicOnly].regs() == listOf(dynamicRegs[0], cannedRegs[1], dynamicRegs[2]) &&
+        h[fieldAt].regs() == listOf(cannedRegs[4], dynamicRegs[0]) &&
+        h[cannedOnly - 1].field() == h[fieldAt].field() && h[cannedOnly].call()?.same(h[cannedAt].call()) == true &&
+        h[cannedOnly].regs() == cannedRegs && h[cannedAt + 1].regs() == listOf(dynamicRegs[0]) &&
+        h[cannedOnly + 1].regs() == listOf(dynamicRegs[0]) &&
+        h[pairAt].regs() == listOf(h[merge].regs().single(), dynamicResult, dynamicRegs[0]) &&
+        h[resultAt].regs() == listOf(dynamicResult) + copied &&
+        h[dynamicOnly + 1].regs() == listOf(dynamicRegs[0]) &&
+        h[dynamicOnly + 2].regs().getOrNull(1) == dynamicResult &&
+        h[dynamicOnly + 3].regs() == listOf(dynamicResult, dynamicRegs[0]) &&
+        h[dynamicOnly + 4].regs() == listOf(dynamicRegs[0], h[dynamicOnly + 2].regs().first()),
+        "provider operands")
+    // The skipped block must not initialize any input needed by the both-provider path.
+    val live = dynamicRegs + cannedRegs.take(4)
+    layout.require(h.subList(gate, create).filter { it.opcode.setsRegister() }.all {
+        (it as? OneRegisterInstruction)?.registerA !in live &&
+            (!it.opcode.setsWideRegister() || (it as OneRegisterInstruction).registerA + 1 !in live)
+    } && (0 until gate).lastOrNull { h[it].opcode.setsRegister() &&
+        ((h[it] as? OneRegisterInstruction)?.registerA == dynamicRegs[1] ||
+            h[it].opcode.setsWideRegister() && (h[it] as? OneRegisterInstruction)?.registerA == dynamicRegs[1] - 1)
+    }?.let { h[it].opcode == Opcode.CONST_4 && (h[it] as NarrowLiteralInstruction).narrowLiteral == 0 } == true,
+        "provider live registers")
+    layout.require(layout.target(gate + selection.toDynamicOnly) == dynamicOnly &&
+        layout.target(gate + selection.toCannedOnly) == cannedOnly - 1 &&
+        layout.target(gate + selection.modeDefault) == gate + selection.modeDefault + 2 &&
+        selection.toFlagI.all { layout.target(gate + it) == gate + selection.flagI } &&
+        selection.skipDynamic.all { layout.target(gate + it) == fieldAt } &&
+        layout.target(cannedAt + 2) == merge && layout.target(cannedOnly + 2) == merge,
+        "provider branch relationships")
+    return TtsProviderBlock("${selection.name}; ${creation.name}", fieldAt, cannedAt, merge)
+}
 
 /** Keep Maps' synthesis and fallback implementations; change only their selection. */
 internal fun BytecodePatchContext.patchNavigationTts() {
@@ -103,73 +213,12 @@ internal fun BytecodePatchContext.patchNavigationTts() {
             classDefByOrNull(call.returnType)?.interfaces?.contains(providerType) == true } == true }
     if (creations.size != 2) throw PatchException("Missing unique TTS dynamic creation branches")
     val create = creations.first()
-    val compact = create - gate == 21
     val factoryLayout = TtsLayout(factory, h, gate - 1..pairAt + 1)
-    factoryLayout.require(h.subList(gate, create).let { selection ->
-        if (compact) selection.shape("""
-            INVOKE_INTERFACE MOVE_RESULT_OBJECT IGET INVOKE_STATIC MOVE_RESULT CONST_4 IF_NEZ MOVE
-            ADD_INT_LIT8 IF_EQZ IF_EQ INVOKE_INTERFACE MOVE_RESULT_OBJECT IGET_OBJECT IF_EQZ
-            IGET_BOOLEAN IF_EQZ IGET_BOOLEAN IF_NEZ IGET_BOOLEAN IF_NEZ
-        """) else selection.shape("""
-        INVOKE_INTERFACE MOVE_RESULT_OBJECT IGET INVOKE_STATIC MOVE_RESULT CONST_4 IF_NEZ MOVE
-        ADD_INT_LIT8 IF_EQZ IF_EQ INVOKE_INTERFACE MOVE_RESULT_OBJECT IGET_OBJECT IF_EQZ
-        IGET_BOOLEAN IF_EQZ IGET_BOOLEAN IF_EQZ GOTO IGET_BOOLEAN IF_NEZ
-        """)
-    }, "provider selection block")
-    val dynamicFactory = h[create].call() ?: throw PatchException("Missing dynamic provider factory")
-    factoryLayout.require(h.subList(create, pairAt + 2).let { creation ->
-        if (compact) creation.shape("""
-            INVOKE_VIRTUAL MOVE_RESULT_OBJECT MOVE_OBJECT IGET_OBJECT INVOKE_VIRTUAL MOVE_RESULT_OBJECT GOTO
-            IGET_OBJECT INVOKE_VIRTUAL MOVE_RESULT_OBJECT GOTO INVOKE_VIRTUAL MOVE_RESULT_OBJECT
-            MOVE_OBJECT MOVE_OBJECT MOVE_OBJECT NEW_INSTANCE INVOKE_DIRECT IPUT_OBJECT
-        """) else creation.shape("""
-        INVOKE_VIRTUAL MOVE_RESULT_OBJECT IGET_OBJECT INVOKE_VIRTUAL MOVE_RESULT_OBJECT GOTO
-        IGET_OBJECT INVOKE_VIRTUAL MOVE_RESULT_OBJECT GOTO INVOKE_VIRTUAL MOVE_RESULT_OBJECT
-        MOVE_OBJECT MOVE_OBJECT MOVE_OBJECT NEW_INSTANCE INVOKE_DIRECT IPUT_OBJECT
-        """)
-    }, "provider creation/merge")
-    val fieldAt = create + if (compact) 3 else 2
-    val cannedAt = fieldAt + 1
-    val cannedOnly = cannedAt + 4
-    val dynamicOnly = cannedOnly + 3
-    val merge = pairAt - 1
-    val dynamicRegs = h[create].regs()
-    val cannedRegs = h[cannedAt].regs()
-    val dynamicResult = if (compact) h[create + 2].regs().first() else h[create + 1].regs().single()
-    factoryLayout.require(dynamicFactory.parameterTypes.size == 2 && dynamicFactory.returnType.startsWith("L") &&
-        dynamicFactory.same(h[dynamicOnly].call()) && dynamicRegs.size == 3 && cannedRegs.size == 5 &&
-        dynamicRegs[0] == cannedRegs[0] && dynamicRegs[2] == cannedRegs[2] &&
-        h[dynamicOnly].regs() == listOf(dynamicRegs[0], cannedRegs[1], dynamicRegs[2]) &&
-        h[fieldAt].regs() == listOf(cannedRegs[4], dynamicRegs[0]) &&
-        h[cannedOnly - 1].field() == h[fieldAt].field() && h[cannedOnly].call()?.same(h[cannedAt].call()) == true &&
-        h[cannedOnly].regs() == cannedRegs && h[cannedAt + 1].regs() == listOf(dynamicRegs[0]) &&
-        h[cannedOnly + 1].regs() == listOf(dynamicRegs[0]) &&
-        h[pairAt].regs() == listOf(h[merge].regs().single(), dynamicResult, dynamicRegs[0]) &&
-        (!compact || h[create + 2].regs() == listOf(dynamicResult, h[create + 1].regs().single())) &&
-        (compact || h[create + 1].regs() == listOf(dynamicResult)) &&
-        h[dynamicOnly + 1].regs() == listOf(dynamicRegs[0]) &&
-        h[dynamicOnly + 2].regs().getOrNull(1) == dynamicResult &&
-        h[dynamicOnly + 3].regs() == listOf(dynamicResult, dynamicRegs[0]) &&
-        h[dynamicOnly + 4].regs() == listOf(dynamicRegs[0], h[dynamicOnly + 2].regs().first()),
-        "provider operands")
-    // The skipped block must not initialize any input needed by the both-provider path.
-    val live = dynamicRegs + cannedRegs.take(4)
-    factoryLayout.require(h.subList(gate, create).filter { it.opcode.setsRegister() }.all {
-        (it as? OneRegisterInstruction)?.registerA !in live &&
-            (!it.opcode.setsWideRegister() || (it as OneRegisterInstruction).registerA + 1 !in live)
-    } && (0 until gate).lastOrNull { h[it].opcode.setsRegister() &&
-        ((h[it] as? OneRegisterInstruction)?.registerA == dynamicRegs[1] ||
-            h[it].opcode.setsWideRegister() && (h[it] as? OneRegisterInstruction)?.registerA == dynamicRegs[1] - 1)
-    }?.let { h[it].opcode == Opcode.CONST_4 && (h[it] as NarrowLiteralInstruction).narrowLiteral == 0 } == true,
-        "provider live registers")
-    factoryLayout.require(factoryLayout.target(gate + 9) == dynamicOnly && factoryLayout.target(gate + 10) == cannedOnly - 1 &&
-        factoryLayout.target(gate + if (compact) 18 else 19) == fieldAt &&
-        factoryLayout.target(create - 1) == fieldAt && factoryLayout.target(cannedAt + 2) == merge &&
-        factoryLayout.target(cannedOnly + 2) == merge &&
-        factoryLayout.target(gate + 6) == gate + 8 &&
-        factoryLayout.target(gate + 14) == gate + (if (compact) 19 else 20) &&
-        factoryLayout.target(gate + 16) == gate + (if (compact) 19 else 20),
-        "provider branch relationships")
+    val block = recognizeTtsProviderBlock(factory, h, gate, create, pairAt)
+    val dynamicFactory = h[create].call()!!
+    val fieldAt = block.fieldAt
+    val cannedAt = block.cannedAt
+    val merge = block.merge
     factoryLayout.require(pairConstructor.name == "<init>" && pairConstructor.parameterTypes.size == 2 &&
         pairConstructor.parameterTypes[0] == pairConstructor.parameterTypes[1], "provider pair")
     factoryLayout.require(classDefBy(dynamicFactory.returnType).interfaces.contains(providerType), "dynamic provider interface")
@@ -372,7 +421,7 @@ internal fun BytecodePatchContext.patchNavigationTts() {
     ready.replaceInstruction(14, BuilderInstruction30t(Opcode.GOTO_32,
         ready.implementation!!.newLabelForIndex(if (mergedReady) 15 else 16)))
     Logger.getLogger("app.morphe.patches.maps.NavigationTtsPatch").info(
-        "Navigation TTS: factory=$factory; dynamic=$dynamicFactory; resolver=$resolver; ready=$ready; " +
+        "Navigation TTS: factory=$factory; forms=${block.forms}; dynamic=$dynamicFactory; resolver=$resolver; ready=$ready; " +
             "prefer readable synthesized audio; preserve canned fallback and voice selection",
     )
 }

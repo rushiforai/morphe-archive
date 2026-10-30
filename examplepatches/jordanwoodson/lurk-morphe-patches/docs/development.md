@@ -154,7 +154,11 @@ val disableAnalyticsPatch = bytecodePatch(
 Fingerprints match on strings, signatures and instruction patterns rather than class names,
 since R8 renames classes between versions. Each app's `shared/` folder has match helpers
 (`Bytecode.kt`, `Hermes.kt`) that require exactly one match and throw a `PatchException`
-otherwise, so a new app version fails to patch instead of patching the wrong method. See the patcher docs in
+otherwise, so a new app version fails to patch instead of patching the wrong method. Give each string in a
+fingerprint's `strings` whole, never a prefix: Morphe Patcher 2.0 compares them exactly whenever a bundle built
+for it is in the same run (Morphe Manager 2.x with Morphe Patches selected), even though Lurk's bundle and
+Morphe Desktop 1.18 still match a part. `tests/verify_fingerprint_strings.py` (in `bin/test-host`) checks them
+against the stored APK of each target version. See the patcher docs in
 `$MORPHE_WORK/refs/morphe-patcher/docs/` (after `bin/refs`) and the
 [fingerprinting guide](https://github.com/MorpheApp/morphe-patcher/blob/main/docs/2_2_1_fingerprinting.md).
 
@@ -225,8 +229,8 @@ The workspace emulator is `emulator-5580`; every Android `bin/test-*` script use
 ```sh
 bin/emu start
 bin/patch twitch --install=emulator-5580
-bash bin/test-twitch "$MORPHE_WORK/out/twitch-31.7.0-patched.apk"       # injected loader and settings
-bash bin/test-twitch-privacy "$MORPHE_WORK/out/twitch-31.7.0-patched.apk"
+bash bin/test-twitch "$MORPHE_WORK/out/twitch-31.8.0-patched.apk"       # injected loader and settings
+bash bin/test-twitch-privacy "$MORPHE_WORK/out/twitch-31.8.0-patched.apk"
 ```
 
 - The emulator (`bin/emu`) is a headless Android 16 x86_64 image under KVM with 8 cores, 6 GB and
@@ -300,6 +304,11 @@ bin/verify-hooks twitch "$MORPHE_WORK/out/twitch-31.8.0-patched.apk"
   from `COMPATIBILITY_<APP>.targets`; `tests/verify_version_literals.py` (part of `bin/test-host`) fails
   on a string literal like `"31.7.0"` anywhere else under `patches/src`. Files that still had such
   literals when the check was added are listed in its `PENDING` set and reported without failing.
+
+Two things `bin/bump` doesn't show: a patch whose code only runs with an option set (Twitch's
+*Playlist proxy* without its proxy URL) applies without matching anything, so patch it once more with
+the option (`-e "<patch>" -O key=value` after `--`); and `bin/hermes-pin` only rewrites `Hermes.kt`,
+while some tests pin the stock bundle's SHA-256 too (`grep` the old hash).
 
 When everything applies: run `bin/verify-hooks`, the probes and the app itself, update the version in
 `shared/Constants.kt`, the app's page under `docs/` and the APKMirror variant the README's Install

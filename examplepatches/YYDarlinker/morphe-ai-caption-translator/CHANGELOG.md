@@ -1,3 +1,10 @@
+## [1.5.9](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.5.8...v1.5.9) (2026-10-30)
+
+- Reduce missing translated text when a passage spans several source subtitle lines.
+- Preserve the timing of adjacent translated passages when they are displayed together.
+- Improve page breaks around sentence continuations and introductory words, and avoid splitting words across overflow pages.
+- Fix clipped opening captions when entering fullscreen.
+
 ## [1.5.8](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.5.7...v1.5.8) (2026-10-26)
 
 - Improve caption state when switching videos or turning AI off, keeping late translations out of the current captions.

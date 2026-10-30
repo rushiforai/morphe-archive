@@ -123,6 +123,14 @@ public final class AccentColor {
     /** Whether each Mig token enum is text or icons ({@link #MIG_TEXT_TOKENS}), as first seen. */
     private static final Map<Class<?>, Boolean> MIG_TEXT_ENUMS = new ConcurrentHashMap<>();
 
+    /**
+     * The tonal ramp of each preset, built when it's first used. Declared ahead of the token lists
+     * below: parsing them starts MaterialYouTheme, whose own start reads the preset's palette through
+     * {@link #onWallpaper} (#272), and that read landed on a map not made yet, a start from this side
+     * being the order on a phone with the theme out of the build (#300).
+     */
+    private static final Map<Preset, TonePalette> PALETTES = new EnumMap<>(Preset.class);
+
     /** The colours only Facebook's dark styles give each token, and the ones its light and dark styles share. */
     private static final Map<String, int[]> DARK_ONLY = MaterialYouTheme.parseTokens(MaterialYouTheme.FDS_DARK);
     private static final Map<String, int[]> BOTH = MaterialYouTheme.parseTokens(MaterialYouTheme.FDS_SHARED);
@@ -144,9 +152,6 @@ public final class AccentColor {
      */
     static final double LIGHT_TEXT_LIGHTNESS = 45;
     static final double DARK_TEXT_LIGHTNESS = 65;
-
-    /** The tonal ramp of each preset, built when it's first used. */
-    private static final Map<Preset, TonePalette> PALETTES = new EnumMap<>(Preset.class);
 
     private AccentColor() {}
 

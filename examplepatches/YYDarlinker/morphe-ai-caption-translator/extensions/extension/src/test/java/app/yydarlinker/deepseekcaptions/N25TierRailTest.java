@@ -9,10 +9,7 @@ import android.graphics.*;
 import android.os.LocaleList;
 import android.view.View;
 import android.widget.*;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import org.json.*;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.robolectric.*;
@@ -232,8 +229,6 @@ public class N25TierRailTest {
 
     @Test public void everyLocaleShowsAllFiveTierLabelsInFullWithoutOverlap() throws Exception {
         Activity activity=Robolectric.buildActivity(Activity.class).setup().visible().get();
-        JSONArray record=new JSONArray();
-        float maxDriftPx=0;
         try{
             for(String[] locale:LOCALES){
                 String tag=locale[0];
@@ -242,51 +237,12 @@ public class N25TierRailTest {
                 for(int width:WIDTHS){
                     for(boolean dark:new boolean[]{false,true}){
                         View root=buildRows(activity,c,width,dark,false,false).size;
-                        float drift=assertFiveTierLabelsFit(c,root,tag+" "+width+"dp "+(dark?"dark":"light"));
-                        maxDriftPx=Math.max(maxDriftPx,drift);
+                        assertFiveTierLabelsFit(c,root,tag+" "+width+"dp "+(dark?"dark":"light"));
                     }
                 }
-                View root=buildRows(activity,c,420,false,false,false).size;
-                DeepSeekSliderPreference.SizeTierSeekBar slider=slider(root);
-                JSONObject entry=new JSONObject()
-                        .put("locale",tag)
-                        .put("labels",new JSONArray(Arrays.asList(
-                                CaptionStrings.get(c,TIER_KEYS[0]),CaptionStrings.get(c,TIER_KEYS[1]),
-                                CaptionStrings.get(c,TIER_KEYS[2]),CaptionStrings.get(c,TIER_KEYS[3]),
-                                CaptionStrings.get(c,TIER_KEYS[4]))))
-                        .put("widest_bold_label_px",slider.largestTierLabelPx())
-                        .put("label_ceiling_px",slider.tierLabelCeilingPx())
-                        .put("rail_inset_px",slider.railInsetPx())
-                        .put("reference_span_px",slider.referenceSpanPx())
-                        .put("rail_start_px",Math.round(slider.railStart()*100f)/100f)
-                        .put("rail_end_px",Math.round(slider.railEnd()*100f)/100f)
-                        .put("rail_length_px",Math.round((slider.railEnd()-slider.railStart())*100f)/100f)
-                        .put("label_center_drift_px",Math.round(maxDriftPx*100f)/100f)
-                        .put("label_widths_px",labelWidths(root))
-                        .put("label_lefts_px",labelLefts(root))
-                        .put("tick_centers_px",tickCenters(slider));
-                record.put(entry);
+
             }
         }finally{activity.finish();}
-        writeArtifact("n25-tier-rail-measurements.json",record.toString(2));
-    }
-
-    private JSONArray labelWidths(View root) throws Exception {
-        JSONArray array=new JSONArray();
-        for(int i=0;i<5;i++)array.put(names(root).getChildAt(i).getWidth());
-        return array;
-    }
-
-    private JSONArray labelLefts(View root) throws Exception {
-        JSONArray array=new JSONArray();
-        for(int i=0;i<5;i++)array.put(names(root).getChildAt(i).getLeft());
-        return array;
-    }
-
-    private JSONArray tickCenters(DeepSeekSliderPreference.SizeTierSeekBar slider) throws Exception {
-        JSONArray array=new JSONArray();
-        for(int tier=0;tier<5;tier++)array.put(Math.round(slider.tickCenterX(tier)*100f)/100f);
-        return array;
     }
 
     /**
@@ -347,7 +303,6 @@ public class N25TierRailTest {
             root.layout(0,0,420,root.getMeasuredHeight());
             DeepSeekSliderPreference.SizeTierSeekBar slider=slider(root);
             boolean rtl=slider.rtl();
-            assertEquals("the row must report a resolved direction",rtl,slider.rtl());
             // Either direction, the extremes are the rail ends and the middle is the middle.
             assertEquals(slider.railStart(),slider.thumbCenterX(rtl?1f:0f),0f);
             assertEquals(slider.railEnd(),slider.thumbCenterX(rtl?0f:1f),0f);
@@ -423,15 +378,4 @@ public class N25TierRailTest {
         }finally{activity.finish();}
     }
 
-    private void writeArtifact(String name,String content){
-        String output=System.getenv("N25_PREVIEW_OUTPUT");
-        if(output==null)return;
-        File file=new File(output,name);
-        file.getParentFile().mkdirs();
-        try(FileOutputStream stream=new FileOutputStream(file)){
-            stream.write(content.getBytes(StandardCharsets.UTF_8));
-        }catch(IOException failed){
-            throw new IllegalStateException(failed);
-        }
-    }
 }

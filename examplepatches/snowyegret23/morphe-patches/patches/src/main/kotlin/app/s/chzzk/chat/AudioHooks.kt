@@ -14,7 +14,12 @@ private const val FORMAT = "Lcom/naver/prismplayer/media3/common/audio/AudioProc
 private const val SINK = "Lcom/naver/prismplayer/media3/exoplayer/audio/DefaultAudioSink;"
 
 internal fun BytecodePatchContext.addAudioHooks() {
-    val expected = setOf(
+    val renamed = packageMetadata.versionName == "3.16.0"
+    val expected = if (renamed) setOf(
+        "a()Z", "b()Z", "c()Ljava/nio/ByteBuffer;", "e($FORMAT)$FORMAT", "f(Ljava/nio/ByteBuffer;)V",
+        "flush()V", "g(Lcom/naver/prismplayer/media3/common/audio/AudioProcessor${'$'}StreamMetadata;)V",
+        "h()V", "reset()V", "i(J)J",
+    ) else setOf(
         "a()Ljava/nio/ByteBuffer;", "b()Z", "d($FORMAT)$FORMAT", "e(Ljava/nio/ByteBuffer;)V",
         "f()Z", "flush()V", "g(Lcom/naver/prismplayer/media3/common/audio/AudioProcessor${'$'}StreamMetadata;)V",
         "h()V", "reset()V", "i(J)J",
@@ -24,6 +29,10 @@ internal fun BytecodePatchContext.addAudioHooks() {
         "CHZZK audio processor contract changed"
     }
     val extension = mutableClassDefBy(AUDIO)
+    extension.methods.single { it.name == "renamedProcessorMethods" }.rewrite("""
+        const/4 v0, ${if (renamed) "0x1" else "0x0"}
+        return v0
+    """)
     for ((name, fieldName) in mapOf("sampleRate" to "a", "channelCount" to "b", "encoding" to "c")) {
         val field = classDefBy(FORMAT).fields.single { it.name == fieldName && it.type == "I" }
         extension.methods.single { it.name == name }.rewrite("""
@@ -49,13 +58,13 @@ internal fun BytecodePatchContext.addAudioHooks() {
     val sink = mutableClassDefBy(SINK)
     val support = "Lcom/naver/prismplayer/media3/exoplayer/audio/AudioOffloadSupport;"
     val unavailable = classDefBy(support).fields.single { it.name == "d" && it.type == support }
-    sink.methods.single { it.name == "q" && it.returnType == support }.rewrite("""
+    sink.methods.single { it.name == (if (renamed) "r" else "q") && it.returnType == support }.rewrite("""
         sget-object v0, ${unavailable.smaliReference}
         return-object v0
     """)
     val format = "Lcom/naver/prismplayer/media3/common/Format;"
     val mime = classDefBy(format).fields.single { it.name == "n" && it.type == "Ljava/lang/String;" }
-    val formatSupport = sink.methods.single { it.name == "y" && it.parameterTypeNames == listOf(format) }
+    val formatSupport = sink.methods.single { it.name == (if (renamed) "z" else "y") && it.parameterTypeNames == listOf(format) }
     check(formatSupport.localRegisterCount >= 2)
     formatSupport.addInstructionsWithLabels(0, """
         const-string v0, "audio/raw"

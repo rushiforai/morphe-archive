@@ -64,4 +64,33 @@ public class CaptionContinuityTest {
     Shadows.shadowOf(Looper.getMainLooper()).idle();layout();
     assertNotEquals(View.VISIBLE,h.anchor().getVisibility());
   }
+  @Test public void statusAndWaitingDoNotHoldAnExpiredCaption() throws Exception {
+    position.set(2000);CaptionOverlay.showStatus("处理中",guard);layout();
+    assertEquals("处理中",h.text().getText().toString());
+    CaptionOverlay.showWaitingEvent("等待",guard,"waiting",1000,3000,2000);layout();
+    assertEquals("等待",h.text().getText().toString());
+    at(3100);assertNotEquals(View.VISIBLE,h.anchor().getVisibility());
+    position.set(2000);show("正常字幕。","next",1000,3000);h.awaitPreparedCaption();layout();
+    assertEquals("正常字幕。",h.text().getText().toString());
+    show(null,"empty",1000,3000);layout();assertNotEquals(View.VISIBLE,h.anchor().getVisibility());
+  }
+
+  @Test public void reentrantWaitingCommandDoesNotAcquireTheOuterEventWindow() throws Exception {
+    position.set(2000);
+    java.util.concurrent.atomic.AtomicBoolean once=new java.util.concurrent.atomic.AtomicBoolean();
+    CaptionOverlay.RenderGuard outer=new CaptionOverlay.RenderGuard(){
+      public boolean isValid(){return true;}
+      public long displayPosition(long supplied){
+        if(once.compareAndSet(false,true))
+          CaptionOverlay.showWaitingEvent("等待",guard,"inner",1000,3000,2000);
+        return position.get();
+      }
+    };
+    CaptionOverlay.showStatus("旧状态",guard);
+    CaptionOverlay.showEvent("外层字幕",outer,"outer",1000,3000,2000,zh);
+    h.awaitPreparedCaption();layout();
+    assertEquals("等待",h.text().getText().toString());
+    at(3100);assertNotEquals("waiting must not acquire a caption hold",View.VISIBLE,h.anchor().getVisibility());
+  }
+
 }

@@ -1,3 +1,9 @@
+## [1.28.0](https://github.com/jagjordi/morphe-patches/compare/v1.27.0...v1.28.0) (2026-10-29)
+
+### ✨ New Features
+
+* **flightradar:** add Bookmarks without account patch ([5c0032b](https://github.com/jagjordi/morphe-patches/commit/5c0032b50a051325900cd81944e356c6b9e1853b))
+
 ## [1.27.0](https://github.com/jagjordi/morphe-patches/compare/v1.26.0...v1.27.0) (2026-10-26)
 
 ### ✨ New Features

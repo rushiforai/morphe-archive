@@ -321,6 +321,39 @@ class SystemCameraTest {
         assertFailsWith<PatchException> { validateControls(mapOf(SYSTEM_CAMERA to findSystemCamera(twice)), setOf(SYSTEM_CAMERA)) }
     }
 
+    // 585's dispatchers cast the event and hand it to one static helper, which builds the extras and makes the launch.
+    @Test fun theStaticCaptureHelperIsMarkedAndTheDispatchersThatCallItAreNot() {
+        val helperId = "LX/5fb;->A01(${ACTIVATE_CAMERA}LX/6NI;LX/6iH;)V"
+        val helperBody = """
+            invoke-static {}, LX/001;->A06()Landroid/os/Bundle;
+            move-result-object v1
+            iget-boolean v0, p0, $ACTIVATE_CAMERA->A00:Z
+            if-eqz v0, :launch
+            const-string v0, "camera_force_back_facing"
+            const/4 v2, 0x1
+            invoke-virtual {v1, v0, v2}, Landroid/os/BaseBundle;->putBoolean(Ljava/lang/String;Z)V
+            :launch
+            invoke-interface {p2, v1, p1}, LX/6iH;->C0w(Landroid/os/Bundle;LX/6NI;)Z
+            return-void
+        """.trimIndent()
+        val helper = fixtureMethod(helperId, helperBody, registers = 7, flags = STATIC)
+        assertEquals("LX/6iH;", helper.captureLauncherType())
+        assertEquals(2, helper.validateSystemCamera())
+        injectAndCheck(helper, helperId)
+        // The dispatcher casts the event but never launches, so it isn't a capture.
+        val dispatcher = fixtureMethod(CHAT_CAPTURE, CHAT_CAPTURE_BODY.replace(
+            "invoke-static {}, LX/001;->A06()Landroid/os/Bundle;\nmove-result-object v1\niget-boolean v0, p4, $ACTIVATE_CAMERA->A00:Z\nif-eqz v0, :launch\n" +
+                "const-string v0, \"camera_force_back_facing\"\nconst/4 v2, 0x1\ninvoke-virtual {v1, v0, v2}, Landroid/os/BaseBundle;->putBoolean(Ljava/lang/String;Z)V\n" +
+                ":launch\ninvoke-interface {v3, v1, p3}, LX/6iH;->C0w(Landroid/os/Bundle;LX/6NI;)Z",
+            "invoke-static {p4, p3, v3}, $helperId"), registers = 9)
+        assertTrue(dispatcher.code().none { (it as? ReferenceInstruction)?.reference?.toString()?.contains("C0w") == true })
+        assertEquals(null, dispatcher.captureLauncherType())
+        // A static method that takes the event anywhere but first is no capture helper.
+        val moved = fixtureMethod("LX/5fb;->A02(LX/6NI;${ACTIVATE_CAMERA}LX/6iH;)V", helperBody.replace("p0, $ACTIVATE_CAMERA", "p1, $ACTIVATE_CAMERA")
+            .replace("{p2, v1, p1}", "{p2, v1, p0}"), registers = 7, flags = STATIC)
+        assertEquals(null, moved.captureLauncherType())
+    }
+
     @Test fun aBranchOntoTheLauncherStartStopsThePatch() {
         val looped = CHAT_CAMERA_START_BODY
             .replace("iget v0, p0, LX/5xZ;->A00:I\n", "iget v0, p0, LX/5xZ;->A00:I\n:again\n")
@@ -379,9 +412,9 @@ class SystemCameraTest {
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
             val launches = findSystemCamera(dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes })
             validateControls(mapOf(SYSTEM_CAMERA to launches), setOf(SYSTEM_CAMERA))
-            // The older listener, the chat screen's camera factory, its launcher's start, the two composer dispatchers 584
-            // inlines the capture handler into, and the photo's two checks.
-            assertEquals(7, launches.size, code)
+            // The older listener, the chat screen's camera factory, its launcher's start, the static capture helper both
+            // composer dispatchers hand the event to, and the photo's two checks.
+            assertEquals(6, launches.size, code)
             for (method in launches) injectAndCheck(MutableMethod(method), "$code ${method.hookId()}")
         }
     }

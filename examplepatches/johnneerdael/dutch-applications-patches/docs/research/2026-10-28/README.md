@@ -15,7 +15,7 @@ This is a research round. SDK presence, verified application wiring and runtime 
 | tvgids.nl-original.apk | nl.tvgids | 7.0.16 / 106691 | 26 | 2 | Flutter | [Static report complete](tvgids-nl.md) |
 | omroep-brabant-original.apks | nl.omroepbrabant.android | 11.1.0 / 7331764 | 32 | 2 | Android native/SDK layers | [Static report complete](omroep-brabant.md) |
 | parool-original.apks | be.persgroep.android.news.mobilepa | 7.53.1 / 23136515 | 32 | 8 | Android native/SDK layers | [Static report complete](parool.md) |
-| marktplaats-original.apks | nl.marktplaats.android | 16.17.0 / 633462 | 32 | 5 | Android native/SDK layers | [Static report complete](marktplaats.md) |
+| marktplaats-original.apks | nl.marktplaats.android | 16.17.0 / 633462 | 32 | 5 | Android native/SDK layers | [Static report](marktplaats.md); [dev implementation](../../marktplaats-audit.md) |
 | voetbal-international-original.apks | nl.vi | 5.13.52 / 910 | 32 | 11 | Android native/SDK layers | [Static report complete](voetbal-international.md) |
 
 ## Evidence requirements

@@ -25,6 +25,7 @@ val blockTrackingPatch = bytecodePatch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Privacy")
     dependsOn(settingsPatch)
 
     execute {

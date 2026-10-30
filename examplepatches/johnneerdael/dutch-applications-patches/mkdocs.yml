@@ -49,6 +49,7 @@ theme:
 
 extra_css:
   - assets/stylesheets/dutch-app-patches.css
+  - assets/stylesheets/catalogue-status.css
 extra_javascript:
   - assets/javascripts/app-catalogue.js
 extra:
@@ -74,6 +75,7 @@ plugins:
             Traffic and navigation: Verkeer en navigatie
             Research only: Alleen onderzocht
             Entertainment: Amusement
+            Other apps: Overige apps
             Learn about tracking: Tracking begrijpen
             Trackers and services: Trackers en diensten
             Behaviour and marketing: Gedrag en marketing
@@ -134,16 +136,29 @@ nav:
           - apps/ad.md
           - apps/nrc.md
           - apps/parool.md
+          - apps/demorgen.md
+          - apps/humo.md
+          - apps/hln.md
+          - apps/nieuwsblad.md
+          - apps/dsnieuws.md
           - apps/rtl-nieuws.md
           - apps/omroep-brabant.md
           - apps/voetbal-international.md
           - apps/nos-teletekst.md
       - Traffic and navigation:
           - apps/mobility/index.md
+          - apps/9292.md
           - apps/flitsmeister.md
       - Entertainment:
           - apps/entertainment/index.md
           - apps/dumpert.md
+          - apps/kijk-android-tv.md
+          - apps/npo-start-android-tv.md
+          - apps/tvgids-nl.md
+          - apps/videoland-android-tv.md
+      - Other apps:
+          - apps/other/index.md
+          - apps/marktplaats.md
       - Research only: apps/research.md
   - Learn about tracking:
       - learn/index.md

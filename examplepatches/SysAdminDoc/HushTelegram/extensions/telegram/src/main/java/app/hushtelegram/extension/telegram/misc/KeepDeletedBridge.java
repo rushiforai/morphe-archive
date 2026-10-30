@@ -258,8 +258,8 @@ final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
         return message == null ? null : flags(message);
     }
 
-    /** The stored message in [column], or null when there's none. */
-    private static Object readMessage(Object cursor, int column) throws Exception {
+    /** The stored message in [column], or null when there's none. Reaction notifications read it too. */
+    static Object readMessage(Object cursor, int column) throws Exception {
         Object buffer = method(cursor.getClass(), "byteBufferValue", int.class).invoke(cursor, column);
         if (buffer == null) return null;
         try {

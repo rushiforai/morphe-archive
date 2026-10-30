@@ -5,6 +5,61 @@ from rtl_vm import Memory, Reference, equal, execute, is_zero, parse
 
 
 class RtlVmTests(unittest.TestCase):
+    def test_long_addition_keeps_native_overflow_and_aliasing(self):
+        program=parse('add-long/2addr v0, v2\nreturn-wide v0')
+        for left,right,wanted in ((42,45,87),(2**63-1,1,-2**63),(-2**63,-1,2**63-1)):
+            self.assertEqual(execute(program,{'v0':left,'v2':right},lambda *_:None),wanted)
+        self.assertEqual(execute(parse('add-long/2addr v0, v0\nreturn-wide v0'),{'v0':7},lambda *_:None),14)
+        with self.assertRaisesRegex(AssertionError,'primitives'):
+            execute(program,{'v0':True,'v2':1},lambda *_:None)
+
+    def test_null_field_access_reaches_native_exception_handler(self):
+        for instruction in ('iget-object v0, p0, Lfixture/State;->value:Ljava/lang/Object;',
+                            'iput-object p1, p0, Lfixture/State;->value:Ljava/lang/Object;'):
+            code=parse(':start\n'+instruction+'\n:end\nreturn-object p1\n:handler\nmove-exception v0\nreturn-object v0\n.catch Ljava/lang/NullPointerException; {:start .. :end} :handler')
+            for null in (0,None):
+                result=execute(code,{'p0':null,'p1':Reference({},'Ljava/lang/Object;')},lambda *_:None)
+                self.assertEqual(result.descriptor,'Ljava/lang/NullPointerException;')
+        with self.assertRaisesRegex(AssertionError,'Unknown RTL field'):
+            Memory().get(Reference({},'Lfixture/State;'),'Lfixture/State;->missing:I')
+
+    def test_int_array_initialization_and_store_preserve_alias_and_check_bounds(self):
+        code=parse('const/4 v0, 0x3\nnew-array v0, v0, [I\naput p0, v0, p1\nreturn-object v0')
+        for value,index in ((-2147483648,0),(2147483647,2)):
+            array=execute(code,{'p0':value,'p1':index},lambda *_:None)
+            self.assertEqual(array.value,[value if i==index else 0 for i in range(3)])
+        array=Reference([1,2],'[I');frame={'p0':array,'p1':0,'p2':9}
+        self.assertIs(execute(parse('aput p2, p0, p1\nreturn-object p0'),frame,lambda *_:None),array)
+        self.assertEqual(array.value,[9,2])
+        for broken,index,value in ((None,0,1),(Reference([1],'[Ljava/lang/Object;'),0,1),(array,-1,1),(array,2,1),(array,0,True),(array,0,2**31)):
+            with self.assertRaisesRegex(AssertionError,'array'):
+                execute(parse('aput p2, p0, p1'),{'p0':broken,'p1':index,'p2':value},lambda *_:None)
+
+    def test_filled_array_range_preserves_all_references_and_result_aliasing(self):
+        values=[Reference({'n':i},'Ljava/lang/Object;') if i%3 else None for i in range(14)]
+        frame={'v'+str(i+4):value for i,value in enumerate(values)}
+        program=parse('filled-new-array/range {v4 .. v17}, [Ljava/lang/Object;\nmove-result-object v4\nreturn-object v4')
+        result=execute(program,frame,lambda *_:None)
+        self.assertEqual(result.descriptor,'[Ljava/lang/Object;')
+        self.assertEqual(len(result.value),14)
+        self.assertTrue(all(actual is expected for actual,expected in zip(result.value,values)))
+        self.assertIs(frame['v4'],result)
+        for registers in ('v9 .. v4','v4 .. p9','v4, v5'):
+            with self.assertRaisesRegex(AssertionError,'range'):
+                execute(parse('filled-new-array/range {'+registers+'}, [Ljava/lang/Object;'),frame,lambda *_:None)
+
+    def test_primitive_int_array_get_handles_aliasing_and_checks_types(self):
+        array=Reference([-2147483648,7],'[I')
+        for dest in ('v0','p0','p1'):
+            code=parse(f'aget {dest}, p0, p1\nreturn {dest}')
+            self.assertEqual(execute(code,{'p0':array,'p1':0},lambda *_:None),-2147483648)
+            self.assertEqual(array.value,[-2147483648,7])
+        code=parse('aget v0, p0, p1\nreturn v0')
+        for invalid,index in [(None,0),(Reference([1],'[Ljava/lang/Object;'),0),
+                              (Reference([1.0],'[I'),0),(array,-1),(array,2)]:
+            with self.assertRaisesRegex(AssertionError,'array'):
+                execute(code,{'p0':invalid,'p1':index},lambda *_:None)
+
     def test_literal_multiplication_keeps_signed_int_width_and_aliasing(self):
         for value,literal,expected in [(15,1000,15000),(7,-2,-14),(1500000000,3,205032704),(-2147483648,-1,-2147483648)]:
             code=parse(f'mul-int/lit16 p0, p0, {literal}\nreturn p0')

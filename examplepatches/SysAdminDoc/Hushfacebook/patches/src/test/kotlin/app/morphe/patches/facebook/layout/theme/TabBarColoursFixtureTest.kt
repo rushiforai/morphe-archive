@@ -149,6 +149,8 @@ class TabBarColoursFixtureTest {
                 }
                 val owners = FixtureDex.classes(bundle, (readers + inflater).map { it.definingClass }.toSet() + colour.definingClass)
                 val context = PatchContexts.of((owners.values + layout).associateBy { it.type }.values)
+                // Material You and Badge and logo colors both ask for the hook (#297); it goes in once.
+                with(context) { selectedTabColourHook()() }
                 with(context) { selectedTabColourHook()() }
                 val patched = context.mutableClassDefBy(inflater.definingClass).methods.single { it.sameAs(inflater) }.code()
                 val where = "$name: ${inflater.definingClass}->${inflater.name}"

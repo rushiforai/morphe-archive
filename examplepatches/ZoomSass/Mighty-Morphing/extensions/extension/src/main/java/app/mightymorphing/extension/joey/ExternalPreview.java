@@ -45,7 +45,7 @@ final class ExternalPreview {
         if (lower.contains("youtube.com") || lower.contains("youtu.be")) {
             if (!MorpheSettings.youtubeInline() || !youtube.find()) return null;
             ExternalPreview preview = new ExternalPreview(true, false);
-            preview.images.add("https://i.ytimg.com/vi/" + youtube.group(1) + "/hqdefault.jpg");
+            preview.images.add("https://i.ytimg.com/vi/" + youtube.group(1) + "/mqdefault.jpg");
             return preview;
         }
         Matcher giphy = GIPHY.matcher(href);

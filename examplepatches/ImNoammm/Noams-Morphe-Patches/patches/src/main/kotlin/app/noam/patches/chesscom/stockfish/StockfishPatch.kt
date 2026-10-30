@@ -17,6 +17,7 @@ import java.net.URL
 import java.security.DigestInputStream
 import java.security.DigestOutputStream
 import java.security.MessageDigest
+import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
 
 private const val ANALYSIS = "${Constants.EXTENSION_PACKAGE}/stockfish/Analysis;"
@@ -45,22 +46,40 @@ private val stockfishResourcePatch = resourcePatch(
     }
 }
 
+/** The pauses before the second and third tries: a connection that fails often works the next time. */
+private val RETRY_PAUSES_MS = longArrayOf(5_000, 15_000)
+private const val CONNECT_TIMEOUT_MS = 45_000
+private const val READ_TIMEOUT_MS = 60_000
+private const val GITHUB = "github.com"
+
+private val logger = Logger.getLogger("Stockfish analysis")
+
+/** Downloads Stockfish, trying again after a failure; the last failure says what to check. */
+private fun download(engine: File) {
+    for (attempt in 0..RETRY_PAUSES_MS.size) {
+        try {
+            downloadOnce(engine)
+            return
+        } catch (e: IOException) {
+            if (attempt == RETRY_PAUSES_MS.size) throw PatchException(failure(e), e)
+            val pause = RETRY_PAUSES_MS[attempt]
+            logger.warning("Stockfish 19 download failed (${describe(e)}), trying again in ${pause / 1000} s")
+            Thread.sleep(pause)
+        }
+    }
+}
+
 /**
  * Streams the official archive (never holding it in memory, as Morphe Manager patches on a phone),
  * unpacks Stockfish from it and checks the archive and the engine against their published SHA-256.
  */
-private fun download(engine: File) {
+private fun downloadOnce(engine: File) {
     val partial = File(engine.path + ".part")
     try {
         val archiveDigest = MessageDigest.getInstance("SHA-256")
         val engineDigest = MessageDigest.getInstance("SHA-256")
-        val connection = URL(STOCKFISH_URL).openConnection() as HttpURLConnection
-        connection.connectTimeout = 30_000
-        connection.readTimeout = 60_000
+        val connection = open()
         val found = try {
-            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                throw IOException("GitHub answered ${connection.responseCode}")
-            }
             DigestInputStream(BufferedInputStream(connection.inputStream, BUFFER), archiveDigest).use { raw ->
                 val gzip = GZIPInputStream(raw, BUFFER)
                 val copied = Tar(gzip).copy(STOCKFISH_MEMBER) { member ->
@@ -87,14 +106,57 @@ private fun download(engine: File) {
             throw PatchException("Stockfish 19 from the archive does not match its SHA-256 ($unpacked instead of $STOCKFISH_SHA256).")
         }
         if (!partial.renameTo(engine)) partial.copyTo(engine, overwrite = true)
-    } catch (e: IOException) {
-        throw PatchException(
-            "Couldn't download Stockfish 19 from $STOCKFISH_URL (${e.message}). Patching needs an internet " +
-                "connection for it: connect and patch again, or leave out Stockfish analysis.",
-            e,
-        )
     } finally {
         partial.delete()
+    }
+}
+
+/**
+ * The archive's connection. GitHub answers with a redirect to its download server; it is followed
+ * here rather than by the connection, so a failure can say which of the two didn't answer.
+ */
+private fun open(): HttpURLConnection {
+    var url = URL(STOCKFISH_URL)
+    repeat(5) {
+        val connection = url.openConnection() as HttpURLConnection
+        connection.instanceFollowRedirects = false
+        connection.connectTimeout = CONNECT_TIMEOUT_MS
+        connection.readTimeout = READ_TIMEOUT_MS
+        val code = try {
+            connection.responseCode
+        } catch (e: IOException) {
+            connection.disconnect()
+            throw Unanswered(url.host, e)
+        }
+        if (code == HttpURLConnection.HTTP_OK) return connection
+        val location = connection.getHeaderField("Location")
+        connection.disconnect()
+        if (code !in 300..399 || location == null) throw IOException("${url.host} answered $code")
+        url = URL(url, location)
+        if (url.protocol != "https") throw IOException("${url.host} sent the download to ${url.protocol}")
+    }
+    throw IOException("Too many redirects from $STOCKFISH_URL")
+}
+
+/** A server that couldn't be reached. */
+private class Unanswered(val host: String, cause: IOException) : IOException(cause.message, cause)
+
+/** "SocketTimeoutException: Connect timed out": an exception's message alone can be just a host. */
+private fun describe(e: IOException): String {
+    val cause = if (e is Unanswered) e.cause ?: e else e
+    return "${cause.javaClass.simpleName}: ${cause.message}"
+}
+
+private fun failure(e: IOException): String {
+    val start = "Couldn't download Stockfish 19 (${RETRY_PAUSES_MS.size + 1} tries)"
+    val end = "then patch again, or leave out Stockfish analysis."
+    return when (val host = (e as? Unanswered)?.host) {
+        null -> "$start: ${describe(e)}. Check the internet connection, $end"
+        GITHUB -> "$start: $GITHUB didn't answer (${describe(e)}). Check the internet connection and that no " +
+            "VPN, DNS or ad blocker or firewall blocks $GITHUB, $end"
+        else -> "$start: $GITHUB answered, but its download server $host didn't (${describe(e)}). Something on " +
+            "this device or network is likely blocking that server, such as a VPN, a DNS or ad blocker or a " +
+            "firewall. Check that $STOCKFISH_URL downloads in the browser, $end"
     }
 }
 

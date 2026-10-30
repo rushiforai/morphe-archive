@@ -344,10 +344,6 @@ final class RawCaptionSource {
         return best;
     }
 
-    static String sourceLanguage(String url) {
-        return query(url, "lang");
-    }
-
     private static String query(String url, String key) {
         try {
             String value = Uri.parse(url).getQueryParameter(key);

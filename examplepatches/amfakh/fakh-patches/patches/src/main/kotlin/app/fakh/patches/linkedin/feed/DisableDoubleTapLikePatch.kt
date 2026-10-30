@@ -29,6 +29,7 @@ val disableDoubleTapLikePatch = bytecodePatch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Feed")
     dependsOn(settingsPatch)
 
     execute {

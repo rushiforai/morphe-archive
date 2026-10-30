@@ -1,93 +1,21 @@
-# 项目状态完整历史索引
+# Historical recovery
 
-M7a收敛前原文按原字节保存在 [PROJECT-STATE-before-M7a-20261025.md](PROJECT-STATE-before-M7a-20261025.md)。SHA-256：`5c3798f43ab7de7c5e4b7cda88fd51614852473234ad7e768dfb6d7826bb968d`。所有原章节及子节完整保留，未改写旧N*、结果、复核或证据。
+Current commands, contracts and progress are in the [documentation index](../README.md). Old reports/cards/prompts are evidence, not active instructions. They are not required to build or maintain current source.
 
-原文中的相对路径保持归档前含义，以原 `docs/PROJECT-STATE.md` 所在目录解释；它们是历史记录，不能当当前操作入口。当前资料没有指向旧PROJECT-STATE片段的活动引用；下列索引提供原章节跳转。
+## Committed history
 
-- [1. 当前身份](PROJECT-STATE-before-M7a-20261025.md#1-当前身份)
-- [2. 本轮诊断](PROJECT-STATE-before-M7a-20261025.md#2-本轮诊断)
-- [3. 根因](PROJECT-STATE-before-M7a-20261025.md#3-根因)
-- [4. 本轮修改（第三轮）](PROJECT-STATE-before-M7a-20261025.md#4-本轮修改第三轮)
-- [4. 本轮修改](PROJECT-STATE-before-M7a-20261025.md#4-本轮修改)
-- [5. 当前验证](PROJECT-STATE-before-M7a-20261025.md#5-当前验证)
-- [6. 当前已知边界](PROJECT-STATE-before-M7a-20261025.md#6-当前已知边界)
-- [7. 2026-10-19 N40 调查与修复](PROJECT-STATE-before-M7a-20261025.md#7-2026-10-19-n40-调查与修复)
-- [8. 2026-10-19 N41 人工字幕 cue 翻页契约修复](PROJECT-STATE-before-M7a-20261025.md#8-2026-10-19-n41-人工字幕-cue-翻页契约修复)
-- [9. 2026-10-19 N42 人工 cue 溢出、全语种分页、显示时长与“翻译中”](PROJECT-STATE-before-M7a-20261025.md#9-2026-10-19-n42-人工-cue-溢出全语种分页显示时长与翻译中)
-- [10. 2026-10-19 N43 机制调查（只读，未改产品代码）](PROJECT-STATE-before-M7a-20261025.md#10-2026-10-19-n43-机制调查只读未改产品代码)
-- [11. 2026-10-19 N44 全语种显示保证：设计 + P1/P2/P3 实施 + P4 脚本适配](PROJECT-STATE-before-M7a-20261025.md#11-2026-10-19-n44-全语种显示保证设计--p1p2p3-实施--p4-脚本适配)
-- [12. 2026-10-20 N43 语言记忆修复（执行）](PROJECT-STATE-before-M7a-20261025.md#12-2026-10-20-n43-语言记忆修复执行)
-- [13. 2026-10-20 N45 官方自动字幕策略与持久语言记忆](PROJECT-STATE-before-M7a-20261025.md#13-2026-10-20-n45-官方自动字幕策略与持久语言记忆)
-- [14. 工作区规则](PROJECT-STATE-before-M7a-20261025.md#14-工作区规则)
-- [15. 2026-10-20 N46 字幕记忆权威冲突根因调查（只读）](PROJECT-STATE-before-M7a-20261025.md#15-2026-10-20-n46-字幕记忆权威冲突根因调查只读)
-- [16. 2026-10-20 N47 Morphe 实际字幕轨道决定链调查（只读）](PROJECT-STATE-before-M7a-20261025.md#16-2026-10-20-n47-morphe-实际字幕轨道决定链调查只读)
-- [17. 2026-10-20 N48 删除语言记忆补丁（执行）](PROJECT-STATE-before-M7a-20261025.md#17-2026-10-20-n48-删除语言记忆补丁执行)
-- [18. 2026-10-20 N49 官方 upstream 可行性评估（只读）](PROJECT-STATE-before-M7a-20261025.md#18-2026-10-20-n49-官方-upstream-可行性评估只读)
-- [19. 2026-10-20 N50 上游实现路径（计划，未执行）](PROJECT-STATE-before-M7a-20261025.md#19-2026-10-20-n50-上游实现路径计划未执行)
-- [20. 2026-10-20 1.5.5-local 基线（执行）](PROJECT-STATE-before-M7a-20261025.md#20-2026-10-20-155-local-基线执行)
-- [21. 2026-10-20 N51 “译文字幕不显示”根因调查（只读 + 探针）](PROJECT-STATE-before-M7a-20261025.md#21-2026-10-20-n51-译文字幕不显示根因调查只读--探针)
-- [22. 2026-10-20 N51 实施：cue 边界不再阻止译文显示（1.5.5 本地构建）](PROJECT-STATE-before-M7a-20261025.md#22-2026-10-20-n51-实施cue-边界不再阻止译文显示155-本地构建)
-- [23. 2026-10-21 1.5.5 正式版发布准备（执行）](PROJECT-STATE-before-M7a-20261025.md#23-2026-10-21-155-正式版发布准备执行)
-- [24. 2026-10-21 N52 显示保证（1.5.5 重建）](PROJECT-STATE-before-M7a-20261025.md#24-2026-10-21-n52-显示保证155-重建)
-- [25. 2026-10-21 N52 发布（执行）](PROJECT-STATE-before-M7a-20261025.md#25-2026-10-21-n52-发布执行)
-- [26. 2026-10-22 N53 字幕图层与字号契约（执行）](PROJECT-STATE-before-M7a-20261025.md#26-2026-10-22-n53-字幕图层与字号契约执行)
-- [27. 2026-10-22 N54 原生字幕样式与分页借用评估（只读）](PROJECT-STATE-before-M7a-20261025.md#27-2026-10-22-n54-原生字幕样式与分页借用评估只读)
-- [28. 2026-10-22 N55 动画双时钟 + 原生安全线（历史）](PROJECT-STATE-before-M7a-20261025.md#28-2026-10-22-n55-动画双时钟--原生安全线历史)
-- [29. 2026-10-22 N56 回归修复：绝对 translation、删除 UI 避让、拖动不重排（历史）](PROJECT-STATE-before-M7a-20261025.md#29-2026-10-22-n56-回归修复绝对-translation删除-ui-避让拖动不重排历史)
-- [30. 2026-10-22 N57 横屏拖动与抖动根因：内容/几何分离（历史）](PROJECT-STATE-before-M7a-20261025.md#30-2026-10-22-n57-横屏拖动与抖动根因内容几何分离历史)
-- [31. 2026-10-22 N58 稳定图层、触摸代理、视口档位（1.5.5 本地构建）](PROJECT-STATE-before-M7a-20261025.md#31-2026-10-22-n58-稳定图层触摸代理视口档位155-本地构建)
-- [32. 2026-10-22 N59 Patcher 2.0.0 / Morphe 1.48.0 适配与语言菜单功能删除（执行）](PROJECT-STATE-before-M7a-20261025.md#32-2026-10-22-n59-patcher-200--morphe-1480-适配与语言菜单功能删除执行)
-- [33. 2026-10-22 N60 Flyout VerifyError 修复（1.6.1 本地构建）](PROJECT-STATE-before-M7a-20261025.md#33-2026-10-22-n60-flyout-verifyerror-修复161-本地构建)
-- [34. 2026-10-22 N61 详情页越界、档位抖动、Shorts 字号/行高与图层（1.5.6 本地构建）](PROJECT-STATE-before-M7a-20261025.md#34-2026-10-22-n61-详情页越界档位抖动shorts-字号行高与图层156-本地构建)
-- [35. 2026-10-23 N62 评论区快速换档、AI 开关即刻生效与短字幕框宽（1.5.6 本地构建）](PROJECT-STATE-before-M7a-20261025.md#35-2026-10-23-n62-评论区快速换档ai-开关即刻生效与短字幕框宽156-本地构建)
-- [36. 2026-10-23 N63 评论区动画同步字号、AI 首视频遮挡原生样式（1.5.6 本地构建）](PROJECT-STATE-before-M7a-20261025.md#36-2026-10-23-n63-评论区动画同步字号ai-首视频遮挡原生样式156-本地构建)
-- [37. 2026-10-23 N64 官方 CC 显示权威与 1.5.6 发布](PROJECT-STATE-before-M7a-20261025.md#37-2026-10-23-n64-官方-cc-显示权威与-156-发布)
-- [38. 2026-10-23 N65 评论区端点预排、字号与布局解耦（1.5.7 本地构建）](PROJECT-STATE-before-M7a-20261025.md#38-2026-10-23-n65-评论区端点预排字号与布局解耦157-本地构建)
-- [39. 2026-10-24 N66–N68 会话恢复/滚动字幕重建与 1.5.7 发布](PROJECT-STATE-before-M7a-20261025.md#39-2026-10-24-n66n68-会话恢复滚动字幕重建与-157-发布)
-- [40. 2026-10-24 N69 CC 显示权威 / AI 模式分离（1.5.8 本地测试）](PROJECT-STATE-before-M7a-20261025.md#40-2026-10-24-n69-cc-显示权威--ai-模式分离158-本地测试)
-- [41. 2026-10-24 N70 Morphe / YouTube 原生语言权威（1.5.8 更新本地测试）](PROJECT-STATE-before-M7a-20261025.md#41-2026-10-24-n70-morphe--youtube-原生语言权威158-更新本地测试)
-- [42. 2026-10-24 N71 CC 稳定确认与启动延迟（基于 N70 的 1.5.8 本地测试）](PROJECT-STATE-before-M7a-20261025.md#42-2026-10-24-n71-cc-稳定确认与启动延迟基于-n70-的-158-本地测试)
-- [43. 2026-10-24 N72 Shorts 默认字幕与退出残留（基于 N71 的 1.5.8 本地测试）](PROJECT-STATE-before-M7a-20261025.md#43-2026-10-24-n72-shorts-默认字幕与退出残留基于-n71-的-158-本地测试)
-- [44. 2026-10-24 N73 连续开关与再进入恢复（基于 N72 的 1.5.8 本地测试）](PROJECT-STATE-before-M7a-20261025.md#44-2026-10-24-n73-连续开关与再进入恢复基于-n72-的-158-本地测试)
-- [45. 2026-10-24 N74 动画主线程减负与 Shorts 评论区视口（基于 N73）](PROJECT-STATE-before-M7a-20261025.md#45-2026-10-24-n74-动画主线程减负与-shorts-评论区视口基于-n73)
-- [46. 2026-10-24 N75 Shorts 历史/同视频重入就绪协调（基于 N74）](PROJECT-STATE-before-M7a-20261025.md#46-2026-10-24-n75-shorts-历史同视频重入就绪协调基于-n74)
-- [47. 2026-10-24 独立补丁长期维护路线（方案）](PROJECT-STATE-before-M7a-20261025.md#47-2026-10-24-独立补丁长期维护路线方案)
-- [48. 2026-10-24 分轮执行与统筹交接（M1a 待执行）](PROJECT-STATE-before-M7a-20261025.md#48-2026-10-24-分轮执行与统筹交接m1a-待执行)
-- [49. 2026-10-24 M1a v1 当前验证与候选身份（已完成待复核）](PROJECT-STATE-before-M7a-20261025.md#49-2026-10-24-m1a-v1-当前验证与候选身份已完成待复核)
-- [50. 2026-10-24 M1a 统筹接受与 M2a 下发](PROJECT-STATE-before-M7a-20261025.md#50-2026-10-24-m1a-统筹接受与-m2a-下发)
-- [51. 2026-10-24 M2a v1 退役回环服务及专用网络增量（已完成待复核）](PROJECT-STATE-before-M7a-20261025.md#51-2026-10-24-m2a-v1-退役回环服务及专用网络增量已完成待复核)
-- [52. 2026-10-24 M2a 统筹接受与 M3a 下发](PROJECT-STATE-before-M7a-20261025.md#52-2026-10-24-m2a-统筹接受与-m3a-下发)
-- [53. 2026-10-24 M3a v1 当前职责与事件顺序回归（已完成待复核）](PROJECT-STATE-before-M7a-20261025.md#53-2026-10-24-m3a-v1-当前职责与事件顺序回归已完成待复核)
-- [54. 2026-10-24 M3a 统筹接受与 M4a 下发](PROJECT-STATE-before-M7a-20261025.md#54-2026-10-24-m3a-统筹接受与-m4a-下发)
-- [55. 2026-10-24 M4a v1 字形帧时间数值状态提取（已完成待复核）](PROJECT-STATE-before-M7a-20261025.md#55-2026-10-24-m4a-v1-字形帧时间数值状态提取已完成待复核)
-- [56. 2026-10-24 M4a 统筹接受与 M5a 下发](PROJECT-STATE-before-M7a-20261025.md#56-2026-10-24-m4a-统筹接受与-m5a-下发)
-- [57. 2026-10-24 M5a v1 网络失败合同与离线故障验证（已完成待复核）](PROJECT-STATE-before-M7a-20261025.md#57-2026-10-24-m5a-v1-网络失败合同与离线故障验证已完成待复核)
-- [58. 2026-10-24 M5a调查统筹接受与M5b修复卡下发](PROJECT-STATE-before-M7a-20261025.md#58-2026-10-24-m5a调查统筹接受与m5b修复卡下发)
-- [59. 2026-10-24 M5b v1 Retry-After与直接等待时间运算修正（已完成待复核）](PROJECT-STATE-before-M7a-20261025.md#59-2026-10-24-m5b-v1-retry-after与直接等待时间运算修正已完成待复核)
-- [60. 2026-10-24 M5b统筹接受与M5c下发](PROJECT-STATE-before-M7a-20261025.md#60-2026-10-24-m5b统筹接受与m5c下发)
-- [61. 2026-10-25 M5c v1 新模型HTTP尝试准入与旧传输读取分离（已完成待复核）](PROJECT-STATE-before-M7a-20261025.md#61-2026-10-25-m5c-v1-新模型http尝试准入与旧传输读取分离已完成待复核)
-- [62. 2026-10-25 M5c统筹接受与M5d下发](PROJECT-STATE-before-M7a-20261025.md#62-2026-10-25-m5c统筹接受与m5d下发)
-- [63. 2026-10-25 M5d v1 子范围遵守等待、过滤与终止资格（完成待复核）](PROJECT-STATE-before-M7a-20261025.md#63-2026-10-25-m5d-v1-子范围遵守等待过滤与终止资格完成待复核)
-- [64. 2026-10-25 M5d统筹复核需补正与M5d-R1下发](PROJECT-STATE-before-M7a-20261025.md#64-2026-10-25-m5d统筹复核需补正与m5d-r1下发)
-- [65. 2026-10-25 M5d-R1补正01：保留同Session/父块已建立的较晚等待（完成待复核）](PROJECT-STATE-before-M7a-20261025.md#65-2026-10-25-m5d-r1补正01保留同session父块已建立的较晚等待完成待复核)
-- [66. 2026-10-25 M5d-R1统筹接受与M5e下发](PROJECT-STATE-before-M7a-20261025.md#66-2026-10-25-m5d-r1统筹接受与m5e下发)
-- [67. 2026-10-25 M5e v1：hole显示时序与测试隔离（完成待复核）](PROJECT-STATE-before-M7a-20261025.md#67-2026-10-25-m5e-v1hole显示时序与测试隔离完成待复核)
-- [68. 2026-10-25 M5e统筹接受与M5f下发](PROJECT-STATE-before-M7a-20261025.md#68-2026-10-25-m5e统筹接受与m5f下发)
-- [69. 2026-10-25 M5f v1：配置与凭据持久化故障合同（完成待复核）](PROJECT-STATE-before-M7a-20261025.md#69-2026-10-25-m5f-v1配置与凭据持久化故障合同完成待复核)
-- [70. 2026-10-25 M5f调查统筹接受、M5g下发及首轮收尾估算](PROJECT-STATE-before-M7a-20261025.md#70-2026-10-25-m5f调查统筹接受m5g下发及首轮收尾估算)
-- [71. 2026-10-25 M5g v1：部分保存后同步实际配置，保留失败草稿（完成待复核）](PROJECT-STATE-before-M7a-20261025.md#71-2026-10-25-m5g-v1部分保存后同步实际配置保留失败草稿完成待复核)
-- [72. 2026-10-25 M5g统筹复核需补正01、M5g-R1下发](PROJECT-STATE-before-M7a-20261025.md#72-2026-10-25-m5g统筹复核需补正01m5g-r1下发)
-- [73. 2026-10-25 M5g-R1 / v1补正01：完成待复核](PROJECT-STATE-before-M7a-20261025.md#73-2026-10-25-m5g-r1--v1补正01完成待复核)
-- [74. 2026-10-25 M5g-R1统筹接受、M5h下发及单卡粒度调整](PROJECT-STATE-before-M7a-20261025.md#74-2026-10-25-m5g-r1统筹接受m5h下发及单卡粒度调整)
-- [75. 2026-10-25 M5h v1：配置错误恢复与编辑保护（完成待复核）](PROJECT-STATE-before-M7a-20261025.md#75-2026-10-25-m5h-v1配置错误恢复与编辑保护完成待复核)
-- [76. 2026-10-25 M5h统筹接受、包体分解与M5i下发](PROJECT-STATE-before-M7a-20261025.md#76-2026-10-25-m5h统筹接受包体分解与m5i下发)
-- [77. 2026-10-25 M5i v1：翻译与源字幕缓存故障、恢复及必要修复（完成待复核）](PROJECT-STATE-before-M7a-20261025.md#77-2026-10-25-m5i-v1翻译与源字幕缓存故障恢复及必要修复完成待复核)
-- [78. 2026-10-25 M5i统筹接受及M6a下发](PROJECT-STATE-before-M7a-20261025.md#78-2026-10-25-m5i统筹接受及m6a下发)
-- [79. 2026-10-25 M6a v1：诊断可解释性与性能机制基线（完成待复核）](PROJECT-STATE-before-M7a-20261025.md#79-2026-10-25-m6a-v1诊断可解释性与性能机制基线完成待复核)
-- [80. 2026-10-25 M6a统筹接受及M7a下发](PROJECT-STATE-before-M7a-20261025.md#80-2026-10-25-m6a统筹接受及m7a下发)
+Use Git commits/tags for earlier source and CHANGELOG/Releases for delivered versions. The repository HEAD at the 2026-10-28 audit entry was db8948c9880fa6951306fe84bd113ffebcc74bc5; the working tree already contained substantial uncommitted maintenance. That commit does not reconstruct the newer working tree.
 
-## 当前与历史目录导航（2026-10-26）
+## Private originals
 
-[当前文档入口](../README.md)及[工作区说明](../WORKSPACE.md)列有效入口。旧N*、旧版RELEASE/CAPTIONS/ROOT-CAUSE、CODEX/HYBRID旧流程、根ACCEPTANCE、scoreboard和recovered保持原字节/原位置，仅通过索引归入历史层。旧文件中的“当前有效”按其日期理解，不覆盖最新AGENTS/PROJECT-STATE或用户授权。
+These local-only paths are deliberately absent from a public clone:
 
-本次清理的`.tmp`散文件及JVM测试临时文件有内容寻址归档/原路径SHA映射，见`.verification/archives/workspace-organization-20261026/`和`validation/runs/20261026-workspace-organization-01/`。它们是本地私有材料，不作为公开附件；已封存任务证据、历史交付和`.tmp/M7a-source-rehearsal-*`目录未移动或删除。
+- `validation/runs/20261028-D6-F123-review-01/entry.zip`, with cleanup-plan.json/archive-manifest.json: retired old N/version documents, scoreboard, generated disassembly and one-off tools from the earlier cleanup.
+- `validation/runs/20261028-repository-governance-01/entry.zip`, with entry.json/retirement-plan.json: exact entry bytes and original paths for the later retired maintenance cards/prompts/reports, superseded guides, unused tools and duplicate fixture. This same archive covers pre-edit versions; no second copy of the retired documentation collection was created.
+- `validation/runs/20261028-repository-governance-01/historical-delivery-moves.json`: original→private path/SHA mapping for the two 1.3.5 MPPs now under `.verification/release-archive/1.3.5/`.
+
+For recovery, verify the archive SHA in its manifest and the selected member SHA; extract only needed paths into `.tmp/`, compare with current files, and do not overwrite later edits. Archived scripts contain old workspace paths and must not be run blindly. A source archive is not a backup of phone configuration/API keys.
+
+Original diagnostic history, published/candidate assets and raw validation records remain private and byte-preserved. Three older temporary duplicate ZIPs whose removal was previously blocked by automatic approval review were not retried in this governance run; they are not official restoration entry points. Shared tools/caches were not repacked or removed.
+
+The later supplemental-retirement.json also indexes the retired ui-preservation.json. Its stored hashes were never checked by the old path counter; real source/protocol/localization/layout/package guards remain. local-entry-retirement.json records the ignored obsolete access probe and old local README. composition-scratch-plan.json records generated Patcher session working directories removed only alongside retained complete APK/structure evidence; failed/unknown sessions remain. Regenerable native extraction and Patcher scratch are not backed up as unique history.

@@ -5,11 +5,15 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.pielm.patches.twitter.gif.Constants.COMPATIBILITY_X
 import app.pielm.patches.twitter.gif.Constants.GIF_HOOKS_DESCRIPTOR
+import app.pielm.patches.twitter.gif.Constants.PATCH_INFO_HOOK_DESCRIPTOR
+import app.pielm.patches.twitter.gif.Constants.PATCH_VERSION
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
@@ -29,6 +33,8 @@ val nativeGifDownloadPatch = bytecodePatch(
     // Run in finalize so all extensions (including Piko's twitter.mpe when applied in parallel)
     // and all execute blocks have already been merged into the DEX pool.
     finalize {
+        val hookedIntegrations = mutableListOf<String>()
+
         // 1. Case B (Part 1): Hook Piko's ExtMediaEntities.getVideos() to expose .gif and .mp4 variants for Twitter GIFs
         PikoExtMediaGetVideosFingerprint.methodOrNull?.apply {
             val returnInstruction = instructions.last { it.opcode == Opcode.RETURN_OBJECT }
@@ -42,6 +48,7 @@ val nativeGifDownloadPatch = bytecodePatch(
                     move-result-object v$returnReg
                 """.trimIndent(),
             )
+            hookedIntegrations.add("Piko GIF/MP4 variants")
         }
 
         // 2. Case B (Part 2): Hook Piko's NativeDownloader.buildDownloadItems() to label GIF items as "GIF" and clean filenames
@@ -57,6 +64,7 @@ val nativeGifDownloadPatch = bytecodePatch(
                     move-result-object v$returnReg
                 """.trimIndent(),
             )
+            hookedIntegrations.add("Piko Download Dialog")
         }
 
         // 3. Case A: Hook Piko's Utils.downloadFile(url, mediaName, ext) to natively convert and save .gif files
@@ -72,6 +80,7 @@ val nativeGifDownloadPatch = bytecodePatch(
                 """.trimIndent(),
                 ExternalLabel("piko_gif_continue", firstInstruction),
             )
+            hookedIntegrations.add("Piko Native Downloader")
         }
 
         // 4. Case C (Part 1): Hook Piko's DownloadPatch.downloadVideoMedia(obj1, para1) for X's 3-dots media sheet
@@ -87,6 +96,7 @@ val nativeGifDownloadPatch = bytecodePatch(
                 """.trimIndent(),
                 ExternalLabel("piko_gif_native_piko_continue", firstInstruction),
             )
+            hookedIntegrations.add("Menu 3-dots (Piko)")
         }
 
         // 5. Case C (Part 2): Hook X's native downloader method directly if Piko's copyMediaLink patch was not applied
@@ -109,6 +119,7 @@ val nativeGifDownloadPatch = bytecodePatch(
                         """.trimIndent(),
                         ExternalLabel("piko_gif_native_x_continue", nextInstruction),
                     )
+                    hookedIntegrations.add("Menu 3-dots (Native X)")
                 }
             }
         }
@@ -141,6 +152,49 @@ val nativeGifDownloadPatch = bytecodePatch(
                         removeInstruction(idx)
                     }
                 }
+            }
+        }
+
+        // 7. Hook Piko's Patch Information screen (SettingsAboutFragment) to display the add-on
+        PikoSettingsAboutOnCreateFingerprint.methodOrNull?.apply {
+            val setPrefCall = instructions.firstOrNull { ins ->
+                ins.opcode == Opcode.INVOKE_VIRTUAL &&
+                    (ins as? ReferenceInstruction)?.reference?.toString()?.contains("setPreferenceScreen") == true
+            }
+            if (setPrefCall != null) {
+                val callIdx = setPrefCall.location.index
+                val fiveReg = getInstruction<FiveRegisterInstruction>(callIdx)
+                val thisReg = fiveReg.registerC
+                val screenReg = fiveReg.registerD
+                addInstructions(
+                    callIdx,
+                    """
+                        invoke-static {v$thisReg, v$screenReg}, $PATCH_INFO_HOOK_DESCRIPTOR->onPatchInfoScreenCreated(Ljava/lang/Object;Landroid/preference/PreferenceScreen;)V
+                    """.trimIndent(),
+                )
+            }
+        }
+
+        // 8. Inject version & hooked integrations into GifPatchHooks placeholder methods
+        val integrationsText = if (hookedIntegrations.isEmpty()) {
+            "Standalone mode"
+        } else {
+            hookedIntegrations.joinToString(" • ")
+        }
+
+        GifHooksPatchVersionFingerprint.methodOrNull?.apply {
+            val constString = instructions.firstOrNull { it.opcode == Opcode.CONST_STRING }
+            if (constString != null) {
+                val reg = getInstruction<OneRegisterInstruction>(constString.location.index).registerA
+                replaceInstruction(constString.location.index, "const-string v$reg, \"$PATCH_VERSION\"")
+            }
+        }
+
+        GifHooksIntegrationsFingerprint.methodOrNull?.apply {
+            val constString = instructions.firstOrNull { it.opcode == Opcode.CONST_STRING }
+            if (constString != null) {
+                val reg = getInstruction<OneRegisterInstruction>(constString.location.index).registerA
+                replaceInstruction(constString.location.index, "const-string v$reg, \"$integrationsText\"")
             }
         }
     }

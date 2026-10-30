@@ -1,5 +1,7 @@
 # TVgids.nl research — 2026-10-28
 
+Current implementation and verification: [TVgids.nl audit](../../tvgids-nl-audit.md). The findings below describe the original input and research chronology.
+
 Status: static research complete; runtime, server and re-signing validation outstanding. No application patch, signing, device action, login or purchase has been performed. **Seen** means inspected artifact evidence, **inferred** means a candidate or deduction, and **unknown** means behavior not established by that evidence.
 
 Private paths below resolve under `/Volumes/MorpheResearch/research-2026-10-28/apps/tvgids-nl/`. Inputs are pinned copies of `/Volumes/EXT-SSD1/phone-apks/tvgids.nl-original.apk`. Raw code, credentials, object pools and generated instrumentation remain private on the SSD.
@@ -141,3 +143,102 @@ The complete native Android bridge method blocks were independently hashed separ
 | `decoded/smali_classes2/jz3.smali:2363` — `g(ILjava/util/Map;)V` | `69765b7f0194655fcfc762d4ca23af3b7d4095f607ab79765f6a31b6ac13209a` |
 | `decoded/smali_classes2/jz3.smali:2017` — `d()Ljava/lang/String;` | `8e3040fbeb559454a9a189d48b56a77c6e3e7f53c0575425e33c53ab3703203b` |
 | `decoded/smali_classes2/jz3.smali:2898` — `j(Ljava/lang/String;)V` | `1c86517f047b2e0f445fe7f67fb75ae7f63c9185db1dabbee93790b529c5d17a` |
+
+## Implementation follow-up — 29 October 2026
+
+The current original was independently checked at its SSD location; its APK hash
+still matches the artifact above. All three packaged `libapp.so` hashes are now
+pinned for implementation preflight:
+
+| ABI | `libapp.so` SHA-256 | Snapshot features |
+| --- | --- | --- |
+| `arm64-v8a` | `5b9e587b8b5a23d20ae8178fe0eb8918eccf8b016a8ac12fbf518e80003ad402` | arm64, compressed pointers |
+| `x86_64` | `606abe26e33bfcf6febdcbf2854945165eb7697ab2ed6d701b675b60e93060b6` | x64, compressed pointers |
+| `armeabi-v7a` | `3b50a69edb9aad8053c71ea98ee70a5d0f51c14fe431dd1add05b2064dc205ce` | arm, uncompressed pointers |
+
+**Seen:** the existing Blutter frontend is ARM64-specific even when code analysis
+is disabled. Its matching Dart runtime could nevertheless be built for x64. An
+isolated metadata indexer using that runtime and the loader recovered **23,134
+Code-owned function records**, including **1,933 app records**, from the shipped
+x64 snapshot without calling application code. Code ownership/deduplication means
+this count is not a claim that every Function alias was enumerated. The indexer
+records library/class/function, payload/entry addresses and size; selected ranges
+were independently mapped through ELF PT_LOAD segments and hashed. No publisher
+source, object pool, credentials or native library is included in this report.
+
+These are x64 **identity and location anchors**, not implemented edits or proof of
+semantic equivalence with ARM64. Closure wrappers can share a visible name with
+their body and must not be selected by name alone. Actual native instructions,
+callers, return/completion contracts and branch behavior still need checking.
+
+| x64 app method | Payload address / size | Range SHA-256 |
+| --- | --- | --- |
+| `OSB.setConsent` | `0x709544 / 0x138` | `defe30a4cf720b4a49c34a7135f6d978b6299770dcd294e728e057bee397b175` |
+| `OSB.sendEventWithData` | `0x70a750 / 0x3cc` | `e45ee7db84fac066924f5052f87218f1905444148e9f7270ed170b3967558a9e` |
+| `ComscoreService.comscorePageView` | `0x70b630 / 0x1b4` | `fda5ed57d56bfd595c258c5667a003707ca879634b48788709044048d33bda9a` |
+| `OSB.sendPageView` | `0x70bf24 / 0x1ec` | `f3755054306dc2676df2540fac7c0c835ba91d854fb6696112eabb397e6f9fc0` |
+| `::.handleFirebaseBackgroundMessage` | `0x711d30 / 0x30` | `980d9c96de41b081eab333c9c52e9936071394903aa7448f75db09e4d592ca49` |
+| `::.handleFirebaseBackgroundMessage` | `0x711d60 / 0xa28` | `a36969a2d5ff8405fb3f8c649990e08eddfec704b728bdb9c4c01442b074ba56` |
+| `OSB.sendViewableImpression` | `0x739ed0 / 0x1a0` | `430b5c5634944368e8b117ccdd5bde09b1f82c278e028c0b5ac117bf0dd9dc54` |
+| `NLZietAdBar.build` | `0x7476d8 / 0x3b0` | `9c72a629c67f326c830524b878368ec72b037ad81bf8870c1a173b6f4538cf0f` |
+| `OSB.setPageWithData` | `0x775bc8 / 0xfc` | `3c4e30f35f550b67f67c06bfb3fb68fbaedc564fd99b37608de87d2c340a5a6d` |
+| `ComscoreService.start` | `0x790560 / 0xa8` | `c31fb81133f1080650ce07b5f149411ee44658a73dcea53eb0576477233c716c` |
+| `ComscoreService.init` | `0x790820 / 0x120` | `ffe08e41e11964565fd5d441abb1ae7d2d9c1ce3174012e8b331e916724b76f8` |
+| `ComscoreService.getFPID` | `0x790eb0 / 0x180` | `41b06d75cffc2e0244dc05d0786a67c77bedadadb29c12115093c8589afa4948` |
+| `_AdvertisementSlotState.build` | `0x82f5fc / 0x6c` | `37b8b8a51dba7e0c2e3d9b5efa58d07c7dd73abf02dabd9844578bed9a6b789b` |
+| `AdsProvider.fetch` | `0x82fffc / 0x6e4` | `13033f6bc224bd6cd5858dd0e973ed81734f084e0cbf9b86ac240de43dd043cb` |
+| `::.main` | `0xaab8fc / 0x2d8` | `0cbaa71a3a98c7b92929fd965aca26dc26124c1450f67f329f5604e626f34e5a` |
+| `OSB.config` | `0xab1538 / 0x188` | `ad27c715f9ebfb5c0a3755d0ed8b09eba83ddea81662d1cddf4916a5d948077b` |
+| `::.main` | `0xab2398 / 0x24` | `5335adaf8c470d1f060dc70b1c97d49b7c696eaa1d11f4572fe22f93f2df00fe` |
+
+ARM32 metadata was subsequently recovered as described below; semantic control-flow
+coverage for the new ABI maps remains an implementation gate. Upstream documents
+[ARM32 as unsupported](https://github.com/worawit/blutter/issues/31) and
+[x86/x64 frontend limitations](https://github.com/worawit/blutter/issues/49).
+The local x64 metadata extraction above is a separate, bounded workaround.
+Native-only advertising changes would leave Dart placement/fallback behavior and
+the independent background tracker, so they are not a complete TVgids patch.
+No TVgids control, patched APK or dev release has been produced by this follow-up.
+
+### Native ARM32 metadata reconstruction
+
+**Seen:** a native 32-bit metadata reader built against the matching Dart3.12.1
+runtime recovered **23,176 Code-owned function records**, including **1,939 app
+records**. The reader used the existing Android toolchain, a compiler-atomic
+compatibility layer and a separately built, checksum-verified ICU75.1 dependency.
+The normal ICU/Unicode configuration was retained. A host64/simARM loader attempt
+had failed and was not used as evidence.
+
+The small atomic-operation self-test passed on native ARM32 before the snapshot
+reader ran. The reader and copied original library were hash-checked in temporary
+Android scratch storage, the output was retrieved, and the scratch directory was
+removed. **TVgids was neither installed nor launched**; no account, permission or
+publisher API action was performed. This establishes bounded artifact metadata
+reading, not app startup, UI, network absence or patch acceptance.
+
+| ARM32 app method | Payload address / size | Range SHA-256 |
+| --- | --- | --- |
+| `OSB.setConsent` | `0x7df300 / 0x110` | `ece33535ee38aafd3e99da30a0cabf160e92eb95db4bd0b82b7fe44a3eb29f91` |
+| `OSB.sendEventWithData` | `0x7e0394 / 0x30c` | `33989eb66341c8f2b6c2327a70283e9cc5e7cdf6047d6d12a7154ac0a1e2c15a` |
+| `ComscoreService.comscorePageView` | `0x7e1130 / 0x194` | `84a4c158a3baaf789656a8c0c94938aaf8b9118fbe33ab95d644b43089371c45` |
+| `OSB.sendPageView` | `0x7e1a08 / 0x1a0` | `9dc7a5abde2b4e0324b483c925fce79f115207470a68ffa494dc76f74ec59eae` |
+| `::.handleFirebaseBackgroundMessage` | `0x7e7194 / 0x2c` | `6434350e4f4807f0c42e2c6c5e2748f36c85bc9feb806a7affcd23861d1ae21e` |
+| `::.handleFirebaseBackgroundMessage` | `0x7e71c0 / 0x8c4` | `00309bf87e50c9a539b696c2f8bdc3070aaecc0e1c34dbb0934dce97d5acb71c` |
+| `OSB.sendViewableImpression` | `0x80ff50 / 0x154` | `8d169ed0bc9bf9e212492425a646e70e547adee55c0a36b6df0275197b38dbcd` |
+| `NLZietAdBar.build` | `0x81d6a4 / 0x3b4` | `fa94c80aa9ceaf5fcc2e52dc889976e6daa1db312ce9fe22501e528421c45275` |
+| `OSB.setPageWithData` | `0x84ecf8 / 0xdc` | `0ef240980b88b98ee1aab1fe6763816eec0d938eee69033cb33e76f4821f1779` |
+| `ComscoreService.start` | `0x868210 / 0x8c` | `5b61a0dc5833680fdcbd70c58813143feff90c7b7c23b0d2640921da5e3946c8` |
+| `ComscoreService.init` | `0x86848c / 0x114` | `13a537282a1f147a8503da445845b7c89c8a085e75447bc9e8cc6f4fbf2515b5` |
+| `ComscoreService.getFPID` | `0x868a84 / 0x19c` | `19d6ef761c5db656f5eace9448d4496eda4a7b53ee52fba45c8ec59d8a9b3f63` |
+| `_AdvertisementSlotState.build` | `0x904088 / 0x74` | `a0539e37cc9b5c0ac870830fdc5972d480da633f916b89903e3cd03d1673cd15` |
+| `AdsProvider.fetch` | `0x904a2c / 0x680` | `4a0a1ea67b91c1f966e136cc5fa70b1aca726c755348ae8ac92d8f5edf69fa47` |
+| `::.main` | `0xb8c2b4 / 0x27c` | `03929ba17064c71aa14b7e94abfacbe8516cf05a1ddfb0ddc630fd56e9bc9ec9` |
+| `OSB.config` | `0xb91dbc / 0x174` | `c4244f4f5e6de94a2b68035545f37e424cea7babb88817ae5502329e6857b20c` |
+| `::.main` | `0xb92a94 / 0x20` | `bf230aa89429bac084676f97456b435d12da1eb425ff3a2ed4af13a7b3e8d262` |
+
+These seventeen ARM32 ranges were mapped through the original ELF load segments
+and hashed independently of the reader. Counts can differ between architectures
+and do not enumerate every aliased Function. All three packaged architectures now
+have a function-location mapping route; instruction-level policy/completion
+validation and patch implementation remain outstanding. No TVgids dev release is
+claimed by this research follow-up.

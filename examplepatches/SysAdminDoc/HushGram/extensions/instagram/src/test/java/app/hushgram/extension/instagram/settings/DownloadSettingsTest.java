@@ -341,7 +341,6 @@ public class DownloadSettingsTest {
 
             int convert = indexOfKey(rows, Settings.DOWNLOAD_CONVERT.key);
             assertEquals("the convert switch isn't right under the compatible one", compatible + 1, convert);
-            assertEquals(indexOfKey(rows, Settings.DOWNLOAD_QUALITY.key) - 1, convert);
             Preference convertRow = rows.get(convert);
             assertTrue(convertRow instanceof SwitchPreference);
             assertFalse(((SwitchPreference) convertRow).isChecked());
@@ -349,6 +348,17 @@ public class DownloadSettingsTest {
             assertEquals("Saves videos other apps can open, at full size. A video Instagram only has as VP9 or AV1 "
                     + "is converted to H.264 on your phone instead of saved smaller. Slower, and videos over "
                     + "3 minutes stay smaller.", String.valueOf(convertRow.getSummary()));
+
+            int noAv1 = indexOfKey(rows, Settings.DOWNLOAD_NO_AV1.key);
+            assertEquals("the AV1 switch isn't right under the convert one (#379)", convert + 1, noAv1);
+            assertEquals(indexOfKey(rows, Settings.DOWNLOAD_QUALITY.key) - 1, noAv1);
+            Preference noAv1Row = rows.get(noAv1);
+            assertTrue(noAv1Row instanceof SwitchPreference);
+            assertFalse(((SwitchPreference) noAv1Row).isChecked());
+            assertEquals("Never save AV1 video", String.valueOf(noAv1Row.getTitle()));
+            assertEquals("For phones that play AV1 badly. A video Instagram has at full size only as AV1 is saved "
+                    + "as VP9 when it has one, or at its largest H.264 size. Convert to keep the full size "
+                    + "then converts only VP9.", String.valueOf(noAv1Row.getSummary()));
         }
 
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_ADS);
@@ -358,6 +368,8 @@ public class DownloadSettingsTest {
                     -1, indexOfKey(rows, Settings.DOWNLOAD_COMPATIBLE.key));
             assertEquals("a convert row with no download in the build",
                     -1, indexOfKey(rows, Settings.DOWNLOAD_CONVERT.key));
+            assertEquals("an AV1 row with no download in the build",
+                    -1, indexOfKey(rows, Settings.DOWNLOAD_NO_AV1.key));
         }
     }
 

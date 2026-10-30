@@ -6,13 +6,11 @@ concurrency:
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 
 jobs:
   release:
     name: Release
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     permissions:
       contents: write
       packages: write

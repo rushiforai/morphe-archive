@@ -59,6 +59,7 @@ val moreMenuPatch = bytecodePatch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Feature")
     // The More screen's items are read and hidden as they pass through the SDUI filter.
     dependsOn(sduiComponentFilterPatch)
 

@@ -87,7 +87,7 @@ public class DisplayReplayTest {
       }
       RebuildProtocol.Plan plan=plans.get(index);
       List<RebuildDisplayGroups.Unit> units=RebuildDisplayGroups.partition(index,plan.events,c.source,CONTEXT,
-          DisplayReplayTest::fits,e->RebuildReview.blocked(plan,e));
+          DisplayReplayTest::fits,null);
       RebuildDisplayGroups.Unit unit=cursor.select(index,plan.events,units,t);
       if(unit==null||unit.blocked||unit.text.isEmpty())continue;
       if(pages.isEmpty()||pages.get(pages.size()-1).unit!=unit)pages.add(new Page(unit,t));

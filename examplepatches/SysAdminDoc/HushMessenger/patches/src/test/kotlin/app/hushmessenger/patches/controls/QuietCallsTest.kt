@@ -23,14 +23,15 @@ import kotlin.test.assertTrue
 
 private const val DECIDER = "LX/Qcr;"
 internal const val SYNTHETIC_RING_DECISION = "$DECIDER->run()V"
-internal const val SYNTHETIC_CALL_POSTER = "$RTC_NOTIFICATION_SERVICE->A00(Landroid/app/Notification;Landroid/content/Context;I)V"
+internal const val SYNTHETIC_CALL_POSTER = "$RTC_NOTIFICATION_SERVICE->A00(Landroid/app/Notification;Landroid/content/Context;${RTC_NOTIFICATION_SERVICE}I)V"
 private const val ON_START = "$RTC_NOTIFICATION_SERVICE->onStartCommand(Landroid/content/Intent;II)I"
 private const val START_FOREGROUND = "$RTC_NOTIFICATION_SERVICE->startForeground(ILandroid/app/Notification;)V"
-private const val TEXT = "Ljava/lang/String;->valueOf(Z)Ljava/lang/String;"
+private const val ENTRY = "LX/A4J;->A12(Ljava/lang/Object;Z)LX/0Bi;"
+private val STATIC = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
 
 /**
- * The decision as Messenger 584 writes it, cut down to two of its four flags: either one skips the ringtone and the
- * vibration, and the skip block logs both flags as text.
+ * The decision as Messenger 585 writes it, cut down to two of its four flags: either one skips the ringtone and the
+ * vibration, and the skip block logs both flags, each paired with its name.
  */
 private val DECISION_BODY = """
     iget-boolean v1, p0, $DECIDER->A00:Z
@@ -42,27 +43,34 @@ private val DECISION_BODY = """
     return-void
     :skip
     const-string v0, "$RINGTONE_DISABLED"
-    invoke-static {v1}, $TEXT
+    invoke-static {v0, v1}, $ENTRY
     const-string v0, "$NOTIFICATIONS_BLOCKED"
-    invoke-static {v2}, $TEXT
+    invoke-static {v0, v2}, $ENTRY
     return-void
 """.trimIndent()
 
-/** The same with the flag past v15, where Messenger logs it through invoke-static/range as 584 does. */
+/** The same with the flag past v15, logged through invoke-static/range beside its name. */
 private val RANGE_DECISION_BODY = DECISION_BODY
     .replace("iget-boolean v1, p0, $DECIDER->A00:Z", "const/4 v0, 0x0\nmove/from16 v24, v0")
     .replace("iget-boolean v2, p0, $DECIDER->A01:Z", "const/4 v2, 0x0")
     .replace("if-nez v1,", "if-nez v24,")
-    .replace("invoke-static {v1}, $TEXT", "invoke-static/range {v24 .. v24}, $TEXT")
+    .replace("const-string v0, \"$RINGTONE_DISABLED\"\ninvoke-static {v0, v1}, $ENTRY",
+        "const-string v23, \"$RINGTONE_DISABLED\"\ninvoke-static/range {v23 .. v24}, $ENTRY")
 
-/** The poster, with no local register at all: it posts with the call id it was given and moves to the foreground. */
-private const val POSTER_BODY = "invoke-virtual {p0, p3, p1}, $START_FOREGROUND\nreturn-void"
+/** The 32-bit builds' form: the flag past v15 is copied down beside the name and logged from the copy. */
+private val COPY_DECISION_BODY = DECISION_BODY
+    .replace("iget-boolean v1, p0, $DECIDER->A00:Z", "const/4 v0, 0x0\nmove/from16 v24, v0")
+    .replace("if-nez v1,", "if-nez v24,")
+    .replace("invoke-static {v0, v1}, $ENTRY", "move/from16 v3, v24\ninvoke-static {v0, v3}, $ENTRY")
+
+/** The poster, with no local register at all: it posts with the call id it was given through the service it was handed. */
+private const val POSTER_BODY = "invoke-virtual {p2, p3, p0}, $START_FOREGROUND\nreturn-void"
 
 private fun decision(body: String = DECISION_BODY, id: String = SYNTHETIC_RING_DECISION, registers: Int = 4, flags: Int = AccessFlags.PUBLIC.value) =
     fixtureMethod(id, body, registers, flags)
 
-private fun poster(body: String = POSTER_BODY, id: String = SYNTHETIC_CALL_POSTER, flags: Int = AccessFlags.PUBLIC.value) =
-    fixtureMethod(id, body, registers = 4, flags = flags)
+private fun poster(body: String = POSTER_BODY, id: String = SYNTHETIC_CALL_POSTER, flags: Int = STATIC, registers: Int = 4) =
+    fixtureMethod(id, body, registers = registers, flags = flags)
 
 /** onStartCommand starts the foreground too, from an Intent, so it's never the poster. */
 private fun onStart() = fixtureMethod(ON_START, "const/4 v0, 0x0\ninvoke-virtual {p0, p2, v0}, $START_FOREGROUND\nconst/4 v0, 0x2\nreturn v0", registers = 5)
@@ -92,18 +100,22 @@ class QuietCallsTest {
         assertEquals(listOf(SYNTHETIC_RING_DECISION), found(quietCallsFixture(), QUIET_CALL_RING))
         assertEquals(listOf(SYNTHETIC_CALL_POSTER), found(quietCallsFixture(), QUIET_CALL_NOTIFICATION))
         validateControls(mirroredControls(quietCallsFixture()), both)
-        // 584 logs a flag past v15 through the range form.
+        // A flag past v15 is logged through the range form.
         val range = quietCallsFixture(decision(RANGE_DECISION_BODY, registers = 26))
         assertEquals(listOf(SYNTHETIC_RING_DECISION), found(range, QUIET_CALL_RING))
         validateControls(mirroredControls(range), both)
+        // The 32-bit builds log a copy of the flag made right before the entry.
+        val copied = quietCallsFixture(decision(COPY_DECISION_BODY, registers = 26))
+        assertEquals(listOf(SYNTHETIC_RING_DECISION), found(copied, QUIET_CALL_RING))
+        validateControls(mirroredControls(copied), both)
     }
 
     @Test fun eachProfileHooksItsOwnDecisionAndPoster() {
         assertEquals(setOf(SYNTHETIC_RING_DECISION), SYNTHETIC_PROFILE.hooks.getValue(QUIET_CALL_RING))
         assertEquals(setOf(SYNTHETIC_CALL_POSTER), SYNTHETIC_PROFILE.hooks.getValue(QUIET_CALL_NOTIFICATION))
-        assertEquals(setOf("LX/AEu;->run()V"), BASE_PROFILE.hooks.getValue(QUIET_CALL_RING))
-        assertEquals(setOf("$RTC_NOTIFICATION_SERVICE->A00(Landroid/app/Notification;Landroid/content/Context;LX/Aa3;LX/Ahe;LX/AGM;LX/LTI;Ljava/lang/Integer;Ljava/lang/String;IZZZ)V"),
-            BASE_PROFILE.hooks.getValue(QUIET_CALL_NOTIFICATION))
+        assertEquals(setOf("LX/B7G;->run()V"), BASE_PROFILE.hooks.getValue(QUIET_CALL_RING))
+        assertEquals(setOf("$RTC_NOTIFICATION_SERVICE->A00(Landroid/app/Notification;Landroid/content/Context;LX/BSH;LX/BgQ;LX/B90;" +
+            "${RTC_NOTIFICATION_SERVICE}LX/HL1;Ljava/lang/Integer;Ljava/lang/String;IZZZ)V"), BASE_PROFILE.hooks.getValue(QUIET_CALL_NOTIFICATION))
     }
 
     // The switch says the phone stays quiet. A decision that skips the ringtone some other way could ring anyway, and a
@@ -114,12 +126,16 @@ class QuietCallsTest {
         val cases = mapOf(
             "no ringtone_disabled log" to changed("const-string v0, \"$RINGTONE_DISABLED\"\n", ""),
             "no notifications_blocked log" to changed("const-string v0, \"$NOTIFICATIONS_BLOCKED\"\n", ""),
-            "a log that doesn't print a flag" to changed("invoke-static {v1}, $TEXT", "invoke-static {v1}, Ljava/lang/Integer;->toString(I)Ljava/lang/String;"),
+            "a log that doesn't pair a flag" to changed("invoke-static {v0, v1}, $ENTRY", "invoke-static {v0, v1}, LX/A4J;->A13(Ljava/lang/Object;I)LX/0Bi;"),
+            "an entry that doesn't take the name" to changed("invoke-static {v0, v1}, $ENTRY", "invoke-static {v2, v1}, $ENTRY"),
             "no branch on the flag" to changed("if-nez v1, :skip\n", ""),
             "two branches on the flag" to changed("if-nez v1, :skip", "if-nez v1, :skip\nif-nez v1, :skip"),
             "a branch past the log" to quietCallsFixture(decision(DECISION_BODY.replace("if-nez v1, :skip", "if-nez v1, :late")
                 .replace("const-string v0, \"$NOTIFICATIONS_BLOCKED\"", ":late\nconst-string v0, \"$NOTIFICATIONS_BLOCKED\""))),
             "a way into the guard's spot" to changed("if-nez v1, :skip\nif-nez v2, :skip", "if-eqz v2, :blocked\nif-nez v1, :skip\n:blocked\nif-nez v2, :skip"),
+            "a copy the entry doesn't log" to quietCallsFixture(decision(COPY_DECISION_BODY.replace("invoke-static {v0, v3}", "invoke-static {v0, v2}"), registers = 26)),
+            "a copy over the name" to quietCallsFixture(decision(COPY_DECISION_BODY.replace("move/from16 v3, v24\ninvoke-static {v0, v3}",
+                "move/from16 v0, v24\ninvoke-static {v0, v0}").also { check(it != COPY_DECISION_BODY) }, registers = 26)),
             "a static run" to quietCallsFixture(decision(DECISION_BODY.replace("p0", "v3"), flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)),
             "a run with a parameter" to quietCallsFixture(decision(id = "$DECIDER->run(I)V", registers = 5)),
             "a second method that rings" to quietCallsFixture() + secondRinger,
@@ -133,13 +149,14 @@ class QuietCallsTest {
     @Test fun anyOtherPosterLeavesTheControlUnapplied() {
         val cases = mapOf(
             "no foreground start" to quietCallsFixture(posters = listOf(poster("return-void"))),
-            "a static poster" to quietCallsFixture(posters = listOf(poster(POSTER_BODY.replace("p0, p3, p1", "p2, p2, p0"),
-                id = "$RTC_NOTIFICATION_SERVICE->A00(Landroid/app/Notification;Landroid/content/Context;$RTC_NOTIFICATION_SERVICE)V",
-                flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value))),
-            "the context first" to quietCallsFixture(posters = listOf(poster(POSTER_BODY.replace("p0, p3, p1", "p0, p3, p2"),
-                id = "$RTC_NOTIFICATION_SERVICE->A00(Landroid/content/Context;Landroid/app/Notification;I)V"))),
+            "an instance poster" to quietCallsFixture(posters = listOf(poster(POSTER_BODY.replace("p2, p3, p0", "p0, p4, p1"),
+                flags = AccessFlags.PUBLIC.value, registers = 5))),
+            "no service handed in" to quietCallsFixture(posters = listOf(poster("new-instance v0, $RTC_NOTIFICATION_SERVICE\n" +
+                POSTER_BODY.replace("p2, p3, p0", "v0, p2, p0"), id = "$RTC_NOTIFICATION_SERVICE->A00(Landroid/app/Notification;Landroid/content/Context;I)V"))),
+            "the context first" to quietCallsFixture(posters = listOf(poster(POSTER_BODY.replace("p2, p3, p0", "p2, p3, p1"),
+                id = "$RTC_NOTIFICATION_SERVICE->A00(Landroid/content/Context;Landroid/app/Notification;${RTC_NOTIFICATION_SERVICE}I)V"))),
             "a value returned" to quietCallsFixture(posters = listOf(poster(POSTER_BODY.replace("return-void", "return p3"),
-                id = "$RTC_NOTIFICATION_SERVICE->A00(Landroid/app/Notification;Landroid/content/Context;I)I"))),
+                id = "$RTC_NOTIFICATION_SERVICE->A00(Landroid/app/Notification;Landroid/content/Context;${RTC_NOTIFICATION_SERVICE}I)I"))),
             "two posters" to quietCallsFixture(posters = listOf(poster(), poster(id = SYNTHETIC_CALL_POSTER.replace("->A00(", "->A01(")))),
             "another service" to listOf(fixtureClass(DECIDER, listOf(decision())),
                 fixtureClass("Lcom/facebook/rtc/notification/OtherService;", listOf(poster(id = SYNTHETIC_CALL_POSTER.replace(RTC_NOTIFICATION_SERVICE, "Lcom/facebook/rtc/notification/OtherService;"))))),
@@ -181,6 +198,16 @@ class QuietCallsTest {
         assertEquals(code.branchTarget(at - 1), code.branchTarget(at + 2))
     }
 
+    @Test fun theCopyFormGuardsTheFlagNotItsCopy() {
+        val method = decision(COPY_DECISION_BODY, registers = 26)
+        injectControl(QUIET_CALLS, mapOf(QUIET_CALL_RING to listOf(method)))
+        val code = method.code()
+        val at = code.indexOfFirst { (it as? ReferenceInstruction)?.reference?.toString() == "$SETTINGS->quietIncomingCalls()Z" }
+        assertEquals(24, (code[at + 1] as OneRegisterInstruction).registerA)
+        assertEquals(24, (code[at + 2] as OneRegisterInstruction).registerA)
+        assertEquals(code.branchTarget(at - 1), code.branchTarget(at + 2))
+    }
+
     @Test fun thePosterHandsItsNotificationToTheExtensionFirst() {
         val method = poster()
         val before = method.code()
@@ -188,10 +215,10 @@ class QuietCallsTest {
         val code = method.code()
         assertEquals(Opcode.INVOKE_STATIC_RANGE, code[0].opcode)
         assertEquals(QUIET_CALL_NOTIFICATION_CALL, (code[0] as ReferenceInstruction).reference.toString())
-        // p1 and p2, the notification and the context, with no local register needed.
-        assertEquals(listOf(1, 2), (code[0] as RegisterRangeInstruction).let { listOf(it.startRegister, it.registerCount) })
+        // p0 and p1, the notification and the context, with no local register needed.
+        assertEquals(listOf(0, 2), (code[0] as RegisterRangeInstruction).let { listOf(it.startRegister, it.registerCount) })
         assertEquals(Opcode.MOVE_RESULT_OBJECT, code[1].opcode)
-        assertEquals(1, (code[1] as OneRegisterInstruction).registerA)
+        assertEquals(0, (code[1] as OneRegisterInstruction).registerA)
         assertEquals(before, code.drop(2))
     }
 

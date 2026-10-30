@@ -26,7 +26,7 @@ Diagnostic data put back.	Tanılama verileri geri getirildi.
 Diagnostic report copied to the clipboard.	Tanılama raporu panoya kopyalandı.
 Download failed	İndirme başarısız oldu
 Downloading	İndiriliyor
-Empties the activity log that a diagnostic report would include.	Bir tanılama raporuna dahil edilecek etkinlik günlüğünü boşaltır.
+Empties the activity log and any kept crash that a diagnostic report would include.	Bir tanılama raporuna dahil edilecek etkinlik günlüğünü ve kayıtlı çökme kaydını boşaltır.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır, yamaladığında ayarlananlar ise devrede kalır. Ayarların olduğu gibi kalır.
 Export diagnostic report	Tanılama raporunu dışa aktar
 From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Sonraki açılıştan itibaren Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır. Yamaladığında ayarlananlar devrede kalır ve tercihlerin kayıtlı kalır.
@@ -151,6 +151,8 @@ Downloads	İndirmeler
 Save videos other apps can open	Videoları diğer uygulamaların açabileceği biçimde kaydet
 For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	WhatsApp, CapCut ve InShot gibi video düzenleyiciler ya da kaydedilen videoları sessiz oynatan bir galeri veya oynatıcı için. Kaliteyi düşürebilir.
 Convert to keep the full size	Tam boyutu korumak için dönüştür
+For phones that play AV1 badly. A video Instagram has at full size only as AV1 is saved as VP9 when it has one, or at its largest H.264 size. Convert to keep the full size then converts only VP9.	AV1'i kötü oynatan telefonlar için. Instagram'ın tam boyutta yalnızca AV1 olarak sunduğu bir video, varsa VP9 olarak, yoksa en büyük H.264 boyutunda kaydedilir. Tam boyutu korumak için dönüştür o zaman yalnızca VP9'u dönüştürür.
+Never save AV1 video	AV1 videoları asla kaydetme
 Saves videos other apps can open, at full size. A video Instagram only has as VP9 or AV1 is converted to H.264 on your phone instead of saved smaller. Slower, and videos over 3 minutes stay smaller.	Videoları diğer uygulamaların açabileceği biçimde, tam boyutta kaydeder. Instagram'da yalnızca VP9 veya AV1 olarak bulunan bir video, daha küçük kaydedilmek yerine telefonunda H.264'e dönüştürülür. Daha yavaştır ve 3 dakikadan uzun videolar küçük kalır.
 Converting to H.264	H.264'e dönüştürülüyor
 Download quality	İndirme kalitesi
@@ -534,6 +536,8 @@ View live anonymously	Canlı yayınları anonim izle
 Photos and videos sent as view once or replayable stay in the chat so you can open them again. Open the chat again to update ones already loaded.	Tek seferlik veya tekrar oynatılabilir gönderilen fotoğraflar ve videolar sohbette kalır, böylece tekrar açabilirsin. Önceden yüklenenleri güncellemek için sohbeti yeniden aç.
 Swipe through a chat's reels	Bir sohbetin reels videolarında kaydır
 Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Back takes you to the chat.	Bir sohbetten açtığın bir reels videosunda yukarı kaydırınca, önerilen videolardan önce o sohbette paylaşılan diğer videolar gelir. Geri tuşu seni sohbete döndürür.
+Stop after the chat's reels	Sohbetin reels videolarından sonra dur
+Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	Bir sohbetten açtığın reels videoları o sohbette paylaşılan sonuncusunda biter, ardından önerilen video gelmez. Bir sohbetin reels videolarında kaydır açıkken çalışır.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	İndir'in altına Kapağı indir ekler. Bir reel'in oynatılmadan önce gösterdiği hareketsiz görüntüyü en büyük boyutunda kaydeder.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	İndir'in altına Sesi indir ekler. Reel'in sesini bir ses dosyası olarak kaydeder.
 After 20 reels, swiping in Reels stops until Instagram has been in the background for 15 minutes. A reel you open from a message or a post still plays.	20 reel'den sonra Instagram 15 dakika arka planda kalana kadar Reels'te kaydırma durur. Bir mesajdan veya gönderiden açtığın reel yine oynar.
@@ -590,6 +594,8 @@ Hide story rewinds	Hikaye geri sarmalarını gizle
 Nothing in the row of stories at the top of Home loads, your own story included, and highlights on profiles stay empty too. Saves data. A story ring on a profile or in a chat still opens its stories.	Ana Sayfa'nın üstündeki hikaye satırında, kendi hikayen dahil hiçbir şey yüklenmez ve profillerdeki öne çıkanlar da boş kalır. Veri tasarrufu sağlar. Bir profildeki veya sohbetteki hikaye halkası yine hikayelerini açar.
 Expandable categories	Genişletilebilir kategoriler
 Tap a category to show or hide its settings on this page.	Bir kategorinin ayarlarını bu sayfada göstermek veya gizlemek için kategoriye dokunun.
+Descriptions behind an info button	Açıklamalar bilgi düğmesinin arkasında
+Shows each switch by its name alone. Tap the i next to a name to read what it does.	Her anahtarı yalnızca adıyla gösterir. Ne yaptığını okumak için adın yanındaki i'ye dokun.
 Expanded	Genişletildi
 Collapsed	Daraltıldı
 Hide the HushGram row in Instagram's menu	Instagram menüsündeki HushGram satırını gizle
@@ -673,7 +679,7 @@ Details	Ayrıntılar
 Details in a post's menu	Gönderi menüsünde Ayrıntılar
 Media ID %1$s	Medya kimliği %1$s
 Media link	Medya bağlantısı
-Media link copied	Medya bağlantısı kopyalandı
+Media link copied. It stops working after a few days.	Medya bağlantısı kopyalandı. Birkaç gün sonra çalışmaz.
 No direct link for this one	Bunun için doğrudan bağlantı yok
 Posted %1$s	Paylaşıldı: %1$s
 Size %1$d × %2$d	Boyut %1$d × %2$d
@@ -904,14 +910,14 @@ Show all settings as a list	Tüm ayarları liste olarak göster
 Show settings by category	Ayarları kategoriye göre göster
 Tab bar opacity	Sekme çubuğu opaklığı
 Tab bar height	Sekme çubuğu yüksekliği
-Clearest	En saydam
-Clear	Saydam
-Frosted	Buzlu
 Standard	Standart
 Blur strength	Bulanıklık gücü
-# context: a blur strength step of the tab bar
-Light	Hafif
-Strong	Güçlü
+# context: the blur slider's value under its title; dp is Android's screen unit, keep it
+%1$d dp	%1$d dp
+# context: the tab bar opacity slider's value under its title
+%1$d%%	%%%1$d
+# context: a slider's value when it sits at the starting setting, %1$s is the value
+%1$s (standard)	%1$s (standart)
 Compact	Kompakt
 Tall	Yüksek
 Tab bar corners	Sekme çubuğu köşeleri
@@ -1031,6 +1037,8 @@ Rounded corners on Reels	Reels'te yuvarlak köşeler
 Rounded corners on stories	Hikayelerde yuvarlak köşeler
 Seek bar on stories	Hikayelerde arama çubuğu
 Shows a bar near the bottom of a video story. Drag it to jump to any point in the video. Photos don't get one.	Video hikayenin altına yakın bir çubuk gösterir. Videoda istediğin noktaya atlamak için sürükle. Fotoğraflarda görünmez.
+Seek bar on feed videos	Akış videolarında arama çubuğu
+Shows a bar along the bottom of the video playing in a feed. Drag it and let go to jump to that point in the video.	Bir akışta oynayan videonun altında bir çubuk gösterir. Videonun o noktasına atlamak için sürükleyip bırak.
 Thicker story progress bar	Daha kalın hikaye ilerleme çubuğu
 Draws the bar along the top of a story as thick as the choice below. Its segments and timing stay as they were.	Bir hikayenin üstündeki çubuğu aşağıdaki seçim kadar kalın çizer. Bölümleri ve zamanlaması olduğu gibi kalır.
 Thickness	Kalınlık
@@ -1292,3 +1300,5 @@ The row of stories at the top of Home keeps only the accounts the choice below n
 Stories to keep	Tutulacak hikayeler
 Only verified accounts	Yalnızca doğrulanmış hesaplar
 Only accounts that aren't verified	Yalnızca doğrulanmamış hesaplar
+Pinch to zoom	İki parmakla yakınlaştır
+Two fingers zoom into a playing reel, the way a photo zooms. Lift them and it goes back. Restart Instagram to see the change.	Oynayan bir reel'i bir fotoğraf gibi iki parmakla yakınlaştırırsın. Parmaklarını kaldırınca eski haline döner. Değişikliği görmek için Instagram'ı yeniden başlat.

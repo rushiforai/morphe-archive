@@ -25,11 +25,11 @@ on:
       - '.github/workflows/pages.yml'
   workflow_dispatch:
   # Release metadata is written in a [skip ci] commit. Build current main
-  # after Release finishes so the catalogue reflects that new bundle.
+  # after stable or dev Release finishes so both channels stay current.
   workflow_run:
     workflows: [Release]
     types: [completed]
-    branches: [main]
+    branches: [main, dev]
 
 permissions:
   contents: read
@@ -62,7 +62,39 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: python -m unittest discover -s tests -p 'test_docs_catalogue.py'
       - run: node --test tests/test_release_branding.cjs
-      - run: python scripts/generate_docs_catalog.py
+      - name: Generate stable and prerelease catalogue cards
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          mkdir -p build
+          PRERELEASE_TAG=$(gh api "repos/${REPOSITORY}/releases?per_page=100" --jq 'map(select(.prerelease and (.draft | not)))[0].tag_name // empty')
+          if [ -n "$PRERELEASE_TAG" ]; then
+            gh api --method GET "repos/${REPOSITORY}/contents/patches-list.json" -f "ref=${PRERELEASE_TAG}" --jq .content | base64 --decode > build/prerelease-patches-list.json
+            python scripts/generate_docs_catalog.py --prerelease-metadata build/prerelease-patches-list.json
+          else
+            python scripts/generate_docs_catalog.py
+          fi
+      # Pull requests into main are checked by the Docs release gate against
+      # metadata generated from their sources. On main itself the checkout
+      # metadata is the release output, so it is the stable reference.
+      # Elsewhere, compare against the latest published stable release.
+      - name: Require the app-page template and correct pre-release flags
+        if: github.base_ref != 'main'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          TARGET_BRANCH: ${{ github.base_ref || github.ref_name }}
+        run: |
+          if [ "$TARGET_BRANCH" = main ] || [ "${{ github.event_name }}" = workflow_run ]; then
+            python scripts/check_docs_app_pages.py --stable-metadata patches-list.json
+          else
+            STABLE_TAG=$(gh api "repos/${REPOSITORY}/releases/latest" --jq .tag_name)
+            gh api --method GET "repos/${REPOSITORY}/contents/patches-list.json" -f "ref=${STABLE_TAG}" --jq .content | base64 --decode > build/stable-patches-list.json
+            python scripts/check_docs_app_pages.py --stable-metadata build/stable-patches-list.json
+          fi
       - run: python -m mkdocs build --strict
       - run: python scripts/check_docs_site.py
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
@@ -70,7 +102,7 @@ jobs:
           path: build/docs-site
 
   deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_run')
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 10

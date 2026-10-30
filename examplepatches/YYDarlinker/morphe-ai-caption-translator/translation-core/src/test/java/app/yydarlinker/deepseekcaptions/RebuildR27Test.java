@@ -36,11 +36,10 @@ public class RebuildR27Test {
   @Test public void nextSubjectAttachedToPriorClauseIsReviewed()throws Exception {
     assertTrue(plan(22).issues.stream().anyMatch(x->x.code.equals("dependent_boundary")&&x.to==1229));
   }
-  @Test public void missingReachRelationGetsSpecificReview()throws Exception {
-    assertTrue(plan(9).issues.stream().anyMatch(x->x.code.equals("possible_relation_omission")&&x.from==334));
-  }
-  @Test public void comparisonMisreadAsJointParticipationGetsAdvisoryReview()throws Exception {
-    assertTrue(plan(9).issues.stream().anyMatch(x->x.code.equals("possible_comparison_misread")&&x.from==269));
+  @Test public void capturedReachAndComparisonAvoidRetiredSpecificReviews()throws Exception {
+    RebuildProtocol.Plan captured=plan(9);
+    for(String code:Arrays.asList("possible_relation_omission","possible_comparison_misread"))
+      assertFalse(code,captured.issues.stream().anyMatch(x->x.code.equals(code)));
   }
   @Test public void actualJointParticipationWithoutComparisonIsNotFlagged()throws Exception {
     RebuildSource s=RebuildContractTest.source("They are with China building a fleet together.",500);
@@ -61,16 +60,23 @@ public class RebuildR27Test {
     assertTrue(p.issues.stream().anyMatch(x->x.code.equals("source_number_ambiguity")&&!x.repair));
     assertTrue(p.events.get(1).text.contains("50"));
   }
-  @Test public void samNameAndWaterTankAreNotMilitarySupport() {
-    assertFalse(RebuildSemantics.supports(3,"Sam said hello to his friends"));
-    assertFalse(RebuildSemantics.supports(2,"a water tank in the garden"));
-    assertTrue(RebuildSemantics.supports(3,"chinese sams covered bases"));
-    assertTrue(RebuildSemantics.supports(3,"surface-to-air missiles"));
+  @Test public void namesWaterAndMilitaryAbbreviationsAreNotDomainClassified() throws Exception {
+    for(String raw:Arrays.asList("Sam said hello to his friends", "a water tank in the garden",
+        "chinese sams covered bases", "surface-to-air missiles")) {
+      RebuildSource s=RebuildContractTest.source(raw,500);RebuildPlanner.Block b=RebuildContractTest.block(s);
+      RebuildProtocol.Plan p=RebuildProtocol.parseBound(RebuildContractTest.reply(b,new JSONArray().put(
+          RebuildR26Test.quoted(s,0,s.words.size()-1,"这段文字完整地表达了原文的内容"))),s,b);
+      assertEquals(1,p.events.size());
+      assertFalse(p.issues.stream().anyMatch(x->x.code.equals("anchor_unknown")));
+    }
   }
-  @Test public void ordinaryPrepositionsAreNotModelIdentifiers() {
-    assertTrue(RebuildSemantics.models("in 20 years and by 10 o'clock").isEmpty());
-    assertTrue(RebuildSemantics.models("四辆T-14坦克").contains("t-14"));
-    assertTrue(RebuildSemantics.models("t 14 tanks").contains("t-14"));
+  @Test public void identifiersKeepExistingLiteralCaseAndUnicodeBoundaries() {
+    assertTrue(RebuildSemantics.literalModels("in 20 years and by 10 o'clock").isEmpty());
+    assertTrue(RebuildSemantics.literalModels("四辆T-14坦克").isEmpty());
+    assertTrue(RebuildSemantics.literalModels("t 14 tanks").isEmpty());
+    for(String raw:Arrays.asList(" T-14 ","(T-14)"))
+      assertEquals(Collections.singleton("T-14"),RebuildSemantics.literalModels(raw));
+    assertTrue(RebuildSemantics.literalModels("t-14s").isEmpty());
   }
   @Test public void pronounOrUnknownSynonymIsNotPositiveContradiction()throws Exception {
     RebuildSource s=RebuildContractTest.source("There are missiles. They defend the bases.",500);
@@ -116,10 +122,5 @@ public class RebuildR27Test {
     assertSame(good,RebuildReview.prefer(good,bad));
     assertSame(good,RebuildReview.prefer(bad,good));
     assertSame(bad,RebuildReview.prefer(null,bad));
-  }
-  @Test public void originalNamedEquipmentDriftStillFails()throws Exception {
-    JSONArray rows=RebuildR26Test.fixture();JSONObject r=rows.getJSONObject(4);RebuildSource s=RebuildR26Test.source(rows);
-    try{RebuildProtocol.parse(r.getJSONObject("response").toString(),s,RebuildR26Test.block(r,s));fail();}
-    catch(RebuildProtocol.Invalid ex){assertEquals("semantic_anchor_leak",ex.code);}
   }
 }

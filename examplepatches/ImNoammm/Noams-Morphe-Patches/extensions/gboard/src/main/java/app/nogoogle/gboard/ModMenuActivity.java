@@ -158,7 +158,12 @@ public class ModMenuActivity extends Activity {
         toggle("Turn off online-only features", "Emoji Kitchen, Tenor, Assistant voice, proofread…",
                 NoGoogleSettings.DISABLE_ONLINE_FEATURES);
         toggle("Always use incognito mode", "No new words learned and no history kept, in every app "
-                + "(as in private browser tabs)", NoGoogleSettings.ALWAYS_INCOGNITO);
+                + "(as in private browser tabs)", NoGoogleSettings.ALWAYS_INCOGNITO, this::build);
+        if (NoGoogleSettings.bool(NoGoogleSettings.ALWAYS_INCOGNITO)) {
+            toggle("    Keep the clipboard", "Copied text still shows in Gboard's clipboard. Fields that ask for "
+                    + "incognito themselves (private browser tabs) keep it out, as without this switch",
+                    NoGoogleSettings.INCOGNITO_CLIPBOARD);
+        }
 
         buildGif();
 

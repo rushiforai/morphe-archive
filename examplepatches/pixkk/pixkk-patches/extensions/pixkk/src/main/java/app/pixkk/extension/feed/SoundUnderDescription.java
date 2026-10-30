@@ -31,12 +31,14 @@ import app.pixkk.extension.core.Settings;
 public final class SoundUnderDescription {
     private static final String PROMO_TAG_CLASS = "com.ss.android.ugc.aweme.music.model.MusicPromoTagInfo";
     private static final String NOTE = "♫ ";
-    /** 47.5.3's ids: the music row's root ({@code id/o8s}), its title ({@code ppw}) and its note icon ({@code ppa}). */
+    /**
+     * 47.5.3's ids: the music row's root ({@code id/o8s}), its music title ({@code pqy}), its note
+     * icon ({@code ppa}) and the chip the promo tag's text is drawn in ({@code ppw}).
+     */
     private static final int ROW_ID = 0x7f0a4c7d;
-    private static final int TITLE_ID = 0x7f0a5474;
+    private static final int TITLE_ID = 0x7f0a549b;
+    private static final int CHIP_ID = 0x7f0a5474;
     private static final int ICON_ID = 0x7f0a545e;
-    /** {@code raw/icon_music_note_s_alt}, the picture TikTok gives a matched song's note. */
-    private static final int NOTE_ICON = 0x7f01098a;
 
     /** The tags made so far, so a video keeps one for as long as it lives. */
     private static final Map<Object, Object> made = new WeakHashMap<>();
@@ -78,28 +80,26 @@ public final class SoundUnderDescription {
         if (text == null || !text.toString().startsWith(NOTE)) return;
         View row = rowOf(tag);
         if (row == null) return;
+        View chip = row.findViewById(CHIP_ID);
         View title = row.findViewById(TITLE_ID);
         if (!(title instanceof TextView)) return;
         tag.setVisibility(View.GONE);
         // TikTok shows and hides the row's views as the rest of the bind runs, so this goes last.
         title.post(() -> {
             TextView titleView = (TextView) title;
-            View icon = row.findViewById(ICON_ID);
             String sound = text.toString().substring(NOTE.length());
-            // TikTok picks the note's picture in code, and does not always do it: the same picture
-            // is given here. Without it, the note goes into the text instead.
-            boolean noted = icon != null && setNote(icon, titleView);
+            // The tag only opens the row. The chip it is drawn in goes, so that the music title
+            // beside TikTok's own note gets the room, and the sound's name is that title.
+            if (chip != null && chip.getParent() instanceof View) ((View) chip.getParent()).setVisibility(View.GONE);
             // A matched song's own "Contains: ..." title already carries the sound's name (see
             // title) and is left as TikTok wrote it.
             CharSequence drawn = titleView.getText();
             if (drawn == null || !drawn.toString().contains(sound)) {
-                titleView.setText(noted ? sound : text);
+                titleView.setText(sound);
             }
             show(titleView, row);
-            if (icon != null) {
-                if (noted) show(icon, row);
-                else icon.setVisibility(View.GONE);
-            }
+            View icon = row.findViewById(ICON_ID);
+            if (icon != null) show(icon, row);
             SoundNameScroll.start(titleView);
         });
     }
@@ -108,22 +108,6 @@ public final class SoundUnderDescription {
         for (View current = view; current != null && current != row;
              current = current.getParent() instanceof View ? (View) current.getParent() : null) {
             current.setVisibility(View.VISIBLE);
-        }
-    }
-
-    /** The note as a matched song's row has it: its picture, as tall as the text and in its colour. */
-    private static boolean setNote(View icon, TextView title) {
-        try {
-            Class<?> type = icon.getClass();
-            int size = Math.round(title.getTextSize());
-            type.getMethod("setIconRes", int.class).invoke(icon, NOTE_ICON);
-            type.getMethod("setIconWidth", int.class).invoke(icon, size);
-            type.getMethod("setIconHeight", int.class).invoke(icon, size);
-            type.getMethod("setTintColor", int.class).invoke(icon, title.getCurrentTextColor());
-            return true;
-        } catch (Exception ex) {
-            Logger.printException(() -> "Could not give the sound row its note", ex);
-            return false;
         }
     }
 

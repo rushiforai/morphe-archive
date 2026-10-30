@@ -21,6 +21,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import java.util.Collections
+import java.util.WeakHashMap
 
 /*
  * The selected tab's colour in Facebook's tab bar, for Material You (#65). Read from 577, 580 and
@@ -58,9 +60,16 @@ private const val PAINT_SET_COLOR = "Landroid/graphics/Paint;->setColor(I)V"
 /** How far after the colour's move-result the setter may hand it to the Paint. 581 does it three later. */
 private const val PAINT_WINDOW = 4
 
-internal const val TAB_BAR_SELECTED = "$MATERIAL_YOU->tabBarSelected(I)I"
+/**
+ * Where the selected tab's colour goes: the extension's SelectedTab, which hands it to Material You
+ * and to Badge and logo colors' Selected tab color (#297), whichever are in the build.
+ */
+internal const val TAB_BAR_SELECTED = "Lapp/morphe/extension/facebook/theme/SelectedTab;->colour(I)I"
 
-private const val PATCH = "Material You theme"
+private const val PATCH = "Selected tab colour"
+
+/** The patch contexts the hook went into already, so the second patch that wants it adds nothing. */
+private val hookedContexts: MutableSet<BytecodePatchContext> = Collections.newSetFromMap(WeakHashMap())
 
 private fun Instruction.called() = ((this as? ReferenceInstruction)?.reference as? MethodReference)
 
@@ -183,9 +192,12 @@ internal fun selectedTabColourReads(method: Method, colour: MethodReference): Li
  * least one other, the tab icon's tint, are found, and exactly one place that first fills the line's
  * Paint, which is handed the answer too. It only finds them: the step it returns makes
  * the change, so the theme can find this before its other hooks go in and a build without it
- * fails before anything is half done.
+ * fails before anything is half done. Material You and Badge and logo colors both ask for it; once
+ * one has found it, the other's step does nothing, since a second hook would hand the colour over
+ * twice and push the setter's Paint out of the window it's found by.
  */
 internal fun BytecodePatchContext.selectedTabColourHook(): () -> Unit {
+    if (this in hookedContexts) return {}
     val layout = classDefByOrNull(TAB_BAR_CONTAINER)
         ?: throw PatchException("$PATCH: this Facebook build has no $TAB_BAR_CONTAINER")
     val colour = selectedTabColour(layout) { type ->
@@ -215,6 +227,7 @@ internal fun BytecodePatchContext.selectedTabColourHook(): () -> Unit {
     if (sites != 1) {
         throw PatchException("$PATCH: expected one place that colours the line's Paint $paint, found $sites in ${lines.map { it.first }}")
     }
+    hookedContexts += this
     return {
         readers.forEach { (type, method) ->
             mutableClassDefBy(type).findMutableMethodOf(method).recolourSelectedTab(colour)

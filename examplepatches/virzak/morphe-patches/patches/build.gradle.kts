@@ -1,10 +1,10 @@
-group = "app.rutube"
+group = "com.irzak"
 
 patches {
     // Shown verbatim in Morphe Manager's patch source list, so keep it meaningful.
     about {
-        name = "RuTube Patches"
-        description = "Patches for the RuTube Android app"
+        name = "Virzak Patches"
+        description = "Morphe patches for Instagram, Toyota and RuTube"
         source = "https://github.com/virzak/morphe-patches"
         author = "Victor Irzak"
         contact = "https://github.com/virzak"

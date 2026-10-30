@@ -18,7 +18,6 @@ private const val DELIVERY_SETTINGS = "Lapp/template/extension/extension/NezumiS
 private object DeliveryAckFingerprint : Fingerprint(
     returnType = "V",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    parameters = listOf("Ljava/util/List;", "Z", "I", "I", "Lf11/j0;"),
     filters = listOf(
         string("ackMsgList"),
         string("seen"),
@@ -39,7 +38,7 @@ val hideDeliveryReceiptsPatch = bytecodePatch(
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(AppTarget(version = "26.08.01")),
+        targets = listOf(AppTarget(version = "26.08.01"), AppTarget(version = "26.10.02")),
     ))
 
     dependsOn(nativeSignaturePatch)
@@ -48,6 +47,8 @@ val hideDeliveryReceiptsPatch = bytecodePatch(
     execute {
         check(DeliveryAckFingerprint.matchAll(1..1).size == 1)
         val sender = DeliveryAckFingerprint.method
+        check(sender.parameters.map { it.type }.take(4) == listOf("Ljava/util/List;", "Z", "I", "I"))
+        check(sender.parameters.size == 5)
         check(sender.implementation!!.registerCount >= 14)
         val originalStart = sender.implementation!!.instructions.first()
         sender.addInstructionsWithLabels(0, """

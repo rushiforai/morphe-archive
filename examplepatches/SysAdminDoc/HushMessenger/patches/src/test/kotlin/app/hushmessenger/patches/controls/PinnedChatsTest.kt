@@ -21,24 +21,28 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 internal const val SYNTHETIC_PINNED_CHAT_LIMIT = "LX/2na;->A00($FB_USER_SESSION)I"
-private const val CONFIG_READ = "LX/17Q;->A06(Ljava/lang/Object;J)I"
+private const val CONFIG_READ = "LX/17P;->A0A(Ljava/lang/Object;J)I"
 private val STATIC = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
 
-/** The getter as Messenger writes it: the session's config, the limit's id, one read and its answer handed back. */
-private val LIMIT_BODY = """
-    invoke-static {p0}, LX/19a;->A0E(Ljava/lang/Object;)LX/5dD;
+/** A read as Messenger writes it in place: the session's config, the limit's id, one read, its answer compared after. */
+private val READ_BODY = """
+    invoke-static {p0}, LX/2on;->A0F(Ljava/lang/Object;)LX/5bt;
     move-result-object p0
-    const-wide v0, 0x8205b900021070L
+    const-wide v0, 0x8205ad0002101eL
     invoke-static {p0, v0, v1}, $CONFIG_READ
     move-result v0
+    const/4 v1, 0x3
+    if-ge v0, v1, :done
+    const/4 v0, 0x0
+    :done
     return v0
 """.trimIndent()
 
-private fun limit(body: String = LIMIT_BODY, id: String = SYNTHETIC_PINNED_CHAT_LIMIT, flags: Int = STATIC) =
-    fixtureMethod(id, body, registers = 3, flags = flags)
+private fun reader(body: String = READ_BODY, id: String = SYNTHETIC_PINNED_CHAT_LIMIT, flags: Int = STATIC, registers: Int = 3) =
+    fixtureMethod(id, body, registers = registers, flags = flags)
 
-internal fun pinnedChatLimitFixture(method: MutableMethod = limit()): List<MutableClass> =
-    listOf(fixtureClass(method.definingClass, listOf(method)))
+internal fun pinnedChatLimitFixture(vararg methods: MutableMethod = arrayOf(reader())): List<MutableClass> =
+    methods.map { fixtureClass(it.definingClass, listOf(it)) }
 
 private fun Method.code() = implementation!!.instructions.toList()
 
@@ -49,33 +53,35 @@ class PinnedChatsTest {
 
     private fun found(classes: List<MutableClass>) = mirroredControls(classes).getValue(PINNED_CHATS).map { it.hookId() }.toSet()
 
-    @Test fun theLimitsGetterIsFoundByItsConfigId() {
+    @Test fun theLimitsReadIsFoundByItsConfigId() {
         assertEquals(setOf(SYNTHETIC_PINNED_CHAT_LIMIT), found(pinnedChatLimitFixture()))
         validateControls(mirroredControls(pinnedChatLimitFixture()), setOf(PINNED_CHATS))
     }
 
-    @Test fun everyProfileHooksItsOwnGetter() {
-        val getters = mapOf(SYNTHETIC_PROFILE to "LX/2na;", BASE_PROFILE to "LX/2pm;")
-        for ((profile, owner) in getters) {
-            val id = SYNTHETIC_PINNED_CHAT_LIMIT.replace("LX/2na;", owner)
-            assertEquals(setOf(id), profile.hooks.getValue(PINNED_CHATS))
-            activeProfile = profile
-            validateControls(mirroredControls(pinnedChatLimitFixture(limit(id = id))), setOf(PINNED_CHATS))
-        }
+    @Test fun everyReaderIsFoundWhateverItsShape() {
+        val other = "LX/HRN;->A0Q(Ljava/lang/Object;Ljava/lang/Object;I)V"
+        val classes = pinnedChatLimitFixture(reader(), reader(READ_BODY.replace("return v0", "return-void"), id = other, flags = AccessFlags.PUBLIC.value, registers = 6))
+        assertEquals(setOf(SYNTHETIC_PINNED_CHAT_LIMIT, other), found(classes))
     }
 
-    // A getter that only looks like the limit's would raise some other number, so anything off the exact shape is refused.
-    @Test fun anythingButTheOneStraightLineGetterIsLeftAlone() {
+    @Test fun everyBuildReadsTheLimitInItsFourPlaces() {
+        for ((code, profile) in controlProfiles) assertEquals(4, profile.hooks.getValue(PINNED_CHATS).size, "$code")
+    }
+
+    // A read that only looks like the limit's would raise some other number, so anything off the exact shape is refused,
+    // and one odd reader spoils them all rather than leave a check that still uses Messenger's own limit.
+    @Test fun anythingButAStraightReadOfTheLimitIsLeftAlone() {
         val cases = mapOf(
-            "another config id" to pinnedChatLimitFixture(limit(LIMIT_BODY.replace("0x8205b900021070L", "0x8205c10002107cL"))),
-            "an instance method" to pinnedChatLimitFixture(limit(flags = AccessFlags.PUBLIC.value)),
-            "a boolean getter" to pinnedChatLimitFixture(limit(id = SYNTHETIC_PINNED_CHAT_LIMIT.dropLast(1) + "Z")),
-            "no session parameter" to pinnedChatLimitFixture(limit(id = "LX/2na;->A00(Ljava/lang/Object;)I")),
-            "a branch around the read" to pinnedChatLimitFixture(limit(LIMIT_BODY.replace("const-wide v0,", "if-eqz p0, :done\nconst-wide v0,")
-                .replace("return v0", ":done\nreturn v0"))),
-            "an answer that isn't the read's" to pinnedChatLimitFixture(limit(LIMIT_BODY.replace("return v0", "const/4 v0, 0x3\nreturn v0"))),
-            "the id loaded twice" to pinnedChatLimitFixture(limit(LIMIT_BODY.replace("const-wide v0, 0x8205b900021070L", "const-wide v0, 0x8205b900021070L\nconst-wide v0, 0x8205b900021070L"))),
-            "two getters" to pinnedChatLimitFixture() + pinnedChatLimitFixture(limit(id = SYNTHETIC_PINNED_CHAT_LIMIT.replace("LX/2na;", "LX/2nb;"))),
+            "another config id" to pinnedChatLimitFixture(reader(READ_BODY.replace("0x8205ad0002101eL", "0x8205b900021070L"))),
+            "the id loaded twice" to pinnedChatLimitFixture(reader(READ_BODY.replace("const-wide v0, 0x8205ad0002101eL",
+                "const-wide v0, 0x8205ad0002101eL\nconst-wide v0, 0x8205ad0002101eL"))),
+            "something between the id and the read" to pinnedChatLimitFixture(reader(READ_BODY.replace("invoke-static {p0, v0, v1}",
+                "nop\ninvoke-static {p0, v0, v1}"))),
+            "a long read" to pinnedChatLimitFixture(reader(READ_BODY.replace(CONFIG_READ, "LX/17P;->A0G(Ljava/lang/Object;J)J")
+                .replace("move-result v0", "move-result-wide v0\nlong-to-int v0, v0"))),
+            "an answer nobody takes" to pinnedChatLimitFixture(reader(READ_BODY.replace("move-result v0\n", ""))),
+            "one odd reader beside a good one" to pinnedChatLimitFixture(reader(),
+                reader(READ_BODY.replace("move-result v0\n", ""), id = "LX/2nb;->A00($FB_USER_SESSION)I")),
         )
         for ((case, classes) in cases) {
             assertTrue(found(classes).isEmpty(), case)
@@ -83,28 +89,28 @@ class PinnedChatsTest {
         }
     }
 
-    @Test fun theGetterAsksTheSwitchJustBeforeItReturnsAndKeepsEverythingElse() {
-        val method = limit()
+    @Test fun theReadAsksTheSwitchRightAfterItsAnswerAndKeepsEverythingElse() {
+        val method = reader()
         val before = method.code()
+        val taken = before.indexOfFirst { it.opcode == Opcode.MOVE_RESULT }
         injectControl(PINNED_CHATS, mapOf(PINNED_CHATS to listOf(method)))
         val code = method.code()
         assertEquals(before.size + 2, code.size)
-        assertEquals(before.dropLast(1), code.take(before.size - 1))
-        val ask = code[before.size - 1] as RegisterRangeInstruction
+        assertEquals(before.take(taken + 1), code.take(taken + 1))
+        assertEquals(before.drop(taken + 1).map { it.opcode }, code.drop(taken + 3).map { it.opcode })
+        val ask = code[taken + 1] as RegisterRangeInstruction
         assertEquals(Opcode.INVOKE_STATIC_RANGE, ask.opcode)
         assertEquals(PINNED_CHAT_LIMIT_GATE, (ask as ReferenceInstruction).reference.toString())
-        // The read's own answer goes in and the switch's answer comes back in the register the getter returns.
+        // The read's own answer goes in and the switch's answer comes back in the register the method compares.
         assertEquals(listOf(1, 0), listOf(ask.registerCount, ask.startRegister))
-        assertEquals(Opcode.MOVE_RESULT, code[before.size].opcode)
-        assertEquals(0, (code[before.size] as OneRegisterInstruction).registerA)
-        assertEquals(Opcode.RETURN, code.last().opcode)
-        assertEquals(0, (code.last() as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.MOVE_RESULT, code[taken + 2].opcode)
+        assertEquals(0, (code[taken + 2] as OneRegisterInstruction).registerA)
     }
 
     @Test fun anUnusableMethodRefusesTheSwitchBeforeAnyEdit() {
         val cases = mapOf(
-            "another config id" to limit(LIMIT_BODY.replace("0x8205b900021070L", "0x1L")),
-            "a branch" to limit(LIMIT_BODY.replace("const-wide v0,", "if-eqz p0, :done\nconst-wide v0,").replace("return v0", ":done\nreturn v0")),
+            "another config id" to reader(READ_BODY.replace("0x8205ad0002101eL", "0x1L")),
+            "no answer taken" to reader(READ_BODY.replace("move-result v0\n", "")),
             "another method" to fixtureMethod("LX/2na;->A01($FB_USER_SESSION)I", "const/4 v0, 0x3\nreturn v0", registers = 3, flags = STATIC),
         )
         for ((case, bad) in cases) {
@@ -114,7 +120,7 @@ class PinnedChatsTest {
         }
     }
 
-    @Test fun everySupportedBuildHooksItsOneGetter() {
+    @Test fun everySupportedBuildHooksEachRead() {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
         assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
         val apks = Files.list(Path.of(root!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
@@ -126,13 +132,15 @@ class PinnedChatsTest {
             val hooks = findPinnedChatLimit(dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes })
             assertEquals(activeProfile.hooks.getValue(PINNED_CHATS), hooks.map { it.hookId() }.toSet(), code)
             validateControls(mapOf(PINNED_CHATS to hooks), setOf(PINNED_CHATS))
-            val method = MutableMethod(hooks.single())
-            val before = method.code()
-            method.injectPinnedChatLimit()
-            val after = method.code()
-            assertEquals(PINNED_CHAT_LIMIT_GATE, (after[before.size - 1] as ReferenceInstruction).reference.toString(), code)
-            assertEquals(before.dropLast(1).map { it.opcode }, after.take(before.size - 1).map { it.opcode }, code)
-            assertEquals(Opcode.RETURN, after.last().opcode, code)
+            for (hook in hooks) {
+                val method = MutableMethod(hook)
+                val taken = method.pinnedChatLimitRead()!!
+                val before = method.code()
+                method.injectPinnedChatLimit()
+                val after = method.code()
+                assertEquals(PINNED_CHAT_LIMIT_GATE, (after[taken + 1] as ReferenceInstruction).reference.toString(), code)
+                assertEquals(before.drop(taken + 1).map { it.opcode }, after.drop(taken + 3).map { it.opcode }, code)
+            }
         }
     }
 }

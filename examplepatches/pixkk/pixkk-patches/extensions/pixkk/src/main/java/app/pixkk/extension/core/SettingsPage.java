@@ -142,6 +142,9 @@ public final class SettingsPage {
         toggle(feed, "Old-style counts (12.3K)", Settings.OLD_STYLE_COUNTS);
         toggle(feed, "Animated profile covers", Settings.ANIMATED_PROFILE_COVERS);
 
+        LinearLayout share = group(page, "SHARE MENU");
+        number(share, "Favorites button place (0 = off)", Settings.SHARE_FAVORITE_POSITION);
+
         LinearLayout rail = group(page, "RIGHT COLUMN");
         number(rail, "Gap between buttons, dp", Settings.RAIL_SPACING_DP);
         number(rail, "Gap under avatar, dp", Settings.RAIL_AVATAR_GAP_DP);
@@ -155,6 +158,7 @@ public final class SettingsPage {
 
         LinearLayout navigation = group(page, "NAVIGATION");
         toggle(navigation, "Discover tab instead of Friends", Settings.DISCOVER_TAB);
+        toggle(navigation, "Open these settings with a two-finger hold", Settings.SETTINGS_GESTURE);
 
         TextView note = label(activity, "Changes apply after the app is restarted.", 13, TEXT_MUTED, false);
         note.setPadding(0, Dim.dp(24), 0, 0);

@@ -82,22 +82,6 @@ final class RebuildReview {
                                 false));
             if (english
                     && zh
-                    && words >= 12
-                    && han < words
-                    && RebuildSemantics.has(
-                            "\\b(?:could|can) reach (?:the )?[a-z]+(?: [a-z]+){0,2} with\\b",
-                            source)
-                    && !RebuildSemantics.has("达|及|覆盖|覆蓋|射程|触|觸|抵|到|打击|打擊", text))
-                out.add(
-                        new Issue(
-                                e.from,
-                                e.to,
-                                "possible_relation_omission",
-                                "Check the source reach/place relation and its object; translation"
-                                    + " may retain equipment but omit where it can reach.",
-                                true));
-            if (english
-                    && zh
                     && RebuildSemantics.has("(?i)(?:aren't|isn't|not) always", source)
                     && RebuildSemantics.has("通常不|一般不|往往不", text))
                 out.add(
@@ -108,64 +92,6 @@ final class RebuildReview {
                                 "Not always means not in every case, not usually not. Preserve the"
                                     + " quantifier scope.",
                                 true));
-            if (english
-                    && zh
-                    && RebuildSemantics.has("(?i)a product of", source)
-                    && RebuildSemantics.has("乘积|相乘", text)
-                    && !RebuildSemantics.has(
-                            "(?i)multiply|multiplication|equation|mathematical", source))
-                out.add(
-                        new Issue(
-                                e.from,
-                                e.to,
-                                "possible_arithmetic_misread",
-                                "Product of may express dependence rather than multiplication. Read"
-                                    + " the revenue/sales relationship in context.",
-                                true));
-            if (english
-                    && zh
-                    && source.matches("(?is).*\\bwould follow [a-z'-]+ reduced\\b.*")
-                    && RebuildSemantics.has("之后|之後", text))
-                out.add(
-                        new Issue(
-                                e.from,
-                                e.to,
-                                "possible_subject_attachment",
-                                "A new subject followed by reduced may start a new clause after"
-                                    + " would follow. Preserve the actor of the reduction; do not"
-                                    + " attach that actor to the prior relative clause.",
-                                true));
-            if (english
-                    && zh
-                    && text.matches("(?s).*(?:延伸至|延伸到|达到|取决于)[，。；]?$")
-                    && e.to + 1 < s.words.size())
-                out.add(
-                        new Issue(
-                                e.from,
-                                e.to,
-                                "open_complement",
-                                "The target ends with an incomplete relation. Retain its"
-                                    + " source-owned complement, using neighboring context only to"
-                                    + " understand it.",
-                                true));
-            String before = e.from > 0 ? s.text(Math.max(0, e.from - 48), e.from - 1) : "";
-            if (english
-                    && zh
-                    && source.matches("(?is)^(?:(?:than|then) )?they are with\\b.*")
-                    && RebuildSemantics.has(
-                            "\\b(?:more|less)\\b[\\s\\S]{0,260}\\b(?:than|then)\\s*$", before)
-                    && RebuildSemantics.has("一起|共同|一同", text))
-                out.add(
-                        new Issue(
-                                e.from,
-                                e.to,
-                                "possible_comparison_misread",
-                                "Context compares reactions to A versus B; this fragment may not"
-                                    + " mean jointly participating with B. Preserve comparison"
-                                    + " direction and resolve ASR then/than without editing"
-                                    + " source.",
-                                true));
-
             boolean likelyIncomplete = english && incompleteSourceEnd(source);
             boolean connectorFragment =
                     english
@@ -218,31 +144,6 @@ final class RebuildReview {
                                 "Long multi-clause caption; verify readable timing and coherent"
                                     + " source boundaries at the preferred font.",
                                 false));
-            if (english
-                    && zh
-                    && RebuildSemantics.has("\\blicensed or unlicensed\\b", source)
-                    && RebuildSemantics.has("合法.*非法|非法.*合法", text))
-                out.add(
-                        new Issue(
-                                e.from,
-                                e.to,
-                                "possible_authorization_expansion",
-                                "Licensed/unlicensed means authorized/unauthorized, not necessarily"
-                                    + " legal/illegal; check source meaning and repair the wording"
-                                    + " if needed.",
-                                true));
-            if (english
-                    && zh
-                    && RebuildSemantics.has("\\btank fleet\\b", source)
-                    && RebuildSemantics.has("坦克舰队|坦克艦隊", text))
-                out.add(
-                        new Issue(
-                                e.from,
-                                e.to,
-                                "possible_equipment_term",
-                                "Tank fleet means the tanks as a force, not a naval fleet; preserve"
-                                    + " the intended military unit and repair the wording.",
-                                true));
             if (e.to < b.to && RebuildPlanner.protectedCut(s, e.to, context))
                 out.add(
                         new Issue(
@@ -273,7 +174,6 @@ final class RebuildReview {
 
             Matcher adjacent = Pattern.compile("\\b(\\d{1,3}) (\\d{1,2})\\b").matcher(source);
             if (adjacent.find()) {
-                String left = adjacent.group(1), right = adjacent.group(2);
                 out.add(
                         new Issue(
                                 e.from,
@@ -282,53 +182,7 @@ final class RebuildReview {
                                 "Adjacent source numbers; do not silently invent a range or model"
                                     + " identifier.",
                                 false));
-                boolean leftPresent =
-                        RebuildSemantics.has(
-                                "(?<![0-9])" + Pattern.quote(left) + "(?![0-9])", text);
-                boolean rightPresent =
-                        RebuildSemantics.has(
-                                "(?<![0-9])" + Pattern.quote(right) + "(?![0-9])", text);
-                if (context.canApplyEnglishToChinese && (!leftPresent || !rightPresent))
-                    out.add(
-                            new Issue(
-                                    e.from,
-                                    e.to,
-                                    "possible_number_loss",
-                                    "Original ASR has two adjacent numbers; translation omits at"
-                                        + " least one. Keep the uncertainty explicit rather than"
-                                        + " silently selecting one.",
-                                    true));
-                String joined =
-                        "(?s)(?<![0-9])"
-                                + Pattern.quote(left)
-                                + "\\s*(?:至|到|[-—~]|型|型号|号|架|艘|辆|枚)\\s*"
-                                + Pattern.quote(right)
-                                + "(?![0-9])";
-                if (context.canApplyEnglishToChinese && RebuildSemantics.has(joined, text))
-                    out.add(
-                            new Issue(
-                                    e.from,
-                                    e.to,
-                                    "possible_number_range_invention",
-                                    "Adjacent source numbers were joined as a range, model, or unit"
-                                        + " relation that the source does not state. Preserve the"
-                                        + " unresolved ASR locally.",
-                                    true));
             }
-            if (zh)
-                for (int i = 0; i < RebuildSemantics.ANCHORS.length; i++)
-                    if (RebuildSemantics.has(RebuildSemantics.ANCHORS[i][1], text)
-                            && !RebuildSemantics.supports(i, source)
-                            && RebuildSemantics.supports(i, s.text(b.from, b.to)))
-                        out.add(
-                                new Issue(
-                                        e.from,
-                                        e.to,
-                                        "anchor_unknown",
-                                        "Entity ownership is uncertain (possible"
-                                            + " synonym/reference); not a hard rejection or"
-                                            + " automatic repair.",
-                                        false));
             if (out.size() >= 16) break;
         }
         int totalWords = Math.max(1, b.to - b.from + 1);
@@ -424,16 +278,6 @@ final class RebuildReview {
                 plan.holes);
     }
 
-    static RebuildProtocol.Plan prefer(
-            RebuildProtocol.Plan previous,
-            RebuildProtocol.Plan candidate,
-            RebuildSource source,
-            CaptionLanguageContext context) {
-        return context.canApplyEnglishToChinese
-                ? prefer(previous, candidate, source)
-                : prefer(previous, candidate);
-    }
-
     /**
      * The controller's acceptance rule. A complete plan always wins; two partial plans are merged
      * by their disjoint events, so a hole-filling retry adds text without replacing what is
@@ -442,13 +286,11 @@ final class RebuildReview {
     static RebuildProtocol.Plan accept(
             RebuildProtocol.Plan previous,
             RebuildProtocol.Plan candidate,
-            RebuildSource source,
-            RebuildPlanner.Block block,
-            CaptionLanguageContext context) {
+            RebuildPlanner.Block block) {
         if (previous != null && candidate != null && previous.partial && candidate.partial) {
             return mergeInto(previous, candidate, block);
         }
-        return prefer(previous, candidate, source, context);
+        return prefer(previous, candidate);
     }
 
     /**
@@ -502,21 +344,6 @@ final class RebuildReview {
 
     private static String issueKey(Issue issue) {
         return issue.code + ':' + issue.from + ':' + issue.to;
-    }
-
-    /**
-     * An event the display must withhold: a flagged polarity, arithmetic or subject-attachment risk
-     * overlapping it. Paragraph and layout warnings stay advisory; layout is remeasured at
-     * presentation.
-     */
-    static boolean blocked(RebuildProtocol.Plan plan, RebuildProtocol.Event event) {
-        for (Issue issue : plan.issues)
-            if ((issue.code.equals("possible_polarity_change")
-                            || issue.code.equals("possible_arithmetic_misread")
-                            || issue.code.equals("possible_subject_attachment"))
-                    && issue.from <= event.to
-                    && issue.to >= event.from) return true;
-        return false;
     }
 
     private static boolean endsSentence(String text) {
@@ -578,25 +405,6 @@ final class RebuildReview {
         return p != null && semanticScore(p) > 0;
     }
 
-    /** A flagged new subject must stay with its finite verb in every repair candidate. */
-    static boolean splitsFlaggedSubject(
-            RebuildSource source, RebuildProtocol.Plan previous, RebuildProtocol.Plan candidate) {
-        if (source == null || previous == null || candidate == null) return false;
-        for (Issue issue : previous.issues) {
-            if (!issue.code.equals("possible_subject_attachment")) continue;
-            int lo = Math.max(0, issue.from), hi = Math.min(source.words.size() - 1, issue.to);
-            for (int i = lo; i + 3 <= hi; i++) {
-                if (!source.words.get(i).key.equals("would")
-                        || !source.words.get(i + 1).key.equals("follow")
-                        || !source.words.get(i + 3).key.equals("reduced")) continue;
-                int subject = i + 2;
-                for (RebuildProtocol.Event event : candidate.events)
-                    if (event.to == subject) return true;
-            }
-        }
-        return false;
-    }
-
     private static int segmentationPenalty(RebuildProtocol.Plan p) {
         int n = 0;
         for (Issue i : p.issues) {
@@ -620,13 +428,6 @@ final class RebuildReview {
         if (oldSeg != newSeg) return newSeg < oldSeg ? candidate : previous;
         if (score(candidate.issues) == score(previous.issues)) return previous;
         return score(candidate.issues) < score(previous.issues) ? candidate : previous;
-    }
-
-    static RebuildProtocol.Plan prefer(
-            RebuildProtocol.Plan previous, RebuildProtocol.Plan candidate, RebuildSource source) {
-        return splitsFlaggedSubject(source, previous, candidate)
-                ? previous
-                : prefer(previous, candidate);
     }
 
     static boolean structuralRetry(String reason) {

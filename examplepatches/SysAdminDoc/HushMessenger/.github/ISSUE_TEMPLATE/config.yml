@@ -1,0 +1,7 @@
+# Report a problem in the app opens a blank issue with its facts in the body (ProblemReport.java),
+# from every installed version, so blank issues stay on.
+blank_issues_enabled: true
+contact_links:
+  - name: Setup help
+    url: https://github.com/SysAdminDoc/HushMessenger#help
+    about: Install steps, where the settings are, install errors and which Messenger builds work. If your question isn't covered there, open a bug report and ask.

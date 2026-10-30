@@ -1,0 +1,338 @@
+{
+  "arm64-v8a": {
+    "slot": {
+      "address": 7849136,
+      "size": 124,
+      "sha256": "ac66a80457505588b4225f25eb022628a3d2a9f57c5d7a55c3372124c122d411"
+    },
+    "context": {
+      "address": 10936180,
+      "size": 296,
+      "sha256": "fef2a99105d94cf10e796422ec7628302c609de778e611f92d73faaa82e8c133"
+    },
+    "closure": {
+      "address": 10937160,
+      "size": 220,
+      "sha256": "e26e852550621ce54e776604c2b8777749bce8e3201ea5a7e38e4b12c886e4b9"
+    },
+    "consumer": {
+      "address": 7190428,
+      "size": 12,
+      "sha256": "5b4f510262056772690531eb730719c41e498c770029b99cb6fc563feb372921"
+    },
+    "appRunner": {
+      "address": 10980904,
+      "size": 48,
+      "sha256": "7b13003789e257fb84634039774e1be2d87cc571c1670f2b8635ad2d87e535ec"
+    },
+    "runApp": {
+      "address": 10980952,
+      "size": 84,
+      "sha256": "dae7d995320de1c03a209be925d21e066b663a9aaebee148a71b3d4b77c04754"
+    },
+    "emptySet": {
+      "address": 7759880,
+      "size": 196,
+      "sha256": "ec0f61b264b0c7e43807abf3d841ece211c6f52a77e43da21ac6170a35746b6d"
+    },
+    "initAsync": {
+      "address": 4704672,
+      "size": 40,
+      "sha256": "9e9f182fc3abc9a2487118553b305dac3b9c223586e95bf56c1e45c7941ffad0"
+    },
+    "returnAsync": {
+      "address": 4704340,
+      "size": 44,
+      "sha256": "8acc3451b725803f44a9ada7ec2067de248ee913b0a6e761faa9f13e0067f875"
+    },
+    "delayed": {
+      "address": 4687520,
+      "size": 472,
+      "sha256": "6d0ef5dfc95f73e0ac117fe90f03273e29bb893e20d7a37761e4fa59728afd24"
+    },
+    "growable": {
+      "address": 7618200,
+      "size": 816,
+      "sha256": "63f413dea3f0dbb0911eaf5fcfbfc645035970952d0ebde48a20de8d89243ccd"
+    },
+    "sticky": {
+      "address": 7856120,
+      "size": 772,
+      "sha256": "d909340c577c78b8c8ba7d59950eff0cc3a93b740682261b61372a24515d9848"
+    },
+    "failure": {
+      "address": 7837484,
+      "size": 508,
+      "sha256": "799e9ff92a7b4a49763255d84b2cab794c0ef5df02e4216328dc0e60fda59dba"
+    },
+    "nlziet": {
+      "address": 9663080,
+      "size": 908,
+      "sha256": "70732f63d7c3418fd0c1cb507e11ea67533f38b4e2305855b2e33ad0b1cfebb3"
+    },
+    "sliverDelegate": {
+      "address": 6223592,
+      "size": 384,
+      "sha256": "2b7cf2c06aa6d77842489a1ebde500add142f7e3021eb20371ebaaa866375997"
+    },
+    "sliverBuild": {
+      "address": 7853312,
+      "size": 832,
+      "sha256": "6123277476a5398dff5af85959bad9484cf6e9a74dfd5eab430d9ef36bcdbc7f"
+    },
+    "sliverDelegateAlloc": {
+      "address": 7854156,
+      "size": 12,
+      "sha256": "85c50991002c63a82bcf7521a345df5e3cc6c9f82e4b29b9047f844c9113bfd1"
+    },
+    "sliverHeaderAlloc": {
+      "address": 7854144,
+      "size": 12,
+      "sha256": "086e97d0185cbe02993a1f0b6e4ef186f6c08ead99951276b91c08005d8a6eed"
+    },
+    "adsFetch": {
+      "address": 7851668,
+      "size": 1644,
+      "sha256": "d3769e4b9a634172d1f4eaa1caf348f87ea728690ad4b0f6da3058c266723ffd"
+    },
+    "homeItemFactory": {
+      "address": 7193008,
+      "size": 912,
+      "sha256": "4794771b8c01318c7ead81efd75e031f5352eb8bab708eb1414d3990875bc589"
+    },
+    "homeCard": {
+      "address": 7193920,
+      "size": 1796,
+      "sha256": "66ac6e9a14d2beb615aeae4df3a5d1da771a6834d2dc62bddafe9c6f95d54222"
+    },
+    "fractionalBoxAlloc": {
+      "address": 7196012,
+      "size": 12,
+      "sha256": "69d55e905736349fa48284b716c7bb03ae54901d629e1b2ac230fb5605fa04bb"
+    }
+  },
+  "armeabi-v7a": {
+    "slot": {
+      "address": 9453704,
+      "size": 116,
+      "sha256": "a0539e37cc9b5c0ac870830fdc5972d480da633f916b89903e3cd03d1673cd15"
+    },
+    "context": {
+      "address": 12088028,
+      "size": 240,
+      "sha256": "288248c9c388b3c3d2fb7b810380d169a82fd3f022b4119f8d155b89db503825"
+    },
+    "closure": {
+      "address": 12088984,
+      "size": 236,
+      "sha256": "8dbcaab864563e97f72f376537dfe5424e0ff61bdcafce81fd1600aa6b753b96"
+    },
+    "consumer": {
+      "address": 8663672,
+      "size": 12,
+      "sha256": "ef49c62fc0356db44d1d3999ae099b45ff95fd93033c6c6285b4734db687894d"
+    },
+    "appRunner": {
+      "address": 12132248,
+      "size": 36,
+      "sha256": "7f025b41e0d9442514f27504d9bc1fe7e95e11b8f7444a84952925a8585ee74b"
+    },
+    "runApp": {
+      "address": 12132284,
+      "size": 72,
+      "sha256": "7398069f89708b6b48254f711e0335b02c0acebbd6a3add0bd5beb49824a3611"
+    },
+    "emptySet": {
+      "address": 8710964,
+      "size": 208,
+      "sha256": "bc598555172f0ff320d190e00c5377b5db2e22887d4b96a0ebde9a031bb83aeb"
+    },
+    "initAsync": {
+      "address": 5257336,
+      "size": 40,
+      "sha256": "67441e55da58c2a1841ddff174a1f18476ec8501a90ac8238b239090c7fbc9ce"
+    },
+    "returnAsync": {
+      "address": 5256048,
+      "size": 44,
+      "sha256": "4c0df13bd8f6e6cffb84260720ffc9b44463237f50f3dfc58b566a8d2bc879e5"
+    },
+    "delayed": {
+      "address": 5420720,
+      "size": 500,
+      "sha256": "052ba4c88fe155812ca79ace2e1d5199bd15d7026e5ec919d3329e184ebaadf1"
+    },
+    "growable": {
+      "address": 9235268,
+      "size": 840,
+      "sha256": "293f0134b29ac58eb878c4a57d9aa8c5c6a9dd5b56bc4a6e42cc43835acb595e"
+    },
+    "sticky": {
+      "address": 9460812,
+      "size": 840,
+      "sha256": "2c4a9a444b2e9812deccb663f0fc75fc8bfbfb3f1ff99f0cb84d156316feb05b"
+    },
+    "failure": {
+      "address": 9443672,
+      "size": 488,
+      "sha256": "e5020076aacf7b61d797f6b62434ce16d207044b72f51043699d88d4bcdafc24"
+    },
+    "nlziet": {
+      "address": 8509092,
+      "size": 948,
+      "sha256": "fa94c80aa9ceaf5fcc2e52dc889976e6daa1db312ce9fe22501e528421c45275"
+    },
+    "sliverDelegate": {
+      "address": 7307120,
+      "size": 428,
+      "sha256": "488eb472d173722fa914a04d3be134f0948cdb7f597b6743d6a54c90336b7c98"
+    },
+    "sliverBuild": {
+      "address": 9457836,
+      "size": 904,
+      "sha256": "710cbe4e7fdeb7c42500a586ee4382e63c09b93a1d3a816df3e728d0f6002db6"
+    },
+    "sliverDelegateAlloc": {
+      "address": 9458752,
+      "size": 12,
+      "sha256": "2ce577e0fd19707d9e9e505ab118f3efba2ba07981b06bb164f528e2c505e216"
+    },
+    "sliverHeaderAlloc": {
+      "address": 9458740,
+      "size": 12,
+      "sha256": "beb5c1c24e2cdd2474b45b90efb58cb0adeba7fb90ecd17b9bf4005969ec63d7"
+    },
+    "adsFetch": {
+      "address": 9456172,
+      "size": 1664,
+      "sha256": "4a0a1ea67b91c1f966e136cc5fa70b1aca726c755348ae8ac92d8f5edf69fa47"
+    },
+    "homeItemFactory": {
+      "address": 9044124,
+      "size": 940,
+      "sha256": "10c9167107a6cb800fd5fa15bd99cad7947d75caadc6276bf0a1a8cb231aafc2"
+    },
+    "homeCard": {
+      "address": 9045064,
+      "size": 1880,
+      "sha256": "01f66003f1391abea251506f2f3b30fc715c43d8db8d1c96114210f02a290335"
+    },
+    "fractionalBoxAlloc": {
+      "address": 8638268,
+      "size": 12,
+      "sha256": "fdcd7d70fb3bda709a5ec5ba06349671de15c6b8a223905306fe43f5190ae07c"
+    }
+  },
+  "x86_64": {
+    "slot": {
+      "address": 8582652,
+      "size": 108,
+      "sha256": "37b8b8a51dba7e0c2e3d9b5efa58d07c7dd73abf02dabd9844578bed9a6b789b"
+    },
+    "context": {
+      "address": 11166408,
+      "size": 232,
+      "sha256": "74fae74aa4d4905424e097acbaaa2ace6961c2719840920a81b49a42e29f8856"
+    },
+    "closure": {
+      "address": 11167240,
+      "size": 200,
+      "sha256": "fb55ce154f8d328f9601a012241f50569410a175002eb68dcb9f07389abcf9f7"
+    },
+    "consumer": {
+      "address": 7775128,
+      "size": 12,
+      "sha256": "a1db9b3398a06e27c3530987bc02ae5634e7d57df28d27f93aa3c8e22c45c0c6"
+    },
+    "appRunner": {
+      "address": 11212576,
+      "size": 40,
+      "sha256": "3f5212ddc6e84a0a57ee16103955a0130fc47219a09aefce734b5d1039858ff6"
+    },
+    "runApp": {
+      "address": 11212616,
+      "size": 76,
+      "sha256": "6def8e3b079f058ceccbafe426a9135610261aae331090590720c717f65a9504"
+    },
+    "emptySet": {
+      "address": 7821772,
+      "size": 220,
+      "sha256": "6929a83059e48c926466c702b5a16be265f8d0eb4df26f26c353d66bdfa9cbc3"
+    },
+    "initAsync": {
+      "address": 4479236,
+      "size": 28,
+      "sha256": "cd017d7c12fdb409e306edff0a596af46505e1b4540fdcda680ae556d60c6290"
+    },
+    "returnAsync": {
+      "address": 4477988,
+      "size": 28,
+      "sha256": "65b8b7215ee712192cdb53568337c5efd34f2f5ab53234041bdc2cdc10059afe"
+    },
+    "delayed": {
+      "address": 4656696,
+      "size": 508,
+      "sha256": "b0413a1039e381cb402d726d4f56640ee4f65a922659081c41cb55c615307284"
+    },
+    "growable": {
+      "address": 8357824,
+      "size": 828,
+      "sha256": "a4ce60cda8a6b766ff8fa89d628e925faa30fe4f7335623d2e26155948658bc2"
+    },
+    "sticky": {
+      "address": 8589860,
+      "size": 776,
+      "sha256": "499b7955fc6e2a553cef978de9581103377dfc34d9dc7c15bb2ecec974146cfc"
+    },
+    "failure": {
+      "address": 8572340,
+      "size": 480,
+      "sha256": "7fa25820e36b9a760e58fc317b73438a6544fbbce85883ac0877e9da265539f3"
+    },
+    "nlziet": {
+      "address": 7632600,
+      "size": 944,
+      "sha256": "9c72a629c67f326c830524b878368ec72b037ad81bf8870c1a173b6f4538cf0f"
+    },
+    "sliverDelegate": {
+      "address": 6470740,
+      "size": 392,
+      "sha256": "9bc8f1daa45f50db6046611130e3e620295a812fd2de1e2e3dcacf3d9d34f5ac"
+    },
+    "sliverBuild": {
+      "address": 8586976,
+      "size": 856,
+      "sha256": "46b85f9724c2496014f9f1ed3eb392c608bff6848cafd39955a3b425ad903090"
+    },
+    "sliverDelegateAlloc": {
+      "address": 8587844,
+      "size": 12,
+      "sha256": "1d158edbb539d4d6f1e6d0a413e8b5ee8a8d4ce3bec44a7aa88c4929444641f4"
+    },
+    "sliverHeaderAlloc": {
+      "address": 8587832,
+      "size": 12,
+      "sha256": "db2dce74b3ae95aa07bdf0a4be696421b8727426db9da38b8a3d6f400666016e"
+    },
+    "adsFetch": {
+      "address": 8585212,
+      "size": 1764,
+      "sha256": "13033f6bc224bd6cd5858dd0e973ed81734f084e0cbf9b86ac240de43dd043cb"
+    },
+    "homeItemFactory": {
+      "address": 8167728,
+      "size": 876,
+      "sha256": "421c47b6f9e55fcc60d91fea6b1f0349bf94cb2c54813db61cf1a867ad3c76a1"
+    },
+    "homeCard": {
+      "address": 8168604,
+      "size": 1868,
+      "sha256": "5a0954b462b71949a62849101f7c5f2b68c99242db4df8c970986d22b5737a7f"
+    },
+    "fractionalBoxAlloc": {
+      "address": 7750956,
+      "size": 12,
+      "sha256": "580e928993fbcee24088bc528a8056a5d3cc5e7eaed44d5f826e35b481e503cf"
+    }
+  }
+}

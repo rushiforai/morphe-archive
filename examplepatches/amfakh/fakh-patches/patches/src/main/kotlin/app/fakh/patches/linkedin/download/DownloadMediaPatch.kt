@@ -16,6 +16,7 @@ val downloadMediaPatch = bytecodePatch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Feature")
 
     // The server driven viewer is handled by the SDUI filter and SduiFragment lifecycle hooks.
     dependsOn(sduiComponentFilterPatch)

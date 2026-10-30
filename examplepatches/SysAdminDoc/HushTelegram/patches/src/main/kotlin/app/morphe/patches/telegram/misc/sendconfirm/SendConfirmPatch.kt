@@ -20,6 +20,7 @@ import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
 import app.morphe.patches.telegram.misc.extension.writeStub
 import app.morphe.patches.telegram.misc.localcontrols.Mention
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
+import app.morphe.patches.telegram.misc.localcontrols.controlCallable
 import app.morphe.patches.telegram.misc.localcontrols.controlField
 import app.morphe.patches.telegram.misc.localcontrols.controlHook
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
@@ -38,6 +39,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
 internal const val SEND_CONFIRM = "$EXTENSION_PACKAGE/misc/SendConfirm;"
@@ -59,8 +61,11 @@ internal const val CAMERA_ALLOWED = "Lorg/telegram/messenger/camera/CameraView;-
 internal const val SEND_HELPER = "Lorg/telegram/messenger/SendMessagesHelper;"
 internal const val CALLBACK = "Lorg/telegram/messenger/Utilities\$Callback;"
 private const val TL_DOCUMENT = "Lorg/telegram/tgnet/TLRPC\$TL_document;"
+private const val VIDEO_INFO = "Lorg/telegram/messenger/VideoEditedInfo;"
 private const val LONG = "Ljava/lang/Long;"
 private const val SET_FIELD_TEXT = "$ENTER_VIEW->setFieldText(Ljava/lang/CharSequence;)V"
+private const val VOICE_PAUSED = "$MEDIA_CONTROLLER->isRecordingPaused()Z"
+private const val PAUSE_VOICE = "$MEDIA_CONTROLLER->toggleRecordingPause(Z)V"
 
 /** How far before a strip's send its sticker and its paid-message answer are cast, and how soon after it the typed emoji is cleared. */
 private const val STRIP_BEFORE = 60
@@ -75,6 +80,13 @@ private val VOICE_TARGET = listOf("I", "Z", "I", "Z", "J")
 private val VOICE_HOOK = listOf(OBJECT, "I", "Z", "I", "Z", "J")
 private val CALL_TARGET = listOf(USER, "Z", "Z", ACTIVITY, USER_FULL, ACCOUNT_INSTANCE)
 private val CALL_HOOK = listOf(OBJECT, "Z", "Z", OBJECT, OBJECT, OBJECT)
+
+/** The chat bar's send of what it holds: date, sound, a flag, whether its paid-message question may ask, stars. */
+private val BAR_SEND = listOf("I", "Z", "I", "Z", "J")
+private val PREVIEW_HOOK = listOf(OBJECT, "I", "I", "I", "I", "J")
+
+/** How far after the chat bar's send reads a clip from its preview it tests the clip for null. */
+private const val PREVIEW_TEST = 4
 
 /** The round video recorder's entry in the chat, which the two builds give their arguments in a different order. */
 internal enum class VideoShape(val target: List<String>, val hook: String, val resume: String) {
@@ -108,8 +120,11 @@ val sendConfirmPatch = bytecodePatch(
 /** A method of the app and, for a call site, the one instruction in it to change. */
 internal class SendConfirmSite(
     val sticker: MutableMethod, val gif: MutableMethod, val voice: MutableMethod, val video: MutableMethod,
-    val shape: VideoShape, val header: MutableMethod, val headerCall: Int, val profile: MutableMethod, val profileCall: Int,
+    val shape: VideoShape, val recorder: String, val videoPaused: String, val pauseVideo: String,
+    val header: MutableMethod, val headerCall: Int, val profile: MutableMethod, val profileCall: Int,
     val startCall: String, val launchField: String, val strips: List<StripSite>,
+    val barSend: String, val voiceClip: String, val videoClip: String,
+    val barSendMethod: MutableMethod, val voicePreview: PreviewSite, val videoPreview: PreviewSite,
 ) {
     /** Hands each place that gets code to [change] with the edit that does it, copy or real. */
     fun insert(change: (MutableMethod, (MutableMethod) -> Unit) -> Unit) {
@@ -120,7 +135,36 @@ internal class SendConfirmSite(
         change(header) { replaceCall(it, headerCall) }
         change(profile) { replaceCall(it, profileCall) }
         strips.forEach { strip -> change(strip.method) { stripGate(it, strip) } }
+        // The later one first, so the earlier one's index still holds.
+        change(barSendMethod) { method ->
+            listOf(voicePreview, videoPreview).sortedByDescending { it.at }.forEach { previewGate(method, it) }
+        }
     }
+}
+
+/**
+ * The start of the chat bar's send of the clip waiting in its preview, right after its test that
+ * the clip is there, with a local nothing reads from there on. [hook] is the extension's question.
+ */
+internal class PreviewSite(val at: Int, val answer: Int, val hook: String)
+
+/**
+ * Asks in front of the send of the clip in the preview, with `this` and every parameter, which sit
+ * together in the top seven registers. On true the send goes on; on false the extension has asked,
+ * and the method returns false as that send does, with the preview left as it was.
+ */
+private fun previewGate(target: MutableMethod, preview: PreviewSite) {
+    val top = target.implementation!!.registerCount
+    target.addInstructionsWithLabels(
+        preview.at,
+        """
+            invoke-static/range {v${top - 7} .. v${top - 1}}, $SEND_CONFIRM->${preview.hook}(${PREVIEW_HOOK.joinToString("")})Z
+            move-result v${preview.answer}
+            if-nez v${preview.answer}, :hush_send
+            return v${preview.answer}
+        """,
+        ExternalLabel("hush_send", target.getInstruction(preview.at)),
+    )
 }
 
 /**
@@ -199,6 +243,16 @@ internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
     controlHook(SEND_CONFIRM, "startCall", CALL_HOOK, "V")
     controlHook(SEND_CONFIRM, "stripSticker", listOf(OBJECT, OBJECT), "Z")
     controlHook(SEND_CONFIRM, "resumeStripSticker", listOf(OBJECT, OBJECT), "V")
+    controlHook(SEND_CONFIRM, "voicePaused", listOf(OBJECT), "Z")
+    controlHook(SEND_CONFIRM, "pauseVoice", listOf(OBJECT, "Z"), "V")
+    controlHook(SEND_CONFIRM, "videoPaused", listOf(OBJECT), "Z")
+    controlHook(SEND_CONFIRM, "pauseVideo", listOf(OBJECT), "V")
+    controlHook(SEND_CONFIRM, "chatBar", listOf(OBJECT), "Z")
+    controlHook(SEND_CONFIRM, "voiceClip", listOf(OBJECT), OBJECT)
+    controlHook(SEND_CONFIRM, "videoClip", listOf(OBJECT), OBJECT)
+    controlHook(SEND_CONFIRM, "sendFromBar", listOf(OBJECT), "V")
+    controlHook(SEND_CONFIRM, "previewVoice", PREVIEW_HOOK, "Z")
+    controlHook(SEND_CONFIRM, "previewVideo", PREVIEW_HOOK, "Z")
     for (shape in VideoShape.values()) {
         controlHook(SEND_CONFIRM, shape.hook, listOf(OBJECT).plus(shape.target), "Z")
         controlHook(SEND_CONFIRM, shape.resume, listOf(OBJECT).plus(shape.target), "V")
@@ -287,6 +341,58 @@ internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
     controlShape(AccessFlags.PUBLIC.isSet(videoClass.accessFlags), "the chat's video recorder listener is inaccessible")
     requireGateable(video, "the chat's handling of the round video recorder")
 
+    // Telegram's own pause before a recording's question, the one its paid-message check takes:
+    // the chat bar's one method that pauses a voice recording, which first asks the round video
+    // recorder, through the interface the chat implements, whether it's paused and pauses it.
+    for ((name, params, result) in listOf(Triple("isRecordingPaused", listOf<String>(), "Z"), Triple("toggleRecordingPause", listOf("Z"), "V"))) {
+        controlShape(mediaClass.methods.any { it.name == name && it.controlShape(params, result) && it.controlCallable(false) },
+            "the media controller's $name is gone")
+    }
+    val paidPause = barClass.methods.filter { m -> m.implementation != null && m.controlBody().any { it.controlRef() == PAUSE_VOICE } }
+        .controlSingle("the chat bar's pause before a paid message")
+    val pauseBody = paidPause.controlBody()
+    val voiceAsked = pauseBody.indexOfFirst { it.controlRef() == VOICE_PAUSED }
+    controlShape(voiceAsked > 0, "the chat bar's paid-message pause no longer asks whether a voice recording is paused")
+    val recorderCalls = pauseBody.subList(0, voiceAsked)
+        .filter { it.opcode == Opcode.INVOKE_INTERFACE || it.opcode == Opcode.INVOKE_INTERFACE_RANGE }
+        .mapNotNull { it.call() }.filter { it.definingClass in videoClass.interfaces && it.parameterTypes.isEmpty() }
+    val recorder = recorderCalls.map { it.definingClass }.distinct().controlSingle("the round video recorder's interface")
+    val recorderClass = mutableClassDefBy(recorder)
+    controlShape(AccessFlags.PUBLIC.isSet(recorderClass.accessFlags) && AccessFlags.INTERFACE.isSet(recorderClass.accessFlags),
+        "the round video recorder's interface is inaccessible")
+    val videoPaused = recorderCalls.filter { it.returnType == "Z" }.map(::signature).distinct().controlSingle("the round video recorder's paused check")
+    val pauseVideo = recorderCalls.filter { it.returnType == "V" }.map(::signature).distinct().controlSingle("the round video recorder's pause")
+
+    // That method is also the chat bar's send, the one its send button runs: it sends the voice clip
+    // or the round video waiting in its preview, each in a field of its own, and closes the preview.
+    // Send from a question in front of a paused recording goes through it. The stubs that read the
+    // two fields get them opened when the stubs are written.
+    controlShape(!AccessFlags.STATIC.isSet(paidPause.accessFlags) && AccessFlags.PUBLIC.isSet(paidPause.accessFlags) &&
+        paidPause.returnType == "Z" && paidPause.parameterTypes.map(CharSequence::toString) == BAR_SEND,
+        "the chat bar's send no longer takes a date, sound, its paid-message question and stars")
+    val (voiceClip, videoClip) = listOf(TL_DOCUMENT to "voice clip", VIDEO_INFO to "round video").map { (type, what) ->
+        val field = barClass.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == type }
+            .controlSingle("the chat bar's paused $what")
+        val ref = "${field.definingClass}->${field.name}:${field.type}"
+        controlShape(pauseBody.any { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.toString() == ref },
+            "the chat bar's send no longer sends its paused $what")
+        ref
+    }
+
+    // Where that send starts sending each clip: right after it tests the field it just read for
+    // null. Its own send button runs it there too, which never reaches the end of a recording.
+    val barFlow = ControlFlow.of(paidPause)
+    val barTop = paidPause.implementation!!.registerCount
+    val (voicePreview, videoPreview) = listOf(Triple(voiceClip, "voice clip", "previewVoice"), Triple(videoClip, "round video", "previewVideo"))
+        .map { (field, what, hook) ->
+            val at = previewStarts(paidPause, field).controlSingle("the chat bar's send of the $what in its preview")
+            for (register in barTop - 7 until barTop) {
+                controlShape(!writes(pauseBody[0], register) && barFlow.definitionReaches(0, at, register),
+                    "the chat bar's send changes its arguments before it sends the $what in its preview")
+            }
+            PreviewSite(at, paidPause.freeLocalsAt(NAME, at, 1, highest = 255).single(), hook)
+        }
+
     // The header menu's call item, and the profile's call button, each calling once.
     val (headerType, headerWanted, headerCalls) = headers.controlSingle("the chat header's menu")
     val header = mutableClassDefBy(headerType).methods.single { signature(it) == headerWanted }
@@ -331,7 +437,38 @@ internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
         StripSite(method, call, method.freeLocalsAt(NAME, call, 1, highest = 255).single())
     }
 
-    return SendConfirmSite(sticker, gif, voice, video, shape, header, headerCall, profile, profileCall, startRef, own, stripSites)
+    return SendConfirmSite(sticker, gif, voice, video, shape, recorder, videoPaused, pauseVideo,
+        header, headerCall, profile, profileCall, startRef, own, stripSites, signature(paidPause), voiceClip, videoClip,
+        paidPause, voicePreview, videoPreview)
+}
+
+/**
+ * Where [method] goes on with what it read from [field] once it found it there: right after each
+ * `if-eqz` on the register a read of the field filled, where nothing but that test leads.
+ */
+internal fun previewStarts(method: Method, field: String): List<Int> {
+    val body = method.controlBody()
+    val flow = ControlFlow.of(method)
+    val into = Array(body.size) { mutableListOf<Int>() }
+    body.indices.forEach { from -> (flow.normal[from] + flow.exceptional[from]).forEach { into[it] += from } }
+    return body.indices.filter { body[it].opcode == Opcode.IGET_OBJECT && body[it].controlField()?.toString() == field }
+        .mapNotNull { read -> nullTest(body, into, read) }
+        .filter { test -> test + 1 < body.size && into[test + 1] == listOf(test) }
+        .map { it + 1 }
+}
+
+/**
+ * The `if-eqz` that tests what instruction [read] just read, within [PREVIEW_TEST] instructions
+ * that nothing else jumps into and that leave the register alone, or null.
+ */
+private fun nullTest(body: List<Instruction>, into: Array<MutableList<Int>>, read: Int): Int? {
+    val register = body[read].namedRegisters().first()
+    for (at in read + 1..minOf(read + PREVIEW_TEST, body.size - 1)) {
+        if (into[at] != listOf(at - 1)) return null
+        if (body[at].opcode == Opcode.IF_EQZ && body[at].namedRegisters().first() == register) return at
+        if (writes(body[at], register) || !body[at].opcode.canContinue()) return null
+    }
+    return null
 }
 
 /**
@@ -401,6 +538,55 @@ internal fun BytecodePatchContext.writeSendConfirmStubs(site: SendConfirmSite) {
         invoke-virtual/range {p0 .. p8}, ${signature(site.video)}
         return-void
     """)
+    writeStub(SEND_CONFIRM, "voicePaused", 2, """
+        check-cast p0, $MEDIA_CONTROLLER
+        invoke-virtual {p0}, $VOICE_PAUSED
+        move-result v0
+        return v0
+    """)
+    writeStub(SEND_CONFIRM, "pauseVoice", 2, """
+        check-cast p0, $MEDIA_CONTROLLER
+        invoke-virtual {p0, p1}, $PAUSE_VOICE
+        return-void
+    """)
+    writeStub(SEND_CONFIRM, "videoPaused", 2, """
+        check-cast p0, ${site.recorder}
+        invoke-interface {p0}, ${site.videoPaused}
+        move-result v0
+        return v0
+    """)
+    writeStub(SEND_CONFIRM, "pauseVideo", 1, """
+        check-cast p0, ${site.recorder}
+        invoke-interface {p0}, ${site.pauseVideo}
+        return-void
+    """)
+    writeStub(SEND_CONFIRM, "chatBar", 2, """
+        instance-of v0, p0, $bar
+        return v0
+    """)
+    val barFields = mutableClassDefBy(bar).fields
+    for ((name, clip) in listOf("voiceClip" to site.voiceClip, "videoClip" to site.videoClip)) {
+        barFields.single { "${it.definingClass}->${it.name}:${it.type}" == clip }.apply {
+            accessFlags = accessFlags and (AccessFlags.PRIVATE.value or AccessFlags.PROTECTED.value).inv() or AccessFlags.PUBLIC.value
+        }
+        writeStub(SEND_CONFIRM, name, 2, """
+            check-cast p0, $bar
+            iget-object v0, p0, $clip
+            return-object v0
+        """)
+    }
+    // Now, with sound, and with Telegram's own paid-message question free to ask, as the send button sends.
+    writeStub(SEND_CONFIRM, "sendFromBar", 8, """
+        check-cast p0, $bar
+        move-object v0, p0
+        const/4 v1, 0x0
+        const/4 v2, 0x1
+        const/4 v3, 0x0
+        const/4 v4, 0x1
+        const-wide/16 v5, 0x0
+        invoke-virtual/range {v0 .. v6}, ${site.barSend}
+        return-void
+    """)
     writeStub(SEND_CONFIRM, "startCall", 6, """
         check-cast p0, $USER
         check-cast p3, $ACTIVITY
@@ -416,4 +602,4 @@ internal fun BytecodePatchContext.writeSendConfirmStubs(site: SendConfirmSite) {
     """)
 }
 
-private fun signature(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
+private fun signature(m: MethodReference) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"

@@ -188,6 +188,20 @@ class ReleaseStages(unittest.TestCase):
                 self.assertEqual(self.original_state, self.public_state.read_bytes())
         self.assertFalse(self.trace.exists())
 
+    def test_prepare_refuses_a_missing_bundle_key_before_changing_anything(self):
+        before = self.feed.read_bytes(), (self.root / "gradle.properties").read_bytes()
+        result = self.run_stage(
+            "prepare", ["-BundleKey", str(self.root / "no-such.key")]
+        )
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("Pass -BundleKey", result.stderr)
+        self.assertEqual(
+            before,
+            (self.feed.read_bytes(), (self.root / "gradle.properties").read_bytes()),
+        )
+        self.assertFalse(self.trace.exists())
+        self.assertEqual(self.original_state, self.public_state.read_bytes())
+
     def test_publish_refuses_without_a_passing_walk_of_the_built_bundle(self):
         head = subprocess.run(
             ["git", "-C", str(self.root), "rev-parse", "HEAD"],

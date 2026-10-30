@@ -261,16 +261,27 @@ internal fun findCommunityInbox(classes: Iterable<ClassDef>): CommunityInboxCont
         communityRequire(n.map { it.opcode } == listOf(Opcode.IF_EQZ, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.IF_EQZ,
             Opcode.CONST_4, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN) && n.branchTarget(0) == 6 && n.branchTarget(3) == 6 &&
             nullable.implementation!!.registerCount == 1 && n[1].communityArgs() == listOf(0) && n[4].communityLiteral(0, 1) && n[6].communityLiteral(0, 0))
-        // The community check compares the key type with both channel types inline.
-        fun compares(at: Int) = (a[at] as? TwoRegisterInstruction)?.let { it.registerA == 1 && it.registerB == 0 } == true
-        communityRequire(a.map { it.opcode } == listOf(Opcode.IGET_OBJECT, Opcode.SGET_OBJECT, Opcode.IF_EQ, Opcode.SGET_OBJECT, Opcode.IF_EQ,
-                Opcode.CONST_4, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN) && any.implementation!!.registerCount == 3 &&
-            a.branchTarget(2) == 7 && a.branchTarget(4) == 7 && a[5].communityLiteral(0, 0) && a[7].communityLiteral(0, 1) &&
-            (a[0] as TwoRegisterInstruction).let { it.registerA == 1 && it.registerB == 2 } && a[1].communityRegister() == 0 &&
-            a[3].communityRegister() == 0 && compares(2) && compares(4))
-        val channelType = a[1].communityRef(); val announcementType = a[3].communityRef()
+        // 585 splits the community check: the key's own channel test first, then the announcement type compared inline.
+        fun TwoRegisterInstruction.reads(a: Int, b: Int) = registerA == a && registerB == b
+        val channelCall = a.firstOrNull()?.communityRef() as? MethodReference ?: throw CommunityChanged()
+        communityRequire(a.map { it.opcode } == listOf(Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.IGET_OBJECT,
+                Opcode.SGET_OBJECT, Opcode.IF_EQ, Opcode.CONST_4, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN) &&
+            any.implementation!!.registerCount == 3 && any.implementation!!.tryBlocks.isEmpty() &&
+            a.branchTarget(2) == 8 && a.branchTarget(5) == 8 && a[6].communityLiteral(0, 0) && a[8].communityLiteral(0, 1) &&
+            a[0].communityArgs() == listOf(2) && a[1].communityRegister() == 0 && a[2].communityRegister() == 0 &&
+            (a[3] as TwoRegisterInstruction).reads(1, 2) && a[4].communityRegister() == 0 && (a[5] as TwoRegisterInstruction).reads(1, 0) &&
+            a[7].communityRegister() == 0 && a[9].communityRegister() == 0 &&
+            channelCall.definingClass == THREAD_KEY && channelCall.parameterTypes.isEmpty() && channelCall.returnType == "Z")
+        val channel = definition(channelCall); val k = channel.communityCode()
+        communityRequire(!AccessFlags.STATIC.isSet(channel.accessFlags) && channel.implementation!!.registerCount == 3 &&
+            channel.implementation!!.tryBlocks.isEmpty() && k.map { it.opcode } == listOf(Opcode.IGET_OBJECT, Opcode.SGET_OBJECT, Opcode.IF_NE,
+                Opcode.CONST_4, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN) &&
+            k[0].communityRef().toString() == a[3].communityRef().toString() && (k[0] as TwoRegisterInstruction).reads(1, 2) &&
+            k[1].communityRegister() == 0 && (k[2] as TwoRegisterInstruction).reads(1, 0) && k.branchTarget(2) == 5 &&
+            k[3].communityLiteral(0, 1) && k[4].communityRegister() == 0 && k[5].communityLiteral(0, 0) && k[6].communityRegister() == 0)
+        val channelType = k[1].communityRef(); val announcementType = a[4].communityRef()
         // The key's own and only instance field of that enum type, as CompatReport checks.
-        val keyRef = a[0].communityRef() as? FieldReference ?: throw CommunityChanged()
+        val keyRef = a[3].communityRef() as? FieldReference ?: throw CommunityChanged()
         val keyFields = (byType[THREAD_KEY] ?: throw CommunityChanged()).instanceFields.filter { it.type == keyRef.type }
         communityRequire(keyRef.definingClass == THREAD_KEY && keyFields.size == 1 && keyFields[0].name == keyRef.name)
         val keyType = keyRef.type
@@ -278,7 +289,7 @@ internal fun findCommunityInbox(classes: Iterable<ClassDef>): CommunityInboxCont
         communityRequire(channelType.toString() == keyEnums["COMMUNITY_CHANNEL"].toString() &&
             announcementType.toString() == keyEnums["COMMUNITY_ANNOUNCEMENT_CHANNEL"].toString())
         val identity = (listOf(update.hookId(), ctor.hookId(), scopeGetter.hookId(), switch.hookId(), rowSummary.toString(),
-            predicate.hookId(), nullable.hookId(), any.hookId(), requests.toString(), prefix.toString()) +
+            predicate.hookId(), nullable.hookId(), any.hookId(), channel.hookId(), requests.toString(), prefix.toString()) +
             folderPath.map { it.toString() } + listOf(folderGetter.hookId(), folders.getValue("INBOX").toString())).joinToString("|")
         return CommunityInboxContract(render, scope.toString(), rowSummary.toString(), predicate.hookId(), requests.toString(), identity,
             prefix.toString(), folderPath.map { it.toString() }, folderGetter.hookId(), folders.getValue("INBOX").toString())

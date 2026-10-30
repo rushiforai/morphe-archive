@@ -161,9 +161,11 @@ public class FeedVideoControlsTest {
         assertNotNull(cast());
         assertEquals("Cast this video", cast().getContentDescription());
         assertTrue(cast().getParent() == button().getParent());
-        // 1080 px wide surface at mdpi: a 48 px button 8 px in from each side, same row.
-        assertEquals(8, at(button()).leftMargin);
-        assertEquals(1080 - 8 - 48, at(cast()).leftMargin);
+        // 1080 px wide surface at mdpi: a 40 px button 4 px in from each side, same row (#301).
+        assertEquals(4, at(button()).leftMargin);
+        assertEquals(1080 - 4 - 40, at(cast()).leftMargin);
+        assertEquals(40, at(cast()).width);
+        assertEquals(40, at(button()).height);
         assertEquals(at(button()).topMargin, at(cast()).topMargin);
         cast().performClick();
         assertEquals(java.util.Arrays.asList("video"), casts);
@@ -231,7 +233,7 @@ public class FeedVideoControlsTest {
 
     @Test public void aSurfaceTooNarrowForTwoButtonsGetsNeitherButOneFits() {
         player.view.removeAllViews();
-        place(player.view, new SurfaceView(activity), 0, 0, 100, 600);
+        place(player.view, new SurfaceView(activity), 0, 0, 90, 600);
         layout();
         castOn();
         FeedVideoControls.changed(player);
@@ -241,7 +243,7 @@ public class FeedVideoControlsTest {
         Settings.INLINE_FEED_VIDEO_CONTROLS.save(false);
         drain();
         assertNotNull(cast());
-        assertEquals(100 - 8 - 48, at(cast()).leftMargin);
+        assertEquals(90 - 4 - 40, at(cast()).leftMargin);
     }
 
     @Test public void buttonStartsPausesAndResumesWithoutChangingNativeTaps() {

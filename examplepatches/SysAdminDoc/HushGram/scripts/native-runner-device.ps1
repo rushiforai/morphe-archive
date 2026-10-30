@@ -174,7 +174,8 @@ function Get-NativeRunnerTarget {
     }
     if (-not $Record) { $Record = Join-Path (Split-Path -Parent $Report) 'patch-record.json' }
     $facts = Get-ApkManifestFacts -Apk $Apk -Aapt2 $Tools.Aapt2
-    $result = Get-Content -LiteralPath $Report -Raw | ConvertFrom-Json
+    try { $result = ConvertFrom-PatchJson (Get-Content -LiteralPath $Report -Raw) }
+    catch { throw "The patch result at $Report doesn't parse: $($_.Exception.Message)" }
     if ([string]$result.packageName -cne $facts.package -or [string]$result.packageVersion -cne [string]$facts.versionName) {
         throw "The patch result is for $($result.packageName) $($result.packageVersion), not the target's $($facts.package) $($facts.versionName)."
     }

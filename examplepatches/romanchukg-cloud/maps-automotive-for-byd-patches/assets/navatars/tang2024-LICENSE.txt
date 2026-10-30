@@ -1,0 +1,13 @@
+3D car model "BYD Tang 2024" (tang2024.fbx, tang2024.png)
+
+Adapted from "2024 BYD Tang" by Ddiaz Design
+https://sketchfab.com/3d-models/2024-byd-tang-0af7ffe7b3b64d7fb9e31d4f1bac10c1
+Licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+The author's page states that the model is based on a BYD 3D model from downloadfree3d.com.
+
+Changes: the interior removed, the body simplified to about 4000 triangles, the materials turned into
+one 128x128 palette texture (red rear lamps brightened, body paint grey), and the result written as a
+Navatars FBX with our own rig and animations. This adapted model is shared under the same licence,
+CC BY-NC-SA 4.0, for non-commercial use only. It is separate from the GPL-3.0 patch code.
+BYD and Tang are names of BYD Company Limited; this project is not affiliated with BYD.

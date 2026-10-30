@@ -26,8 +26,8 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 
 internal const val BUBBLE_SESSION = "Lcom/facebook/auth/usersession/FbUserSession;"
-/** The specifier of the bubble rollout read as 584 numbers it (583 read 36312015752531975). Each release renumbers it, and no other is accepted. */
-internal const val BUBBLE_ROLLOUT = 36312007162597379L
+/** The specifier of the bubble rollout read as 585 numbers it (584 read 36312007162597379). Each release renumbers it, and no other is accepted. */
+internal const val BUBBLE_ROLLOUT = 36312002867630111L
 internal const val BUBBLE_ACTIVITY = "com.facebook.messaging.msys.thread.bubbles.activity.StaxThreadViewBubblesActivity"
 internal const val NATIVE_BUBBLE_ROUTES = "$HOST_SCREENS->nativeBubbleRoutes()Z"
 internal const val NATIVE_BUBBLE_METADATA = "hush.native_bubble_routes"

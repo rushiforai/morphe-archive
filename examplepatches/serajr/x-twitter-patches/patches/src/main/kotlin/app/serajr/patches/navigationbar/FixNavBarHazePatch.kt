@@ -1,6 +1,7 @@
 package app.serajr.patches.navigationbar
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.serajr.patches.Constants
 import com.android.tools.smali.dexlib2.Opcode
@@ -143,7 +144,7 @@ private fun safeDrawLog(tag: String): String = """
 @Suppress("unused")
 val fixNavigationBarHazePatch = bytecodePatch(
     name = "Fix Navigation Bar Haze",
-    description = "Phase B6.2 diagnostics: B5.1 baseline plus read-only GraphicsLayer inspection through the navigation extension!",
+    description = "Phase C2.4-C m2 guard isolation: B5.1 baseline plus read-only GraphicsLayer inspection through the navigation extension.",
     default = false
 ) {
     compatibleWith(Constants.COMPATIBILITY_X)
@@ -312,6 +313,61 @@ val fixNavigationBarHazePatch = bytecodePatch(
                 "${EXTENSION_CLASS}->onBottomBarSizeChanged(I)V"
         )
 
+
+        // C2.4-B: replace each stock invoke with a complete, self-contained
+        // guarded invoke. Never branch to a label compiled by another call.
+        fun refOf(instruction: com.android.tools.smali.dexlib2.iface.instruction.Instruction): String? =
+            (instruction as? ReferenceInstruction)?.reference?.toString()
+
+        val m2Code = mutableContent.implementation!!.instructions.toList()
+        val dividerCalls = m2Code.indices.filter {
+            refOf(m2Code[it]) ==
+                "Landroidx/compose/material3/z;->f(FIIJLandroidx/compose/runtime/Composer;Landroidx/compose/ui/Modifier;)V"
+        }
+        val contentCalls = m2Code.indices.filter {
+            refOf(m2Code[it]) ==
+                "Landroidx/compose/runtime/internal/g;->invoke(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
+        }
+        val actionCalls = m2Code.indices.filter {
+            refOf(m2Code[it]) ==
+                "Landroidx/compose/material3/v8;->a(Landroidx/compose/ui/Modifier;JJLandroidx/compose/foundation/layout/j2;Landroidx/compose/runtime/internal/g;Landroidx/compose/runtime/Composer;I)V"
+        }
+        require(dividerCalls.size == 1 && contentCalls.size == 1 && actionCalls.size == 1) {
+            "C2.4-B: unexpected m2 call counts divider=${dividerCalls.size} " +
+                "content=${contentCalls.size} action=${actionCalls.size}"
+        }
+        // Process descending so the original indices remain valid.
+        val guardedInvokes = listOf(
+            actionCalls.single() to """
+                if-eqz v8, :c24b_action_done
+                invoke-static/range {v2 .. v10}, Landroidx/compose/material3/v8;->a(Landroidx/compose/ui/Modifier;JJLandroidx/compose/foundation/layout/j2;Landroidx/compose/runtime/internal/g;Landroidx/compose/runtime/Composer;I)V
+                :c24b_action_done
+                nop
+            """.trimIndent(),
+            contentCalls.single() to """
+                if-eqz v3, :c24b_content_done
+                invoke-virtual {v3, v7, v2}, Landroidx/compose/runtime/internal/g;->invoke(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+                :c24b_content_done
+                nop
+            """.trimIndent(),
+            dividerCalls.single() to """
+                iget-object v8, v0, Lcom/x/ui/common/m2;->c:Landroidx/compose/runtime/internal/g;
+                if-eqz v8, :c24b_divider_done
+                const/4 v8, 0x0
+                invoke-static/range {v2 .. v8}, Landroidx/compose/material3/z;->f(FIIJLandroidx/compose/runtime/Composer;Landroidx/compose/ui/Modifier;)V
+                :c24b_divider_done
+                const/4 v8, 0x0
+            """.trimIndent()
+        )
+        for ((index, snippet) in guardedInvokes.sortedByDescending { it.first }) {
+            mutableContent.removeInstruction(index)
+            mutableContent.addInstructions(index, snippet)
+        }
+
+        // C2.4-C isolation: do not inject the persistent composition into p2.a.
+        // The C2.4-B p2 injection failed Android bytecode verification.
+        // Retain the m2 null-callback guards to validate them independently.
+
         // PHASE B2 — GEOMETRY DIAGNOSTICS
 
         fun installGeometryHook(
@@ -476,6 +532,6 @@ val fixNavigationBarHazePatch = bytecodePatch(
         require(mutableCleanup.implementation?.registerCount == 3)
         mutableCleanup.addInstructions(0, cleanupEntryLog())
 
-        debugNavHaze("Phase B6.2 diagnostics installed.")
+        debugNavHaze("Phase C2.4-C m2 guard isolation installed; no persistent effect yet.")
     }
 }

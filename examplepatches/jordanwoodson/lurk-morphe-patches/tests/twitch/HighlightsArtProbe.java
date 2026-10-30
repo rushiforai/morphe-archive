@@ -18,11 +18,13 @@ import java.util.Map;
 
 /**
  * Version-pinned integration test for Hide chat highlights, Hide player buttons, Hide Home sections,
- * Hide mature content warning and the native Hide Clips Home tabs: the real Twitch 31.7.0 classes
+ * Hide mature content warning and the native Hide Clips Home tabs: the real Twitch 31.8.0 classes
  * from the patched APK, with the production extension, on ART. A switch that is on returns before
  * the original code; a switch that is off reaches the original code, which then fails on the
- * deliberately empty (allocated, never constructed) objects. Obfuscated names are pinned here only;
- * they are Twitch 31.7.0's R8 output.
+ * deliberately empty (allocated, never constructed) objects. Most obfuscated names come from the APK's
+ * locators, with Twitch 31.7.0's as fallbacks; the ones no patch matches are pinned to Twitch 31.8.0's R8
+ * output: the raid highlight j89, notice kinds zs6, callout lambda e8v (presenter m8v, types p8v), the
+ * signed-out Home tab source fio and the Following sections p8i, r8i, o8i and q8i.
  */
 public final class HighlightsArtProbe {
     private static final Map<String, Boolean> switches = new HashMap<>();
@@ -130,7 +132,7 @@ public final class HighlightsArtProbe {
         Class<?> typeBase = Class.forName(ProbeLocators.type("twitch.hide_chat_highlights.highlight_id", "m99"));
         String idField = ProbeLocators.field("twitch.hide_chat_highlights.highlight_id", "a");
         Object hypeTrain = Class.forName(ProbeLocators.type("twitch.match.hype_train_highlight_type", "z89")).getDeclaredConstructors()[0].newInstance(3, null, null);
-        Object raid = Class.forName("g99").getField("c").get(null);
+        Object raid = Class.forName("j89").getField("c").get(null);
         Object gift = allocate(ProbeLocators.type("twitch.match.hype_train_highlight_type", "z89"));
         set(gift, typeBase, idField, "gift_sub");
         String modelType = ProbeLocators.fieldType("twitch.hide_chat_highlights.highlight_model", "fa9");
@@ -150,7 +152,7 @@ public final class HighlightsArtProbe {
         Method notice = method(ProbeLocators.type("twitch.match.chat_notice_line", "ci6"),
             ProbeLocators.method("twitch.match.chat_notice_line", "c"));
         Object mapper = allocate(ProbeLocators.type("twitch.match.chat_notice_line", "ci6"));
-        Class<?> kinds = Class.forName("ot6");
+        Class<?> kinds = Class.forName("zs6");
         for (boolean enabled : new boolean[]{true, false}) {
             switches.put("hide_sub_notices", enabled);
             switches.put("hide_watch_streaks", enabled);
@@ -170,11 +172,11 @@ public final class HighlightsArtProbe {
         }
 
         // Private pop-ups: watch streak and Hype Train rewards; others stay.
-        Constructor<?> lambda = Class.forName("j9v").getDeclaredConstructors()[0];
+        Constructor<?> lambda = Class.forName("e8v").getDeclaredConstructors()[0];
         lambda.setAccessible(true);
-        Object callout = lambda.newInstance(allocate("r9v"), 0);
-        Method invoke = Class.forName("j9v").getMethod("invoke", Object.class);
-        Class<?> calloutTypes = Class.forName("u9v");
+        Object callout = lambda.newInstance(allocate("m8v"), 0);
+        Method invoke = Class.forName("e8v").getMethod("invoke", Object.class);
+        Class<?> calloutTypes = Class.forName("p8v");
         for (boolean enabled : new boolean[]{true, false}) {
             switches.put("hide_watch_streaks", enabled);
             switches.put("hide_hype_train", enabled);
@@ -235,7 +237,7 @@ public final class HighlightsArtProbe {
         Constructor<?> page = pageType.getConstructor(location);
         Object live = page.newInstance(Class.forName("tv.twitch.android.models.feed.FeedLocation$Live").getField("INSTANCE").get(null));
         Object clips = page.newInstance(Class.forName("tv.twitch.android.models.feed.FeedLocation$Clips").getField("INSTANCE").get(null));
-        Object signedOut = Class.forName("njo").getField("a").get(null);
+        Object signedOut = Class.forName("fio").getField("a").get(null);
         List<?> stock = (List<?>) Class.forName(ProbeLocators.type("twitch.hide_clips.home_tabs", "lih"))
             .getMethod(ProbeLocators.method("twitch.hide_clips.home_tabs", "b"), boolean.class).invoke(signedOut, false);
         check(stock.equals(Arrays.asList(live, clips)), "Unexpected signed-out Home tabs " + stock);
@@ -260,7 +262,7 @@ public final class HighlightsArtProbe {
         Method sections = Class.forName("io.github.jordanwoodson.extension.shared.twitch.TwitchHighlights")
             .getMethod("followingSections", List.class);
         List<Object> all = new ArrayList<>();
-        for (String type : new String[]{"dai", "fai", ProbeLocators.type("twitch.match.resume_watching_section", "gai"), "cai", "eai"}) all.add(allocate(type));
+        for (String type : new String[]{"p8i", "r8i", ProbeLocators.type("twitch.match.resume_watching_section", "gai"), "o8i", "q8i"}) all.add(allocate(type));
         for (boolean enabled : new boolean[]{true, false}) {
             switches.put("hide_home_continue_watching", enabled);
             switches.put("hide_home_offline_channels", enabled);

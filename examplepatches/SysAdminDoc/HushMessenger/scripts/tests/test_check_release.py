@@ -1,3 +1,4 @@
+import base64
 import copy
 import hashlib
 import importlib.util
@@ -23,7 +24,11 @@ spec = importlib.util.spec_from_file_location(
 release = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(release)
 captures = sys.modules["readme_captures"]
+signature = sys.modules["bundle_signature"]
 
+SEED = bytes(range(32))
+PUBLIC_KEY = base64.b64encode(signature.public_key(SEED)).decode("ascii")
+KEY_LINE = f"Morphe shows `{signature.fingerprint(PUBLIC_KEY)}` for the signing key.\n"
 SSH_KEYGEN = shutil.which("ssh-keygen")
 GIT = shutil.which("git")
 REPO = Path(__file__).parents[2]
@@ -37,6 +42,8 @@ CHANGELOG = (
     "# Changelog\n\n## 1.2.3 (2026-09-27)\n\nThis release brings two things.\n\n"
     f"{GROUPS}\n\n## 1.2.2 (2026-09-20)\n\n### New\n\n- Older.\n"
 )
+BUG_FORM = ".github/ISSUE_TEMPLATE/bug_report.yml"
+FORM = "      placeholder: HushMessenger 1.2.3 on Messenger 584.1.0.61.98\n"
 
 
 def setUpModule():
@@ -92,6 +99,25 @@ def capture_fixture(root):
     shutil.rmtree(renders)
 
 
+def class_file(major):
+    """The header of a class file compiled for class file version [major], with nothing after it."""
+    return b"\xca\xfe\xba\xbe\x00\x00" + major.to_bytes(2, "big") + b"\x00\x00"
+
+
+def write_bundle(path, seed=SEED, timestamp="1790552148000", dex=b"fixture", entries=()):
+    """The fixture bundle signed with [seed] as the build signs it, or unsigned for None. Returns its SHA-256."""
+    line = f"Timestamp: {timestamp}\r\n" if timestamp else ""
+    with zipfile.ZipFile(path, "w") as archive:
+        archive.writestr("META-INF/MANIFEST.MF", f"Manifest-Version: 1.0\r\nVersion: 1.2.3\r\n{line}\r\n")
+        archive.writestr("classes.dex", dex)
+        archive.writestr("extensions/messenger.mpe", b"fixture")
+        for name, data in entries:
+            archive.writestr(name, data)
+    if seed is not None:
+        path.write_bytes(signature.sign(path.read_bytes(), seed))
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def new_key(path):
     subprocess.run(
         [SSH_KEYGEN, "-q", "-t", "ed25519", "-N", "", "-C", "test", "-f", str(path)],
@@ -118,14 +144,7 @@ class ReleaseChecks(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.bundle = self.root / "patches/build/libs/patches-1.2.3.mpp"
         self.bundle.parent.mkdir(parents=True)
-        with zipfile.ZipFile(self.bundle, "w") as archive:
-            archive.writestr(
-                "META-INF/MANIFEST.MF",
-                "Manifest-Version: 1.0\r\nVersion: 1.2.3\r\nTimestamp: 1790552148000\r\n\r\n",
-            )
-            archive.writestr("classes.dex", b"fixture")
-            archive.writestr("extensions/messenger.mpe", b"fixture")
-        self.digest = hashlib.sha256(self.bundle.read_bytes()).hexdigest()
+        self.digest = write_bundle(self.bundle)
         self.catalog = {
             "version": "1.2.3",
             "patches": [
@@ -138,10 +157,12 @@ class ReleaseChecks(unittest.TestCase):
             "created_at": "2026-09-27T23:35:48",
             "description": f"Thirty-two patches for Messenger.\n\n{GROUPS}",
             "download_url": "https://github.com/SysAdminDoc/HushMessenger/releases/download/v1.2.3/patches-1.2.3.mpp",
+            "public_key": PUBLIC_KEY,
         }
         self.write(
             "gradle.properties", "version=1.2.3\nbundleTimestampMillis=1790552148000\n"
         )
+        self.write("morphe-signing.pub", PUBLIC_KEY + "\n")
         self.write("patches-bundle.json", json.dumps(self.index))
         self.write("patches-list.json", json.dumps(self.catalog))
         self.write(
@@ -157,8 +178,9 @@ class ReleaseChecks(unittest.TestCase):
         )
         self.write(
             "README.md",
-            f"https://img.shields.io/badge/version-1.2.3-blue\n{self.digest}  patches-1.2.3.mpp\n",
+            f"https://img.shields.io/badge/version-1.2.3-blue\n{self.digest}  patches-1.2.3.mpp\n{KEY_LINE}",
         )
+        self.write(BUG_FORM, FORM)
         self.write("CHANGELOG.md", CHANGELOG)
         self.write(
             "extensions/messenger/build.gradle.kts",
@@ -398,12 +420,7 @@ class ReleaseChecks(unittest.TestCase):
 
         def rebuild(stamp):
             """Rebuilds the bundle, its evidence and the source with [stamp] on both sides, or none on either."""
-            line = f"Timestamp: {stamp}\r\n" if stamp else ""
-            with zipfile.ZipFile(self.bundle, "w") as archive:
-                archive.writestr("META-INF/MANIFEST.MF", f"Manifest-Version: 1.0\r\nVersion: 1.2.3\r\n{line}\r\n")
-                archive.writestr("classes.dex", b"fixture")
-                archive.writestr("extensions/messenger.mpe", b"fixture")
-            digest = hashlib.sha256(self.bundle.read_bytes()).hexdigest()
+            digest = write_bundle(self.bundle, timestamp=stamp)
             evidence.write_text(
                 json.dumps({"bundle": self.bundle.name, "sha256": digest, "dexValidated": True, "catalog": self.catalog}),
                 encoding="utf-8",
@@ -413,7 +430,7 @@ class ReleaseChecks(unittest.TestCase):
 
         def released(stamp):
             digest = rebuild(stamp)
-            self.write("README.md", f"https://img.shields.io/badge/version-1.2.3-blue\n{digest}  patches-1.2.3.mpp\n")
+            self.write("README.md", f"https://img.shields.io/badge/version-1.2.3-blue\n{digest}  patches-1.2.3.mpp\n{KEY_LINE}")
             return release.verify(self.root)
 
         # Each check passes the rebuilt tree while the timestamps match, so dropping them is the only change below.
@@ -738,6 +755,75 @@ class ReleaseChecks(unittest.TestCase):
             f"`{fingerprint}`", (REPO / "README.md").read_text(encoding="utf-8")
         )
 
+    def test_committed_bundle_key_is_the_one_the_readme_names(self):
+        key = signature.read_public(REPO / release.BUNDLE_PUBLIC_KEY)
+        self.assertIn(
+            f"`{signature.fingerprint(key)}`", (REPO / "README.md").read_text(encoding="utf-8")
+        )
+
+    def test_release_refuses_a_bundle_morphe_would_refuse_or_pin_to_another_key(self):
+        signed = self.bundle.read_bytes()
+        flipped = bytearray(signed)
+        flipped[40] ^= 1
+        elsewhere = self.root / "elsewhere"
+        elsewhere.mkdir()
+        write_bundle(elsewhere / "unsigned.mpp", seed=None)
+        write_bundle(elsewhere / "other.mpp", seed=bytes(32))
+        other_key = signature.verify((elsewhere / "other.mpp").read_bytes())
+        for data, message in (
+            ((elsewhere / "unsigned.mpp").read_bytes(), "Bundle isn't signed"),
+            # Bytes after the comment hide it, as they would from Manager.
+            (signed + b"changed", "Bundle isn't signed"),
+            (bytes(flipped), "doesn't match its content"),
+            ((elsewhere / "other.mpp").read_bytes(), "another key than morphe-signing.pub"),
+        ):
+            self.bundle.write_bytes(data)
+            with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
+                release.verify(self.root)
+        self.bundle.write_bytes(signed)
+        self.assertIn(
+            f"signed by {signature.fingerprint(PUBLIC_KEY)}", release.verify(self.root)
+        )
+        unpinned = {name: value for name, value in self.index.items() if name != "public_key"}
+        for index in ({**self.index, "public_key": other_key}, unpinned):
+            self.write("patches-bundle.json", json.dumps(index))
+            with self.subTest(index=index), self.assertRaisesRegex(ValueError, "public_key differs"):
+                release.verify(self.root)
+        self.write("patches-bundle.json", json.dumps(self.index))
+        self.write("morphe-signing.pub", "not a key\n")
+        with self.assertRaisesRegex(ValueError, "morphe-signing.pub isn't"):
+            release.verify(self.root)
+        self.write("morphe-signing.pub", PUBLIC_KEY + "\n")
+        self.bundle.write_bytes((elsewhere / "unsigned.mpp").read_bytes())
+        error = io.StringIO()
+        with redirect_stderr(error):
+            self.assertEqual(1, release.main(["--root", str(self.root)]))
+        self.assertIn("CHECK FAILED:", error.getvalue())
+        self.assertIn("Bundle isn't signed", error.getvalue())
+
+    def test_development_bundle_may_be_unsigned_but_never_signed_by_another_key(self):
+        evidence = self.root / "patches/build/reports/catalog-evidence.json"
+        held = self.hold()
+
+        def check(seed):
+            digest = write_bundle(self.bundle, seed=seed)
+            evidence.write_text(
+                json.dumps({"bundle": self.bundle.name, "sha256": digest, "dexValidated": True, "catalog": self.catalog}),
+                encoding="utf-8",
+            )
+            return release.verify_development(self.root, self.bundle, evidence, held)
+
+        self.assertIn("held public v1.2.2", check(SEED))
+        flipped = bytearray(self.bundle.read_bytes())
+        flipped[40] ^= 1
+        self.bundle.write_bytes(bytes(flipped))
+        with self.assertRaisesRegex(ValueError, "doesn't match its content"):
+            release.verify_development(self.root, self.bundle, evidence, held)
+        # Builds without MORPHE_SIGNING_KEY stay unsigned; only a release needs the key.
+        self.assertIn("held public v1.2.2", check(None))
+        with self.assertRaisesRegex(ValueError, "another key than morphe-signing.pub"):
+            check(bytes(32))
+
     def test_a_signer_line_with_no_key_is_named_instead_of_crashing(self):
         with tempfile.TemporaryDirectory() as folder:
             signers = Path(folder, "no_key_signers")
@@ -765,8 +851,8 @@ class ReleaseChecks(unittest.TestCase):
             ):
                 release.verify(self.root)
         self.write("patches-list.json", json.dumps(self.catalog))
-        with self.bundle.open("ab") as handle:
-            handle.write(b"changed")
+        # A rebuilt bundle carries a good signature, but the evidence still describes the earlier one.
+        write_bundle(self.bundle, dex=b"changed")
         with self.assertRaisesRegex(ValueError, "evidence is stale"):
             release.verify(self.root)
 
@@ -815,19 +901,24 @@ class ReleaseChecks(unittest.TestCase):
                 "README.md",
                 (
                     '<a href="https://github.com/SysAdminDoc/HushMessenger/releases/tag/v1.2.2">'
-                    f'<img src="https://img.shields.io/badge/version-1.2.3-blue"></a>\n{self.digest}  {self.bundle.name}\n'
+                    f'<img src="https://img.shields.io/badge/version-1.2.3-blue"></a>\n{self.digest}  {self.bundle.name}\n{KEY_LINE}'
                 ),
                 "download link",
             ),
             (
                 "README.md",
-                f"https://img.shields.io/badge/version-1.2.3-blue\n[notes](../../releases/tag/v1.2.2)\n{self.digest}  {self.bundle.name}\n",
+                f"https://img.shields.io/badge/version-1.2.3-blue\n[notes](../../releases/tag/v1.2.2)\n{self.digest}  {self.bundle.name}\n{KEY_LINE}",
                 "download link",
             ),
             (
                 "README.md",
-                f"https://img.shields.io/badge/version-1.2.3-blue\ngithub.com/sysadmindoc/hushmessenger/releases/download/v1.2.2/x\n{self.digest}  {self.bundle.name}\n",
+                f"https://img.shields.io/badge/version-1.2.3-blue\ngithub.com/sysadmindoc/hushmessenger/releases/download/v1.2.2/x\n{self.digest}  {self.bundle.name}\n{KEY_LINE}",
                 "download link",
+            ),
+            (
+                "README.md",
+                f"https://img.shields.io/badge/version-1.2.3-blue\n{self.digest}  {self.bundle.name}\n",
+                "fingerprint",
             ),
             ("CHANGELOG.md", "## Unreleased\n\n## 1.2.3 (2026-09-27)\n", "changelog"),
             (
@@ -923,6 +1014,36 @@ class ReleaseChecks(unittest.TestCase):
     def text(self, path):
         return (self.root / path).read_text(encoding="utf-8")
 
+    def test_a_class_newer_than_java_17_is_refused_and_named(self):
+        evidence = self.root / "patches/build/reports/catalog-evidence.json"
+
+        def rebuild(entries):
+            """Rebuilds the bundle with [entries] in it, and its evidence and README checksum with it."""
+            digest = write_bundle(self.bundle, entries=entries)
+            evidence.write_text(
+                json.dumps({"bundle": self.bundle.name, "sha256": digest, "dexValidated": True, "catalog": self.catalog}),
+                encoding="utf-8",
+            )
+            self.write(
+                "README.md",
+                f"https://img.shields.io/badge/version-1.2.3-blue\n{digest}  patches-1.2.3.mpp\n{KEY_LINE}",
+            )
+
+        # Java 17 classes pass, and a multi-release jar's newer copies are the patcher's to judge.
+        rebuild((("app/Patch.class", class_file(61)), ("META-INF/versions/21/app/Patch.class", class_file(65))))
+        self.assertIn("Release metadata passed", release.verify(self.root))
+        for entries, message in (
+            ((("app/Patch.class", b"\xca\xfe"),), r"app/Patch\.class isn't a class file"),
+            ((("app/Patch.class", class_file(65)),), r"app/Patch\.class is compiled for class file version 65"),
+        ):
+            rebuild(entries)
+            with self.subTest(message=message), self.assertRaisesRegex(ValueError, message):
+                release.verify(self.root)
+        # A development build is refused the same way, so the problem shows before a release.
+        held = self.hold()
+        with self.assertRaisesRegex(ValueError, "class file version 65"):
+            release.verify_development(self.root, self.bundle, evidence, held)
+
     def test_release_refuses_an_install_step_still_naming_the_old_messenger_version(self):
         self.catalog["patches"][0]["compatiblePackages"] = [
             {"packageName": "com.facebook.orca", "targets": [{"version": "584.1.0.61.98"}]}
@@ -939,13 +1060,30 @@ class ReleaseChecks(unittest.TestCase):
                 }
             ),
         )
-        badge = f"https://img.shields.io/badge/version-1.2.3-blue\n{self.digest}  patches-1.2.3.mpp\n"
+        badge = f"https://img.shields.io/badge/version-1.2.3-blue\n{self.digest}  patches-1.2.3.mpp\n{KEY_LINE}"
         with self.assertRaisesRegex(ValueError, "no Get the APK step"):
             release.verify(self.root)
         self.write("README.md", badge + "1. **Get the APK.** The current release patches Messenger 584.0.0.49.98.\n")
         with self.assertRaisesRegex(ValueError, "different Messenger version"):
             release.verify(self.root)
         self.write("README.md", badge + "1. **Get the APK.** HushMessenger patches Messenger 584.1.0.61.98.\n")
+        self.assertIn("Release metadata passed", release.verify(self.root))
+        # The bug form's example answer follows the same pair, so a report copies a real one.
+        self.write(BUG_FORM, FORM.replace("1.2.3", "1.2.2"))
+        with self.assertRaisesRegex(ValueError, "different HushMessenger version"):
+            release.verify(self.root)
+        self.write(BUG_FORM, FORM.replace("584.1.0.61.98", "585.0.0.53.94"))
+        with self.assertRaisesRegex(ValueError, "a Messenger version the bundle doesn't target"):
+            release.verify(self.root)
+        self.write(BUG_FORM, "      placeholder: Samsung Galaxy S22, Android 16\n")
+        with self.assertRaisesRegex(ValueError, r"no HushMessenger \.\.\. on Messenger"):
+            release.verify(self.root)
+        self.write(BUG_FORM, FORM)
+        step = "1. **Get the APK.** HushMessenger patches Messenger 584.1.0.61.98.\n"
+        self.write("README.md", badge + "https://img.shields.io/badge/Messenger-585.0.0.53.94-0084FF\n" + step)
+        with self.assertRaisesRegex(ValueError, "Messenger badge"):
+            release.verify(self.root)
+        self.write("README.md", badge + "https://img.shields.io/badge/Messenger-584.1.0.61.98-0084FF\n" + step)
         self.assertIn("Release metadata passed", release.verify(self.root))
 
     def test_readme_may_link_another_projects_release(self):
@@ -955,7 +1093,7 @@ class ReleaseChecks(unittest.TestCase):
             "[Desktop](https://github.com/MorpheApp/morphe-desktop/releases/tag/v1.17.0)\n"
             "Pair it with hushfacebook-patches-0.1.7.mpp or morphe-patches-1.2.0.\n"
             '<a href="https://github.com/SysAdminDoc/HushMessenger/releases/tag/v1.2.3">ours</a>\n'
-            f"{self.digest}  {self.bundle.name}\n",
+            f"{self.digest}  {self.bundle.name}\n{KEY_LINE}",
         )
         self.assertIn("Release metadata passed", release.verify(self.root))
 
@@ -986,7 +1124,8 @@ class ReleaseChecks(unittest.TestCase):
         raw = bytearray(self.bundle.read_bytes())
         name_length, extra_length = struct.unpack_from("<HH", raw, offset + 26)
         raw[offset + 30 + name_length + extra_length] = 0x07
-        self.bundle.write_bytes(raw)
+        # Signed after the damage, so the zip read is what has to fail.
+        self.bundle.write_bytes(signature.sign(bytes(raw), SEED))
         error = io.StringIO()
         with redirect_stderr(error):
             self.assertEqual(1, release.main(["--root", str(self.root)]))

@@ -44,6 +44,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  */
 public final class FeedVideoControls {
     private static final String FAMILY = FamilyNames.TAP_TO_PLAY;
+    /** Touch target, its gap from the video's edge, and the disc drawn in it, sized like Facebook's speaker icon (#301). */
+    static final int SIZE_DP = 40, MARGIN_DP = 4, DISC_DP = 28;
     private static final Map<Object, Control> players = new WeakHashMap<>();
     private static Handler main;
 
@@ -271,8 +273,8 @@ public final class FeedVideoControls {
         if (!surface.getGlobalVisibleRect(visible) || !list.getGlobalVisibleRect(clip) || !visible.intersect(clip)) return null;
         if (!content.getGlobalVisibleRect(clip) || !visible.intersect(clip)) return null;
         float density = container.getResources().getDisplayMetrics().density;
-        int size = Math.round(48 * density);
-        int margin = Math.round(8 * density);
+        int size = Math.round(SIZE_DP * density);
+        int margin = Math.round(MARGIN_DP * density);
         int across = both ? size * 2 + margin * 3 : size + margin * 2;
         if (visible.width() < across || visible.height() < size + margin * 2) return null;
         int[] at = new int[2];
@@ -382,8 +384,8 @@ public final class FeedVideoControls {
     }
 
     /**
-     * A 48 dp target with a rounded dark background and a high-contrast symbol: play or pause, or
-     * the cast one for [cast].
+     * A 40 dp target showing a small translucent disc with a white symbol, like Facebook's own
+     * speaker icon: play or pause, or the cast one for [cast].
      */
     static final class Button extends View {
         final Control control;
@@ -392,9 +394,7 @@ public final class FeedVideoControls {
         final WeakReference<Object> params;
         final String videoId;
         final WeakReference<View> surface;
-        final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        final RectF rect = new RectF();
-        final Path path = new Path();
+        final Look look = new Look();
         boolean playing;
         Button(Control control, Target target, boolean cast) {
             super(target.content.getContext());
@@ -422,41 +422,53 @@ public final class FeedVideoControls {
             invalidate();
         }
         @Override protected void onDraw(Canvas canvas) {
-            float w = getWidth(), h = getHeight();
-            paint.setColor(0xDD11111B);
-            rect.set(0, 0, w, h);
-            float radius = 8 * getResources().getDisplayMetrics().density;
-            canvas.drawRoundRect(rect, radius, radius, paint);
+            look.draw(canvas, getWidth(), getHeight(), getResources().getDisplayMetrics().density, cast, playing);
+        }
+    }
+
+    /** What a [Button] draws, kept apart so it can be drawn without a player. */
+    static final class Look {
+        final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final RectF rect = new RectF();
+        final Path path = new Path();
+        void draw(Canvas canvas, int width, int height, float density, boolean cast, boolean playing) {
+            float cx = width / 2f, cy = height / 2f;
+            float r = Math.min(Math.min(cx, cy), DISC_DP / 2f * density);
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(0x66000000);
+            canvas.drawCircle(cx, cy, r, paint);
             paint.setColor(0xFFFFFFFF);
+            // The symbol's square box, centered on the disc.
+            float s = r * 1.7f, x = cx - s / 2, y = cy - s / 2;
             if (cast) {
-                drawCast(canvas, w, h);
+                drawCast(canvas, x, y, s);
             } else if (playing) {
-                canvas.drawRect(w * .32f, h * .28f, w * .44f, h * .72f, paint);
-                canvas.drawRect(w * .56f, h * .28f, w * .68f, h * .72f, paint);
+                canvas.drawRect(x + s * .32f, y + s * .28f, x + s * .44f, y + s * .72f, paint);
+                canvas.drawRect(x + s * .56f, y + s * .28f, x + s * .68f, y + s * .72f, paint);
             } else {
                 path.reset();
-                path.moveTo(w * .38f, h * .26f);
-                path.lineTo(w * .72f, h * .50f);
-                path.lineTo(w * .38f, h * .74f);
+                path.moveTo(x + s * .38f, y + s * .26f);
+                path.lineTo(x + s * .72f, y + s * .50f);
+                path.lineTo(x + s * .38f, y + s * .74f);
                 path.close();
                 canvas.drawPath(path, paint);
             }
         }
-        /** The usual cast symbol: a screen outline open at its lower left, with signal arcs there. */
-        private void drawCast(Canvas canvas, float w, float h) {
-            float stroke = w * .06f;
+        /** The usual cast symbol in the [s] box at [left], [top]: a screen outline open at its lower left, with signal arcs there. */
+        private void drawCast(Canvas canvas, float left, float top, float s) {
+            float stroke = s * .08f;
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(stroke);
             paint.setStrokeCap(Paint.Cap.ROUND);
             path.reset();
-            path.moveTo(w * .26f, h * .40f);
-            path.lineTo(w * .26f, h * .28f);
-            path.lineTo(w * .76f, h * .28f);
-            path.lineTo(w * .76f, h * .72f);
-            path.lineTo(w * .56f, h * .72f);
+            path.moveTo(left + s * .26f, top + s * .40f);
+            path.lineTo(left + s * .26f, top + s * .28f);
+            path.lineTo(left + s * .76f, top + s * .28f);
+            path.lineTo(left + s * .76f, top + s * .72f);
+            path.lineTo(left + s * .56f, top + s * .72f);
             canvas.drawPath(path, paint);
-            float x = w * .26f, y = h * .72f;
-            for (float r : new float[] {w * .14f, w * .26f}) {
+            float x = left + s * .26f, y = top + s * .72f;
+            for (float r : new float[] {s * .14f, s * .26f}) {
                 rect.set(x - r, y - r, x + r, y + r);
                 canvas.drawArc(rect, 270, 90, false, paint);
             }

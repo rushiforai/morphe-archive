@@ -196,6 +196,22 @@ public final class FamilySignatureTrust {
         }
     }
 
+    /**
+     * Whether [packageName] is installed and none of the certificates it carries now is Meta's, as a
+     * Messenger HushMessenger replaced in place is (#292). False when it isn't installed, its signers
+     * can't be read, or one of them is Meta's, so a doubt keeps Facebook's own handling.
+     */
+    public static boolean isResigned(@Nullable PackageManager packages, String packageName) {
+        if (packages == null) return false;
+        try {
+            Set<String> signers = currentSigners(packages, packageName);
+            return !signers.isEmpty() && Collections.disjoint(signers, META_SIGNER_DIGESTS);
+        } catch (Throwable failure) {
+            // Not installed, or unreadable: nothing here says Facebook would turn it down.
+            return false;
+        }
+    }
+
     /** Records a refusal reason as an always-on count and, with Debug logging on, a line, then denies. */
     private static boolean no(String caller, String reason) {
         HookStatus.counted(FamilyNames.RESTORE_TRUST, reason);

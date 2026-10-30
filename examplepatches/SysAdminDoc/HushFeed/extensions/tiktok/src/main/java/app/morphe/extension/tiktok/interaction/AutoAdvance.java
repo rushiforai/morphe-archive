@@ -61,7 +61,9 @@ public final class AutoAdvance {
     /**
      * The feed gate as the video's right-hand column reads it before adding TikTok's Auto scroll
      * switch or button above or below the avatar, which tablets and unfolded foldables get. The
-     * hide switch takes that control away; the feed gate's other readers keep their answer.
+     * round button at the video's top right asks the tablet's default auto scroll read instead,
+     * and its reads come here too. The hide switch takes both away; each gate's other readers
+     * keep their answer.
      */
     public static boolean railAvailable(boolean gate) {
         return gate && !Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION.get();

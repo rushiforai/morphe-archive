@@ -29,7 +29,7 @@ internal object Fixtures {
      * build and the others. The one number a new variant drop changes; a test that checks every
      * build asserts against it, so a missing fixture still fails it.
      */
-    const val BUILDS = 4
+    const val BUILDS = 8
 
     /**
      * The builds besides the arm64 one each target's bundle fixture holds. Every ABI's build is
@@ -53,7 +53,7 @@ internal object Fixtures {
      * The base APKs of the other builds of each declared Instagram version, sorted by build. Each
      * is in a folder named `instagram-<version>-<version code>` in the fixture folder, and the
      * declared build's own folder is left out. Instagram ships one version as several builds
-     * (453.0.0.55.79 has one each for arm64, armeabi-v7a, x86 and x86_64), each compiled on its
+     * (453.0.0.57.79 has three arm64, three armeabi-v7a and two x86 builds), each compiled on its
      * own, and the patches find what they change by its shape, so these are read too (#77, #95).
      */
     fun otherBuilds(): List<File> {

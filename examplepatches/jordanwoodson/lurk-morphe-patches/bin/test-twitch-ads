@@ -9,21 +9,40 @@ remote=/data/local/tmp/lurk-twitch-ads
 mkdir -p "$out/classes" "$out/dex" "$WORK/tmp"
 export TMPDIR="$WORK/tmp"
 android="$ANDROID_HOME/platforms/android-36/android.jar"
-# A compile-only stub of the React Native player's display interface, so the probe can give a
-# playback session a View display. It stays out of the DEX: the app's own interface loads at run time.
-mkdir -p "$out/stub-src/com/twitchrn/player" "$out/stub-classes"
+# Compile-only stubs of the React Native player's display interfaces (Twitch 31.8.0's), so the probe can
+# give a playback session a View display. They stay out of the DEX: the app's own interfaces load at run time.
+rm -rf "$out/stub-src" "$out/stub-classes"
+mkdir -p "$out/stub-src/com/twitchrn/player" "$out/stub-src/com/facebook/react/bridge" "$out/stub-classes"
+cat > "$out/stub-src/com/facebook/react/bridge/ReactContext.java" <<'JAVA'
+package com.facebook.react.bridge;
+public class ReactContext {}
+JAVA
 cat > "$out/stub-src/com/twitchrn/player/PlaybackDisplay.java" <<'JAVA'
 package com.twitchrn.player;
 public interface PlaybackDisplay {
+    boolean getSurfaceHidesUntilRevealed();
+    void hideSurface();
     void onContentSize(int width, int height);
-    void onPlaybackStarted();
-    void onSecureSurfaceRequired(boolean required);
-    void onSourceLoadStarted(boolean warm);
-    void onSurfaceArrived();
-    void onWarmPlayerAdopted();
+    void onSecureSurfaceRequired(boolean secure);
+    void revealSurface(long fadeMs);
 }
 JAVA
-javac --release 17 -d "$out/stub-classes" "$out/stub-src/com/twitchrn/player/PlaybackDisplay.java"
+cat > "$out/stub-src/com/twitchrn/player/PlayerHost.java" <<'JAVA'
+package com.twitchrn.player;
+public interface PlayerHost {
+    com.facebook.react.bridge.ReactContext getReactContext();
+    int getReactTag();
+}
+JAVA
+cat > "$out/stub-src/com/twitchrn/player/PlaybackEdge.java" <<'JAVA'
+package com.twitchrn.player;
+public interface PlaybackEdge extends PlaybackDisplay, PlayerHost {
+    interface EventListener {}
+    void clearEventListener();
+    void setEventListener(EventListener listener);
+}
+JAVA
+javac --release 17 -d "$out/stub-classes" $(find "$out/stub-src" -name '*.java')
 (cd "$out/stub-classes" && jar cf "$out/stubs.jar" com)
 rm -rf "$out/classes"/*
 javac --release 17 -classpath "$android:$out/stubs.jar" -d "$out/classes" "$ROOT/tests/twitch/AdsProbe.java" "$ROOT/tests/twitch/ProbeLocators.java"

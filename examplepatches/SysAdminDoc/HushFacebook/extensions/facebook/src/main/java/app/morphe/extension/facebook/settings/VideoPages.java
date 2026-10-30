@@ -149,6 +149,9 @@ final class VideoPages {
                         L10n.t("Takes this button off the side of reels. The buttons above it move down. "
                                 + "A change shows from the next reel.")));
             }
+            reels.addPreference(toggle(context, Settings.SHOW_REEL_COMMENT_BUTTON,
+                    L10n.t("Keeps the Comment button on reels whose comments are turned off, so you can still read "
+                            + "the ones already there. A change shows from the next reel.")));
             reels.addPreference(toggle(context, Settings.HIDE_REEL_SOUND_BUTTON,
                     L10n.t("Takes the speaker button off the bottom of the side of reels. "
                             + "A change shows from the next reel.")));
@@ -234,6 +237,9 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.HOLD_FEED_VIDEO_FOR_2X,
                     L10n.t("Holding a video in the feed or in Watch plays it at double speed until you let go. It works "
                             + "without the switches above.")));
+            reels.addPreference(toggle(context, Settings.HIDE_2X_LOCK_HINT,
+                    L10n.t("Holding a video for 2x shows the plain 2x pill, without the \"Pull down to lock 2x speed\" "
+                            + "hint. Pulling down still locks it. It works without the switches above.")));
         }
         if (build.contains(PatchFamily.REEL_DOWNLOAD)) {
             subheading(reels, L10n.t("Saving reels"));

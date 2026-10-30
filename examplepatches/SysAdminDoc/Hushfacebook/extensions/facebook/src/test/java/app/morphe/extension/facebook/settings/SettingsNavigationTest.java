@@ -403,6 +403,43 @@ public class SettingsNavigationTest {
     }
 
     /**
+     * See-through bars shows right away, except on a kept tab bar, whose layout was built as the
+     * main screen started (#250): that flip brings up the restart row, and flipping it back takes
+     * the row away again, since the bar is back to the layout it was built with.
+     */
+    @Test public void seeThroughOnAKeptTabBarBringsUpTheRestartRowUntilItIsPutBack() {
+        app.morphe.extension.facebook.navigation.TabBarScrollAway.forgetBuilt();
+        try {
+            Settings.KEEP_TAB_BAR.save(true);
+            // The main screen started with the bar kept and not see-through.
+            assertTrue(app.morphe.extension.facebook.navigation.TabBarScrollAway.staysPut());
+            page.navigation.navigate("Appearance");
+            assertFalse(contains(SettingsNavigation.RESTART));
+
+            tap(Settings.TRANSLUCENT_BARS.key);
+            assertTrue(Settings.TRANSLUCENT_BARS.savedValue());
+            assertTrue(app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment
+                    .restartPending.contains(Settings.TRANSLUCENT_BARS.key));
+            layout(dialog.getView());
+            Preference restart = (Preference) list().getItemAtPosition(0);
+            assertEquals(SettingsNavigation.RESTART, restart.getKey());
+            assertEquals("Restart Facebook to apply this change", String.valueOf(restart.getTitle()));
+            assertNull("the see-through change went to a toast instead of the row", ShadowToast.getLatestToast());
+
+            tap(Settings.TRANSLUCENT_BARS.key);
+            assertFalse(Settings.TRANSLUCENT_BARS.savedValue());
+            assertFalse(app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment
+                    .restartPending.contains(Settings.TRANSLUCENT_BARS.key));
+            assertFalse(contains(SettingsNavigation.RESTART));
+        } finally {
+            app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.clear();
+            app.morphe.extension.facebook.navigation.TabBarScrollAway.forgetBuilt();
+            Settings.KEEP_TAB_BAR.resetToDefault();
+            Settings.TRANSLUCENT_BARS.resetToDefault();
+        }
+    }
+
+    /**
      * A row's icon pushes its text in, so every row of a card has an icon or none does, and the
      * card's text starts in one line. "Forget seen posts" and "Hide reaction counts" started theirs
      * 78 px in from the switches around them (device audit, 2026-10-15). A card is a run of rows of
