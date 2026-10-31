@@ -116,7 +116,20 @@ jobs:
           # subscribe to, which is the whole point of opening one to merge immediately.
           git checkout -B "$BRANCH"
           cp "$INDEX_FILE" .github/new-repos-baseline.json
-          git add .github/new-repos-baseline.json
+          # Record the batch as well. Without it, a run that reports a repo the index
+          # already holds (a simulated report, or a re-run after a manual merge) would
+          # copy an identical baseline, have nothing to commit, and fail the step.
+          {
+            echo "# Repos reported by the last notification ($COUNT)"
+            cat new-repos.txt
+          } > .github/last-notification.txt
+          git add .github/new-repos-baseline.json .github/last-notification.txt
+
+          if git diff --cached --quiet; then
+            echo "Nothing new to publish; the baseline already matches the index."
+            exit 0
+          fi
+
           git commit -m "chore(data): record $COUNT new patch repo(s) [skip ci]"
           git push --force origin "$BRANCH"
 
